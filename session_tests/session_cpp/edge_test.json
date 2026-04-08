@@ -1,25 +1,134 @@
 [
   {
     "group": "Edge",
-    "test_name": "Json Roundtrip",
+    "test_name": "Constructor",
     "passed": true,
-    "time_ms": 12.029,
-    "line": 10,
-    "code": "    Edge original(\"./serialization/test_edge\", \"v0\", \"v1\");\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original, \"./serialization/test_edge.json\");\n    Edge loaded = encoders::json_load<Edge>(\"./serialization/test_edge.json\");\n\n    std::filesystem::remove(\"./serialization/test_edge.json\");",
+    "time_ms": 0.017,
+    "line": 8,
+    "code": "    // uncomment #include \"graph.h\"\n\n    // Default constructor\n    Edge e0;\n\n    // Constructor with v0/v1/attribute\n    Edge e(\"a\", \"b\", \"attr\");\n\n    // Minimal string representation\n    std::string estr = e.str();",
     "checks": [
       {
-        "line": 17,
+        "line": 20,
+        "code_line": "e0.v0 == \"\"",
+        "passed": true
+      },
+      {
+        "line": 21,
+        "code_line": "e0.v1 == \"\"",
+        "passed": true
+      },
+      {
+        "line": 22,
+        "code_line": "!e0.guid().empty()",
+        "passed": true
+      },
+      {
+        "line": 23,
+        "code_line": "e.v0 == \"a\"",
+        "passed": true
+      },
+      {
+        "line": 24,
+        "code_line": "e.v1 == \"b\"",
+        "passed": true
+      },
+      {
+        "line": 25,
+        "code_line": "e.attribute == \"attr\"",
+        "passed": true
+      },
+      {
+        "line": 26,
+        "code_line": "estr.find(\"Edge\") != std::string::npos",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Edge",
+    "test_name": "Json Roundtrip",
+    "passed": true,
+    "time_ms": 9.775,
+    "line": 29,
+    "code": "    // uncomment #include \"graph.h\"\n    // uncomment #include \"encoders.h\"\n\n    Edge original(\"v0\", \"v1\", \"test_edge_attr\");\n    encoders::json_dump(original, \"serialization/test_edge.json\");\n    Edge loaded = encoders::json_load<Edge>(\"serialization/test_edge.json\");",
+    "checks": [
+      {
+        "line": 37,
         "code_line": "loaded.name == original.name",
         "passed": true
       },
       {
-        "line": 18,
+        "line": 38,
         "code_line": "loaded.v0 == original.v0",
         "passed": true
       },
       {
-        "line": 19,
+        "line": 39,
         "code_line": "loaded.v1 == original.v1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Edge",
+    "test_name": "Vertices",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 42,
+    "code": "    // uncomment #include \"graph.h\"\n\n    Edge e(\"a\", \"b\");\n    auto [u, v] = e.vertices();",
+    "checks": [
+      {
+        "line": 48,
+        "code_line": "u == \"a\" && v == \"b\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Edge",
+    "test_name": "Connects",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 51,
+    "code": "    // uncomment #include \"graph.h\"\n\n    Edge e(\"a\", \"b\");",
+    "checks": [
+      {
+        "line": 56,
+        "code_line": "e.connects(\"a\")",
+        "passed": true
+      },
+      {
+        "line": 57,
+        "code_line": "e.connects(\"b\")",
+        "passed": true
+      },
+      {
+        "line": 58,
+        "code_line": "!e.connects(\"c\")",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Edge",
+    "test_name": "Other Vertex",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 61,
+    "code": "    // uncomment #include \"graph.h\"\n\n    Edge e(\"a\", \"b\");",
+    "checks": [
+      {
+        "line": 66,
+        "code_line": "e.other_vertex(\"a\") == \"b\"",
+        "passed": true
+      },
+      {
+        "line": 67,
+        "code_line": "e.other_vertex(\"b\") == \"a\"",
         "passed": true
       }
     ],

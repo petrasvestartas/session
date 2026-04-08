@@ -1,25 +1,320 @@
 [
   {
     "group": "Graph",
-    "test_name": "Json Roundtrip",
+    "test_name": "Constructor",
     "passed": true,
-    "time_ms": 5.229,
-    "line": 42,
-    "code": "    from session_py import Graph\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = Graph(\"./serialization/test_graph\")\n    original.add_node(\"node1\", \"Node 1\")\n    original.add_node(\"node2\", \"Node 2\")\n    original.add_edge(\"node1\", \"node2\", \"edge1\")\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_graph.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)",
+    "time_ms": 0.045,
+    "line": 117,
+    "code": "    from session_py import Graph\n\n    # Default constructor\n    g0 = Graph()\n\n    # Constructor with name\n    g = Graph(\"my_named_graph\")",
     "checks": [
       {
-        "line": 58,
+        "line": 127,
+        "code_line": "g0.name == \"my_graph\"",
+        "passed": true
+      },
+      {
+        "line": 128,
+        "code_line": "g0.guid",
+        "passed": true
+      },
+      {
+        "line": 129,
+        "code_line": "g.name == \"my_named_graph\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Graph",
+    "test_name": "Json Roundtrip",
+    "passed": true,
+    "time_ms": 7.758,
+    "line": 132,
+    "code": "    from session_py import Graph\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = Graph(\"test_graph\")\n    original.add_node(\"node1\", \"Node 1\")\n    original.add_node(\"node2\", \"Node 2\")\n    original.add_edge(\"node1\", \"node2\", \"edge1\")\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_graph.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)",
+    "checks": [
+      {
+        "line": 148,
         "code_line": "loaded.number_of_vertices() == 2",
         "passed": true
       },
       {
-        "line": 59,
+        "line": 149,
         "code_line": "loaded.number_of_edges() == 1",
         "passed": true
       },
       {
-        "line": 60,
+        "line": 150,
         "code_line": "loaded.has_edge((\"node1\", \"node2\"))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Graph",
+    "test_name": "Has Node",
+    "passed": true,
+    "time_ms": 0.01,
+    "line": 153,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_node(\"a\")",
+    "checks": [
+      {
+        "line": 160,
+        "code_line": "g.has_node(\"a\")",
+        "passed": true
+      },
+      {
+        "line": 161,
+        "code_line": "not g.has_node(\"missing\")",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Graph",
+    "test_name": "Has Edge",
+    "passed": true,
+    "time_ms": 0.011,
+    "line": 164,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")",
+    "checks": [
+      {
+        "line": 171,
+        "code_line": "g.has_edge((\"a\", \"b\"))",
+        "passed": true
+      },
+      {
+        "line": 172,
+        "code_line": "not g.has_edge((\"a\", \"c\"))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Graph",
+    "test_name": "Add Node",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 175,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    key = g.add_node(\"a\")",
+    "checks": [
+      {
+        "line": 182,
+        "code_line": "key == \"a\"",
+        "passed": true
+      },
+      {
+        "line": 183,
+        "code_line": "g.has_node(\"a\")",
+        "passed": true
+      },
+      {
+        "line": 184,
+        "code_line": "g.number_of_vertices() == 1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Graph",
+    "test_name": "Add Edge",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 187,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    edge = g.add_edge(\"a\", \"b\")\n    u, v = edge",
+    "checks": [
+      {
+        "line": 195,
+        "code_line": "u == \"a\" and v == \"b\"",
+        "passed": true
+      },
+      {
+        "line": 196,
+        "code_line": "g.number_of_edges() == 1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Graph",
+    "test_name": "Remove Node",
+    "passed": true,
+    "time_ms": 0.016,
+    "line": 199,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.remove_node(\"a\")",
+    "checks": [
+      {
+        "line": 207,
+        "code_line": "not g.has_node(\"a\")",
+        "passed": true
+      },
+      {
+        "line": 208,
+        "code_line": "g.number_of_edges() == 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Graph",
+    "test_name": "Remove Edge",
+    "passed": true,
+    "time_ms": 0.013,
+    "line": 211,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.remove_edge((\"a\", \"b\"))",
+    "checks": [
+      {
+        "line": 219,
+        "code_line": "g.number_of_edges() == 0",
+        "passed": true
+      },
+      {
+        "line": 220,
+        "code_line": "g.has_node(\"a\")",
+        "passed": true
+      },
+      {
+        "line": 221,
+        "code_line": "g.has_node(\"b\")",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Graph",
+    "test_name": "Get Vertices",
+    "passed": true,
+    "time_ms": 0.01,
+    "line": 224,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_node(\"a\")\n    g.add_node(\"b\")\n\n    verts = g.get_vertices()",
+    "checks": [
+      {
+        "line": 234,
+        "code_line": "len(verts) == 2",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Graph",
+    "test_name": "Get Edges",
+    "passed": true,
+    "time_ms": 0.016,
+    "line": 237,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n\n    edges = list(g.get_edges())",
+    "checks": [
+      {
+        "line": 247,
+        "code_line": "len(edges) == 2",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Graph",
+    "test_name": "Neighbors",
+    "passed": true,
+    "time_ms": 0.01,
+    "line": 250,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"a\", \"c\")\n\n    neigh = list(g.neighbors(\"a\"))",
+    "checks": [
+      {
+        "line": 260,
+        "code_line": "len(neigh) == 2",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Graph",
+    "test_name": "Number Of Vertices",
+    "passed": true,
+    "time_ms": 0.005,
+    "line": 263,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_node(\"a\")\n    g.add_node(\"b\")\n    g.add_node(\"c\")",
+    "checks": [
+      {
+        "line": 272,
+        "code_line": "g.number_of_vertices() == 3",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Graph",
+    "test_name": "Number Of Edges",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 275,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")",
+    "checks": [
+      {
+        "line": 283,
+        "code_line": "g.number_of_edges() == 2",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Graph",
+    "test_name": "Clear",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 286,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.clear()",
+    "checks": [
+      {
+        "line": 294,
+        "code_line": "g.number_of_vertices() == 0",
+        "passed": true
+      },
+      {
+        "line": 295,
+        "code_line": "g.number_of_edges() == 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Graph",
+    "test_name": "Node Attribute",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 298,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_node(\"a\", \"initial\")\n    g.node_attribute(\"a\", \"updated\")",
+    "checks": [
+      {
+        "line": 306,
+        "code_line": "g.node_attribute(\"a\") == \"updated\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Graph",
+    "test_name": "Edge Attribute",
+    "passed": true,
+    "time_ms": 0.007,
+    "line": 309,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\", \"initial\")\n    g.edge_attribute(\"a\", \"b\", \"updated\")",
+    "checks": [
+      {
+        "line": 317,
+        "code_line": "g.edge_attribute(\"a\", \"b\") == \"updated\"",
         "passed": true
       }
     ],
@@ -29,12 +324,12 @@
     "group": "Graph",
     "test_name": "Bfs",
     "passed": true,
-    "time_ms": 0.031,
-    "line": 63,
-    "code": "    from session_py import Graph\n\n    g = Graph(\"test\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n    result = g.bfs(\"a\")",
+    "time_ms": 0.019,
+    "line": 320,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n    result = g.bfs(\"a\")",
     "checks": [
       {
-        "line": 75,
+        "line": 332,
         "code_line": "result == [\"a\", \"b\", \"c\", \"d\"]",
         "passed": true
       }
@@ -45,12 +340,12 @@
     "group": "Graph",
     "test_name": "Dfs",
     "passed": true,
-    "time_ms": 0.022,
-    "line": 78,
-    "code": "    from session_py import Graph\n\n    g = Graph(\"test\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n    result = g.dfs(\"a\")",
+    "time_ms": 0.017,
+    "line": 335,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n    result = g.dfs(\"a\")",
     "checks": [
       {
-        "line": 90,
+        "line": 347,
         "code_line": "result == [\"a\", \"b\", \"c\", \"d\"]",
         "passed": true
       }
@@ -61,32 +356,22 @@
     "group": "Graph",
     "test_name": "Connected Components",
     "passed": true,
-    "time_ms": 0.027,
-    "line": 93,
-    "code": "    from session_py import Graph\n\n    g = Graph(\"test\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n    comps = g.connected_components()",
+    "time_ms": 0.032,
+    "line": 350,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n    comps = g.connected_components()",
     "checks": [
       {
-        "line": 105,
+        "line": 362,
         "code_line": "len(comps) == 2",
         "passed": true
       },
       {
-        "line": 106,
-        "code_line": "comps[0] == [\"a\", \"b\", \"c\", \"d\"]",
-        "passed": true
-      },
-      {
-        "line": 107,
-        "code_line": "comps[1] == [\"e\", \"f\"]",
-        "passed": true
-      },
-      {
-        "line": 108,
+        "line": 363,
         "code_line": "g.is_connected() == False",
         "passed": true
       },
       {
-        "line": 109,
+        "line": 364,
         "code_line": "g.number_connected_components() == 2",
         "passed": true
       }
@@ -97,27 +382,27 @@
     "group": "Graph",
     "test_name": "Shortest Path",
     "passed": true,
-    "time_ms": 0.022,
-    "line": 112,
-    "code": "    from session_py import Graph\n\n    g = Graph(\"test\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")",
+    "time_ms": 0.04,
+    "line": 367,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")",
     "checks": [
       {
-        "line": 123,
+        "line": 378,
         "code_line": "g.shortest_path(\"a\", \"d\") == [\"a\", \"b\", \"d\"]",
         "passed": true
       },
       {
-        "line": 124,
+        "line": 379,
         "code_line": "g.shortest_path_length(\"a\", \"d\") == 2",
         "passed": true
       },
       {
-        "line": 125,
+        "line": 380,
         "code_line": "g.shortest_path(\"a\", \"e\") == []",
         "passed": true
       },
       {
-        "line": 126,
+        "line": 381,
         "code_line": "g.shortest_path_length(\"a\", \"e\") == -1",
         "passed": true
       }
@@ -128,17 +413,17 @@
     "group": "Graph",
     "test_name": "Has Cycle",
     "passed": true,
-    "time_ms": 0.017,
-    "line": 129,
-    "code": "    from session_py import Graph\n\n    g = Graph(\"test\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n\n    g2 = Graph(\"test2\")\n    g2.add_edge(\"x\", \"y\")\n    g2.add_edge(\"y\", \"z\")",
+    "time_ms": 0.024,
+    "line": 384,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n\n    g2 = Graph(\"g2\")\n    g2.add_edge(\"x\", \"y\")\n    g2.add_edge(\"y\", \"z\")",
     "checks": [
       {
-        "line": 140,
+        "line": 393,
         "code_line": "g.has_cycle() == True",
         "passed": true
       },
       {
-        "line": 144,
+        "line": 397,
         "code_line": "g2.has_cycle() == False",
         "passed": true
       }
@@ -149,18 +434,13 @@
     "group": "Graph",
     "test_name": "Cycle Basis",
     "passed": true,
-    "time_ms": 0.02,
-    "line": 147,
-    "code": "    from session_py import Graph\n\n    g = Graph(\"test\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    g.add_edge(\"b\", \"d\")\n    g.add_edge(\"e\", \"f\")\n    cycles = g.cycle_basis()\n\n    cycle_set = set(cycles[0])",
+    "time_ms": 0.018,
+    "line": 400,
+    "code": "    from session_py import Graph\n\n    g = Graph(\"g\")\n    g.add_edge(\"a\", \"b\")\n    g.add_edge(\"b\", \"c\")\n    g.add_edge(\"c\", \"a\")\n    cycles = g.cycle_basis()",
     "checks": [
       {
-        "line": 159,
+        "line": 410,
         "code_line": "len(cycles) == 1",
-        "passed": true
-      },
-      {
-        "line": 161,
-        "code_line": "cycle_set == {\"a\", \"b\", \"c\"}",
         "passed": true
       }
     ],

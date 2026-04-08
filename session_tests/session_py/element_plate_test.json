@@ -3,7 +3,7 @@
     "group": "PlateElement",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.29,
+    "time_ms": 0.376,
     "line": 7,
     "code": "    from session_py import PlateElement\n    from session_py import Point\n    from session_py import Mesh\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = PlateElement(polygon=polygon, thickness=0.2, name=\"plate1\")\n\n    geo = p.geometry\n    name = p.name\n    guid = p.guid\n    pstr = str(p)\n    prepr = repr(p)\n\n    pcopy = p.duplicate()\n    p2 = PlateElement(polygon=polygon, thickness=0.2, name=\"plate1\")\n    p3 = PlateElement(polygon=polygon, thickness=0.5, name=\"plate1\")",
     "checks": [
@@ -64,7 +64,7 @@
     "group": "PlateElement",
     "test_name": "Default Polygon",
     "passed": true,
-    "time_ms": 0.045,
+    "time_ms": 0.059,
     "line": 43,
     "code": "    from session_py import PlateElement\n    from session_py import Mesh\n\n    p = PlateElement()",
     "checks": [
@@ -90,7 +90,7 @@
     "group": "PlateElement",
     "test_name": "Setters",
     "passed": true,
-    "time_ms": 0.09,
+    "time_ms": 0.104,
     "line": 55,
     "code": "    from session_py import PlateElement\n    from session_py import Point\n\n    p = PlateElement()\n    p.thickness = 0.3\n    p.polygon = [\n        Point(0, 0, 0),\n        Point(3, 0, 0),\n        Point(3, 3, 0),\n        Point(0, 3, 0),\n    ]",
     "checks": [
@@ -116,7 +116,7 @@
     "group": "PlateElement",
     "test_name": "Mesh Topology",
     "passed": true,
-    "time_ms": 0.035,
+    "time_ms": 0.046,
     "line": 74,
     "code": "    from session_py import PlateElement\n    from session_py import Point\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    p = PlateElement(polygon=polygon, thickness=0.5)\n    geo = p.geometry",
     "checks": [
@@ -137,7 +137,7 @@
     "group": "PlateElement",
     "test_name": "Aabb",
     "passed": true,
-    "time_ms": 0.164,
+    "time_ms": 0.199,
     "line": 92,
     "code": "    from session_py import PlateElement\n    from session_py import Point\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = PlateElement(polygon=polygon, thickness=0.2)\n    aabb = p.aabb",
     "checks": [
@@ -168,7 +168,7 @@
     "group": "PlateElement",
     "test_name": "Compute Point",
     "passed": true,
-    "time_ms": 0.131,
+    "time_ms": 0.17,
     "line": 112,
     "code": "    from session_py import PlateElement\n    from session_py import Point\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = PlateElement(polygon=polygon, thickness=0.2)\n    pt = p.point",
     "checks": [
@@ -194,7 +194,7 @@
     "group": "PlateElement",
     "test_name": "Triangle Polygon",
     "passed": true,
-    "time_ms": 0.033,
+    "time_ms": 0.043,
     "line": 131,
     "code": "    from session_py import PlateElement\n    from session_py import Point\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(0.5, 1, 0),\n    ]\n    p = PlateElement(polygon=polygon, thickness=0.1)\n    geo = p.geometry",
     "checks": [
@@ -215,7 +215,7 @@
     "group": "PlateElement",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 6.338,
+    "time_ms": 9.394,
     "line": 148,
     "code": "    from session_py import PlateElement\n    from session_py import Point\n    from session_py import Xform\n    from pathlib import Path\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = PlateElement(polygon=polygon, thickness=0.3, name=\"json_plate\")\n    p.session_transformation = Xform.translation(1.0, 2.0, 3.0)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_plate_element.json\"\n    p.json_dump(fname)\n    loaded = PlateElement.json_load(fname)",
     "checks": [
@@ -251,7 +251,7 @@
     "group": "PlateElement",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 5.465,
+    "time_ms": 7.767,
     "line": 175,
     "code": "    from session_py import PlateElement\n    from session_py import Point\n    from session_py import Xform\n    from pathlib import Path\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = PlateElement(polygon=polygon, thickness=0.3, name=\"proto_plate\")\n    p.session_transformation = Xform.translation(1.0, 2.0, 3.0)\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_plate_element.bin\"\n    p.pb_dump(path)\n    loaded = PlateElement.pb_load(path)",
     "checks": [
@@ -285,49 +285,95 @@
   },
   {
     "group": "PlateElement",
-    "test_name": "Polylines",
+    "test_name": "From Top Bottom",
     "passed": true,
-    "time_ms": 0.145,
+    "time_ms": 0.138,
     "line": 202,
-    "code": "    from session_py import PlateElement\n    from session_py import Point\n    from session_py import Polyline\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    p = PlateElement(polygon=polygon, thickness=0.2)\n    pls = p.polylines\n\n    for i in range(2, 6):",
+    "code": "    from session_py import PlateElement\n    from session_py import Point\n\n    bottom = [Point(0,0,0), Point(2,0,0), Point(2,2,0), Point(0,2,0), Point(0,0,0)]\n    top    = [Point(0,0,1), Point(2,0,1), Point(2,2,1), Point(0,2,1), Point(0,0,1)]\n    p = PlateElement(polygon=bottom, polygon_top=top, name=\"tb_plate\")\n    # Reversed argument order should auto-swap\n    pr = PlateElement(polygon=top, polygon_top=bottom, name=\"tb_plate_r\")",
     "checks": [
       {
+        "line": 210,
+        "code_line": "len(p.polygon) == 4",
+        "passed": true
+      },
+      {
+        "line": 211,
+        "code_line": "len(p.polygon_top) == 4",
+        "passed": true
+      },
+      {
+        "line": 212,
+        "code_line": "TOLERANCE.is_close(p.thickness, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 213,
+        "code_line": "TOLERANCE.is_close(p.polygon[0][2], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 214,
+        "code_line": "TOLERANCE.is_close(p.polygon_top[0][2], 1.0)",
+        "passed": true
+      },
+      {
         "line": 217,
-        "code_line": "len(pls) == 6",
+        "code_line": "TOLERANCE.is_close(pr.polygon[0][2], 0.0)",
         "passed": true
       },
       {
         "line": 218,
+        "code_line": "TOLERANCE.is_close(pr.polygon_top[0][2], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "PlateElement",
+    "test_name": "Polylines",
+    "passed": true,
+    "time_ms": 0.091,
+    "line": 221,
+    "code": "    from session_py import PlateElement\n    from session_py import Point\n    from session_py import Polyline\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    p = PlateElement(polygon=polygon, thickness=0.2)\n    pls = p.polylines\n\n    for i in range(2, 6):",
+    "checks": [
+      {
+        "line": 236,
+        "code_line": "len(pls) == 6",
+        "passed": true
+      },
+      {
+        "line": 237,
         "code_line": "isinstance(pls[0], Polyline)",
         "passed": true
       },
       {
-        "line": 219,
+        "line": 238,
         "code_line": "pls[0].point_count() == 5",
         "passed": true
       },
       {
-        "line": 220,
+        "line": 239,
         "code_line": "pls[1].point_count() == 5",
         "passed": true
       },
       {
-        "line": 222,
+        "line": 241,
         "code_line": "pls[i].point_count() == 5",
         "passed": true
       },
       {
-        "line": 222,
+        "line": 241,
         "code_line": "pls[i].point_count() == 5",
         "passed": true
       },
       {
-        "line": 222,
+        "line": 241,
         "code_line": "pls[i].point_count() == 5",
         "passed": true
       },
       {
-        "line": 222,
+        "line": 241,
         "code_line": "pls[i].point_count() == 5",
         "passed": true
       }
@@ -338,27 +384,27 @@
     "group": "PlateElement",
     "test_name": "Planes",
     "passed": true,
-    "time_ms": 0.119,
-    "line": 225,
+    "time_ms": 0.205,
+    "line": 244,
     "code": "    from session_py import PlateElement\n    from session_py import Point\n    from session_py import Plane\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    p = PlateElement(polygon=polygon, thickness=0.2)\n    pls = p.planes",
     "checks": [
       {
-        "line": 240,
+        "line": 259,
         "code_line": "len(pls) == 6",
         "passed": true
       },
       {
-        "line": 241,
+        "line": 260,
         "code_line": "isinstance(pls[0], Plane)",
         "passed": true
       },
       {
-        "line": 242,
+        "line": 261,
         "code_line": "TOLERANCE.is_close(pls[0].z_axis[2], 1.0)",
         "passed": true
       },
       {
-        "line": 243,
+        "line": 262,
         "code_line": "TOLERANCE.is_close(pls[1].z_axis[2], -1.0)",
         "passed": true
       }
@@ -369,37 +415,37 @@
     "group": "PlateElement",
     "test_name": "Edge Vectors",
     "passed": true,
-    "time_ms": 0.048,
-    "line": 246,
+    "time_ms": 0.066,
+    "line": 265,
     "code": "    from session_py import PlateElement\n    from session_py import Point\n    from session_py import Vector\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    p = PlateElement(polygon=polygon, thickness=0.2)\n    evs = p.edge_vectors",
     "checks": [
       {
-        "line": 261,
+        "line": 280,
         "code_line": "len(evs) == 4",
         "passed": true
       },
       {
-        "line": 262,
+        "line": 281,
         "code_line": "isinstance(evs[0], Vector)",
         "passed": true
       },
       {
-        "line": 263,
+        "line": 282,
         "code_line": "TOLERANCE.is_close(evs[0][0], 1.0)",
         "passed": true
       },
       {
-        "line": 264,
+        "line": 283,
         "code_line": "TOLERANCE.is_close(evs[0][1], 0.0)",
         "passed": true
       },
       {
-        "line": 265,
+        "line": 284,
         "code_line": "TOLERANCE.is_close(evs[1][0], 0.0)",
         "passed": true
       },
       {
-        "line": 266,
+        "line": 285,
         "code_line": "TOLERANCE.is_close(evs[1][1], 1.0)",
         "passed": true
       }
@@ -410,32 +456,32 @@
     "group": "PlateElement",
     "test_name": "Axis",
     "passed": true,
-    "time_ms": 0.069,
-    "line": 269,
+    "time_ms": 0.099,
+    "line": 288,
     "code": "    from session_py import PlateElement\n    from session_py import Point\n    from session_py import Line\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = PlateElement(polygon=polygon, thickness=0.4)\n    ax = p.axis",
     "checks": [
       {
-        "line": 284,
+        "line": 303,
         "code_line": "isinstance(ax, Line)",
         "passed": true
       },
       {
-        "line": 285,
+        "line": 304,
         "code_line": "TOLERANCE.is_close(ax.start()[0], 1.0)",
         "passed": true
       },
       {
-        "line": 286,
+        "line": 305,
         "code_line": "TOLERANCE.is_close(ax.start()[1], 1.0)",
         "passed": true
       },
       {
-        "line": 287,
+        "line": 306,
         "code_line": "TOLERANCE.is_close(ax.start()[2], 0.0)",
         "passed": true
       },
       {
-        "line": 288,
+        "line": 307,
         "code_line": "TOLERANCE.is_close(ax.end()[2], -0.4)",
         "passed": true
       }
@@ -446,27 +492,27 @@
     "group": "PlateElement",
     "test_name": "Joint Types",
     "passed": true,
-    "time_ms": 0.042,
-    "line": 291,
+    "time_ms": 0.064,
+    "line": 310,
     "code": "    from session_py import PlateElement\n\n    p = PlateElement()\n\n    p.joint_types = [1, 2, 3, 4]",
     "checks": [
       {
-        "line": 297,
+        "line": 316,
         "code_line": "len(p.joint_types) == 0",
         "passed": true
       },
       {
-        "line": 299,
+        "line": 318,
         "code_line": "len(p.joint_types) == 4",
         "passed": true
       },
       {
-        "line": 300,
+        "line": 319,
         "code_line": "p.joint_types[0] == 1",
         "passed": true
       },
       {
-        "line": 301,
+        "line": 320,
         "code_line": "p.joint_types[3] == 4",
         "passed": true
       }
@@ -477,32 +523,32 @@
     "group": "PlateElement",
     "test_name": "J Mf",
     "passed": true,
-    "time_ms": 0.044,
-    "line": 304,
+    "time_ms": 0.057,
+    "line": 323,
     "code": "    from session_py import PlateElement\n\n    p = PlateElement()\n\n    p.j_mf = [\n        [(0, True, 0.5), (1, False, 0.3)],\n        [],\n        [(2, True, 0.8)],\n    ]",
     "checks": [
       {
-        "line": 310,
+        "line": 329,
         "code_line": "len(p.j_mf) == 0",
         "passed": true
       },
       {
-        "line": 316,
+        "line": 335,
         "code_line": "len(p.j_mf) == 3",
         "passed": true
       },
       {
-        "line": 317,
+        "line": 336,
         "code_line": "len(p.j_mf[0]) == 2",
         "passed": true
       },
       {
-        "line": 318,
+        "line": 337,
         "code_line": "p.j_mf[0][0] == (0, True, 0.5)",
         "passed": true
       },
       {
-        "line": 319,
+        "line": 338,
         "code_line": "p.j_mf[2][0][0] == 2",
         "passed": true
       }
@@ -513,17 +559,17 @@
     "group": "PlateElement",
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.045,
-    "line": 322,
+    "time_ms": 0.049,
+    "line": 341,
     "code": "    from session_py import PlateElement\n\n    p = PlateElement()\n\n    p.key = \"plate_A\"",
     "checks": [
       {
-        "line": 328,
+        "line": 347,
         "code_line": "p.key == \"\"",
         "passed": true
       },
       {
-        "line": 330,
+        "line": 349,
         "code_line": "p.key == \"plate_A\"",
         "passed": true
       }
@@ -534,22 +580,22 @@
     "group": "PlateElement",
     "test_name": "Component Plane",
     "passed": true,
-    "time_ms": 0.054,
-    "line": 333,
+    "time_ms": 0.066,
+    "line": 352,
     "code": "    from session_py import PlateElement\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    p = PlateElement()\n\n    cp = Plane(origin=Point(1, 2, 3), x_axis=Vector(1, 0, 0), y_axis=Vector(0, 1, 0))\n    p.component_plane = cp",
     "checks": [
       {
-        "line": 342,
+        "line": 361,
         "code_line": "p.component_plane is None",
         "passed": true
       },
       {
-        "line": 345,
+        "line": 364,
         "code_line": "TOLERANCE.is_close(p.component_plane.origin[0], 1.0)",
         "passed": true
       },
       {
-        "line": 346,
+        "line": 365,
         "code_line": "TOLERANCE.is_close(p.component_plane.origin[1], 2.0)",
         "passed": true
       }
@@ -560,37 +606,37 @@
     "group": "PlateElement",
     "test_name": "Json Roundtrip Joinery",
     "passed": true,
-    "time_ms": 6.963,
-    "line": 349,
+    "time_ms": 8.284,
+    "line": 368,
     "code": "    from session_py import PlateElement\n    from session_py import Point\n    from session_py import Plane\n    from session_py import Vector\n    from pathlib import Path\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = PlateElement(polygon=polygon, thickness=0.3, name=\"joinery_plate\")\n    p.joint_types = [1, 2, 3, 4]\n    p.j_mf = [[(0, True, 0.5)], [], [(1, False, 0.3)]]\n    p.key = \"plate_A\"\n    p.component_plane = Plane(origin=Point(1, 2, 3), x_axis=Vector(1, 0, 0), y_axis=Vector(0, 1, 0))\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_plate_element_joinery.json\"\n    p.json_dump(fname)\n    loaded = PlateElement.json_load(fname)",
     "checks": [
       {
-        "line": 373,
+        "line": 392,
         "code_line": "loaded.joint_types == [1, 2, 3, 4]",
         "passed": true
       },
       {
-        "line": 374,
+        "line": 393,
         "code_line": "len(loaded.j_mf) == 3",
         "passed": true
       },
       {
-        "line": 375,
+        "line": 394,
         "code_line": "loaded.j_mf[0][0] == [0, True, 0.5]",
         "passed": true
       },
       {
-        "line": 376,
+        "line": 395,
         "code_line": "loaded.key == \"plate_A\"",
         "passed": true
       },
       {
-        "line": 377,
+        "line": 396,
         "code_line": "loaded.component_plane is not None",
         "passed": true
       },
       {
-        "line": 378,
+        "line": 397,
         "code_line": "TOLERANCE.is_close(loaded.component_plane.origin[0], 1.0)",
         "passed": true
       }
@@ -601,37 +647,37 @@
     "group": "PlateElement",
     "test_name": "Protobuf Roundtrip Joinery",
     "passed": true,
-    "time_ms": 5.396,
-    "line": 381,
+    "time_ms": 7.909,
+    "line": 400,
     "code": "    from session_py import PlateElement\n    from session_py import Point\n    from session_py import Plane\n    from session_py import Vector\n    from pathlib import Path\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = PlateElement(polygon=polygon, thickness=0.3, name=\"joinery_plate\")\n    p.joint_types = [1, 2, 3, 4]\n    p.j_mf = [[(0, True, 0.5)], [], [(1, False, 0.3)]]\n    p.key = \"plate_A\"\n    p.component_plane = Plane(origin=Point(1, 2, 3), x_axis=Vector(1, 0, 0), y_axis=Vector(0, 1, 0))\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_plate_element_joinery.bin\"\n    p.pb_dump(path)\n    loaded = PlateElement.pb_load(path)",
     "checks": [
       {
-        "line": 405,
+        "line": 424,
         "code_line": "loaded.joint_types == [1, 2, 3, 4]",
         "passed": true
       },
       {
-        "line": 406,
+        "line": 425,
         "code_line": "len(loaded.j_mf) == 3",
         "passed": true
       },
       {
-        "line": 407,
+        "line": 426,
         "code_line": "loaded.j_mf[0][0] == (0, True, 0.5)",
         "passed": true
       },
       {
-        "line": 408,
+        "line": 427,
         "code_line": "loaded.key == \"plate_A\"",
         "passed": true
       },
       {
-        "line": 409,
+        "line": 428,
         "code_line": "loaded.component_plane is not None",
         "passed": true
       },
       {
-        "line": 410,
+        "line": 429,
         "code_line": "TOLERANCE.is_close(loaded.component_plane.origin[0], 1.0)",
         "passed": true
       }

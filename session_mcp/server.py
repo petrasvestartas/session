@@ -344,8 +344,10 @@ class APIIndex:
         self.recipes: list[dict] = []
         self.related_methods: dict[str, list[str]] = {}
         self.class_summaries: dict[str, str] = {}
+        self.class_graph: dict[str, dict] = {}
         self._build()
         self._build_relationships()
+        self._build_class_graph()
 
     def _score_constructor(self, params: str, cls: str) -> int:
         """Score constructor: prefer parameterized over copy/default."""
@@ -452,6 +454,82 @@ class APIIndex:
                 cls, f'{cls} geometry class'
             )
 
+    def _build_class_graph(self):
+        """Build a class-level relationship graph: composition, factories, uses."""
+        NOISE = {'fmt', 'std', 'knot'}
+        all_classes = sorted(
+            {k.split('.', 1)[0] for k in self.methods if '.' in k} - NOISE,
+            key=len, reverse=True,
+        )
+        if not all_classes:
+            return
+        class_re = re.compile(r'\b(' + '|'.join(re.escape(c) for c in all_classes) + r')\b')
+
+        graph: dict[str, dict] = {
+            cls: {'composition': set(), 'factories': set(), 'uses': set()}
+            for cls in all_classes
+        }
+
+        # uses + factories: scan method signatures
+        for key, impls in self.methods.items():
+            if '.' not in key:
+                continue
+            cls, method = key.split('.', 1)
+            if cls not in graph:
+                continue
+            for lang, data in impls.items():
+                sig = data.get('signature', '')
+                refs = {m for m in class_re.findall(sig) if m != cls}
+                graph[cls]['uses'].update(refs)
+                if method.startswith('from_') or method == 'from':
+                    # cls.from_X(Y) means Y can be converted to cls — edge Y -> cls
+                    for ref in refs:
+                        if ref in graph:
+                            graph[ref]['factories'].add(cls)
+
+        # composition: scan C++ headers line by line for member declarations
+        # Heuristic: a member declaration is a line that
+        #   - is inside a class (we trust file == class)
+        #   - does NOT contain '(' (otherwise it's a method)
+        #   - ends with ';' or contains '=' (a field with default value)
+        #   - mentions a known class name
+        for cls in graph:
+            header = REPO_ROOT / f"session_cpp/src/{cls.lower()}.h"
+            if not header.exists():
+                continue
+            content = header.read_text(errors='ignore')
+            for raw_line in content.splitlines():
+                line = raw_line.strip()
+                if not line or line.startswith('//') or line.startswith('*'):
+                    continue
+                if '(' in line:
+                    continue  # method, function call, or function pointer
+                if not (line.endswith(';') or '=' in line):
+                    continue
+                if line.startswith(('return', 'using', 'typedef', '#')):
+                    continue
+                # Skip forward declarations: `class Foo;`, `struct Foo;`, `friend class Foo;`
+                if re.match(r'^(?:friend\s+)?(?:class|struct|enum)\s+\w+\s*;', line):
+                    continue
+                for ref in class_re.findall(line):
+                    if ref != cls:
+                        graph[cls]['composition'].add(ref)
+
+        # subtract composition from uses so each edge appears at strongest level only
+        for cls, info in graph.items():
+            info['uses'] -= info['composition']
+            info['uses'] -= info['factories']
+
+        self.class_graph = {
+            cls: {
+                'composition': sorted(info['composition']),
+                'factories': sorted(info['factories']),
+                'uses': sorted(info['uses']),
+                'summary': self.class_summaries.get(cls, ''),
+            }
+            for cls, info in graph.items()
+        }
+
     def get_method(self, name: str, language: str = None) -> dict | None:
         """Get method by exact or partial name."""
         langs = [language] if language else None
@@ -550,6 +628,7 @@ class APIIndex:
             'concepts': concepts,
             'recipes': self.recipes,
             'class_summaries': self.class_summaries,
+            'class_graph': self.class_graph,
             'method_index': method_index,
         }
 

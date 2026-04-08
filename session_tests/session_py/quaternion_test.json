@@ -3,58 +3,166 @@
     "group": "Quaternion",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.049,
-    "line": 7,
-    "code": "    from session_py import Quaternion\n    from session_py import Vector\n    import math\n\n    # Default constructor (identity)\n    q0 = Quaternion()\n\n    # Constructor with args\n    q1 = Quaternion.from_sv(2.0, Vector(1.0, 0.0, 0.0))\n\n    # Quaternion multiplication\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), math.pi / 2.0)\n    r = q * q\n    v = r.rotate_vector(Vector(1.0, 0.0, 0.0))\n\n    # Scalar multiplication\n    scaled = Quaternion.identity() * 2.0\n\n    # Addition\n    a = Quaternion.from_sv(1.0, Vector(0.0, 0.0, 0.0))\n    b = Quaternion.from_sv(0.0, Vector(0.0, 0.0, 1.0))\n    s = a + b\n\n    # Subtraction\n    diff = q - q\n\n    # Negation\n    neg = -Quaternion.identity()",
+    "time_ms": 0.324,
+    "line": 8,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    # Default constructor (identity)\n    q0 = Quaternion()\n\n    # Constructor with arguments\n    q = Quaternion.from_scalar_and_vector(2.0, Vector(1.0, 0.0, 0.0))\n\n    # Setters\n    q[0] = 5.0\n    q[1] = 0.0\n    q[2] = 1.0\n    q[3] = 0.0\n\n    # Getters\n    s_val = q[0]\n    x = q[1]\n    y = q[2]\n    z = q[3]\n\n    # Minimal and Full String Representation\n    qstr = str(q)\n    qrepr = repr(q)\n\n    # Copy (duplicates everything except guid)\n    qcopy = q.duplicate()\n    qother = Quaternion.from_scalar_and_vector(2.0, Vector(1.0, 0.0, 0.0))\n\n    # Copy operators\n    qrot = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    qmul = qrot * qrot\n    qscaled = Quaternion.identity() * 2.0\n    a = Quaternion.from_scalar_and_vector(1.0, Vector(0.0, 0.0, 0.0))\n    b = Quaternion.from_scalar_and_vector(0.0, Vector(0.0, 0.0, 1.0))\n    qsum = a + b\n    qdiff = qrot - qrot\n    qneg = -Quaternion.identity()",
     "checks": [
       {
-        "line": 38,
+        "line": 49,
         "code_line": "q0.name == \"my_quaternion\"",
         "passed": true
       },
       {
-        "line": 39,
+        "line": 50,
         "code_line": "q0.guid",
         "passed": true
       },
       {
-        "line": 40,
-        "code_line": "TOLERANCE.is_close(q0.s, 1.0)",
+        "line": 51,
+        "code_line": "TOLERANCE.is_close(q0.scalar, 1.0)",
         "passed": true
       },
       {
-        "line": 41,
-        "code_line": "TOLERANCE.is_close(q0.v[0], 0.0) and TOLERANCE.is_close(q0.v[1], 0.0) and TOLERANCE.is_close(q0.v[2], 0.0)",
+        "line": 52,
+        "code_line": "TOLERANCE.is_close(q0.vector[0], 0.0) and TOLERANCE.is_close(q0.vector[1], 0.0) and TOLERANCE.is_close(q0.vector[2], 0.0)",
         "passed": true
       },
       {
-        "line": 42,
-        "code_line": "TOLERANCE.is_close(q1.s, 2.0) and TOLERANCE.is_close(q1.v[0], 1.0)",
+        "line": 53,
+        "code_line": "q[0] == 5.0 and q[1] == 0.0 and q[2] == 1.0 and q[3] == 0.0",
         "passed": true
       },
       {
-        "line": 43,
-        "code_line": "TOLERANCE.is_close(v[0], -1.0) and TOLERANCE.is_close(v[1], 0.0)",
+        "line": 54,
+        "code_line": "s_val == 5.0 and x == 0.0 and y == 1.0 and z == 0.0",
         "passed": true
       },
       {
-        "line": 44,
-        "code_line": "TOLERANCE.is_close(scaled.s, 2.0)",
+        "line": 55,
+        "code_line": "qstr == \"5.0, 0.0, 1.0, 0.0\"",
         "passed": true
       },
       {
-        "line": 45,
-        "code_line": "TOLERANCE.is_close(s.s, 1.0) and TOLERANCE.is_close(s.v[2], 1.0)",
+        "line": 56,
+        "code_line": "qrepr == \"Quaternion(my_quaternion, 5.0, 0.0, 1.0, 0.0)\"",
         "passed": true
       },
       {
-        "line": 46,
-        "code_line": "TOLERANCE.is_close(diff.s, 0.0) and TOLERANCE.is_close(diff.v[2], 0.0)",
+        "line": 57,
+        "code_line": "qcopy == q and qcopy.guid != q.guid",
         "passed": true
       },
       {
-        "line": 47,
-        "code_line": "TOLERANCE.is_close(neg.s, -1.0)",
+        "line": 58,
+        "code_line": "qother != q",
+        "passed": true
+      },
+      {
+        "line": 59,
+        "code_line": "TOLERANCE.is_close(qmul.scalar, 0.0) and TOLERANCE.is_close(qmul.vector[2], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 60,
+        "code_line": "TOLERANCE.is_close(qscaled.scalar, 2.0)",
+        "passed": true
+      },
+      {
+        "line": 61,
+        "code_line": "TOLERANCE.is_close(qsum.scalar, 1.0) and TOLERANCE.is_close(qsum.vector[2], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 62,
+        "code_line": "TOLERANCE.is_close(qdiff.scalar, 0.0) and TOLERANCE.is_close(qdiff.vector[2], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 63,
+        "code_line": "TOLERANCE.is_close(qneg.scalar, -1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "Identity",
+    "passed": true,
+    "time_ms": 0.021,
+    "line": 66,
+    "code": "    from session_py import Quaternion\n\n    q = Quaternion.identity()",
+    "checks": [
+      {
+        "line": 72,
+        "code_line": "TOLERANCE.is_close(q.scalar, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 73,
+        "code_line": "TOLERANCE.is_close(q.vector[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 74,
+        "code_line": "TOLERANCE.is_close(q.vector[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 75,
+        "code_line": "TOLERANCE.is_close(q.vector[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "From Scalar And Vector",
+    "passed": true,
+    "time_ms": 0.038,
+    "line": 78,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_scalar_and_vector(2.0, Vector(1.0, 2.0, 3.0))",
+    "checks": [
+      {
+        "line": 85,
+        "code_line": "TOLERANCE.is_close(q.scalar, 2.0)",
+        "passed": true
+      },
+      {
+        "line": 86,
+        "code_line": "TOLERANCE.is_close(q.vector[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 87,
+        "code_line": "TOLERANCE.is_close(q.vector[1], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 88,
+        "code_line": "TOLERANCE.is_close(q.vector[2], 3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "From Axis Angle",
+    "passed": true,
+    "time_ms": 0.029,
+    "line": 91,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n    import math\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)",
+    "checks": [
+      {
+        "line": 99,
+        "code_line": "TOLERANCE.is_close(q.scalar, math.cos(PI / 4.0))",
+        "passed": true
+      },
+      {
+        "line": 100,
+        "code_line": "TOLERANCE.is_close(q.vector[2], math.sin(PI / 4.0))",
         "passed": true
       }
     ],
@@ -64,32 +172,32 @@
     "group": "Quaternion",
     "test_name": "From Arc",
     "passed": true,
-    "time_ms": 0.037,
-    "line": 50,
+    "time_ms": 0.088,
+    "line": 103,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    src = Vector(1.0, 0.0, 0.0)\n    dst = Vector(0.0, 1.0, 0.0)\n    q = Quaternion.from_arc(src, dst)\n    rotated = q.rotate_vector(src)\n\n    src2 = Vector(1.0, 0.0, 0.0)\n    dst2 = Vector(-1.0, 0.0, 0.0)\n    q2 = Quaternion.from_arc(src2, dst2)\n    rot = q2.rotate_vector(src2)",
     "checks": [
       {
-        "line": 60,
+        "line": 113,
         "code_line": "TOLERANCE.is_close(rotated[0], dst[0])",
         "passed": true
       },
       {
-        "line": 61,
+        "line": 114,
         "code_line": "TOLERANCE.is_close(rotated[1], dst[1])",
         "passed": true
       },
       {
-        "line": 62,
+        "line": 115,
         "code_line": "TOLERANCE.is_close(rotated[2], dst[2])",
         "passed": true
       },
       {
-        "line": 67,
+        "line": 120,
         "code_line": "TOLERANCE.is_close(rot[0], -1.0)",
         "passed": true
       },
       {
-        "line": 68,
+        "line": 121,
         "code_line": "TOLERANCE.is_close(rot[1], 0.0)",
         "passed": true
       }
@@ -100,18 +208,117 @@
     "group": "Quaternion",
     "test_name": "From Euler",
     "passed": true,
-    "time_ms": 0.023,
-    "line": 71,
-    "code": "    from session_py import Quaternion\n    from session_py import Vector\n    import math\n\n    q_euler = Quaternion.from_euler(0.0, 0.0, math.pi / 2.0)\n    q_axis = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), math.pi / 2.0)",
+    "time_ms": 0.028,
+    "line": 124,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q_euler = Quaternion.from_euler(0.0, 0.0, PI / 2.0)\n    q_axis = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)",
     "checks": [
       {
-        "line": 80,
-        "code_line": "TOLERANCE.is_close(q_euler.s, q_axis.s)",
+        "line": 132,
+        "code_line": "TOLERANCE.is_close(q_euler.scalar, q_axis.scalar)",
         "passed": true
       },
       {
-        "line": 81,
-        "code_line": "TOLERANCE.is_close(q_euler.v[2], q_axis.v[2])",
+        "line": 133,
+        "code_line": "TOLERANCE.is_close(q_euler.vector[2], q_axis.vector[2])",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "From Rotation",
+    "passed": true,
+    "time_ms": 0.051,
+    "line": 136,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n    from session_py import Plane\n    from session_py import Point\n\n    plane_a = Plane(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0))\n    plane_b = Plane(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(-1.0, 0.0, 0.0))\n    q = Quaternion.from_rotation(plane_a, plane_b)\n    rotated_x = q.rotate_vector(plane_a.x_axis)",
+    "checks": [
+      {
+        "line": 148,
+        "code_line": "TOLERANCE.is_close(rotated_x[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 149,
+        "code_line": "TOLERANCE.is_close(rotated_x[1], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 150,
+        "code_line": "TOLERANCE.is_close(rotated_x[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "Rotate Vector",
+    "passed": true,
+    "time_ms": 0.026,
+    "line": 153,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    rotated = q.rotate_vector(Vector(1.0, 0.0, 0.0))",
+    "checks": [
+      {
+        "line": 161,
+        "code_line": "TOLERANCE.is_close(rotated[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 162,
+        "code_line": "TOLERANCE.is_close(rotated[1], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 163,
+        "code_line": "TOLERANCE.is_close(rotated[2], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "Get Rotation",
+    "passed": true,
+    "time_ms": 0.055,
+    "line": 166,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    p = q.get_rotation()",
+    "checks": [
+      {
+        "line": 174,
+        "code_line": "TOLERANCE.is_close(p.x_axis[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 175,
+        "code_line": "TOLERANCE.is_close(p.x_axis[1], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 176,
+        "code_line": "TOLERANCE.is_close(p.y_axis[0], -1.0)",
+        "passed": true
+      },
+      {
+        "line": 177,
+        "code_line": "TOLERANCE.is_close(p.y_axis[1], 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "Magnitude",
+    "passed": true,
+    "time_ms": 0.011,
+    "line": 180,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 4.0)",
+    "checks": [
+      {
+        "line": 187,
+        "code_line": "TOLERANCE.is_close(q.magnitude(), 1.0)",
         "passed": true
       }
     ],
@@ -121,13 +328,29 @@
     "group": "Quaternion",
     "test_name": "Magnitude Squared",
     "passed": true,
-    "time_ms": 0.008,
-    "line": 84,
-    "code": "    from session_py import Quaternion\n    from session_py import Vector\n    import math\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), math.pi / 4.0)",
+    "time_ms": 0.01,
+    "line": 190,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 4.0)",
     "checks": [
       {
-        "line": 92,
+        "line": 197,
         "code_line": "TOLERANCE.is_close(q.magnitude_squared(), q.magnitude() * q.magnitude())",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "Normalized",
+    "passed": true,
+    "time_ms": 0.029,
+    "line": 200,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_scalar_and_vector(2.0, Vector(0.0, 0.0, 2.0))\n    n = q.normalized()",
+    "checks": [
+      {
+        "line": 208,
+        "code_line": "TOLERANCE.is_close(n.magnitude(), 1.0)",
         "passed": true
       }
     ],
@@ -137,23 +360,23 @@
     "group": "Quaternion",
     "test_name": "Conjugate",
     "passed": true,
-    "time_ms": 0.013,
-    "line": 95,
-    "code": "    from session_py import Quaternion\n    from session_py import Vector\n    import math\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), math.pi / 4.0)\n    r = q.conjugate()",
+    "time_ms": 0.036,
+    "line": 211,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 4.0)\n    r = q.conjugate()",
     "checks": [
       {
-        "line": 104,
-        "code_line": "TOLERANCE.is_close(r.s, q.s)",
+        "line": 219,
+        "code_line": "TOLERANCE.is_close(r.scalar, q.scalar)",
         "passed": true
       },
       {
-        "line": 105,
-        "code_line": "TOLERANCE.is_close(r.v[0], -q.v[0])",
+        "line": 220,
+        "code_line": "TOLERANCE.is_close(r.vector[0], -q.vector[0])",
         "passed": true
       },
       {
-        "line": 106,
-        "code_line": "TOLERANCE.is_close(r.v[2], -q.v[2])",
+        "line": 221,
+        "code_line": "TOLERANCE.is_close(r.vector[2], -q.vector[2])",
         "passed": true
       }
     ],
@@ -163,28 +386,28 @@
     "group": "Quaternion",
     "test_name": "Invert",
     "passed": true,
-    "time_ms": 0.015,
-    "line": 109,
-    "code": "    from session_py import Quaternion\n    from session_py import Vector\n    import math\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), math.pi / 3.0)\n    result = q * q.invert()",
+    "time_ms": 0.041,
+    "line": 224,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 3.0)\n    result = q * q.invert()",
     "checks": [
       {
-        "line": 118,
-        "code_line": "TOLERANCE.is_close(result.s, 1.0)",
+        "line": 232,
+        "code_line": "TOLERANCE.is_close(result.scalar, 1.0)",
         "passed": true
       },
       {
-        "line": 119,
-        "code_line": "TOLERANCE.is_close(result.v[0], 0.0)",
+        "line": 233,
+        "code_line": "TOLERANCE.is_close(result.vector[0], 0.0)",
         "passed": true
       },
       {
-        "line": 120,
-        "code_line": "TOLERANCE.is_close(result.v[1], 0.0)",
+        "line": 234,
+        "code_line": "TOLERANCE.is_close(result.vector[1], 0.0)",
         "passed": true
       },
       {
-        "line": 121,
-        "code_line": "TOLERANCE.is_close(result.v[2], 0.0)",
+        "line": 235,
+        "code_line": "TOLERANCE.is_close(result.vector[2], 0.0)",
         "passed": true
       }
     ],
@@ -194,12 +417,12 @@
     "group": "Quaternion",
     "test_name": "Dot",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 124,
+    "time_ms": 0.008,
+    "line": 238,
     "code": "    from session_py import Quaternion\n\n    q = Quaternion.identity()",
     "checks": [
       {
-        "line": 130,
+        "line": 244,
         "code_line": "TOLERANCE.is_close(q.dot(q), 1.0)",
         "passed": true
       }
@@ -210,23 +433,23 @@
     "group": "Quaternion",
     "test_name": "Slerp",
     "passed": true,
-    "time_ms": 0.025,
-    "line": 133,
-    "code": "    from session_py import Quaternion\n    from session_py import Vector\n    import math\n\n    q1 = Quaternion.identity()\n    q2 = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), math.pi / 2.0)\n    mid = q1.slerp(q2, 0.5)\n    expected = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), math.pi / 4.0)\n\n    q3 = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), 0.001)\n    mid2 = q1.slerp(q3, 0.5)\n    half = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), 0.0005)",
+    "time_ms": 0.08,
+    "line": 247,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q1 = Quaternion.identity()\n    q2 = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    mid = q1.slerp(q2, 0.5)\n    expected = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 4.0)\n\n    q3 = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), 0.001)\n    mid2 = q1.slerp(q3, 0.5)\n    half = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), 0.0005)",
     "checks": [
       {
-        "line": 144,
-        "code_line": "TOLERANCE.is_close(mid.s, expected.s)",
+        "line": 257,
+        "code_line": "TOLERANCE.is_close(mid.scalar, expected.scalar)",
         "passed": true
       },
       {
-        "line": 145,
-        "code_line": "TOLERANCE.is_close(mid.v[2], expected.v[2])",
+        "line": 258,
+        "code_line": "TOLERANCE.is_close(mid.vector[2], expected.vector[2])",
         "passed": true
       },
       {
-        "line": 149,
-        "code_line": "TOLERANCE.is_close(mid2.s, half.s)",
+        "line": 262,
+        "code_line": "TOLERANCE.is_close(mid2.scalar, half.scalar)",
         "passed": true
       }
     ],
@@ -236,18 +459,18 @@
     "group": "Quaternion",
     "test_name": "Nlerp",
     "passed": true,
-    "time_ms": 0.017,
-    "line": 152,
-    "code": "    from session_py import Quaternion\n    from session_py import Vector\n    import math\n\n    q1 = Quaternion.identity()\n    q2 = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), math.pi / 2.0)\n    r0 = q1.nlerp(q2, 0.0)\n    r1 = q1.nlerp(q2, 1.0)",
+    "time_ms": 0.047,
+    "line": 265,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q1 = Quaternion.identity()\n    q2 = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    r0 = q1.nlerp(q2, 0.0)\n    r1 = q1.nlerp(q2, 1.0)",
     "checks": [
       {
-        "line": 163,
-        "code_line": "TOLERANCE.is_close(r0.s, q1.s)",
+        "line": 275,
+        "code_line": "TOLERANCE.is_close(r0.scalar, q1.scalar)",
         "passed": true
       },
       {
-        "line": 164,
-        "code_line": "TOLERANCE.is_close(r1.s, q2.s)",
+        "line": 276,
+        "code_line": "TOLERANCE.is_close(r1.scalar, q2.scalar)",
         "passed": true
       }
     ],
@@ -257,13 +480,49 @@
     "group": "Quaternion",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 5.949,
-    "line": 167,
-    "code": "    from session_py import Quaternion\n    from session_py import Vector\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n    import math\n\n    axis = Vector(0.0, 0.0, 1.0)\n    original = Quaternion.from_axis_angle(axis, 1.5708)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_quaternion.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)",
+    "time_ms": 9.735,
+    "line": 279,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n    from pathlib import Path\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    q.name = \"test_quaternion\"\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   json_dumps()    \u2502 str          \u2502 to JSON string\n    #   json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   json_dump(path) \u2502 file         \u2502 write to file\n    #   json_load(path) \u2502 file         \u2502 read from file\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_quaternion.json\"\n    q.json_dump(fname)\n    loaded = Quaternion.json_load(fname)",
     "checks": [
       {
-        "line": 183,
-        "code_line": "TOLERANCE.is_close(loaded.s, original.s)",
+        "line": 299,
+        "code_line": "loaded.name == \"test_quaternion\"",
+        "passed": true
+      },
+      {
+        "line": 300,
+        "code_line": "TOLERANCE.is_close(loaded.scalar, q.scalar)",
+        "passed": true
+      },
+      {
+        "line": 301,
+        "code_line": "TOLERANCE.is_close(loaded.vector[2], q.vector[2])",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Quaternion",
+    "test_name": "Protobuf Roundtrip",
+    "passed": true,
+    "time_ms": 2.814,
+    "line": 304,
+    "code": "    from session_py import Quaternion\n    from session_py import Vector\n    from pathlib import Path\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    q.name = \"test_quaternion\"\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_quaternion.bin\"\n    q.pb_dump(path)\n    loaded = Quaternion.pb_load(path)",
+    "checks": [
+      {
+        "line": 317,
+        "code_line": "loaded.name == \"test_quaternion\"",
+        "passed": true
+      },
+      {
+        "line": 318,
+        "code_line": "TOLERANCE.is_close(loaded.scalar, q.scalar)",
+        "passed": true
+      },
+      {
+        "line": 319,
+        "code_line": "TOLERANCE.is_close(loaded.vector[2], q.vector[2])",
         "passed": true
       }
     ],

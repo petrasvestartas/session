@@ -1,15 +1,301 @@
 [
   {
     "group": "TreeNode",
-    "test_name": "Json Roundtrip",
+    "test_name": "Constructor",
     "passed": true,
-    "time_ms": 6.236,
-    "line": 10,
-    "code": "    // uncomment #include \"treenode.h\"\n    // uncomment #include \"encoders.h\"\n    auto original = std::make_shared<TreeNode>(\"test_node\");\n    auto child = std::make_shared<TreeNode>(\"child_node\");\n    original->add(child);\n\n    std::filesystem::create_directories(\"./serialization\");\n    encoders::json_dump(original->jsondump(), \"./serialization/test_treenode.json\");\n    auto loaded_json = encoders::json_load_data(\"./serialization/test_treenode.json\");\n    auto loaded = TreeNode::jsonload(loaded_json);\n\n\n    std::filesystem::remove(\"./serialization/test_treenode.json\");",
+    "time_ms": 0.015,
+    "line": 9,
+    "code": "    // uncomment #include \"treenode.h\"\n    // uncomment #include \"color.h\"\n\n    // Default constructor\n    auto n0 = std::make_shared<TreeNode>();\n\n    // Constructor with name\n    auto n = std::make_shared<TreeNode>(\"my_named_node\");\n    n->color = Color(255, 0, 0, 255);\n\n    // Minimal string representation\n    std::string nstr = n->str();\n\n    // Copies (compared by guid)\n    auto nother = std::make_shared<TreeNode>(\"my_named_node\");",
     "checks": [
       {
-        "line": 22,
+        "line": 26,
+        "code_line": "n0->name == \"my_node\"",
+        "passed": true
+      },
+      {
+        "line": 27,
+        "code_line": "!n0->guid().empty()",
+        "passed": true
+      },
+      {
+        "line": 28,
+        "code_line": "n->name == \"my_named_node\"",
+        "passed": true
+      },
+      {
+        "line": 29,
+        "code_line": "n->color.has_value() && n->color->r == 255",
+        "passed": true
+      },
+      {
+        "line": 30,
+        "code_line": "nstr.find(\"TreeNode(my_named_node\") != std::string::npos",
+        "passed": true
+      },
+      {
+        "line": 31,
+        "code_line": "*n == *n",
+        "passed": true
+      },
+      {
+        "line": 32,
+        "code_line": "*n != *nother",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Json Roundtrip",
+    "passed": true,
+    "time_ms": 12.045,
+    "line": 35,
+    "code": "    // uncomment #include \"treenode.h\"\n    // uncomment #include \"encoders.h\"\n\n    auto original = std::make_shared<TreeNode>(\"test_node\");\n    auto child = std::make_shared<TreeNode>(\"child_node\");\n    original->add(child);\n\n    std::string fname = \"serialization/test_treenode.json\";\n    encoders::json_dump(original->jsondump(), fname);\n    auto loaded_json = encoders::json_load_data(fname);\n    auto loaded = TreeNode::jsonload(loaded_json);",
+    "checks": [
+      {
+        "line": 48,
         "code_line": "loaded->name == original->name",
+        "passed": true
+      },
+      {
+        "line": 49,
+        "code_line": "loaded->children().size() == 1",
+        "passed": true
+      },
+      {
+        "line": 50,
+        "code_line": "loaded->children()[0]->name == \"child_node\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Is Root",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 53,
+    "code": "    // uncomment #include \"treenode.h\"\n\n    auto root = std::make_shared<TreeNode>(\"root\");\n    auto child = std::make_shared<TreeNode>(\"child\");\n    root->add(child);",
+    "checks": [
+      {
+        "line": 60,
+        "code_line": "root->is_root()",
+        "passed": true
+      },
+      {
+        "line": 61,
+        "code_line": "!child->is_root()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Is Leaf",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 64,
+    "code": "    // uncomment #include \"treenode.h\"\n\n    auto parent = std::make_shared<TreeNode>(\"parent\");\n    auto child = std::make_shared<TreeNode>(\"child\");\n    parent->add(child);",
+    "checks": [
+      {
+        "line": 71,
+        "code_line": "child->is_leaf()",
+        "passed": true
+      },
+      {
+        "line": 72,
+        "code_line": "!parent->is_leaf()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Tree",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 75,
+    "code": "    // uncomment #include \"treenode.h\"\n\n    auto n = std::make_shared<TreeNode>(\"standalone\");",
+    "checks": [
+      {
+        "line": 80,
+        "code_line": "n->tree() == nullptr",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Add",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 83,
+    "code": "    // uncomment #include \"treenode.h\"\n\n    auto parent = std::make_shared<TreeNode>(\"parent\");\n    auto child = std::make_shared<TreeNode>(\"child\");\n    parent->add(child);",
+    "checks": [
+      {
+        "line": 90,
+        "code_line": "parent->children().size() == 1",
+        "passed": true
+      },
+      {
+        "line": 91,
+        "code_line": "child->parent().get() == parent.get()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Remove",
+    "passed": true,
+    "time_ms": 0.03,
+    "line": 94,
+    "code": "    // uncomment #include \"treenode.h\"\n\n    auto parent = std::make_shared<TreeNode>(\"parent\");\n    auto child = std::make_shared<TreeNode>(\"child\");\n    parent->add(child);\n    auto removed = parent->remove(child);",
+    "checks": [
+      {
+        "line": 102,
+        "code_line": "removed == child",
+        "passed": true
+      },
+      {
+        "line": 103,
+        "code_line": "parent->children().empty()",
+        "passed": true
+      },
+      {
+        "line": 104,
+        "code_line": "child->parent() == nullptr",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Parent",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 107,
+    "code": "    // uncomment #include \"treenode.h\"\n\n    auto root = std::make_shared<TreeNode>(\"root\");\n    auto child = std::make_shared<TreeNode>(\"child\");\n    root->add(child);",
+    "checks": [
+      {
+        "line": 114,
+        "code_line": "root->parent() == nullptr",
+        "passed": true
+      },
+      {
+        "line": 115,
+        "code_line": "child->parent().get() == root.get()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Ancestors",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 118,
+    "code": "    // uncomment #include \"treenode.h\"\n\n    auto root = std::make_shared<TreeNode>(\"root\");\n    auto mid = std::make_shared<TreeNode>(\"mid\");\n    auto leaf = std::make_shared<TreeNode>(\"leaf\");\n    root->add(mid);\n    mid->add(leaf);\n\n    auto anc = leaf->ancestors();",
+    "checks": [
+      {
+        "line": 129,
+        "code_line": "anc.size() == 2",
+        "passed": true
+      },
+      {
+        "line": 130,
+        "code_line": "anc[0]->name == \"mid\"",
+        "passed": true
+      },
+      {
+        "line": 131,
+        "code_line": "anc[1]->name == \"root\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Descendants",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 134,
+    "code": "    // uncomment #include \"treenode.h\"\n\n    auto root = std::make_shared<TreeNode>(\"root\");\n    auto mid = std::make_shared<TreeNode>(\"mid\");\n    auto leaf = std::make_shared<TreeNode>(\"leaf\");\n    root->add(mid);\n    mid->add(leaf);\n\n    auto desc = root->descendants();",
+    "checks": [
+      {
+        "line": 145,
+        "code_line": "desc.size() == 2",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "desc[0]->name == \"mid\"",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "desc[1]->name == \"leaf\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Children",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 150,
+    "code": "    // uncomment #include \"treenode.h\"\n\n    auto parent = std::make_shared<TreeNode>(\"parent\");\n    auto c1 = std::make_shared<TreeNode>(\"c1\");\n    auto c2 = std::make_shared<TreeNode>(\"c2\");\n    parent->add(c1);\n    parent->add(c2);\n\n    auto kids = parent->children();",
+    "checks": [
+      {
+        "line": 161,
+        "code_line": "kids.size() == 2",
+        "passed": true
+      },
+      {
+        "line": 162,
+        "code_line": "kids[0]->name == \"c1\"",
+        "passed": true
+      },
+      {
+        "line": 163,
+        "code_line": "kids[1]->name == \"c2\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "TreeNode",
+    "test_name": "Traverse",
+    "passed": true,
+    "time_ms": 0.004,
+    "line": 166,
+    "code": "    // uncomment #include \"treenode.h\"\n\n    auto root = std::make_shared<TreeNode>(\"root\");\n    auto a = std::make_shared<TreeNode>(\"a\");\n    auto b = std::make_shared<TreeNode>(\"b\");\n    root->add(a);\n    root->add(b);\n\n    auto preorder = root->traverse(\"depthfirst\", \"preorder\");\n    auto postorder = root->traverse(\"depthfirst\", \"postorder\");\n    auto bfs = root->traverse(\"breadthfirst\", \"preorder\");",
+    "checks": [
+      {
+        "line": 179,
+        "code_line": "preorder.size() == 3 && preorder[0]->name == \"root\"",
+        "passed": true
+      },
+      {
+        "line": 180,
+        "code_line": "postorder.size() == 3 && postorder[2]->name == \"root\"",
+        "passed": true
+      },
+      {
+        "line": 181,
+        "code_line": "bfs.size() == 3 && bfs[0]->name == \"root\"",
         "passed": true
       }
     ],

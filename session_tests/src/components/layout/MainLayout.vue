@@ -62,6 +62,13 @@
         </div>
 
         <router-link
+          :to="'/classes'"
+          class="nav-button"
+          active-class="active">
+          Classes
+        </router-link>
+
+        <router-link
           :to="'/install'"
           class="nav-button"
           active-class="active">
@@ -111,6 +118,7 @@ const currentRoute = computed(() => {
   const path = route.path;
   if (path.includes('/viewer')) return 'viewer';
   if (path.includes('/tests')) return 'tests';
+  if (path.includes('/classes')) return 'classes';
   if (path.includes('/install')) return 'install';
   return 'viewer';
 });

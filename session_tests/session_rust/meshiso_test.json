@@ -18,7 +18,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Eval Gyroid",
-    "time_ms": 0.003
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -34,7 +34,7 @@
     "line": 16,
     "passed": true,
     "test_name": "Eval SchwarzP",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -76,7 +76,7 @@
     "line": 32,
     "passed": true,
     "test_name": "From Tpms Gyroid Solid",
-    "time_ms": 2.125
+    "time_ms": 2.108
   },
   {
     "checks": [
@@ -92,7 +92,7 @@
     "line": 47,
     "passed": true,
     "test_name": "From Tpms Diamond Sheet",
-    "time_ms": 8.322
+    "time_ms": 10.252
   },
   {
     "checks": [
@@ -108,7 +108,7 @@
     "line": 60,
     "passed": true,
     "test_name": "From Tpms Neovius Shell",
-    "time_ms": 6.024
+    "time_ms": 8.332
   },
   {
     "checks": [
@@ -176,7 +176,7 @@
     "line": 92,
     "passed": true,
     "test_name": "From Function",
-    "time_ms": 0.286
+    "time_ms": 0.495
   },
   {
     "checks": [
@@ -197,7 +197,7 @@
     "line": 215,
     "passed": true,
     "test_name": "Gyroid Sphere Shell",
-    "time_ms": 1.289
+    "time_ms": 1.598
   },
   {
     "checks": [
@@ -218,7 +218,7 @@
     "line": 196,
     "passed": true,
     "test_name": "Smooth Intersect",
-    "time_ms": 1.086
+    "time_ms": 1.551
   },
   {
     "checks": [
@@ -239,7 +239,7 @@
     "line": 177,
     "passed": true,
     "test_name": "Smooth Subtract",
-    "time_ms": 0.791
+    "time_ms": 1.664
   },
   {
     "checks": [
@@ -260,7 +260,7 @@
     "line": 158,
     "passed": true,
     "test_name": "SDF Capsule",
-    "time_ms": 0.618
+    "time_ms": 1.131
   },
   {
     "checks": [
@@ -281,7 +281,7 @@
     "line": 143,
     "passed": true,
     "test_name": "SDF Torus",
-    "time_ms": 0.236
+    "time_ms": 0.394
   },
   {
     "checks": [
@@ -302,7 +302,7 @@
     "line": 128,
     "passed": true,
     "test_name": "SDF Box",
-    "time_ms": 0.296
+    "time_ms": 0.407
   },
   {
     "checks": [
@@ -403,6 +403,6 @@
     "line": 107,
     "passed": true,
     "test_name": "All Tpms Shells",
-    "time_ms": 78.022
+    "time_ms": 108.188
   }
 ]

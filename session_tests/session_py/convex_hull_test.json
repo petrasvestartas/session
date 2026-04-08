@@ -3,12 +3,12 @@
     "group": "ConvexHull",
     "test_name": "Hull2d",
     "passed": true,
-    "time_ms": 0.024,
-    "line": 8,
+    "time_ms": 0.028,
+    "line": 9,
     "code": "    from session_py import ConvexHull, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.5, 0.5, 0.0),\n        Point(0.3, 0.3, 0.0),\n    ]\n    hull = ConvexHull.hull_2d(pts)",
     "checks": [
       {
-        "line": 21,
+        "line": 22,
         "code_line": "len(hull) == 4",
         "passed": true
       }
@@ -19,12 +19,12 @@
     "group": "ConvexHull",
     "test_name": "Hull2dCollinear",
     "passed": true,
-    "time_ms": 0.015,
-    "line": 24,
+    "time_ms": 0.017,
+    "line": 25,
     "code": "    from session_py import ConvexHull, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(1.5, 1.0, 0.0),\n    ]\n    hull = ConvexHull.hull_2d(pts)",
     "checks": [
       {
-        "line": 36,
+        "line": 37,
         "code_line": "len(hull) >= 3",
         "passed": true
       }
@@ -35,12 +35,12 @@
     "group": "ConvexHull",
     "test_name": "Hull2dCircle",
     "passed": true,
-    "time_ms": 0.033,
-    "line": 39,
-    "code": "    from session_py import ConvexHull, Point\n    pts = []\n    n = 12\n    for i in range(n):\n        angle = 2.0 * math.pi * i / n\n        pts.append(Point(math.cos(angle), math.sin(angle), 0.0))\n    pts.append(Point(0.0, 0.0, 0.0))\n    hull = ConvexHull.hull_2d(pts)",
+    "time_ms": 0.062,
+    "line": 40,
+    "code": "    from session_py import ConvexHull, Point\n    pts = []\n    n = 12\n    for i in range(n):\n        angle = 2.0 * PI * i / n\n        pts.append(Point(math.cos(angle), math.sin(angle), 0.0))\n    pts.append(Point(0.0, 0.0, 0.0))\n    hull = ConvexHull.hull_2d(pts)",
     "checks": [
       {
-        "line": 50,
+        "line": 51,
         "code_line": "len(hull) == n",
         "passed": true
       }
@@ -51,17 +51,17 @@
     "group": "ConvexHull",
     "test_name": "Hull3d",
     "passed": true,
-    "time_ms": 0.063,
-    "line": 53,
+    "time_ms": 0.127,
+    "line": 54,
     "code": "    from session_py import ConvexHull, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(0.25, 0.25, 0.25),\n    ]\n    mesh = ConvexHull.hull_3d(pts)",
     "checks": [
       {
-        "line": 65,
+        "line": 66,
         "code_line": "mesh.number_of_vertices() == 4",
         "passed": true
       },
       {
-        "line": 66,
+        "line": 67,
         "code_line": "mesh.number_of_faces() == 4",
         "passed": true
       }
@@ -72,17 +72,17 @@
     "group": "ConvexHull",
     "test_name": "Hull3dCube",
     "passed": true,
-    "time_ms": 0.206,
-    "line": 69,
+    "time_ms": 0.151,
+    "line": 70,
     "code": "    from session_py import ConvexHull, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(1.0, 0.0, 1.0),\n        Point(1.0, 1.0, 1.0),\n        Point(0.0, 1.0, 1.0),\n        Point(0.5, 0.5, 0.5),\n    ]\n    mesh = ConvexHull.hull_3d(pts)",
     "checks": [
       {
-        "line": 85,
+        "line": 86,
         "code_line": "mesh.number_of_vertices() == 8",
         "passed": true
       },
       {
-        "line": 86,
+        "line": 87,
         "code_line": "mesh.number_of_faces() == 12",
         "passed": true
       }

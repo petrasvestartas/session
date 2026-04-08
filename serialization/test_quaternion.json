@@ -1,9 +1,9 @@
 {
   "type": "Quaternion",
-  "guid": "a0102404-c5ff-4ca6-8c6c-a59a0c92816d",
-  "name": "my_quaternion",
-  "s": 0.7071054825112363,
+  "guid": "36b12ab5-55c7-470b-98f2-5858eca5a83d",
+  "name": "serialization/test_quaternion",
+  "s": 0.7071067811865476,
   "x": 0.0,
   "y": 0.0,
-  "z": 0.7071080798594735
+  "z": 0.7071067811865476
 }

@@ -3,358 +3,188 @@
     "checks": [
       {
         "code_line": "pl.name == \"my_plane\" && !pl.guid().is_empty()",
-        "line": 79,
+        "line": 73,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(origin[0], 0.0)",
-        "line": 80,
+        "code_line": "TOLERANCE.is_close(origin[0], 0.0) && TOLERANCE.is_close(origin[1], 0.0) &&\nTOLERANCE.is_close(origin[2], 0.0)",
+        "line": 74,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(origin[1], 0.0)",
-        "line": 81,
+        "code_line": "TOLERANCE.is_close(x_axis[0], 1.0) && TOLERANCE.is_close(y_axis[1], 1.0) &&\nTOLERANCE.is_close(z_axis[2], 1.0)",
+        "line": 75,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(origin[2], 0.0)",
-        "line": 82,
+        "code_line": "TOLERANCE.is_close(a, 0.0) && TOLERANCE.is_close(b, 0.0) &&\nTOLERANCE.is_close(c, 1.0) && TOLERANCE.is_close(d, 0.0)",
+        "line": 76,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(x_axis[0], 1.0)",
-        "line": 83,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(x_axis[1], 0.0)",
-        "line": 84,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(x_axis[2], 0.0)",
-        "line": 85,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(y_axis[0], 0.0)",
-        "line": 86,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(y_axis[1], 1.0)",
-        "line": 87,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(y_axis[2], 0.0)",
-        "line": 88,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(z_axis[0], 0.0)",
-        "line": 89,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(z_axis[1], 0.0)",
-        "line": 90,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(z_axis[2], 1.0)",
-        "line": 91,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(a, 0.0) && TOLERANCE.is_close(b, 0.0)",
-        "line": 92,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(c, 1.0) && TOLERANCE.is_close(d, 0.0)",
-        "line": 93,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(ax0[0], 1.0)",
-        "line": 94,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(ax1[1], 1.0)",
-        "line": 95,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(ax2[2], 1.0)",
-        "line": 96,
+        "code_line": "TOLERANCE.is_close(ax0[0], 1.0) && TOLERANCE.is_close(ax1[1], 1.0) &&\nTOLERANCE.is_close(ax2[2], 1.0)",
+        "line": 77,
         "passed": true
       },
       {
         "code_line": "plstr ==\n\"0.000000, 0.000000, 0.000000\\n1.000000, 0.000000, 0.000000\\n0.000000, 1.000000, 0.000000\\n0.000000, 0.000000, 1.000000\"",
-        "line": 97,
+        "line": 78,
         "passed": true
       },
       {
         "code_line": "plrepr ==\n\"Plane(my_plane, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, Color(blue, 0, 0, 255, 255))\"",
-        "line": 98,
+        "line": 79,
         "passed": true
       },
       {
         "code_line": "plcopy == pl && plcopy.guid() != pl.guid()",
-        "line": 99,
+        "line": 80,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(pl_pn.origin()[2], 5.0)",
-        "line": 100,
+        "code_line": "TOLERANCE.is_close(pl_pn.origin()[2], 5.0) &&\nTOLERANCE.is_close(pl_pn.z_axis()[2], 1.0)",
+        "line": 81,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(pl_pn.z_axis()[2], 1.0)",
-        "line": 101,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl_pn.d(), -5.0)",
-        "line": 102,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl_pts.c(), 1.0) && TOLERANCE.is_close(pl_pts.d(), 0.0)",
-        "line": 103,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl_2pts.origin()[0], 0.0)",
-        "line": 104,
+        "code_line": "TOLERANCE.is_close(pl_pts.c(), 1.0)",
+        "line": 82,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pl_2pts.x_axis()[0], 1.0)",
-        "line": 105,
+        "line": 83,
         "passed": true
       },
       {
-        "code_line": "xy.name == \"xy_plane\" && TOLERANCE.is_close(xy.c(), 1.0)",
-        "line": 106,
+        "code_line": "xy.name == \"xy_plane\" && yz.name == \"yz_plane\" && xz.name == \"xz_plane\"",
+        "line": 84,
         "passed": true
       },
       {
-        "code_line": "yz.name == \"yz_plane\" && TOLERANCE.is_close(yz.a(), 1.0)",
-        "line": 107,
+        "code_line": "TOLERANCE.is_close(pl_iadd.origin()[0], 1.0) &&\nTOLERANCE.is_close(pl_iadd.origin()[1], 2.0) &&\nTOLERANCE.is_close(pl_iadd.origin()[2], 3.0)",
+        "line": 85,
         "passed": true
       },
       {
-        "code_line": "xz.name == \"xz_plane\" && TOLERANCE.is_close(xz.b(), 1.0)",
-        "line": 108,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl_iadd.origin()[0], 1.0)",
-        "line": 109,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl_iadd.origin()[1], 2.0)",
-        "line": 110,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl_iadd.origin()[2], 3.0)",
-        "line": 111,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl_isub.origin()[0], -1.0)",
-        "line": 112,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl_isub.origin()[1], -2.0)",
-        "line": 113,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl_isub.origin()[2], -3.0)",
-        "line": 114,
+        "code_line": "TOLERANCE.is_close(pl_isub.origin()[0], -1.0) &&\nTOLERANCE.is_close(pl_isub.origin()[2], -3.0)",
+        "line": 86,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pl_add.origin()[2], 3.0)",
-        "line": 115,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl_base.origin()[2], 0.0)",
-        "line": 116,
+        "line": 87,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pl_sub.origin()[2], -3.0)",
-        "line": 117,
+        "line": 88,
         "passed": true
       }
     ],
-    "code": "        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        // Default constructor - XY plane at origin\n        let pl = Plane::default();\n\n        // Origin and axes\n        let origin = pl.origin();\n        let x_axis = pl.x_axis();\n        let y_axis = pl.y_axis();\n        let z_axis = pl.z_axis();\n\n        // Plane equation coefficients (ax + by + cz + d = 0)\n        let a = pl.a();\n        let b = pl.b();\n        let c = pl.c();\n        let d = pl.d();\n\n        // Index access for axes\n        let ax0 = &pl[0];\n        let ax1 = &pl[1];\n        let ax2 = &pl[2];\n\n        // Minimal and Full String Representation\n        let plstr = pl.str();\n        let plrepr = pl.repr();\n\n        // Copy (duplicates everything except guid)\n        let plcopy = pl.duplicate();\n\n        // From point and normal\n        let p = Point::new(0.0, 0.0, 5.0);\n        let n = Vector::new(0.0, 0.0, 1.0);\n        let pl_pn = Plane::from_point_normal(p, n);\n\n        // From three points\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let pl_pts = Plane::from_points(pts);\n\n        // From two points\n        let p1 = Point::new(0.0, 0.0, 0.0);\n        let p2 = Point::new(1.0, 0.0, 0.0);\n        let pl_2pts = Plane::from_two_points(p1, p2);\n\n        // Standard planes\n        let xy = Plane::xy_plane();\n        let yz = Plane::yz_plane();\n        let xz = Plane::xz_plane();\n\n        // Translation operators\n        let offset = Vector::new(1.0, 2.0, 3.0);\n\n        // In-place add\n        let mut pl_iadd = Plane::xy_plane();\n        pl_iadd += offset.clone();\n\n        // In-place subtract\n        let mut pl_isub = Plane::xy_plane();\n        pl_isub -= offset.clone();\n\n        // Copy add/subtract\n        let pl_base = Plane::xy_plane();\n        let pl_add = pl_base.clone() + offset.clone();\n        let pl_sub = pl_base.clone() - offset.clone();\n",
+    "code": "        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        // Default constructor - XY plane at origin\n        let pl = Plane::default();\n\n        // Origin and axes\n        let origin = pl.origin();\n        let x_axis = pl.x_axis();\n        let y_axis = pl.y_axis();\n        let z_axis = pl.z_axis();\n\n        // Plane equation coefficients (ax + by + cz + d = 0)\n        let a = pl.a();\n        let b = pl.b();\n        let c = pl.c();\n        let d = pl.d();\n\n        // Index access for axes\n        let ax0 = &pl[0];\n        let ax1 = &pl[1];\n        let ax2 = &pl[2];\n\n        // Minimal and Full String Representation\n        let plstr = pl.str();\n        let plrepr = pl.repr();\n\n        // Copy (duplicates everything except guid)\n        let plcopy = pl.duplicate();\n\n        // From point and normal\n        let p = Point::new(0.0, 0.0, 5.0);\n        let n = Vector::new(0.0, 0.0, 1.0);\n        let pl_pn = Plane::from_point_normal(p, n);\n\n        // From three points\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let pl_pts = Plane::from_points(pts);\n\n        // From two points\n        let p1 = Point::new(0.0, 0.0, 0.0);\n        let p2 = Point::new(1.0, 0.0, 0.0);\n        let pl_2pts = Plane::from_two_points(p1, p2);\n\n        // Standard planes\n        let xy = Plane::xy_plane();\n        let yz = Plane::yz_plane();\n        let xz = Plane::xz_plane();\n\n        // Translation operators\n        let offset = Vector::new(1.0, 2.0, 3.0);\n        let mut pl_iadd = Plane::xy_plane();\n        pl_iadd += offset.clone();\n        let mut pl_isub = Plane::xy_plane();\n        pl_isub -= offset.clone();\n        let pl_base = Plane::xy_plane();\n        let pl_add = pl_base.clone() + offset.clone();\n        let pl_sub = pl_base.clone() - offset.clone();\n",
     "failures": [],
     "group": "Plane",
     "line": 8,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.308
+    "time_ms": 0.064
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(pl.x_axis()[0], 0.0)",
-        "line": 129,
+        "line": 111,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pl.x_axis()[1], 1.0)",
-        "line": 130,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl.x_axis()[2], 0.0)",
-        "line": 131,
+        "line": 112,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pl.y_axis()[0], 1.0)",
-        "line": 132,
+        "line": 113,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pl.y_axis()[1], 0.0)",
-        "line": 133,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl.y_axis()[2], 0.0)",
-        "line": 134,
+        "line": 114,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pl.c(), -1.0)",
-        "line": 135,
+        "line": 115,
         "passed": true
       }
     ],
-    "code": "        use crate::Plane;\n\n        // Reverse flips normal and swaps x/y axes\n        let mut pl = Plane::xy_plane();\n        pl.reverse();\n",
+    "code": "        use crate::Plane;\n\n        let mut pl = Plane::xy_plane();\n        pl.reverse();\n",
     "failures": [],
     "group": "Plane",
-    "line": 122,
+    "line": 105,
     "passed": true,
     "test_name": "Reverse",
-    "time_ms": 0.004
+    "time_ms": 0.006
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(pl.x_axis()[1], 1.0)",
-        "line": 147,
+        "line": 126,
         "passed": true
       }
     ],
-    "code": "        use crate::Plane;\n\n        // Rotate plane 90 degrees around its normal\n        let mut pl = Plane::xy_plane();\n        pl.rotate(PI / 2.0);\n",
+    "code": "        use crate::Plane;\n\n        let mut pl = Plane::xy_plane();\n        pl.rotate(PI / 2.0);\n",
     "failures": [],
     "group": "Plane",
-    "line": 140,
+    "line": 120,
     "passed": true,
     "test_name": "Rotate",
-    "time_ms": 0.003
+    "time_ms": 0.006
   },
   {
     "checks": [
       {
-        "code_line": "xy_rh",
-        "line": 174,
+        "code_line": "xy.is_right_hand()",
+        "line": 138,
         "passed": true
       },
       {
-        "code_line": "yz_rh",
-        "line": 175,
+        "code_line": "yz.is_right_hand()",
+        "line": 139,
         "passed": true
       },
       {
-        "code_line": "xz_rh",
-        "line": 176,
-        "passed": true
-      },
-      {
-        "code_line": "default_rh",
-        "line": 177,
-        "passed": true
-      },
-      {
-        "code_line": "reversed_rh",
-        "line": 178,
-        "passed": true
-      },
-      {
-        "code_line": "rotated_rh",
-        "line": 179,
+        "code_line": "xz.is_right_hand()",
+        "line": 140,
         "passed": true
       }
     ],
-    "code": "        use crate::Plane;\n\n        // All standard planes should be right-handed\n        let xy = Plane::xy_plane();\n        let yz = Plane::yz_plane();\n        let xz = Plane::xz_plane();\n        let mut default_pl = Plane::default();\n\n        let xy_rh = xy.is_right_hand();\n        let yz_rh = yz.is_right_hand();\n        let xz_rh = xz.is_right_hand();\n        let default_rh = default_pl.is_right_hand();\n\n        // After reverse, should still be right-handed\n        default_pl.reverse();\n        let reversed_rh = default_pl.is_right_hand();\n\n        // After rotate, should still be right-handed\n        default_pl.rotate(PI / 4.0);\n        let rotated_rh = default_pl.is_right_hand();\n",
+    "code": "        use crate::Plane;\n\n        let xy = Plane::xy_plane();\n        let yz = Plane::yz_plane();\n        let xz = Plane::xz_plane();\n",
     "failures": [],
     "group": "Plane",
-    "line": 152,
+    "line": 131,
     "passed": true,
     "test_name": "Is Right Hand",
-    "time_ms": 0.005
+    "time_ms": 0.006
   },
   {
     "checks": [
       {
-        "code_line": "same_dir",
-        "line": 214,
+        "code_line": "Plane::is_coplanar(&p1, &p2, true)",
+        "line": 183,
         "passed": true
       },
       {
-        "code_line": "same_dir_flipped",
-        "line": 215,
-        "passed": true
-      },
-      {
-        "code_line": "same_dir_strict",
-        "line": 216,
-        "passed": true
-      },
-      {
-        "code_line": "same_pos",
-        "line": 217,
-        "passed": true
-      },
-      {
-        "code_line": "!diff_pos",
-        "line": 218,
-        "passed": true
-      },
-      {
-        "code_line": "coplanar",
-        "line": 219,
-        "passed": true
-      },
-      {
-        "code_line": "coplanar_reversed",
-        "line": 220,
-        "passed": true
-      },
-      {
-        "code_line": "!not_coplanar",
-        "line": 221,
+        "code_line": "!Plane::is_coplanar(&p1, &p3, true)",
+        "line": 184,
         "passed": true
       }
     ],
-    "code": "        use crate::Plane;\n        use crate::Vector;\n\n        // Same direction (parallel planes)\n        let p1 = Plane::xy_plane();\n        let p2 = Plane::xy_plane();\n        let same_dir = Plane::is_same_direction(&p1, &p2, true);\n\n        // Flipped direction\n        let mut p3 = Plane::xy_plane();\n        p3.reverse();\n        let same_dir_flipped = Plane::is_same_direction(&p1, &p3, true);\n        let same_dir_strict = Plane::is_same_direction(&p1, &p3, false);\n\n        // Same position\n        let mut p4 = Plane::xy_plane();\n        let same_pos = Plane::is_same_position(&p1, &p4);\n        p4 += Vector::new(0.0, 0.0, 1.0);\n        let diff_pos = Plane::is_same_position(&p1, &p4);\n\n        // Coplanar\n        let p5 = Plane::xy_plane();\n        let mut p6 = Plane::xy_plane();\n        let coplanar = Plane::is_coplanar(&p5, &p6, true);\n        p6.reverse();\n        let coplanar_reversed = Plane::is_coplanar(&p5, &p6, true);\n        p6 += Vector::new(0.0, 0.0, 1.0);\n        let not_coplanar = Plane::is_coplanar(&p5, &p6, true);\n",
+    "code": "        use crate::Plane;\n        use crate::Vector;\n\n        let p1 = Plane::xy_plane();\n        let p2 = Plane::xy_plane();\n        let mut p3 = Plane::xy_plane();\n        p3 += Vector::new(0.0, 0.0, 1.0);\n",
     "failures": [],
     "group": "Plane",
-    "line": 184,
+    "line": 174,
     "passed": true,
     "test_name": "Is Coplanar",
     "time_ms": 0.008
@@ -363,108 +193,188 @@
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(pl.origin()[0], 1.0)",
-        "line": 240,
+        "line": 209,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pl.origin()[1], 2.0)",
-        "line": 241,
+        "line": 210,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pl.origin()[2], 3.0)",
-        "line": 242,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl3.origin()[0], 1.0)",
-        "line": 243,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl3.origin()[1], 2.0)",
-        "line": 244,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl3.origin()[2], 3.0)",
-        "line": 245,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl2.origin()[0], 0.0)",
-        "line": 246,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl2.origin()[1], 0.0)",
-        "line": 247,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl2.origin()[2], 0.0)",
-        "line": 248,
+        "line": 211,
         "passed": true
       }
     ],
-    "code": "        use crate::Plane;\n        use crate::Xform;\n\n        // Transform - in-place transformation\n        let mut pl = Plane::xy_plane();\n        pl.xform = Xform::translation(1.0, 2.0, 3.0);\n        pl.transform();\n\n        // Transformed - returns new plane\n        let mut pl2 = Plane::xy_plane();\n        pl2.xform = Xform::translation(1.0, 2.0, 3.0);\n        let pl3 = pl2.transformed();\n",
+    "code": "        use crate::Plane;\n        use crate::Xform;\n\n        let mut pl = Plane::xy_plane();\n        pl.xform = Xform::translation(1.0, 2.0, 3.0);\n        pl.transform();\n",
     "failures": [],
     "group": "Plane",
-    "line": 226,
+    "line": 201,
     "passed": true,
     "test_name": "Transform",
-    "time_ms": 0.006
+    "time_ms": 0.005
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"test_plane\"",
-        "line": 268,
+        "line": 247,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.c(), 1.0)",
-        "line": 269,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(loaded.d(), 0.0)",
-        "line": 270,
+        "line": 248,
         "passed": true
       }
     ],
     "code": "        use crate::Plane;\n\n        let mut pl = Plane::xy_plane();\n        pl.name = \"test_plane\".to_string();\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let fname = \"serialization/test_plane.json\";\n        pl.json_dump(fname).unwrap();\n        let loaded = Plane::json_load(fname).unwrap();\n",
     "failures": [],
     "group": "Plane",
-    "line": 253,
+    "line": 232,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 6.075
+    "time_ms": 10.155
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"test_plane\"",
-        "line": 286,
+        "line": 263,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.c(), 1.0)",
-        "line": 287,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(loaded.d(), 0.0)",
-        "line": 288,
+        "line": 264,
         "passed": true
       }
     ],
-    "code": "        use crate::Plane;\n\n        let mut pl = Plane::xy_plane();\n        pl.name = \"test_plane\".to_string();\n\n        // pb_dump(fname) / pb_load(fname) - file-based serialization\n        let fname = \"serialization/test_plane.bin\";\n        pl.pb_dump(fname);\n        let loaded = Plane::pb_load(fname);\n",
+    "code": "        use crate::Plane;\n\n        let mut pl = Plane::xy_plane();\n        pl.name = \"test_plane\".to_string();\n\n        let fname = \"serialization/test_plane.bin\";\n        pl.pb_dump(fname);\n        let loaded = Plane::pb_load(fname);\n",
     "failures": [],
     "group": "Plane",
-    "line": 275,
+    "line": 253,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 5.262
+    "time_ms": 10.102
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(pl2.origin()[0], 1.0)",
+        "line": 224,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pl2.origin()[1], 2.0)",
+        "line": 225,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pl2.origin()[2], 3.0)",
+        "line": 226,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pl.origin()[0], 0.0)",
+        "line": 227,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Plane;\n        use crate::Xform;\n\n        let mut pl = Plane::xy_plane();\n        pl.xform = Xform::translation(1.0, 2.0, 3.0);\n        let pl2 = pl.transformed();\n",
+    "failures": [],
+    "group": "Plane",
+    "line": 216,
+    "passed": true,
+    "test_name": "Transformed",
+    "time_ms": 0.007
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(moved.origin()[2], 5.0)",
+        "line": 195,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pl.origin()[2], 0.0)",
+        "line": 196,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Plane;\n\n        let pl = Plane::xy_plane();\n        let moved = pl.translate_by_normal(5.0);\n",
+    "failures": [],
+    "group": "Plane",
+    "line": 189,
+    "passed": true,
+    "test_name": "Translate By Normal",
+    "time_ms": 0.005
+  },
+  {
+    "checks": [
+      {
+        "code_line": "Plane::is_same_position(&p1, &Plane::xy_plane())",
+        "line": 168,
+        "passed": true
+      },
+      {
+        "code_line": "!Plane::is_same_position(&p1, &p2)",
+        "line": 169,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Plane;\n        use crate::Vector;\n\n        let p1 = Plane::xy_plane();\n        let mut p2 = Plane::xy_plane();\n        p2 += Vector::new(0.0, 0.0, 1.0);\n",
+    "failures": [],
+    "group": "Plane",
+    "line": 160,
+    "passed": true,
+    "test_name": "Is Same Position",
+    "time_ms": 0.002
+  },
+  {
+    "checks": [
+      {
+        "code_line": "Plane::is_same_direction(&p1, &p2, true)",
+        "line": 153,
+        "passed": true
+      },
+      {
+        "code_line": "Plane::is_same_direction(&p1, &p3, true)",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "Plane::is_same_direction(&p1, &p3, false)",
+        "line": 155,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Plane;\n\n        let p1 = Plane::xy_plane();\n        let p2 = Plane::xy_plane();\n        let mut p3 = Plane::xy_plane();\n        p3.reverse();\n",
+    "failures": [],
+    "group": "Plane",
+    "line": 145,
+    "passed": true,
+    "test_name": "Is Same Direction",
+    "time_ms": 0.004
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pl.is_valid()",
+        "line": 99,
+        "passed": true
+      },
+      {
+        "code_line": "!invalid.is_valid()",
+        "line": 100,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Plane;\n\n        let pl = Plane::xy_plane();\n        let invalid = Plane::invalid();\n",
+    "failures": [],
+    "group": "Plane",
+    "line": 93,
+    "passed": true,
+    "test_name": "Is Valid",
+    "time_ms": 0.002
   }
 ]

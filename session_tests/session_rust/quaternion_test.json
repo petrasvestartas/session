@@ -2,135 +2,171 @@
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(loaded.s, original.s)",
-        "line": 176,
+        "code_line": "loaded.name == \"test_quaternion\"",
+        "line": 295,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded.scalar, q.scalar)",
+        "line": 296,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded.vector[2], q.vector[2])",
+        "line": 297,
         "passed": true
       }
     ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        use crate::encoders::{json_dump, json_load};\n        let axis = Vector::new(0.0, 0.0, 1.0);\n        let original = Quaternion::from_axis_angle(axis, 1.5708);\n        json_dump(&original, \"serialization/test_quaternion.json\", false).unwrap();\n        let loaded = json_load::<Quaternion>(\"serialization/test_quaternion.json\").unwrap();\n",
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        let mut q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        q.name = \"test_quaternion\".to_string();\n\n        //   jsondump()      | String       | to JSON string (internal use)\n        //   jsonload(s)     | String       | from JSON string (internal use)\n        //   json_dumps()    | String       | to JSON string\n        //   json_loads(s)   | String       | from JSON string\n        //   json_dump(path) | file         | write to file\n        //   json_load(path) | file         | read from file\n\n        let filename = \"serialization/test_quaternion.json\";\n        q.json_dump(filename).unwrap();\n        let loaded = Quaternion::json_load(filename).unwrap();\n",
     "failures": [],
     "group": "Quaternion",
-    "line": 167,
+    "line": 277,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 6.34
+    "time_ms": 10.006
   },
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(r0.s, q1.s)",
-        "line": 161,
+        "code_line": "loaded.name == \"test_quaternion\"",
+        "line": 313,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(r1.s, q2.s)",
-        "line": 162,
+        "code_line": "TOLERANCE.is_close(loaded.scalar, q.scalar)",
+        "line": 314,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded.vector[2], q.vector[2])",
+        "line": 315,
         "passed": true
       }
     ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        use crate::tolerance::PI;\n        let q1 = Quaternion::identity();\n        let q2 = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let r0 = q1.nlerp(&q2, 0.0);\n        let r1 = q1.nlerp(&q2, 1.0);\n",
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        let mut q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        q.name = \"test_quaternion\".to_string();\n\n        let filename = \"serialization/test_quaternion.bin\";\n        q.pb_dump(filename);\n        let loaded = Quaternion::pb_load(filename);\n",
     "failures": [],
     "group": "Quaternion",
-    "line": 152,
+    "line": 302,
+    "passed": true,
+    "test_name": "Protobuf Roundtrip",
+    "time_ms": 8.255
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(r0.scalar, q1.scalar)",
+        "line": 271,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(r1.scalar, q2.scalar)",
+        "line": 272,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        let q1 = Quaternion::identity();\n        let q2 = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let r0 = q1.nlerp(&q2, 0.0);\n        let r1 = q1.nlerp(&q2, 1.0);\n",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 263,
     "passed": true,
     "test_name": "Nlerp",
-    "time_ms": 0.009
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_close(mid.s, expected.s)",
-        "line": 142,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(mid.v[2], expected.v[2])",
-        "line": 143,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(mid2.s, half.s)",
-        "line": 147,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        use crate::tolerance::PI;\n        let q1 = Quaternion::identity();\n        let q2 = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let mid = q1.slerp(&q2, 0.5);\n        let expected = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 4.0);\n\n        let q3 = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), 0.001);\n        let mid2 = q1.slerp(&q3, 0.5);\n        let half = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), 0.0005);",
-    "failures": [],
-    "group": "Quaternion",
-    "line": 133,
-    "passed": true,
-    "test_name": "Slerp",
     "time_ms": 0.007
   },
   {
     "checks": [
       {
+        "code_line": "TOLERANCE.is_close(mid.scalar, expected.scalar)",
+        "line": 253,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(mid.vector[2], expected.vector[2])",
+        "line": 254,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(mid2.scalar, half.scalar)",
+        "line": 258,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        let q1 = Quaternion::identity();\n        let q2 = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let mid = q1.slerp(&q2, 0.5);\n        let expected = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 4.0);\n\n        let q3 = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), 0.001);\n        let mid2 = q1.slerp(&q3, 0.5);\n        let half = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), 0.0005);",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 245,
+    "passed": true,
+    "test_name": "Slerp",
+    "time_ms": 0.01
+  },
+  {
+    "checks": [
+      {
         "code_line": "TOLERANCE.is_close(q.dot(&q), 1.0)",
-        "line": 128,
+        "line": 240,
         "passed": true
       }
     ],
     "code": "        use crate::Quaternion;\n        let q = Quaternion::identity();\n",
     "failures": [],
     "group": "Quaternion",
-    "line": 124,
+    "line": 236,
     "passed": true,
     "test_name": "Dot",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(result.s, 1.0)",
-        "line": 116,
+        "code_line": "TOLERANCE.is_close(result.scalar, 1.0)",
+        "line": 228,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(result.v[0], 0.0)",
-        "line": 117,
+        "code_line": "TOLERANCE.is_close(result.vector[0], 0.0)",
+        "line": 229,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(result.v[1], 0.0)",
-        "line": 118,
+        "code_line": "TOLERANCE.is_close(result.vector[1], 0.0)",
+        "line": 230,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(result.v[2], 0.0)",
-        "line": 119,
+        "code_line": "TOLERANCE.is_close(result.vector[2], 0.0)",
+        "line": 231,
         "passed": true
       }
     ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        use crate::tolerance::PI;\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 3.0);\n        let result = q.clone() * q.invert();\n",
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 3.0);\n        let result = q.clone() * q.invert();\n",
     "failures": [],
     "group": "Quaternion",
-    "line": 109,
+    "line": 222,
     "passed": true,
     "test_name": "Invert",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(r.s, q.s)",
-        "line": 102,
+        "code_line": "TOLERANCE.is_close(r.scalar, q.scalar)",
+        "line": 215,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(r.v[0], -q.v[0])",
-        "line": 103,
+        "code_line": "TOLERANCE.is_close(r.vector[0], -q.vector[0])",
+        "line": 216,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(r.v[2], -q.v[2])",
-        "line": 104,
+        "code_line": "TOLERANCE.is_close(r.vector[2], -q.vector[2])",
+        "line": 217,
         "passed": true
       }
     ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        use crate::tolerance::PI;\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 4.0);\n        let r = q.conjugate();\n",
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 4.0);\n        let r = q.conjugate();\n",
     "failures": [],
     "group": "Quaternion",
-    "line": 95,
+    "line": 209,
     "passed": true,
     "test_name": "Conjugate",
     "time_ms": 0.002
@@ -138,15 +174,31 @@
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(q.magnitude_squared(), q.magnitude() * q.magnitude())",
-        "line": 90,
+        "code_line": "TOLERANCE.is_close(n.magnitude(), 1.0)",
+        "line": 204,
         "passed": true
       }
     ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        use crate::tolerance::PI;\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 4.0);\n",
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        let q = Quaternion::from_scalar_and_vector(2.0, Vector::new(0.0, 0.0, 2.0));\n        let n = q.normalized();\n",
     "failures": [],
     "group": "Quaternion",
-    "line": 84,
+    "line": 198,
+    "passed": true,
+    "test_name": "Normalized",
+    "time_ms": 0.002
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(q.magnitude_squared(), q.magnitude() * q.magnitude())",
+        "line": 193,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 4.0);\n",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 188,
     "passed": true,
     "test_name": "Magnitude Squared",
     "time_ms": 0.001
@@ -154,20 +206,119 @@
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(q_euler.s, q_axis.s)",
-        "line": 78,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(q_euler.v[2], q_axis.v[2])",
-        "line": 79,
+        "code_line": "TOLERANCE.is_close(q.magnitude(), 1.0)",
+        "line": 183,
         "passed": true
       }
     ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        use crate::tolerance::PI;\n        let q_euler = Quaternion::from_euler(0.0, 0.0, PI / 2.0);\n        let q_axis = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n",
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 4.0);\n",
     "failures": [],
     "group": "Quaternion",
-    "line": 71,
+    "line": 178,
+    "passed": true,
+    "test_name": "Magnitude",
+    "time_ms": 0.001
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(p.x_axis()[0], 0.0)",
+        "line": 170,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(p.x_axis()[1], 1.0)",
+        "line": 171,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(p.y_axis()[0], -1.0)",
+        "line": 172,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(p.y_axis()[1], 0.0)",
+        "line": 173,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let p = q.get_rotation();\n",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 164,
+    "passed": true,
+    "test_name": "Get Rotation",
+    "time_ms": 0.004
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(rotated[0], 0.0)",
+        "line": 157,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(rotated[1], 1.0)",
+        "line": 158,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(rotated[2], 0.0)",
+        "line": 159,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let rotated = q.rotate_vector(Vector::new(1.0, 0.0, 0.0));\n",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 151,
+    "passed": true,
+    "test_name": "Rotate Vector",
+    "time_ms": 0.003
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(rotated_x[0], 0.0)",
+        "line": 144,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(rotated_x[1], 1.0)",
+        "line": 145,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(rotated_x[2], 0.0)",
+        "line": 146,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        use crate::Plane;\n        use crate::Point;\n        let plane_a = Plane::new(Point::new(0.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let plane_b = Plane::new(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0), Vector::new(-1.0, 0.0, 0.0));\n        let q = Quaternion::from_rotation(&plane_a, &plane_b);\n        let rotated_x = q.rotate_vector(plane_a.x_axis());\n",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 134,
+    "passed": true,
+    "test_name": "From Rotation",
+    "time_ms": 0.011
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(q_euler.scalar, q_axis.scalar)",
+        "line": 128,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q_euler.vector[2], q_axis.vector[2])",
+        "line": 129,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        let q_euler = Quaternion::from_euler(0.0, 0.0, PI / 2.0);\n        let q_axis = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 122,
     "passed": true,
     "test_name": "From Euler",
     "time_ms": 0.002
@@ -176,97 +327,205 @@
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(rotated[0], dst[0])",
-        "line": 58,
+        "line": 109,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(rotated[1], dst[1])",
-        "line": 59,
+        "line": 110,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(rotated[2], dst[2])",
-        "line": 60,
+        "line": 111,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(rot[0], -1.0)",
-        "line": 65,
+        "line": 116,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(rot[1], 0.0)",
-        "line": 66,
+        "line": 117,
         "passed": true
       }
     ],
     "code": "        use crate::Quaternion;\n        use crate::Vector;\n        let src = Vector::new(1.0, 0.0, 0.0);\n        let dst = Vector::new(0.0, 1.0, 0.0);\n        let q = Quaternion::from_arc(src.clone(), dst.clone());\n        let rotated = q.rotate_vector(src);\n\n        let src2 = Vector::new(1.0, 0.0, 0.0);\n        let dst2 = Vector::new(-1.0, 0.0, 0.0);\n        let q2 = Quaternion::from_arc(src2.clone(), dst2);\n        let rot = q2.rotate_vector(src2);",
     "failures": [],
     "group": "Quaternion",
-    "line": 50,
+    "line": 101,
     "passed": true,
     "test_name": "From Arc",
-    "time_ms": 0.006
+    "time_ms": 0.012
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(q.scalar, (PI / 4.0).cos())",
+        "line": 95,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q.vector[2], (PI / 4.0).sin())",
+        "line": 96,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 90,
+    "passed": true,
+    "test_name": "From Axis Angle",
+    "time_ms": 0.002
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(q.scalar, 2.0)",
+        "line": 82,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q.vector[0], 1.0)",
+        "line": 83,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q.vector[1], 2.0)",
+        "line": 84,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q.vector[2], 3.0)",
+        "line": 85,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        let q = Quaternion::from_scalar_and_vector(2.0, Vector::new(1.0, 2.0, 3.0));\n",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 77,
+    "passed": true,
+    "test_name": "From Scalar And Vector",
+    "time_ms": 0.001
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(q.scalar, 1.0)",
+        "line": 69,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q.vector[0], 0.0)",
+        "line": 70,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q.vector[1], 0.0)",
+        "line": 71,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q.vector[2], 0.0)",
+        "line": 72,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        let q = Quaternion::identity();\n",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 65,
+    "passed": true,
+    "test_name": "Identity",
+    "time_ms": 0.001
   },
   {
     "checks": [
       {
         "code_line": "q0.name == \"my_quaternion\"",
-        "line": 36,
+        "line": 46,
         "passed": true
       },
       {
         "code_line": "!q0.guid().is_empty()",
-        "line": 37,
+        "line": 47,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(q0.s, 1.0)",
-        "line": 38,
+        "code_line": "TOLERANCE.is_close(q0.scalar, 1.0)",
+        "line": 48,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(q0.v[0], 0.0) && TOLERANCE.is_close(q0.v[1], 0.0) &&\nTOLERANCE.is_close(q0.v[2], 0.0)",
-        "line": 39,
+        "code_line": "TOLERANCE.is_close(q0.vector[0], 0.0) && TOLERANCE.is_close(q0.vector[1], 0.0)\n&& TOLERANCE.is_close(q0.vector[2], 0.0)",
+        "line": 49,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(q1.s, 2.0) && TOLERANCE.is_close(q1.v[0], 1.0)",
-        "line": 40,
+        "code_line": "q[0] == 5.0 && q[1] == 0.0 && q[2] == 1.0 && q[3] == 0.0",
+        "line": 50,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(v[0], -1.0) && TOLERANCE.is_close(v[1], 0.0)",
-        "line": 41,
+        "code_line": "s_val == 5.0 && x == 0.0 && y == 1.0 && z == 0.0",
+        "line": 51,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(scaled.s, 2.0)",
-        "line": 42,
+        "code_line": "qstr == \"5.000000, 0.000000, 1.000000, 0.000000\"",
+        "line": 52,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(sum.s, 1.0) && TOLERANCE.is_close(sum.v[2], 1.0)",
-        "line": 43,
+        "code_line": "qrepr == \"Quaternion(my_quaternion, 5.000000, 0.000000, 1.000000, 0.000000)\"",
+        "line": 53,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(diff.s, 0.0) && TOLERANCE.is_close(diff.v[2], 0.0)",
-        "line": 44,
+        "code_line": "qcopy == q && qcopy.guid() != q.guid()",
+        "line": 54,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(neg.s, -1.0)",
-        "line": 45,
+        "code_line": "qother != q",
+        "line": 55,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(qmul.scalar, 0.0) &&\nTOLERANCE.is_close(qmul.vector[2], 1.0)",
+        "line": 56,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(qscaled.scalar, 2.0)",
+        "line": 57,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(qsum.scalar, 1.0) &&\nTOLERANCE.is_close(qsum.vector[2], 1.0)",
+        "line": 58,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(qdiff.scalar, 0.0) &&\nTOLERANCE.is_close(qdiff.vector[2], 0.0)",
+        "line": 59,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(qneg.scalar, -1.0)",
+        "line": 60,
         "passed": true
       }
     ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        use crate::tolerance::PI;\n\n        // Default constructor (identity)\n        let q0 = Quaternion::identity();\n\n        // Constructor with args\n        let q1 = Quaternion::from_sv(2.0, Vector::new(1.0, 0.0, 0.0));\n\n        // Quaternion multiplication\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let r = q.clone() * q.clone();\n        let v = r.rotate_vector(Vector::new(1.0, 0.0, 0.0));\n\n        // Scalar multiplication\n        let scaled = Quaternion::identity() * 2.0;\n\n        // Addition\n        let a = Quaternion::from_sv(1.0, Vector::new(0.0, 0.0, 0.0));\n        let b = Quaternion::from_sv(0.0, Vector::new(0.0, 0.0, 1.0));\n        let sum = a + b;\n\n        // Subtraction\n        let diff = q.clone() - q.clone();\n\n        // Negation\n        let neg = -Quaternion::identity();\n",
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // Default constructor (identity)\n        let q0 = Quaternion::identity();\n\n        // Constructor with arguments\n        let mut q = Quaternion::from_scalar_and_vector(2.0, Vector::new(1.0, 0.0, 0.0));\n\n        // Setters\n        q[0] = 5.0;\n        q[1] = 0.0;\n        q[2] = 1.0;\n        q[3] = 0.0;\n\n        // Getters\n        let s_val = q[0];\n        let x = q[1];\n        let y = q[2];\n        let z = q[3];\n\n        // Minimal and Full String Representation\n        let qstr = q.str();\n        let qrepr = q.repr();\n\n        // Copy (duplicates everything except guid)\n        let qcopy = q.duplicate();\n        let qother = Quaternion::from_scalar_and_vector(2.0, Vector::new(1.0, 0.0, 0.0));\n\n        // Copy operators\n        let qrot = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let qmul = qrot.clone() * qrot.clone();\n        let qscaled = Quaternion::identity() * 2.0;\n        let a = Quaternion::from_scalar_and_vector(1.0, Vector::new(0.0, 0.0, 0.0));\n        let b = Quaternion::from_scalar_and_vector(0.0, Vector::new(0.0, 0.0, 1.0));\n        let qsum = a + b;\n        let qdiff = qrot.clone() - qrot.clone();\n        let qneg = -Quaternion::identity();\n",
     "failures": [],
     "group": "Quaternion",
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.007
+    "time_ms": 0.03
   }
 ]

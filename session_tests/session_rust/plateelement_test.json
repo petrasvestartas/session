@@ -58,7 +58,7 @@
     "line": 615,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.192
+    "time_ms": 0.231
   },
   {
     "checks": [
@@ -84,7 +84,7 @@
     "line": 650,
     "passed": true,
     "test_name": "Default Polygon",
-    "time_ms": 0.022
+    "time_ms": 0.044
   },
   {
     "checks": [
@@ -110,7 +110,7 @@
     "line": 662,
     "passed": true,
     "test_name": "Setters",
-    "time_ms": 0.04
+    "time_ms": 0.1
   },
   {
     "checks": [
@@ -131,7 +131,7 @@
     "line": 682,
     "passed": true,
     "test_name": "Mesh Topology",
-    "time_ms": 0.017
+    "time_ms": 0.073
   },
   {
     "checks": [
@@ -157,7 +157,7 @@
     "line": 702,
     "passed": true,
     "test_name": "Aabb",
-    "time_ms": 0.027
+    "time_ms": 0.061
   },
   {
     "checks": [
@@ -183,7 +183,7 @@
     "line": 722,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.031
+    "time_ms": 0.072
   },
   {
     "checks": [
@@ -204,7 +204,7 @@
     "line": 742,
     "passed": true,
     "test_name": "Triangle Polygon",
-    "time_ms": 0.016
+    "time_ms": 0.032
   },
   {
     "checks": [
@@ -235,7 +235,7 @@
     "line": 761,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 5.542
+    "time_ms": 11.693
   },
   {
     "checks": [
@@ -266,336 +266,382 @@
     "line": 787,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 5.218
+    "time_ms": 9.93
   },
   {
     "checks": [
       {
         "code_line": "loaded.joint_types().unwrap() == &vec![1, 2, 3, 4]",
-        "line": 1081,
+        "line": 1101,
         "passed": true
       },
       {
         "code_line": "loaded.j_mf().unwrap().len() == 3",
-        "line": 1082,
+        "line": 1102,
         "passed": true
       },
       {
         "code_line": "loaded.j_mf().unwrap()[0][0] == (0, true, 0.5)",
-        "line": 1083,
+        "line": 1103,
         "passed": true
       },
       {
         "code_line": "loaded.key().unwrap() == \"plate_A\"",
-        "line": 1084,
+        "line": 1104,
         "passed": true
       },
       {
         "code_line": "loaded.component_plane().is_some()",
-        "line": 1085,
+        "line": 1105,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.component_plane().unwrap().origin()[0], 1.0)",
-        "line": 1086,
+        "line": 1106,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        use crate::plane::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let polygon = vec![Point::new(0.0,0.0,0.0), Point::new(2.0,0.0,0.0), Point::new(2.0,2.0,0.0), Point::new(0.0,2.0,0.0)];\n        let mut p = Element::plate(polygon, 0.3, \"joinery_plate\");\n        p.set_joint_types(vec![1, 2, 3, 4]);\n        p.set_j_mf(vec![vec![(0, true, 0.5)], vec![], vec![(1, false, 0.3)]]);\n        p.set_key(\"plate_A\".to_string());\n        p.set_component_plane(Plane::new(Point::new(1.0, 2.0, 3.0), Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0)));\n\n        let path = \"serialization/test_plate_element_joinery.bin\";\n        p.pb_dump(path);\n        let loaded = Element::pb_load(path).unwrap();\n",
     "failures": [],
     "group": "PlateElement",
-    "line": 1064,
+    "line": 1084,
     "passed": true,
     "test_name": "Protobuf Roundtrip Joinery",
-    "time_ms": 5.402
+    "time_ms": 9.72
   },
   {
     "checks": [
       {
         "code_line": "loaded.joint_types().unwrap() == &vec![1, 2, 3, 4]",
-        "line": 1055,
+        "line": 1075,
         "passed": true
       },
       {
         "code_line": "loaded.j_mf().unwrap().len() == 3",
-        "line": 1056,
+        "line": 1076,
         "passed": true
       },
       {
         "code_line": "loaded.key().unwrap() == \"plate_A\"",
-        "line": 1057,
+        "line": 1077,
         "passed": true
       },
       {
         "code_line": "loaded.component_plane().is_some()",
-        "line": 1058,
+        "line": 1078,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.component_plane().unwrap().origin()[0], 1.0)",
-        "line": 1059,
+        "line": 1079,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        use crate::plane::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let polygon = vec![Point::new(0.0,0.0,0.0), Point::new(2.0,0.0,0.0), Point::new(2.0,2.0,0.0), Point::new(0.0,2.0,0.0)];\n        let mut p = Element::plate(polygon, 0.3, \"joinery_plate\");\n        p.set_joint_types(vec![1, 2, 3, 4]);\n        p.set_j_mf(vec![vec![(0, true, 0.5)], vec![], vec![(1, false, 0.3)]]);\n        p.set_key(\"plate_A\".to_string());\n        p.set_component_plane(Plane::new(Point::new(1.0, 2.0, 3.0), Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0)));\n\n        let fname = \"serialization/test_plate_element_joinery.json\";\n        p.json_dump(fname);\n        let loaded = Element::json_load(fname);\n",
     "failures": [],
     "group": "PlateElement",
-    "line": 1038,
+    "line": 1058,
     "passed": true,
     "test_name": "Json Roundtrip Joinery",
-    "time_ms": 6.429
+    "time_ms": 12.047
   },
   {
     "checks": [
       {
         "code_line": "p.component_plane().is_none()",
-        "line": 1029,
+        "line": 1049,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(p.component_plane().unwrap().origin()[0], 1.0)",
-        "line": 1032,
+        "line": 1052,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(p.component_plane().unwrap().origin()[1], 2.0)",
-        "line": 1033,
+        "line": 1053,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        use crate::plane::Plane;\n        use crate::Point;\n        use crate::Vector;\n        let mut p = Element::plate_default();\n        let cp = Plane::new(Point::new(1.0, 2.0, 3.0), Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        p.set_component_plane(cp);",
     "failures": [],
     "group": "PlateElement",
-    "line": 1023,
+    "line": 1043,
     "passed": true,
     "test_name": "Component Plane",
-    "time_ms": 0.026
+    "time_ms": 0.033
   },
   {
     "checks": [
       {
         "code_line": "p.key().unwrap() == \"\"",
-        "line": 1016,
+        "line": 1036,
         "passed": true
       },
       {
         "code_line": "p.key().unwrap() == \"plate_A\"",
-        "line": 1018,
+        "line": 1038,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        let mut p = Element::plate_default();\n        p.set_key(\"plate_A\".to_string());",
     "failures": [],
     "group": "PlateElement",
-    "line": 1013,
+    "line": 1033,
     "passed": true,
     "test_name": "Key",
-    "time_ms": 0.019
+    "time_ms": 0.179
   },
   {
     "checks": [
       {
         "code_line": "p.j_mf().unwrap().is_empty()",
-        "line": 999,
+        "line": 1019,
         "passed": true
       },
       {
         "code_line": "p.j_mf().unwrap().len() == 3",
-        "line": 1005,
+        "line": 1025,
         "passed": true
       },
       {
         "code_line": "p.j_mf().unwrap()[0].len() == 2",
-        "line": 1006,
+        "line": 1026,
         "passed": true
       },
       {
         "code_line": "p.j_mf().unwrap()[0][0] == (0, true, 0.5)",
-        "line": 1007,
+        "line": 1027,
         "passed": true
       },
       {
         "code_line": "p.j_mf().unwrap()[2][0].0 == 2",
-        "line": 1008,
+        "line": 1028,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        let mut p = Element::plate_default();\n        p.set_j_mf(vec![\n            vec![(0, true, 0.5), (1, false, 0.3)],\n            vec![],\n            vec![(2, true, 0.8)],\n        ]);",
     "failures": [],
     "group": "PlateElement",
-    "line": 996,
+    "line": 1016,
     "passed": true,
     "test_name": "J Mf",
-    "time_ms": 0.019
+    "time_ms": 0.029
   },
   {
     "checks": [
       {
         "code_line": "p.joint_types().unwrap().is_empty()",
-        "line": 987,
+        "line": 1007,
         "passed": true
       },
       {
         "code_line": "p.joint_types().unwrap().len() == 4",
-        "line": 989,
+        "line": 1009,
         "passed": true
       },
       {
         "code_line": "p.joint_types().unwrap()[0] == 1",
-        "line": 990,
+        "line": 1010,
         "passed": true
       },
       {
         "code_line": "p.joint_types().unwrap()[3] == 4",
-        "line": 991,
+        "line": 1011,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        let mut p = Element::plate_default();\n        p.set_joint_types(vec![1, 2, 3, 4]);",
     "failures": [],
     "group": "PlateElement",
-    "line": 984,
+    "line": 1004,
     "passed": true,
     "test_name": "Joint Types",
-    "time_ms": 0.028
+    "time_ms": 0.026
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(ax.start()[0], 1.0)",
-        "line": 976,
+        "line": 996,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(ax.start()[1], 1.0)",
-        "line": 977,
+        "line": 997,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(ax.start()[2], 0.0)",
-        "line": 978,
+        "line": 998,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(ax.end()[2], -0.4)",
-        "line": 979,
+        "line": 999,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        use crate::Point;\n        let polygon = vec![Point::new(0.0,0.0,0.0), Point::new(2.0,0.0,0.0), Point::new(2.0,2.0,0.0), Point::new(0.0,2.0,0.0)];\n        let mut p = Element::plate(polygon, 0.4, \"my_plate\");\n        let ax = p.axis().unwrap();",
     "failures": [],
     "group": "PlateElement",
-    "line": 970,
+    "line": 990,
     "passed": true,
     "test_name": "Axis",
-    "time_ms": 0.036
+    "time_ms": 0.027
   },
   {
     "checks": [
       {
         "code_line": "evs.len() == 4",
-        "line": 961,
+        "line": 981,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(evs[0][0], 1.0)",
-        "line": 962,
+        "line": 982,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(evs[0][1], 0.0)",
-        "line": 963,
+        "line": 983,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(evs[1][0], 0.0)",
-        "line": 964,
+        "line": 984,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(evs[1][1], 1.0)",
-        "line": 965,
+        "line": 985,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        use crate::Point;\n        let polygon = vec![Point::new(0.0,0.0,0.0), Point::new(1.0,0.0,0.0), Point::new(1.0,1.0,0.0), Point::new(0.0,1.0,0.0)];\n        let mut p = Element::plate(polygon, 0.2, \"my_plate\");\n        let evs = p.edge_vectors();",
     "failures": [],
     "group": "PlateElement",
-    "line": 955,
+    "line": 975,
     "passed": true,
     "test_name": "Edge Vectors",
-    "time_ms": 0.022
+    "time_ms": 0.071
   },
   {
     "checks": [
       {
         "code_line": "pls.len() == 6",
-        "line": 948,
+        "line": 968,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pls[0].z_axis()[2], 1.0)",
-        "line": 949,
+        "line": 969,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pls[1].z_axis()[2], -1.0)",
-        "line": 950,
+        "line": 970,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        use crate::Point;\n        let polygon = vec![Point::new(0.0,0.0,0.0), Point::new(1.0,0.0,0.0), Point::new(1.0,1.0,0.0), Point::new(0.0,1.0,0.0)];\n        let mut p = Element::plate(polygon, 0.2, \"my_plate\");\n        let pls = p.planes();",
     "failures": [],
     "group": "PlateElement",
-    "line": 942,
+    "line": 962,
     "passed": true,
     "test_name": "Planes",
-    "time_ms": 0.053
+    "time_ms": 0.063
   },
   {
     "checks": [
       {
         "code_line": "pls.len() == 6",
-        "line": 934,
+        "line": 954,
         "passed": true
       },
       {
         "code_line": "pls[0].point_count() == 5",
-        "line": 935,
+        "line": 955,
         "passed": true
       },
       {
         "code_line": "pls[1].point_count() == 5",
-        "line": 936,
+        "line": 956,
         "passed": true
       },
       {
         "code_line": "pls[i].point_count() == 5",
-        "line": 937,
+        "line": 957,
         "passed": true
       },
       {
         "code_line": "pls[i].point_count() == 5",
-        "line": 937,
+        "line": 957,
         "passed": true
       },
       {
         "code_line": "pls[i].point_count() == 5",
-        "line": 937,
+        "line": 957,
         "passed": true
       },
       {
         "code_line": "pls[i].point_count() == 5",
-        "line": 937,
+        "line": 957,
         "passed": true
       }
     ],
     "code": "        use crate::element::Element;\n        use crate::Point;\n        let polygon = vec![Point::new(0.0,0.0,0.0), Point::new(1.0,0.0,0.0), Point::new(1.0,1.0,0.0), Point::new(0.0,1.0,0.0)];\n        let mut p = Element::plate(polygon, 0.2, \"my_plate\");\n        let pls = p.polylines();",
     "failures": [],
     "group": "PlateElement",
-    "line": 928,
+    "line": 948,
     "passed": true,
     "test_name": "Polylines",
-    "time_ms": 0.046
+    "time_ms": 0.088
+  },
+  {
+    "checks": [
+      {
+        "code_line": "p.polygon().unwrap().len() == 4",
+        "line": 820,
+        "passed": true
+      },
+      {
+        "code_line": "p.polygon_top().unwrap().len() == 4",
+        "line": 821,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(p.thickness().unwrap(), 1.0)",
+        "line": 822,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(p.polygon().unwrap()[0][2], 0.0)",
+        "line": 823,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(p.polygon_top().unwrap()[0][2], 1.0)",
+        "line": 824,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pr.polygon().unwrap()[0][2], 0.0)",
+        "line": 827,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pr.polygon_top().unwrap()[0][2], 1.0)",
+        "line": 828,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::element::Element;\n        use crate::Point;\n\n        let bottom = vec![Point::new(0.0,0.0,0.0), Point::new(2.0,0.0,0.0), Point::new(2.0,2.0,0.0), Point::new(0.0,2.0,0.0), Point::new(0.0,0.0,0.0)];\n        let top    = vec![Point::new(0.0,0.0,1.0), Point::new(2.0,0.0,1.0), Point::new(2.0,2.0,1.0), Point::new(0.0,2.0,1.0), Point::new(0.0,0.0,1.0)];\n        let p = Element::plate_from_top_bottom(bottom.clone(), top.clone(), \"tb_plate\");\n        // Reversed argument order should auto-swap\n        let pr = Element::plate_from_top_bottom(top, bottom, \"tb_plate_r\");",
+    "failures": [],
+    "group": "PlateElement",
+    "line": 813,
+    "passed": true,
+    "test_name": "From Top Bottom",
+    "time_ms": 0.053
   }
 ]

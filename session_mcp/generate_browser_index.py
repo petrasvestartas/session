@@ -30,6 +30,7 @@ def generate():
     print(f"  - {len(data['concepts'])} concepts indexed")
     print(f"  - {len(data.get('recipes', []))} recipes indexed")
     print(f"  - {len(data.get('class_summaries', {}))} class summaries")
+    print(f"  - {len(data.get('class_graph', {}))} classes in relationship graph")
     print(f"  - {len(data.get('method_index', {}))} method index entries")
     print(f"  - Classes: {', '.join(sorted(data.get('class_summaries', {}).keys()))}")
 
