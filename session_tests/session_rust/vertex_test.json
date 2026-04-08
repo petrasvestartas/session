@@ -18,7 +18,7 @@
     "line": 27,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.723
+    "time_ms": 10.704
   },
   {
     "checks": [

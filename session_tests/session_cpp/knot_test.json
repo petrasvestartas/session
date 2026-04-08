@@ -3,7 +3,7 @@
     "group": "Knot",
     "test_name": "Make Clamped Uniform",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.009,
     "line": 15,
     "code": "    // uncomment #include \"knot.h\"\n\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots = knot::make_clamped_uniform(order, cv_count);",
     "checks": [
@@ -72,7 +72,7 @@
     "group": "Knot",
     "test_name": "Find Span",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 71,
     "code": "    // uncomment #include \"knot.h\"\n\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots_clamped = knot::make_clamped_uniform(order, cv_count);\n    //   - 0.5 falls in span [0, 1] -> index 0\n    //   - 1.5 falls in span [1, 2] -> index 1\n    int spancount0 = knot::find_span(order, cv_count, knots_clamped, 0.5);\n    int spancount1 = knot::find_span(order, cv_count, knots_clamped, 1.5);",
     "checks": [
@@ -104,7 +104,7 @@
     "group": "Knot",
     "test_name": "Compute Parameters",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 97,
     "code": "    // uncomment #include \"knot.h\"\n\n    double pts[] = {0,0,0, 1,0,0, 2,0,0, 3,0,0};\n    // Chord-length parameterization: since all gaps are 1.0, params = {0, 1, 2, 3}\n    std::vector<double> t = knot::compute_parameters(pts, 4, 3, CurveKnotStyle::Chord);",
     "checks": [
@@ -168,7 +168,7 @@
     "group": "Knot",
     "test_name": "Build Fitted Knots Periodic Adaptive",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 147,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Periodic version for closed curves -- knots wrap around\n    // For a regular square (equal turns, equal chords), knots are uniformly spaced\n    double pts[] = {0,0,0, 1,0,0, 1,1,0, 0,1,0};\n    std::vector<double> params = {0.0, 1.0, 2.0, 3.0, 4.0};\n    std::vector<double> knots = knot::build_fitted_knots_periodic_adaptive(params, pts, 4, 3, 4, 3);",
     "checks": [

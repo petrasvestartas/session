@@ -34,7 +34,7 @@
     "line": 16,
     "passed": true,
     "test_name": "Eval SchwarzP",
-    "time_ms": 0.0
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -76,7 +76,7 @@
     "line": 32,
     "passed": true,
     "test_name": "From Tpms Gyroid Solid",
-    "time_ms": 2.968
+    "time_ms": 3.243
   },
   {
     "checks": [
@@ -92,7 +92,7 @@
     "line": 47,
     "passed": true,
     "test_name": "From Tpms Diamond Sheet",
-    "time_ms": 9.538
+    "time_ms": 15.374
   },
   {
     "checks": [
@@ -108,7 +108,7 @@
     "line": 60,
     "passed": true,
     "test_name": "From Tpms Neovius Shell",
-    "time_ms": 7.243
+    "time_ms": 12.139
   },
   {
     "checks": [
@@ -176,7 +176,7 @@
     "line": 92,
     "passed": true,
     "test_name": "From Function",
-    "time_ms": 0.382
+    "time_ms": 0.54
   },
   {
     "checks": [
@@ -197,7 +197,7 @@
     "line": 215,
     "passed": true,
     "test_name": "Gyroid Sphere Shell",
-    "time_ms": 1.738
+    "time_ms": 2.182
   },
   {
     "checks": [
@@ -218,7 +218,7 @@
     "line": 196,
     "passed": true,
     "test_name": "Smooth Intersect",
-    "time_ms": 1.386
+    "time_ms": 2.992
   },
   {
     "checks": [
@@ -239,7 +239,7 @@
     "line": 177,
     "passed": true,
     "test_name": "Smooth Subtract",
-    "time_ms": 1.015
+    "time_ms": 1.818
   },
   {
     "checks": [
@@ -260,7 +260,7 @@
     "line": 158,
     "passed": true,
     "test_name": "SDF Capsule",
-    "time_ms": 0.847
+    "time_ms": 1.549
   },
   {
     "checks": [
@@ -281,7 +281,7 @@
     "line": 143,
     "passed": true,
     "test_name": "SDF Torus",
-    "time_ms": 0.288
+    "time_ms": 0.547
   },
   {
     "checks": [
@@ -302,7 +302,7 @@
     "line": 128,
     "passed": true,
     "test_name": "SDF Box",
-    "time_ms": 0.375
+    "time_ms": 0.713
   },
   {
     "checks": [
@@ -403,6 +403,6 @@
     "line": 107,
     "passed": true,
     "test_name": "All Tpms Shells",
-    "time_ms": 98.3
+    "time_ms": 134.587
   }
 ]

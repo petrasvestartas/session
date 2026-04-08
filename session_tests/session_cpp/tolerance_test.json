@@ -19,7 +19,7 @@
     "group": "Tolerance",
     "test_name": "Is Close",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.007,
     "line": 15,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
     "checks": [
@@ -83,7 +83,7 @@
     "group": "Tolerance",
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.005,
     "line": 43,
     "code": "        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.format_number(3.14159, 2);",
     "checks": [

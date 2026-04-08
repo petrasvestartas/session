@@ -89,7 +89,7 @@
     "group": "Quaternion",
     "test_name": "Identity",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.004,
     "line": 70,
     "code": "    // uncomment #include \"quaternion.h\"\n\n    Quaternion q = Quaternion::identity();",
     "checks": [
@@ -120,7 +120,7 @@
     "group": "Quaternion",
     "test_name": "From Scalar And Vector",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 81,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_scalar_and_vector(2.0, Vector(1.0, 2.0, 3.0));",
     "checks": [
@@ -172,7 +172,7 @@
     "group": "Quaternion",
     "test_name": "From Arc",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 103,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Vector src(1.0, 0.0, 0.0);\n    Vector dst(0.0, 1.0, 0.0);\n    Quaternion q = Quaternion::from_arc(src, dst);\n    Vector rotated = q.rotate_vector(src);\n\n    Vector src2(1.0, 0.0, 0.0);\n    Vector dst2(-1.0, 0.0, 0.0);\n    Quaternion q2 = Quaternion::from_arc(src2, dst2);\n    Vector rot = q2.rotate_vector(src2);",
     "checks": [
@@ -229,7 +229,7 @@
     "group": "Quaternion",
     "test_name": "From Rotation",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 134,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"plane.h\"\n\n    Plane plane_a = Plane::xy_plane();\n    Plane plane_b(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(-1.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0));\n    Quaternion q = Quaternion::from_rotation(plane_a, plane_b);\n    Vector rotated_x = q.rotate_vector(plane_a.x_axis());",
     "checks": [
@@ -386,7 +386,7 @@
     "group": "Quaternion",
     "test_name": "Invert",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 213,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 3.0);\n    Quaternion result = q * q.invert();",
     "checks": [
@@ -433,7 +433,7 @@
     "group": "Quaternion",
     "test_name": "Slerp",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 234,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q1 = Quaternion::identity();\n    Quaternion q2 = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    Quaternion mid = q1.slerp(q2, 0.5);\n    Quaternion expected = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 4.0);\n\n    Quaternion q3 = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), 0.001);\n    Quaternion mid2 = q1.slerp(q3, 0.5);\n    Quaternion half = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), 0.0005);",
     "checks": [
@@ -480,7 +480,7 @@
     "group": "Quaternion",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 7.502,
+    "time_ms": 6.978,
     "line": 264,
     "code": "    // uncomment #include \"quaternion.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    q.name = \"serialization/test_quaternion\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    std::string filename = \"serialization/test_quaternion.json\";\n    q.json_dump(filename);\n    Quaternion loaded = Quaternion::json_load(filename);",
     "checks": [
@@ -506,7 +506,7 @@
     "group": "Quaternion",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 6.46,
+    "time_ms": 1.089,
     "line": 286,
     "code": "    // uncomment #include \"quaternion.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    q.name = \"serialization/test_quaternion\";\n\n    std::string filename = \"serialization/test_quaternion.bin\";\n    q.pb_dump(filename);\n    Quaternion loaded = Quaternion::pb_load(filename);",
     "checks": [

@@ -3,7 +3,7 @@
     "group": "TreeNode",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.01,
     "line": 9,
     "code": "    // uncomment #include \"treenode.h\"\n    // uncomment #include \"color.h\"\n\n    // Default constructor\n    auto n0 = std::make_shared<TreeNode>();\n\n    // Constructor with name\n    auto n = std::make_shared<TreeNode>(\"my_named_node\");\n    n->color = Color(255, 0, 0, 255);\n\n    // Minimal string representation\n    std::string nstr = n->str();\n\n    // Copies (compared by guid)\n    auto nother = std::make_shared<TreeNode>(\"my_named_node\");",
     "checks": [
@@ -49,7 +49,7 @@
     "group": "TreeNode",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 6.666,
+    "time_ms": 8.38,
     "line": 35,
     "code": "    // uncomment #include \"treenode.h\"\n    // uncomment #include \"encoders.h\"\n\n    auto original = std::make_shared<TreeNode>(\"test_node\");\n    auto child = std::make_shared<TreeNode>(\"child_node\");\n    original->add(child);\n\n    std::string fname = \"serialization/test_treenode.json\";\n    encoders::json_dump(original->jsondump(), fname);\n    auto loaded_json = encoders::json_load_data(fname);\n    auto loaded = TreeNode::jsonload(loaded_json);",
     "checks": [
@@ -227,7 +227,7 @@
     "group": "TreeNode",
     "test_name": "Descendants",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.008,
     "line": 134,
     "code": "    // uncomment #include \"treenode.h\"\n\n    auto root = std::make_shared<TreeNode>(\"root\");\n    auto mid = std::make_shared<TreeNode>(\"mid\");\n    auto leaf = std::make_shared<TreeNode>(\"leaf\");\n    root->add(mid);\n    mid->add(leaf);\n\n    auto desc = root->descendants();",
     "checks": [

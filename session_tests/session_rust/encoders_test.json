@@ -28,7 +28,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Json Dump Load",
-    "time_ms": 8.069
+    "time_ms": 9.224
   },
   {
     "checks": [
@@ -54,7 +54,7 @@
     "line": 26,
     "passed": true,
     "test_name": "Json Dumps Loads",
-    "time_ms": 0.014
+    "time_ms": 0.024
   },
   {
     "checks": [
@@ -90,7 +90,7 @@
     "line": 44,
     "passed": true,
     "test_name": "Encode Collection Values",
-    "time_ms": 0.036
+    "time_ms": 0.056
   },
   {
     "checks": [
@@ -121,7 +121,7 @@
     "line": 65,
     "passed": true,
     "test_name": "Encode Collection Shared Ptr",
-    "time_ms": 0.026
+    "time_ms": 0.039
   },
   {
     "checks": [
@@ -147,7 +147,7 @@
     "line": 84,
     "passed": true,
     "test_name": "Decode Collection",
-    "time_ms": 0.019
+    "time_ms": 0.026
   },
   {
     "checks": [
@@ -173,7 +173,7 @@
     "line": 102,
     "passed": true,
     "test_name": "Decode Collection Ptr",
-    "time_ms": 0.013
+    "time_ms": 0.026
   },
   {
     "checks": [
@@ -199,7 +199,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Nested Collections",
-    "time_ms": 0.024
+    "time_ms": 0.071
   },
   {
     "checks": [
@@ -215,7 +215,7 @@
     "line": 138,
     "passed": true,
     "test_name": "Roundtrip File Io",
-    "time_ms": 6.838
+    "time_ms": 8.833
   },
   {
     "checks": [
@@ -251,7 +251,7 @@
     "line": 159,
     "passed": true,
     "test_name": "Pretty Vs Compact",
-    "time_ms": 0.028
+    "time_ms": 0.048
   },
   {
     "checks": [
@@ -282,7 +282,7 @@
     "line": 180,
     "passed": true,
     "test_name": "Decode Primitives",
-    "time_ms": 0.001
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -313,7 +313,7 @@
     "line": 203,
     "passed": true,
     "test_name": "Decode List",
-    "time_ms": 0.022
+    "time_ms": 0.036
   },
   {
     "checks": [
@@ -339,7 +339,7 @@
     "line": 227,
     "passed": true,
     "test_name": "Decode Dict",
-    "time_ms": 0.012
+    "time_ms": 0.019
   },
   {
     "checks": [
@@ -365,7 +365,7 @@
     "line": 250,
     "passed": true,
     "test_name": "List In List In List",
-    "time_ms": 0.004
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -396,7 +396,7 @@
     "line": 264,
     "passed": true,
     "test_name": "Dict Of Lists",
-    "time_ms": 0.038
+    "time_ms": 1.292
   },
   {
     "checks": [
@@ -422,7 +422,7 @@
     "line": 290,
     "passed": true,
     "test_name": "List Of Dict",
-    "time_ms": 0.016
+    "time_ms": 0.032
   },
   {
     "checks": [
@@ -453,6 +453,6 @@
     "line": 312,
     "passed": true,
     "test_name": "Dict Of Dicts",
-    "time_ms": 0.025
+    "time_ms": 0.048
   }
 ]

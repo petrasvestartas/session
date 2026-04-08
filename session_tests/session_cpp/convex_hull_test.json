@@ -3,7 +3,7 @@
     "group": "ConvexHull",
     "test_name": "Hull2d",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.03,
     "line": 11,
     "code": "    // uncomment #include \"convex_hull.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.5, 0.5, 0.0),\n        Point(0.3, 0.3, 0.0),\n    };\n    std::vector<Point> hull = ConvexHull::hull_2d(pts);",
     "checks": [
@@ -19,7 +19,7 @@
     "group": "ConvexHull",
     "test_name": "Hull2dCollinear",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.012,
     "line": 27,
     "code": "    // uncomment #include \"convex_hull.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(1.5, 1.0, 0.0),\n    };\n    std::vector<Point> hull = ConvexHull::hull_2d(pts);",
     "checks": [
@@ -35,7 +35,7 @@
     "group": "ConvexHull",
     "test_name": "Hull2dCircle",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.036,
     "line": 42,
     "code": "    // uncomment #include \"convex_hull.h\"\n    // uncomment #include \"point.h\"\n    int n = 12;\n    std::vector<Point> pts;\n    for (int i = 0; i < n; ++i) {\n        double angle = 2.0 * std::numbers::pi * i / n;\n        pts.push_back(Point(std::cos(angle), std::sin(angle), 0.0));\n    }\n    pts.push_back(Point(0.0, 0.0, 0.0));\n    std::vector<Point> hull = ConvexHull::hull_2d(pts);",
     "checks": [
@@ -51,7 +51,7 @@
     "group": "ConvexHull",
     "test_name": "Hull3d",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.062,
     "line": 57,
     "code": "    // uncomment #include \"convex_hull.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(0.25, 0.25, 0.25),\n    };\n    Mesh mesh = ConvexHull::hull_3d(pts);",
     "checks": [
@@ -72,7 +72,7 @@
     "group": "ConvexHull",
     "test_name": "Hull3dCube",
     "passed": true,
-    "time_ms": 0.028,
+    "time_ms": 0.107,
     "line": 74,
     "code": "    // uncomment #include \"convex_hull.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(1.0, 0.0, 1.0),\n        Point(1.0, 1.0, 1.0),\n        Point(0.0, 1.0, 1.0),\n        Point(0.5, 0.5, 0.5),\n    };\n    Mesh mesh = ConvexHull::hull_3d(pts);",
     "checks": [
