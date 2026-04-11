@@ -3,7 +3,7 @@
     "group": "Quaternion",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.27,
+    "time_ms": 0.22,
     "line": 8,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    # Default constructor (identity)\n    q0 = Quaternion()\n\n    # Constructor with arguments\n    q = Quaternion.from_components(2.0, Vector(1.0, 0.0, 0.0))\n\n    # Setters\n    q[0] = 5.0\n    q[1] = 0.0\n    q[2] = 1.0\n    q[3] = 0.0\n\n    # Getters\n    s_val = q[0]\n    x = q[1]\n    y = q[2]\n    z = q[3]\n\n    # Minimal and Full String Representation\n    qstr = str(q)\n    qrepr = repr(q)\n\n    # Copy (duplicates everything except guid)\n    qcopy = q.duplicate()\n    qother = Quaternion.from_components(2.0, Vector(1.0, 0.0, 0.0))\n\n    # Copy operators\n    qrot = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    qmul = qrot * qrot\n    qscaled = Quaternion.identity() * 2.0\n    a = Quaternion.from_components(1.0, Vector(0.0, 0.0, 0.0))\n    b = Quaternion.from_components(0.0, Vector(0.0, 0.0, 1.0))\n    qsum = a + b\n    qdiff = qrot - qrot\n    qneg = -Quaternion.identity()",
     "checks": [
@@ -89,7 +89,7 @@
     "group": "Quaternion",
     "test_name": "Identity",
     "passed": true,
-    "time_ms": 0.016,
+    "time_ms": 0.019,
     "line": 66,
     "code": "    from session_py import Quaternion\n\n    q = Quaternion.identity()",
     "checks": [
@@ -120,7 +120,7 @@
     "group": "Quaternion",
     "test_name": "From Components",
     "passed": true,
-    "time_ms": 0.07,
+    "time_ms": 0.076,
     "line": 78,
     "code": "    import math\n    from session_py import Quaternion\n    from session_py import Vector\n\n    # q = s + xi + yj + zk: first arg is scalar, second arg is (i,j,k) coefficients (NOT a rotation axis).\n    q = Quaternion.from_components(2.0, Vector(1.0, 2.0, 3.0))\n\n\n    # Geometric meaning of (s, v): a rotation by `angle` around `axis`.\n    # to_axis_angle() extracts these \u2014 for q=(2,(1,2,3)):\n    #   axis  = (1,2,3)/sqrt(14)\n    #   angle = 2*acos(2/sqrt(18)) \u2248 2.1617 rad \u2248 123.85\u00b0\n    axis, angle = q.to_axis_angle()\n    sqrt14 = math.sqrt(14.0)\n\n    # Round-trip: from_axis_angle(to_axis_angle(q)) == q.normalized()\n    q_round = Quaternion.from_axis_angle(axis, angle)\n    qn = q.normalized()",
     "checks": [
@@ -191,7 +191,7 @@
     "group": "Quaternion",
     "test_name": "From Axis Angle",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.02,
     "line": 112,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n    import math\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)",
     "checks": [
@@ -212,7 +212,7 @@
     "group": "Quaternion",
     "test_name": "From Arc",
     "passed": true,
-    "time_ms": 0.063,
+    "time_ms": 0.065,
     "line": 124,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    src = Vector(1.0, 0.0, 0.0)\n    dst = Vector(0.0, 1.0, 0.0)\n    q = Quaternion.from_arc(src, dst)\n    rotated = q.rotate_vector(src)\n\n    src2 = Vector(1.0, 0.0, 0.0)\n    dst2 = Vector(-1.0, 0.0, 0.0)\n    q2 = Quaternion.from_arc(src2, dst2)\n    rot = q2.rotate_vector(src2)",
     "checks": [
@@ -248,7 +248,7 @@
     "group": "Quaternion",
     "test_name": "From Euler",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.018,
     "line": 145,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q_euler = Quaternion.from_euler(0.0, 0.0, PI / 2.0)\n    q_axis = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)",
     "checks": [
@@ -269,7 +269,7 @@
     "group": "Quaternion",
     "test_name": "From Rotation",
     "passed": true,
-    "time_ms": 0.058,
+    "time_ms": 0.047,
     "line": 157,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n    from session_py import Plane\n    from session_py import Point\n\n    plane_a = Plane(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0))\n    plane_b = Plane(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(-1.0, 0.0, 0.0))\n    q = Quaternion.from_rotation(plane_a, plane_b)\n    rotated_x = q.rotate_vector(plane_a.x_axis)",
     "checks": [
@@ -295,7 +295,7 @@
     "group": "Quaternion",
     "test_name": "Rotate Vector",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.012,
     "line": 174,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    rotated = q.rotate_vector(Vector(1.0, 0.0, 0.0))",
     "checks": [
@@ -321,7 +321,7 @@
     "group": "Quaternion",
     "test_name": "Get Rotation",
     "passed": true,
-    "time_ms": 0.058,
+    "time_ms": 0.032,
     "line": 187,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    p = q.get_rotation()",
     "checks": [
@@ -352,7 +352,7 @@
     "group": "Quaternion",
     "test_name": "Magnitude",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.007,
     "line": 201,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 4.0)",
     "checks": [
@@ -368,7 +368,7 @@
     "group": "Quaternion",
     "test_name": "Magnitude Squared",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.013,
     "line": 211,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 4.0)",
     "checks": [
@@ -384,7 +384,7 @@
     "group": "Quaternion",
     "test_name": "Normalized",
     "passed": true,
-    "time_ms": 0.027,
+    "time_ms": 0.023,
     "line": 221,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_components(2.0, Vector(0.0, 0.0, 2.0))\n    n = q.normalized()",
     "checks": [
@@ -400,7 +400,7 @@
     "group": "Quaternion",
     "test_name": "Conjugate",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.018,
     "line": 232,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 4.0)\n    r = q.conjugate()",
     "checks": [
@@ -426,7 +426,7 @@
     "group": "Quaternion",
     "test_name": "Invert",
     "passed": true,
-    "time_ms": 0.043,
+    "time_ms": 0.024,
     "line": 245,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 3.0)\n    result = q * q.invert()",
     "checks": [
@@ -457,7 +457,7 @@
     "group": "Quaternion",
     "test_name": "Dot",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.011,
     "line": 259,
     "code": "    from session_py import Quaternion\n\n    q = Quaternion.identity()",
     "checks": [
@@ -499,7 +499,7 @@
     "group": "Quaternion",
     "test_name": "Nlerp",
     "passed": true,
-    "time_ms": 0.043,
+    "time_ms": 0.052,
     "line": 286,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    q1 = Quaternion.identity()\n    q2 = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    r0 = q1.nlerp(q2, 0.0)\n    r1 = q1.nlerp(q2, 1.0)",
     "checks": [
@@ -520,7 +520,7 @@
     "group": "Quaternion",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 11.697,
+    "time_ms": 8.765,
     "line": 300,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n    from pathlib import Path\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    q.name = \"test_quaternion\"\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   json_dumps()    \u2502 str          \u2502 to JSON string\n    #   json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   json_dump(path) \u2502 file         \u2502 write to file\n    #   json_load(path) \u2502 file         \u2502 read from file\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_quaternion.json\"\n    q.json_dump(fname)\n    loaded = Quaternion.json_load(fname)",
     "checks": [
@@ -546,7 +546,7 @@
     "group": "Quaternion",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 3.549,
+    "time_ms": 2.738,
     "line": 325,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n    from pathlib import Path\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    q.name = \"test_quaternion\"\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_quaternion.bin\"\n    q.pb_dump(path)\n    loaded = Quaternion.pb_load(path)",
     "checks": [

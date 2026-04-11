@@ -53,7 +53,7 @@
     "line": 10,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.175
+    "time_ms": 0.051
   },
   {
     "checks": [
@@ -74,7 +74,7 @@
     "line": 52,
     "passed": true,
     "test_name": "Session Transformation",
-    "time_ms": 0.022
+    "time_ms": 0.028
   },
   {
     "checks": [
@@ -95,7 +95,7 @@
     "line": 77,
     "passed": true,
     "test_name": "Add Feature",
-    "time_ms": 0.015
+    "time_ms": 0.018
   },
   {
     "checks": [
@@ -121,7 +121,7 @@
     "line": 102,
     "passed": true,
     "test_name": "Aabb",
-    "time_ms": 0.027
+    "time_ms": 0.03
   },
   {
     "checks": [
@@ -142,7 +142,7 @@
     "line": 126,
     "passed": true,
     "test_name": "OBB",
-    "time_ms": 0.024
+    "time_ms": 0.025
   },
   {
     "checks": [
@@ -168,7 +168,7 @@
     "line": 149,
     "passed": true,
     "test_name": "Session Geometry",
-    "time_ms": 0.027
+    "time_ms": 0.028
   },
   {
     "checks": [
@@ -204,7 +204,7 @@
     "line": 180,
     "passed": true,
     "test_name": "Reset",
-    "time_ms": 0.032
+    "time_ms": 0.033
   },
   {
     "checks": [
@@ -230,7 +230,7 @@
     "line": 208,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.029
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -271,7 +271,7 @@
     "line": 232,
     "passed": true,
     "test_name": "Brep Aabb",
-    "time_ms": 3.19
+    "time_ms": 2.528
   },
   {
     "checks": [
@@ -297,7 +297,7 @@
     "line": 251,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 14.359
+    "time_ms": 16.537
   },
   {
     "checks": [
@@ -328,7 +328,7 @@
     "line": 282,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 36.412
+    "time_ms": 37.02
   },
   {
     "checks": [
@@ -359,6 +359,6 @@
     "line": 837,
     "passed": true,
     "test_name": "Polylines",
-    "time_ms": 0.022
+    "time_ms": 0.025
   }
 ]

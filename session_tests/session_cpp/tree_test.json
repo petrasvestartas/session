@@ -3,7 +3,7 @@
     "group": "Tree",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.138,
+    "time_ms": 0.007,
     "line": 9,
     "code": "    // uncomment #include \"tree.h\"\n\n    // Default constructor\n    Tree t0;\n\n    // Constructor with name\n    Tree t(\"my_named_tree\");\n\n    // Minimal string representation\n    std::string tstr = t.str();",
     "checks": [
@@ -34,7 +34,7 @@
     "group": "Tree",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 8.325,
+    "time_ms": 8.188,
     "line": 27,
     "code": "    // uncomment #include \"tree.h\"\n    // uncomment #include \"treenode.h\"\n\n    Tree original(\"test_tree\");\n    auto root_node = std::make_shared<TreeNode>(\"root_node\");\n    original.add(root_node);\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_tree.json\";\n    original.json_dump(fname);\n    Tree loaded = Tree::json_load(fname);",
     "checks": [
@@ -55,7 +55,7 @@
     "group": "Tree",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 8.377,
+    "time_ms": 7.37,
     "line": 50,
     "code": "    // uncomment #include \"tree.h\"\n    // uncomment #include \"treenode.h\"\n\n    Tree original(\"test_tree\");\n    auto root_node = std::make_shared<TreeNode>(\"root_node\");\n    original.add(root_node);\n\n    std::string fname = \"serialization/test_tree.bin\";\n    original.pb_dump(fname);\n    Tree loaded = Tree::pb_load(fname);",
     "checks": [
@@ -76,7 +76,7 @@
     "group": "Tree",
     "test_name": "Root",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 66,
     "code": "    // uncomment #include \"tree.h\"\n    // uncomment #include \"treenode.h\"\n\n    Tree t(\"t\");\n    auto root = std::make_shared<TreeNode>(\"root\");\n    t.add(root);",
     "checks": [
@@ -108,7 +108,7 @@
     "group": "Tree",
     "test_name": "Nodes",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 90,
     "code": "    // uncomment #include \"tree.h\"\n    // uncomment #include \"treenode.h\"\n\n    Tree t(\"t\");\n    auto root = std::make_shared<TreeNode>(\"root\");\n    auto child = std::make_shared<TreeNode>(\"child\");\n    t.add(root);\n    t.add(child, root);\n\n    auto all = t.nodes();",
     "checks": [
@@ -150,7 +150,7 @@
     "group": "Tree",
     "test_name": "Leaves",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 121,
     "code": "    // uncomment #include \"tree.h\"\n    // uncomment #include \"treenode.h\"\n\n    Tree t(\"t\");\n    auto root = std::make_shared<TreeNode>(\"root\");\n    auto a = std::make_shared<TreeNode>(\"a\");\n    auto b = std::make_shared<TreeNode>(\"b\");\n    t.add(root);\n    t.add(a, root);\n    t.add(b, root);\n\n    auto lvs = t.leaves();",
     "checks": [
@@ -176,7 +176,7 @@
     "group": "Tree",
     "test_name": "Traverse",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.012,
     "line": 140,
     "code": "    // uncomment #include \"tree.h\"\n    // uncomment #include \"treenode.h\"\n\n    Tree t(\"t\");\n    auto root = std::make_shared<TreeNode>(\"root\");\n    auto a = std::make_shared<TreeNode>(\"a\");\n    auto b = std::make_shared<TreeNode>(\"b\");\n    t.add(root);\n    t.add(a, root);\n    t.add(b, root);\n\n    auto preorder = t.traverse(\"depthfirst\", \"preorder\");\n    auto bfs = t.traverse(\"breadthfirst\", \"preorder\");",
     "checks": [
@@ -218,7 +218,7 @@
     "group": "Tree",
     "test_name": "Get Nodes By Name",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 175,
     "code": "    // uncomment #include \"tree.h\"\n    // uncomment #include \"treenode.h\"\n\n    Tree t(\"t\");\n    auto root = std::make_shared<TreeNode>(\"root\");\n    auto a = std::make_shared<TreeNode>(\"dup\");\n    auto b = std::make_shared<TreeNode>(\"dup\");\n    t.add(root);\n    t.add(a, root);\n    t.add(b, root);\n\n    auto found = t.get_nodes_by_name(\"dup\");",
     "checks": [
@@ -234,7 +234,7 @@
     "group": "Tree",
     "test_name": "Find Node By Guid",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 192,
     "code": "    // uncomment #include \"tree.h\"\n    // uncomment #include \"treenode.h\"\n\n    Tree t(\"t\");\n    auto root = std::make_shared<TreeNode>(\"root\");\n    t.add(root);\n    std::string root_guid = root->guid();\n\n    auto found = t.find_node_by_guid(root_guid);",
     "checks": [
@@ -255,7 +255,7 @@
     "group": "Tree",
     "test_name": "Add Child By Guid",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 207,
     "code": "    // uncomment #include \"tree.h\"\n    // uncomment #include \"treenode.h\"\n\n    Tree t(\"t\");\n    auto root = std::make_shared<TreeNode>(\"root\");\n    auto a = std::make_shared<TreeNode>(\"a\");\n    auto b = std::make_shared<TreeNode>(\"b\");\n    t.add(root);\n    t.add(a, root);\n    t.add(b, root);\n    bool ok = t.add_child_by_guid(a->guid(), b->guid());",
     "checks": [
@@ -276,7 +276,7 @@
     "group": "Tree",
     "test_name": "Get Children Guids",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 224,
     "code": "    // uncomment #include \"tree.h\"\n    // uncomment #include \"treenode.h\"\n\n    Tree t(\"t\");\n    auto root = std::make_shared<TreeNode>(\"root\");\n    auto a = std::make_shared<TreeNode>(\"a\");\n    auto b = std::make_shared<TreeNode>(\"b\");\n    t.add(root);\n    t.add(a, root);\n    t.add(b, root);\n\n    auto guids = t.get_children_guids(root->guid());",
     "checks": [
