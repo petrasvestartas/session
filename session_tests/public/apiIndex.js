@@ -4769,6 +4769,7 @@ window.API_INDEX = {
         "Line.from_points",
         "Line.guid",
         "Line.linecolor",
+        "Line.overlap_average",
         "Line.point_at",
         "Line.squared_length",
         "Line.start",
@@ -4804,6 +4805,7 @@ window.API_INDEX = {
         "Line.from_point_and_vector",
         "Line.from_point_direction_length",
         "Line.length",
+        "Line.overlap_average",
         "Line.point_at",
         "Line.start",
         "Line.subdivide",
@@ -5006,6 +5008,7 @@ window.API_INDEX = {
         "Line.center",
         "Line.closest_point",
         "Line.end",
+        "Line.extend",
         "Line.from_point_direction_length",
         "Line.get_middle_line",
         "Line.json_dumps",
@@ -5058,6 +5061,7 @@ window.API_INDEX = {
         "Line.center",
         "Line.closest_point",
         "Line.duplicate",
+        "Line.extend",
         "Line.extend_equally",
         "Line.fit_points",
         "Line.from_point_direction_length",
@@ -5753,6 +5757,7 @@ window.API_INDEX = {
       "related": [
         "Line.__jsondump__",
         "Line.end",
+        "Line.extend",
         "Line.format",
         "Line.guid",
         "Line.json_dump",
@@ -5793,6 +5798,7 @@ window.API_INDEX = {
       "related": [
         "Line.__jsonload__",
         "Line.end",
+        "Line.extend",
         "Line.format",
         "Line.guid",
         "Line.json_dumps",
@@ -24456,6 +24462,7 @@ window.API_INDEX = {
         "Point.__truediv__",
         "Point.area",
         "Point.ccw",
+        "Point.centroid",
         "Point.centroid_quad",
         "Point.constructor",
         "Point.distance",
@@ -24514,6 +24521,7 @@ window.API_INDEX = {
         "Point.__truediv__",
         "Point.area",
         "Point.ccw",
+        "Point.centroid",
         "Point.centroid_quad",
         "Point.constructor",
         "Point.distance",
@@ -24571,6 +24579,7 @@ window.API_INDEX = {
         "Point.__sub__",
         "Point.__truediv__",
         "Point.area",
+        "Point.centroid",
         "Point.centroid_quad",
         "Point.constructor",
         "Point.distance",
@@ -25117,6 +25126,7 @@ window.API_INDEX = {
       },
       "related": [
         "Point.area",
+        "Point.centroid",
         "Point.centroid_quad",
         "Point.distance",
         "Point.is_ccw",
@@ -25147,6 +25157,7 @@ window.API_INDEX = {
       },
       "related": [
         "Point.__jsondump__",
+        "Point.centroid",
         "Point.centroid_quad",
         "Point.distance",
         "Point.guid",
@@ -25181,6 +25192,7 @@ window.API_INDEX = {
         "Point.__jsondump__",
         "Point.__jsonload__",
         "Point.area",
+        "Point.centroid",
         "Point.guid",
         "Point.jsondump",
         "Point.jsonload",
@@ -27921,7 +27933,8 @@ window.API_INDEX = {
         "Polyline.set_point",
         "Polyline.simplify",
         "Polyline.simplify_points",
-        "Polyline.transform"
+        "Polyline.transform",
+        "Polyline.transformed"
       ]
     },
     {
@@ -28047,6 +28060,7 @@ window.API_INDEX = {
         "Polyline.duplicate",
         "Polyline.ensure_ccw",
         "Polyline.extend",
+        "Polyline.extend_edge_equally",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
@@ -28069,6 +28083,7 @@ window.API_INDEX = {
         "Polyline.linecolor",
         "Polyline.lines",
         "Polyline.merge_collinear",
+        "Polyline.move",
         "Polyline.move_by",
         "Polyline.pb_dump",
         "Polyline.pb_load",
@@ -28088,6 +28103,7 @@ window.API_INDEX = {
         "Polyline.simplify_points",
         "Polyline.str",
         "Polyline.transform",
+        "Polyline.transformed",
         "Polyline.tween_two_polylines",
         "Polyline.xform"
       ]
@@ -28714,6 +28730,7 @@ window.API_INDEX = {
         "Polyline.cross2d",
         "Polyline.duplicate",
         "Polyline.extend",
+        "Polyline.extend_edge_equally",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
@@ -28751,6 +28768,7 @@ window.API_INDEX = {
         "Polyline.set_point",
         "Polyline.simplify",
         "Polyline.str",
+        "Polyline.transformed",
         "Polyline.tween_two_polylines",
         "Polyline.xform"
       ]
@@ -28784,6 +28802,7 @@ window.API_INDEX = {
         "Polyline.add_point",
         "Polyline.duplicate",
         "Polyline.extend",
+        "Polyline.extend_edge_equally",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
@@ -29574,8 +29593,8 @@ window.API_INDEX = {
           "file": "polyline.py"
         },
         "cpp": {
-          "sig": "Polyline transformed()",
-          "code": "Polyline Polyline::transformed() const {\n    Polyline result = *this;\n    result.transform();\n    return result;\n}",
+          "sig": "Polyline transformed(const Xform& xf)",
+          "code": "Polyline Polyline::transformed(const Xform& xf) const {\n    // Verbatim port of `xform_polyline()` from main_5.cpp. Applies a\n    // column-major affine transformation matrix.\n    const auto& M = xf.m;\n    std::vector<Point> pts;\n    pts.reserve(point_count());\n    for (size_t i = 0; i < point_count(); i++) {\n        Point p = get_point(i);\n        double x = M[0]*p[0] + M[4]*p[1] + M[8]*p[2]  + M[12];\n        double y = M[1]*p[0] + M[5]*p[1] + M[9]*p[2]  + M[13];\n        double z = M[2]*p[0] + M[6]*p[1] + M[10]*p[2] + M[14];\n        pts.emplace_back(x, y, z);\n    }",
           "file": "polyline.cpp"
         },
         "rust": {
@@ -29594,14 +29613,18 @@ window.API_INDEX = {
         "Polyline.__sub__",
         "Polyline.__truediv__",
         "Polyline.closest_point_to_line",
+        "Polyline.format",
+        "Polyline.get_point",
         "Polyline.len",
         "Polyline.line_line_overlap",
         "Polyline.magnitude_squared",
         "Polyline.point_at",
+        "Polyline.point_count",
         "Polyline.points",
         "Polyline.segment_count",
         "Polyline.shift",
-        "Polyline.transform"
+        "Polyline.transform",
+        "Polyline.xform"
       ]
     },
     {
@@ -42381,9 +42404,9 @@ window.API_INDEX = {
           "file": "vector.py"
         },
         "cpp": {
-          "sig": "void average_normal(const std::vector<Point>& pts, Vector& out)",
-          "code": "void average_normal(const std::vector<Point>& pts, Vector& out);",
-          "file": "vector.h"
+          "sig": "Vector average_normal(const std::vector<Point>& points)",
+          "code": "Vector Vector::average_normal(const std::vector<Point>& points) {\n    Vector out;\n    ::session_cpp::average_normal(points, out);\n    return out;\n}",
+          "file": "vector.cpp"
         }
       },
       "related": [
@@ -42672,8 +42695,8 @@ window.API_INDEX = {
           "file": "xform.py"
         },
         "cpp": {
-          "sig": "Xform identity()",
-          "code": "Xform Xform::identity() {\n    thread_local static Xform _identity;\n    return _identity;\n}",
+          "sig": "return identity()",
+          "code": "return Xform::identity();\n    }",
           "file": "xform.cpp"
         },
         "rust": {
@@ -42691,6 +42714,7 @@ window.API_INDEX = {
         "Xform.axis_rotation",
         "Xform.change_basis",
         "Xform.duplicate",
+        "Xform.from_change_of_basis",
         "Xform.from_cols",
         "Xform.from_matrix",
         "Xform.guid",
@@ -43030,6 +43054,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Xform.from_change_of_basis",
         "Xform.identity",
         "Xform.rotation",
         "Xform.rotation_around_line",
@@ -45194,6 +45219,51 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Line.overlap",
+      "implementations": {
+        "cpp": {
+          "sig": "bool overlap(const Line& other, Line& out)",
+          "code": "bool Line::overlap(const Line& other, Line& out) const {\n    return ::session_cpp::line_line_overlap(*this, other, out);\n}",
+          "file": "line.cpp"
+        }
+      },
+      "related": [
+        "Line.overlap_average"
+      ]
+    },
+    {
+      "name": "Line.overlap_average",
+      "implementations": {
+        "cpp": {
+          "sig": "bool overlap_average(const Line& other, Line& out)",
+          "code": "bool Line::overlap_average(const Line& other, Line& out) const {\n    ::session_cpp::line_line_overlap_average(*this, other, out);\n    return out.squared_length() > 0.0;\n}",
+          "file": "line.cpp"
+        }
+      },
+      "related": [
+        "Line.length",
+        "Line.overlap",
+        "Line.squared_length"
+      ]
+    },
+    {
+      "name": "Line.extend",
+      "implementations": {
+        "cpp": {
+          "sig": "void extend(double ext_start, double ext_end)",
+          "code": "void Line::extend(double ext_start, double ext_end) {\n    ::session_cpp::extend_line(*this, ext_start, ext_end);\n}",
+          "file": "line.cpp"
+        }
+      },
+      "related": [
+        "Line.__jsonload__",
+        "Line.end",
+        "Line.extend_equally",
+        "Line.pb_dumps",
+        "Line.start"
+      ]
+    },
+    {
       "name": "Line.str",
       "implementations": {
         "cpp": {
@@ -46858,9 +46928,9 @@ window.API_INDEX = {
       "name": "std.acos",
       "implementations": {
         "cpp": {
-          "sig": "return acos(cos_angle)",
-          "code": "return std::acos(cos_angle);\n}",
-          "file": "mesh.cpp"
+          "sig": "return acos(cos_t)",
+          "code": "return std::acos(cos_t) * (180.0 / 3.141592653589793);\n}",
+          "file": "point.cpp"
         }
       }
     },
@@ -48258,6 +48328,27 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Plane.has_on_negative_side",
+      "implementations": {
+        "cpp": {
+          "sig": "bool has_on_negative_side(const Point& p)",
+          "code": "bool has_on_negative_side(const Point& p) const {\n      return (a() * p[0] + b() * p[1] + c() * p[2] + d()) < 0.0;\n  }",
+          "file": "plane.h"
+        },
+        "rust": {
+          "sig": "has_on_negative_side(p: &Point) -> bool",
+          "code": "pub fn has_on_negative_side(&self, p: &Point) -> bool {\n        (self._a * p[0] + self._b * p[1] + self._c * p[2] + self._d) < 0.0\n    }",
+          "file": "plane.rs"
+        }
+      },
+      "related": [
+        "Plane.a",
+        "Plane.b",
+        "Plane.c",
+        "Plane.d"
+      ]
+    },
+    {
       "name": "Plane.parse",
       "implementations": {
         "cpp": {
@@ -48481,6 +48572,34 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Point.centroid",
+      "implementations": {
+        "cpp": {
+          "sig": "Point centroid(const std::vector<Point>& points)",
+          "code": "Point Point::centroid(const std::vector<Point>& points) {\n    if (points.empty()) return Point(0, 0, 0);\n    double cx = 0.0, cy = 0.0, cz = 0.0;\n    for (const Point& p : points) { cx += p[0]; cy += p[1]; cz += p[2]; }",
+          "file": "point.cpp"
+        }
+      },
+      "related": [
+        "Point.area",
+        "Point.centroid_quad",
+        "Point.squared_distance",
+        "Point.x",
+        "Point.y",
+        "Point.z"
+      ]
+    },
+    {
+      "name": "Point.dihedral_angle_deg",
+      "implementations": {
+        "cpp": {
+          "sig": "double dihedral_angle_deg(const Point& p, const Point& q,\n                                  const Point& r, const Point& s)",
+          "code": "double Point::dihedral_angle_deg(const Point& p, const Point& q,\n                                  const Point& r, const Point& s) {\n    // Build half-plane normals via shared edge pq.\n    Vector pq(q[0]-p[0], q[1]-p[1], q[2]-p[2]);\n    Vector pr(r[0]-p[0], r[1]-p[1], r[2]-p[2]);\n    Vector ps(s[0]-p[0], s[1]-p[1], s[2]-p[2]);\n    Vector n1 = pq.cross(pr);\n    Vector n2 = pq.cross(ps);\n    double m1 = n1.magnitude();\n    double m2 = n2.magnitude();\n    if (m1 < Tolerance::ZERO_TOLERANCE || m2 < Tolerance::ZERO_TOLERANCE) {\n        return 0.0;\n    }",
+          "file": "point.cpp"
+        }
+      }
+    },
+    {
       "name": "PointCloud.constructor",
       "implementations": {
         "cpp": {
@@ -48678,6 +48797,7 @@ window.API_INDEX = {
         "Polyline.cross2d",
         "Polyline.duplicate",
         "Polyline.ensure_ccw",
+        "Polyline.extend_edge_equally",
         "Polyline.extend_line_segment",
         "Polyline.extend_line_static",
         "Polyline.extend_segment",
@@ -48716,6 +48836,7 @@ window.API_INDEX = {
         "Polyline.lines",
         "Polyline.magnitude_squared",
         "Polyline.merge_collinear",
+        "Polyline.move",
         "Polyline.pb_dump",
         "Polyline.pb_dumps",
         "Polyline.pb_fill",
@@ -48866,6 +48987,7 @@ window.API_INDEX = {
         "Polyline.closest_distance_and_point",
         "Polyline.cross2d",
         "Polyline.duplicate",
+        "Polyline.extend_edge_equally",
         "Polyline.extend_line_static",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
@@ -48918,6 +49040,52 @@ window.API_INDEX = {
         "Polyline.tween_two_polylines",
         "Polyline.unproj",
         "Polyline.xform"
+      ]
+    },
+    {
+      "name": "Polyline.move",
+      "implementations": {
+        "cpp": {
+          "sig": "void move(const Vector& v)",
+          "code": "void Polyline::move(const Vector& v) {\n    // Verbatim of `move_polyline()` from main_5.cpp.\n    std::vector<Point> pts;\n    pts.reserve(point_count());\n    for (size_t i = 0; i < point_count(); i++) {\n        Point p = get_point(i);\n        pts.emplace_back(p[0]+v[0], p[1]+v[1], p[2]+v[2]);\n    }",
+          "file": "polyline.cpp"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.__setitem__",
+        "Polyline.add_point",
+        "Polyline.get_lines",
+        "Polyline.get_point",
+        "Polyline.insert_point",
+        "Polyline.is_empty",
+        "Polyline.length",
+        "Polyline.lines",
+        "Polyline.move_by",
+        "Polyline.point_count",
+        "Polyline.remove_point",
+        "Polyline.segment_count",
+        "Polyline.set_point",
+        "Polyline.shift"
+      ]
+    },
+    {
+      "name": "Polyline.extend_edge_equally",
+      "implementations": {
+        "cpp": {
+          "sig": "void extend_edge_equally(size_t edge_idx, double distance)",
+          "code": "void Polyline::extend_edge_equally(size_t edge_idx, double distance) {\n    // Verbatim of `extend_polyline_edge_equally()` from main_5.cpp:803.\n    size_t n = point_count();\n    if (n < 2 || edge_idx + 1 >= n) return;\n    size_t i = edge_idx;\n    size_t j = edge_idx + 1;\n    Point pi = get_point(i);\n    Point pj = get_point(j);\n    double dx = pj[0] - pi[0];\n    double dy = pj[1] - pi[1];\n    double dz = pj[2] - pi[2];\n    double len = std::sqrt(dx*dx + dy*dy + dz*dz);\n    if (len < 1e-12) return;\n    double inv = 1.0 / len;\n    double ux = dx * inv * distance;\n    double uy = dy * inv * distance;\n    double uz = dz * inv * distance;\n    Point new_pi(pi[0]-ux, pi[1]-uy, pi[2]-uz);\n    Point new_pj(pj[0]+ux, pj[1]+uy, pj[2]+uz);\n    set_point(i, new_pi);\n    set_point(j, new_pj);\n    if (i == 0)        set_point(n - 1, new_pi);\n    if (j == n - 1)    set_point(0,     new_pj);\n}",
+          "file": "polyline.cpp"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.extend",
+        "Polyline.get_point",
+        "Polyline.len",
+        "Polyline.new",
+        "Polyline.point_count",
+        "Polyline.set_point"
       ]
     },
     {
@@ -49173,31 +49341,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Polyline.move",
-      "implementations": {
-        "cpp": {
-          "sig": "void move(std::vector<Point>& pline, const Vector& dir)",
-          "code": "void move(std::vector<Point>& pline, const Vector& dir);",
-          "file": "polyline.h"
-        }
-      },
-      "related": [
-        "Polyline.__setitem__",
-        "Polyline.add_point",
-        "Polyline.get_lines",
-        "Polyline.get_point",
-        "Polyline.insert_point",
-        "Polyline.is_empty",
-        "Polyline.length",
-        "Polyline.lines",
-        "Polyline.move_by",
-        "Polyline.remove_point",
-        "Polyline.segment_count",
-        "Polyline.set_point",
-        "Polyline.shift"
-      ]
-    },
-    {
       "name": "Polyline.flip",
       "implementations": {
         "cpp": {
@@ -49297,6 +49440,7 @@ window.API_INDEX = {
         "Polyline.center",
         "Polyline.closed",
         "Polyline.closest_distance_and_point",
+        "Polyline.extend_edge_equally",
         "Polyline.extend_equally",
         "Polyline.extend_line",
         "Polyline.extend_line_segment",
@@ -49400,6 +49544,7 @@ window.API_INDEX = {
         "Polyline.pt_in_poly",
         "Polyline.repr",
         "Polyline.transform",
+        "Polyline.transformed",
         "Polyline.unproj"
       ]
     },
@@ -50736,6 +50881,21 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Xform.from_change_of_basis",
+      "implementations": {
+        "cpp": {
+          "sig": "Xform from_change_of_basis(const Polyline& rect0, const Polyline& rect1)",
+          "code": "Xform Xform::from_change_of_basis(const Polyline& rect0, const Polyline& rect1) {\n    // Verbatim port of the inline `change_basis(rect0, rect1, out)`\n    // helper from main_5.cpp:782 (which mirrored wood `wood_joint.cpp:103`).\n    // Maps the unit cube [-0.5, +0.5]\u00c2\u00b3 \u00e2\u2020\u2019 world frame defined by rect0/rect1.\n\n    if (rect0.point_count() < 4 || rect1.point_count() < 1) {\n        return Xform::identity();\n    }",
+          "file": "xform.cpp"
+        }
+      },
+      "related": [
+        "Xform.change_basis",
+        "Xform.identity",
+        "Xform.y"
+      ]
+    },
+    {
       "name": "Xform.jsondump",
       "implementations": {
         "cpp": {
@@ -51171,6 +51331,7 @@ window.API_INDEX = {
       },
       "related": [
         "Line.end",
+        "Line.extend",
         "Line.length"
       ]
     },
@@ -52012,22 +52173,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Plane.has_on_negative_side",
-      "implementations": {
-        "rust": {
-          "sig": "has_on_negative_side(p: &Point) -> bool",
-          "code": "pub fn has_on_negative_side(&self, p: &Point) -> bool {\n        (self._a * p[0] + self._b * p[1] + self._c * p[2] + self._d) < 0.0\n    }",
-          "file": "plane.rs"
-        }
-      },
-      "related": [
-        "Plane.a",
-        "Plane.b",
-        "Plane.c",
-        "Plane.d"
-      ]
-    },
-    {
       "name": "Point.new",
       "implementations": {
         "rust": {
@@ -52178,6 +52323,7 @@ window.API_INDEX = {
         "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.duplicate",
+        "Polyline.extend_edge_equally",
         "Polyline.from_coords",
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
@@ -53286,6 +53432,7 @@ window.API_INDEX = {
         "Xform.change_basis",
         "Xform.constructor",
         "Xform.duplicate",
+        "Xform.from_change_of_basis",
         "Xform.from_cols",
         "Xform.from_matrix",
         "Xform.guid",
@@ -58354,11 +58501,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "n",
-        "circle",
-        "into",
-        "subdivide",
         "points",
+        "circle",
+        "subdivide",
+        "n",
+        "into",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -58372,10 +58519,10 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "arc",
-        "subdivide",
-        "ellipse",
         "by",
+        "subdivide",
+        "arc",
+        "ellipse",
         "length",
         "divide_by_length",
         "nurbscurve",
@@ -58390,9 +58537,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "through",
         "arc",
         "points",
+        "through",
         "nurbscurve",
         "primitives",
         "point"
@@ -58406,12 +58553,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "from",
-        "polyline",
-        "curve",
-        "open",
-        "adaptive",
         "points",
+        "polyline",
+        "adaptive",
+        "from",
+        "open",
+        "curve",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -58427,9 +58574,9 @@ window.API_INDEX = {
       "title": "Curve Evaluation at Parameter",
       "tags": [
         "at",
+        "parameter",
         "evaluation",
         "curve",
-        "parameter",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -58448,10 +58595,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "frames",
-        "length",
-        "curve",
         "along",
+        "length",
+        "frames",
+        "curve",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -58474,8 +58621,8 @@ window.API_INDEX = {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
         "ellipse",
-        "perpendicular",
         "frames",
+        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -58496,8 +58643,8 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "evaluate",
         "cylinder",
+        "evaluate",
         "surface",
         "point",
         "point_at",
@@ -58514,11 +58661,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "vertices",
+        "and",
         "from",
         "faces",
-        "and",
         "mesh",
+        "vertices",
         "add_vertex",
         "add_face",
         "vertex"
@@ -58600,12 +58747,6 @@ window.API_INDEX = {
       ],
       "summary": "ToleranceGuard geometry class"
     },
-    "LoftWallFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftWallFace geometry class"
-    },
     "NurbsSurface": {
       "composition": [
         "Color",
@@ -58622,6 +58763,12 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "A NURBS surface with control points, weights, knots, and degrees"
+    },
+    "LoftWallFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftWallFace geometry class"
     },
     "LoftAdjPair": {
       "composition": [],
@@ -58645,6 +58792,14 @@ window.API_INDEX = {
       ],
       "summary": "Factory for creating geometric primitives (circle, ellipse, arc, etc.)"
     },
+    "VertexData": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "VertexData geometry class"
+    },
     "NurbsCurve": {
       "composition": [
         "Color",
@@ -58660,24 +58815,6 @@ window.API_INDEX = {
       ],
       "summary": "A NURBS curve with control points, weights, knots, and degree"
     },
-    "Quaternion": {
-      "composition": [
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Plane"
-      ],
-      "summary": "A quaternion for representing rotations"
-    },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "VertexData geometry class"
-    },
     "PointCloud": {
       "composition": [
         "Color",
@@ -58690,27 +58827,15 @@ window.API_INDEX = {
       ],
       "summary": "A collection of 3D points with optional colors"
     },
-    "Tolerance": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "ToleranceGuard",
+    "Quaternion": {
+      "composition": [
         "Vector"
       ],
-      "summary": "Tolerance values for geometric comparisons"
-    },
-    "RemeshCDT": {
-      "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "RemeshCDT geometry class"
-    },
-    "LoftPanel": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftPanel geometry class"
+      "uses": [
+        "Plane"
+      ],
+      "summary": "A quaternion for representing rotations"
     },
     "ColorMode": {
       "composition": [],
@@ -58726,11 +58851,27 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
-    "Geometry": {
+    "RemeshCDT": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Geometry geometry class"
+      "summary": "RemeshCDT geometry class"
+    },
+    "LoftPanel": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftPanel geometry class"
+    },
+    "Tolerance": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "ToleranceGuard",
+        "Vector"
+      ],
+      "summary": "Tolerance values for geometric comparisons"
     },
     "Polyline": {
       "composition": [
@@ -58741,7 +58882,8 @@ window.API_INDEX = {
       ],
       "factories": [
         "ColorMode",
-        "Mesh"
+        "Mesh",
+        "Xform"
       ],
       "uses": [
         "Tolerance",
@@ -58756,6 +58898,12 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "A node in a tree with data and children"
+    },
+    "Geometry": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Geometry geometry class"
     },
     "Objects": {
       "composition": [
@@ -58809,6 +58957,12 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A 3D vector with direction and magnitude"
     },
+    "RayHit": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "RayHit geometry class"
+    },
     "Vertex": {
       "composition": [],
       "factories": [],
@@ -58817,35 +58971,15 @@ window.API_INDEX = {
       ],
       "summary": "A vertex in a mesh with position and connectivity"
     },
-    "RayHit": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RayHit geometry class"
-    },
-    "Xform": {
+    "Graph": {
       "composition": [
-        "Point",
-        "Vector"
+        "Edge"
       ],
       "factories": [],
       "uses": [
-        "Line",
-        "Plane"
+        "Vertex"
       ],
-      "summary": "A 4x4 transformation matrix for translation, rotation, and scaling"
-    },
-    "Plane": {
-      "composition": [],
-      "factories": [
-        "Quaternion"
-      ],
-      "uses": [
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "A plane defined by origin, x-axis, and y-axis"
+      "summary": "A graph data structure with nodes and edges"
     },
     "Point": {
       "composition": [],
@@ -58866,15 +59000,30 @@ window.API_INDEX = {
       "uses": [],
       "summary": "An RGBA color with preset colors and interpolation"
     },
-    "Graph": {
+    "Xform": {
       "composition": [
-        "Edge"
+        "Point",
+        "Vector"
       ],
       "factories": [],
       "uses": [
-        "Vertex"
+        "Line",
+        "Plane",
+        "Polyline"
       ],
-      "summary": "A graph data structure with nodes and edges"
+      "summary": "A 4x4 transformation matrix for translation, rotation, and scaling"
+    },
+    "Plane": {
+      "composition": [],
+      "factories": [
+        "Quaternion"
+      ],
+      "uses": [
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "A plane defined by origin, x-axis, and y-axis"
     },
     "Line": {
       "composition": [
@@ -58889,11 +59038,13 @@ window.API_INDEX = {
       ],
       "summary": "A line defined by start and end points"
     },
-    "Edge": {
-      "composition": [],
+    "Tree": {
+      "composition": [
+        "TreeNode"
+      ],
       "factories": [],
       "uses": [],
-      "summary": "An edge in a mesh connecting two vertices"
+      "summary": "A tree data structure with hierarchical paths"
     },
     "Mesh": {
       "composition": [
@@ -58915,13 +59066,11 @@ window.API_INDEX = {
       ],
       "summary": "A polygon mesh with vertices, faces, and optional vertex colors"
     },
-    "Tree": {
-      "composition": [
-        "TreeNode"
-      ],
+    "Edge": {
+      "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "A tree data structure with hierarchical paths"
+      "summary": "An edge in a mesh connecting two vertices"
     },
     "OBB": {
       "composition": [
@@ -60102,7 +60251,8 @@ window.API_INDEX = {
     ],
     "centroid": [
       "Mesh.centroid",
-      "ColorMode.centroid"
+      "ColorMode.centroid",
+      "Point.centroid"
     ],
     "dihedral_angle": [
       "Mesh.dihedral_angle",
@@ -60436,6 +60586,7 @@ window.API_INDEX = {
     ],
     "extend": [
       "NurbsCurve.extend",
+      "Line.extend",
       "Polyline.extend"
     ],
     "make_rational": [
@@ -61674,6 +61825,12 @@ window.API_INDEX = {
     "make_pair": [
       "std.make_pair"
     ],
+    "overlap": [
+      "Line.overlap"
+    ],
+    "overlap_average": [
+      "Line.overlap_average"
+    ],
     "invalid_argument": [
       "std.invalid_argument"
     ],
@@ -61799,8 +61956,14 @@ window.API_INDEX = {
     "quaternion_to_frame": [
       "NurbsCurve.quaternion_to_frame"
     ],
+    "has_on_negative_side": [
+      "Plane.has_on_negative_side"
+    ],
     "ccw": [
       "Point.ccw"
+    ],
+    "dihedral_angle_deg": [
+      "Point.dihedral_angle_deg"
     ],
     "len": [
       "PointCloud.len",
@@ -61811,6 +61974,12 @@ window.API_INDEX = {
     ],
     "Polyline": [
       "Polyline.Polyline"
+    ],
+    "move": [
+      "Polyline.move"
+    ],
+    "extend_edge_equally": [
+      "Polyline.extend_edge_equally"
     ],
     "length_squared": [
       "Polyline.length_squared"
@@ -61838,9 +62007,6 @@ window.API_INDEX = {
     ],
     "center_vec": [
       "Polyline.center_vec"
-    ],
-    "move": [
-      "Polyline.move"
     ],
     "extend_line": [
       "Polyline.extend_line"
@@ -61967,6 +62133,9 @@ window.API_INDEX = {
     "fabs": [
       "std.fabs"
     ],
+    "from_change_of_basis": [
+      "Xform.from_change_of_basis"
+    ],
     "operator": [
       "Xform.operator"
     ],
@@ -62089,9 +62258,6 @@ window.API_INDEX = {
     ],
     "z_axis_ref": [
       "Plane.z_axis_ref"
-    ],
-    "has_on_negative_side": [
-      "Plane.has_on_negative_side"
     ],
     "move_by": [
       "Polyline.move_by"

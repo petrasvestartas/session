@@ -3,7 +3,7 @@
     "group": "Knot",
     "test_name": "Make Clamped Uniform",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.013,
     "line": 15,
     "code": "    // uncomment #include \"knot.h\"\n\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots = knot::make_clamped_uniform(order, cv_count);",
     "checks": [
@@ -19,7 +19,7 @@
     "group": "Knot",
     "test_name": "Make Periodic Uniform",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 25,
     "code": "    // uncomment #include \"knot.h\"\n\n    // 0 1 2 3 4 5 6\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots = knot::make_periodic_uniform(order, cv_count);",
     "checks": [
@@ -51,7 +51,7 @@
     "group": "Knot",
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 50,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Reverses NURBS curve direction: flip control points + reverse knots\n    // Steps: 1) reverse array  2) remap knot[i] = t0 + t1 - knot[i] to preserve domain\n\n    // Symmetric knot vector -> reverse gives back the same (palindrome)\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots_sym = knot::make_clamped_uniform(order, cv_count);\n    knot::reverse(order, cv_count, knots_sym);\n\n    // Asymmetric knot vector -> extra knot at 0.5 shifts to 1.5 after reverse\n    // 0 0 0 0.5 1 2 2 2 -> 0 0 0 1 1.5 2 2 2\n    std::vector<double> knots_asym = {0.0, 0.0, 0.0, 0.5, 1.0, 2.0, 2.0, 2.0};\n    knot::reverse(4, 6, knots_asym);",
     "checks": [
@@ -88,7 +88,7 @@
     "group": "Knot",
     "test_name": "Solve Tridiagonal",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 85,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Thomas algorithm -- an O(n) solver for tridiagonal linear systems\n    //   | 2 1 | |x0|   |3|\n    //   | 1 2 | |x1| = |3|\n    //   -> solution: x0 = 1, x1 = 1\n    std::vector<double> lo={0,1}, di={2,2}, up={1,0}, rh={3,3}, sol;\n    knot::solve_tridiagonal(1, 2, lo, di, up, rh, sol);",
     "checks": [
@@ -168,7 +168,7 @@
     "group": "Knot",
     "test_name": "Build Fitted Knots Periodic Adaptive",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 147,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Periodic version for closed curves -- knots wrap around\n    // For a regular square (equal turns, equal chords), knots are uniformly spaced\n    double pts[] = {0,0,0, 1,0,0, 1,1,0, 0,1,0};\n    std::vector<double> params = {0.0, 1.0, 2.0, 3.0, 4.0};\n    std::vector<double> knots = knot::build_fitted_knots_periodic_adaptive(params, pts, 4, 3, 4, 3);",
     "checks": [
