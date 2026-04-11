@@ -93,6 +93,9 @@ opennurbs-8.x
 # uvsession
 # uvsession
 
+# uv-managed per-project venvs (e.g. session_mcp/.venv created by `uv run --project session_mcp ...`)
+.venv/
+
 # Claude instructions
 # nurbscurve.md
 # protobuf.md

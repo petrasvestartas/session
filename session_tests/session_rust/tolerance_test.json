@@ -29,7 +29,7 @@
     "line": 15,
     "passed": true,
     "test_name": "Is Close",
-    "time_ms": 0.0
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -93,7 +93,7 @@
     "line": 47,
     "passed": true,
     "test_name": "Format Number",
-    "time_ms": 0.022
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -109,7 +109,7 @@
     "line": 55,
     "passed": true,
     "test_name": "Key",
-    "time_ms": 0.012
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -336,7 +336,7 @@
     "line": 104,
     "passed": true,
     "test_name": "Wrap Index",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [

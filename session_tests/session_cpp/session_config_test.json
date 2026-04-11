@@ -3,7 +3,7 @@
     "group": "SessionConfig",
     "test_name": "Default Values",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 8,
     "code": "        // uncomment #include \"session_config.h\"",
     "checks": [
@@ -24,7 +24,7 @@
     "group": "SessionConfig",
     "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.01,
     "line": 14,
     "code": "        // uncomment #include \"session_config.h\"\n        SESSION_CONFIG.explode_mesh_faces = true;\n        SESSION_CONFIG.scale_factor = 0.001;\n        SESSION_CONFIG.reset();",
     "checks": [

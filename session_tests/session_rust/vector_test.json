@@ -103,7 +103,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.033
+    "time_ms": 0.032
   },
   {
     "checks": [
@@ -124,7 +124,7 @@
     "line": 108,
     "passed": true,
     "test_name": "Magnitude",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 147,
     "passed": true,
     "test_name": "Dot Product",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -213,7 +213,7 @@
     "line": 178,
     "passed": true,
     "test_name": "Cross Product",
-    "time_ms": 0.01
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -274,7 +274,7 @@
     "line": 199,
     "passed": true,
     "test_name": "Angle",
-    "time_ms": 0.005
+    "time_ms": 0.281
   },
   {
     "checks": [
@@ -300,7 +300,7 @@
     "line": 241,
     "passed": true,
     "test_name": "Projection",
-    "time_ms": 0.009
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -500,7 +500,7 @@
     "line": 368,
     "passed": true,
     "test_name": "Sum Of Vectors",
-    "time_ms": 0.01
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -526,7 +526,7 @@
     "line": 393,
     "passed": true,
     "test_name": "Average",
-    "time_ms": 0.01
+    "time_ms": 0.14
   },
   {
     "checks": [
@@ -583,7 +583,7 @@
     "line": 496,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 9.925
+    "time_ms": 10.443
   },
   {
     "checks": [
@@ -614,7 +614,7 @@
     "line": 519,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 8.708
+    "time_ms": 10.117
   },
   {
     "checks": [
@@ -650,7 +650,7 @@
     "line": 478,
     "passed": true,
     "test_name": "Interpolate Points",
-    "time_ms": 0.008
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -665,7 +665,7 @@
         "passed": true
       }
     ],
-    "code": "        use crate::vector::average_normal;\n        use crate::Point;\n\n        let sq = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ];\n        let n = average_normal(&sq);\n",
+    "code": "        use crate::Point;\n        use crate::Vector;\n\n        let sq = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ];\n        let n = Vector::average_normal(&sq);\n",
     "failures": [],
     "group": "Vector",
     "line": 459,
@@ -733,7 +733,7 @@
     "line": 425,
     "passed": true,
     "test_name": "Scale",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [

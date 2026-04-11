@@ -93,6 +93,6 @@
     "line": 121,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.001
+    "time_ms": 0.004
   }
 ]

@@ -19,6 +19,55 @@ See the [Session documentation](https://petrasvestartas.github.io/session/).
 | [`session_data`](https://github.com/petrasvestartas/session_data) | Geometry dataset |
 | [`session_proto`](https://github.com/petrasvestartas/session_proto) | Protobuf schemas |
 
+## Key API files
+
+One file = one class (or one tightly-coupled group like `graph` which contains `Graph` + `Vertex` + `Edge`). Status reflects manual cross-language parity review (Python / Rust / C++).
+
+- [ ] `aabb`
+- [ ] `boolean_polyline`
+- [ ] `brep`
+- [ ] `bvh`
+- [ ] `closest`
+- [x] `color`
+- [ ] `convex_hull`
+- [ ] `element`
+- [ ] `element_beam`
+- [ ] `element_column`
+- [ ] `element_plate`
+- [ ] `encoders`
+- [ ] `graph`
+- [ ] `intersection`
+- [ ] `kdtree`
+- [x] `knot`
+- [ ] `line`
+- [ ] `marching_squares`
+- [ ] `matrix`
+- [x] `mesh`
+- [ ] `mesh_iso`
+- [x] `nurbscurve`
+- [x] `nurbssurface`
+- [ ] `obb`
+- [ ] `obj`
+- [ ] `objects`
+- [ ] `plane`
+- [ ] `point`
+- [ ] `pointcloud`
+- [ ] `polyline`
+- [ ] `primitives`
+- [x] `quaternion`
+- [x] `remesh_cdt`
+- [x] `remesh_nurbssurface_adaptive`
+- [x] `remesh_nurbssurface_grid`
+- [ ] `rtree`
+- [ ] `session`
+- [ ] `session_config`
+- [ ] `tolerance`
+- [ ] `tree`
+- [ ] `treenode`
+- [ ] `trimmedsurface`
+- [ ] `vector`
+- [x] `xform`
+
 ## Prerequisites
 
 | Tool | macOS | Ubuntu | Windows |

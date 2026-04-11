@@ -35,7 +35,7 @@
     "group": "Tolerance",
     "test_name": "Is Positive",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 22,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_positive(1.0);",
     "checks": [
@@ -51,7 +51,7 @@
     "group": "Tolerance",
     "test_name": "Is Negative",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 29,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_negative(-1.0);",
     "checks": [
@@ -67,7 +67,7 @@
     "group": "Tolerance",
     "test_name": "Is Between",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 36,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_between(0.5, 0.0, 1.0);",
     "checks": [
@@ -83,7 +83,7 @@
     "group": "Tolerance",
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.007,
     "line": 43,
     "code": "        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.format_number(3.14159, 2);",
     "checks": [
@@ -99,7 +99,7 @@
     "group": "Tolerance",
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.01,
     "line": 50,
     "code": "        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
     "checks": [

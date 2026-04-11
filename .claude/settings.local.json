@@ -53,5 +53,6 @@
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "session-api"
-  ]
+  ],
+  "prefersReducedMotion": true
 }

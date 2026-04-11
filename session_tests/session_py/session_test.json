@@ -3,7 +3,7 @@
     "group": "Session",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.065,
+    "time_ms": 0.08,
     "line": 8,
     "code": "    from session_py import Session\n\n    session = Session()\n    named = Session(\"my_named_session\")",
     "checks": [
@@ -29,7 +29,7 @@
     "group": "Session",
     "test_name": "Add Point",
     "passed": true,
-    "time_ms": 0.042,
+    "time_ms": 0.072,
     "line": 20,
     "code": "    from session_py import Session\n    from session_py import Point\n\n    session = Session()\n    point = Point(1.0, 2.0, 3.0)\n    session.add_point(point)",
     "checks": [
@@ -55,7 +55,7 @@
     "group": "Session",
     "test_name": "Add Line",
     "passed": true,
-    "time_ms": 0.027,
+    "time_ms": 0.058,
     "line": 34,
     "code": "    from session_py import Session\n    from session_py import Line\n    from session_py import Point\n\n    session = Session()\n    line = Line(Point(0,0,0), Point(1,0,0))\n    session.add_line(line)",
     "checks": [
@@ -76,7 +76,7 @@
     "group": "Session",
     "test_name": "Add Plane",
     "passed": true,
-    "time_ms": 0.047,
+    "time_ms": 0.064,
     "line": 48,
     "code": "    from session_py import Session\n    from session_py import Plane\n\n    session = Session()\n    plane = Plane.xy_plane()\n    session.add_plane(plane)",
     "checks": [
@@ -97,7 +97,7 @@
     "group": "Session",
     "test_name": "Add Polyline",
     "passed": true,
-    "time_ms": 0.029,
+    "time_ms": 0.047,
     "line": 61,
     "code": "    from session_py import Session\n    from session_py import Polyline\n    from session_py import Point\n\n    session = Session()\n    pl = Polyline([Point(0,0,0), Point(1,0,0), Point(1,1,0)])\n    session.add_polyline(pl)",
     "checks": [
@@ -118,7 +118,7 @@
     "group": "Session",
     "test_name": "Add Pointcloud",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.056,
     "line": 75,
     "code": "    from session_py import Session\n    from session_py import PointCloud\n    from session_py import Point\n\n    session = Session()\n    pc = PointCloud([Point(0,0,0), Point(1,0,0)])\n    session.add_pointcloud(pc)",
     "checks": [
@@ -139,7 +139,7 @@
     "group": "Session",
     "test_name": "Add Mesh",
     "passed": true,
-    "time_ms": 0.036,
+    "time_ms": 0.073,
     "line": 89,
     "code": "    from session_py import Session\n    from session_py import Mesh\n    from session_py import Point\n\n    session = Session()\n    mesh = Mesh()\n    mesh.add_vertex(Point(0,0,0), 0)\n    mesh.add_vertex(Point(1,0,0), 1)\n    mesh.add_vertex(Point(0,1,0), 2)\n    mesh.add_face([0, 1, 2])\n    session.add_mesh(mesh)",
     "checks": [
@@ -160,7 +160,7 @@
     "group": "Session",
     "test_name": "Add Element",
     "passed": true,
-    "time_ms": 0.088,
+    "time_ms": 0.154,
     "line": 107,
     "code": "    from session_py import Session\n    from session_py import PlateElement\n    from session_py import Point\n\n    session = Session()\n    polygon = [Point(0,0,0), Point(2,0,0), Point(2,2,0), Point(0,2,0)]\n    plate = PlateElement(polygon=polygon, thickness=0.2, name=\"p1\")\n    session.add_element(plate)",
     "checks": [
@@ -186,7 +186,7 @@
     "group": "Session",
     "test_name": "Add Group",
     "passed": true,
-    "time_ms": 0.016,
+    "time_ms": 0.025,
     "line": 123,
     "code": "    from session_py import Session\n\n    session = Session()\n    group = session.add_group(\"my_group\")",
     "checks": [
@@ -207,7 +207,7 @@
     "group": "Session",
     "test_name": "Add Edge",
     "passed": true,
-    "time_ms": 0.03,
+    "time_ms": 0.045,
     "line": 134,
     "code": "    from session_py import Session\n    from session_py import Point\n\n    session = Session()\n    p1 = Point(1.0, 2.0, 3.0)\n    p2 = Point(4.0, 5.0, 6.0)\n    session.add_point(p1)\n    session.add_point(p2)\n    session.add_edge(p1.guid, p2.guid, \"connection\")",
     "checks": [
@@ -223,7 +223,7 @@
     "group": "Session",
     "test_name": "Add Hierarchy",
     "passed": true,
-    "time_ms": 0.057,
+    "time_ms": 0.066,
     "line": 149,
     "code": "    from session_py import Session\n    from session_py import Point\n\n    session = Session()\n    p1 = Point(0,0,0)\n    p2 = Point(1,0,0)\n    n1 = session.add_point(p1)\n    n2 = session.add_point(p2)\n    session.add(n1)\n    session.add(n2)\n    ok = session.add_hierarchy(n1.guid, n2.guid)",
     "checks": [
@@ -239,7 +239,7 @@
     "group": "Session",
     "test_name": "Get Children",
     "passed": true,
-    "time_ms": 0.04,
+    "time_ms": 0.054,
     "line": 166,
     "code": "    from session_py import Session\n    from session_py import Point\n\n    session = Session()\n    p1 = Point(0,0,0)\n    p2 = Point(1,0,0)\n    n1 = session.add_point(p1)\n    n2 = session.add_point(p2)\n    session.add(n1)\n    session.add(n2)\n    session.add_hierarchy(n1.guid, n2.guid)\n\n    children = session.get_children(n1.guid)",
     "checks": [
@@ -260,7 +260,7 @@
     "group": "Session",
     "test_name": "Add Relationship",
     "passed": true,
-    "time_ms": 0.046,
+    "time_ms": 0.032,
     "line": 186,
     "code": "    from session_py import Session\n    from session_py import Point\n\n    session = Session()\n    p1 = Point(0,0,0)\n    p2 = Point(1,0,0)\n    session.add_point(p1)\n    session.add_point(p2)\n    session.add_relationship(p1.guid, p2.guid, \"connects_to\")",
     "checks": [
@@ -276,7 +276,7 @@
     "group": "Session",
     "test_name": "Get Neighbours",
     "passed": true,
-    "time_ms": 0.041,
+    "time_ms": 0.059,
     "line": 201,
     "code": "    from session_py import Session\n    from session_py import Point\n\n    session = Session()\n    p1 = Point(0,0,0)\n    p2 = Point(1,0,0)\n    session.add_point(p1)\n    session.add_point(p2)\n    session.add_edge(p1.guid, p2.guid, \"connection\")\n\n    neighbours = session.get_neighbours(p1.guid)",
     "checks": [
@@ -297,7 +297,7 @@
     "group": "Session",
     "test_name": "Get Object",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.042,
     "line": 219,
     "code": "    from session_py import Session\n    from session_py import Point\n\n    session = Session()\n    point = Point(1.0, 2.0, 3.0)\n    session.add_point(point)\n    retrieved = session.get_object(point.guid)",
     "checks": [
@@ -318,7 +318,7 @@
     "group": "Session",
     "test_name": "Remove Object",
     "passed": true,
-    "time_ms": 0.036,
+    "time_ms": 0.055,
     "line": 233,
     "code": "    from session_py import Session\n    from session_py import Point\n\n    session = Session()\n    point = Point(1.0, 2.0, 3.0)\n    session.add_point(point)\n    removed = session.remove_object(point.guid)",
     "checks": [
@@ -339,7 +339,7 @@
     "group": "Session",
     "test_name": "Get Geometry",
     "passed": true,
-    "time_ms": 0.12,
+    "time_ms": 0.203,
     "line": 247,
     "code": "    from session_py import Session\n    from session_py import Point\n\n    session = Session()\n    point = Point(1.0, 2.0, 3.0)\n    session.add_point(point)\n\n    geom = session.get_geometry()",
     "checks": [
@@ -355,7 +355,7 @@
     "group": "Session",
     "test_name": "Compute Face To Face",
     "passed": true,
-    "time_ms": 1.455,
+    "time_ms": 2.063,
     "line": 261,
     "code": "    from session_py import Session\n    from session_py import PlateElement\n    from session_py import Point\n\n    session = Session()\n    p1 = PlateElement(polygon=[Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0)], thickness=0.2, name=\"p1\")\n    p2 = PlateElement(polygon=[Point(0,0,-0.2), Point(1,0,-0.2), Point(1,1,-0.2), Point(0,1,-0.2)], thickness=0.2, name=\"p2\")\n    session.add_element(p1)\n    session.add_element(p2)\n    session.compute_face_to_face(5.0, 0.001)",
     "checks": [
@@ -376,7 +376,7 @@
     "group": "Session",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.872,
+    "time_ms": 83.346,
     "line": 278,
     "code": "    from session_py import Session\n    from session_py import Point\n    from pathlib import Path\n\n    session = Session()\n    p1 = Point(1.0, 2.0, 3.0)\n    p2 = Point(4.0, 5.0, 6.0)\n    session.add_point(p1)\n    session.add_point(p2)\n    session.add_edge(p1.guid, p2.guid, \"connection\")\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   json_dumps()    \u2502 str          \u2502 to JSON string\n    #   json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   json_dump(path) \u2502 file         \u2502 write to file\n    #   json_load(path) \u2502 file         \u2502 read from file\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_session.json\"\n    session.json_dump(fname)\n    loaded = Session.json_load(fname)",
     "checks": [
@@ -402,7 +402,7 @@
     "group": "Session",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 14.372,
+    "time_ms": 19.542,
     "line": 307,
     "code": "    from session_py import Session\n    from session_py import Point\n    from pathlib import Path\n\n    session = Session()\n    p1 = Point(1.0, 2.0, 3.0)\n    p2 = Point(4.0, 5.0, 6.0)\n    session.add_point(p1)\n    session.add_point(p2)\n    session.add_edge(p1.guid, p2.guid, \"connection\")\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_session.bin\"\n    session.pb_dump(fname)\n    loaded = Session.pb_load(fname)",
     "checks": [
@@ -423,7 +423,7 @@
     "group": "Session",
     "test_name": "Tree Transformation Hierarchy",
     "passed": true,
-    "time_ms": 0.838,
+    "time_ms": 1.546,
     "line": 328,
     "code": "    from session_py import Session\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Mesh\n    from session_py import Xform\n    from session_py import Plane\n\n    scene = Session(\"tree_transformation_test\")\n\n    def create_box(center, size):\n        mesh = Mesh()\n        h = size * 0.5\n        verts = [\n            Point(center[0] - h, center[1] - h, center[2] - h),\n            Point(center[0] + h, center[1] - h, center[2] - h),\n            Point(center[0] + h, center[1] + h, center[2] - h),\n            Point(center[0] - h, center[1] + h, center[2] - h),\n            Point(center[0] - h, center[1] - h, center[2] + h),\n            Point(center[0] + h, center[1] - h, center[2] + h),\n            Point(center[0] + h, center[1] + h, center[2] + h),\n            Point(center[0] - h, center[1] + h, center[2] + h),\n        ]\n        for i, v in enumerate(verts):\n            mesh.add_vertex(v, i)\n        faces = [\n            [0, 1, 2, 3], [4, 7, 6, 5], [0, 4, 5, 1],\n            [2, 6, 7, 3], [0, 3, 7, 4], [1, 5, 6, 2],\n        ]\n        for f in faces:\n            mesh.add_face(f)\n        return mesh\n\n    box1 = create_box(Point(0, 0, 0), 2.0)\n    box1_node = scene.add_mesh(box1)\n    box2 = create_box(Point(0, 0, 0), 2.0)\n    box2_node = scene.add_mesh(box2)\n    box3 = create_box(Point(0, 0, 0), 2.0)\n    box3_node = scene.add_mesh(box3)\n\n    scene.add(box1_node)\n    scene.add(box2_node, box1_node)\n    scene.add(box3_node, box2_node)\n\n    plane_from = Plane(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0))\n    plane_to = Plane(Point(0, 0, 1.0), Vector(1, 0, 0), Vector(0, 1, 0))\n    xy_to_top = Xform.plane_to_plane(plane_from, plane_to)\n    box1.xform = Xform.rotation_z(PI / 1.5) * xy_to_top\n    box2.xform = Xform.translation(2.0, 0, 0) * Xform.rotation_z(PI / 6.0)\n    box3.xform = Xform.translation(2.0, 0, 0)\n\n    transformed = scene.get_geometry()\n\n    m1 = transformed.meshes[0]\n    v0 = m1.vertex[0]",
     "checks": [

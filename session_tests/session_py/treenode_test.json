@@ -3,7 +3,7 @@
     "group": "TreeNode",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.03,
+    "time_ms": 0.051,
     "line": 6,
     "code": "    from session_py import TreeNode\n    from session_py import Color\n\n    # Default constructor\n    n0 = TreeNode()\n\n    # Constructor with name\n    n = TreeNode(\"my_named_node\")\n    n.color = Color(255, 0, 0, 255)\n\n    # Minimal string representation\n    nstr = str(n)\n\n    # Copies (compared by identity in Python)\n    nother = TreeNode(\"my_named_node\")",
     "checks": [
@@ -49,7 +49,7 @@
     "group": "TreeNode",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 7.225,
+    "time_ms": 9.889,
     "line": 33,
     "code": "    from session_py import TreeNode\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = TreeNode(\"test_node\")\n    child = TreeNode(\"child_node\")\n    original.add(child)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_treenode.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)",
     "checks": [
@@ -75,7 +75,7 @@
     "group": "TreeNode",
     "test_name": "Is Root",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.014,
     "line": 53,
     "code": "    from session_py import TreeNode\n\n    root = TreeNode(\"root\")\n    child = TreeNode(\"child\")\n    root.add(child)",
     "checks": [
@@ -96,7 +96,7 @@
     "group": "TreeNode",
     "test_name": "Is Leaf",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.009,
     "line": 65,
     "code": "    from session_py import TreeNode\n\n    parent = TreeNode(\"parent\")\n    child = TreeNode(\"child\")\n    parent.add(child)",
     "checks": [
@@ -117,7 +117,7 @@
     "group": "TreeNode",
     "test_name": "Tree",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 77,
     "code": "    from session_py import TreeNode\n\n    n = TreeNode(\"standalone\")",
     "checks": [
@@ -133,7 +133,7 @@
     "group": "TreeNode",
     "test_name": "Add",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.006,
     "line": 86,
     "code": "    from session_py import TreeNode\n\n    parent = TreeNode(\"parent\")\n    child = TreeNode(\"child\")\n    parent.add(child)",
     "checks": [
@@ -154,7 +154,7 @@
     "group": "TreeNode",
     "test_name": "Remove",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.007,
     "line": 98,
     "code": "    from session_py import TreeNode\n\n    parent = TreeNode(\"parent\")\n    child = TreeNode(\"child\")\n    parent.add(child)\n    parent.remove(child)",
     "checks": [
@@ -175,7 +175,7 @@
     "group": "TreeNode",
     "test_name": "Parent",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.007,
     "line": 111,
     "code": "    from session_py import TreeNode\n\n    root = TreeNode(\"root\")\n    child = TreeNode(\"child\")\n    root.add(child)",
     "checks": [
@@ -196,7 +196,7 @@
     "group": "TreeNode",
     "test_name": "Ancestors",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.009,
     "line": 123,
     "code": "    from session_py import TreeNode\n\n    root = TreeNode(\"root\")\n    mid = TreeNode(\"mid\")\n    leaf = TreeNode(\"leaf\")\n    root.add(mid)\n    mid.add(leaf)\n\n    anc = list(leaf.ancestors)",
     "checks": [
@@ -222,7 +222,7 @@
     "group": "TreeNode",
     "test_name": "Descendants",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.007,
     "line": 140,
     "code": "    from session_py import TreeNode\n\n    root = TreeNode(\"root\")\n    mid = TreeNode(\"mid\")\n    leaf = TreeNode(\"leaf\")\n    root.add(mid)\n    mid.add(leaf)\n\n    desc = list(root.descendants)",
     "checks": [

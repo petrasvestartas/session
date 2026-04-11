@@ -45,7 +45,7 @@
     "line": 32,
     "passed": true,
     "test_name": "Is Clamped",
-    "time_ms": 0.009
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -82,7 +82,7 @@
     "line": 68,
     "passed": true,
     "test_name": "Find Span",
-    "time_ms": 0.006
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -98,7 +98,7 @@
     "line": 84,
     "passed": true,
     "test_name": "Solve Tridiagonal",
-    "time_ms": 0.001
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 101,
     "passed": true,
     "test_name": "Compute Parameters",
-    "time_ms": 0.005
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -130,7 +130,7 @@
     "line": 112,
     "passed": true,
     "test_name": "Build Interpolation Knots",
-    "time_ms": 0.0
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -146,7 +146,7 @@
     "line": 127,
     "passed": true,
     "test_name": "Evaluation Basis",
-    "time_ms": 0.005
+    "time_ms": 0.001
   },
   {
     "checks": [

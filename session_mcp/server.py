@@ -26,45 +26,70 @@ except ImportError:
 
 REPO_ROOT = Path(__file__).parent.parent
 
-CLASSES = [
-    'arrow',
-    'boundingbox',
-    'color',
-    'cylinder',
-    'edge',
-    'graph',
-    'knot',
-    'line',
-    'mesh',
-    'nurbscurve',
-    'nurbssurface',
-    'objects',
-    'plane',
-    'point',
-    'pointcloud',
-    'polyline',
-    'primitives',
-    'quaternion',
-    'session',
-    'tolerance',
-    'tree',
-    'treenode',
-    'vector',
-    'vertex',
-    'xform',
-]
+# Files under session_py/src/session_py/ that aren't geometry classes.
+_PY_SKIP = {"__init__", "mini_test", "reload"}
+
+
+def _discover_classes() -> list[str]:
+    """Auto-discover the canonical class list from session_py source files.
+
+    One file = one class. Filters tests, scaffolding, and proto stubs.
+    """
+    py_dir = REPO_ROOT / "session_py" / "src" / "session_py"
+    names = set()
+    for path in py_dir.glob("*.py"):
+        stem = path.stem
+        if stem.endswith("_test") or stem in _PY_SKIP:
+            continue
+        names.add(stem)
+    return sorted(names)
+
+
+CLASSES = _discover_classes()
+
+
+def _existing(paths):
+    return [p for p in paths if p.exists()]
+
 
 SOURCE_FILES = {
-    'python': [REPO_ROOT / f"session_py/src/session_py/{cls}.py" for cls in CLASSES],
-    'cpp': [f for cls in CLASSES for f in [REPO_ROOT / f"session_cpp/src/{cls}.h", REPO_ROOT / f"session_cpp/src/{cls}.cpp"]],
-    'rust': [REPO_ROOT / f"session_rust/src/{cls}.rs" for cls in CLASSES],
+    'python': _existing(REPO_ROOT / f"session_py/src/session_py/{cls}.py" for cls in CLASSES),
+    'cpp': _existing(
+        f for cls in CLASSES for f in (
+            REPO_ROOT / f"session_cpp/src/{cls}.h",
+            REPO_ROOT / f"session_cpp/src/{cls}.cpp",
+        )
+    ),
+    'rust': _existing(REPO_ROOT / f"session_rust/src/{cls}.rs" for cls in CLASSES),
 }
 
 TEST_FILES = {
-    'cpp': [REPO_ROOT / f"session_cpp/src/{cls}_test.cpp" for cls in CLASSES],
-    'python': [REPO_ROOT / f"session_py/src/session_py/{cls}_test.py" for cls in CLASSES],
-    'rust': [REPO_ROOT / f"session_rust/src/{cls}_minitest.rs" for cls in CLASSES],
+    'cpp': _existing(REPO_ROOT / f"session_cpp/src/{cls}_test.cpp" for cls in CLASSES),
+    'python': _existing(REPO_ROOT / f"session_py/src/session_py/{cls}_test.py" for cls in CLASSES),
+    'rust': _existing(REPO_ROOT / f"session_rust/src/{cls}_test.rs" for cls in CLASSES),
 }
+
+
+def _extract_class_docstrings() -> dict:
+    """Extract one-line class docstrings from every Python source file.
+
+    Returns {ClassName: first-line-of-docstring}. Used in place of a hand-
+    maintained description dict so summaries don't rot against the code.
+    """
+    import ast
+
+    out: dict = {}
+    for path in SOURCE_FILES['python']:
+        try:
+            tree = ast.parse(path.read_text(errors='ignore'))
+        except SyntaxError:
+            continue
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef):
+                doc = ast.get_docstring(node)
+                if doc:
+                    out[node.name] = doc.strip().split('\n', 1)[0].strip()
+    return out
 
 # =============================================================================
 # Parsers - Extract method signatures and code from source files
@@ -421,36 +446,11 @@ class APIIndex:
             if related:
                 self.related_methods[key] = sorted(related)
 
-        # Build class summaries from method names
-        CLASS_DESCRIPTIONS = {
-            'Point': 'A 3D point with x, y, z coordinates',
-            'Vector': 'A 3D vector with direction and magnitude',
-            'Line': 'A line defined by start and end points',
-            'Plane': 'A plane defined by origin, x-axis, and y-axis',
-            'Polyline': 'A polyline defined by a sequence of points',
-            'NurbsCurve': 'A NURBS curve with control points, weights, knots, and degree',
-            'NurbsSurface': 'A NURBS surface with control points, weights, knots, and degrees',
-            'Mesh': 'A polygon mesh with vertices, faces, and optional vertex colors',
-            'Xform': 'A 4x4 transformation matrix for translation, rotation, and scaling',
-            'Color': 'An RGBA color with preset colors and interpolation',
-            'BoundingBox': 'An axis-aligned bounding box',
-            'Quaternion': 'A quaternion for representing rotations',
-            'Primitives': 'Factory for creating geometric primitives (circle, ellipse, arc, etc.)',
-            'Cylinder': 'A cylinder defined by base plane, radius, and height',
-            'Arrow': 'An arrow defined by origin, direction, and length',
-            'PointCloud': 'A collection of 3D points with optional colors',
-            'Graph': 'A graph data structure with nodes and edges',
-            'Tree': 'A tree data structure with hierarchical paths',
-            'TreeNode': 'A node in a tree with data and children',
-            'Edge': 'An edge in a mesh connecting two vertices',
-            'Vertex': 'A vertex in a mesh with position and connectivity',
-            'Knot': 'A knot vector for NURBS curves and surfaces',
-            'Tolerance': 'Tolerance values for geometric comparisons',
-            'Session': 'Session management for geometry objects',
-            'Objects': 'Collection of geometry objects',
-        }
+        # Auto-extract class summaries from Python class docstrings.
+        # Falls back to a generic description for classes without docstrings.
+        auto_descriptions = _extract_class_docstrings()
         for cls in class_methods:
-            self.class_summaries[cls] = CLASS_DESCRIPTIONS.get(
+            self.class_summaries[cls] = auto_descriptions.get(
                 cls, f'{cls} geometry class'
             )
 
@@ -586,6 +586,31 @@ class APIIndex:
         """List all indexed classes."""
         return sorted(set(k.split('.')[0] for k in self.methods.keys() if '.' in k))
 
+    def compute_parity_status(self) -> dict:
+        """Per-class parity report: which languages cover which methods.
+
+        Returns {ClassName: {cpp, python, rust: count, present_in: [..],
+        gaps: int, status: 'DONE'|'TODO'}}. A class is DONE only when every
+        method exists in all 3 languages.
+        """
+        by_class: dict = {}
+        for key, impls in self.methods.items():
+            if '.' not in key:
+                continue
+            cls = key.split('.', 1)[0]
+            info = by_class.setdefault(
+                cls, {'cpp': 0, 'python': 0, 'rust': 0, 'gaps': 0}
+            )
+            for lang in impls:
+                info[lang] = info.get(lang, 0) + 1
+            if len(impls) < 3:
+                info['gaps'] += 1
+        for cls, info in by_class.items():
+            present = [l for l in ('cpp', 'python', 'rust') if info[l] > 0]
+            info['present_in'] = present
+            info['status'] = 'DONE' if len(present) == 3 and info['gaps'] == 0 else 'TODO'
+        return by_class
+
     def to_browser_format(self) -> dict:
         """Export index in format compatible with Vue browser app."""
         concepts = []
@@ -630,6 +655,7 @@ class APIIndex:
             'class_summaries': self.class_summaries,
             'class_graph': self.class_graph,
             'method_index': method_index,
+            'parity_status': self.compute_parity_status(),
         }
 
 
@@ -771,6 +797,122 @@ if FastMCP:
         """
         return f"Classes: {', '.join(index.list_classes())}"
 
+    @mcp.tool()
+    def get_class(class_name: str, language: str = None) -> str:
+        """
+        Get the full source file(s) of a Session class.
+
+        Args:
+            class_name: Class name (e.g., 'Mesh', 'Point'). Case-insensitive.
+            language: Optional filter (python, cpp, rust). If omitted, returns all.
+
+        Returns:
+            Full file contents per language. For C++ returns both .h and .cpp.
+        """
+        cls_lower = class_name.lower()
+        lang_names = {'python': 'Python', 'cpp': 'C++', 'rust': 'Rust'}
+        ext_map = {'python': 'py', 'cpp': 'cpp', 'rust': 'rs'}
+        out = [f"# {class_name}\n"]
+        any_found = False
+        for lang, files in SOURCE_FILES.items():
+            if language and lang != language:
+                continue
+            for path in files:
+                if path.stem == cls_lower or path.stem.split('.')[0] == cls_lower:
+                    out.append(f"\n## {lang_names[lang]} — {path.name}\n```{ext_map[lang]}\n{path.read_text(errors='ignore')}\n```")
+                    any_found = True
+        if not any_found:
+            return f"Class '{class_name}' not found. Use list_classes for available names."
+        return '\n'.join(out)
+
+    @mcp.tool()
+    def get_signature(method: str, language: str = None) -> str:
+        """
+        Get just the signature(s) of a method, no body. Cheap context for Claude.
+
+        Args:
+            method: Method name (e.g., 'Point.distance' or 'distance').
+            language: Optional filter (python, cpp, rust).
+
+        Returns:
+            One signature per language, no implementation body.
+        """
+        result = index.get_method(method, language)
+        if not result:
+            return f"Method '{method}' not found."
+        lang_names = {'python': 'Python', 'cpp': 'C++', 'rust': 'Rust'}
+        out = [f"# {result['name']}"]
+        for lang, impl in result['implementations'].items():
+            out.append(f"- **{lang_names[lang]}**: `{impl['sig'] if 'sig' in impl else impl.get('signature', '')}`")
+        return '\n'.join(out)
+
+    @mcp.tool()
+    def compare_languages(method: str) -> str:
+        """
+        Show the same method side-by-side across Python, C++, and Rust.
+
+        Use this for cross-language parity review: C++ is the ground truth,
+        Python and Rust must match its API and semantics.
+
+        Args:
+            method: Method name (e.g., 'Mesh.weld_vertices' or 'weld_vertices').
+
+        Returns:
+            Markdown with one code block per language, plus a parity summary.
+        """
+        result = index.get_method(method)
+        if not result:
+            return f"Method '{method}' not found."
+        impls = result['implementations']
+        present = sorted(impls.keys())
+        missing = [l for l in ('cpp', 'python', 'rust') if l not in impls]
+        lang_names = {'python': 'Python', 'cpp': 'C++', 'rust': 'Rust'}
+        out = [f"# {result['name']}", f"**Present in:** {', '.join(lang_names[l] for l in present)}"]
+        if missing:
+            out.append(f"**Missing in:** {', '.join(lang_names[l] for l in missing)}")
+        for lang in ('cpp', 'python', 'rust'):
+            if lang not in impls:
+                continue
+            out.append(f"\n## {lang_names[lang]}\n```{lang}\n{impls[lang]['code']}\n```")
+        return '\n'.join(out)
+
+    @mcp.tool()
+    def list_missing(class_name: str = None) -> str:
+        """
+        Report methods that exist in some languages but not others (parity gaps).
+
+        C++ is the ground truth. A method present in C++ but missing in Python
+        or Rust is a port-debt item.
+
+        Args:
+            class_name: Optional class to scope the report. If omitted, scans all.
+
+        Returns:
+            Per-class list of methods with which language(s) are missing.
+        """
+        from collections import defaultdict
+        gaps: dict[str, list[tuple[str, list[str]]]] = defaultdict(list)
+        for key, impls in index.methods.items():
+            if '.' not in key:
+                continue
+            cls, method = key.split('.', 1)
+            if class_name and cls.lower() != class_name.lower():
+                continue
+            present = set(impls.keys())
+            if present == {'cpp', 'python', 'rust'}:
+                continue
+            missing = sorted({'cpp', 'python', 'rust'} - present)
+            gaps[cls].append((method, missing))
+        if not gaps:
+            scope = f" for {class_name}" if class_name else ""
+            return f"No parity gaps{scope} — every method exists in all 3 languages."
+        out = []
+        for cls in sorted(gaps):
+            out.append(f"\n## {cls}")
+            for method, missing in sorted(gaps[cls]):
+                out.append(f"- `{method}` — missing in: {', '.join(missing)}")
+        return '\n'.join(out)
+
     def main():
         """Main entry point for MCP server."""
         print(f"Session API Server - {len(index.methods)} methods, {len(index.tests)} tests indexed", file=sys.stderr)
@@ -782,5 +924,9 @@ else:
 
 
 if __name__ == "__main__":
-    if main:
-        main()
+    if main is None:
+        sys.exit(
+            "session_mcp.server: FastMCP is not installed in this interpreter. "
+            "Run: uv pip install -e session_mcp"
+        )
+    main()

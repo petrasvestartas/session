@@ -88,7 +88,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.248
+    "time_ms": 5.249
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 82,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.007
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -170,7 +170,7 @@
     "line": 98,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 9.982
+    "time_ms": 133.203
   },
   {
     "checks": [
@@ -226,7 +226,7 @@
     "line": 129,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 9.633
+    "time_ms": 139.808
   },
   {
     "checks": [
@@ -247,7 +247,7 @@
     "line": 155,
     "passed": true,
     "test_name": "Is Ccw",
-    "time_ms": 0.003
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -263,7 +263,7 @@
     "line": 172,
     "passed": true,
     "test_name": "Mid Point",
-    "time_ms": 0.005
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -279,7 +279,7 @@
     "line": 184,
     "passed": true,
     "test_name": "Distance",
-    "time_ms": 0.001
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -295,7 +295,7 @@
     "line": 197,
     "passed": true,
     "test_name": "Squared Distance",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -311,7 +311,7 @@
     "line": 210,
     "passed": true,
     "test_name": "Area",
-    "time_ms": 0.003
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -337,6 +337,48 @@
     "line": 224,
     "passed": true,
     "test_name": "Centroid Quad",
+    "time_ms": 0.008
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(angle, 90.0)",
+        "line": 268,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Point;\n\n        // Edge from origin to (1,0,0); r at (0,1,0); s at (0,0,1).\n        // Both half-planes share the X edge; angle is 90 degrees.\n        let p = Point::new(0.0, 0.0, 0.0);\n        let q = Point::new(1.0, 0.0, 0.0);\n        let r = Point::new(0.0, 1.0, 0.0);\n        let s = Point::new(0.0, 0.0, 1.0);\n        let angle = Point::dihedral_angle_deg(&p, &q, &r, &s);\n",
+    "failures": [],
+    "group": "Point",
+    "line": 257,
+    "passed": true,
+    "test_name": "Dihedral Angle Deg",
     "time_ms": 0.006
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(centroid[0], 1.0)",
+        "line": 250,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(centroid[1], 1.0)",
+        "line": 251,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(centroid[2], 0.0)",
+        "line": 252,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Point;\n\n        let p0 = Point::new(0.0, 0.0, 0.0);\n        let p1 = Point::new(2.0, 0.0, 0.0);\n        let p2 = Point::new(2.0, 2.0, 0.0);\n        let p3 = Point::new(0.0, 2.0, 0.0);\n        let centroid = Point::centroid(&vec![p0, p1, p2, p3]);\n",
+    "failures": [],
+    "group": "Point",
+    "line": 241,
+    "passed": true,
+    "test_name": "Centroid",
+    "time_ms": 0.003
   }
 ]

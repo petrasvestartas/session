@@ -3,7 +3,7 @@
     "group": "Objects",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.257,
+    "time_ms": 11.827,
     "line": 7,
     "code": "    from session_py import Objects\n    from session_py import Point\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = Objects()\n    original.points.append(Point(1.0, 2.0, 3.0))\n    original.points.append(Point(4.0, 5.0, 6.0))\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_objects.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)",
     "checks": [

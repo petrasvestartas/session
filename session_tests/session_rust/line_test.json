@@ -128,7 +128,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.051
+    "time_ms": 0.585
   },
   {
     "checks": [
@@ -154,7 +154,7 @@
     "line": 116,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.013
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -215,7 +215,7 @@
     "line": 132,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 12.026
+    "time_ms": 12.823
   },
   {
     "checks": [
@@ -281,7 +281,7 @@
     "line": 173,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 10.559
+    "time_ms": 11.237
   },
   {
     "checks": [
@@ -302,7 +302,7 @@
     "line": 204,
     "passed": true,
     "test_name": "Length",
-    "time_ms": 0.012
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -349,7 +349,7 @@
     "line": 228,
     "passed": true,
     "test_name": "To Direction",
-    "time_ms": 0.012
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -375,7 +375,7 @@
     "line": 242,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.01
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -416,7 +416,7 @@
     "line": 257,
     "passed": true,
     "test_name": "Closest Point",
-    "time_ms": 0.007
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -442,7 +442,7 @@
     "line": 279,
     "passed": true,
     "test_name": "Start End Center",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -458,7 +458,7 @@
     "line": 294,
     "passed": true,
     "test_name": "Fit Points",
-    "time_ms": 0.007
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -509,6 +509,69 @@
     "line": 311,
     "passed": true,
     "test_name": "Subdivide",
-    "time_ms": 0.017
+    "time_ms": 0.023
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(l.start()[0], -1.0)",
+        "line": 360,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(l.end()[0], 12.0)",
+        "line": 361,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{Line, Point};\n        let mut l = Line::from_points(&Point::new(0.0, 0.0, 0.0), &Point::new(10.0, 0.0, 0.0));\n        l.extend(1.0, 2.0);",
+    "failures": [],
+    "group": "Line",
+    "line": 356,
+    "passed": true,
+    "test_name": "Extend",
+    "time_ms": 0.01
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(out.start()[0], 5.0)",
+        "line": 350,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(out.end()[0], 10.0)",
+        "line": 351,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{Line, Point};\n        let l0 = Line::from_points(&Point::new(0.0, 0.0, 0.0), &Point::new(10.0, 0.0, 0.0));\n        let l1 = Line::from_points(&Point::new(5.0, 0.0, 0.0), &Point::new(15.0, 0.0, 0.0));\n        let out = l0.overlap_average(&l1).unwrap();",
+    "failures": [],
+    "group": "Line",
+    "line": 345,
+    "passed": true,
+    "test_name": "Overlap Average",
+    "time_ms": 0.247
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(out.start()[0], 5.0)",
+        "line": 339,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(out.end()[0], 10.0)",
+        "line": 340,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{Line, Point};\n        let l0 = Line::from_points(&Point::new(0.0, 0.0, 0.0), &Point::new(10.0, 0.0, 0.0));\n        let l1 = Line::from_points(&Point::new(5.0, 0.0, 0.0), &Point::new(15.0, 0.0, 0.0));\n        let out = l0.overlap(&l1).unwrap();",
+    "failures": [],
+    "group": "Line",
+    "line": 334,
+    "passed": true,
+    "test_name": "Overlap",
+    "time_ms": 0.007
   }
 ]

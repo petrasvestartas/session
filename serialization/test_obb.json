@@ -1,13 +1,13 @@
 {
     "type": "OBB",
     "center": {
-        "guid": "3b44de58-0b06-41af-b332-3bd59ffe7493",
+        "guid": "35918472-f146-4251-8c7d-b12dd3d18a36",
         "name": "my_point",
         "pointcolor": {
             "a": 255,
             "b": 255,
             "g": 0,
-            "guid": "89918e76-77ea-4e55-a351-63fd2c2a5111",
+            "guid": "cb615b62-0b79-4ada-af36-d1fcaba18291",
             "name": "blue",
             "r": 0,
             "type": "Color"
@@ -16,7 +16,7 @@
         "width": 1.0,
         "x": 1.0,
         "xform": {
-            "guid": "bee62cd8-dac0-4c2a-9d1b-343eda2c4338",
+            "guid": "111213c9-9e9c-4b08-a229-8db2af305617",
             "m": [
                 1.0,
                 0.0,
@@ -42,37 +42,129 @@
         "z": 3.0
     },
     "x_axis": {
-        "guid": "531ac07f-e75e-4cdf-8f04-df824364057b",
+        "guid": "afa83920-9183-42ee-a88b-fcf0fdefdc2e",
         "name": "my_vector",
         "type": "Vector",
         "x": 1.0,
+        "xform": {
+            "guid": "91b5181d-4c25-4c88-bdc9-23cf0633a446",
+            "m": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "name": "my_xform",
+            "type": "Xform"
+        },
         "y": 0.0,
         "z": 0.0
     },
     "y_axis": {
-        "guid": "f840124d-ddb4-4f89-82f0-2ea34d93203a",
+        "guid": "dff71698-b0bb-45c0-bfb5-2466494eb477",
         "name": "my_vector",
         "type": "Vector",
         "x": 0.0,
+        "xform": {
+            "guid": "591dde7d-29d1-4701-bb09-3bae5b5ae493",
+            "m": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "name": "my_xform",
+            "type": "Xform"
+        },
         "y": 1.0,
         "z": 0.0
     },
     "z_axis": {
-        "guid": "0744ad2f-0205-4ac7-a486-baf84a2d8aea",
+        "guid": "b694187d-2177-4b5a-b8ec-9a52e8a508d1",
         "name": "my_vector",
         "type": "Vector",
         "x": 0.0,
+        "xform": {
+            "guid": "c25ab238-7c76-4ccc-bdb4-bc793f4553dc",
+            "m": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "name": "my_xform",
+            "type": "Xform"
+        },
         "y": 0.0,
         "z": 1.0
     },
     "half_size": {
-        "guid": "3c3fafeb-9d93-4dea-ac4c-9b5693fec9ab",
+        "guid": "a03b9a29-ad12-429a-be45-cc7c2afc04e7",
         "name": "my_vector",
         "type": "Vector",
         "x": 5.0,
+        "xform": {
+            "guid": "262cdb40-a7f5-4933-82f0-98e92acd030a",
+            "m": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "name": "my_xform",
+            "type": "Xform"
+        },
         "y": 5.0,
         "z": 5.0
     },
-    "guid": "9c25388f-5671-4bcb-b667-d8c3e71d53ab",
+    "guid": "664f980e-e5d4-404e-9726-22ec1cd17457",
     "name": "test_bbox"
 }
