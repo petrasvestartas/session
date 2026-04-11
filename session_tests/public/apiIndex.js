@@ -21472,7 +21472,6 @@ window.API_INDEX = {
         "Plane.from_points_pca",
         "Plane.from_two_points",
         "Plane.invalid",
-        "Plane.is_coplanar",
         "Plane.is_coplanar_from_normals",
         "Plane.is_valid",
         "Plane.json_dump",
@@ -21488,6 +21487,7 @@ window.API_INDEX = {
         "Plane.repr",
         "Plane.set_guid",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
         "Plane.translate_by_normal",
@@ -21537,7 +21537,6 @@ window.API_INDEX = {
         "Plane.from_two_points",
         "Plane.guid",
         "Plane.invalid",
-        "Plane.is_coplanar_from_normals",
         "Plane.is_valid",
         "Plane.json_dumps",
         "Plane.json_load",
@@ -21549,6 +21548,7 @@ window.API_INDEX = {
         "Plane.pb_loads",
         "Plane.repr",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.transform",
         "Plane.translate_by_normal",
         "Plane.with_name",
@@ -21596,6 +21596,7 @@ window.API_INDEX = {
         "Plane.from_two_points",
         "Plane.guid",
         "Plane.invalid",
+        "Plane.is_coplanar",
         "Plane.is_coplanar_from_normals",
         "Plane.is_valid",
         "Plane.json_dump",
@@ -21609,6 +21610,7 @@ window.API_INDEX = {
         "Plane.pb_loads",
         "Plane.repr",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
         "Plane.translate_by_normal",
@@ -21734,6 +21736,7 @@ window.API_INDEX = {
         "Plane.reverse",
         "Plane.rotate",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
         "Plane.translate_by_normal",
@@ -21813,6 +21816,7 @@ window.API_INDEX = {
         "Plane.reverse",
         "Plane.rotate",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
         "Plane.translate_by_normal",
@@ -21892,6 +21896,7 @@ window.API_INDEX = {
         "Plane.reverse",
         "Plane.rotate",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
         "Plane.translate_by_normal",
@@ -21971,6 +21976,7 @@ window.API_INDEX = {
         "Plane.reverse",
         "Plane.rotate",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
         "Plane.translate_by_normal",
@@ -22059,6 +22065,7 @@ window.API_INDEX = {
         "Plane.reverse",
         "Plane.rotate",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
         "Plane.translate_by_normal",
@@ -22150,6 +22157,7 @@ window.API_INDEX = {
         "Plane.rotate",
         "Plane.set_guid",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
         "Plane.translate_by_normal",
@@ -22241,6 +22249,7 @@ window.API_INDEX = {
         "Plane.reverse",
         "Plane.rotate",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
         "Plane.translate_by_normal",
@@ -22331,6 +22340,7 @@ window.API_INDEX = {
         "Plane.rotate",
         "Plane.set_guid",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
         "Plane.translate_by_normal",
@@ -22958,9 +22968,9 @@ window.API_INDEX = {
         "Plane.pb_load",
         "Plane.pb_loads",
         "Plane.repr",
+        "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
-        "Plane.translate_by_normal",
         "Plane.x_axis",
         "Plane.xform",
         "Plane.xy_plane",
@@ -23570,7 +23580,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_coplanar(plane0, plane1, can_be_flipped=True)",
-          "code": "def is_coplanar(plane0, plane1, can_be_flipped=True):\n\n        \"\"\"Check if two planes are coplanar.\n\n        Parameters\n        ----------\n        plane0 : Plane\n            First plane.\n        plane1 : Plane\n            Second plane.\n        can_be_flipped : bool, optional\n            Allow flipped normals. Defaults to True.\n\n        Returns\n        -------\n        bool\n            True if planes are coplanar.\n        \"\"\"\n        return Plane.is_same_direction(\n            plane0, plane1, can_be_flipped\n        ) and Plane.is_same_position(plane0, plane1)\n\n    @staticmethod\n    def is_coplanar_from_normals(origin0, normal0, origin1, normal1, can_be_flipped=True, tolerance=-1.0):\n        \"\"\"Check coplanarity from origin+normal without constructing Plane objects.\"\"\"\n        from .vector import Vector\n        n0 = Vector(normal0[0], normal0[1], normal0[2])\n        n1 = Vector(normal1[0], normal1[1], normal1[2])\n        parallel = n0.is_parallel_to(n1)\n        if can_be_flipped:\n            if parallel == 0:\n                return False\n        else:\n            if parallel != -1:\n                return False\n        a0, b0, c0 = n0[0], n0[1], n0[2]\n        d0 = -(a0 * origin0[0] + b0 * origin0[1] + c0 * origin0[2])\n        a1, b1, c1 = n1[0], n1[1], n1[2]\n        d1 = -(a1 * origin1[0] + b1 * origin1[1] + c1 * origin1[2])\n        from .tolerance import TOLERANCE\n        tol = TOLERANCE.approximation if tolerance < 0 else tolerance\n        dist0 = abs(a0 * origin1[0] + b0 * origin1[1] + c0 * origin1[2] + d0)\n        dist1 = abs(a1 * origin0[0] + b1 * origin0[1] + c1 * origin0[2] + d1)\n        return dist0 < tol and dist1 < tol\n\n    def translate_by_normal(self, distance):\n        \"\"\"Translate (move) a plane along its normal direction by a specified distance.\n\n        Parameters\n        ----------\n        distance : float\n            Distance to move the plane along its normal (positive = normal direction, negative = opposite).\n\n        Returns\n        -------\n        Plane\n            New plane translated by the specified distance.\n        \"\"\"\n        normal = Vector(self._z_axis[0], self._z_axis[1], self._z_axis[2])\n        normal.normalize_self()\n\n        new_origin = self._origin + (normal * distance)\n\n        return Plane(new_origin, self._x_axis, self._y_axis)\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n            Uses single flat array of 12 numbers for frame:\n            [ox, oy, oz, xx, xy, xz, yx, yy, yz, zx, zy, zz]\n            Plane equation coefficients (a, b, c, d) are computed on load.\n\n        \"\"\"",
+          "code": "def is_coplanar(plane0, plane1, can_be_flipped=True):\n\n        \"\"\"Check if two planes are coplanar.\n\n        Parameters\n        ----------\n        plane0 : Plane\n            First plane.\n        plane1 : Plane\n            Second plane.\n        can_be_flipped : bool, optional\n            Allow flipped normals. Defaults to True.\n\n        Returns\n        -------\n        bool\n            True if planes are coplanar.\n        \"\"\"\n        return Plane.is_same_direction(\n            plane0, plane1, can_be_flipped\n        ) and Plane.is_same_position(plane0, plane1)\n\n    @staticmethod\n    def is_coplanar_from_normals(origin0, normal0, origin1, normal1, can_be_flipped=True, tolerance=-1.0):\n        \"\"\"Check coplanarity from origin+normal without constructing Plane objects.\"\"\"\n        from .vector import Vector\n        n0 = Vector(normal0[0], normal0[1], normal0[2])\n        n1 = Vector(normal1[0], normal1[1], normal1[2])\n        parallel = n0.is_parallel_to(n1)\n        if can_be_flipped:\n            if parallel == 0:\n                return False\n        else:\n            if parallel != -1:\n                return False\n        a0, b0, c0 = n0[0], n0[1], n0[2]\n        d0 = -(a0 * origin0[0] + b0 * origin0[1] + c0 * origin0[2])\n        a1, b1, c1 = n1[0], n1[1], n1[2]\n        d1 = -(a1 * origin1[0] + b1 * origin1[1] + c1 * origin1[2])\n        from .tolerance import TOLERANCE\n        tol = TOLERANCE.approximation if tolerance < 0 else tolerance\n        dist0 = abs(a0 * origin1[0] + b0 * origin1[1] + c0 * origin1[2] + d0)\n        dist1 = abs(a1 * origin0[0] + b1 * origin0[1] + c1 * origin0[2] + d1)\n        return dist0 < tol and dist1 < tol\n\n    def translate_by_normal(self, distance):\n        \"\"\"Translate (move) a plane along its normal direction by a specified distance.\n\n        Parameters\n        ----------\n        distance : float\n            Distance to move the plane along its normal (positive = normal direction, negative = opposite).\n\n        Returns\n        -------\n        Plane\n            New plane translated by the specified distance.\n        \"\"\"\n        normal = Vector(self._z_axis[0], self._z_axis[1], self._z_axis[2])\n        normal.normalize_self()\n\n        new_origin = self._origin + (normal * distance)\n\n        return Plane(new_origin, self._x_axis, self._y_axis)\n\n    def to_polylines(self, scale=1.0):\n        from .polyline import Polyline\n        s = scale * 0.5\n        o = self._origin\n        x = self._x_axis\n        y = self._y_axis\n        z = self._z_axis\n        c0 = Point(o[0] - x[0]*s - y[0]*s, o[1] - x[1]*s - y[1]*s, o[2] - x[2]*s - y[2]*s)\n        c1 = Point(o[0] + x[0]*s - y[0]*s, o[1] + x[1]*s - y[1]*s, o[2] + x[2]*s - y[2]*s)\n        c2 = Point(o[0] + x[0]*s + y[0]*s, o[1] + x[1]*s + y[1]*s, o[2] + x[2]*s + y[2]*s)\n        c3 = Point(o[0] - x[0]*s + y[0]*s, o[1] - x[1]*s + y[1]*s, o[2] - x[2]*s + y[2]*s)\n        rect = Polyline([c0, c1, c2, c3, c0])\n        rect.linecolor = Color(self.linecolor[0], self.linecolor[1], self.linecolor[2], self.linecolor[3])\n        origin_pt = Point(o[0], o[1], o[2])\n        x_line = Polyline([origin_pt, Point(o[0] + x[0]*s, o[1] + x[1]*s, o[2] + x[2]*s)])\n        x_line.linecolor = Color.red()",
           "file": "plane.py"
         },
         "cpp": {
@@ -23585,21 +23595,19 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Plane.__jsondump__",
         "Plane.a",
         "Plane.b",
         "Plane.c",
         "Plane.d",
-        "Plane.format",
-        "Plane.guid",
         "Plane.is_coplanar_from_normals",
         "Plane.is_right_hand",
         "Plane.is_same_direction",
         "Plane.is_same_position",
-        "Plane.jsondump",
+        "Plane.linecolor",
         "Plane.new",
         "Plane.origin",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.translate_by_normal",
         "Plane.x_axis",
         "Plane.y_axis",
@@ -23611,7 +23619,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_coplanar_from_normals(origin0, normal0, origin1, normal1, can_be_flipped=True, tolerance=-1.0)",
-          "code": "def is_coplanar_from_normals(origin0, normal0, origin1, normal1, can_be_flipped=True, tolerance=-1.0):\n\n        \"\"\"Check coplanarity from origin+normal without constructing Plane objects.\"\"\"\n        from .vector import Vector\n        n0 = Vector(normal0[0], normal0[1], normal0[2])\n        n1 = Vector(normal1[0], normal1[1], normal1[2])\n        parallel = n0.is_parallel_to(n1)\n        if can_be_flipped:\n            if parallel == 0:\n                return False\n        else:\n            if parallel != -1:\n                return False\n        a0, b0, c0 = n0[0], n0[1], n0[2]\n        d0 = -(a0 * origin0[0] + b0 * origin0[1] + c0 * origin0[2])\n        a1, b1, c1 = n1[0], n1[1], n1[2]\n        d1 = -(a1 * origin1[0] + b1 * origin1[1] + c1 * origin1[2])\n        from .tolerance import TOLERANCE\n        tol = TOLERANCE.approximation if tolerance < 0 else tolerance\n        dist0 = abs(a0 * origin1[0] + b0 * origin1[1] + c0 * origin1[2] + d0)\n        dist1 = abs(a1 * origin0[0] + b1 * origin0[1] + c1 * origin0[2] + d1)\n        return dist0 < tol and dist1 < tol\n\n    def translate_by_normal(self, distance):\n        \"\"\"Translate (move) a plane along its normal direction by a specified distance.\n\n        Parameters\n        ----------\n        distance : float\n            Distance to move the plane along its normal (positive = normal direction, negative = opposite).\n\n        Returns\n        -------\n        Plane\n            New plane translated by the specified distance.\n        \"\"\"\n        normal = Vector(self._z_axis[0], self._z_axis[1], self._z_axis[2])\n        normal.normalize_self()\n\n        new_origin = self._origin + (normal * distance)\n\n        return Plane(new_origin, self._x_axis, self._y_axis)\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n            Uses single flat array of 12 numbers for frame:\n            [ox, oy, oz, xx, xy, xz, yx, yy, yz, zx, zy, zz]\n            Plane equation coefficients (a, b, c, d) are computed on load.\n\n        \"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"linecolor\": self.linecolor.__jsondump__(),\n            \"frame\": [\n                self._origin[0], self._origin[1], self._origin[2],\n                self._x_axis[0], self._x_axis[1], self._x_axis[2],\n                self._y_axis[0], self._y_axis[1], self._y_axis[2],\n                self._z_axis[0], self._z_axis[1], self._z_axis[2],\n            ],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"width\": self.width,\n            \"xform\": self.xform.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------",
+          "code": "def is_coplanar_from_normals(origin0, normal0, origin1, normal1, can_be_flipped=True, tolerance=-1.0):\n\n        \"\"\"Check coplanarity from origin+normal without constructing Plane objects.\"\"\"\n        from .vector import Vector\n        n0 = Vector(normal0[0], normal0[1], normal0[2])\n        n1 = Vector(normal1[0], normal1[1], normal1[2])\n        parallel = n0.is_parallel_to(n1)\n        if can_be_flipped:\n            if parallel == 0:\n                return False\n        else:\n            if parallel != -1:\n                return False\n        a0, b0, c0 = n0[0], n0[1], n0[2]\n        d0 = -(a0 * origin0[0] + b0 * origin0[1] + c0 * origin0[2])\n        a1, b1, c1 = n1[0], n1[1], n1[2]\n        d1 = -(a1 * origin1[0] + b1 * origin1[1] + c1 * origin1[2])\n        from .tolerance import TOLERANCE\n        tol = TOLERANCE.approximation if tolerance < 0 else tolerance\n        dist0 = abs(a0 * origin1[0] + b0 * origin1[1] + c0 * origin1[2] + d0)\n        dist1 = abs(a1 * origin0[0] + b1 * origin0[1] + c1 * origin0[2] + d1)\n        return dist0 < tol and dist1 < tol\n\n    def translate_by_normal(self, distance):\n        \"\"\"Translate (move) a plane along its normal direction by a specified distance.\n\n        Parameters\n        ----------\n        distance : float\n            Distance to move the plane along its normal (positive = normal direction, negative = opposite).\n\n        Returns\n        -------\n        Plane\n            New plane translated by the specified distance.\n        \"\"\"\n        normal = Vector(self._z_axis[0], self._z_axis[1], self._z_axis[2])\n        normal.normalize_self()\n\n        new_origin = self._origin + (normal * distance)\n\n        return Plane(new_origin, self._x_axis, self._y_axis)\n\n    def to_polylines(self, scale=1.0):\n        from .polyline import Polyline\n        s = scale * 0.5\n        o = self._origin\n        x = self._x_axis\n        y = self._y_axis\n        z = self._z_axis\n        c0 = Point(o[0] - x[0]*s - y[0]*s, o[1] - x[1]*s - y[1]*s, o[2] - x[2]*s - y[2]*s)\n        c1 = Point(o[0] + x[0]*s - y[0]*s, o[1] + x[1]*s - y[1]*s, o[2] + x[2]*s - y[2]*s)\n        c2 = Point(o[0] + x[0]*s + y[0]*s, o[1] + x[1]*s + y[1]*s, o[2] + x[2]*s + y[2]*s)\n        c3 = Point(o[0] - x[0]*s + y[0]*s, o[1] - x[1]*s + y[1]*s, o[2] - x[2]*s + y[2]*s)\n        rect = Polyline([c0, c1, c2, c3, c0])\n        rect.linecolor = Color(self.linecolor[0], self.linecolor[1], self.linecolor[2], self.linecolor[3])\n        origin_pt = Point(o[0], o[1], o[2])\n        x_line = Polyline([origin_pt, Point(o[0] + x[0]*s, o[1] + x[1]*s, o[2] + x[2]*s)])\n        x_line.linecolor = Color.red()\n        y_line = Polyline([origin_pt, Point(o[0] + y[0]*s, o[1] + y[1]*s, o[2] + y[2]*s)])\n        y_line.linecolor = Color.green()\n        z_line = Polyline([origin_pt, Point(o[0] + z[0]*s, o[1] + z[1]*s, o[2] + z[2]*s)])\n        z_line.linecolor = Color.blue()\n        return [rect, x_line, y_line, z_line]\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n            Uses single flat array of 12 numbers for frame:\n            [ox, oy, oz, xx, xy, xz, yx, yy, yz, zx, zy, zz]\n            Plane equation coefficients (a, b, c, d) are computed on load.\n\n        \"\"\"",
           "file": "plane.py"
         },
         "rust": {
@@ -23622,7 +23630,6 @@ window.API_INDEX = {
       },
       "related": [
         "Plane.__jsondump__",
-        "Plane.__jsonload__",
         "Plane.a",
         "Plane.b",
         "Plane.c",
@@ -23632,14 +23639,13 @@ window.API_INDEX = {
         "Plane.is_coplanar",
         "Plane.is_same_position",
         "Plane.jsondump",
-        "Plane.jsonload",
         "Plane.linecolor",
         "Plane.new",
         "Plane.origin",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.translate_by_normal",
         "Plane.x_axis",
-        "Plane.xform",
         "Plane.y_axis",
         "Plane.z_axis"
       ]
@@ -23649,12 +23655,12 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "translate_by_normal(distance)",
-          "code": "def translate_by_normal(self, distance):\n\n        \"\"\"Translate (move) a plane along its normal direction by a specified distance.\n\n        Parameters\n        ----------\n        distance : float\n            Distance to move the plane along its normal (positive = normal direction, negative = opposite).\n\n        Returns\n        -------\n        Plane\n            New plane translated by the specified distance.\n        \"\"\"\n        normal = Vector(self._z_axis[0], self._z_axis[1], self._z_axis[2])\n        normal.normalize_self()\n\n        new_origin = self._origin + (normal * distance)\n\n        return Plane(new_origin, self._x_axis, self._y_axis)\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n            Uses single flat array of 12 numbers for frame:\n            [ox, oy, oz, xx, xy, xz, yx, yy, yz, zx, zy, zz]\n            Plane equation coefficients (a, b, c, d) are computed on load.\n\n        \"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"linecolor\": self.linecolor.__jsondump__(),\n            \"frame\": [\n                self._origin[0], self._origin[1], self._origin[2],\n                self._x_axis[0], self._x_axis[1], self._x_axis[2],\n                self._y_axis[0], self._y_axis[1], self._y_axis[2],\n                self._z_axis[0], self._z_axis[1], self._z_axis[2],\n            ],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"width\": self.width,\n            \"xform\": self.xform.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing plane data.\n        guid : str, optional\n            GUID for the plane.\n        name : str, optional\n            Name for the plane.\n\n        Returns\n        -------\n        :class:`Plane`\n            Reconstructed plane instance.\n\n        \"\"\"\n        from .encoders import decode_node\n\n        # Load frame as flat array of 12 numbers:\n        # [ox, oy, oz, xx, xy, xz, yx, yy, yz, zx, zy, zz]\n        frame = data[\"frame\"]\n\n        origin = Point(frame[0], frame[1], frame[2])\n        x_axis = Vector(frame[3], frame[4], frame[5])\n        y_axis = Vector(frame[6], frame[7], frame[8])",
+          "code": "def translate_by_normal(self, distance):\n\n        \"\"\"Translate (move) a plane along its normal direction by a specified distance.\n\n        Parameters\n        ----------\n        distance : float\n            Distance to move the plane along its normal (positive = normal direction, negative = opposite).\n\n        Returns\n        -------\n        Plane\n            New plane translated by the specified distance.\n        \"\"\"\n        normal = Vector(self._z_axis[0], self._z_axis[1], self._z_axis[2])\n        normal.normalize_self()\n\n        new_origin = self._origin + (normal * distance)\n\n        return Plane(new_origin, self._x_axis, self._y_axis)\n\n    def to_polylines(self, scale=1.0):\n        from .polyline import Polyline\n        s = scale * 0.5\n        o = self._origin\n        x = self._x_axis\n        y = self._y_axis\n        z = self._z_axis\n        c0 = Point(o[0] - x[0]*s - y[0]*s, o[1] - x[1]*s - y[1]*s, o[2] - x[2]*s - y[2]*s)\n        c1 = Point(o[0] + x[0]*s - y[0]*s, o[1] + x[1]*s - y[1]*s, o[2] + x[2]*s - y[2]*s)\n        c2 = Point(o[0] + x[0]*s + y[0]*s, o[1] + x[1]*s + y[1]*s, o[2] + x[2]*s + y[2]*s)\n        c3 = Point(o[0] - x[0]*s + y[0]*s, o[1] - x[1]*s + y[1]*s, o[2] - x[2]*s + y[2]*s)\n        rect = Polyline([c0, c1, c2, c3, c0])\n        rect.linecolor = Color(self.linecolor[0], self.linecolor[1], self.linecolor[2], self.linecolor[3])\n        origin_pt = Point(o[0], o[1], o[2])\n        x_line = Polyline([origin_pt, Point(o[0] + x[0]*s, o[1] + x[1]*s, o[2] + x[2]*s)])\n        x_line.linecolor = Color.red()\n        y_line = Polyline([origin_pt, Point(o[0] + y[0]*s, o[1] + y[1]*s, o[2] + y[2]*s)])\n        y_line.linecolor = Color.green()\n        z_line = Polyline([origin_pt, Point(o[0] + z[0]*s, o[1] + z[1]*s, o[2] + z[2]*s)])\n        z_line.linecolor = Color.blue()\n        return [rect, x_line, y_line, z_line]\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n            Uses single flat array of 12 numbers for frame:\n            [ox, oy, oz, xx, xy, xz, yx, yy, yz, zx, zy, zz]\n            Plane equation coefficients (a, b, c, d) are computed on load.\n\n        \"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"linecolor\": self.linecolor.__jsondump__(),\n            \"frame\": [\n                self._origin[0], self._origin[1], self._origin[2],\n                self._x_axis[0], self._x_axis[1], self._x_axis[2],\n                self._y_axis[0], self._y_axis[1], self._y_axis[2],\n                self._z_axis[0], self._z_axis[1], self._z_axis[2],\n            ],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"width\": self.width,\n            \"xform\": self.xform.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------",
           "file": "plane.py"
         },
         "cpp": {
           "sig": "Plane translate_by_normal(double distance)",
-          "code": "Plane Plane::translate_by_normal(double distance) const {\n    // Get normalized normal vector (z_axis)\n    Vector normal = _z_axis;\n    normal.normalize_self();\n    \n    // Move origin along the normal\n    Point new_origin = _origin + (normal * distance);\n    \n    // Create new plane with same orientation but new origin\n    Vector x_copy = _x_axis;\n    Vector y_copy = _y_axis;\n    return Plane(new_origin, x_copy, y_copy, name);\n}",
+          "code": "Plane Plane::translate_by_normal(double distance) const {\n    // Get normalized normal vector (z_axis)\n    Vector normal = _z_axis;\n    normal.normalize_self();\n\n    // Move origin along the normal\n    Point new_origin = _origin + (normal * distance);\n\n    // Create new plane with same orientation but new origin\n    Vector x_copy = _x_axis;\n    Vector y_copy = _y_axis;\n    return Plane(new_origin, x_copy, y_copy, name);\n}",
           "file": "plane.cpp"
         },
         "rust": {
@@ -23680,7 +23686,50 @@ window.API_INDEX = {
         "Plane.linecolor",
         "Plane.new",
         "Plane.origin",
+        "Plane.to_polylines",
+        "Plane.x_axis",
+        "Plane.xform",
+        "Plane.y_axis",
+        "Plane.z_axis"
+      ]
+    },
+    {
+      "name": "Plane.to_polylines",
+      "implementations": {
+        "python": {
+          "sig": "to_polylines(scale=1.0)",
+          "code": "def to_polylines(self, scale=1.0):\n\n        from .polyline import Polyline\n        s = scale * 0.5\n        o = self._origin\n        x = self._x_axis\n        y = self._y_axis\n        z = self._z_axis\n        c0 = Point(o[0] - x[0]*s - y[0]*s, o[1] - x[1]*s - y[1]*s, o[2] - x[2]*s - y[2]*s)\n        c1 = Point(o[0] + x[0]*s - y[0]*s, o[1] + x[1]*s - y[1]*s, o[2] + x[2]*s - y[2]*s)\n        c2 = Point(o[0] + x[0]*s + y[0]*s, o[1] + x[1]*s + y[1]*s, o[2] + x[2]*s + y[2]*s)\n        c3 = Point(o[0] - x[0]*s + y[0]*s, o[1] - x[1]*s + y[1]*s, o[2] - x[2]*s + y[2]*s)\n        rect = Polyline([c0, c1, c2, c3, c0])\n        rect.linecolor = Color(self.linecolor[0], self.linecolor[1], self.linecolor[2], self.linecolor[3])\n        origin_pt = Point(o[0], o[1], o[2])\n        x_line = Polyline([origin_pt, Point(o[0] + x[0]*s, o[1] + x[1]*s, o[2] + x[2]*s)])\n        x_line.linecolor = Color.red()\n        y_line = Polyline([origin_pt, Point(o[0] + y[0]*s, o[1] + y[1]*s, o[2] + y[2]*s)])\n        y_line.linecolor = Color.green()\n        z_line = Polyline([origin_pt, Point(o[0] + z[0]*s, o[1] + z[1]*s, o[2] + z[2]*s)])\n        z_line.linecolor = Color.blue()\n        return [rect, x_line, y_line, z_line]\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n            Uses single flat array of 12 numbers for frame:\n            [ox, oy, oz, xx, xy, xz, yx, yy, yz, zx, zy, zz]\n            Plane equation coefficients (a, b, c, d) are computed on load.\n\n        \"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"linecolor\": self.linecolor.__jsondump__(),\n            \"frame\": [\n                self._origin[0], self._origin[1], self._origin[2],\n                self._x_axis[0], self._x_axis[1], self._x_axis[2],\n                self._y_axis[0], self._y_axis[1], self._y_axis[2],\n                self._z_axis[0], self._z_axis[1], self._z_axis[2],\n            ],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"width\": self.width,\n            \"xform\": self.xform.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing plane data.\n        guid : str, optional\n            GUID for the plane.\n        name : str, optional\n            Name for the plane.\n\n        Returns\n        -------\n        :class:`Plane`\n            Reconstructed plane instance.\n\n        \"\"\"\n        from .encoders import decode_node\n\n        # Load frame as flat array of 12 numbers:\n        # [ox, oy, oz, xx, xy, xz, yx, yy, yz, zx, zy, zz]\n        frame = data[\"frame\"]\n\n        origin = Point(frame[0], frame[1], frame[2])",
+          "file": "plane.py"
+        },
+        "cpp": {
+          "sig": "std::vector<Polyline> to_polylines(double scale)",
+          "code": "std::vector<Polyline> Plane::to_polylines(double scale) const {\n    double s = scale * 0.5;\n    const Point& o = _origin;\n    const Vector& x = _x_axis;\n    const Vector& y = _y_axis;\n    const Vector& z = _z_axis;\n    Point c0(o[0] - x[0]*s - y[0]*s, o[1] - x[1]*s - y[1]*s, o[2] - x[2]*s - y[2]*s);\n    Point c1(o[0] + x[0]*s - y[0]*s, o[1] + x[1]*s - y[1]*s, o[2] + x[2]*s - y[2]*s);\n    Point c2(o[0] + x[0]*s + y[0]*s, o[1] + x[1]*s + y[1]*s, o[2] + x[2]*s + y[2]*s);\n    Point c3(o[0] - x[0]*s + y[0]*s, o[1] - x[1]*s + y[1]*s, o[2] - x[2]*s + y[2]*s);\n    Polyline rect({c0, c1, c2, c3, c0}",
+          "file": "plane.cpp"
+        },
+        "rust": {
+          "sig": "to_polylines(scale: f64) -> Vec<Polyline>",
+          "code": "pub fn to_polylines(&self, scale: f64) -> Vec<Polyline> {\n        let s = scale * 0.5;\n        let o = &self._origin;\n        let x = &self._x_axis;\n        let y = &self._y_axis;\n        let z = &self._z_axis;\n        let c0 = Point::new(o[0] - x[0]*s - y[0]*s, o[1] - x[1]*s - y[1]*s, o[2] - x[2]*s - y[2]*s);\n        let c1 = Point::new(o[0] + x[0]*s - y[0]*s, o[1] + x[1]*s - y[1]*s, o[2] + x[2]*s - y[2]*s);\n        let c2 = Point::new(o[0] + x[0]*s + y[0]*s, o[1] + x[1]*s + y[1]*s, o[2] + x[2]*s + y[2]*s);\n        let c3 = Point::new(o[0] - x[0]*s + y[0]*s, o[1] - x[1]*s + y[1]*s, o[2] - x[2]*s + y[2]*s);\n        let mut rect = Polyline::new(vec![c0, c1, c2, c3, Point::new(o[0] - x[0]*s - y[0]*s, o[1] - x[1]*s - y[1]*s, o[2] - x[2]*s - y[2]*s)]);\n        rect.linecolor = self.linecolor.clone();\n        let origin_pt = Point::new(o[0], o[1], o[2]);\n        let mut x_line = Polyline::new(vec![origin_pt.clone(), Point::new(o[0] + x[0]*s, o[1] + x[1]*s, o[2] + x[2]*s)]);\n        x_line.linecolor = Color::red();\n        let mut y_line = Polyline::new(vec![origin_pt.clone(), Point::new(o[0] + y[0]*s, o[1] + y[1]*s, o[2] + y[2]*s)]);\n        y_line.linecolor = Color::green();\n        let mut z_line = Polyline::new(vec![origin_pt, Point::new(o[0] + z[0]*s, o[1] + z[1]*s, o[2] + z[2]*s)]);\n        z_line.linecolor = Color::blue();\n        vec![rect, x_line, y_line, z_line]\n    }",
+          "file": "plane.rs"
+        }
+      },
+      "related": [
+        "Plane.__jsondump__",
+        "Plane.__jsonload__",
+        "Plane.a",
+        "Plane.b",
+        "Plane.c",
+        "Plane.d",
+        "Plane.format",
+        "Plane.guid",
+        "Plane.is_coplanar",
+        "Plane.is_coplanar_from_normals",
+        "Plane.jsondump",
+        "Plane.jsonload",
+        "Plane.linecolor",
+        "Plane.new",
+        "Plane.origin",
         "Plane.str",
+        "Plane.translate_by_normal",
         "Plane.x_axis",
         "Plane.xform",
         "Plane.y_axis",
@@ -23704,7 +23753,6 @@ window.API_INDEX = {
         "Plane.d",
         "Plane.format",
         "Plane.guid",
-        "Plane.is_coplanar",
         "Plane.is_coplanar_from_normals",
         "Plane.json_dump",
         "Plane.json_dumps",
@@ -23714,6 +23762,7 @@ window.API_INDEX = {
         "Plane.linecolor",
         "Plane.origin",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.translate_by_normal",
         "Plane.x_axis",
         "Plane.xform",
@@ -23738,7 +23787,6 @@ window.API_INDEX = {
         "Plane.d",
         "Plane.format",
         "Plane.guid",
-        "Plane.is_coplanar_from_normals",
         "Plane.json_dump",
         "Plane.json_dumps",
         "Plane.json_load",
@@ -23748,6 +23796,7 @@ window.API_INDEX = {
         "Plane.linecolor",
         "Plane.origin",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.translate_by_normal",
         "Plane.x_axis",
         "Plane.xform",
@@ -32932,21 +32981,18 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__(scalar=1.0, vector=None)",
-          "code": "def __init__(self, scalar=1.0, vector=None):\n\n        \"\"\"Default constructor (identity quaternion).\"\"\"\n        self.typ = \"Quaternion\"\n        self._guid = None\n        self.name = \"my_quaternion\"\n        self.scalar = scalar\n        self.vector = vector if vector is not None else Vector(0.0, 0.0, 0.0)\n\n    @property\n    def guid(self) -> str:\n        \"\"\"Lazy GUID accessor.\"\"\"\n        if self._guid is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @staticmethod\n    def identity():\n        \"\"\"Identity quaternion (scalar=1, vector=0).\"\"\"\n        return Quaternion(1.0, Vector(0.0, 0.0, 0.0))\n\n    @staticmethod\n    def from_scalar_and_vector(scalar, vector):\n        \"\"\"Create from scalar and vector components.\"\"\"\n        return Quaternion(scalar, vector)\n\n    @staticmethod\n    def from_axis_angle(axis, angle):\n        \"\"\"Create from axis of rotation and angle.\"\"\"\n        ax = axis.normalized()\n        half = angle * 0.5\n        return Quaternion(math.cos(half), ax * math.sin(half))\n\n    @staticmethod\n    def from_arc(src, dst):\n        \"\"\"Create rotation from source vector to destination vector.\"\"\"\n        s = src.normalized()\n        d = dst.normalized()\n        cross = s.cross(d)\n        dot_val = s.dot(d)\n        if cross.magnitude() < 1e-10:\n            if dot_val < 0.0:\n                perp = s.cross(Vector(0.0, 0.0, 1.0))\n                if perp.magnitude() < 1e-10:\n                    perp = s.cross(Vector(0.0, 1.0, 0.0))\n                return Quaternion.from_axis_angle(perp.normalized(), PI)\n            return Quaternion.identity()\n        return Quaternion(1.0 + dot_val, cross).normalized()\n\n    @staticmethod\n    def from_euler(x, y, z):\n        \"\"\"Create from Euler angles (XYZ convention).\"\"\"\n        s1, c1 = math.sin(x * 0.5), math.cos(x * 0.5)\n        s2, c2 = math.sin(y * 0.5), math.cos(y * 0.5)\n        s3, c3 = math.sin(z * 0.5), math.cos(z * 0.5)\n        return Quaternion(\n            -s1 * s2 * s3 + c1 * c2 * c3,\n            Vector(s1 * c2 * c3 + s2 * s3 * c1,\n                   -s1 * s3 * c2 + s2 * c1 * c3,\n                    s1 * s2 * c3 + s3 * c1 * c2))\n\n    @staticmethod\n    def from_rotation(plane_a, plane_b):\n        \"\"\"Create rotation that maps the basis of plane_a onto plane_b (Rhino: Quaternion.Rotation(plane, plane)).\"\"\"\n        xa, ya, za = plane_a.x_axis, plane_a.y_axis, plane_a.z_axis\n        xb, yb, zb = plane_b.x_axis, plane_b.y_axis, plane_b.z_axis\n        m = [[0.0]*3 for _ in range(3)]\n        m[0][0] = xb[0]*xa[0] + yb[0]*ya[0] + zb[0]*za[0]\n        m[0][1] = xb[0]*xa[1] + yb[0]*ya[1] + zb[0]*za[1]\n        m[0][2] = xb[0]*xa[2] + yb[0]*ya[2] + zb[0]*za[2]\n        m[1][0] = xb[1]*xa[0] + yb[1]*ya[0] + zb[1]*za[0]\n        m[1][1] = xb[1]*xa[1] + yb[1]*ya[1] + zb[1]*za[1]\n        m[1][2] = xb[1]*xa[2] + yb[1]*ya[2] + zb[1]*za[2]\n        m[2][0] = xb[2]*xa[0] + yb[2]*ya[0] + zb[2]*za[0]\n        m[2][1] = xb[2]*xa[1] + yb[2]*ya[1] + zb[2]*za[1]\n        m[2][2] = xb[2]*xa[2] + yb[2]*ya[2] + zb[2]*za[2]\n        is_identity = True",
+          "code": "def __init__(self, scalar=1.0, vector=None):\n\n        \"\"\"Default constructor (identity quaternion).\"\"\"\n        self.typ = \"Quaternion\"\n        self._guid = None\n        self.name = \"my_quaternion\"\n        self.scalar = scalar\n        self.vector = vector if vector is not None else Vector(0.0, 0.0, 0.0)\n\n    @property\n    def guid(self) -> str:\n        \"\"\"Lazy GUID accessor.\"\"\"\n        if self._guid is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @staticmethod\n    def identity():\n        \"\"\"Identity quaternion (scalar=1, vector=0).\"\"\"\n        return Quaternion(1.0, Vector(0.0, 0.0, 0.0))\n\n    @staticmethod\n    def from_components(scalar, vector):\n        \"\"\"Create a quaternion from raw scalar (real) and vector (imaginary) components.\n\n        WARNING: The ``vector`` argument is NOT a rotation axis. It is the\n        ``(i, j, k)`` coefficients of the quaternion. Most users want\n        :meth:`from_axis_angle` instead.\n\n        A quaternion is canonically written as ``q = s + xi + yj + zk`` where\n        ``s`` is the scalar (real) part and ``(x, y, z)`` is the vector\n        (imaginary) part. Use this constructor only when you have raw\n        quaternion components.\n\n        Visually constructing a plane from ``(s, v)`` values\n        ----------------------------------------------------\n        1. If ``v`` should be the plane's NORMAL (the geometric meaning users\n           usually expect), bypass the quaternion entirely::\n\n               p = Plane.from_point_normal(Point(0, 0, 0), v)\n\n        2. If you want the plane produced by the quaternion's rotation\n           (i.e. the world XY plane rotated by ``q``), normalize first::\n\n               p = Quaternion.from_components(s, v).normalized().get_rotation()\n\n           The result's normal is the rotation of ``(0, 0, 1)`` by ``q``,\n           which equals ``v`` only in the trivial case where the rotation\n           axis is already Z.\n\n        3. If you want a quaternion whose rotation produces a plane with\n           normal ``v``, use :meth:`from_arc`::\n\n               q = Quaternion.from_arc(Vector(0, 0, 1), v.normalized())\n               p = q.get_rotation()   # p.z_axis == v.normalized()\n\n        Parameters\n        ----------\n        scalar : float\n            Real part of the quaternion (the ``s`` in ``q = s + xi + yj + zk``).\n        vector : Vector\n            Imaginary parts (i, j, k coefficients) \u00e2\u20ac\u201d NOT a rotation axis.\n\n        Returns\n        -------\n        Quaternion\n            Quaternion with the given raw components (not normalized).\n        \"\"\"\n        return Quaternion(scalar, vector)\n\n    @staticmethod\n    def from_axis_angle(axis, angle):\n        \"\"\"Create from axis of rotation and angle.\"\"\"\n        ax = axis.normalized()\n        half = angle * 0.5\n        return Quaternion(math.cos(half), ax * math.sin(half))",
           "file": "quaternion.py"
         }
       },
       "related": [
         "Quaternion.constructor",
-        "Quaternion.dot",
         "Quaternion.from_arc",
         "Quaternion.from_axis_angle",
-        "Quaternion.from_euler",
-        "Quaternion.from_rotation",
-        "Quaternion.from_scalar_and_vector",
+        "Quaternion.from_components",
+        "Quaternion.get_rotation",
         "Quaternion.guid",
         "Quaternion.identity",
-        "Quaternion.magnitude",
         "Quaternion.normalized",
         "Quaternion.str"
       ]
@@ -32956,7 +33002,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "guid(value: str)",
-          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    @staticmethod\n    def identity():\n        \"\"\"Identity quaternion (scalar=1, vector=0).\"\"\"\n        return Quaternion(1.0, Vector(0.0, 0.0, 0.0))\n\n    @staticmethod\n    def from_scalar_and_vector(scalar, vector):\n        \"\"\"Create from scalar and vector components.\"\"\"\n        return Quaternion(scalar, vector)\n\n    @staticmethod\n    def from_axis_angle(axis, angle):\n        \"\"\"Create from axis of rotation and angle.\"\"\"\n        ax = axis.normalized()\n        half = angle * 0.5\n        return Quaternion(math.cos(half), ax * math.sin(half))\n\n    @staticmethod\n    def from_arc(src, dst):\n        \"\"\"Create rotation from source vector to destination vector.\"\"\"\n        s = src.normalized()\n        d = dst.normalized()\n        cross = s.cross(d)\n        dot_val = s.dot(d)\n        if cross.magnitude() < 1e-10:\n            if dot_val < 0.0:\n                perp = s.cross(Vector(0.0, 0.0, 1.0))\n                if perp.magnitude() < 1e-10:\n                    perp = s.cross(Vector(0.0, 1.0, 0.0))\n                return Quaternion.from_axis_angle(perp.normalized(), PI)\n            return Quaternion.identity()\n        return Quaternion(1.0 + dot_val, cross).normalized()\n\n    @staticmethod\n    def from_euler(x, y, z):\n        \"\"\"Create from Euler angles (XYZ convention).\"\"\"\n        s1, c1 = math.sin(x * 0.5), math.cos(x * 0.5)\n        s2, c2 = math.sin(y * 0.5), math.cos(y * 0.5)\n        s3, c3 = math.sin(z * 0.5), math.cos(z * 0.5)\n        return Quaternion(\n            -s1 * s2 * s3 + c1 * c2 * c3,\n            Vector(s1 * c2 * c3 + s2 * s3 * c1,\n                   -s1 * s3 * c2 + s2 * c1 * c3,\n                    s1 * s2 * c3 + s3 * c1 * c2))\n\n    @staticmethod\n    def from_rotation(plane_a, plane_b):\n        \"\"\"Create rotation that maps the basis of plane_a onto plane_b (Rhino: Quaternion.Rotation(plane, plane)).\"\"\"\n        xa, ya, za = plane_a.x_axis, plane_a.y_axis, plane_a.z_axis\n        xb, yb, zb = plane_b.x_axis, plane_b.y_axis, plane_b.z_axis\n        m = [[0.0]*3 for _ in range(3)]\n        m[0][0] = xb[0]*xa[0] + yb[0]*ya[0] + zb[0]*za[0]\n        m[0][1] = xb[0]*xa[1] + yb[0]*ya[1] + zb[0]*za[1]\n        m[0][2] = xb[0]*xa[2] + yb[0]*ya[2] + zb[0]*za[2]\n        m[1][0] = xb[1]*xa[0] + yb[1]*ya[0] + zb[1]*za[0]\n        m[1][1] = xb[1]*xa[1] + yb[1]*ya[1] + zb[1]*za[1]\n        m[1][2] = xb[1]*xa[2] + yb[1]*ya[2] + zb[1]*za[2]\n        m[2][0] = xb[2]*xa[0] + yb[2]*ya[0] + zb[2]*za[0]\n        m[2][1] = xb[2]*xa[1] + yb[2]*ya[1] + zb[2]*za[1]\n        m[2][2] = xb[2]*xa[2] + yb[2]*ya[2] + zb[2]*za[2]\n        is_identity = True\n        eps = 1.490116119385e-8\n        for i in range(3):\n            if not is_identity:\n                break\n            for j in range(3):\n                d = abs(m[i][i] - 1.0) if i == j else abs(m[i][j])\n                if d > eps:\n                    is_identity = False\n                    break\n        if is_identity:\n            return Quaternion(1.0, Vector(0.0, 0.0, 0.0))\n        if m[0][0] >= m[1][1]:\n            i = 0 if m[0][0] >= m[2][2] else 2\n        else:\n            i = 1 if m[1][1] >= m[2][2] else 2\n        j = (i + 1) % 3",
+          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    @staticmethod\n    def identity():\n        \"\"\"Identity quaternion (scalar=1, vector=0).\"\"\"\n        return Quaternion(1.0, Vector(0.0, 0.0, 0.0))\n\n    @staticmethod\n    def from_components(scalar, vector):\n        \"\"\"Create a quaternion from raw scalar (real) and vector (imaginary) components.\n\n        WARNING: The ``vector`` argument is NOT a rotation axis. It is the\n        ``(i, j, k)`` coefficients of the quaternion. Most users want\n        :meth:`from_axis_angle` instead.\n\n        A quaternion is canonically written as ``q = s + xi + yj + zk`` where\n        ``s`` is the scalar (real) part and ``(x, y, z)`` is the vector\n        (imaginary) part. Use this constructor only when you have raw\n        quaternion components.\n\n        Visually constructing a plane from ``(s, v)`` values\n        ----------------------------------------------------\n        1. If ``v`` should be the plane's NORMAL (the geometric meaning users\n           usually expect), bypass the quaternion entirely::\n\n               p = Plane.from_point_normal(Point(0, 0, 0), v)\n\n        2. If you want the plane produced by the quaternion's rotation\n           (i.e. the world XY plane rotated by ``q``), normalize first::\n\n               p = Quaternion.from_components(s, v).normalized().get_rotation()\n\n           The result's normal is the rotation of ``(0, 0, 1)`` by ``q``,\n           which equals ``v`` only in the trivial case where the rotation\n           axis is already Z.\n\n        3. If you want a quaternion whose rotation produces a plane with\n           normal ``v``, use :meth:`from_arc`::\n\n               q = Quaternion.from_arc(Vector(0, 0, 1), v.normalized())\n               p = q.get_rotation()   # p.z_axis == v.normalized()\n\n        Parameters\n        ----------\n        scalar : float\n            Real part of the quaternion (the ``s`` in ``q = s + xi + yj + zk``).\n        vector : Vector\n            Imaginary parts (i, j, k coefficients) \u00e2\u20ac\u201d NOT a rotation axis.\n\n        Returns\n        -------\n        Quaternion\n            Quaternion with the given raw components (not normalized).\n        \"\"\"\n        return Quaternion(scalar, vector)\n\n    @staticmethod\n    def from_axis_angle(axis, angle):\n        \"\"\"Create from axis of rotation and angle.\"\"\"\n        ax = axis.normalized()\n        half = angle * 0.5\n        return Quaternion(math.cos(half), ax * math.sin(half))\n\n    def to_axis_angle(self):\n        \"\"\"Extract ``(axis, angle)`` from this quaternion \u00e2\u20ac\u201d the inverse of :meth:`from_axis_angle`.\n\n        Geometric meaning of a quaternion ``(s, v)``::\n\n            axis  = v / |v|\n            angle = 2 * acos(s / |q|)\n\n        Normalizes internally, so non-unit quaternions are handled correctly.\n\n        Edge case: for the identity quaternion (or any near-identity) the\n        axis is undefined; this function returns ``(Vector(0, 0, 1), 0.0)``.\n\n        Example\n        -------\n        >>> q = Quaternion.from_components(2.0, Vector(1.0, 2.0, 3.0))",
           "file": "quaternion.py"
         },
         "cpp": {
@@ -32985,13 +33031,13 @@ window.API_INDEX = {
         "Quaternion.__str__",
         "Quaternion.__sub__",
         "Quaternion.conjugate",
-        "Quaternion.dot",
+        "Quaternion.constructor",
         "Quaternion.duplicate",
         "Quaternion.from_arc",
         "Quaternion.from_axis_angle",
+        "Quaternion.from_components",
         "Quaternion.from_euler",
         "Quaternion.from_rotation",
-        "Quaternion.from_scalar_and_vector",
         "Quaternion.get_rotation",
         "Quaternion.identity",
         "Quaternion.invert",
@@ -33007,7 +33053,8 @@ window.API_INDEX = {
         "Quaternion.normalized",
         "Quaternion.rotate_vector",
         "Quaternion.set_guid",
-        "Quaternion.str"
+        "Quaternion.str",
+        "Quaternion.to_axis_angle"
       ]
     },
     {
@@ -33015,7 +33062,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "identity()",
-          "code": "def identity():\n\n        \"\"\"Identity quaternion (scalar=1, vector=0).\"\"\"\n        return Quaternion(1.0, Vector(0.0, 0.0, 0.0))\n\n    @staticmethod\n    def from_scalar_and_vector(scalar, vector):\n        \"\"\"Create from scalar and vector components.\"\"\"\n        return Quaternion(scalar, vector)\n\n    @staticmethod\n    def from_axis_angle(axis, angle):\n        \"\"\"Create from axis of rotation and angle.\"\"\"\n        ax = axis.normalized()\n        half = angle * 0.5\n        return Quaternion(math.cos(half), ax * math.sin(half))\n\n    @staticmethod\n    def from_arc(src, dst):\n        \"\"\"Create rotation from source vector to destination vector.\"\"\"\n        s = src.normalized()\n        d = dst.normalized()\n        cross = s.cross(d)\n        dot_val = s.dot(d)\n        if cross.magnitude() < 1e-10:\n            if dot_val < 0.0:\n                perp = s.cross(Vector(0.0, 0.0, 1.0))\n                if perp.magnitude() < 1e-10:\n                    perp = s.cross(Vector(0.0, 1.0, 0.0))\n                return Quaternion.from_axis_angle(perp.normalized(), PI)\n            return Quaternion.identity()\n        return Quaternion(1.0 + dot_val, cross).normalized()\n\n    @staticmethod\n    def from_euler(x, y, z):\n        \"\"\"Create from Euler angles (XYZ convention).\"\"\"\n        s1, c1 = math.sin(x * 0.5), math.cos(x * 0.5)\n        s2, c2 = math.sin(y * 0.5), math.cos(y * 0.5)\n        s3, c3 = math.sin(z * 0.5), math.cos(z * 0.5)\n        return Quaternion(\n            -s1 * s2 * s3 + c1 * c2 * c3,\n            Vector(s1 * c2 * c3 + s2 * s3 * c1,\n                   -s1 * s3 * c2 + s2 * c1 * c3,\n                    s1 * s2 * c3 + s3 * c1 * c2))\n\n    @staticmethod\n    def from_rotation(plane_a, plane_b):\n        \"\"\"Create rotation that maps the basis of plane_a onto plane_b (Rhino: Quaternion.Rotation(plane, plane)).\"\"\"\n        xa, ya, za = plane_a.x_axis, plane_a.y_axis, plane_a.z_axis\n        xb, yb, zb = plane_b.x_axis, plane_b.y_axis, plane_b.z_axis\n        m = [[0.0]*3 for _ in range(3)]\n        m[0][0] = xb[0]*xa[0] + yb[0]*ya[0] + zb[0]*za[0]\n        m[0][1] = xb[0]*xa[1] + yb[0]*ya[1] + zb[0]*za[1]\n        m[0][2] = xb[0]*xa[2] + yb[0]*ya[2] + zb[0]*za[2]\n        m[1][0] = xb[1]*xa[0] + yb[1]*ya[0] + zb[1]*za[0]\n        m[1][1] = xb[1]*xa[1] + yb[1]*ya[1] + zb[1]*za[1]\n        m[1][2] = xb[1]*xa[2] + yb[1]*ya[2] + zb[1]*za[2]\n        m[2][0] = xb[2]*xa[0] + yb[2]*ya[0] + zb[2]*za[0]\n        m[2][1] = xb[2]*xa[1] + yb[2]*ya[1] + zb[2]*za[1]\n        m[2][2] = xb[2]*xa[2] + yb[2]*ya[2] + zb[2]*za[2]\n        is_identity = True\n        eps = 1.490116119385e-8\n        for i in range(3):\n            if not is_identity:\n                break\n            for j in range(3):\n                d = abs(m[i][i] - 1.0) if i == j else abs(m[i][j])\n                if d > eps:\n                    is_identity = False\n                    break\n        if is_identity:\n            return Quaternion(1.0, Vector(0.0, 0.0, 0.0))\n        if m[0][0] >= m[1][1]:\n            i = 0 if m[0][0] >= m[2][2] else 2\n        else:\n            i = 1 if m[1][1] >= m[2][2] else 2\n        j = (i + 1) % 3\n        k = (i + 2) % 3\n        s = 1.0 + m[i][i] - m[j][j] - m[k][k]\n        if s <= 0.0:\n            return Quaternion(1.0, Vector(0.0, 0.0, 0.0))",
+          "code": "def identity():\n\n        \"\"\"Identity quaternion (scalar=1, vector=0).\"\"\"\n        return Quaternion(1.0, Vector(0.0, 0.0, 0.0))\n\n    @staticmethod\n    def from_components(scalar, vector):\n        \"\"\"Create a quaternion from raw scalar (real) and vector (imaginary) components.\n\n        WARNING: The ``vector`` argument is NOT a rotation axis. It is the\n        ``(i, j, k)`` coefficients of the quaternion. Most users want\n        :meth:`from_axis_angle` instead.\n\n        A quaternion is canonically written as ``q = s + xi + yj + zk`` where\n        ``s`` is the scalar (real) part and ``(x, y, z)`` is the vector\n        (imaginary) part. Use this constructor only when you have raw\n        quaternion components.\n\n        Visually constructing a plane from ``(s, v)`` values\n        ----------------------------------------------------\n        1. If ``v`` should be the plane's NORMAL (the geometric meaning users\n           usually expect), bypass the quaternion entirely::\n\n               p = Plane.from_point_normal(Point(0, 0, 0), v)\n\n        2. If you want the plane produced by the quaternion's rotation\n           (i.e. the world XY plane rotated by ``q``), normalize first::\n\n               p = Quaternion.from_components(s, v).normalized().get_rotation()\n\n           The result's normal is the rotation of ``(0, 0, 1)`` by ``q``,\n           which equals ``v`` only in the trivial case where the rotation\n           axis is already Z.\n\n        3. If you want a quaternion whose rotation produces a plane with\n           normal ``v``, use :meth:`from_arc`::\n\n               q = Quaternion.from_arc(Vector(0, 0, 1), v.normalized())\n               p = q.get_rotation()   # p.z_axis == v.normalized()\n\n        Parameters\n        ----------\n        scalar : float\n            Real part of the quaternion (the ``s`` in ``q = s + xi + yj + zk``).\n        vector : Vector\n            Imaginary parts (i, j, k coefficients) \u00e2\u20ac\u201d NOT a rotation axis.\n\n        Returns\n        -------\n        Quaternion\n            Quaternion with the given raw components (not normalized).\n        \"\"\"\n        return Quaternion(scalar, vector)\n\n    @staticmethod\n    def from_axis_angle(axis, angle):\n        \"\"\"Create from axis of rotation and angle.\"\"\"\n        ax = axis.normalized()\n        half = angle * 0.5\n        return Quaternion(math.cos(half), ax * math.sin(half))\n\n    def to_axis_angle(self):\n        \"\"\"Extract ``(axis, angle)`` from this quaternion \u00e2\u20ac\u201d the inverse of :meth:`from_axis_angle`.\n\n        Geometric meaning of a quaternion ``(s, v)``::\n\n            axis  = v / |v|\n            angle = 2 * acos(s / |q|)\n\n        Normalizes internally, so non-unit quaternions are handled correctly.\n\n        Edge case: for the identity quaternion (or any near-identity) the\n        axis is undefined; this function returns ``(Vector(0, 0, 1), 0.0)``.\n\n        Example\n        -------\n        >>> q = Quaternion.from_components(2.0, Vector(1.0, 2.0, 3.0))\n        >>> axis, angle = q.to_axis_angle()\n        >>> # axis = (1,2,3)/sqrt(14), angle \u00e2\u2030\u02c6 2.1617 rad \u00e2\u2030\u02c6 123.85\u00c2\u00b0\n        >>> # Reconstruct via geometric form:\n        >>> q2 = Quaternion.from_axis_angle(axis, angle)  # == q.normalized()",
           "file": "quaternion.py"
         },
         "cpp": {
@@ -33025,20 +33072,20 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "identity() -> Self",
-          "code": "pub fn identity() -> Self {\n        Self::from_scalar_and_vector(1.0, Vector::new(0.0, 0.0, 0.0))\n    }",
+          "code": "pub fn identity() -> Self {\n        Self::from_components(1.0, Vector::new(0.0, 0.0, 0.0))\n    }",
           "file": "quaternion.rs"
         }
       },
       "related": [
         "Quaternion.__init__",
         "Quaternion.conjugate",
-        "Quaternion.dot",
+        "Quaternion.constructor",
         "Quaternion.duplicate",
         "Quaternion.from_arc",
         "Quaternion.from_axis_angle",
+        "Quaternion.from_components",
         "Quaternion.from_euler",
         "Quaternion.from_rotation",
-        "Quaternion.from_scalar_and_vector",
         "Quaternion.get_rotation",
         "Quaternion.guid",
         "Quaternion.invert",
@@ -33047,42 +33094,45 @@ window.API_INDEX = {
         "Quaternion.magnitude_squared",
         "Quaternion.new",
         "Quaternion.normalized",
-        "Quaternion.rotate_vector"
+        "Quaternion.rotate_vector",
+        "Quaternion.str",
+        "Quaternion.to_axis_angle"
       ]
     },
     {
-      "name": "Quaternion.from_scalar_and_vector",
+      "name": "Quaternion.from_components",
       "implementations": {
         "python": {
-          "sig": "from_scalar_and_vector(scalar, vector)",
-          "code": "def from_scalar_and_vector(scalar, vector):\n\n        \"\"\"Create from scalar and vector components.\"\"\"\n        return Quaternion(scalar, vector)\n\n    @staticmethod\n    def from_axis_angle(axis, angle):\n        \"\"\"Create from axis of rotation and angle.\"\"\"\n        ax = axis.normalized()\n        half = angle * 0.5\n        return Quaternion(math.cos(half), ax * math.sin(half))\n\n    @staticmethod\n    def from_arc(src, dst):\n        \"\"\"Create rotation from source vector to destination vector.\"\"\"\n        s = src.normalized()\n        d = dst.normalized()\n        cross = s.cross(d)\n        dot_val = s.dot(d)\n        if cross.magnitude() < 1e-10:\n            if dot_val < 0.0:\n                perp = s.cross(Vector(0.0, 0.0, 1.0))\n                if perp.magnitude() < 1e-10:\n                    perp = s.cross(Vector(0.0, 1.0, 0.0))\n                return Quaternion.from_axis_angle(perp.normalized(), PI)\n            return Quaternion.identity()\n        return Quaternion(1.0 + dot_val, cross).normalized()\n\n    @staticmethod\n    def from_euler(x, y, z):\n        \"\"\"Create from Euler angles (XYZ convention).\"\"\"\n        s1, c1 = math.sin(x * 0.5), math.cos(x * 0.5)\n        s2, c2 = math.sin(y * 0.5), math.cos(y * 0.5)\n        s3, c3 = math.sin(z * 0.5), math.cos(z * 0.5)\n        return Quaternion(\n            -s1 * s2 * s3 + c1 * c2 * c3,\n            Vector(s1 * c2 * c3 + s2 * s3 * c1,\n                   -s1 * s3 * c2 + s2 * c1 * c3,\n                    s1 * s2 * c3 + s3 * c1 * c2))\n\n    @staticmethod\n    def from_rotation(plane_a, plane_b):\n        \"\"\"Create rotation that maps the basis of plane_a onto plane_b (Rhino: Quaternion.Rotation(plane, plane)).\"\"\"\n        xa, ya, za = plane_a.x_axis, plane_a.y_axis, plane_a.z_axis\n        xb, yb, zb = plane_b.x_axis, plane_b.y_axis, plane_b.z_axis\n        m = [[0.0]*3 for _ in range(3)]\n        m[0][0] = xb[0]*xa[0] + yb[0]*ya[0] + zb[0]*za[0]\n        m[0][1] = xb[0]*xa[1] + yb[0]*ya[1] + zb[0]*za[1]\n        m[0][2] = xb[0]*xa[2] + yb[0]*ya[2] + zb[0]*za[2]\n        m[1][0] = xb[1]*xa[0] + yb[1]*ya[0] + zb[1]*za[0]\n        m[1][1] = xb[1]*xa[1] + yb[1]*ya[1] + zb[1]*za[1]\n        m[1][2] = xb[1]*xa[2] + yb[1]*ya[2] + zb[1]*za[2]\n        m[2][0] = xb[2]*xa[0] + yb[2]*ya[0] + zb[2]*za[0]\n        m[2][1] = xb[2]*xa[1] + yb[2]*ya[1] + zb[2]*za[1]\n        m[2][2] = xb[2]*xa[2] + yb[2]*ya[2] + zb[2]*za[2]\n        is_identity = True\n        eps = 1.490116119385e-8\n        for i in range(3):\n            if not is_identity:\n                break\n            for j in range(3):\n                d = abs(m[i][i] - 1.0) if i == j else abs(m[i][j])\n                if d > eps:\n                    is_identity = False\n                    break\n        if is_identity:\n            return Quaternion(1.0, Vector(0.0, 0.0, 0.0))\n        if m[0][0] >= m[1][1]:\n            i = 0 if m[0][0] >= m[2][2] else 2\n        else:\n            i = 1 if m[1][1] >= m[2][2] else 2\n        j = (i + 1) % 3\n        k = (i + 2) % 3\n        s = 1.0 + m[i][i] - m[j][j] - m[k][k]\n        if s <= 0.0:\n            return Quaternion(1.0, Vector(0.0, 0.0, 0.0))\n        r = math.sqrt(s)\n        s = 0.5 / r\n        q = [0.0, 0.0, 0.0]\n        q[i] = 0.5 * r\n        q[j] = s * (m[i][j] + m[j][i])",
+          "sig": "from_components(scalar, vector)",
+          "code": "def from_components(scalar, vector):\n\n        \"\"\"Create a quaternion from raw scalar (real) and vector (imaginary) components.\n\n        WARNING: The ``vector`` argument is NOT a rotation axis. It is the\n        ``(i, j, k)`` coefficients of the quaternion. Most users want\n        :meth:`from_axis_angle` instead.\n\n        A quaternion is canonically written as ``q = s + xi + yj + zk`` where\n        ``s`` is the scalar (real) part and ``(x, y, z)`` is the vector\n        (imaginary) part. Use this constructor only when you have raw\n        quaternion components.\n\n        Visually constructing a plane from ``(s, v)`` values\n        ----------------------------------------------------\n        1. If ``v`` should be the plane's NORMAL (the geometric meaning users\n           usually expect), bypass the quaternion entirely::\n\n               p = Plane.from_point_normal(Point(0, 0, 0), v)\n\n        2. If you want the plane produced by the quaternion's rotation\n           (i.e. the world XY plane rotated by ``q``), normalize first::\n\n               p = Quaternion.from_components(s, v).normalized().get_rotation()\n\n           The result's normal is the rotation of ``(0, 0, 1)`` by ``q``,\n           which equals ``v`` only in the trivial case where the rotation\n           axis is already Z.\n\n        3. If you want a quaternion whose rotation produces a plane with\n           normal ``v``, use :meth:`from_arc`::\n\n               q = Quaternion.from_arc(Vector(0, 0, 1), v.normalized())\n               p = q.get_rotation()   # p.z_axis == v.normalized()\n\n        Parameters\n        ----------\n        scalar : float\n            Real part of the quaternion (the ``s`` in ``q = s + xi + yj + zk``).\n        vector : Vector\n            Imaginary parts (i, j, k coefficients) \u00e2\u20ac\u201d NOT a rotation axis.\n\n        Returns\n        -------\n        Quaternion\n            Quaternion with the given raw components (not normalized).\n        \"\"\"\n        return Quaternion(scalar, vector)\n\n    @staticmethod\n    def from_axis_angle(axis, angle):\n        \"\"\"Create from axis of rotation and angle.\"\"\"\n        ax = axis.normalized()\n        half = angle * 0.5\n        return Quaternion(math.cos(half), ax * math.sin(half))\n\n    def to_axis_angle(self):\n        \"\"\"Extract ``(axis, angle)`` from this quaternion \u00e2\u20ac\u201d the inverse of :meth:`from_axis_angle`.\n\n        Geometric meaning of a quaternion ``(s, v)``::\n\n            axis  = v / |v|\n            angle = 2 * acos(s / |q|)\n\n        Normalizes internally, so non-unit quaternions are handled correctly.\n\n        Edge case: for the identity quaternion (or any near-identity) the\n        axis is undefined; this function returns ``(Vector(0, 0, 1), 0.0)``.\n\n        Example\n        -------\n        >>> q = Quaternion.from_components(2.0, Vector(1.0, 2.0, 3.0))\n        >>> axis, angle = q.to_axis_angle()\n        >>> # axis = (1,2,3)/sqrt(14), angle \u00e2\u2030\u02c6 2.1617 rad \u00e2\u2030\u02c6 123.85\u00c2\u00b0\n        >>> # Reconstruct via geometric form:\n        >>> q2 = Quaternion.from_axis_angle(axis, angle)  # == q.normalized()\n\n        Returns\n        -------\n        tuple of (Vector, float)\n            ``(unit axis, angle in radians)``.",
           "file": "quaternion.py"
         },
         "cpp": {
-          "sig": "Quaternion from_scalar_and_vector(double scalar, const Vector& vector)",
-          "code": "Quaternion Quaternion::from_scalar_and_vector(double scalar, const Vector& vector) {\n    return Quaternion(scalar, vector);\n}",
+          "sig": "Quaternion from_components(double scalar, const Vector& vector)",
+          "code": "Quaternion Quaternion::from_components(double scalar, const Vector& vector) {\n    return Quaternion(scalar, vector);\n}",
           "file": "quaternion.cpp"
         },
         "rust": {
-          "sig": "from_scalar_and_vector(scalar: f64, vector: Vector) -> Self",
-          "code": "pub fn from_scalar_and_vector(scalar: f64, vector: Vector) -> Self {\n        Quaternion {\n            typ: \"Quaternion\".to_string(),\n            guid: std::sync::OnceLock::new(),\n            name: \"my_quaternion\".to_string(),\n            scalar,\n            vector,\n        }\n    }",
+          "sig": "from_components(scalar: f64, vector: Vector) -> Self",
+          "code": "pub fn from_components(scalar: f64, vector: Vector) -> Self {\n        Quaternion {\n            typ: \"Quaternion\".to_string(),\n            guid: std::sync::OnceLock::new(),\n            name: \"my_quaternion\".to_string(),\n            scalar,\n            vector,\n        }\n    }",
           "file": "quaternion.rs"
         }
       },
       "related": [
         "Quaternion.__init__",
-        "Quaternion.dot",
+        "Quaternion.constructor",
         "Quaternion.from_arc",
         "Quaternion.from_axis_angle",
         "Quaternion.from_euler",
         "Quaternion.from_rotation",
+        "Quaternion.get_rotation",
         "Quaternion.guid",
         "Quaternion.identity",
-        "Quaternion.magnitude",
         "Quaternion.new",
         "Quaternion.normalized",
         "Quaternion.pb_loads",
-        "Quaternion.str"
+        "Quaternion.str",
+        "Quaternion.to_axis_angle"
       ]
     },
     {
@@ -33090,7 +33140,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_axis_angle(axis, angle)",
-          "code": "def from_axis_angle(axis, angle):\n\n        \"\"\"Create from axis of rotation and angle.\"\"\"\n        ax = axis.normalized()\n        half = angle * 0.5\n        return Quaternion(math.cos(half), ax * math.sin(half))\n\n    @staticmethod\n    def from_arc(src, dst):\n        \"\"\"Create rotation from source vector to destination vector.\"\"\"\n        s = src.normalized()\n        d = dst.normalized()\n        cross = s.cross(d)\n        dot_val = s.dot(d)\n        if cross.magnitude() < 1e-10:\n            if dot_val < 0.0:\n                perp = s.cross(Vector(0.0, 0.0, 1.0))\n                if perp.magnitude() < 1e-10:\n                    perp = s.cross(Vector(0.0, 1.0, 0.0))\n                return Quaternion.from_axis_angle(perp.normalized(), PI)\n            return Quaternion.identity()\n        return Quaternion(1.0 + dot_val, cross).normalized()\n\n    @staticmethod\n    def from_euler(x, y, z):\n        \"\"\"Create from Euler angles (XYZ convention).\"\"\"\n        s1, c1 = math.sin(x * 0.5), math.cos(x * 0.5)\n        s2, c2 = math.sin(y * 0.5), math.cos(y * 0.5)\n        s3, c3 = math.sin(z * 0.5), math.cos(z * 0.5)\n        return Quaternion(\n            -s1 * s2 * s3 + c1 * c2 * c3,\n            Vector(s1 * c2 * c3 + s2 * s3 * c1,\n                   -s1 * s3 * c2 + s2 * c1 * c3,\n                    s1 * s2 * c3 + s3 * c1 * c2))\n\n    @staticmethod\n    def from_rotation(plane_a, plane_b):\n        \"\"\"Create rotation that maps the basis of plane_a onto plane_b (Rhino: Quaternion.Rotation(plane, plane)).\"\"\"\n        xa, ya, za = plane_a.x_axis, plane_a.y_axis, plane_a.z_axis\n        xb, yb, zb = plane_b.x_axis, plane_b.y_axis, plane_b.z_axis\n        m = [[0.0]*3 for _ in range(3)]\n        m[0][0] = xb[0]*xa[0] + yb[0]*ya[0] + zb[0]*za[0]\n        m[0][1] = xb[0]*xa[1] + yb[0]*ya[1] + zb[0]*za[1]\n        m[0][2] = xb[0]*xa[2] + yb[0]*ya[2] + zb[0]*za[2]\n        m[1][0] = xb[1]*xa[0] + yb[1]*ya[0] + zb[1]*za[0]\n        m[1][1] = xb[1]*xa[1] + yb[1]*ya[1] + zb[1]*za[1]\n        m[1][2] = xb[1]*xa[2] + yb[1]*ya[2] + zb[1]*za[2]\n        m[2][0] = xb[2]*xa[0] + yb[2]*ya[0] + zb[2]*za[0]\n        m[2][1] = xb[2]*xa[1] + yb[2]*ya[1] + zb[2]*za[1]\n        m[2][2] = xb[2]*xa[2] + yb[2]*ya[2] + zb[2]*za[2]\n        is_identity = True\n        eps = 1.490116119385e-8\n        for i in range(3):\n            if not is_identity:\n                break\n            for j in range(3):\n                d = abs(m[i][i] - 1.0) if i == j else abs(m[i][j])\n                if d > eps:\n                    is_identity = False\n                    break\n        if is_identity:\n            return Quaternion(1.0, Vector(0.0, 0.0, 0.0))\n        if m[0][0] >= m[1][1]:\n            i = 0 if m[0][0] >= m[2][2] else 2\n        else:\n            i = 1 if m[1][1] >= m[2][2] else 2\n        j = (i + 1) % 3\n        k = (i + 2) % 3\n        s = 1.0 + m[i][i] - m[j][j] - m[k][k]\n        if s <= 0.0:\n            return Quaternion(1.0, Vector(0.0, 0.0, 0.0))\n        r = math.sqrt(s)\n        s = 0.5 / r\n        q = [0.0, 0.0, 0.0]\n        q[i] = 0.5 * r\n        q[j] = s * (m[i][j] + m[j][i])\n        q[k] = s * (m[k][i] + m[i][k])\n        return Quaternion(s * (m[k][j] - m[j][k]), Vector(q[0], q[1], q[2]))\n\n    def get_rotation(self):\n        \"\"\"Apply this quaternion's rotation to the world XY plane and return the resulting plane (Rhino: Quaternion.GetRotation(out plane)).\"\"\"",
+          "code": "def from_axis_angle(axis, angle):\n\n        \"\"\"Create from axis of rotation and angle.\"\"\"\n        ax = axis.normalized()\n        half = angle * 0.5\n        return Quaternion(math.cos(half), ax * math.sin(half))\n\n    def to_axis_angle(self):\n        \"\"\"Extract ``(axis, angle)`` from this quaternion \u00e2\u20ac\u201d the inverse of :meth:`from_axis_angle`.\n\n        Geometric meaning of a quaternion ``(s, v)``::\n\n            axis  = v / |v|\n            angle = 2 * acos(s / |q|)\n\n        Normalizes internally, so non-unit quaternions are handled correctly.\n\n        Edge case: for the identity quaternion (or any near-identity) the\n        axis is undefined; this function returns ``(Vector(0, 0, 1), 0.0)``.\n\n        Example\n        -------\n        >>> q = Quaternion.from_components(2.0, Vector(1.0, 2.0, 3.0))\n        >>> axis, angle = q.to_axis_angle()\n        >>> # axis = (1,2,3)/sqrt(14), angle \u00e2\u2030\u02c6 2.1617 rad \u00e2\u2030\u02c6 123.85\u00c2\u00b0\n        >>> # Reconstruct via geometric form:\n        >>> q2 = Quaternion.from_axis_angle(axis, angle)  # == q.normalized()\n\n        Returns\n        -------\n        tuple of (Vector, float)\n            ``(unit axis, angle in radians)``.\n        \"\"\"\n        qn = self.normalized()\n        s = max(-1.0, min(1.0, qn.scalar))\n        angle = 2.0 * math.acos(s)\n        sin_half = math.sqrt(1.0 - s * s)\n        if sin_half < 1e-12:\n            return (Vector(0.0, 0.0, 1.0), 0.0)\n        axis = Vector(qn.vector[0] / sin_half, qn.vector[1] / sin_half, qn.vector[2] / sin_half)\n        return (axis, angle)\n\n    @staticmethod\n    def from_arc(src, dst):\n        \"\"\"Create rotation from source vector to destination vector.\"\"\"\n        s = src.normalized()\n        d = dst.normalized()\n        cross = s.cross(d)\n        dot_val = s.dot(d)\n        if cross.magnitude() < 1e-10:\n            if dot_val < 0.0:\n                perp = s.cross(Vector(0.0, 0.0, 1.0))\n                if perp.magnitude() < 1e-10:\n                    perp = s.cross(Vector(0.0, 1.0, 0.0))\n                return Quaternion.from_axis_angle(perp.normalized(), PI)\n            return Quaternion.identity()\n        return Quaternion(1.0 + dot_val, cross).normalized()\n\n    @staticmethod\n    def from_euler(x, y, z):\n        \"\"\"Create from Euler angles (XYZ convention).\"\"\"\n        s1, c1 = math.sin(x * 0.5), math.cos(x * 0.5)\n        s2, c2 = math.sin(y * 0.5), math.cos(y * 0.5)\n        s3, c3 = math.sin(z * 0.5), math.cos(z * 0.5)\n        return Quaternion(\n            -s1 * s2 * s3 + c1 * c2 * c3,\n            Vector(s1 * c2 * c3 + s2 * s3 * c1,\n                   -s1 * s3 * c2 + s2 * c1 * c3,\n                    s1 * s2 * c3 + s3 * c1 * c2))\n\n    @staticmethod\n    def from_rotation(plane_a, plane_b):\n        \"\"\"Create rotation that maps the basis of plane_a onto plane_b (Rhino: Quaternion.Rotation(plane, plane)).\"\"\"\n        xa, ya, za = plane_a.x_axis, plane_a.y_axis, plane_a.z_axis\n        xb, yb, zb = plane_b.x_axis, plane_b.y_axis, plane_b.z_axis\n        m = [[0.0]*3 for _ in range(3)]\n        m[0][0] = xb[0]*xa[0] + yb[0]*ya[0] + zb[0]*za[0]\n        m[0][1] = xb[0]*xa[1] + yb[0]*ya[1] + zb[0]*za[1]\n        m[0][2] = xb[0]*xa[2] + yb[0]*ya[2] + zb[0]*za[2]\n        m[1][0] = xb[1]*xa[0] + yb[1]*ya[0] + zb[1]*za[0]\n        m[1][1] = xb[1]*xa[1] + yb[1]*ya[1] + zb[1]*za[1]",
           "file": "quaternion.py"
         },
         "cpp": {
@@ -33100,7 +33150,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "from_axis_angle(axis: Vector, angle: f64) -> Self",
-          "code": "pub fn from_axis_angle(axis: Vector, angle: f64) -> Self {\n        let ax = axis.normalized();\n        let half = angle * 0.5;\n        Self::from_scalar_and_vector(half.cos(), ax * half.sin())\n    }",
+          "code": "pub fn from_axis_angle(axis: Vector, angle: f64) -> Self {\n        let ax = axis.normalized();\n        let half = angle * 0.5;\n        Self::from_components(half.cos(), ax * half.sin())\n    }",
           "file": "quaternion.rs"
         }
       },
@@ -33108,14 +33158,49 @@ window.API_INDEX = {
         "Quaternion.__init__",
         "Quaternion.dot",
         "Quaternion.from_arc",
+        "Quaternion.from_components",
         "Quaternion.from_euler",
         "Quaternion.from_rotation",
-        "Quaternion.from_scalar_and_vector",
-        "Quaternion.get_rotation",
         "Quaternion.guid",
         "Quaternion.identity",
         "Quaternion.magnitude",
-        "Quaternion.normalized"
+        "Quaternion.normalized",
+        "Quaternion.str",
+        "Quaternion.to_axis_angle"
+      ]
+    },
+    {
+      "name": "Quaternion.to_axis_angle",
+      "implementations": {
+        "python": {
+          "sig": "to_axis_angle()",
+          "code": "def to_axis_angle(self):\n\n        \"\"\"Extract ``(axis, angle)`` from this quaternion \u00e2\u20ac\u201d the inverse of :meth:`from_axis_angle`.\n\n        Geometric meaning of a quaternion ``(s, v)``::\n\n            axis  = v / |v|\n            angle = 2 * acos(s / |q|)\n\n        Normalizes internally, so non-unit quaternions are handled correctly.\n\n        Edge case: for the identity quaternion (or any near-identity) the\n        axis is undefined; this function returns ``(Vector(0, 0, 1), 0.0)``.\n\n        Example\n        -------\n        >>> q = Quaternion.from_components(2.0, Vector(1.0, 2.0, 3.0))\n        >>> axis, angle = q.to_axis_angle()\n        >>> # axis = (1,2,3)/sqrt(14), angle \u00e2\u2030\u02c6 2.1617 rad \u00e2\u2030\u02c6 123.85\u00c2\u00b0\n        >>> # Reconstruct via geometric form:\n        >>> q2 = Quaternion.from_axis_angle(axis, angle)  # == q.normalized()\n\n        Returns\n        -------\n        tuple of (Vector, float)\n            ``(unit axis, angle in radians)``.\n        \"\"\"\n        qn = self.normalized()\n        s = max(-1.0, min(1.0, qn.scalar))\n        angle = 2.0 * math.acos(s)\n        sin_half = math.sqrt(1.0 - s * s)\n        if sin_half < 1e-12:\n            return (Vector(0.0, 0.0, 1.0), 0.0)\n        axis = Vector(qn.vector[0] / sin_half, qn.vector[1] / sin_half, qn.vector[2] / sin_half)\n        return (axis, angle)\n\n    @staticmethod\n    def from_arc(src, dst):\n        \"\"\"Create rotation from source vector to destination vector.\"\"\"\n        s = src.normalized()\n        d = dst.normalized()\n        cross = s.cross(d)\n        dot_val = s.dot(d)\n        if cross.magnitude() < 1e-10:\n            if dot_val < 0.0:\n                perp = s.cross(Vector(0.0, 0.0, 1.0))\n                if perp.magnitude() < 1e-10:\n                    perp = s.cross(Vector(0.0, 1.0, 0.0))\n                return Quaternion.from_axis_angle(perp.normalized(), PI)\n            return Quaternion.identity()\n        return Quaternion(1.0 + dot_val, cross).normalized()\n\n    @staticmethod\n    def from_euler(x, y, z):\n        \"\"\"Create from Euler angles (XYZ convention).\"\"\"\n        s1, c1 = math.sin(x * 0.5), math.cos(x * 0.5)\n        s2, c2 = math.sin(y * 0.5), math.cos(y * 0.5)\n        s3, c3 = math.sin(z * 0.5), math.cos(z * 0.5)\n        return Quaternion(\n            -s1 * s2 * s3 + c1 * c2 * c3,\n            Vector(s1 * c2 * c3 + s2 * s3 * c1,\n                   -s1 * s3 * c2 + s2 * c1 * c3,\n                    s1 * s2 * c3 + s3 * c1 * c2))\n\n    @staticmethod\n    def from_rotation(plane_a, plane_b):\n        \"\"\"Create rotation that maps the basis of plane_a onto plane_b (Rhino: Quaternion.Rotation(plane, plane)).\"\"\"\n        xa, ya, za = plane_a.x_axis, plane_a.y_axis, plane_a.z_axis\n        xb, yb, zb = plane_b.x_axis, plane_b.y_axis, plane_b.z_axis\n        m = [[0.0]*3 for _ in range(3)]\n        m[0][0] = xb[0]*xa[0] + yb[0]*ya[0] + zb[0]*za[0]\n        m[0][1] = xb[0]*xa[1] + yb[0]*ya[1] + zb[0]*za[1]\n        m[0][2] = xb[0]*xa[2] + yb[0]*ya[2] + zb[0]*za[2]\n        m[1][0] = xb[1]*xa[0] + yb[1]*ya[0] + zb[1]*za[0]\n        m[1][1] = xb[1]*xa[1] + yb[1]*ya[1] + zb[1]*za[1]\n        m[1][2] = xb[1]*xa[2] + yb[1]*ya[2] + zb[1]*za[2]\n        m[2][0] = xb[2]*xa[0] + yb[2]*ya[0] + zb[2]*za[0]\n        m[2][1] = xb[2]*xa[1] + yb[2]*ya[1] + zb[2]*za[1]\n        m[2][2] = xb[2]*xa[2] + yb[2]*ya[2] + zb[2]*za[2]\n        is_identity = True\n        eps = 1.490116119385e-8",
+          "file": "quaternion.py"
+        },
+        "cpp": {
+          "sig": "std::pair<Vector, double> to_axis_angle()",
+          "code": "std::pair<Vector, double> Quaternion::to_axis_angle() const {\n    Quaternion qn = normalized();\n    double s = std::clamp(qn.scalar, -1.0, 1.0);\n    double angle = 2.0 * std::acos(s);\n    double sin_half = std::sqrt(1.0 - s * s);\n    if (sin_half < 1e-12) {\n        return { Vector(0.0, 0.0, 1.0), 0.0 }",
+          "file": "quaternion.cpp"
+        },
+        "rust": {
+          "sig": "to_axis_angle() -> (Vector, f64)",
+          "code": "pub fn to_axis_angle(&self) -> (Vector, f64) {\n        let qn = self.normalized();\n        let s = qn.scalar.clamp(-1.0, 1.0);\n        let angle = 2.0 * s.acos();\n        let sin_half = (1.0 - s * s).sqrt();\n        if sin_half < 1e-12 {\n            return (Vector::new(0.0, 0.0, 1.0), 0.0);\n        }\n        let axis = Vector::new(\n            qn.vector[0] / sin_half,\n            qn.vector[1] / sin_half,\n            qn.vector[2] / sin_half,\n        );\n        (axis, angle)\n    }",
+          "file": "quaternion.rs"
+        }
+      },
+      "related": [
+        "Quaternion.dot",
+        "Quaternion.from_arc",
+        "Quaternion.from_axis_angle",
+        "Quaternion.from_components",
+        "Quaternion.from_euler",
+        "Quaternion.from_rotation",
+        "Quaternion.guid",
+        "Quaternion.identity",
+        "Quaternion.magnitude",
+        "Quaternion.new",
+        "Quaternion.normalized",
+        "Quaternion.str"
       ]
     },
     {
@@ -33133,7 +33218,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "from_arc(src: Vector, dst: Vector) -> Self",
-          "code": "pub fn from_arc(src: Vector, dst: Vector) -> Self {\n        let s = src.normalized();\n        let d = dst.normalized();\n        let cross = s.cross(&d);\n        let dot_val = s.dot(&d);\n        if cross.magnitude() < 1e-10 {\n            if dot_val < 0.0 {\n                let perp = s.cross(&Vector::new(0.0, 0.0, 1.0));\n                let perp = if perp.magnitude() < 1e-10 {\n                    s.cross(&Vector::new(0.0, 1.0, 0.0))\n                } else {\n                    perp\n                };\n                return Self::from_axis_angle(perp.normalized(), crate::tolerance::PI);\n            }\n            return Self::identity();\n        }\n        Self::from_scalar_and_vector(1.0 + dot_val, cross).normalized()\n    }",
+          "code": "pub fn from_arc(src: Vector, dst: Vector) -> Self {\n        let s = src.normalized();\n        let d = dst.normalized();\n        let cross = s.cross(&d);\n        let dot_val = s.dot(&d);\n        if cross.magnitude() < 1e-10 {\n            if dot_val < 0.0 {\n                let perp = s.cross(&Vector::new(0.0, 0.0, 1.0));\n                let perp = if perp.magnitude() < 1e-10 {\n                    s.cross(&Vector::new(0.0, 1.0, 0.0))\n                } else {\n                    perp\n                };\n                return Self::from_axis_angle(perp.normalized(), crate::tolerance::PI);\n            }\n            return Self::identity();\n        }\n        Self::from_components(1.0 + dot_val, cross).normalized()\n    }",
           "file": "quaternion.rs"
         }
       },
@@ -33141,15 +33226,16 @@ window.API_INDEX = {
         "Quaternion.__init__",
         "Quaternion.dot",
         "Quaternion.from_axis_angle",
+        "Quaternion.from_components",
         "Quaternion.from_euler",
         "Quaternion.from_rotation",
-        "Quaternion.from_scalar_and_vector",
         "Quaternion.get_rotation",
         "Quaternion.guid",
         "Quaternion.identity",
         "Quaternion.magnitude",
         "Quaternion.new",
-        "Quaternion.normalized"
+        "Quaternion.normalized",
+        "Quaternion.to_axis_angle"
       ]
     },
     {
@@ -33167,17 +33253,16 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "from_euler(x: f64, y: f64, z: f64) -> Self",
-          "code": "pub fn from_euler(x: f64, y: f64, z: f64) -> Self {\n        let (s1, c1) = ((x * 0.5).sin(), (x * 0.5).cos());\n        let (s2, c2) = ((y * 0.5).sin(), (y * 0.5).cos());\n        let (s3, c3) = ((z * 0.5).sin(), (z * 0.5).cos());\n        Self::from_scalar_and_vector(\n            -s1 * s2 * s3 + c1 * c2 * c3,\n            Vector::new(\n                s1 * c2 * c3 + s2 * s3 * c1,\n                -s1 * s3 * c2 + s2 * c1 * c3,\n                s1 * s2 * c3 + s3 * c1 * c2,\n            ),\n        )\n    }",
+          "code": "pub fn from_euler(x: f64, y: f64, z: f64) -> Self {\n        let (s1, c1) = ((x * 0.5).sin(), (x * 0.5).cos());\n        let (s2, c2) = ((y * 0.5).sin(), (y * 0.5).cos());\n        let (s3, c3) = ((z * 0.5).sin(), (z * 0.5).cos());\n        Self::from_components(\n            -s1 * s2 * s3 + c1 * c2 * c3,\n            Vector::new(\n                s1 * c2 * c3 + s2 * s3 * c1,\n                -s1 * s3 * c2 + s2 * c1 * c3,\n                s1 * s2 * c3 + s3 * c1 * c2,\n            ),\n        )\n    }",
           "file": "quaternion.rs"
         }
       },
       "related": [
-        "Quaternion.__init__",
         "Quaternion.duplicate",
         "Quaternion.from_arc",
         "Quaternion.from_axis_angle",
+        "Quaternion.from_components",
         "Quaternion.from_rotation",
-        "Quaternion.from_scalar_and_vector",
         "Quaternion.get_rotation",
         "Quaternion.guid",
         "Quaternion.identity",
@@ -33185,7 +33270,8 @@ window.API_INDEX = {
         "Quaternion.magnitude_squared",
         "Quaternion.new",
         "Quaternion.rotate_vector",
-        "Quaternion.str"
+        "Quaternion.str",
+        "Quaternion.to_axis_angle"
       ]
     },
     {
@@ -33203,17 +33289,16 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "from_rotation(plane_a: &Plane, plane_b: &Plane) -> Self",
-          "code": "pub fn from_rotation(plane_a: &Plane, plane_b: &Plane) -> Self {\n        let xa = plane_a.x_axis_ref(); let ya = plane_a.y_axis_ref(); let za = plane_a.z_axis_ref();\n        let xb = plane_b.x_axis_ref(); let yb = plane_b.y_axis_ref(); let zb = plane_b.z_axis_ref();\n        let mut m = [[0.0_f64; 3]; 3];\n        m[0][0] = xb[0]*xa[0] + yb[0]*ya[0] + zb[0]*za[0];\n        m[0][1] = xb[0]*xa[1] + yb[0]*ya[1] + zb[0]*za[1];\n        m[0][2] = xb[0]*xa[2] + yb[0]*ya[2] + zb[0]*za[2];\n        m[1][0] = xb[1]*xa[0] + yb[1]*ya[0] + zb[1]*za[0];\n        m[1][1] = xb[1]*xa[1] + yb[1]*ya[1] + zb[1]*za[1];\n        m[1][2] = xb[1]*xa[2] + yb[1]*ya[2] + zb[1]*za[2];\n        m[2][0] = xb[2]*xa[0] + yb[2]*ya[0] + zb[2]*za[0];\n        m[2][1] = xb[2]*xa[1] + yb[2]*ya[1] + zb[2]*za[1];\n        m[2][2] = xb[2]*xa[2] + yb[2]*ya[2] + zb[2]*za[2];\n        let mut is_identity = true;\n        let eps = 1.490116119385e-8_f64;\n        'outer: for i in 0..3 {\n            for j in 0..3 {\n                let d = if i == j { (m[i][i] - 1.0).abs() } else { m[i][j].abs() };\n                if d > eps { is_identity = false; break 'outer; }\n            }\n        }\n        if is_identity { return Self::from_scalar_and_vector(1.0, Vector::new(0.0, 0.0, 0.0)); }\n        let i = if m[0][0] >= m[1][1] { if m[0][0] >= m[2][2] { 0 } else { 2 } } else { if m[1][1] >= m[2][2] { 1 } else { 2 } };\n        let j = (i + 1) % 3;\n        let k = (i + 2) % 3;\n        let s_init = 1.0 + m[i][i] - m[j][j] - m[k][k];\n        if s_init <= 0.0 { return Self::from_scalar_and_vector(1.0, Vector::new(0.0, 0.0, 0.0)); }\n        let r = s_init.sqrt();\n        let s = 0.5 / r;\n        let mut q = [0.0_f64; 3];\n        q[i] = 0.5 * r;\n        q[j] = s * (m[i][j] + m[j][i]);\n        q[k] = s * (m[k][i] + m[i][k]);\n        Self::from_scalar_and_vector(s * (m[k][j] - m[j][k]), Vector::new(q[0], q[1], q[2]))\n    }",
+          "code": "pub fn from_rotation(plane_a: &Plane, plane_b: &Plane) -> Self {\n        let xa = plane_a.x_axis_ref(); let ya = plane_a.y_axis_ref(); let za = plane_a.z_axis_ref();\n        let xb = plane_b.x_axis_ref(); let yb = plane_b.y_axis_ref(); let zb = plane_b.z_axis_ref();\n        let mut m = [[0.0_f64; 3]; 3];\n        m[0][0] = xb[0]*xa[0] + yb[0]*ya[0] + zb[0]*za[0];\n        m[0][1] = xb[0]*xa[1] + yb[0]*ya[1] + zb[0]*za[1];\n        m[0][2] = xb[0]*xa[2] + yb[0]*ya[2] + zb[0]*za[2];\n        m[1][0] = xb[1]*xa[0] + yb[1]*ya[0] + zb[1]*za[0];\n        m[1][1] = xb[1]*xa[1] + yb[1]*ya[1] + zb[1]*za[1];\n        m[1][2] = xb[1]*xa[2] + yb[1]*ya[2] + zb[1]*za[2];\n        m[2][0] = xb[2]*xa[0] + yb[2]*ya[0] + zb[2]*za[0];\n        m[2][1] = xb[2]*xa[1] + yb[2]*ya[1] + zb[2]*za[1];\n        m[2][2] = xb[2]*xa[2] + yb[2]*ya[2] + zb[2]*za[2];\n        let mut is_identity = true;\n        let eps = 1.490116119385e-8_f64;\n        'outer: for i in 0..3 {\n            for j in 0..3 {\n                let d = if i == j { (m[i][i] - 1.0).abs() } else { m[i][j].abs() };\n                if d > eps { is_identity = false; break 'outer; }\n            }\n        }\n        if is_identity { return Self::from_components(1.0, Vector::new(0.0, 0.0, 0.0)); }\n        let i = if m[0][0] >= m[1][1] { if m[0][0] >= m[2][2] { 0 } else { 2 } } else { if m[1][1] >= m[2][2] { 1 } else { 2 } };\n        let j = (i + 1) % 3;\n        let k = (i + 2) % 3;\n        let s_init = 1.0 + m[i][i] - m[j][j] - m[k][k];\n        if s_init <= 0.0 { return Self::from_components(1.0, Vector::new(0.0, 0.0, 0.0)); }\n        let r = s_init.sqrt();\n        let s = 0.5 / r;\n        let mut q = [0.0_f64; 3];\n        q[i] = 0.5 * r;\n        q[j] = s * (m[i][j] + m[j][i]);\n        q[k] = s * (m[k][i] + m[i][k]);\n        Self::from_components(s * (m[k][j] - m[j][k]), Vector::new(q[0], q[1], q[2]))\n    }",
           "file": "quaternion.rs"
         }
       },
       "related": [
-        "Quaternion.__init__",
         "Quaternion.duplicate",
         "Quaternion.from_arc",
         "Quaternion.from_axis_angle",
+        "Quaternion.from_components",
         "Quaternion.from_euler",
-        "Quaternion.from_scalar_and_vector",
         "Quaternion.get_rotation",
         "Quaternion.guid",
         "Quaternion.identity",
@@ -33222,7 +33307,8 @@ window.API_INDEX = {
         "Quaternion.new",
         "Quaternion.normalized",
         "Quaternion.rotate_vector",
-        "Quaternion.str"
+        "Quaternion.str",
+        "Quaternion.to_axis_angle"
       ]
     },
     {
@@ -33245,11 +33331,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Quaternion.__init__",
         "Quaternion.conjugate",
         "Quaternion.dot",
         "Quaternion.duplicate",
         "Quaternion.from_arc",
-        "Quaternion.from_axis_angle",
+        "Quaternion.from_components",
         "Quaternion.from_euler",
         "Quaternion.from_rotation",
         "Quaternion.guid",
@@ -33363,7 +33450,6 @@ window.API_INDEX = {
       },
       "related": [
         "Quaternion.__getitem__",
-        "Quaternion.__init__",
         "Quaternion.__setitem__",
         "Quaternion.conjugate",
         "Quaternion.dot",
@@ -33372,7 +33458,6 @@ window.API_INDEX = {
         "Quaternion.from_axis_angle",
         "Quaternion.from_euler",
         "Quaternion.from_rotation",
-        "Quaternion.from_scalar_and_vector",
         "Quaternion.get_rotation",
         "Quaternion.guid",
         "Quaternion.identity",
@@ -33381,7 +33466,8 @@ window.API_INDEX = {
         "Quaternion.nlerp",
         "Quaternion.normalized",
         "Quaternion.rotate_vector",
-        "Quaternion.slerp"
+        "Quaternion.slerp",
+        "Quaternion.to_axis_angle"
       ]
     },
     {
@@ -33452,8 +33538,8 @@ window.API_INDEX = {
         "Quaternion.duplicate",
         "Quaternion.from_arc",
         "Quaternion.from_axis_angle",
+        "Quaternion.from_components",
         "Quaternion.from_rotation",
-        "Quaternion.from_scalar_and_vector",
         "Quaternion.get_rotation",
         "Quaternion.guid",
         "Quaternion.identity",
@@ -33462,7 +33548,8 @@ window.API_INDEX = {
         "Quaternion.magnitude_squared",
         "Quaternion.nlerp",
         "Quaternion.rotate_vector",
-        "Quaternion.slerp"
+        "Quaternion.slerp",
+        "Quaternion.to_axis_angle"
       ]
     },
     {
@@ -33570,7 +33657,6 @@ window.API_INDEX = {
         "Quaternion.__add__",
         "Quaternion.__eq__",
         "Quaternion.__getitem__",
-        "Quaternion.__init__",
         "Quaternion.__mul__",
         "Quaternion.__ne__",
         "Quaternion.__neg__",
@@ -33581,10 +33667,7 @@ window.API_INDEX = {
         "Quaternion.duplicate",
         "Quaternion.from_arc",
         "Quaternion.from_axis_angle",
-        "Quaternion.from_scalar_and_vector",
         "Quaternion.get_rotation",
-        "Quaternion.guid",
-        "Quaternion.identity",
         "Quaternion.invert",
         "Quaternion.magnitude",
         "Quaternion.magnitude_squared",
@@ -33593,6 +33676,7 @@ window.API_INDEX = {
         "Quaternion.rotate_vector",
         "Quaternion.slerp",
         "Quaternion.str",
+        "Quaternion.to_axis_angle",
         "Quaternion.type"
       ]
     },
@@ -34375,7 +34459,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>>",
-          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n        let proto = crate::proto::Quaternion::decode(data)?;\n        let mut q = Self::from_scalar_and_vector(proto.a, Vector::new(proto.b, proto.c, proto.d));\n        q.name = proto.name;\n        Ok(q)\n    }",
+          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n        let proto = crate::proto::Quaternion::decode(data)?;\n        let mut q = Self::from_components(proto.a, Vector::new(proto.b, proto.c, proto.d));\n        q.name = proto.name;\n        Ok(q)\n    }",
           "file": "quaternion.rs"
         }
       },
@@ -34385,7 +34469,7 @@ window.API_INDEX = {
         "Quaternion.__ne__",
         "Quaternion.__repr__",
         "Quaternion.__str__",
-        "Quaternion.from_scalar_and_vector",
+        "Quaternion.from_components",
         "Quaternion.json_dump",
         "Quaternion.json_dumps",
         "Quaternion.json_load",
@@ -48109,12 +48193,12 @@ window.API_INDEX = {
         "Plane.b",
         "Plane.c",
         "Plane.d",
-        "Plane.is_coplanar",
         "Plane.is_coplanar_from_normals",
         "Plane.json_dump",
         "Plane.json_dumps",
         "Plane.json_load",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.translate_by_normal"
       ]
     },
@@ -48140,7 +48224,6 @@ window.API_INDEX = {
         "Plane.c",
         "Plane.d",
         "Plane.guid",
-        "Plane.is_coplanar_from_normals",
         "Plane.json_dump",
         "Plane.json_dumps",
         "Plane.json_load",
@@ -48148,6 +48231,7 @@ window.API_INDEX = {
         "Plane.linecolor",
         "Plane.origin",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.translate_by_normal",
         "Plane.x_axis",
         "Plane.y_axis",
@@ -48207,7 +48291,6 @@ window.API_INDEX = {
         "Plane.c",
         "Plane.from_frame",
         "Plane.invalid",
-        "Plane.is_coplanar",
         "Plane.is_coplanar_from_normals",
         "Plane.is_valid",
         "Plane.json_dump",
@@ -48218,6 +48301,7 @@ window.API_INDEX = {
         "Plane.pb_dumps",
         "Plane.repr",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.transform",
         "Plane.translate_by_normal",
         "Plane.xz_plane"
@@ -49439,7 +49523,10 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Quaternion.__init__"
+        "Quaternion.__init__",
+        "Quaternion.from_components",
+        "Quaternion.guid",
+        "Quaternion.identity"
       ]
     },
     {
@@ -49503,11 +49590,13 @@ window.API_INDEX = {
         "Quaternion.__sub__",
         "Quaternion.dot",
         "Quaternion.duplicate",
+        "Quaternion.from_axis_angle",
+        "Quaternion.from_components",
         "Quaternion.from_euler",
         "Quaternion.from_rotation",
-        "Quaternion.from_scalar_and_vector",
         "Quaternion.get_rotation",
         "Quaternion.guid",
+        "Quaternion.identity",
         "Quaternion.json_dump",
         "Quaternion.json_dumps",
         "Quaternion.json_load",
@@ -49522,6 +49611,7 @@ window.API_INDEX = {
         "Quaternion.pb_loads",
         "Quaternion.repr",
         "Quaternion.slerp",
+        "Quaternion.to_axis_angle",
         "Quaternion.type"
       ]
     },
@@ -51735,6 +51825,7 @@ window.API_INDEX = {
         "Plane.reverse",
         "Plane.rotate",
         "Plane.str",
+        "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
         "Plane.translate_by_normal",
@@ -52190,14 +52281,15 @@ window.API_INDEX = {
       "related": [
         "Quaternion.duplicate",
         "Quaternion.from_arc",
+        "Quaternion.from_components",
         "Quaternion.from_euler",
         "Quaternion.from_rotation",
-        "Quaternion.from_scalar_and_vector",
         "Quaternion.get_rotation",
         "Quaternion.guid",
         "Quaternion.identity",
         "Quaternion.pb_loads",
-        "Quaternion.str"
+        "Quaternion.str",
+        "Quaternion.to_axis_angle"
       ]
     },
     {
@@ -56352,12 +56444,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Quaternion\", \"Constructor\")",
-          "code": "MINI_TEST(\"Quaternion\", \"Constructor\") {\n    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // Default constructor (identity)\n    Quaternion q0;\n\n    // Constructor with arguments\n    Quaternion q = Quaternion::from_scalar_and_vector(2.0, Vector(1.0, 0.0, 0.0));\n\n    // Setters\n    q[0] = 5.0;\n    q[1] = 0.0;\n    q[2] = 1.0;\n    q[3] = 0.0;\n\n    // Getters\n    double s_val = q[0];\n    double x = q[1];\n    double y = q[2];\n    double z = q[3];\n\n    // Minimal and Full String Representation\n    std::string qstr = q.str();\n    std::string qrepr = q.repr();\n\n    // Copy (duplicates everything except guid)\n    Quaternion qcopy = q.duplicate();\n    Quaternion qother = Quaternion::from_scalar_and_vector(2.0, Vector(1.0, 0.0, 0.0));\n\n    // Copy operators\n    Quaternion qrot = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    Quaternion qmul = qrot * qrot;\n    Quaternion qscaled = Quaternion::identity() * 2.0;\n    Quaternion a = Quaternion::from_scalar_and_vector(1.0, Vector(0.0, 0.0, 0.0));\n    Quaternion b = Quaternion::from_scalar_and_vector(0.0, Vector(0.0, 0.0, 1.0));\n    Quaternion qsum = a + b;\n    Quaternion qdiff = qrot - qrot;\n    Quaternion qneg = -Quaternion::identity();\n\n    MINI_CHECK(q0.name == \"my_quaternion\");\n    MINI_CHECK(!q0.guid().empty());\n    MINI_CHECK(TOLERANCE.is_close(q0.scalar, 1.0));\n    MINI_CHECK(TOLERANCE.is_close(q0.vector[0], 0.0) && TOLERANCE.is_close(q0.vector[1], 0.0) && TOLERANCE.is_close(q0.vector[2], 0.0));\n    MINI_CHECK(q[0] == 5.0 && q[1] == 0.0 && q[2] == 1.0 && q[3] == 0.0);\n    MINI_CHECK(s_val == 5.0 && x == 0.0 && y == 1.0 && z == 0.0);\n    MINI_CHECK(qstr == \"5.000000, 0.000000, 1.000000, 0.000000\");\n    MINI_CHECK(qrepr == \"Quaternion(my_quaternion, 5.000000, 0.000000, 1.000000, 0.000000)\");\n    MINI_CHECK(qcopy == q && qcopy.guid() != q.guid());\n    MINI_CHECK(qother != q);\n    MINI_CHECK(TOLERANCE.is_close(qmul.scalar, 0.0) && TOLERANCE.is_close(qmul.vector[2], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(qscaled.scalar, 2.0));\n    MINI_CHECK(TOLERANCE.is_close(qsum.scalar, 1.0) && TOLERANCE.is_close(qsum.vector[2], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(qdiff.scalar, 0.0) && TOLERANCE.is_close(qdiff.vector[2], 0.0));\n    MINI_CHECK(TOLERANCE.is_close(qneg.scalar, -1.0));\n}",
+          "code": "MINI_TEST(\"Quaternion\", \"Constructor\") {\n    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // Default constructor (identity)\n    Quaternion q0;\n\n    // Constructor with arguments\n    Quaternion q = Quaternion::from_components(2.0, Vector(1.0, 0.0, 0.0));\n\n    // Setters\n    q[0] = 5.0;\n    q[1] = 0.0;\n    q[2] = 1.0;\n    q[3] = 0.0;\n\n    // Getters\n    double s_val = q[0];\n    double x = q[1];\n    double y = q[2];\n    double z = q[3];\n\n    // Minimal and Full String Representation\n    std::string qstr = q.str();\n    std::string qrepr = q.repr();\n\n    // Copy (duplicates everything except guid)\n    Quaternion qcopy = q.duplicate();\n    Quaternion qother = Quaternion::from_components(2.0, Vector(1.0, 0.0, 0.0));\n\n    // Copy operators\n    Quaternion qrot = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    Quaternion qmul = qrot * qrot;\n    Quaternion qscaled = Quaternion::identity() * 2.0;\n    Quaternion a = Quaternion::from_components(1.0, Vector(0.0, 0.0, 0.0));\n    Quaternion b = Quaternion::from_components(0.0, Vector(0.0, 0.0, 1.0));\n    Quaternion qsum = a + b;\n    Quaternion qdiff = qrot - qrot;\n    Quaternion qneg = -Quaternion::identity();\n\n    MINI_CHECK(q0.name == \"my_quaternion\");\n    MINI_CHECK(!q0.guid().empty());\n    MINI_CHECK(TOLERANCE.is_close(q0.scalar, 1.0));\n    MINI_CHECK(TOLERANCE.is_close(q0.vector[0], 0.0) && TOLERANCE.is_close(q0.vector[1], 0.0) && TOLERANCE.is_close(q0.vector[2], 0.0));\n    MINI_CHECK(q[0] == 5.0 && q[1] == 0.0 && q[2] == 1.0 && q[3] == 0.0);\n    MINI_CHECK(s_val == 5.0 && x == 0.0 && y == 1.0 && z == 0.0);\n    MINI_CHECK(qstr == \"5.000000, 0.000000, 1.000000, 0.000000\");\n    MINI_CHECK(qrepr == \"Quaternion(my_quaternion, 5.000000, 0.000000, 1.000000, 0.000000)\");\n    MINI_CHECK(qcopy == q && qcopy.guid() != q.guid());\n    MINI_CHECK(qother != q);\n    MINI_CHECK(TOLERANCE.is_close(qmul.scalar, 0.0) && TOLERANCE.is_close(qmul.vector[2], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(qscaled.scalar, 2.0));\n    MINI_CHECK(TOLERANCE.is_close(qsum.scalar, 1.0) && TOLERANCE.is_close(qsum.vector[2], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(qdiff.scalar, 0.0) && TOLERANCE.is_close(qdiff.vector[2], 0.0));\n    MINI_CHECK(TOLERANCE.is_close(qneg.scalar, -1.0));\n}",
           "file": "quaternion_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Quaternion\", \"Constructor\")",
-          "code": "@MINI_TEST(\"Quaternion\", \"Constructor\")\ndef test_quaternion_constructor():\n    from session_py import Quaternion\n    from session_py import Vector\n\n    # Default constructor (identity)\n    q0 = Quaternion()\n\n    # Constructor with arguments\n    q = Quaternion.from_scalar_and_vector(2.0, Vector(1.0, 0.0, 0.0))\n\n    # Setters\n    q[0] = 5.0\n    q[1] = 0.0\n    q[2] = 1.0\n    q[3] = 0.0\n\n    # Getters\n    s_val = q[0]\n    x = q[1]\n    y = q[2]\n    z = q[3]\n\n    # Minimal and Full String Representation\n    qstr = str(q)\n    qrepr = repr(q)\n\n    # Copy (duplicates everything except guid)\n    qcopy = q.duplicate()\n    qother = Quaternion.from_scalar_and_vector(2.0, Vector(1.0, 0.0, 0.0))\n\n    # Copy operators\n    qrot = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    qmul = qrot * qrot\n    qscaled = Quaternion.identity() * 2.0\n    a = Quaternion.from_scalar_and_vector(1.0, Vector(0.0, 0.0, 0.0))\n    b = Quaternion.from_scalar_and_vector(0.0, Vector(0.0, 0.0, 1.0))\n    qsum = a + b\n    qdiff = qrot - qrot\n    qneg = -Quaternion.identity()\n\n    MINI_CHECK(q0.name == \"my_quaternion\")\n    MINI_CHECK(q0.guid)\n    MINI_CHECK(TOLERANCE.is_close(q0.scalar, 1.0))\n    MINI_CHECK(TOLERANCE.is_close(q0.vector[0], 0.0) and TOLERANCE.is_close(q0.vector[1], 0.0) and TOLERANCE.is_close(q0.vector[2], 0.0))\n    MINI_CHECK(q[0] == 5.0 and q[1] == 0.0 and q[2] == 1.0 and q[3] == 0.0)\n    MINI_CHECK(s_val == 5.0 and x == 0.0 and y == 1.0 and z == 0.0)\n    MINI_CHECK(qstr == \"5.0, 0.0, 1.0, 0.0\")\n    MINI_CHECK(qrepr == \"Quaternion(my_quaternion, 5.0, 0.0, 1.0, 0.0)\")\n    MINI_CHECK(qcopy == q and qcopy.guid != q.guid)\n    MINI_CHECK(qother != q)\n    MINI_CHECK(TOLERANCE.is_close(qmul.scalar, 0.0) and TOLERANCE.is_close(qmul.vector[2], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(qscaled.scalar, 2.0))\n    MINI_CHECK(TOLERANCE.is_close(qsum.scalar, 1.0) and TOLERANCE.is_close(qsum.vector[2], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(qdiff.scalar, 0.0) and TOLERANCE.is_close(qdiff.vector[2], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(qneg.scalar, -1.0))",
+          "code": "@MINI_TEST(\"Quaternion\", \"Constructor\")\ndef test_quaternion_constructor():\n    from session_py import Quaternion\n    from session_py import Vector\n\n    # Default constructor (identity)\n    q0 = Quaternion()\n\n    # Constructor with arguments\n    q = Quaternion.from_components(2.0, Vector(1.0, 0.0, 0.0))\n\n    # Setters\n    q[0] = 5.0\n    q[1] = 0.0\n    q[2] = 1.0\n    q[3] = 0.0\n\n    # Getters\n    s_val = q[0]\n    x = q[1]\n    y = q[2]\n    z = q[3]\n\n    # Minimal and Full String Representation\n    qstr = str(q)\n    qrepr = repr(q)\n\n    # Copy (duplicates everything except guid)\n    qcopy = q.duplicate()\n    qother = Quaternion.from_components(2.0, Vector(1.0, 0.0, 0.0))\n\n    # Copy operators\n    qrot = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    qmul = qrot * qrot\n    qscaled = Quaternion.identity() * 2.0\n    a = Quaternion.from_components(1.0, Vector(0.0, 0.0, 0.0))\n    b = Quaternion.from_components(0.0, Vector(0.0, 0.0, 1.0))\n    qsum = a + b\n    qdiff = qrot - qrot\n    qneg = -Quaternion.identity()\n\n    MINI_CHECK(q0.name == \"my_quaternion\")\n    MINI_CHECK(q0.guid)\n    MINI_CHECK(TOLERANCE.is_close(q0.scalar, 1.0))\n    MINI_CHECK(TOLERANCE.is_close(q0.vector[0], 0.0) and TOLERANCE.is_close(q0.vector[1], 0.0) and TOLERANCE.is_close(q0.vector[2], 0.0))\n    MINI_CHECK(q[0] == 5.0 and q[1] == 0.0 and q[2] == 1.0 and q[3] == 0.0)\n    MINI_CHECK(s_val == 5.0 and x == 0.0 and y == 1.0 and z == 0.0)\n    MINI_CHECK(qstr == \"5.0, 0.0, 1.0, 0.0\")\n    MINI_CHECK(qrepr == \"Quaternion(my_quaternion, 5.0, 0.0, 1.0, 0.0)\")\n    MINI_CHECK(qcopy == q and qcopy.guid != q.guid)\n    MINI_CHECK(qother != q)\n    MINI_CHECK(TOLERANCE.is_close(qmul.scalar, 0.0) and TOLERANCE.is_close(qmul.vector[2], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(qscaled.scalar, 2.0))\n    MINI_CHECK(TOLERANCE.is_close(qsum.scalar, 1.0) and TOLERANCE.is_close(qsum.vector[2], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(qdiff.scalar, 0.0) and TOLERANCE.is_close(qdiff.vector[2], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(qneg.scalar, -1.0))",
           "file": "quaternion_test.py"
         }
       }
@@ -56378,16 +56470,16 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "Quaternion.test_From Scalar And Vector",
+      "name": "Quaternion.test_From Components",
       "implementations": {
         "cpp": {
-          "sig": "MINI_TEST(\"Quaternion\", \"From Scalar And Vector\")",
-          "code": "MINI_TEST(\"Quaternion\", \"From Scalar And Vector\") {\n    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_scalar_and_vector(2.0, Vector(1.0, 2.0, 3.0));\n\n    MINI_CHECK(TOLERANCE.is_close(q.scalar, 2.0));\n    MINI_CHECK(TOLERANCE.is_close(q.vector[0], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(q.vector[1], 2.0));\n    MINI_CHECK(TOLERANCE.is_close(q.vector[2], 3.0));\n}",
+          "sig": "MINI_TEST(\"Quaternion\", \"From Components\")",
+          "code": "MINI_TEST(\"Quaternion\", \"From Components\") {\n    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // q = s + xi + yj + zk: first arg is scalar, second arg is (i,j,k) coefficients (NOT a rotation axis).\n    Quaternion q = Quaternion::from_components(2.0, Vector(1.0, 2.0, 3.0));\n\n    MINI_CHECK(TOLERANCE.is_close(q.scalar, 2.0));\n    MINI_CHECK(TOLERANCE.is_close(q.vector[0], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(q.vector[1], 2.0));\n    MINI_CHECK(TOLERANCE.is_close(q.vector[2], 3.0));\n\n    // Geometric meaning of (s, v): a rotation by `angle` around `axis`.\n    // to_axis_angle() extracts these \u00e2\u20ac\u201d for q=(2,(1,2,3)):\n    //   axis  = (1,2,3)/sqrt(14)\n    //   angle = 2*acos(2/sqrt(18)) \u00e2\u2030\u02c6 2.1617 rad \u00e2\u2030\u02c6 123.85\u00c2\u00b0\n    auto axis_angle = q.to_axis_angle();\n    Vector axis = axis_angle.first;\n    double angle = axis_angle.second;\n    double sqrt14 = std::sqrt(14.0);\n    MINI_CHECK(TOLERANCE.is_close(axis[0], 1.0 / sqrt14));\n    MINI_CHECK(TOLERANCE.is_close(axis[1], 2.0 / sqrt14));\n    MINI_CHECK(TOLERANCE.is_close(axis[2], 3.0 / sqrt14));\n    MINI_CHECK(TOLERANCE.is_close(angle, 2.0 * std::acos(2.0 / std::sqrt(18.0))));\n\n    // Round-trip: from_axis_angle(to_axis_angle(q)) == q.normalized()\n    Quaternion q_round = Quaternion::from_axis_angle(axis, angle);\n    Quaternion qn = q.normalized();\n    MINI_CHECK(TOLERANCE.is_close(q_round.scalar, qn.scalar));\n    MINI_CHECK(TOLERANCE.is_close(q_round.vector[0], qn.vector[0]));\n    MINI_CHECK(TOLERANCE.is_close(q_round.vector[1], qn.vector[1]));\n    MINI_CHECK(TOLERANCE.is_close(q_round.vector[2], qn.vector[2]));\n}",
           "file": "quaternion_test.cpp"
         },
         "python": {
-          "sig": "@MINI_TEST(\"Quaternion\", \"From Scalar And Vector\")",
-          "code": "@MINI_TEST(\"Quaternion\", \"From Scalar And Vector\")\ndef test_quaternion_from_scalar_and_vector():\n    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_scalar_and_vector(2.0, Vector(1.0, 2.0, 3.0))\n\n    MINI_CHECK(TOLERANCE.is_close(q.scalar, 2.0))\n    MINI_CHECK(TOLERANCE.is_close(q.vector[0], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(q.vector[1], 2.0))\n    MINI_CHECK(TOLERANCE.is_close(q.vector[2], 3.0))",
+          "sig": "@MINI_TEST(\"Quaternion\", \"From Components\")",
+          "code": "@MINI_TEST(\"Quaternion\", \"From Components\")\ndef test_quaternion_from_components():\n    import math\n    from session_py import Quaternion\n    from session_py import Vector\n\n    # q = s + xi + yj + zk: first arg is scalar, second arg is (i,j,k) coefficients (NOT a rotation axis).\n    q = Quaternion.from_components(2.0, Vector(1.0, 2.0, 3.0))\n\n    MINI_CHECK(TOLERANCE.is_close(q.scalar, 2.0))\n    MINI_CHECK(TOLERANCE.is_close(q.vector[0], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(q.vector[1], 2.0))\n    MINI_CHECK(TOLERANCE.is_close(q.vector[2], 3.0))\n\n    # Geometric meaning of (s, v): a rotation by `angle` around `axis`.\n    # to_axis_angle() extracts these \u00e2\u20ac\u201d for q=(2,(1,2,3)):\n    #   axis  = (1,2,3)/sqrt(14)\n    #   angle = 2*acos(2/sqrt(18)) \u00e2\u2030\u02c6 2.1617 rad \u00e2\u2030\u02c6 123.85\u00c2\u00b0\n    axis, angle = q.to_axis_angle()\n    sqrt14 = math.sqrt(14.0)\n    MINI_CHECK(TOLERANCE.is_close(axis[0], 1.0 / sqrt14))\n    MINI_CHECK(TOLERANCE.is_close(axis[1], 2.0 / sqrt14))\n    MINI_CHECK(TOLERANCE.is_close(axis[2], 3.0 / sqrt14))\n    MINI_CHECK(TOLERANCE.is_close(angle, 2.0 * math.acos(2.0 / math.sqrt(18.0))))\n\n    # Round-trip: from_axis_angle(to_axis_angle(q)) == q.normalized()\n    q_round = Quaternion.from_axis_angle(axis, angle)\n    qn = q.normalized()\n    MINI_CHECK(TOLERANCE.is_close(q_round.scalar, qn.scalar))\n    MINI_CHECK(TOLERANCE.is_close(q_round.vector[0], qn.vector[0]))\n    MINI_CHECK(TOLERANCE.is_close(q_round.vector[1], qn.vector[1]))\n    MINI_CHECK(TOLERANCE.is_close(q_round.vector[2], qn.vector[2]))",
           "file": "quaternion_test.py"
         }
       }
@@ -56517,12 +56609,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Quaternion\", \"Normalized\")",
-          "code": "MINI_TEST(\"Quaternion\", \"Normalized\") {\n    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_scalar_and_vector(2.0, Vector(0.0, 0.0, 2.0));\n    Quaternion n = q.normalized();\n\n    MINI_CHECK(TOLERANCE.is_close(n.magnitude(), 1.0));\n}",
+          "code": "MINI_TEST(\"Quaternion\", \"Normalized\") {\n    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_components(2.0, Vector(0.0, 0.0, 2.0));\n    Quaternion n = q.normalized();\n\n    MINI_CHECK(TOLERANCE.is_close(n.magnitude(), 1.0));\n}",
           "file": "quaternion_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Quaternion\", \"Normalized\")",
-          "code": "@MINI_TEST(\"Quaternion\", \"Normalized\")\ndef test_quaternion_normalized():\n    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_scalar_and_vector(2.0, Vector(0.0, 0.0, 2.0))\n    n = q.normalized()\n\n    MINI_CHECK(TOLERANCE.is_close(n.magnitude(), 1.0))",
+          "code": "@MINI_TEST(\"Quaternion\", \"Normalized\")\ndef test_quaternion_normalized():\n    from session_py import Quaternion\n    from session_py import Vector\n\n    q = Quaternion.from_components(2.0, Vector(0.0, 0.0, 2.0))\n    n = q.normalized()\n\n    MINI_CHECK(TOLERANCE.is_close(n.magnitude(), 1.0))",
           "file": "quaternion_test.py"
         }
       }
@@ -58262,11 +58354,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "subdivide",
-        "points",
         "n",
         "circle",
         "into",
+        "subdivide",
+        "points",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -58280,11 +58372,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
+        "arc",
         "subdivide",
         "ellipse",
-        "arc",
-        "length",
         "by",
+        "length",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -58298,8 +58390,8 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "arc",
         "through",
+        "arc",
         "points",
         "nurbscurve",
         "primitives",
@@ -58314,12 +58406,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "adaptive",
+        "from",
+        "polyline",
         "curve",
         "open",
+        "adaptive",
         "points",
-        "polyline",
-        "from",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -58334,8 +58426,8 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "evaluation",
         "at",
+        "evaluation",
         "curve",
         "parameter",
         "set_domain",
@@ -58356,8 +58448,8 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "length",
         "frames",
+        "length",
         "curve",
         "along",
         "divide_by_count",
@@ -58381,8 +58473,8 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "perpendicular",
         "ellipse",
+        "perpendicular",
         "frames",
         "divide_by_count",
         "frame_at",
@@ -58404,10 +58496,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "surface",
-        "point",
         "evaluate",
         "cylinder",
+        "surface",
+        "point",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -58422,11 +58514,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "mesh",
-        "and",
         "vertices",
         "from",
         "faces",
+        "and",
+        "mesh",
         "add_vertex",
         "add_face",
         "vertex"
@@ -58553,26 +58645,6 @@ window.API_INDEX = {
       ],
       "summary": "Factory for creating geometric primitives (circle, ellipse, arc, etc.)"
     },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "VertexData geometry class"
-    },
-    "PointCloud": {
-      "composition": [
-        "Color",
-        "Xform"
-      ],
-      "factories": [],
-      "uses": [
-        "Point",
-        "Vector"
-      ],
-      "summary": "A collection of 3D points with optional colors"
-    },
     "NurbsCurve": {
       "composition": [
         "Color",
@@ -58598,11 +58670,25 @@ window.API_INDEX = {
       ],
       "summary": "A quaternion for representing rotations"
     },
-    "LoftPanel": {
+    "VertexData": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "LoftPanel geometry class"
+      "uses": [
+        "Point"
+      ],
+      "summary": "VertexData geometry class"
+    },
+    "PointCloud": {
+      "composition": [
+        "Color",
+        "Xform"
+      ],
+      "factories": [],
+      "uses": [
+        "Point",
+        "Vector"
+      ],
+      "summary": "A collection of 3D points with optional colors"
     },
     "Tolerance": {
       "composition": [],
@@ -58613,6 +58699,18 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "Tolerance values for geometric comparisons"
+    },
+    "RemeshCDT": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "RemeshCDT geometry class"
+    },
+    "LoftPanel": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftPanel geometry class"
     },
     "ColorMode": {
       "composition": [],
@@ -58628,11 +58726,11 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
-    "RemeshCDT": {
+    "Geometry": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "RemeshCDT geometry class"
+      "summary": "Geometry geometry class"
     },
     "Polyline": {
       "composition": [
@@ -58650,12 +58748,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "A polyline defined by a sequence of points"
-    },
-    "Geometry": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Geometry geometry class"
     },
     "TreeNode": {
       "composition": [
@@ -58743,21 +58835,17 @@ window.API_INDEX = {
       ],
       "summary": "A 4x4 transformation matrix for translation, rotation, and scaling"
     },
-    "Graph": {
-      "composition": [
-        "Edge"
-      ],
-      "factories": [],
-      "uses": [
-        "Vertex"
-      ],
-      "summary": "A graph data structure with nodes and edges"
-    },
-    "Color": {
+    "Plane": {
       "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "An RGBA color with preset colors and interpolation"
+      "factories": [
+        "Quaternion"
+      ],
+      "uses": [
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "A plane defined by origin, x-axis, and y-axis"
     },
     "Point": {
       "composition": [],
@@ -58772,16 +58860,21 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A 3D point with x, y, z coordinates"
     },
-    "Plane": {
+    "Color": {
       "composition": [],
-      "factories": [
-        "Quaternion"
+      "factories": [],
+      "uses": [],
+      "summary": "An RGBA color with preset colors and interpolation"
+    },
+    "Graph": {
+      "composition": [
+        "Edge"
       ],
+      "factories": [],
       "uses": [
-        "Point",
-        "Vector"
+        "Vertex"
       ],
-      "summary": "A plane defined by origin, x-axis, and y-axis"
+      "summary": "A graph data structure with nodes and edges"
     },
     "Line": {
       "composition": [
@@ -58796,13 +58889,11 @@ window.API_INDEX = {
       ],
       "summary": "A line defined by start and end points"
     },
-    "Tree": {
-      "composition": [
-        "TreeNode"
-      ],
+    "Edge": {
+      "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "A tree data structure with hierarchical paths"
+      "summary": "An edge in a mesh connecting two vertices"
     },
     "Mesh": {
       "composition": [
@@ -58824,11 +58915,13 @@ window.API_INDEX = {
       ],
       "summary": "A polygon mesh with vertices, faces, and optional vertex colors"
     },
-    "Edge": {
-      "composition": [],
+    "Tree": {
+      "composition": [
+        "TreeNode"
+      ],
       "factories": [],
       "uses": [],
-      "summary": "An edge in a mesh connecting two vertices"
+      "summary": "A tree data structure with hierarchical paths"
     },
     "OBB": {
       "composition": [
@@ -60647,6 +60740,9 @@ window.API_INDEX = {
     "translate_by_normal": [
       "Plane.translate_by_normal"
     ],
+    "to_polylines": [
+      "Plane.to_polylines"
+    ],
     "pointcolor": [
       "Point.pointcolor"
     ],
@@ -61019,11 +61115,14 @@ window.API_INDEX = {
       "Quaternion.identity",
       "Xform.identity"
     ],
-    "from_scalar_and_vector": [
-      "Quaternion.from_scalar_and_vector"
+    "from_components": [
+      "Quaternion.from_components"
     ],
     "from_axis_angle": [
       "Quaternion.from_axis_angle"
+    ],
+    "to_axis_angle": [
+      "Quaternion.to_axis_angle"
     ],
     "from_arc": [
       "Quaternion.from_arc"

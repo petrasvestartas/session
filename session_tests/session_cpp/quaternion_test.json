@@ -5,7 +5,7 @@
     "passed": true,
     "time_ms": 0.018,
     "line": 13,
-    "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // Default constructor (identity)\n    Quaternion q0;\n\n    // Constructor with arguments\n    Quaternion q = Quaternion::from_scalar_and_vector(2.0, Vector(1.0, 0.0, 0.0));\n\n    // Setters\n    q[0] = 5.0;\n    q[1] = 0.0;\n    q[2] = 1.0;\n    q[3] = 0.0;\n\n    // Getters\n    double s_val = q[0];\n    double x = q[1];\n    double y = q[2];\n    double z = q[3];\n\n    // Minimal and Full String Representation\n    std::string qstr = q.str();\n    std::string qrepr = q.repr();\n\n    // Copy (duplicates everything except guid)\n    Quaternion qcopy = q.duplicate();\n    Quaternion qother = Quaternion::from_scalar_and_vector(2.0, Vector(1.0, 0.0, 0.0));\n\n    // Copy operators\n    Quaternion qrot = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    Quaternion qmul = qrot * qrot;\n    Quaternion qscaled = Quaternion::identity() * 2.0;\n    Quaternion a = Quaternion::from_scalar_and_vector(1.0, Vector(0.0, 0.0, 0.0));\n    Quaternion b = Quaternion::from_scalar_and_vector(0.0, Vector(0.0, 0.0, 1.0));\n    Quaternion qsum = a + b;\n    Quaternion qdiff = qrot - qrot;\n    Quaternion qneg = -Quaternion::identity();",
+    "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // Default constructor (identity)\n    Quaternion q0;\n\n    // Constructor with arguments\n    Quaternion q = Quaternion::from_components(2.0, Vector(1.0, 0.0, 0.0));\n\n    // Setters\n    q[0] = 5.0;\n    q[1] = 0.0;\n    q[2] = 1.0;\n    q[3] = 0.0;\n\n    // Getters\n    double s_val = q[0];\n    double x = q[1];\n    double y = q[2];\n    double z = q[3];\n\n    // Minimal and Full String Representation\n    std::string qstr = q.str();\n    std::string qrepr = q.repr();\n\n    // Copy (duplicates everything except guid)\n    Quaternion qcopy = q.duplicate();\n    Quaternion qother = Quaternion::from_components(2.0, Vector(1.0, 0.0, 0.0));\n\n    // Copy operators\n    Quaternion qrot = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    Quaternion qmul = qrot * qrot;\n    Quaternion qscaled = Quaternion::identity() * 2.0;\n    Quaternion a = Quaternion::from_components(1.0, Vector(0.0, 0.0, 0.0));\n    Quaternion b = Quaternion::from_components(0.0, Vector(0.0, 0.0, 1.0));\n    Quaternion qsum = a + b;\n    Quaternion qdiff = qrot - qrot;\n    Quaternion qneg = -Quaternion::identity();",
     "checks": [
       {
         "line": 53,
@@ -89,7 +89,7 @@
     "group": "Quaternion",
     "test_name": "Identity",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.006,
     "line": 70,
     "code": "    // uncomment #include \"quaternion.h\"\n\n    Quaternion q = Quaternion::identity();",
     "checks": [
@@ -118,30 +118,70 @@
   },
   {
     "group": "Quaternion",
-    "test_name": "From Scalar And Vector",
+    "test_name": "From Components",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.004,
     "line": 81,
-    "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_scalar_and_vector(2.0, Vector(1.0, 2.0, 3.0));",
+    "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // q = s + xi + yj + zk: first arg is scalar, second arg is (i,j,k) coefficients (NOT a rotation axis).\n    Quaternion q = Quaternion::from_components(2.0, Vector(1.0, 2.0, 3.0));\n\n\n    // Geometric meaning of (s, v): a rotation by `angle` around `axis`.\n    // to_axis_angle() extracts these — for q=(2,(1,2,3)):\n    //   axis  = (1,2,3)/sqrt(14)\n    //   angle = 2*acos(2/sqrt(18)) ≈ 2.1617 rad ≈ 123.85°\n    auto axis_angle = q.to_axis_angle();\n    Vector axis = axis_angle.first;\n    double angle = axis_angle.second;\n    double sqrt14 = std::sqrt(14.0);\n\n    // Round-trip: from_axis_angle(to_axis_angle(q)) == q.normalized()\n    Quaternion q_round = Quaternion::from_axis_angle(axis, angle);\n    Quaternion qn = q.normalized();",
     "checks": [
       {
-        "line": 87,
+        "line": 88,
         "code_line": "TOLERANCE.is_close(q.scalar, 2.0)",
         "passed": true
       },
       {
-        "line": 88,
+        "line": 89,
         "code_line": "TOLERANCE.is_close(q.vector[0], 1.0)",
         "passed": true
       },
       {
-        "line": 89,
+        "line": 90,
         "code_line": "TOLERANCE.is_close(q.vector[1], 2.0)",
         "passed": true
       },
       {
-        "line": 90,
+        "line": 91,
         "code_line": "TOLERANCE.is_close(q.vector[2], 3.0)",
+        "passed": true
+      },
+      {
+        "line": 101,
+        "code_line": "TOLERANCE.is_close(axis[0], 1.0 / sqrt14)",
+        "passed": true
+      },
+      {
+        "line": 102,
+        "code_line": "TOLERANCE.is_close(axis[1], 2.0 / sqrt14)",
+        "passed": true
+      },
+      {
+        "line": 103,
+        "code_line": "TOLERANCE.is_close(axis[2], 3.0 / sqrt14)",
+        "passed": true
+      },
+      {
+        "line": 104,
+        "code_line": "TOLERANCE.is_close(angle, 2.0 * std::acos(2.0 / std::sqrt(18.0)))",
+        "passed": true
+      },
+      {
+        "line": 109,
+        "code_line": "TOLERANCE.is_close(q_round.scalar, qn.scalar)",
+        "passed": true
+      },
+      {
+        "line": 110,
+        "code_line": "TOLERANCE.is_close(q_round.vector[0], qn.vector[0])",
+        "passed": true
+      },
+      {
+        "line": 111,
+        "code_line": "TOLERANCE.is_close(q_round.vector[1], qn.vector[1])",
+        "passed": true
+      },
+      {
+        "line": 112,
+        "code_line": "TOLERANCE.is_close(q_round.vector[2], qn.vector[2])",
         "passed": true
       }
     ],
@@ -152,16 +192,16 @@
     "test_name": "From Axis Angle",
     "passed": true,
     "time_ms": 0.001,
-    "line": 93,
+    "line": 115,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);",
     "checks": [
       {
-        "line": 99,
+        "line": 121,
         "code_line": "TOLERANCE.is_close(q.scalar, std::cos(Tolerance::PI / 4.0))",
         "passed": true
       },
       {
-        "line": 100,
+        "line": 122,
         "code_line": "TOLERANCE.is_close(q.vector[2], std::sin(Tolerance::PI / 4.0))",
         "passed": true
       }
@@ -173,31 +213,31 @@
     "test_name": "From Arc",
     "passed": true,
     "time_ms": 0.003,
-    "line": 103,
+    "line": 125,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Vector src(1.0, 0.0, 0.0);\n    Vector dst(0.0, 1.0, 0.0);\n    Quaternion q = Quaternion::from_arc(src, dst);\n    Vector rotated = q.rotate_vector(src);\n\n    Vector src2(1.0, 0.0, 0.0);\n    Vector dst2(-1.0, 0.0, 0.0);\n    Quaternion q2 = Quaternion::from_arc(src2, dst2);\n    Vector rot = q2.rotate_vector(src2);",
     "checks": [
       {
-        "line": 112,
+        "line": 134,
         "code_line": "TOLERANCE.is_close(rotated[0], dst[0])",
         "passed": true
       },
       {
-        "line": 113,
+        "line": 135,
         "code_line": "TOLERANCE.is_close(rotated[1], dst[1])",
         "passed": true
       },
       {
-        "line": 114,
+        "line": 136,
         "code_line": "TOLERANCE.is_close(rotated[2], dst[2])",
         "passed": true
       },
       {
-        "line": 119,
+        "line": 141,
         "code_line": "TOLERANCE.is_close(rot[0], -1.0)",
         "passed": true
       },
       {
-        "line": 120,
+        "line": 142,
         "code_line": "TOLERANCE.is_close(rot[1], 0.0)",
         "passed": true
       }
@@ -209,16 +249,16 @@
     "test_name": "From Euler",
     "passed": true,
     "time_ms": 0.001,
-    "line": 123,
+    "line": 145,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q_euler = Quaternion::from_euler(0.0, 0.0, Tolerance::PI / 2.0);\n    Quaternion q_axis = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);",
     "checks": [
       {
-        "line": 130,
+        "line": 152,
         "code_line": "TOLERANCE.is_close(q_euler.scalar, q_axis.scalar)",
         "passed": true
       },
       {
-        "line": 131,
+        "line": 153,
         "code_line": "TOLERANCE.is_close(q_euler.vector[2], q_axis.vector[2])",
         "passed": true
       }
@@ -229,22 +269,22 @@
     "group": "Quaternion",
     "test_name": "From Rotation",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 134,
+    "time_ms": 0.009,
+    "line": 156,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"plane.h\"\n\n    Plane plane_a = Plane::xy_plane();\n    Plane plane_b(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(-1.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0));\n    Quaternion q = Quaternion::from_rotation(plane_a, plane_b);\n    Vector rotated_x = q.rotate_vector(plane_a.x_axis());",
     "checks": [
       {
-        "line": 143,
+        "line": 165,
         "code_line": "TOLERANCE.is_close(rotated_x[0], 0.0)",
         "passed": true
       },
       {
-        "line": 144,
+        "line": 166,
         "code_line": "TOLERANCE.is_close(rotated_x[1], 1.0)",
         "passed": true
       },
       {
-        "line": 145,
+        "line": 167,
         "code_line": "TOLERANCE.is_close(rotated_x[2], 0.0)",
         "passed": true
       }
@@ -256,21 +296,21 @@
     "test_name": "Rotate Vector",
     "passed": true,
     "time_ms": 0.001,
-    "line": 148,
+    "line": 170,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    Vector rotated = q.rotate_vector(Vector(1.0, 0.0, 0.0));",
     "checks": [
       {
-        "line": 155,
+        "line": 177,
         "code_line": "TOLERANCE.is_close(rotated[0], 0.0)",
         "passed": true
       },
       {
-        "line": 156,
+        "line": 178,
         "code_line": "TOLERANCE.is_close(rotated[1], 1.0)",
         "passed": true
       },
       {
-        "line": 157,
+        "line": 179,
         "code_line": "TOLERANCE.is_close(rotated[2], 0.0)",
         "passed": true
       }
@@ -281,27 +321,27 @@
     "group": "Quaternion",
     "test_name": "Get Rotation",
     "passed": true,
-    "time_ms": 0.001,
-    "line": 160,
+    "time_ms": 0.002,
+    "line": 182,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"plane.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    Plane p = q.get_rotation();",
     "checks": [
       {
-        "line": 167,
+        "line": 189,
         "code_line": "TOLERANCE.is_close(p.x_axis()[0], 0.0)",
         "passed": true
       },
       {
-        "line": 168,
+        "line": 190,
         "code_line": "TOLERANCE.is_close(p.x_axis()[1], 1.0)",
         "passed": true
       },
       {
-        "line": 169,
+        "line": 191,
         "code_line": "TOLERANCE.is_close(p.y_axis()[0], -1.0)",
         "passed": true
       },
       {
-        "line": 170,
+        "line": 192,
         "code_line": "TOLERANCE.is_close(p.y_axis()[1], 0.0)",
         "passed": true
       }
@@ -312,12 +352,12 @@
     "group": "Quaternion",
     "test_name": "Magnitude",
     "passed": true,
-    "time_ms": 0.0,
-    "line": 173,
+    "time_ms": 0.005,
+    "line": 195,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 4.0);",
     "checks": [
       {
-        "line": 179,
+        "line": 201,
         "code_line": "TOLERANCE.is_close(q.magnitude(), 1.0)",
         "passed": true
       }
@@ -328,12 +368,12 @@
     "group": "Quaternion",
     "test_name": "Magnitude Squared",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 182,
+    "time_ms": 0.001,
+    "line": 204,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 4.0);",
     "checks": [
       {
-        "line": 188,
+        "line": 210,
         "code_line": "TOLERANCE.is_close(q.magnitude_squared(), q.magnitude() * q.magnitude())",
         "passed": true
       }
@@ -345,11 +385,11 @@
     "test_name": "Normalized",
     "passed": true,
     "time_ms": 0.001,
-    "line": 191,
-    "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_scalar_and_vector(2.0, Vector(0.0, 0.0, 2.0));\n    Quaternion n = q.normalized();",
+    "line": 213,
+    "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_components(2.0, Vector(0.0, 0.0, 2.0));\n    Quaternion n = q.normalized();",
     "checks": [
       {
-        "line": 198,
+        "line": 220,
         "code_line": "TOLERANCE.is_close(n.magnitude(), 1.0)",
         "passed": true
       }
@@ -360,22 +400,22 @@
     "group": "Quaternion",
     "test_name": "Conjugate",
     "passed": true,
-    "time_ms": 0.001,
-    "line": 201,
+    "time_ms": 0.002,
+    "line": 223,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 4.0);\n    Quaternion r = q.conjugate();",
     "checks": [
       {
-        "line": 208,
+        "line": 230,
         "code_line": "TOLERANCE.is_close(r.scalar, q.scalar)",
         "passed": true
       },
       {
-        "line": 209,
+        "line": 231,
         "code_line": "TOLERANCE.is_close(r.vector[0], -q.vector[0])",
         "passed": true
       },
       {
-        "line": 210,
+        "line": 232,
         "code_line": "TOLERANCE.is_close(r.vector[2], -q.vector[2])",
         "passed": true
       }
@@ -387,26 +427,26 @@
     "test_name": "Invert",
     "passed": true,
     "time_ms": 0.002,
-    "line": 213,
+    "line": 235,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 3.0);\n    Quaternion result = q * q.invert();",
     "checks": [
       {
-        "line": 220,
+        "line": 242,
         "code_line": "TOLERANCE.is_close(result.scalar, 1.0)",
         "passed": true
       },
       {
-        "line": 221,
+        "line": 243,
         "code_line": "TOLERANCE.is_close(result.vector[0], 0.0)",
         "passed": true
       },
       {
-        "line": 222,
+        "line": 244,
         "code_line": "TOLERANCE.is_close(result.vector[1], 0.0)",
         "passed": true
       },
       {
-        "line": 223,
+        "line": 245,
         "code_line": "TOLERANCE.is_close(result.vector[2], 0.0)",
         "passed": true
       }
@@ -418,11 +458,11 @@
     "test_name": "Dot",
     "passed": true,
     "time_ms": 0.0,
-    "line": 226,
+    "line": 248,
     "code": "    // uncomment #include \"quaternion.h\"\n\n    Quaternion q = Quaternion::identity();",
     "checks": [
       {
-        "line": 231,
+        "line": 253,
         "code_line": "TOLERANCE.is_close(q.dot(q), 1.0)",
         "passed": true
       }
@@ -433,22 +473,22 @@
     "group": "Quaternion",
     "test_name": "Slerp",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 234,
+    "time_ms": 0.007,
+    "line": 256,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q1 = Quaternion::identity();\n    Quaternion q2 = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    Quaternion mid = q1.slerp(q2, 0.5);\n    Quaternion expected = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 4.0);\n\n    Quaternion q3 = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), 0.001);\n    Quaternion mid2 = q1.slerp(q3, 0.5);\n    Quaternion half = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), 0.0005);",
     "checks": [
       {
-        "line": 243,
+        "line": 265,
         "code_line": "TOLERANCE.is_close(mid.scalar, expected.scalar)",
         "passed": true
       },
       {
-        "line": 244,
+        "line": 266,
         "code_line": "TOLERANCE.is_close(mid.vector[2], expected.vector[2])",
         "passed": true
       },
       {
-        "line": 248,
+        "line": 270,
         "code_line": "TOLERANCE.is_close(mid2.scalar, half.scalar)",
         "passed": true
       }
@@ -459,17 +499,17 @@
     "group": "Quaternion",
     "test_name": "Nlerp",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 251,
+    "time_ms": 0.003,
+    "line": 273,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    Quaternion q1 = Quaternion::identity();\n    Quaternion q2 = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    Quaternion r0 = q1.nlerp(q2, 0.0);\n    Quaternion r1 = q1.nlerp(q2, 1.0);",
     "checks": [
       {
-        "line": 260,
+        "line": 282,
         "code_line": "TOLERANCE.is_close(r0.scalar, q1.scalar)",
         "passed": true
       },
       {
-        "line": 261,
+        "line": 283,
         "code_line": "TOLERANCE.is_close(r1.scalar, q2.scalar)",
         "passed": true
       }
@@ -480,22 +520,22 @@
     "group": "Quaternion",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 6.978,
-    "line": 264,
+    "time_ms": 8.768,
+    "line": 286,
     "code": "    // uncomment #include \"quaternion.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    q.name = \"serialization/test_quaternion\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   json_dumps()    │ std::string  │ to JSON string\n    //   json_loads(s)   │ std::string  │ from JSON string\n    //   json_dump(path) │ file         │ write to file\n    //   json_load(path) │ file         │ read from file\n\n    std::string filename = \"serialization/test_quaternion.json\";\n    q.json_dump(filename);\n    Quaternion loaded = Quaternion::json_load(filename);",
     "checks": [
       {
-        "line": 281,
+        "line": 303,
         "code_line": "loaded.name == \"serialization/test_quaternion\"",
         "passed": true
       },
       {
-        "line": 282,
+        "line": 304,
         "code_line": "TOLERANCE.is_close(loaded.scalar, q.scalar)",
         "passed": true
       },
       {
-        "line": 283,
+        "line": 305,
         "code_line": "TOLERANCE.is_close(loaded.vector[2], q.vector[2])",
         "passed": true
       }
@@ -506,22 +546,22 @@
     "group": "Quaternion",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 1.089,
-    "line": 286,
+    "time_ms": 1.515,
+    "line": 308,
     "code": "    // uncomment #include \"quaternion.h\"\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    q.name = \"serialization/test_quaternion\";\n\n    std::string filename = \"serialization/test_quaternion.bin\";\n    q.pb_dump(filename);\n    Quaternion loaded = Quaternion::pb_load(filename);",
     "checks": [
       {
-        "line": 296,
+        "line": 318,
         "code_line": "loaded.name == \"serialization/test_quaternion\"",
         "passed": true
       },
       {
-        "line": 297,
+        "line": 319,
         "code_line": "TOLERANCE.is_close(loaded.scalar, q.scalar)",
         "passed": true
       },
       {
-        "line": 298,
+        "line": 320,
         "code_line": "TOLERANCE.is_close(loaded.vector[2], q.vector[2])",
         "passed": true
       }

@@ -19,7 +19,7 @@
     "group": "Knot",
     "test_name": "Make Periodic Uniform",
     "passed": true,
-    "time_ms": 0.021,
+    "time_ms": 0.024,
     "line": 20,
     "code": "    from session_py import knot\n\n    # 0 1 2 3 4 5 6\n    order = 4\n    cv_count = 5\n    knots = knot.make_periodic_uniform(order, cv_count)",
     "checks": [
@@ -35,7 +35,7 @@
     "group": "Knot",
     "test_name": "Is Clamped",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.017,
     "line": 31,
     "code": "    from session_py import knot\n\n    # 0 0 0 1 2 2 2\n    # 0 1 2 3 4 5 6\n    order = 4\n    cv_count = 5\n    knots_periodic = knot.make_periodic_uniform(order, cv_count)\n    knots_clamped = knot.make_clamped_uniform(order, cv_count)\n    is_not_clamped = knot.is_clamped(order, cv_count, knots_periodic)\n    is_clamped = knot.is_clamped(order, cv_count, knots_clamped)",
     "checks": [
@@ -51,7 +51,7 @@
     "group": "Knot",
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.035,
+    "time_ms": 0.033,
     "line": 46,
     "code": "    from session_py import knot\n\n    # Symmetric knot vector -> reverse gives back the same (palindrome)\n    # 0 0 0 1 2 2 2\n    order = 4\n    cv_count = 5\n    knots_sym = knot.make_clamped_uniform(order, cv_count)\n    knot.reverse(order, cv_count, knots_sym)\n\n    # Asymmetric knot vector -> extra knot at 0.5 shifts to 1.5 after reverse\n    # 0 0 0 0.5 1 2 2 2 -> 0 0 0 1 1.5 2 2 2\n    knots_asym = [0.0, 0.0, 0.0, 0.5, 1.0, 2.0, 2.0, 2.0]\n    knot.reverse(4, 6, knots_asym)",
     "checks": [
@@ -72,7 +72,7 @@
     "group": "Knot",
     "test_name": "Find Span",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.01,
     "line": 65,
     "code": "    from session_py import knot\n\n    # 0 0 0 1 2 2 2\n    order = 4\n    cv_count = 5\n    knots_clamped = knot.make_clamped_uniform(order, cv_count)\n    #   - 0.5 falls in span [0, 1] -> index 0\n    #   - 1.5 falls in span [1, 2] -> index 1\n    spancount0 = knot.find_span(order, cv_count, knots_clamped, 0.5)\n    spancount1 = knot.find_span(order, cv_count, knots_clamped, 1.5)",
     "checks": [
@@ -88,7 +88,7 @@
     "group": "Knot",
     "test_name": "Solve Tridiagonal",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.014,
     "line": 80,
     "code": "    from session_py import knot\n\n    # Thomas algorithm -- an O(n) solver for tridiagonal linear systems\n    #   | 2 1 | |x0|   |3|\n    #   | 1 2 | |x1| = |3|\n    #   -> solution: x0 = 1, x1 = 1\n    lo = [0, 1]\n    di = [2, 2]\n    up = [1, 0]\n    rh = [3, 3]\n    sol = knot.solve_tridiagonal(1, 2, lo, di, up, rh)",
     "checks": [
@@ -104,7 +104,7 @@
     "group": "Knot",
     "test_name": "Compute Parameters",
     "passed": true,
-    "time_ms": 0.05,
+    "time_ms": 0.046,
     "line": 96,
     "code": "    from session_py import knot\n    import numpy as np\n\n    pts = np.array([[0,0,0], [1,0,0], [2,0,0], [3,0,0]], dtype=float)\n    # Chord-length parameterization: since all gaps are 1.0, params = {0, 1, 2, 3}\n    t = knot.compute_parameters(pts, knot.CurveKnotStyle.Chord)",
     "checks": [
@@ -120,7 +120,7 @@
     "group": "Knot",
     "test_name": "Build Interpolation Knots",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.016,
     "line": 107,
     "code": "    from session_py import knot\n\n    params = [0.0, 1.0, 2.0, 3.0]\n    degree = 3\n    # cv_count = n + 2 = 6 (natural end conditions add 2 CVs)\n    # kc = order + cv_count - 2 = 4 + 6 - 2 = 8\n    #   [0, 0, 0,  |  1, 2,  |  3, 3, 3]\n    #   <-clamp->    interior    <-clamp->\n    knots = knot.build_interp_knots(params, degree)",
     "checks": [
@@ -136,7 +136,7 @@
     "group": "Knot",
     "test_name": "Evaluation Basis",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.02,
     "line": 121,
     "code": "    from session_py import knot\n\n    # Cox-de Boor recursive evaluation of B-spline basis functions\n    # At parameter t, exactly 'order' basis functions are non-zero\n    # Partition of unity: they always sum to 1.0\n    # Used to evaluate NURBS curves/surfaces: C(t) = sum(N_i(t) * P_i)\n    # 0 0 0 1 2 2 2\n    order = 4\n    cv_count = 5\n    knots = knot.make_clamped_uniform(order, cv_count)\n    span = knot.find_span(order, cv_count, knots, 0.5)\n    basis = knot.eval_basis(order, knots, span, 0.5)",
     "checks": [
@@ -152,7 +152,7 @@
     "group": "Knot",
     "test_name": "Build Fitted Knots Adaptive",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.02,
     "line": 138,
     "code": "    from session_py import knot\n\n    # Builds knot vectors for least-squares fitting\n    # Concentrates knots where curvature is high (sharp turns)\n    # For collinear points (zero curvature), interior knots are evenly distributed\n    pts = [0,0,0, 1,0,0, 2,0,0, 3,0,0, 4,0,0]\n    params = [0.0, 1.0, 2.0, 3.0, 4.0]\n    knots = knot.build_fitted_knots_adaptive(params, pts, 5, 3, 5, 3)",
     "checks": [
@@ -168,7 +168,7 @@
     "group": "Knot",
     "test_name": "Build Fitted Knots Periodic Adaptive",
     "passed": true,
-    "time_ms": 0.027,
+    "time_ms": 0.022,
     "line": 151,
     "code": "    from session_py import knot\n\n    # Periodic version for closed curves -- knots wrap around\n    # For a regular square (equal turns, equal chords), knots are uniformly spaced\n    pts = [0,0,0, 1,0,0, 1,1,0, 0,1,0]\n    params = [0.0, 1.0, 2.0, 3.0, 4.0]\n    knots = knot.build_fitted_knots_periodic_adaptive(params, pts, 4, 3, 4, 3)",
     "checks": [
@@ -184,7 +184,7 @@
     "group": "Knot",
     "test_name": "Solve Banded SPD",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.015,
     "line": 163,
     "code": "    from session_py import knot\n\n    # Cholesky solver for banded symmetric positive-definite systems\n    #   | 4 2 0 |       |8 |       |1|\n    #   | 2 5 1 | * x = |13| -> x = |2|\n    #   | 0 1 3 |       |5 |       |1|\n    band = [4, 0, 5, 2, 3, 1]\n    rhs = [8, 13, 5]\n    knot.solve_banded_spd(1, 3, 1, band, rhs)",
     "checks": [
