@@ -58,7 +58,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 77.554
+    "time_ms": 5.58
   },
   {
     "checks": [
@@ -379,7 +379,7 @@
     "line": 134,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.147
+    "time_ms": 0.151
   },
   {
     "checks": [
@@ -485,7 +485,7 @@
     "line": 377,
     "passed": true,
     "test_name": "Conversions",
-    "time_ms": 17.559
+    "time_ms": 14.293
   },
   {
     "checks": [
@@ -831,7 +831,7 @@
     "line": 426,
     "passed": true,
     "test_name": "Evaluation",
-    "time_ms": 7.822
+    "time_ms": 7.021
   },
   {
     "checks": [
@@ -927,7 +927,7 @@
     "line": 551,
     "passed": true,
     "test_name": "Modifications",
-    "time_ms": 6.037
+    "time_ms": 4.217
   },
   {
     "checks": [
@@ -953,7 +953,7 @@
     "line": 690,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 21.346
+    "time_ms": 13.127
   },
   {
     "checks": [
@@ -974,7 +974,7 @@
     "line": 732,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 35.279
+    "time_ms": 10.88
   },
   {
     "checks": [
@@ -1025,7 +1025,7 @@
     "line": 646,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 0.579
+    "time_ms": 0.796
   },
   {
     "checks": [
@@ -1101,7 +1101,7 @@
     "line": 49,
     "passed": true,
     "test_name": "Create Interpolated",
-    "time_ms": 0.035
+    "time_ms": 0.043
   },
   {
     "checks": [
@@ -1152,6 +1152,6 @@
     "line": 100,
     "passed": true,
     "test_name": "Create Fitted",
-    "time_ms": 0.076
+    "time_ms": 0.08
   }
 ]

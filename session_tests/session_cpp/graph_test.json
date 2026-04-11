@@ -3,7 +3,7 @@
     "group": "Graph",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.009,
     "line": 8,
     "code": "    // uncomment #include \"graph.h\"\n\n    // Default constructor\n    Graph g0;\n\n    // Constructor with name\n    Graph g(\"my_named_graph\");\n\n    // Minimal string representation\n    std::string gstr = g.str();",
     "checks": [
@@ -34,7 +34,7 @@
     "group": "Graph",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.171,
+    "time_ms": 7.653,
     "line": 26,
     "code": "    // uncomment #include \"graph.h\"\n    // uncomment #include \"encoders.h\"\n\n    Graph original(\"test_graph\");\n    original.add_node(\"node1\", \"Node 1\");\n    original.add_node(\"node2\", \"Node 2\");\n    original.add_edge(\"node1\", \"node2\", \"edge1\");\n\n    std::string fname = \"serialization/test_graph.json\";\n    encoders::json_dump(original, fname);\n    Graph loaded = encoders::json_load<Graph>(fname);\n\n    auto edge_key = std::make_tuple<std::string, std::string>(\"node1\", \"node2\");",
     "checks": [
@@ -60,7 +60,7 @@
     "group": "Graph",
     "test_name": "Has Node",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.005,
     "line": 45,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_node(\"a\");",
     "checks": [
@@ -81,7 +81,7 @@
     "group": "Graph",
     "test_name": "Has Edge",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.003,
     "line": 55,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n\n    auto ab = std::make_tuple<std::string, std::string>(\"a\", \"b\");\n    auto ac = std::make_tuple<std::string, std::string>(\"a\", \"c\");",
     "checks": [
@@ -102,7 +102,7 @@
     "group": "Graph",
     "test_name": "Add Node",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 67,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    auto key = g.add_node(\"a\");",
     "checks": [
@@ -128,7 +128,7 @@
     "group": "Graph",
     "test_name": "Add Edge",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.002,
     "line": 78,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    auto edge = g.add_edge(\"a\", \"b\");\n    auto [u, v] = edge;",
     "checks": [
@@ -149,7 +149,7 @@
     "group": "Graph",
     "test_name": "Remove Node",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.013,
     "line": 89,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.remove_node(\"a\");",
     "checks": [
@@ -170,7 +170,7 @@
     "group": "Graph",
     "test_name": "Remove Edge",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.004,
     "line": 100,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    auto edge_key = std::make_tuple<std::string, std::string>(\"a\", \"b\");\n    g.remove_edge(edge_key);",
     "checks": [
@@ -196,7 +196,7 @@
     "group": "Graph",
     "test_name": "Get Vertices",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 113,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_node(\"a\");\n    g.add_node(\"b\");\n\n    auto verts = g.get_vertices();",
     "checks": [
@@ -212,7 +212,7 @@
     "group": "Graph",
     "test_name": "Get Edges",
     "passed": true,
-    "time_ms": 0.016,
+    "time_ms": 0.01,
     "line": 125,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n\n    auto edges = g.get_edges();",
     "checks": [
@@ -228,7 +228,7 @@
     "group": "Graph",
     "test_name": "Neighbors",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.004,
     "line": 137,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"a\", \"c\");\n\n    auto neigh = g.neighbors(\"a\");",
     "checks": [
@@ -260,7 +260,7 @@
     "group": "Graph",
     "test_name": "Number Of Edges",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.006,
     "line": 160,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");",
     "checks": [
@@ -276,7 +276,7 @@
     "group": "Graph",
     "test_name": "Clear",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 170,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.clear();",
     "checks": [
@@ -313,7 +313,7 @@
     "group": "Graph",
     "test_name": "Edge Attribute",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.002,
     "line": 191,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\", \"initial\");\n    g.edge_attribute(\"a\", \"b\", \"updated\");",
     "checks": [
@@ -329,7 +329,7 @@
     "group": "Graph",
     "test_name": "Bfs",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.01,
     "line": 201,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n    g.add_edge(\"c\", \"a\");\n    g.add_edge(\"b\", \"d\");\n    g.add_edge(\"e\", \"f\");\n    auto result = g.bfs(\"a\");",
     "checks": [
@@ -345,7 +345,7 @@
     "group": "Graph",
     "test_name": "Dfs",
     "passed": true,
-    "time_ms": 0.016,
+    "time_ms": 0.013,
     "line": 215,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n    g.add_edge(\"c\", \"a\");\n    g.add_edge(\"b\", \"d\");\n    g.add_edge(\"e\", \"f\");\n    auto result = g.dfs(\"a\");",
     "checks": [
@@ -361,7 +361,7 @@
     "group": "Graph",
     "test_name": "Connected Components",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.01,
     "line": 229,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n    g.add_edge(\"c\", \"a\");\n    g.add_edge(\"b\", \"d\");\n    g.add_edge(\"e\", \"f\");\n    auto comps = g.connected_components();",
     "checks": [
@@ -387,7 +387,7 @@
     "group": "Graph",
     "test_name": "Shortest Path",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.008,
     "line": 245,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n    g.add_edge(\"c\", \"a\");\n    g.add_edge(\"b\", \"d\");\n    g.add_edge(\"e\", \"f\");",
     "checks": [
@@ -418,7 +418,7 @@
     "group": "Graph",
     "test_name": "Has Cycle",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.005,
     "line": 261,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n    g.add_edge(\"c\", \"a\");\n\n    Graph g2(\"g2\");\n    g2.add_edge(\"x\", \"y\");\n    g2.add_edge(\"y\", \"z\");",
     "checks": [
@@ -439,7 +439,7 @@
     "group": "Graph",
     "test_name": "Cycle Basis",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.01,
     "line": 276,
     "code": "    // uncomment #include \"graph.h\"\n\n    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n    g.add_edge(\"c\", \"a\");\n    auto cycles = g.cycle_basis();",
     "checks": [

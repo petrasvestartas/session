@@ -63,7 +63,7 @@
     "line": 309,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.145
+    "time_ms": 0.12
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 338,
     "passed": true,
     "test_name": "Setters",
-    "time_ms": 0.112
+    "time_ms": 0.091
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 354,
     "passed": true,
     "test_name": "Center Line",
-    "time_ms": 0.031
+    "time_ms": 0.023
   },
   {
     "checks": [
@@ -131,7 +131,7 @@
     "line": 366,
     "passed": true,
     "test_name": "Extend",
-    "time_ms": 0.051
+    "time_ms": 0.046
   },
   {
     "checks": [
@@ -157,7 +157,7 @@
     "line": 377,
     "passed": true,
     "test_name": "Aabb",
-    "time_ms": 0.049
+    "time_ms": 0.041
   },
   {
     "checks": [
@@ -183,7 +183,7 @@
     "line": 390,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.035
+    "time_ms": 0.032
   },
   {
     "checks": [
@@ -235,7 +235,7 @@
     "line": 420,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 12.283
+    "time_ms": 12.949
   },
   {
     "checks": [
@@ -266,7 +266,7 @@
     "line": 439,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 9.394
+    "time_ms": 13.299
   },
   {
     "checks": [
@@ -303,7 +303,7 @@
     "line": 925,
     "passed": true,
     "test_name": "Edge Vectors",
-    "time_ms": 0.056
+    "time_ms": 0.04
   },
   {
     "checks": [
@@ -329,7 +329,7 @@
     "line": 914,
     "passed": true,
     "test_name": "Planes",
-    "time_ms": 0.054
+    "time_ms": 0.062
   },
   {
     "checks": [
@@ -375,6 +375,6 @@
     "line": 904,
     "passed": true,
     "test_name": "Polylines",
-    "time_ms": 0.05
+    "time_ms": 0.097
   }
 ]

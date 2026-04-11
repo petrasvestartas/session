@@ -58,7 +58,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Line Point",
-    "time_ms": 0.015
+    "time_ms": 0.018
   },
   {
     "checks": [
@@ -89,7 +89,7 @@
     "line": 34,
     "passed": true,
     "test_name": "Polyline Point",
-    "time_ms": 0.018
+    "time_ms": 0.019
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 57,
     "passed": true,
     "test_name": "Curve Point",
-    "time_ms": 0.1
+    "time_ms": 0.125
   },
   {
     "checks": [
@@ -141,7 +141,7 @@
     "line": 82,
     "passed": true,
     "test_name": "Surface Point",
-    "time_ms": 0.292
+    "time_ms": 0.307
   },
   {
     "checks": [
@@ -167,7 +167,7 @@
     "line": 119,
     "passed": true,
     "test_name": "Mesh Point",
-    "time_ms": 0.127
+    "time_ms": 0.2
   },
   {
     "checks": [
@@ -193,7 +193,7 @@
     "line": 137,
     "passed": true,
     "test_name": "Mesh Point AABB",
-    "time_ms": 0.213
+    "time_ms": 0.246
   },
   {
     "checks": [
@@ -229,6 +229,6 @@
     "line": 155,
     "passed": true,
     "test_name": "Pointcloud Point",
-    "time_ms": 0.014
+    "time_ms": 0.015
   }
 ]

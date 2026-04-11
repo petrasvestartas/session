@@ -3,7 +3,7 @@
     "group": "Encoders",
     "test_name": "Json Dump Load",
     "passed": true,
-    "time_ms": 7.202,
+    "time_ms": 9.228,
     "line": 7,
     "code": "    from session_py import Point\n    from session_py.encoders import json_dump, json_load\n    from pathlib import Path\n    import json\n\n    original = Point(1.5, 2.5, 3.5)\n    original.name = \"test_point\"\n    filepath = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_encoders_point.json\"\n    json_dump(original, filepath)\n    loaded = json_load(filepath)\n\n\n    filepath.unlink()",
     "checks": [
@@ -34,7 +34,7 @@
     "group": "Encoders",
     "test_name": "Json Dumps Loads",
     "passed": true,
-    "time_ms": 0.134,
+    "time_ms": 0.181,
     "line": 28,
     "code": "    from session_py import Vector\n    from session_py.encoders import json_dumps, json_loads\n\n    original = Vector(42.1, 84.2, 126.3)\n    original.name = \"test_vector\"\n    json_str = json_dumps(original)\n\n\n    loaded = json_loads(json_str)",
     "checks": [
@@ -60,7 +60,7 @@
     "group": "Encoders",
     "test_name": "Encode Collection Values",
     "passed": true,
-    "time_ms": 0.321,
+    "time_ms": 0.266,
     "line": 45,
     "code": "    from session_py import Point\n    from session_py.encoders import json_dumps\n    import json\n\n    json_str = json_dumps([\n        Point(1, 2, 3),\n        Point(4, 5, 6),\n        Point(7, 8, 9),\n    ])\n    d = json.loads(json_str)",
     "checks": [
@@ -96,7 +96,7 @@
     "group": "Encoders",
     "test_name": "Encode Collection Shared Ptr",
     "passed": true,
-    "time_ms": 0.146,
+    "time_ms": 0.162,
     "line": 65,
     "code": "    from session_py import Line\n    from session_py.encoders import json_dumps\n    import json\n\n    d = json.loads(json_dumps([\n        Line(0, 0, 0, 1, 0, 0),\n        Line(0, 0, 0, 0, 1, 0),\n    ]))",
     "checks": [
@@ -127,7 +127,7 @@
     "group": "Encoders",
     "test_name": "Decode Collection",
     "passed": true,
-    "time_ms": 0.259,
+    "time_ms": 0.177,
     "line": 82,
     "code": "    from session_py import Point\n    from session_py.encoders import json_dumps, json_loads\n\n    decoded = json_loads(json_dumps([\n        Point(1, 2, 3),\n        Point(4, 5, 6),\n    ]))",
     "checks": [
@@ -153,7 +153,7 @@
     "group": "Encoders",
     "test_name": "Decode Collection Ptr",
     "passed": true,
-    "time_ms": 0.162,
+    "time_ms": 0.129,
     "line": 97,
     "code": "    from session_py import Vector\n    from session_py.encoders import json_dumps, json_loads\n\n    decoded = json_loads(json_dumps([\n        Vector(1, 0, 0),\n        Vector(0, 1, 0),\n    ]))",
     "checks": [
@@ -179,7 +179,7 @@
     "group": "Encoders",
     "test_name": "Nested Collections",
     "passed": true,
-    "time_ms": 0.205,
+    "time_ms": 0.165,
     "line": 112,
     "code": "    from session_py import Line\n    from session_py.encoders import json_dumps, json_loads\n\n    loaded = json_loads(json_dumps([\n        Line(0, 0, 0, 1, 0, 0),\n        Line(0, 0, 0, 0, 1, 0),\n    ]))",
     "checks": [
@@ -205,7 +205,7 @@
     "group": "Encoders",
     "test_name": "Roundtrip File Io",
     "passed": true,
-    "time_ms": 8.326,
+    "time_ms": 10.081,
     "line": 127,
     "code": "    from session_py import Vector\n    from session_py.encoders import json_dump, json_load\n    from pathlib import Path\n\n    vectors = [\n        Vector(1, 0, 0),\n        Vector(0, 1, 0),\n        Vector(0, 0, 1),\n    ]\n    filepath = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_encoders_collection.json\"\n    json_dump(vectors, filepath)\n    loaded = json_load(filepath)\n\n\n    filepath.unlink()",
     "checks": [
@@ -221,7 +221,7 @@
     "group": "Encoders",
     "test_name": "Pretty Vs Compact",
     "passed": true,
-    "time_ms": 0.2,
+    "time_ms": 0.263,
     "line": 147,
     "code": "    from session_py import Point\n    from session_py.encoders import json_dumps, json_loads\n\n    point = Point(1, 2, 3)\n    pretty = json_dumps(point, pretty=True)\n    compact = json_dumps(point, pretty=False)\n\n\n    loaded_pretty = json_loads(pretty)\n    loaded_compact = json_loads(compact)",
     "checks": [
@@ -257,7 +257,7 @@
     "group": "Encoders",
     "test_name": "Decode Primitives",
     "passed": true,
-    "time_ms": 0.033,
+    "time_ms": 0.035,
     "line": 167,
     "code": "    import json",
     "checks": [
@@ -288,7 +288,7 @@
     "group": "Encoders",
     "test_name": "Decode List",
     "passed": true,
-    "time_ms": 0.249,
+    "time_ms": 0.221,
     "line": 177,
     "code": "    import json\n    from session_py import Point\n    from session_py.encoders import json_dumps, json_loads\n\n    loaded_vec = json.loads(json.dumps([1, 2, 3]))\n\n\n    decoded = json_loads(json_dumps([\n        Point(1, 2, 3),\n        Point(4, 5, 6),\n    ]))",
     "checks": [
@@ -319,7 +319,7 @@
     "group": "Encoders",
     "test_name": "Decode Dict",
     "passed": true,
-    "time_ms": 0.083,
+    "time_ms": 0.119,
     "line": 197,
     "code": "    import json\n    from session_py import Vector\n    from session_py.encoders import json_dumps, json_loads\n\n    loaded = json.loads(json.dumps({\"a\": 1, \"b\": 2}))\n\n\n    loaded_vec = json_loads(json_dumps(Vector(1, 2, 3)))",
     "checks": [
@@ -345,7 +345,7 @@
     "group": "Encoders",
     "test_name": "List In List In List",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.015,
     "line": 213,
     "code": "    import json\n\n    data = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]\n    loaded = json.loads(json.dumps(data))",
     "checks": [
@@ -371,7 +371,7 @@
     "group": "Encoders",
     "test_name": "Dict Of Lists",
     "passed": true,
-    "time_ms": 0.143,
+    "time_ms": 0.242,
     "line": 225,
     "code": "    from session_py import Point\n    from session_py.encoders import json_dumps, json_loads\n\n    data = {\n        \"numbers\": [1, 2, 3],\n        \"letters\": [\"a\", \"b\", \"c\"],\n        \"points\": [\n            Point(1, 0, 0),\n            Point(0, 1, 0),\n        ],\n    }\n    loaded = json_loads(json_dumps(data))",
     "checks": [
@@ -402,7 +402,7 @@
     "group": "Encoders",
     "test_name": "List Of Dict",
     "passed": true,
-    "time_ms": 0.084,
+    "time_ms": 0.121,
     "line": 246,
     "code": "    from session_py import Point\n    from session_py.encoders import json_dumps, json_loads\n\n    data = [\n        {\"name\": \"point1\", \"value\": 10},\n        {\"name\": \"point2\", \"value\": 20},\n        {\"geometry\": Point(1, 2, 3)},\n    ]\n    loaded = json_loads(json_dumps(data))",
     "checks": [
@@ -428,7 +428,7 @@
     "group": "Encoders",
     "test_name": "Dict Of Dicts",
     "passed": true,
-    "time_ms": 0.196,
+    "time_ms": 0.154,
     "line": 263,
     "code": "    from session_py import Point\n    from session_py import Vector\n    from session_py.encoders import json_dumps, json_loads\n\n    data = {\n        \"config\": {\"tolerance\": 0.001, \"scale\": 1000},\n        \"geometry\": {\"point\": Point(1, 2, 3), \"vector\": Vector(0, 0, 1)},\n    }\n    loaded = json_loads(json_dumps(data))",
     "checks": [

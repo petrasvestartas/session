@@ -99,7 +99,7 @@
     "group": "Tolerance",
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.008,
     "line": 50,
     "code": "        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
     "checks": [
