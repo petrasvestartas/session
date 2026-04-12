@@ -3,7 +3,7 @@
     "group": "Tree",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.041,
+    "time_ms": 0.037,
     "line": 6,
     "code": "    from session_py import Tree\n\n    # Default constructor\n    t0 = Tree()\n\n    # Constructor with name\n    t = Tree(\"my_named_tree\")\n\n    # Minimal string representation\n    tstr = str(t)",
     "checks": [
@@ -34,7 +34,7 @@
     "group": "Tree",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 8.239,
+    "time_ms": 9.327,
     "line": 25,
     "code": "    from session_py import Tree\n    from session_py import TreeNode\n    from pathlib import Path\n\n    original = Tree(\"test_tree\")\n    root_node = TreeNode(\"root_node\")\n    original.add(root_node)\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   json_dumps()    \u2502 str          \u2502 to JSON string\n    #   json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   json_dump(path) \u2502 file         \u2502 write to file\n    #   json_load(path) \u2502 file         \u2502 read from file\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_tree.json\"\n    original.json_dump(fname)\n    loaded = Tree.json_load(fname)",
     "checks": [
@@ -55,7 +55,7 @@
     "group": "Tree",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 6.752,
+    "time_ms": 8.75,
     "line": 50,
     "code": "    from session_py import Tree\n    from session_py import TreeNode\n    from pathlib import Path\n\n    original = Tree(\"test_tree\")\n    root_node = TreeNode(\"root_node\")\n    original.add(root_node)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_tree.bin\"\n    original.pb_dump(fname)\n    loaded = Tree.pb_load(fname)",
     "checks": [
@@ -134,7 +134,7 @@
     "group": "Tree",
     "test_name": "Remove",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.01,
     "line": 112,
     "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    child = TreeNode(\"child\")\n    t.add(root)\n    t.add(child, root)\n    t.remove(child)",
     "checks": [
@@ -176,7 +176,7 @@
     "group": "Tree",
     "test_name": "Traverse",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.014,
     "line": 147,
     "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    a = TreeNode(\"a\")\n    b = TreeNode(\"b\")\n    t.add(root)\n    t.add(a, root)\n    t.add(b, root)\n\n    preorder = list(t.traverse(\"depthfirst\", \"preorder\"))\n    bfs = list(t.traverse(\"breadthfirst\", \"preorder\"))",
     "checks": [
@@ -197,7 +197,7 @@
     "group": "Tree",
     "test_name": "Get Node By Name",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.011,
     "line": 167,
     "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    child = TreeNode(\"target\")\n    t.add(root)\n    t.add(child, root)\n\n    found = t.get_node_by_name(\"target\")",
     "checks": [
@@ -218,7 +218,7 @@
     "group": "Tree",
     "test_name": "Get Nodes By Name",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.01,
     "line": 184,
     "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    a = TreeNode(\"dup\")\n    b = TreeNode(\"dup\")\n    t.add(root)\n    t.add(a, root)\n    t.add(b, root)\n\n    found = t.get_nodes_by_name(\"dup\")",
     "checks": [
@@ -255,7 +255,7 @@
     "group": "Tree",
     "test_name": "Add Child By Guid",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.025,
     "line": 218,
     "code": "    from session_py import Tree\n    from session_py import TreeNode\n\n    t = Tree(\"t\")\n    root = TreeNode(\"root\")\n    a = TreeNode(\"a\")\n    b = TreeNode(\"b\")\n    t.add(root)\n    t.add(a, root)\n    t.add(b, root)\n    ok = t.add_child_by_guid(a.guid, b.guid)",
     "checks": [

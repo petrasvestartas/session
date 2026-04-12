@@ -273,7 +273,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.977
+    "time_ms": 0.766
   },
   {
     "checks": [
@@ -324,7 +324,7 @@
     "line": 106,
     "passed": true,
     "test_name": "Booleans Queries",
-    "time_ms": 0.045
+    "time_ms": 0.043
   },
   {
     "checks": [
@@ -390,7 +390,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.013
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -446,7 +446,7 @@
     "line": 213,
     "passed": true,
     "test_name": "Control Vertices Access",
-    "time_ms": 0.016
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -547,7 +547,7 @@
     "line": 274,
     "passed": true,
     "test_name": "Knot Access",
-    "time_ms": 0.031
+    "time_ms": 0.029
   },
   {
     "checks": [
@@ -1059,7 +1059,7 @@
     "line": 388,
     "passed": true,
     "test_name": "Division",
-    "time_ms": 0.308
+    "time_ms": 0.271
   },
   {
     "checks": [
@@ -1201,7 +1201,7 @@
     "line": 582,
     "passed": true,
     "test_name": "Modification",
-    "time_ms": 0.275
+    "time_ms": 0.243
   },
   {
     "checks": [
@@ -1252,7 +1252,7 @@
     "line": 671,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 0.056
+    "time_ms": 0.063
   },
   {
     "checks": [
@@ -1318,7 +1318,7 @@
     "line": 731,
     "passed": true,
     "test_name": "Meshing",
-    "time_ms": 62.756
+    "time_ms": 53.274
   },
   {
     "checks": [
@@ -1344,7 +1344,7 @@
     "line": 864,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 10.186
+    "time_ms": 13.111
   },
   {
     "checks": [
@@ -1365,6 +1365,6 @@
     "line": 914,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 8.73
+    "time_ms": 10.445
   }
 ]

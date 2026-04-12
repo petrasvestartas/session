@@ -18,7 +18,7 @@
     "line": 25,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 9.99
+    "time_ms": 7.105
   },
   {
     "checks": [
@@ -44,7 +44,7 @@
     "line": 250,
     "passed": true,
     "test_name": "Get Children Guids",
-    "time_ms": 0.005
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -149,7 +149,7 @@
     "line": 153,
     "passed": true,
     "test_name": "Traverse",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -175,7 +175,7 @@
     "line": 132,
     "passed": true,
     "test_name": "Leaves",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -217,7 +217,7 @@
     "line": 97,
     "passed": true,
     "test_name": "Nodes",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -275,7 +275,7 @@
     "line": 50,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 9.192
+    "time_ms": 6.826
   },
   {
     "checks": [
@@ -306,6 +306,6 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.006
+    "time_ms": 0.004
   }
 ]

@@ -3,7 +3,7 @@
     "group": "Boolean Polyline",
     "test_name": "Overlapping Squares",
     "passed": true,
-    "time_ms": 4.827,
+    "time_ms": 2.99,
     "line": 10,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    P = Point\n    a = Polyline([P(-1,-1,0), P(1,-1,0), P(1,1,0), P(-1,1,0), P(-1,-1,0)])\n    b = Polyline([P(0,0,0), P(2,0,0), P(2,2,0), P(0,2,0), P(0,0,0)])\n    isect = Polyline.boolean_op(a, b, 0)\n    uni   = Polyline.boolean_op(a, b, 1)\n    diff  = Polyline.boolean_op(a, b, 2)",
     "checks": [
@@ -44,7 +44,7 @@
     "group": "Boolean Polyline",
     "test_name": "Circle Vs Rectangle",
     "passed": true,
-    "time_ms": 2.364,
+    "time_ms": 12.624,
     "line": 29,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pts = [Point(5.0 + 1.5 * math.cos(PI2 * i / 64), 1.5 * math.sin(PI2 * i / 64), 0.0) for i in range(64)]\n    pts.append(pts[0])\n    circle = Polyline(pts)\n    rect = Polyline([Point(4,-0.5,0), Point(7,-0.5,0), Point(7,0.5,0), Point(4,0.5,0), Point(4,-0.5,0)])\n    isect = Polyline.boolean_op(circle, rect, 0)\n    uni   = Polyline.boolean_op(circle, rect, 1)\n    diff  = Polyline.boolean_op(circle, rect, 2)",
     "checks": [
@@ -85,7 +85,7 @@
     "group": "Boolean Polyline",
     "test_name": "Star Vs Circle",
     "passed": true,
-    "time_ms": 2.026,
+    "time_ms": 1.792,
     "line": 49,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    star_pts = [Point(10.0 + (2.0 if i % 2 == 0 else 0.8) * math.cos(PI2 * i / 10), (2.0 if i % 2 == 0 else 0.8) * math.sin(PI2 * i / 10), 0.0) for i in range(10)]\n    star_pts.append(star_pts[0])\n    star = Polyline(star_pts)\n    circ_pts = [Point(10.5 + 1.2 * math.cos(PI2 * i / 32), 0.5 + 1.2 * math.sin(PI2 * i / 32), 0.0) for i in range(32)]\n    circ_pts.append(circ_pts[0])\n    circle = Polyline(circ_pts)\n    isect = Polyline.boolean_op(star, circle, 0)\n    uni   = Polyline.boolean_op(star, circle, 1)\n    diff  = Polyline.boolean_op(star, circle, 2)",
     "checks": [
@@ -126,7 +126,7 @@
     "group": "Boolean Polyline",
     "test_name": "L Shape Vs Rectangle",
     "passed": true,
-    "time_ms": 0.569,
+    "time_ms": 0.581,
     "line": 71,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    P = Point\n    l_shape = Polyline([P(15,-1,0), P(18,-1,0), P(18,0,0), P(16,0,0), P(16,2,0), P(15,2,0), P(15,-1,0)])\n    rect = Polyline([P(15.5,-0.5,0), P(18.5,-0.5,0), P(18.5,1.5,0), P(15.5,1.5,0), P(15.5,-0.5,0)])\n    isect = Polyline.boolean_op(l_shape, rect, 0)\n    uni   = Polyline.boolean_op(l_shape, rect, 1)\n    diff  = Polyline.boolean_op(l_shape, rect, 2)",
     "checks": [
@@ -167,7 +167,7 @@
     "group": "Boolean Polyline",
     "test_name": "Two Large Circles",
     "passed": true,
-    "time_ms": 20.882,
+    "time_ms": 14.483,
     "line": 90,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pts_a = [Point(22.0 + 2.0 * math.cos(PI2 * i / 256), 2.0 * math.sin(PI2 * i / 256), 0.0) for i in range(256)]\n    pts_a.append(pts_a[0])\n    pts_b = [Point(23.0 + 2.0 * math.cos(PI2 * i / 256), 0.5 + 2.0 * math.sin(PI2 * i / 256), 0.0) for i in range(256)]\n    pts_b.append(pts_b[0])\n    ca = Polyline(pts_a)\n    cb = Polyline(pts_b)\n    isect = Polyline.boolean_op(ca, cb, 0)\n    uni   = Polyline.boolean_op(ca, cb, 1)\n    diff  = Polyline.boolean_op(ca, cb, 2)",
     "checks": [
@@ -208,7 +208,7 @@
     "group": "Boolean Polyline",
     "test_name": "Diamond Vs Triangle",
     "passed": true,
-    "time_ms": 0.72,
+    "time_ms": 0.574,
     "line": 112,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    P = Point\n    diamond = Polyline([P(28,0,0), P(30,-2,0), P(32,0,0), P(30,2,0), P(28,0,0)])\n    tri = Polyline([P(29,-2,0), P(33,0,0), P(29,2,0), P(29,-2,0)])\n    isect = Polyline.boolean_op(diamond, tri, 0)\n    uni   = Polyline.boolean_op(diamond, tri, 1)\n    diff  = Polyline.boolean_op(diamond, tri, 2)",
     "checks": [
@@ -249,7 +249,7 @@
     "group": "Boolean Polyline",
     "test_name": "Star Vs Star",
     "passed": true,
-    "time_ms": 1.477,
+    "time_ms": 1.322,
     "line": 131,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pts_a = [Point(36.0 + (2.5 if i % 2 == 0 else 1.0) * math.cos(PI2 * i / 12), (2.5 if i % 2 == 0 else 1.0) * math.sin(PI2 * i / 12), 0.0) for i in range(12)]\n    pts_a.append(pts_a[0])\n    pts_b = [Point(37.0 + (2.0 if i % 2 == 0 else 0.8) * math.cos(PI2 * i / 10), 0.5 + (2.0 if i % 2 == 0 else 0.8) * math.sin(PI2 * i / 10), 0.0) for i in range(10)]\n    pts_b.append(pts_b[0])\n    sa = Polyline(pts_a)\n    sb = Polyline(pts_b)\n    isect = Polyline.boolean_op(sa, sb, 0)\n    uni   = Polyline.boolean_op(sa, sb, 1)\n    diff  = Polyline.boolean_op(sa, sb, 2)",
     "checks": [
@@ -290,7 +290,7 @@
     "group": "Boolean Polyline",
     "test_name": "Cross Shape",
     "passed": true,
-    "time_ms": 1.005,
+    "time_ms": 0.579,
     "line": 153,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    P = Point\n    narrow = Polyline([P(42,-2,0), P(44,-2,0), P(44,2,0), P(42,2,0), P(42,-2,0)])\n    wide = Polyline([P(40,-0.5,0), P(46,-0.5,0), P(46,0.5,0), P(40,0.5,0), P(40,-0.5,0)])\n    isect = Polyline.boolean_op(narrow, wide, 0)\n    uni   = Polyline.boolean_op(narrow, wide, 1)\n    diff  = Polyline.boolean_op(narrow, wide, 2)",
     "checks": [
@@ -331,7 +331,7 @@
     "group": "Boolean Polyline",
     "test_name": "Concave Arrow Vs Circle",
     "passed": true,
-    "time_ms": 2.241,
+    "time_ms": 1.854,
     "line": 172,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    P = Point\n    arrow = Polyline([P(49,0,0), P(52,2,0), P(51,0.5,0), P(53,0.5,0), P(53,-0.5,0), P(51,-0.5,0), P(52,-2,0), P(49,0,0)])\n    pts = [Point(51.5 + 1.5 * math.cos(PI2 * i / 48), 1.5 * math.sin(PI2 * i / 48), 0.0) for i in range(48)]\n    pts.append(pts[0])\n    circle = Polyline(pts)\n    isect = Polyline.boolean_op(arrow, circle, 0)\n    uni   = Polyline.boolean_op(arrow, circle, 1)\n    diff  = Polyline.boolean_op(arrow, circle, 2)",
     "checks": [
@@ -372,7 +372,7 @@
     "group": "Boolean Polyline",
     "test_name": "Two Large Circles 1000",
     "passed": true,
-    "time_ms": 66.778,
+    "time_ms": 63.258,
     "line": 193,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    pts_a = [Point(58.0 + 3.0 * math.cos(PI2 * i / 1000), 3.0 * math.sin(PI2 * i / 1000), 0.0) for i in range(1000)]\n    pts_a.append(pts_a[0])\n    pts_b = [Point(59.5 + 3.0 * math.cos(PI2 * i / 1000), 3.0 * math.sin(PI2 * i / 1000), 0.0) for i in range(1000)]\n    pts_b.append(pts_b[0])\n    ca = Polyline(pts_a)\n    cb = Polyline(pts_b)\n    isect = Polyline.boolean_op(ca, cb, 0)\n    uni   = Polyline.boolean_op(ca, cb, 1)\n    diff  = Polyline.boolean_op(ca, cb, 2)",
     "checks": [
@@ -413,7 +413,7 @@
     "group": "Boolean Polyline",
     "test_name": "Large Coords Auto Scale",
     "passed": true,
-    "time_ms": 0.848,
+    "time_ms": 0.597,
     "line": 215,
     "code": "    from session_py import Polyline\n    from session_py import Point\n\n    # Coordinates near 1e7 would overflow int64 cross products with the old\n    # fixed 1e9 scale: (1e7*1e9)^2 = 1e32 >> int64::max (~9.2e18)\n    a = Polyline([Point(64e6,1e6,0), Point(64e6+2e6,1e6,0), Point(64e6+2e6,1e6+2e6,0), Point(64e6,1e6+2e6,0), Point(64e6,1e6,0)])\n    b = Polyline([Point(64e6+1e6,1e6+1e6,0), Point(64e6+3e6,1e6+1e6,0), Point(64e6+3e6,1e6+3e6,0), Point(64e6+1e6,1e6+3e6,0), Point(64e6+1e6,1e6+1e6,0)])\n    isect = Polyline.boolean_op(a, b, 0)\n    uni   = Polyline.boolean_op(a, b, 1)\n    diff  = Polyline.boolean_op(a, b, 2)",
     "checks": [

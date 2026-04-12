@@ -38,7 +38,7 @@
     "line": 262,
     "passed": true,
     "test_name": "Large Coords Auto Scale",
-    "time_ms": 0.132
+    "time_ms": 0.072
   },
   {
     "checks": [
@@ -79,7 +79,7 @@
     "line": 235,
     "passed": true,
     "test_name": "Two Large Circles 1000",
-    "time_ms": 2.02
+    "time_ms": 22.439
   },
   {
     "checks": [
@@ -120,7 +120,7 @@
     "line": 210,
     "passed": true,
     "test_name": "Concave Arrow Vs Circle",
-    "time_ms": 0.106
+    "time_ms": 0.445
   },
   {
     "checks": [
@@ -161,7 +161,7 @@
     "line": 187,
     "passed": true,
     "test_name": "Cross Shape",
-    "time_ms": 0.045
+    "time_ms": 0.033
   },
   {
     "checks": [
@@ -202,7 +202,7 @@
     "line": 160,
     "passed": true,
     "test_name": "Star Vs Star",
-    "time_ms": 0.114
+    "time_ms": 0.058
   },
   {
     "checks": [
@@ -243,7 +243,7 @@
     "line": 137,
     "passed": true,
     "test_name": "Diamond Vs Triangle",
-    "time_ms": 0.035
+    "time_ms": 0.098
   },
   {
     "checks": [
@@ -284,7 +284,7 @@
     "line": 110,
     "passed": true,
     "test_name": "Two Large Circles",
-    "time_ms": 0.597
+    "time_ms": 0.478
   },
   {
     "checks": [
@@ -325,7 +325,7 @@
     "line": 87,
     "passed": true,
     "test_name": "L Shape Vs Rectangle",
-    "time_ms": 0.034
+    "time_ms": 0.025
   },
   {
     "checks": [
@@ -366,7 +366,7 @@
     "line": 60,
     "passed": true,
     "test_name": "Star Vs Circle",
-    "time_ms": 0.094
+    "time_ms": 0.068
   },
   {
     "checks": [
@@ -407,7 +407,7 @@
     "line": 35,
     "passed": true,
     "test_name": "Circle Vs Rectangle",
-    "time_ms": 0.101
+    "time_ms": 0.068
   },
   {
     "checks": [
@@ -448,6 +448,6 @@
     "line": 12,
     "passed": true,
     "test_name": "Overlapping Squares",
-    "time_ms": 0.023
+    "time_ms": 0.017
   }
 ]

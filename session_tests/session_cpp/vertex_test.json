@@ -44,7 +44,7 @@
     "group": "Vertex",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 15.428,
+    "time_ms": 9.012,
     "line": 28,
     "code": "    // uncomment #include \"graph.h\"\n    // uncomment #include \"encoders.h\"\n\n    Vertex original(\"v0\", \"test_attribute\");\n    encoders::json_dump(original, \"serialization/test_vertex.json\");\n    Vertex loaded = encoders::json_load<Vertex>(\"serialization/test_vertex.json\");",
     "checks": [

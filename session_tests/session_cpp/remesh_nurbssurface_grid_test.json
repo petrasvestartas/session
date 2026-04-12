@@ -3,7 +3,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Sphere",
     "passed": true,
-    "time_ms": 1.492,
+    "time_ms": 1.209,
     "line": 9,
     "code": "    // uncomment #include \"remesh_nurbssurface_grid.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
@@ -29,7 +29,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Torus",
     "passed": true,
-    "time_ms": 4.267,
+    "time_ms": 3.973,
     "line": 22,
     "code": "    // uncomment #include \"remesh_nurbssurface_grid.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::torus_surface(0, 0, 0, 3.0, 1.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
@@ -55,7 +55,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Cylinder",
     "passed": true,
-    "time_ms": 0.357,
+    "time_ms": 0.233,
     "line": 35,
     "code": "    // uncomment #include \"remesh_nurbssurface_grid.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
@@ -81,7 +81,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Cone",
     "passed": true,
-    "time_ms": 0.242,
+    "time_ms": 0.175,
     "line": 48,
     "code": "    // uncomment #include \"remesh_nurbssurface_grid.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::cone_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
@@ -107,7 +107,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Doubly Curved",
     "passed": true,
-    "time_ms": 9.596,
+    "time_ms": 7.55,
     "line": 61,
     "code": "    // uncomment #include \"remesh_nurbssurface_grid.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::wave_surface(1.0, 0.5);\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
@@ -133,7 +133,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Grid Target",
     "passed": true,
-    "time_ms": 14.076,
+    "time_ms": 10.966,
     "line": 74,
     "code": "    // uncomment #include \"remesh_nurbssurface_grid.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::wave_surface(1.0, 0.5);\n    Mesh m_lo = RemeshNurbsSurfaceGrid::from_u_v(s, 8, 8);\n    Mesh m_hi = RemeshNurbsSurfaceGrid::from_u_v(s, 32, 32);",
     "checks": [
@@ -164,7 +164,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Flat Quad",
     "passed": true,
-    "time_ms": 0.065,
+    "time_ms": 0.034,
     "line": 89,
     "code": "    // uncomment #include \"remesh_nurbssurface_grid.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"point.h\"\n    NurbsSurface s = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(0, 0, 0),\n        Point(0, 4, 0),\n        Point(4, 0, 0),\n        Point(4, 4, 0),\n    });\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
@@ -190,7 +190,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Flat Triangle",
     "passed": true,
-    "time_ms": 0.042,
+    "time_ms": 0.046,
     "line": 107,
     "code": "    NurbsSurface s = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(0, 0, 0),\n        Point(2, 4, 0),\n        Point(4, 0, 0),\n        Point(2, 4, 0),\n    });\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
@@ -216,7 +216,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Double-Curved Triangle",
     "passed": true,
-    "time_ms": 0.298,
+    "time_ms": 0.268,
     "line": 121,
     "code": "    NurbsSurface s = NurbsSurface::create(false, false, 2, 2, 3, 3, {\n        Point(0, 0, 0),\n        Point(2, 0, 3),\n        Point(4, 0, 0),\n        Point(0, 2, 2),\n        Point(2, 2, 5),\n        Point(4, 2, 2),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n    });\n    Mesh m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);",
     "checks": [
