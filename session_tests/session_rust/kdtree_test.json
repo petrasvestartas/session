@@ -23,7 +23,7 @@
     "line": 54,
     "passed": true,
     "test_name": "Radius Search",
-    "time_ms": 0.014
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -54,7 +54,7 @@
     "line": 29,
     "passed": true,
     "test_name": "Nearest K",
-    "time_ms": 0.006
+    "time_ms": 0.004
   },
   {
     "checks": [

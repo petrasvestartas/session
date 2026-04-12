@@ -161,7 +161,7 @@ const searchRecipes = (query, maxResults = 3) => {
   const expandedWords = new Set(queryWords)
   for (const word of queryWords) {
     const syns = RECIPE_SYNONYMS[word]
-    if (syns) syns.forEach(s => expandedWords.add(s))
+    if (Array.isArray(syns)) syns.forEach(s => expandedWords.add(s))
   }
 
   return index.recipes
@@ -215,11 +215,11 @@ const searchForContext = (query, maxResults = 8) => {
       // Expand synonyms for method lookup
       const lookupWords = [word]
       const syns = RECIPE_SYNONYMS[word]
-      if (syns) lookupWords.push(...syns)
+      if (Array.isArray(syns)) lookupWords.push(...syns)
 
       for (const lw of lookupWords) {
         const fqns = index.method_index[lw]
-        if (fqns) {
+        if (Array.isArray(fqns)) {
           for (const fqn of fqns) {
             scores[fqn] = (scores[fqn] || 0) + (lw === word ? 80 : 40)
           }
@@ -663,7 +663,7 @@ const commands = {
     results.forEach((r, i) => {
       const langs = Object.keys(r.implementations).join(', ')
       output.push(`${i + 1}. ${r.name} (${langs}) [score: ${r.score}]`)
-      if (r.related) {
+      if (Array.isArray(r.related)) {
         output.push(`   Related: ${r.related.join(', ')}`)
       }
       output.push('')

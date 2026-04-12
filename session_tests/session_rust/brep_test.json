@@ -53,7 +53,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.012
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 28,
     "passed": true,
     "test_name": "Create Box",
-    "time_ms": 1.492
+    "time_ms": 1.936
   },
   {
     "checks": [
@@ -135,7 +135,7 @@
     "line": 43,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 1.285
+    "time_ms": 1.876
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 62,
     "passed": true,
     "test_name": "Add Face",
-    "time_ms": 0.045
+    "time_ms": 0.067
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 94,
     "passed": true,
     "test_name": "Mesh",
-    "time_ms": 132.331
+    "time_ms": 158.943
   },
   {
     "checks": [
@@ -208,7 +208,7 @@
     "line": 107,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 1.2
+    "time_ms": 1.46
   },
   {
     "checks": [
@@ -229,7 +229,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Is Solid",
-    "time_ms": 1.274
+    "time_ms": 1.661
   },
   {
     "checks": [
@@ -255,7 +255,7 @@
     "line": 143,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 1.386
+    "time_ms": 2.955
   },
   {
     "checks": [
@@ -276,7 +276,7 @@
     "line": 161,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 14.089
+    "time_ms": 57.752
   },
   {
     "checks": [
@@ -317,7 +317,7 @@
     "line": 229,
     "passed": true,
     "test_name": "Create Cylinder",
-    "time_ms": 109.741
+    "time_ms": 253.18
   },
   {
     "checks": [
@@ -358,130 +358,130 @@
     "line": 245,
     "passed": true,
     "test_name": "Create Sphere",
-    "time_ms": 47.656
+    "time_ms": 105.585
   },
   {
     "checks": [
       {
         "code_line": "b.is_valid()",
-        "line": 302,
+        "line": 326,
         "passed": true
       },
       {
         "code_line": "b.face_count() == 6",
-        "line": 303,
+        "line": 327,
         "passed": true
       },
       {
         "code_line": "b.edge_count() == 12",
-        "line": 304,
+        "line": 328,
         "passed": true
       },
       {
         "code_line": "b.vertex_count() == 8",
-        "line": 305,
+        "line": 329,
         "passed": true
       },
       {
         "code_line": "b.is_solid()",
-        "line": 306,
+        "line": 330,
         "passed": true
       },
       {
         "code_line": "!m.is_empty()",
-        "line": 307,
+        "line": 331,
         "passed": true
       },
       {
         "code_line": "m.number_of_faces() > 0",
-        "line": 308,
+        "line": 332,
         "passed": true
       }
     ],
-    "code": "        use crate::brep::BRep;\n        use crate::polyline::Polyline;\n        use crate::Point;\n\n        let hx = 1.0_f64;\n        let hy = 1.5_f64;\n        let hz = 2.0_f64;\n        let c = [\n            Point::new(-hx, -hy, -hz),\n            Point::new( hx, -hy, -hz),\n            Point::new( hx,  hy, -hz),\n            Point::new(-hx,  hy, -hz),\n            Point::new(-hx, -hy,  hz),\n            Point::new( hx, -hy,  hz),\n            Point::new( hx,  hy,  hz),\n            Point::new(-hx,  hy,  hz),\n        ];\n\n        let bottom = Polyline::new(vec![\n            c[0].clone(), c[3].clone(), c[2].clone(), c[1].clone(), c[0].clone(),\n        ]);\n        let top = Polyline::new(vec![\n            c[4].clone(), c[5].clone(), c[6].clone(), c[7].clone(), c[4].clone(),\n        ]);\n        let front = Polyline::new(vec![\n            c[0].clone(), c[1].clone(), c[5].clone(), c[4].clone(), c[0].clone(),\n        ]);\n        let right = Polyline::new(vec![\n            c[1].clone(), c[2].clone(), c[6].clone(), c[5].clone(), c[1].clone(),\n        ]);\n        let back = Polyline::new(vec![\n            c[2].clone(), c[3].clone(), c[7].clone(), c[6].clone(), c[2].clone(),\n        ]);\n        let left = Polyline::new(vec![\n            c[3].clone(), c[0].clone(), c[4].clone(), c[7].clone(), c[3].clone(),\n        ]);\n\n        let b = BRep::from_polylines(&[bottom, top, front, right, back, left]);\n        let m = b.mesh();\n",
+    "code": "        use crate::brep::BRep;\n        use crate::polyline::Polyline;\n        use crate::Point;\n\n        let hx = 1.0_f64;\n        let hy = 1.5_f64;\n        let hz = 2.0_f64;\n        let c = [\n            Point::new(-hx, -hy, -hz),\n            Point::new( hx, -hy, -hz),\n            Point::new( hx,  hy, -hz),\n            Point::new(-hx,  hy, -hz),\n            Point::new(-hx, -hy,  hz),\n            Point::new( hx, -hy,  hz),\n            Point::new( hx,  hy,  hz),\n            Point::new(-hx,  hy,  hz),\n        ];\n\n        let bottom = Polyline::new(vec![\n            c[0].clone(),\n            c[3].clone(),\n            c[2].clone(),\n            c[1].clone(),\n            c[0].clone(),\n        ]);\n        let top = Polyline::new(vec![\n            c[4].clone(),\n            c[5].clone(),\n            c[6].clone(),\n            c[7].clone(),\n            c[4].clone(),\n        ]);\n        let front = Polyline::new(vec![\n            c[0].clone(),\n            c[1].clone(),\n            c[5].clone(),\n            c[4].clone(),\n            c[0].clone(),\n        ]);\n        let right = Polyline::new(vec![\n            c[1].clone(),\n            c[2].clone(),\n            c[6].clone(),\n            c[5].clone(),\n            c[1].clone(),\n        ]);\n        let back = Polyline::new(vec![\n            c[2].clone(),\n            c[3].clone(),\n            c[7].clone(),\n            c[6].clone(),\n            c[2].clone(),\n        ]);\n        let left = Polyline::new(vec![\n            c[3].clone(),\n            c[0].clone(),\n            c[4].clone(),\n            c[7].clone(),\n            c[3].clone(),\n        ]);\n\n        let b = BRep::from_polylines(&[bottom, top, front, right, back, left]);\n        let m = b.mesh();\n",
     "failures": [],
     "group": "BRep",
     "line": 261,
     "passed": true,
     "test_name": "From Polylines",
-    "time_ms": 142.03
+    "time_ms": 217.941
   },
   {
     "checks": [
       {
         "code_line": "b.is_valid()",
-        "line": 354,
+        "line": 402,
         "passed": true
       },
       {
         "code_line": "b.face_count() == 6",
-        "line": 355,
+        "line": 403,
         "passed": true
       },
       {
         "code_line": "!m.is_empty()",
-        "line": 356,
+        "line": 404,
         "passed": true
       },
       {
         "code_line": "m.number_of_faces() > 0",
-        "line": 357,
+        "line": 405,
         "passed": true
       }
     ],
-    "code": "        use crate::brep::BRep;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        let hx = 1.0_f64;\n        let hy = 1.5_f64;\n        let hz = 2.0_f64;\n        let c = [\n            Point::new(-hx, -hy, -hz),\n            Point::new( hx, -hy, -hz),\n            Point::new( hx,  hy, -hz),\n            Point::new(-hx,  hy, -hz),\n            Point::new(-hx, -hy,  hz),\n            Point::new( hx, -hy,  hz),\n            Point::new( hx,  hy,  hz),\n            Point::new(-hx,  hy,  hz),\n        ];\n\n        let bottom = NurbsCurve::create(false, 1, &[\n            c[0].clone(), c[3].clone(), c[2].clone(), c[1].clone(), c[0].clone(),\n        ]);\n        let top = NurbsCurve::create(false, 1, &[\n            c[4].clone(), c[5].clone(), c[6].clone(), c[7].clone(), c[4].clone(),\n        ]);\n        let front = NurbsCurve::create(false, 1, &[\n            c[0].clone(), c[1].clone(), c[5].clone(), c[4].clone(), c[0].clone(),\n        ]);\n        let right = NurbsCurve::create(false, 1, &[\n            c[1].clone(), c[2].clone(), c[6].clone(), c[5].clone(), c[1].clone(),\n        ]);\n        let back = NurbsCurve::create(false, 1, &[\n            c[2].clone(), c[3].clone(), c[7].clone(), c[6].clone(), c[2].clone(),\n        ]);\n        let left = NurbsCurve::create(false, 1, &[\n            c[3].clone(), c[0].clone(), c[4].clone(), c[7].clone(), c[3].clone(),\n        ]);\n\n        let b = BRep::from_nurbscurves(&[bottom, top, front, right, back, left], &[]);\n        let m = b.mesh();\n",
+    "code": "        use crate::brep::BRep;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        let hx = 1.0_f64;\n        let hy = 1.5_f64;\n        let hz = 2.0_f64;\n        let c = [\n            Point::new(-hx, -hy, -hz),\n            Point::new( hx, -hy, -hz),\n            Point::new( hx,  hy, -hz),\n            Point::new(-hx,  hy, -hz),\n            Point::new(-hx, -hy,  hz),\n            Point::new( hx, -hy,  hz),\n            Point::new( hx,  hy,  hz),\n            Point::new(-hx,  hy,  hz),\n        ];\n\n        let bottom = NurbsCurve::create(false, 1, &[\n            c[0].clone(),\n            c[3].clone(),\n            c[2].clone(),\n            c[1].clone(),\n            c[0].clone(),\n        ]);\n        let top = NurbsCurve::create(false, 1, &[\n            c[4].clone(),\n            c[5].clone(),\n            c[6].clone(),\n            c[7].clone(),\n            c[4].clone(),\n        ]);\n        let front = NurbsCurve::create(false, 1, &[\n            c[0].clone(),\n            c[1].clone(),\n            c[5].clone(),\n            c[4].clone(),\n            c[0].clone(),\n        ]);\n        let right = NurbsCurve::create(false, 1, &[\n            c[1].clone(),\n            c[2].clone(),\n            c[6].clone(),\n            c[5].clone(),\n            c[1].clone(),\n        ]);\n        let back = NurbsCurve::create(false, 1, &[\n            c[2].clone(),\n            c[3].clone(),\n            c[7].clone(),\n            c[6].clone(),\n            c[2].clone(),\n        ]);\n        let left = NurbsCurve::create(false, 1, &[\n            c[3].clone(),\n            c[0].clone(),\n            c[4].clone(),\n            c[7].clone(),\n            c[3].clone(),\n        ]);\n\n        let b = BRep::from_nurbscurves(&[bottom, top, front, right, back, left], &[]);\n        let m = b.mesh();\n",
     "failures": [],
     "group": "BRep",
-    "line": 313,
+    "line": 337,
     "passed": true,
     "test_name": "From Nurbscurves",
-    "time_ms": 106.042
+    "time_ms": 101.852
   },
   {
     "checks": [
       {
         "code_line": "b.is_valid()",
-        "line": 381,
+        "line": 429,
         "passed": true
       },
       {
         "code_line": "b.face_count() == 1",
-        "line": 382,
+        "line": 430,
         "passed": true
       },
       {
         "code_line": "b.m_loops.len() == 2",
-        "line": 383,
+        "line": 431,
         "passed": true
       },
       {
         "code_line": "b.m_loops[0].loop_type == BRepLoopType::Outer",
-        "line": 384,
+        "line": 432,
         "passed": true
       },
       {
         "code_line": "b.m_loops[1].loop_type == BRepLoopType::Inner",
-        "line": 385,
+        "line": 433,
         "passed": true
       },
       {
         "code_line": "!m.is_empty()",
-        "line": 386,
+        "line": 434,
         "passed": true
       },
       {
         "code_line": "m.number_of_faces() > 0",
-        "line": 387,
+        "line": 435,
         "passed": true
       }
     ],
     "code": "        use crate::brep::BRep;\n        use crate::brep::BRepLoopType;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::primitives::Primitives;\n\n        let outer = NurbsCurve::create(false, 1, &[\n            Point::new(-5.0, -5.0, 0.0),\n            Point::new(5.0, -5.0, 0.0),\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(-5.0, 5.0, 0.0),\n            Point::new(-5.0, -5.0, 0.0),\n        ]);\n        let hole = Primitives::circle(0.0, 0.0, 0.0, 2.0);\n\n        let b = BRep::from_nurbscurves(&[outer], &[vec![hole]]);\n        let m = b.mesh();\n",
     "failures": [],
     "group": "BRep",
-    "line": 362,
+    "line": 410,
     "passed": true,
     "test_name": "From Nurbscurves Holes",
-    "time_ms": 54.654
+    "time_ms": 90.349
   },
   {
     "checks": [
@@ -502,7 +502,7 @@
     "line": 203,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 11.793
+    "time_ms": 11.797
   },
   {
     "checks": [
@@ -543,6 +543,6 @@
     "line": 187,
     "passed": true,
     "test_name": "Create Block With Hole",
-    "time_ms": 401.305
+    "time_ms": 241.441
   }
 ]

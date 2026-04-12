@@ -1,14 +1,56 @@
 [
   {
     "group": "Objects",
+    "test_name": "Constructor",
+    "passed": true,
+    "time_ms": 0.04,
+    "line": 7,
+    "code": "    from session_py import Objects\n\n    obj = Objects()",
+    "checks": [
+      {
+        "line": 13,
+        "code_line": "obj.name == \"my_objects\"",
+        "passed": true
+      },
+      {
+        "line": 14,
+        "code_line": "len(obj.guid) > 0",
+        "passed": true
+      },
+      {
+        "line": 15,
+        "code_line": "len(str(obj)) > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Objects",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.732,
-    "line": 7,
+    "time_ms": 6.491,
+    "line": 18,
     "code": "    from session_py import Objects\n    from session_py import Point\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = Objects()\n    original.points.append(Point(1.0, 2.0, 3.0))\n    original.points.append(Point(4.0, 5.0, 6.0))\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_objects.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)",
     "checks": [
       {
-        "line": 23,
+        "line": 34,
+        "code_line": "len(loaded.points) == len(original.points)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Objects",
+    "test_name": "Protobuf Roundtrip",
+    "passed": true,
+    "time_ms": 6.424,
+    "line": 37,
+    "code": "    from session_py import Objects\n    from session_py import Point\n    from pathlib import Path\n\n    original = Objects()\n    original.points.append(Point(1.0, 2.0, 3.0))\n    original.points.append(Point(4.0, 5.0, 6.0))\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_objects.bin\"\n    original.pb_dump(fname)\n    loaded = Objects.pb_load(fname)",
+    "checks": [
+      {
+        "line": 51,
         "code_line": "len(loaded.points) == len(original.points)",
         "passed": true
       }

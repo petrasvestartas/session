@@ -3,7 +3,7 @@
     "group": "Vertex",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 8,
     "code": "    // uncomment #include \"graph.h\"\n\n    // Default constructor\n    Vertex v0;\n\n    // Constructor with name + attribute\n    Vertex v(\"v_named\", \"attr\");\n\n    // Minimal string representation\n    std::string vstr = v.str();",
     "checks": [
@@ -44,7 +44,7 @@
     "group": "Vertex",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 7.71,
+    "time_ms": 6.139,
     "line": 28,
     "code": "    // uncomment #include \"graph.h\"\n    // uncomment #include \"encoders.h\"\n\n    Vertex original(\"v0\", \"test_attribute\");\n    encoders::json_dump(original, \"serialization/test_vertex.json\");\n    Vertex loaded = encoders::json_load<Vertex>(\"serialization/test_vertex.json\");",
     "checks": [
@@ -55,6 +55,63 @@
       },
       {
         "line": 37,
+        "code_line": "loaded.attribute == original.attribute",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Vertex",
+    "test_name": "Constructor",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 12,
+    "code": "    // Default constructor\n    Vertex v0;\n\n    // Constructor with name + attribute\n    Vertex v(\"v_named\", \"attr\");",
+    "checks": [
+      {
+        "line": 19,
+        "code_line": "v0.name == \"my_vertex\"",
+        "passed": true
+      },
+      {
+        "line": 20,
+        "code_line": "v0.attribute == \"\"",
+        "passed": true
+      },
+      {
+        "line": 21,
+        "code_line": "!v0.guid().empty()",
+        "passed": true
+      },
+      {
+        "line": 22,
+        "code_line": "v.name == \"v_named\"",
+        "passed": true
+      },
+      {
+        "line": 23,
+        "code_line": "v.attribute == \"attr\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Vertex",
+    "test_name": "Json Roundtrip",
+    "passed": true,
+    "time_ms": 6.493,
+    "line": 26,
+    "code": "    Vertex original(\"v0\", \"test_attribute\");\n\n    std::string fname = \"serialization/test_vertex.json\";\n    encoders::json_dump(original, fname);\n    Vertex loaded = encoders::json_load<Vertex>(fname);",
+    "checks": [
+      {
+        "line": 33,
+        "code_line": "loaded.name == original.name",
+        "passed": true
+      },
+      {
+        "line": 34,
         "code_line": "loaded.attribute == original.attribute",
         "passed": true
       }

@@ -3,9 +3,9 @@
     "group": "Aabb",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.365,
+    "time_ms": 0.268,
     "line": 111,
-    "code": "    import math\n    from session_py import AABB\n    from session_py import Point\n\n    # AABB(0,0,0, 1,2,3) \u2014 dims 2\u00d74\u00d76\n    a = AABB(0.0, 0.0, 0.0, 1.0, 2.0, 3.0)\n\n    b = AABB(5.0, 0.0, 0.0, 1.0, 1.0, 1.0)\n    a = a.union(b)",
+    "code": "    import math\n    from session_py import AABB\n    from session_py import Point\n\n    # AABB(0,0,0, 1,2,3) \u2014 dims 2\u00d74\u00d76\n    a = AABB(0.0, 0.0, 0.0, 1.0, 2.0, 3.0)\n\n    b = AABB(5.0, 0.0, 0.0, 1.0, 1.0, 1.0)\n    a = a.union_with(b)\n    c = AABB.merge(AABB(0.0, 0.0, 0.0, 1.0, 1.0, 1.0), AABB(4.0, 0.0, 0.0, 1.0, 1.0, 1.0))",
     "checks": [
       {
         "line": 120,
@@ -83,13 +83,33 @@
         "passed": true
       },
       {
-        "line": 137,
+        "line": 135,
+        "code_line": "a.intersects(AABB(0.5, 0.0, 0.0, 0.5, 0.5, 0.5))",
+        "passed": true
+      },
+      {
+        "line": 136,
+        "code_line": "not a.intersects(AABB(10.0, 0.0, 0.0, 0.5, 0.5, 0.5))",
+        "passed": true
+      },
+      {
+        "line": 139,
         "code_line": "a.min_point() == Point(-1.0, -2.0, -3.0)",
         "passed": true
       },
       {
-        "line": 138,
+        "line": 140,
         "code_line": "a.max_point() == Point(6.0, 2.0, 3.0)",
+        "passed": true
+      },
+      {
+        "line": 142,
+        "code_line": "c.min_point() == Point(-1.0, -1.0, -1.0)",
+        "passed": true
+      },
+      {
+        "line": 143,
+        "code_line": "c.max_point() == Point(5.0, 1.0, 1.0)",
         "passed": true
       }
     ],

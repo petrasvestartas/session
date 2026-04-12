@@ -3,7 +3,7 @@
     "group": "Encoders",
     "test_name": "Json Dump Load",
     "passed": true,
-    "time_ms": 9.338,
+    "time_ms": 7.113,
     "line": 7,
     "code": "    from session_py import Point\n    from session_py.encoders import json_dump, json_load\n    from pathlib import Path\n    import json\n\n    original = Point(1.5, 2.5, 3.5)\n    original.name = \"test_point\"\n    filepath = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_encoders_point.json\"\n    json_dump(original, filepath)\n    loaded = json_load(filepath)\n\n\n    filepath.unlink()",
     "checks": [
@@ -34,7 +34,7 @@
     "group": "Encoders",
     "test_name": "Json Dumps Loads",
     "passed": true,
-    "time_ms": 0.136,
+    "time_ms": 0.134,
     "line": 28,
     "code": "    from session_py import Vector\n    from session_py.encoders import json_dumps, json_loads\n\n    original = Vector(42.1, 84.2, 126.3)\n    original.name = \"test_vector\"\n    json_str = json_dumps(original)\n\n\n    loaded = json_loads(json_str)",
     "checks": [
@@ -50,6 +50,21 @@
       },
       {
         "line": 42,
+        "code_line": "TOLERANCE.is_close(loaded[0], original[0])",
+        "passed": true
+      },
+      {
+        "line": 43,
+        "code_line": "TOLERANCE.is_close(loaded[1], original[1])",
+        "passed": true
+      },
+      {
+        "line": 44,
+        "code_line": "TOLERANCE.is_close(loaded[2], original[2])",
+        "passed": true
+      },
+      {
+        "line": 45,
         "code_line": "loaded.name == original.name",
         "passed": true
       }
@@ -61,31 +76,31 @@
     "test_name": "Encode Collection Values",
     "passed": true,
     "time_ms": 0.205,
-    "line": 45,
+    "line": 48,
     "code": "    from session_py import Point\n    from session_py.encoders import json_dumps\n    import json\n\n    json_str = json_dumps([\n        Point(1, 2, 3),\n        Point(4, 5, 6),\n        Point(7, 8, 9),\n    ])\n    d = json.loads(json_str)",
     "checks": [
       {
-        "line": 58,
+        "line": 61,
         "code_line": "isinstance(d, list)",
         "passed": true
       },
       {
-        "line": 59,
+        "line": 62,
         "code_line": "len(d) == 3",
         "passed": true
       },
       {
-        "line": 60,
+        "line": 63,
         "code_line": "d[0][\"type\"] == \"Point\"",
         "passed": true
       },
       {
-        "line": 61,
+        "line": 64,
         "code_line": "d[1][\"x\"] == 4.0",
         "passed": true
       },
       {
-        "line": 62,
+        "line": 65,
         "code_line": "d[2][\"z\"] == 9.0",
         "passed": true
       }
@@ -96,27 +111,27 @@
     "group": "Encoders",
     "test_name": "Encode Collection Shared Ptr",
     "passed": true,
-    "time_ms": 0.179,
-    "line": 65,
+    "time_ms": 0.115,
+    "line": 68,
     "code": "    from session_py import Line\n    from session_py.encoders import json_dumps\n    import json\n\n    d = json.loads(json_dumps([\n        Line(0, 0, 0, 1, 0, 0),\n        Line(0, 0, 0, 0, 1, 0),\n    ]))",
     "checks": [
       {
-        "line": 76,
+        "line": 79,
         "code_line": "isinstance(d, list)",
         "passed": true
       },
       {
-        "line": 77,
+        "line": 80,
         "code_line": "len(d) == 2",
         "passed": true
       },
       {
-        "line": 78,
+        "line": 81,
         "code_line": "d[0][\"type\"] == \"Line\"",
         "passed": true
       },
       {
-        "line": 79,
+        "line": 82,
         "code_line": "d[1][\"type\"] == \"Line\"",
         "passed": true
       }
@@ -127,22 +142,22 @@
     "group": "Encoders",
     "test_name": "Decode Collection",
     "passed": true,
-    "time_ms": 0.176,
-    "line": 82,
+    "time_ms": 0.142,
+    "line": 85,
     "code": "    from session_py import Point\n    from session_py.encoders import json_dumps, json_loads\n\n    decoded = json_loads(json_dumps([\n        Point(1, 2, 3),\n        Point(4, 5, 6),\n    ]))",
     "checks": [
       {
-        "line": 92,
+        "line": 95,
         "code_line": "len(decoded) == 2",
         "passed": true
       },
       {
-        "line": 93,
+        "line": 96,
         "code_line": "TOLERANCE.is_close(decoded[0][0], 1.0)",
         "passed": true
       },
       {
-        "line": 94,
+        "line": 97,
         "code_line": "TOLERANCE.is_close(decoded[1][1], 5.0)",
         "passed": true
       }
@@ -153,22 +168,22 @@
     "group": "Encoders",
     "test_name": "Decode Collection Ptr",
     "passed": true,
-    "time_ms": 0.111,
-    "line": 97,
+    "time_ms": 0.102,
+    "line": 100,
     "code": "    from session_py import Vector\n    from session_py.encoders import json_dumps, json_loads\n\n    decoded = json_loads(json_dumps([\n        Vector(1, 0, 0),\n        Vector(0, 1, 0),\n    ]))",
     "checks": [
       {
-        "line": 107,
+        "line": 110,
         "code_line": "len(decoded) == 2",
         "passed": true
       },
       {
-        "line": 108,
+        "line": 111,
         "code_line": "TOLERANCE.is_close(decoded[0][0], 1.0)",
         "passed": true
       },
       {
-        "line": 109,
+        "line": 112,
         "code_line": "TOLERANCE.is_close(decoded[1][1], 1.0)",
         "passed": true
       }
@@ -179,22 +194,22 @@
     "group": "Encoders",
     "test_name": "Nested Collections",
     "passed": true,
-    "time_ms": 0.147,
-    "line": 112,
+    "time_ms": 0.128,
+    "line": 115,
     "code": "    from session_py import Line\n    from session_py.encoders import json_dumps, json_loads\n\n    loaded = json_loads(json_dumps([\n        Line(0, 0, 0, 1, 0, 0),\n        Line(0, 0, 0, 0, 1, 0),\n    ]))",
     "checks": [
       {
-        "line": 122,
+        "line": 125,
         "code_line": "len(loaded) == 2",
         "passed": true
       },
       {
-        "line": 123,
+        "line": 126,
         "code_line": "TOLERANCE.is_close(loaded[0].end()[0], 1.0)",
         "passed": true
       },
       {
-        "line": 124,
+        "line": 127,
         "code_line": "TOLERANCE.is_close(loaded[1].end()[1], 1.0)",
         "passed": true
       }
@@ -205,13 +220,28 @@
     "group": "Encoders",
     "test_name": "Roundtrip File Io",
     "passed": true,
-    "time_ms": 9.47,
-    "line": 127,
+    "time_ms": 6.833,
+    "line": 130,
     "code": "    from session_py import Vector\n    from session_py.encoders import json_dump, json_load\n    from pathlib import Path\n\n    vectors = [\n        Vector(1, 0, 0),\n        Vector(0, 1, 0),\n        Vector(0, 0, 1),\n    ]\n    filepath = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_encoders_collection.json\"\n    json_dump(vectors, filepath)\n    loaded = json_load(filepath)\n\n\n    filepath.unlink()",
     "checks": [
       {
-        "line": 142,
+        "line": 145,
         "code_line": "len(loaded) == 3",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "TOLERANCE.is_close(loaded[0][0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "TOLERANCE.is_close(loaded[1][1], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 148,
+        "code_line": "TOLERANCE.is_close(loaded[2][2], 1.0)",
         "passed": true
       }
     ],
@@ -221,32 +251,32 @@
     "group": "Encoders",
     "test_name": "Pretty Vs Compact",
     "passed": true,
-    "time_ms": 0.235,
-    "line": 147,
+    "time_ms": 0.201,
+    "line": 153,
     "code": "    from session_py import Point\n    from session_py.encoders import json_dumps, json_loads\n\n    point = Point(1, 2, 3)\n    pretty = json_dumps(point, pretty=True)\n    compact = json_dumps(point, pretty=False)\n\n\n    loaded_pretty = json_loads(pretty)\n    loaded_compact = json_loads(compact)",
     "checks": [
       {
-        "line": 156,
+        "line": 162,
         "code_line": "len(pretty) > len(compact)",
         "passed": true
       },
       {
-        "line": 157,
+        "line": 163,
         "code_line": "\"\\n\" in pretty",
         "passed": true
       },
       {
-        "line": 158,
+        "line": 164,
         "code_line": "\"\\n\" not in compact",
         "passed": true
       },
       {
-        "line": 163,
+        "line": 169,
         "code_line": "TOLERANCE.is_close(loaded_pretty[0], 1.0)",
         "passed": true
       },
       {
-        "line": 164,
+        "line": 170,
         "code_line": "TOLERANCE.is_close(loaded_compact[0], 1.0)",
         "passed": true
       }
@@ -257,28 +287,28 @@
     "group": "Encoders",
     "test_name": "Decode Primitives",
     "passed": true,
-    "time_ms": 0.032,
-    "line": 167,
-    "code": "    import json",
+    "time_ms": 0.025,
+    "line": 173,
+    "code": "    import json\n\n    json_str = json.dumps(42)\n    loaded = json.loads(json_str)\n\n    json_str = json.dumps(3.14)\n    loaded = json.loads(json_str)\n\n    json_str = json.dumps(\"hello\")\n    loaded = json.loads(json_str)\n\n    json_str = json.dumps(True)\n    loaded = json.loads(json_str)",
     "checks": [
       {
-        "line": 171,
-        "code_line": "json.loads(json.dumps(42)) == 42",
+        "line": 179,
+        "code_line": "loaded == 42",
         "passed": true
       },
       {
-        "line": 172,
-        "code_line": "json.loads(json.dumps(3.14)) == 3.14",
+        "line": 183,
+        "code_line": "TOLERANCE.is_close(loaded, 3.14)",
         "passed": true
       },
       {
-        "line": 173,
-        "code_line": "json.loads(json.dumps(\"hello\")) == \"hello\"",
+        "line": 187,
+        "code_line": "loaded == \"hello\"",
         "passed": true
       },
       {
-        "line": 174,
-        "code_line": "json.loads(json.dumps(True)) is True",
+        "line": 191,
+        "code_line": "loaded is True",
         "passed": true
       }
     ],
@@ -288,28 +318,38 @@
     "group": "Encoders",
     "test_name": "Decode List",
     "passed": true,
-    "time_ms": 0.243,
-    "line": 177,
+    "time_ms": 0.177,
+    "line": 194,
     "code": "    import json\n    from session_py import Point\n    from session_py.encoders import json_dumps, json_loads\n\n    loaded_vec = json.loads(json.dumps([1, 2, 3]))\n\n\n    decoded = json_loads(json_dumps([\n        Point(1, 2, 3),\n        Point(4, 5, 6),\n    ]))",
     "checks": [
       {
-        "line": 185,
+        "line": 202,
         "code_line": "len(loaded_vec) == 3",
         "passed": true
       },
       {
-        "line": 186,
+        "line": 203,
         "code_line": "loaded_vec[0] == 1",
         "passed": true
       },
       {
-        "line": 187,
+        "line": 204,
         "code_line": "loaded_vec[2] == 3",
         "passed": true
       },
       {
-        "line": 194,
+        "line": 211,
         "code_line": "len(decoded) == 2",
+        "passed": true
+      },
+      {
+        "line": 212,
+        "code_line": "TOLERANCE.is_close(decoded[0][0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 213,
+        "code_line": "TOLERANCE.is_close(decoded[1][0], 4.0)",
         "passed": true
       }
     ],
@@ -319,22 +359,22 @@
     "group": "Encoders",
     "test_name": "Decode Dict",
     "passed": true,
-    "time_ms": 0.113,
-    "line": 197,
+    "time_ms": 0.08,
+    "line": 216,
     "code": "    import json\n    from session_py import Vector\n    from session_py.encoders import json_dumps, json_loads\n\n    loaded = json.loads(json.dumps({\"a\": 1, \"b\": 2}))\n\n\n    loaded_vec = json_loads(json_dumps(Vector(1, 2, 3)))",
     "checks": [
       {
-        "line": 205,
+        "line": 224,
         "code_line": "loaded[\"a\"] == 1",
         "passed": true
       },
       {
-        "line": 206,
+        "line": 225,
         "code_line": "loaded[\"b\"] == 2",
         "passed": true
       },
       {
-        "line": 210,
+        "line": 229,
         "code_line": "TOLERANCE.is_close(loaded_vec[0], 1.0)",
         "passed": true
       }
@@ -345,22 +385,22 @@
     "group": "Encoders",
     "test_name": "List In List In List",
     "passed": true,
-    "time_ms": 0.015,
-    "line": 213,
+    "time_ms": 0.012,
+    "line": 232,
     "code": "    import json\n\n    data = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]\n    loaded = json.loads(json.dumps(data))",
     "checks": [
       {
-        "line": 220,
+        "line": 239,
         "code_line": "loaded[0][0][0] == 1",
         "passed": true
       },
       {
-        "line": 221,
+        "line": 240,
         "code_line": "loaded[1][1][1] == 8",
         "passed": true
       },
       {
-        "line": 222,
+        "line": 241,
         "code_line": "len(loaded) == 2",
         "passed": true
       }
@@ -371,27 +411,27 @@
     "group": "Encoders",
     "test_name": "Dict Of Lists",
     "passed": true,
-    "time_ms": 0.211,
-    "line": 225,
+    "time_ms": 0.153,
+    "line": 244,
     "code": "    from session_py import Point\n    from session_py.encoders import json_dumps, json_loads\n\n    data = {\n        \"numbers\": [1, 2, 3],\n        \"letters\": [\"a\", \"b\", \"c\"],\n        \"points\": [\n            Point(1, 0, 0),\n            Point(0, 1, 0),\n        ],\n    }\n    loaded = json_loads(json_dumps(data))",
     "checks": [
       {
-        "line": 240,
+        "line": 259,
         "code_line": "loaded[\"numbers\"] == [1, 2, 3]",
         "passed": true
       },
       {
-        "line": 241,
+        "line": 260,
         "code_line": "loaded[\"letters\"][0] == \"a\"",
         "passed": true
       },
       {
-        "line": 242,
+        "line": 261,
         "code_line": "len(loaded[\"points\"]) == 2",
         "passed": true
       },
       {
-        "line": 243,
+        "line": 262,
         "code_line": "TOLERANCE.is_close(loaded[\"points\"][0][0], 1.0)",
         "passed": true
       }
@@ -402,22 +442,22 @@
     "group": "Encoders",
     "test_name": "List Of Dict",
     "passed": true,
-    "time_ms": 0.129,
-    "line": 246,
+    "time_ms": 0.085,
+    "line": 265,
     "code": "    from session_py import Point\n    from session_py.encoders import json_dumps, json_loads\n\n    data = [\n        {\"name\": \"point1\", \"value\": 10},\n        {\"name\": \"point2\", \"value\": 20},\n        {\"geometry\": Point(1, 2, 3)},\n    ]\n    loaded = json_loads(json_dumps(data))",
     "checks": [
       {
-        "line": 258,
+        "line": 277,
         "code_line": "loaded[0][\"name\"] == \"point1\"",
         "passed": true
       },
       {
-        "line": 259,
+        "line": 278,
         "code_line": "loaded[1][\"value\"] == 20",
         "passed": true
       },
       {
-        "line": 260,
+        "line": 279,
         "code_line": "TOLERANCE.is_close(loaded[2][\"geometry\"][2], 3.0)",
         "passed": true
       }
@@ -428,27 +468,27 @@
     "group": "Encoders",
     "test_name": "Dict Of Dicts",
     "passed": true,
-    "time_ms": 0.183,
-    "line": 263,
+    "time_ms": 0.148,
+    "line": 282,
     "code": "    from session_py import Point\n    from session_py import Vector\n    from session_py.encoders import json_dumps, json_loads\n\n    data = {\n        \"config\": {\"tolerance\": 0.001, \"scale\": 1000},\n        \"geometry\": {\"point\": Point(1, 2, 3), \"vector\": Vector(0, 0, 1)},\n    }\n    loaded = json_loads(json_dumps(data))",
     "checks": [
       {
-        "line": 275,
+        "line": 294,
         "code_line": "TOLERANCE.is_close(loaded[\"config\"][\"tolerance\"], 0.001)",
         "passed": true
       },
       {
-        "line": 276,
+        "line": 295,
         "code_line": "loaded[\"config\"][\"scale\"] == 1000",
         "passed": true
       },
       {
-        "line": 277,
+        "line": 296,
         "code_line": "TOLERANCE.is_close(loaded[\"geometry\"][\"point\"][0], 1.0)",
         "passed": true
       },
       {
-        "line": 278,
+        "line": 297,
         "code_line": "TOLERANCE.is_close(loaded[\"geometry\"][\"vector\"][2], 1.0)",
         "passed": true
       }

@@ -77,17 +77,37 @@
         "passed": true
       },
       {
+        "code_line": "a.intersects(&AABB::new(0.5, 0.0, 0.0, 0.5, 0.5, 0.5))",
+        "line": 140,
+        "passed": true
+      },
+      {
+        "code_line": "!a.intersects(&AABB::new(10.0, 0.0, 0.0, 0.5, 0.5, 0.5))",
+        "line": 141,
+        "passed": true
+      },
+      {
         "code_line": "a.min_point() == Point::new(-1.0, -2.0, -3.0)",
-        "line": 143,
+        "line": 145,
         "passed": true
       },
       {
         "code_line": "a.max_point() == Point::new(6.0, 2.0, 3.0)",
-        "line": 144,
+        "line": 146,
+        "passed": true
+      },
+      {
+        "code_line": "c.min_point() == Point::new(-1.0, -1.0, -1.0)",
+        "line": 148,
+        "passed": true
+      },
+      {
+        "code_line": "c.max_point() == Point::new(5.0, 1.0, 1.0)",
+        "line": 149,
         "passed": true
       }
     ],
-    "code": "        // AABB(0,0,0, 1,2,3) — dims 2×4×6\n        let a = AABB::new(0.0, 0.0, 0.0, 1.0, 2.0, 3.0);\n\n        let mut a = a;\n        let b = AABB::new(5.0, 0.0, 0.0, 1.0, 1.0, 1.0);\n        a.union_with(&b);",
+    "code": "        // AABB(0,0,0, 1,2,3) — dims 2×4×6\n        let a = AABB::new(0.0, 0.0, 0.0, 1.0, 2.0, 3.0);\n\n        let mut a = a;\n        let b = AABB::new(5.0, 0.0, 0.0, 1.0, 1.0, 1.0);\n        a.union_with(&b);\n        let c = AABB::merge(AABB::new(0.0, 0.0, 0.0, 1.0, 1.0, 1.0), AABB::new(4.0, 0.0, 0.0, 1.0, 1.0, 1.0));",
     "failures": [],
     "group": "Aabb",
     "line": 121,

@@ -3,7 +3,7 @@
     "group": "MeshIso",
     "test_name": "Eval Gyroid",
     "passed": true,
-    "time_ms": 0.036,
+    "time_ms": 0.02,
     "line": 8,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType",
     "checks": [
@@ -24,7 +24,7 @@
     "group": "MeshIso",
     "test_name": "Eval SchwarzP",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.006,
     "line": 17,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType",
     "checks": [
@@ -40,7 +40,7 @@
     "group": "MeshIso",
     "test_name": "Eval Diamond",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.005,
     "line": 25,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType",
     "checks": [
@@ -56,7 +56,7 @@
     "group": "MeshIso",
     "test_name": "From Tpms Gyroid Solid",
     "passed": true,
-    "time_ms": 18.744,
+    "time_ms": 7.754,
     "line": 33,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    m = MeshIso.from_tpms(TpmsType.GYROID, box, 10, 10, 10, 0.0, 1.0, TpmsMode.SOLID)",
     "checks": [
@@ -82,7 +82,7 @@
     "group": "MeshIso",
     "test_name": "From Tpms Diamond Sheet",
     "passed": true,
-    "time_ms": 224.902,
+    "time_ms": 28.735,
     "line": 49,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    m = MeshIso.from_tpms(TpmsType.DIAMOND, box, 10, 10, 10, 0.0, 1.0, TpmsMode.SHEET, 0.1)",
     "checks": [
@@ -98,7 +98,7 @@
     "group": "MeshIso",
     "test_name": "From Tpms Neovius Shell",
     "passed": true,
-    "time_ms": 128.922,
+    "time_ms": 25.883,
     "line": 63,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    m = MeshIso.from_tpms(TpmsType.NEOVIUS, box, 10, 10, 10, 0.0, 1.0, TpmsMode.SHELL, 0.1)",
     "checks": [
@@ -112,46 +112,100 @@
   },
   {
     "group": "MeshIso",
-    "test_name": "SDF Sphere",
+    "test_name": "All Tpms Shells",
     "passed": true,
-    "time_ms": 0.042,
+    "time_ms": 288.056,
     "line": 77,
-    "code": "    from session_py import MeshIso",
+    "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    types = [\n        TpmsType.GYROID, TpmsType.SCHWARZ_P, TpmsType.DIAMOND,\n        TpmsType.NEOVIUS, TpmsType.IWP, TpmsType.LIDINOID,\n        TpmsType.FISCHER_KOCH_S, TpmsType.FRD, TpmsType.PMY,\n    ]\n    for i in range(9):\n        m = MeshIso.from_tpms(types[i], box, 10, 10, 10, 0.0, 1.0, TpmsMode.SHELL, 0.1)",
     "checks": [
       {
-        "line": 81,
-        "code_line": "TOLERANCE.is_close(MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0), 0.0)",
+        "line": 93,
+        "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 82,
-        "code_line": "TOLERANCE.is_close(MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0), -1.0)",
+        "line": 94,
+        "code_line": "m.number_of_vertices() > 0",
         "passed": true
       },
       {
-        "line": 83,
-        "code_line": "TOLERANCE.is_close(MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 0.0), 1.0)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "MeshIso",
-    "test_name": "Smooth Union",
-    "passed": true,
-    "time_ms": 0.023,
-    "line": 86,
-    "code": "    from session_py import MeshIso",
-    "checks": [
-      {
-        "line": 90,
-        "code_line": "MeshIso.smooth_union(-1.0, 1.0, 8.0) < 0.0",
+        "line": 93,
+        "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 91,
-        "code_line": "MeshIso.smooth_union(1.0, 1.0, 8.0) < 1.0",
+        "line": 94,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 93,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 94,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 93,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 94,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 93,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 94,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 93,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 94,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 93,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 94,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 93,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 94,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      },
+      {
+        "line": 93,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 94,
+        "code_line": "m.number_of_vertices() > 0",
         "passed": true
       }
     ],
@@ -161,17 +215,17 @@
     "group": "MeshIso",
     "test_name": "From Function",
     "passed": true,
-    "time_ms": 11.51,
-    "line": 94,
+    "time_ms": 3.185,
+    "line": 97,
     "code": "    from session_py import MeshIso\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        return MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, x, y, z)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)",
     "checks": [
       {
-        "line": 105,
+        "line": 108,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 106,
+        "line": 109,
         "code_line": "m.number_of_vertices() > 0",
         "passed": true
       }
@@ -180,100 +234,25 @@
   },
   {
     "group": "MeshIso",
-    "test_name": "All Tpms Shells",
+    "test_name": "SDF Sphere",
     "passed": true,
-    "time_ms": 1083.903,
-    "line": 109,
-    "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    types = [\n        TpmsType.GYROID, TpmsType.SCHWARZ_P, TpmsType.DIAMOND,\n        TpmsType.NEOVIUS, TpmsType.IWP, TpmsType.LIDINOID,\n        TpmsType.FISCHER_KOCH_S, TpmsType.FRD, TpmsType.PMY,\n    ]\n    for i in range(9):\n        m = MeshIso.from_tpms(types[i], box, 10, 10, 10, 0.0, 1.0, TpmsMode.SHELL, 0.1)",
+    "time_ms": 0.009,
+    "line": 112,
+    "code": "    from session_py import MeshIso",
     "checks": [
       {
-        "line": 125,
-        "code_line": "m.is_valid()",
+        "line": 116,
+        "code_line": "TOLERANCE.is_close(MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0), 0.0)",
         "passed": true
       },
       {
-        "line": 126,
-        "code_line": "m.number_of_vertices() > 0",
+        "line": 117,
+        "code_line": "TOLERANCE.is_close(MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0), -1.0)",
         "passed": true
       },
       {
-        "line": 125,
-        "code_line": "m.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 126,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
-      },
-      {
-        "line": 125,
-        "code_line": "m.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 126,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
-      },
-      {
-        "line": 125,
-        "code_line": "m.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 126,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
-      },
-      {
-        "line": 125,
-        "code_line": "m.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 126,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
-      },
-      {
-        "line": 125,
-        "code_line": "m.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 126,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
-      },
-      {
-        "line": 125,
-        "code_line": "m.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 126,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
-      },
-      {
-        "line": 125,
-        "code_line": "m.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 126,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
-      },
-      {
-        "line": 125,
-        "code_line": "m.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 126,
-        "code_line": "m.number_of_vertices() > 0",
+        "line": 118,
+        "code_line": "TOLERANCE.is_close(MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 0.0), 1.0)",
         "passed": true
       }
     ],
@@ -283,38 +262,17 @@
     "group": "MeshIso",
     "test_name": "SDF Box",
     "passed": true,
-    "time_ms": 8.885,
-    "line": 129,
+    "time_ms": 4.071,
+    "line": 121,
     "code": "    from session_py import MeshIso\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        return MeshIso.sdf_box(0.0, 0.0, 0.0, 1.0, 0.7, 1.3, x, y, z)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)",
     "checks": [
       {
-        "line": 140,
+        "line": 132,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 141,
-        "code_line": "m.number_of_vertices() > 0",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "MeshIso",
-    "test_name": "SDF Torus",
-    "passed": true,
-    "time_ms": 6.583,
-    "line": 144,
-    "code": "    from session_py import MeshIso\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        return MeshIso.sdf_torus(0.0, 0.0, 0.0, 1.1, 0.4, x, y, z)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)",
-    "checks": [
-      {
-        "line": 155,
-        "code_line": "m.is_valid()",
-        "passed": true
-      },
-      {
-        "line": 156,
+        "line": 133,
         "code_line": "m.number_of_vertices() > 0",
         "passed": true
       }
@@ -325,18 +283,86 @@
     "group": "MeshIso",
     "test_name": "SDF Capsule",
     "passed": true,
-    "time_ms": 10.412,
-    "line": 159,
+    "time_ms": 4.771,
+    "line": 136,
     "code": "    from session_py import MeshIso\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        return MeshIso.sdf_capsule(Point(0.0, -1.0, 0.0), Point(0.0, 1.0, 0.0), 0.5, x, y, z)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)",
     "checks": [
       {
-        "line": 170,
+        "line": 147,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 171,
+        "line": 148,
         "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "MeshIso",
+    "test_name": "SDF Torus",
+    "passed": true,
+    "time_ms": 4.25,
+    "line": 151,
+    "code": "    from session_py import MeshIso\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        return MeshIso.sdf_torus(0.0, 0.0, 0.0, 1.1, 0.4, x, y, z)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)",
+    "checks": [
+      {
+        "line": 162,
+        "code_line": "m.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 163,
+        "code_line": "m.number_of_vertices() > 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "MeshIso",
+    "test_name": "SDF Plane",
+    "passed": true,
+    "time_ms": 0.013,
+    "line": 166,
+    "code": "    from session_py import MeshIso",
+    "checks": [
+      {
+        "line": 170,
+        "code_line": "TOLERANCE.is_close(MeshIso.sdf_plane(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0), 0.0)",
+        "passed": true
+      },
+      {
+        "line": 171,
+        "code_line": "TOLERANCE.is_close(MeshIso.sdf_plane(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), 1.0)",
+        "passed": true
+      },
+      {
+        "line": 172,
+        "code_line": "TOLERANCE.is_close(MeshIso.sdf_plane(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0), -1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "MeshIso",
+    "test_name": "Smooth Union",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 175,
+    "code": "    from session_py import MeshIso",
+    "checks": [
+      {
+        "line": 179,
+        "code_line": "MeshIso.smooth_union(-1.0, 1.0, 8.0) < 0.0",
+        "passed": true
+      },
+      {
+        "line": 180,
+        "code_line": "MeshIso.smooth_union(1.0, 1.0, 8.0) < 1.0",
         "passed": true
       }
     ],
@@ -346,17 +372,17 @@
     "group": "MeshIso",
     "test_name": "Smooth Subtract",
     "passed": true,
-    "time_ms": 66.877,
-    "line": 174,
+    "time_ms": 17.872,
+    "line": 183,
     "code": "    from session_py import MeshIso\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        a = MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.2, x, y, z)\n        b = MeshIso.sdf_box(0.0, 0.0, 0.0, 0.8, 0.8, 0.8, x, y, z)\n        return MeshIso.smooth_subtract(a, b, 8.0)\n    m = MeshIso.from_function(fn, box, 15, 15, 15, 0.0)",
     "checks": [
       {
-        "line": 187,
+        "line": 196,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 188,
+        "line": 197,
         "code_line": "m.number_of_vertices() > 0",
         "passed": true
       }
@@ -367,17 +393,17 @@
     "group": "MeshIso",
     "test_name": "Smooth Intersect",
     "passed": true,
-    "time_ms": 41.293,
-    "line": 191,
+    "time_ms": 20.264,
+    "line": 200,
     "code": "    from session_py import MeshIso\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        a = MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.4, x, y, z)\n        b = MeshIso.sdf_box(0.0, 0.0, 0.0, 1.1, 1.1, 1.1, x, y, z)\n        return MeshIso.smooth_intersect(a, b, 8.0)\n    m = MeshIso.from_function(fn, box, 15, 15, 15, 0.0)",
     "checks": [
       {
-        "line": 204,
+        "line": 213,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 205,
+        "line": 214,
         "code_line": "m.number_of_vertices() > 0",
         "passed": true
       }
@@ -388,17 +414,17 @@
     "group": "MeshIso",
     "test_name": "Gyroid Sphere Shell",
     "passed": true,
-    "time_ms": 17.538,
-    "line": 208,
+    "time_ms": 8.461,
+    "line": 217,
     "code": "    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(-1.6, -1.6, -1.6), Point(1.6, 1.6, 1.6)])\n    def fn(x, y, z):\n        tpms = MeshIso.eval(TpmsType.GYROID, x, y, z, 1.0)\n        shell = abs(MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.3, x, y, z)) - 0.08\n        return MeshIso.smooth_union(tpms * 0.3, shell, 8.0)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)",
     "checks": [
       {
-        "line": 222,
+        "line": 231,
         "code_line": "m.is_valid()",
         "passed": true
       },
       {
-        "line": 223,
+        "line": 232,
         "code_line": "m.number_of_vertices() > 0",
         "passed": true
       }
