@@ -332,6 +332,6 @@
     "name": "my_xform",
     "type": "Xform"
   },
-  "type": "ColumnElement",
+  "type": "ElementColumn",
   "width": 0.5
 }

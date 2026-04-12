@@ -524,5 +524,5 @@
     "type": "Xform"
   },
   "thickness": 0.3,
-  "type": "PlateElement"
+  "type": "ElementPlate"
 }

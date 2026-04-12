@@ -1,664 +1,366 @@
 [
   {
-    "group": "PlateElement",
+    "group": "Element",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.158,
-    "line": 543,
-    "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    PlateElement p(polygon, 0.2, \"plate1\");\n\n    auto& geo = p.geometry();\n    std::string name = p.name;\n    const std::string& guid = p.guid();\n    std::string pstr = p.str();\n    std::string prepr = p.repr();\n\n    PlateElement pcopy = p.duplicate();\n    PlateElement p2(polygon, 0.2, \"plate1\");\n    PlateElement p3(polygon, 0.5, \"plate1\");",
+    "time_ms": 0.051,
+    "line": 13,
+    "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"brep.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m, \"test_element\");\n\n    auto& geo = e.geometry();\n    std::string name = e.name;\n    const std::string& guid = e.guid();\n    bool dirty = e.is_dirty();\n\n    std::string estr = e.str();\n    std::string erepr = e.repr();\n\n    Element ecopy = e.duplicate();\n\n    Element e2(Mesh(), \"test_element\");\n    Element e3(BRep(), \"other\");",
     "checks": [
       {
-        "line": 565,
-        "code_line": "name == \"plate1\"",
+        "line": 42,
+        "code_line": "name == \"test_element\"",
         "passed": true
       },
       {
-        "line": 566,
+        "line": 43,
         "code_line": "!guid.empty()",
         "passed": true
       },
       {
-        "line": 567,
+        "line": 44,
+        "code_line": "dirty",
+        "passed": true
+      },
+      {
+        "line": 45,
         "code_line": "std::holds_alternative<Mesh>(geo)",
         "passed": true
       },
       {
-        "line": 568,
-        "code_line": "p.polygon().size() == 4",
+        "line": 46,
+        "code_line": "estr == \"Element(test_element, Mesh)\"",
         "passed": true
       },
       {
-        "line": 569,
-        "code_line": "p.thickness() == 0.2",
+        "line": 47,
+        "code_line": "erepr == \"Element(\" + guid + \", test_element, Mesh)\"",
         "passed": true
       },
       {
-        "line": 570,
-        "code_line": "pstr == \"PlateElement(plate1, 4 pts, 0.2)\"",
+        "line": 48,
+        "code_line": "ecopy == e && ecopy.guid() != e.guid()",
         "passed": true
       },
       {
-        "line": 571,
-        "code_line": "prepr == \"PlateElement(\" + guid + \", plate1, 4 pts, 0.2)\"",
+        "line": 49,
+        "code_line": "e == e2",
         "passed": true
       },
       {
-        "line": 572,
-        "code_line": "pcopy == p && pcopy.guid() != p.guid()",
-        "passed": true
-      },
-      {
-        "line": 573,
-        "code_line": "p == p2",
-        "passed": true
-      },
-      {
-        "line": 574,
-        "code_line": "p != p3",
+        "line": 50,
+        "code_line": "e != e3",
         "passed": true
       }
     ],
     "failures": []
   },
   {
-    "group": "PlateElement",
-    "test_name": "Default Polygon",
+    "group": "Element",
+    "test_name": "Session Transformation",
     "passed": true,
-    "time_ms": 0.034,
-    "line": 577,
-    "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"mesh.h\"\n    PlateElement p;",
+    "time_ms": 0.015,
+    "line": 53,
+    "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m);\n    Xform xf = Xform::translation(10.0, 20.0, 30.0);\n    e.session_transformation = xf;",
     "checks": [
       {
-        "line": 582,
-        "code_line": "std::holds_alternative<Mesh>(p.geometry())",
+        "line": 71,
+        "code_line": "e.is_dirty()",
         "passed": true
       },
       {
-        "line": 583,
-        "code_line": "p.polygon().size() == 4",
-        "passed": true
-      },
-      {
-        "line": 584,
-        "code_line": "p.thickness() == 0.1",
+        "line": 72,
+        "code_line": "e.session_transformation == xf",
         "passed": true
       }
     ],
     "failures": []
   },
   {
-    "group": "PlateElement",
-    "test_name": "Setters",
+    "group": "Element",
+    "test_name": "Add Feature",
     "passed": true,
-    "time_ms": 0.085,
-    "line": 587,
-    "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"point.h\"\n    PlateElement p;\n    p.set_thickness(0.3);\n    p.set_polygon({\n        Point(0, 0, 0),\n        Point(3, 0, 0),\n        Point(3, 3, 0),\n        Point(0, 3, 0),\n    });",
+    "time_ms": 0.016,
+    "line": 75,
+    "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m);\n\n    auto my_feature = [](Mesh geo) -> Mesh { return geo; };\n    e.add_feature(my_feature);",
     "checks": [
       {
-        "line": 599,
-        "code_line": "p.thickness() == 0.3",
+        "line": 93,
+        "code_line": "e.is_dirty()",
         "passed": true
       },
       {
-        "line": 600,
-        "code_line": "p.polygon().size() == 4",
-        "passed": true
-      },
-      {
-        "line": 601,
-        "code_line": "p.has_geometry()",
+        "line": 94,
+        "code_line": "e.features_count() == 1",
         "passed": true
       }
     ],
     "failures": []
   },
   {
-    "group": "PlateElement",
-    "test_name": "Mesh Topology",
-    "passed": true,
-    "time_ms": 0.031,
-    "line": 604,
-    "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    };\n    PlateElement p(polygon, 0.5);\n    auto& geo = std::get<Mesh>(p.geometry());",
-    "checks": [
-      {
-        "line": 617,
-        "code_line": "geo.vertex.size() == 8",
-        "passed": true
-      },
-      {
-        "line": 618,
-        "code_line": "geo.face.size() == 6",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "PlateElement",
+    "group": "Element",
     "test_name": "Aabb",
     "passed": true,
-    "time_ms": 0.083,
-    "line": 621,
-    "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    PlateElement p(polygon, 0.2);\n    OBB aabb = p.aabb();",
+    "time_ms": 0.037,
+    "line": 97,
+    "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m);\n    OBB aabb = e.aabb();",
     "checks": [
       {
-        "line": 634,
-        "code_line": "TOLERANCE.is_close(aabb.half_size[0], 1.0)",
+        "line": 114,
+        "code_line": "TOLERANCE.is_close(aabb.half_size[0], 0.5)",
         "passed": true
       },
       {
-        "line": 635,
-        "code_line": "TOLERANCE.is_close(aabb.half_size[1], 1.0)",
+        "line": 115,
+        "code_line": "TOLERANCE.is_close(aabb.half_size[1], 0.5)",
         "passed": true
       },
       {
-        "line": 636,
-        "code_line": "TOLERANCE.is_close(aabb.half_size[2], 0.1)",
+        "line": 116,
+        "code_line": "TOLERANCE.is_close(aabb.half_size[2], 0.0)",
         "passed": true
       }
     ],
     "failures": []
   },
   {
-    "group": "PlateElement",
-    "test_name": "Compute Point",
+    "group": "Element",
+    "test_name": "OBB",
     "passed": true,
-    "time_ms": 0.071,
-    "line": 639,
-    "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    PlateElement p(polygon, 0.2);\n    Point pt = p.point();",
+    "time_ms": 0.021,
+    "line": 119,
+    "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m);\n    OBB obb = e.obb();",
     "checks": [
       {
-        "line": 651,
+        "line": 136,
+        "code_line": "TOLERANCE.is_close(obb.half_size[0], 0.5)",
+        "passed": true
+      },
+      {
+        "line": 137,
+        "code_line": "TOLERANCE.is_close(obb.half_size[1], 0.5)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Element",
+    "test_name": "Session Geometry",
+    "passed": true,
+    "time_ms": 0.02,
+    "line": 140,
+    "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m);\n    e.session_transformation = Xform::translation(10.0, 0.0, 0.0);\n    auto sg = e.session_geometry();\n\n    auto& mesh = std::get<Mesh>(sg);\n    auto verts_it = mesh.vertex.begin();\n    ++verts_it;",
+    "checks": [
+      {
+        "line": 158,
+        "code_line": "std::holds_alternative<Mesh>(sg)",
+        "passed": true
+      },
+      {
+        "line": 161,
+        "code_line": "TOLERANCE.is_close(verts_it->second.x, 10.0)",
+        "passed": true
+      },
+      {
+        "line": 163,
+        "code_line": "TOLERANCE.is_close(verts_it->second.x, 11.0)",
+        "passed": true
+      },
+      {
+        "line": 164,
+        "code_line": "&std::get<Mesh>(e.geometry()) != &mesh",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Element",
+    "test_name": "Reset",
+    "passed": true,
+    "time_ms": 0.03,
+    "line": 167,
+    "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(2, 0, 0),\n            Point(2, 2, 0),\n            Point(0, 2, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m);\n    auto _ = e.aabb();\n    auto _2 = e.point();\n    e.reset();",
+    "checks": [
+      {
+        "line": 185,
+        "code_line": "e.is_dirty()",
+        "passed": true
+      },
+      {
+        "line": 186,
+        "code_line": "!e.cached_aabb().has_value()",
+        "passed": true
+      },
+      {
+        "line": 187,
+        "code_line": "!e.cached_obb().has_value()",
+        "passed": true
+      },
+      {
+        "line": 188,
+        "code_line": "!e.cached_collision_mesh().has_value()",
+        "passed": true
+      },
+      {
+        "line": 189,
+        "code_line": "!e.cached_point().has_value()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Element",
+    "test_name": "Compute Point",
+    "passed": true,
+    "time_ms": 0.017,
+    "line": 192,
+    "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(2, 0, 0),\n            Point(2, 2, 0),\n            Point(0, 2, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m);\n    Point pt = e.point();",
+    "checks": [
+      {
+        "line": 208,
         "code_line": "TOLERANCE.is_close(pt[0], 1.0)",
         "passed": true
       },
       {
-        "line": 652,
+        "line": 209,
         "code_line": "TOLERANCE.is_close(pt[1], 1.0)",
         "passed": true
       },
       {
-        "line": 653,
-        "code_line": "TOLERANCE.is_close(pt[2], -0.1)",
+        "line": 210,
+        "code_line": "TOLERANCE.is_close(pt[2], 0.0)",
         "passed": true
       }
     ],
     "failures": []
   },
   {
-    "group": "PlateElement",
-    "test_name": "Triangle Polygon",
+    "group": "Element",
+    "test_name": "Brep Aabb",
     "passed": true,
-    "time_ms": 0.029,
-    "line": 656,
-    "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(0.5, 1, 0),\n    };\n    PlateElement p(polygon, 0.1);\n    auto& geo = std::get<Mesh>(p.geometry());",
+    "time_ms": 1.261,
+    "line": 213,
+    "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"brep.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    BRep b = BRep::create_box(2.0, 3.0, 4.0);\n    Element e(b, \"brep_element\");\n    OBB aabb = e.aabb();\n    Point pt = e.point();",
     "checks": [
       {
-        "line": 668,
-        "code_line": "geo.vertex.size() == 6",
+        "line": 223,
+        "code_line": "TOLERANCE.is_close(aabb.half_size[0], 1.0)",
         "passed": true
       },
       {
-        "line": 669,
-        "code_line": "geo.face.size() == 5",
+        "line": 224,
+        "code_line": "TOLERANCE.is_close(aabb.half_size[1], 1.5)",
+        "passed": true
+      },
+      {
+        "line": 225,
+        "code_line": "TOLERANCE.is_close(aabb.half_size[2], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 226,
+        "code_line": "TOLERANCE.is_close(pt[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 227,
+        "code_line": "TOLERANCE.is_close(pt[1], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 228,
+        "code_line": "TOLERANCE.is_close(pt[2], 0.0)",
         "passed": true
       }
     ],
     "failures": []
   },
   {
-    "group": "PlateElement",
+    "group": "Element",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 13.281,
-    "line": 672,
-    "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    PlateElement p(polygon, 0.3, \"json_plate\");\n    p.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string fname = \"serialization/test_plate_element.json\";\n    p.json_dump(fname);\n    PlateElement loaded = PlateElement::json_load(fname);",
+    "time_ms": 7.774,
+    "line": 231,
+    "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m, \"json_test\");\n    e.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string fname = \"serialization/test_element.json\";\n    e.json_dump(fname);\n    Element loaded = Element::json_load(fname);",
     "checks": [
       {
-        "line": 689,
-        "code_line": "loaded.name == \"json_plate\"",
+        "line": 252,
+        "code_line": "loaded.name == \"json_test\"",
         "passed": true
       },
       {
-        "line": 690,
-        "code_line": "TOLERANCE.is_close(loaded.thickness(), 0.3)",
+        "line": 253,
+        "code_line": "std::holds_alternative<Mesh>(loaded.geometry())",
         "passed": true
       },
       {
-        "line": 691,
-        "code_line": "loaded.polygon().size() == 4",
-        "passed": true
-      },
-      {
-        "line": 692,
-        "code_line": "TOLERANCE.is_close(loaded.polygon()[1][0], 2.0)",
+        "line": 254,
+        "code_line": "std::get<Mesh>(loaded.geometry()).vertex.size() == 4",
         "passed": true
       }
     ],
     "failures": []
   },
   {
-    "group": "PlateElement",
+    "group": "Element",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 14.059,
-    "line": 695,
-    "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    PlateElement p(polygon, 0.3, \"proto_plate\");\n    p.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string path = \"serialization/test_plate_element.bin\";\n    p.pb_dump(path);\n    PlateElement loaded = PlateElement::pb_load(path);",
+    "time_ms": 8.802,
+    "line": 257,
+    "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"brep.h\"\n    // uncomment #include \"xform.h\"\n    BRep b = BRep::create_box(2.0, 3.0, 4.0);\n    Element e(b, \"proto_test\");\n    e.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string path = \"serialization/test_element.bin\";\n    e.pb_dump(path);\n    Element loaded = Element::pb_load(path);",
     "checks": [
       {
-        "line": 712,
-        "code_line": "loaded.name == \"proto_plate\"",
+        "line": 269,
+        "code_line": "loaded.name == \"proto_test\"",
         "passed": true
       },
       {
-        "line": 713,
-        "code_line": "TOLERANCE.is_close(loaded.thickness(), 0.3)",
+        "line": 270,
+        "code_line": "std::holds_alternative<BRep>(loaded.geometry())",
         "passed": true
       },
       {
-        "line": 714,
-        "code_line": "loaded.polygon().size() == 4",
+        "line": 271,
+        "code_line": "std::get<BRep>(loaded.geometry()).face_count() == 6",
         "passed": true
       },
       {
-        "line": 715,
-        "code_line": "TOLERANCE.is_close(loaded.polygon()[1][0], 2.0)",
+        "line": 272,
+        "code_line": "std::get<BRep>(loaded.geometry()).vertex_count() == 8",
         "passed": true
       }
     ],
     "failures": []
   },
   {
-    "group": "PlateElement",
-    "test_name": "From Top Bottom",
-    "passed": true,
-    "time_ms": 0.092,
-    "line": 718,
-    "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> bottom = {Point(0,0,0), Point(2,0,0), Point(2,2,0), Point(0,2,0), Point(0,0,0)};\n    std::vector<Point> top    = {Point(0,0,1), Point(2,0,1), Point(2,2,1), Point(0,2,1), Point(0,0,1)};\n    PlateElement p(bottom, top, \"tb_plate\");\n    // Reversed argument order should auto-swap\n    PlateElement pr(top, bottom, \"tb_plate_r\");",
-    "checks": [
-      {
-        "line": 724,
-        "code_line": "p.polygon().size() == 4",
-        "passed": true
-      },
-      {
-        "line": 725,
-        "code_line": "p.polygon_top().size() == 4",
-        "passed": true
-      },
-      {
-        "line": 726,
-        "code_line": "TOLERANCE.is_close(p.thickness(), 1.0)",
-        "passed": true
-      },
-      {
-        "line": 727,
-        "code_line": "TOLERANCE.is_close(p.polygon()[0][2], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 728,
-        "code_line": "TOLERANCE.is_close(p.polygon_top()[0][2], 1.0)",
-        "passed": true
-      },
-      {
-        "line": 731,
-        "code_line": "TOLERANCE.is_close(pr.polygon()[0][2], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 732,
-        "code_line": "TOLERANCE.is_close(pr.polygon_top()[0][2], 1.0)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "PlateElement",
+    "group": "Element",
     "test_name": "Polylines",
     "passed": true,
-    "time_ms": 0.111,
-    "line": 821,
-    "code": "    std::vector<Point> polygon = {Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0)};\n    PlateElement p(polygon, 0.2);\n    auto pls = p.polylines();",
+    "time_ms": 0.021,
+    "line": 279,
+    "code": "    Mesh m = Mesh::from_vertices_and_faces(\n        {Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0)},\n        {{0, 1, 2, 3}});\n    Element e(m, \"test_element\");",
     "checks": [
       {
-        "line": 825,
-        "code_line": "pls.size() == 6",
+        "line": 285,
+        "code_line": "e.polylines().empty()",
         "passed": true
       },
       {
-        "line": 826,
-        "code_line": "pls[0].point_count() == 5",
+        "line": 286,
+        "code_line": "e.planes().empty()",
         "passed": true
       },
       {
-        "line": 827,
-        "code_line": "pls[1].point_count() == 5",
+        "line": 287,
+        "code_line": "e.edge_vectors().empty()",
         "passed": true
       },
       {
-        "line": 828,
-        "code_line": "pls[i].point_count() == 5",
-        "passed": true
-      },
-      {
-        "line": 828,
-        "code_line": "pls[i].point_count() == 5",
-        "passed": true
-      },
-      {
-        "line": 828,
-        "code_line": "pls[i].point_count() == 5",
-        "passed": true
-      },
-      {
-        "line": 828,
-        "code_line": "pls[i].point_count() == 5",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "PlateElement",
-    "test_name": "Planes",
-    "passed": true,
-    "time_ms": 0.065,
-    "line": 831,
-    "code": "    std::vector<Point> polygon = {Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0)};\n    PlateElement p(polygon, 0.2);\n    auto pls = p.planes();",
-    "checks": [
-      {
-        "line": 835,
-        "code_line": "pls.size() == 6",
-        "passed": true
-      },
-      {
-        "line": 836,
-        "code_line": "TOLERANCE.is_close(pls[0].z_axis()[2], 1.0)",
-        "passed": true
-      },
-      {
-        "line": 837,
-        "code_line": "TOLERANCE.is_close(pls[1].z_axis()[2], -1.0)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "PlateElement",
-    "test_name": "Edge Vectors",
-    "passed": true,
-    "time_ms": 0.049,
-    "line": 840,
-    "code": "    std::vector<Point> polygon = {Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0)};\n    PlateElement p(polygon, 0.2);\n    auto evs = p.edge_vectors();",
-    "checks": [
-      {
-        "line": 844,
-        "code_line": "evs.size() == 4",
-        "passed": true
-      },
-      {
-        "line": 845,
-        "code_line": "TOLERANCE.is_close(evs[0][0], 1.0)",
-        "passed": true
-      },
-      {
-        "line": 846,
-        "code_line": "TOLERANCE.is_close(evs[0][1], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 847,
-        "code_line": "TOLERANCE.is_close(evs[1][0], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 848,
-        "code_line": "TOLERANCE.is_close(evs[1][1], 1.0)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "PlateElement",
-    "test_name": "Axis",
-    "passed": true,
-    "time_ms": 0.046,
-    "line": 851,
-    "code": "    std::vector<Point> polygon = {Point(0,0,0), Point(2,0,0), Point(2,2,0), Point(0,2,0)};\n    PlateElement p(polygon, 0.4);\n    auto ax = p.axis();",
-    "checks": [
-      {
-        "line": 855,
-        "code_line": "ax.has_value()",
-        "passed": true
-      },
-      {
-        "line": 856,
-        "code_line": "TOLERANCE.is_close(ax->start()[0], 1.0)",
-        "passed": true
-      },
-      {
-        "line": 857,
-        "code_line": "TOLERANCE.is_close(ax->start()[1], 1.0)",
-        "passed": true
-      },
-      {
-        "line": 858,
-        "code_line": "TOLERANCE.is_close(ax->start()[2], 0.0)",
-        "passed": true
-      },
-      {
-        "line": 859,
-        "code_line": "TOLERANCE.is_close(ax->end()[2], -0.4)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "PlateElement",
-    "test_name": "Joint Types",
-    "passed": true,
-    "time_ms": 0.049,
-    "line": 862,
-    "code": "    PlateElement p;\n    p.set_joint_types({1, 2, 3, 4});",
-    "checks": [
-      {
-        "line": 864,
-        "code_line": "p.joint_types().empty()",
-        "passed": true
-      },
-      {
-        "line": 866,
-        "code_line": "p.joint_types().size() == 4",
-        "passed": true
-      },
-      {
-        "line": 867,
-        "code_line": "p.joint_types()[0] == 1",
-        "passed": true
-      },
-      {
-        "line": 868,
-        "code_line": "p.joint_types()[3] == 4",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "PlateElement",
-    "test_name": "J Mf",
-    "passed": true,
-    "time_ms": 0.049,
-    "line": 871,
-    "code": "    PlateElement p;\n    p.set_j_mf({\n        {{0, true, 0.5}, {1, false, 0.3}},\n        {},\n        {{2, true, 0.8}},\n    });",
-    "checks": [
-      {
-        "line": 873,
-        "code_line": "p.j_mf().empty()",
-        "passed": true
-      },
-      {
-        "line": 879,
-        "code_line": "p.j_mf().size() == 3",
-        "passed": true
-      },
-      {
-        "line": 880,
-        "code_line": "p.j_mf()[0].size() == 2",
-        "passed": true
-      },
-      {
-        "line": 881,
-        "code_line": "p.j_mf()[0][0].joint_id == 0",
-        "passed": true
-      },
-      {
-        "line": 882,
-        "code_line": "p.j_mf()[0][0].is_male == true",
-        "passed": true
-      },
-      {
-        "line": 883,
-        "code_line": "TOLERANCE.is_close(p.j_mf()[0][0].parameter, 0.5)",
-        "passed": true
-      },
-      {
-        "line": 884,
-        "code_line": "p.j_mf()[2][0].joint_id == 2",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "PlateElement",
-    "test_name": "Key",
-    "passed": true,
-    "time_ms": 0.039,
-    "line": 887,
-    "code": "    PlateElement p;\n    p.set_key(\"plate_A\");",
-    "checks": [
-      {
-        "line": 889,
-        "code_line": "p.key().empty()",
-        "passed": true
-      },
-      {
-        "line": 891,
-        "code_line": "p.key() == \"plate_A\"",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "PlateElement",
-    "test_name": "Component Plane",
-    "passed": true,
-    "time_ms": 0.043,
-    "line": 894,
-    "code": "    PlateElement p;\n    p.set_component_plane(Plane(Point(1, 2, 3), Vector(1, 0, 0), Vector(0, 1, 0)));",
-    "checks": [
-      {
-        "line": 896,
-        "code_line": "!p.component_plane().has_value()",
-        "passed": true
-      },
-      {
-        "line": 898,
-        "code_line": "TOLERANCE.is_close(p.component_plane()->origin()[0], 1.0)",
-        "passed": true
-      },
-      {
-        "line": 899,
-        "code_line": "TOLERANCE.is_close(p.component_plane()->origin()[1], 2.0)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "PlateElement",
-    "test_name": "Json Roundtrip Joinery",
-    "passed": true,
-    "time_ms": 14.911,
-    "line": 902,
-    "code": "    std::vector<Point> polygon = {Point(0,0,0), Point(2,0,0), Point(2,2,0), Point(0,2,0)};\n    PlateElement p(polygon, 0.3, \"joinery_plate\");\n    p.set_joint_types({1, 2, 3, 4});\n    p.set_j_mf({{{0, true, 0.5}}, {}, {{1, false, 0.3}}});\n    p.set_key(\"plate_A\");\n    p.set_component_plane(Plane(Point(1, 2, 3), Vector(1, 0, 0), Vector(0, 1, 0)));\n\n    std::string fname = \"serialization/test_plate_element_joinery.json\";\n    p.json_dump(fname);\n    PlateElement loaded = PlateElement::json_load(fname);",
-    "checks": [
-      {
-        "line": 914,
-        "code_line": "loaded.joint_types().size() == 4",
-        "passed": true
-      },
-      {
-        "line": 915,
-        "code_line": "loaded.j_mf().size() == 3",
-        "passed": true
-      },
-      {
-        "line": 916,
-        "code_line": "loaded.key() == \"plate_A\"",
-        "passed": true
-      },
-      {
-        "line": 917,
-        "code_line": "loaded.component_plane().has_value()",
-        "passed": true
-      },
-      {
-        "line": 918,
-        "code_line": "TOLERANCE.is_close(loaded.component_plane()->origin()[0], 1.0)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "PlateElement",
-    "test_name": "Protobuf Roundtrip Joinery",
-    "passed": true,
-    "time_ms": 10.956,
-    "line": 921,
-    "code": "    std::vector<Point> polygon = {Point(0,0,0), Point(2,0,0), Point(2,2,0), Point(0,2,0)};\n    PlateElement p(polygon, 0.3, \"joinery_plate\");\n    p.set_joint_types({1, 2, 3, 4});\n    p.set_j_mf({{{0, true, 0.5}}, {}, {{1, false, 0.3}}});\n    p.set_key(\"plate_A\");\n    p.set_component_plane(Plane(Point(1, 2, 3), Vector(1, 0, 0), Vector(0, 1, 0)));\n\n    std::string path = \"serialization/test_plate_element_joinery.bin\";\n    p.pb_dump(path);\n    PlateElement loaded = PlateElement::pb_load(path);",
-    "checks": [
-      {
-        "line": 933,
-        "code_line": "loaded.joint_types().size() == 4",
-        "passed": true
-      },
-      {
-        "line": 934,
-        "code_line": "loaded.j_mf().size() == 3",
-        "passed": true
-      },
-      {
-        "line": 935,
-        "code_line": "loaded.j_mf()[0][0].joint_id == 0",
-        "passed": true
-      },
-      {
-        "line": 936,
-        "code_line": "loaded.j_mf()[0][0].is_male == true",
-        "passed": true
-      },
-      {
-        "line": 937,
-        "code_line": "loaded.key() == \"plate_A\"",
-        "passed": true
-      },
-      {
-        "line": 938,
-        "code_line": "loaded.component_plane().has_value()",
-        "passed": true
-      },
-      {
-        "line": 939,
-        "code_line": "TOLERANCE.is_close(loaded.component_plane()->origin()[0], 1.0)",
+        "line": 288,
+        "code_line": "!e.axis().has_value()",
         "passed": true
       }
     ],

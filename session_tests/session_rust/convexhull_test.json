@@ -18,7 +18,7 @@
     "line": 76,
     "passed": true,
     "test_name": "Hull3dCube",
-    "time_ms": 0.246
+    "time_ms": 0.043
   },
   {
     "checks": [
@@ -39,7 +39,7 @@
     "line": 58,
     "passed": true,
     "test_name": "Hull3d",
-    "time_ms": 0.034
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -71,7 +71,7 @@
     "line": 24,
     "passed": true,
     "test_name": "Hull2dCollinear",
-    "time_ms": 0.005
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -87,6 +87,6 @@
     "line": 6,
     "passed": true,
     "test_name": "Hull2d",
-    "time_ms": 0.005
+    "time_ms": 0.006
   }
 ]

@@ -3,7 +3,7 @@
     "group": "Knot",
     "test_name": "Make Clamped Uniform",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.005,
     "line": 15,
     "code": "    // uncomment #include \"knot.h\"\n\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots = knot::make_clamped_uniform(order, cv_count);",
     "checks": [
@@ -19,7 +19,7 @@
     "group": "Knot",
     "test_name": "Make Periodic Uniform",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 25,
     "code": "    // uncomment #include \"knot.h\"\n\n    // 0 1 2 3 4 5 6\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots = knot::make_periodic_uniform(order, cv_count);",
     "checks": [
@@ -35,7 +35,7 @@
     "group": "Knot",
     "test_name": "Is Clamped",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.003,
     "line": 35,
     "code": "    // uncomment #include \"knot.h\"\n\n    // 0 0 0 1 2 2 2\n    // 0 1 2 3 4 5 6\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots_periodic = knot::make_periodic_uniform(order, cv_count);\n    std::vector<double> knots_clamped = knot::make_clamped_uniform(order, cv_count);\n    bool is_not_clamped = knot::is_clamped(order, cv_count, knots_periodic);\n    bool is_clamped = knot::is_clamped(order, cv_count, knots_clamped);",
     "checks": [
@@ -51,7 +51,7 @@
     "group": "Knot",
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 50,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Reverses NURBS curve direction: flip control points + reverse knots\n    // Steps: 1) reverse array  2) remap knot[i] = t0 + t1 - knot[i] to preserve domain\n\n    // Symmetric knot vector -> reverse gives back the same (palindrome)\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots_sym = knot::make_clamped_uniform(order, cv_count);\n    knot::reverse(order, cv_count, knots_sym);\n\n    // Asymmetric knot vector -> extra knot at 0.5 shifts to 1.5 after reverse\n    // 0 0 0 0.5 1 2 2 2 -> 0 0 0 1 1.5 2 2 2\n    std::vector<double> knots_asym = {0.0, 0.0, 0.0, 0.5, 1.0, 2.0, 2.0, 2.0};\n    knot::reverse(4, 6, knots_asym);",
     "checks": [
@@ -72,7 +72,7 @@
     "group": "Knot",
     "test_name": "Find Span",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 71,
     "code": "    // uncomment #include \"knot.h\"\n\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> knots_clamped = knot::make_clamped_uniform(order, cv_count);\n    //   - 0.5 falls in span [0, 1] -> index 0\n    //   - 1.5 falls in span [1, 2] -> index 1\n    int spancount0 = knot::find_span(order, cv_count, knots_clamped, 0.5);\n    int spancount1 = knot::find_span(order, cv_count, knots_clamped, 1.5);",
     "checks": [
@@ -152,7 +152,7 @@
     "group": "Knot",
     "test_name": "Build Fitted Knots Adaptive",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.001,
     "line": 135,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Builds knot vectors for least-squares fitting\n    // Concentrates knots where curvature is high (sharp turns)\n    // For collinear points (zero curvature), interior knots are evenly distributed\n    double pts[] = {0,0,0, 1,0,0, 2,0,0, 3,0,0, 4,0,0};\n    std::vector<double> params = knot::compute_parameters(pts, 5, 3, CurveKnotStyle::Chord);\n    std::vector<double> knots = knot::build_fitted_knots_adaptive(params, pts, 5, 3, 5, 3);",
     "checks": [
@@ -168,7 +168,7 @@
     "group": "Knot",
     "test_name": "Build Fitted Knots Periodic Adaptive",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 147,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Periodic version for closed curves -- knots wrap around\n    // For a regular square (equal turns, equal chords), knots are uniformly spaced\n    double pts[] = {0,0,0, 1,0,0, 1,1,0, 0,1,0};\n    std::vector<double> params = {0.0, 1.0, 2.0, 3.0, 4.0};\n    std::vector<double> knots = knot::build_fitted_knots_periodic_adaptive(params, pts, 4, 3, 4, 3);",
     "checks": [
@@ -184,7 +184,7 @@
     "group": "Knot",
     "test_name": "Solve Banded SPD",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 158,
     "code": "    // uncomment #include \"knot.h\"\n\n    // Cholesky solver for banded symmetric positive-definite systems\n    //   | 4 2 0 |       |8 |       |1|\n    //   | 2 5 1 | * x = |13| -> x = |2|\n    //   | 0 1 3 |       |5 |       |1|\n    std::vector<double> band = {4, 0, 5, 2, 3, 1};\n    std::vector<double> rhs = {8, 13, 5};\n    knot::solve_banded_spd(1, 3, 1, band, rhs);",
     "checks": [
