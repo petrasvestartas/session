@@ -23,7 +23,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.01
+    "time_ms": 31.735
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 18,
     "passed": true,
     "test_name": "Add Point",
-    "time_ms": 0.041
+    "time_ms": 0.882
   },
   {
     "checks": [
@@ -70,7 +70,7 @@
     "line": 32,
     "passed": true,
     "test_name": "Add Line",
-    "time_ms": 0.02
+    "time_ms": 0.031
   },
   {
     "checks": [
@@ -91,7 +91,7 @@
     "line": 45,
     "passed": true,
     "test_name": "Add Plane",
-    "time_ms": 0.021
+    "time_ms": 0.472
   },
   {
     "checks": [
@@ -112,7 +112,7 @@
     "line": 58,
     "passed": true,
     "test_name": "Add Polyline",
-    "time_ms": 0.017
+    "time_ms": 0.034
   },
   {
     "checks": [
@@ -133,7 +133,7 @@
     "line": 71,
     "passed": true,
     "test_name": "Add Pointcloud",
-    "time_ms": 0.017
+    "time_ms": 2.628
   },
   {
     "checks": [
@@ -154,7 +154,7 @@
     "line": 84,
     "passed": true,
     "test_name": "Add Mesh",
-    "time_ms": 0.028
+    "time_ms": 0.72
   },
   {
     "checks": [
@@ -180,7 +180,7 @@
     "line": 101,
     "passed": true,
     "test_name": "Add Element",
-    "time_ms": 0.066
+    "time_ms": 0.078
   },
   {
     "checks": [
@@ -196,7 +196,7 @@
     "line": 117,
     "passed": true,
     "test_name": "Add Group",
-    "time_ms": 0.005
+    "time_ms": 0.161
   },
   {
     "checks": [
@@ -212,7 +212,7 @@
     "line": 127,
     "passed": true,
     "test_name": "Add Edge",
-    "time_ms": 0.028
+    "time_ms": 0.034
   },
   {
     "checks": [
@@ -228,7 +228,7 @@
     "line": 143,
     "passed": true,
     "test_name": "Add Hierarchy",
-    "time_ms": 0.025
+    "time_ms": 0.437
   },
   {
     "checks": [
@@ -249,7 +249,7 @@
     "line": 161,
     "passed": true,
     "test_name": "Get Children",
-    "time_ms": 0.016
+    "time_ms": 0.031
   },
   {
     "checks": [
@@ -265,7 +265,7 @@
     "line": 182,
     "passed": true,
     "test_name": "Add Relationship",
-    "time_ms": 0.015
+    "time_ms": 0.03
   },
   {
     "checks": [
@@ -286,7 +286,7 @@
     "line": 198,
     "passed": true,
     "test_name": "Get Neighbours",
-    "time_ms": 0.014
+    "time_ms": 0.025
   },
   {
     "checks": [
@@ -302,7 +302,7 @@
     "line": 217,
     "passed": true,
     "test_name": "Get Object",
-    "time_ms": 0.007
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -323,7 +323,7 @@
     "line": 230,
     "passed": true,
     "test_name": "Remove Object",
-    "time_ms": 0.01
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -339,7 +339,7 @@
     "line": 244,
     "passed": true,
     "test_name": "Get Geometry",
-    "time_ms": 0.013
+    "time_ms": 0.034
   },
   {
     "checks": [
@@ -360,7 +360,7 @@
     "line": 257,
     "passed": true,
     "test_name": "Compute Face To Face",
-    "time_ms": 0.213
+    "time_ms": 0.58
   },
   {
     "checks": [
@@ -386,7 +386,7 @@
     "line": 275,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 7.476
+    "time_ms": 13.604
   },
   {
     "checks": [
@@ -407,7 +407,7 @@
     "line": 304,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 9.257
+    "time_ms": 11.731
   },
   {
     "checks": [
@@ -423,6 +423,6 @@
     "line": 325,
     "passed": true,
     "test_name": "Tree Transformation Hierarchy",
-    "time_ms": 0.219
+    "time_ms": 0.587
   }
 ]
