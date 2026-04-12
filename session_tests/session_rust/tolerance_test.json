@@ -13,7 +13,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.006
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 15,
     "passed": true,
     "test_name": "Is Close",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 23,
     "passed": true,
     "test_name": "Is Positive",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -61,7 +61,7 @@
     "line": 31,
     "passed": true,
     "test_name": "Is Negative",
-    "time_ms": 0.084
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -93,7 +93,7 @@
     "line": 47,
     "passed": true,
     "test_name": "Format Number",
-    "time_ms": 0.002
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -253,7 +253,7 @@
     "line": 136,
     "passed": true,
     "test_name": "To Radians",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -279,7 +279,7 @@
     "line": 126,
     "passed": true,
     "test_name": "Rad Deg Conversion",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -336,7 +336,7 @@
     "line": 104,
     "passed": true,
     "test_name": "Wrap Index",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [

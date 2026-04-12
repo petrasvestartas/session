@@ -23,7 +23,7 @@
     "line": 77,
     "passed": true,
     "test_name": "Interpolation",
-    "time_ms": 0.011
+    "time_ms": 0.018
   },
   {
     "checks": [
@@ -87,7 +87,7 @@
     "line": 23,
     "passed": true,
     "test_name": "Extract From Func",
-    "time_ms": 0.057
+    "time_ms": 0.116
   },
   {
     "checks": [
@@ -113,6 +113,6 @@
     "line": 6,
     "passed": true,
     "test_name": "Extract",
-    "time_ms": 0.007
+    "time_ms": 0.012
   }
 ]

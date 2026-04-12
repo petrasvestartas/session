@@ -88,7 +88,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.018
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -119,7 +119,7 @@
     "line": 83,
     "passed": true,
     "test_name": "Collision",
-    "time_ms": 0.01
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -191,7 +191,7 @@
     "line": 123,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 7.813
+    "time_ms": 12.075
   },
   {
     "checks": [
@@ -237,7 +237,7 @@
     "line": 156,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 6.743
+    "time_ms": 10.723
   },
   {
     "checks": [
@@ -313,6 +313,6 @@
     "line": 186,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 0.024
+    "time_ms": 0.513
   }
 ]
