@@ -3,7 +3,7 @@
     "group": "Vector",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.208,
+    "time_ms": 0.222,
     "line": 8,
     "code": "    from session_py import Vector, Point\n\n    # Constructor\n    v = Vector(1.0, 2.0, 3.0)\n    p0 = Point(1.0, 2.0, 3.0)\n    p1 = Point(2.0, 4.0, 6.0)\n    v_2p = Vector.from_points(p0, p1)\n\n    # Setters\n    v[0] = 10.0\n    v[1] = 20.0\n    v[2] = 30.0\n\n    # Getters\n    x = v[0]\n    y = v[1]\n    z = v[2]\n\n    # Minimal and full string representation\n    vstr = v.str()\n    vrepr = v.repr()\n\n    # Copy (duplicate everything but guid)\n    vcopy = v.duplicate()\n    vother = Vector(1.0, 2.0, 3.0)\n\n    # No-copy operators\n    vmult = v.duplicate()\n    vmult *= 2.0\n    vdiv = v.duplicate()\n    vdiv /= 2.0\n    vadd = v.duplicate()\n    vadd += Vector(1.0, 1.0, 1.0)\n    vsub = v.duplicate()\n    vsub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    result_mul = v * 2.0\n    result_div = v / 2.0\n    result_add = v + Vector(1.0, 1.0, 1.0)\n    result_dif = v - Vector(1.0, 1.0, 1.0)\n\n    # Static axis constructors\n    vx = Vector.x_axis()\n    vy = Vector.y_axis()\n    vz = Vector.z_axis()\n    vzero = Vector.zero()",
     "checks": [
@@ -161,7 +161,7 @@
     "group": "Vector",
     "test_name": "Normalize",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.01,
     "line": 111,
     "code": "    from session_py import Vector\n\n    v0 = Vector(3.0, 4.0, 0.0)\n    v0.normalize_self()\n\n    v1 = Vector(3.0, 4.0, 0.0)\n    v2 = v1.normalized()",
     "checks": [
@@ -182,7 +182,7 @@
     "group": "Vector",
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 125,
     "code": "    from session_py import Vector\n\n    v = Vector(1.0, -2.0, 3.0)\n    v.reverse()",
     "checks": [
@@ -198,7 +198,7 @@
     "group": "Vector",
     "test_name": "Dot Product",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.015,
     "line": 135,
     "code": "    from session_py import Vector\n\n    # Orthogonality and parallelism via dot product\n    # Perpendicular vectors are close to 0.0\n    # Parallel vectors are close to 1.0\n    v1 = Vector(1.0, 0.0, 0.0)\n    v2 = Vector(0.0, 1.0, 0.0)\n    v3 = Vector(1.0, 0.0, 0.0)\n    dot_perp = v1.dot(v2)\n    dot_paral = v1.dot(v3)\n\n    # Projection of a onto b\n    # Scalar projection:\n    # (a . b) / ||b|| (here ||b||=1, so just a_x = 3.0)\n    # Projection coefficient:\n    # (a . b) / ||b||^2 = 6/4 = 1.5 (how many b2's fit in projection)\n    a = Vector(3.0, 4.0, 0.0)\n    b = Vector(1.0, 0.0, 0.0)\n    b2 = Vector(2.0, 0.0, 0.0)\n    proj_scalar = a.dot(b) / math.sqrt(b[0]**2 + b[1]**2 + b[2]**2)\n    proj_coeff = a.dot(b2) / (b2[0]**2 + b2[1]**2 + b2[2]**2)",
     "checks": [
@@ -229,7 +229,7 @@
     "group": "Vector",
     "test_name": "Cross Product",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.012,
     "line": 165,
     "code": "    from session_py import Vector\n\n    # Get normal\n    v1 = Vector(1.0, 0.0, 0.0)\n    v2 = Vector(0.0, 1.0, 0.0)\n    vn = v1.cross(v2)\n\n    # Perpendicular, area = 3*4=12\n    a = Vector(3.0, 0.0, 0.0)\n    b = Vector(0.0, 4.0, 0.0)\n    cross = a.cross(b)\n    area = math.sqrt(cross[0]**2 + cross[1]**2 + cross[2]**2)",
     "checks": [
@@ -311,7 +311,7 @@
     "group": "Vector",
     "test_name": "Projection",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.021,
     "line": 225,
     "code": "    from session_py import Vector\n\n    # Project vector v=(1,1,1) onto each axis\n    # Returns: (projection_vector, scalar_length, perpendicular_vector, perp_length)\n    v = Vector(1.0, 1.0, 1.0)\n    x = Vector.x_axis()\n    y = Vector.y_axis()\n    z = Vector.z_axis()\n    proj_x, lenx, perp_x, perp_lenx = v.projection(x)\n    proj_y, leny, perp_y, perp_leny = v.projection(y)\n    proj_z, lenz, perp_z, perp_lenz = v.projection(z)",
     "checks": [
@@ -337,7 +337,7 @@
     "group": "Vector",
     "test_name": "Is Parallel To",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.011,
     "line": 244,
     "code": "    from session_py import Vector\n\n    # is_parallel_to returns: 1 (parallel), -1 (anti-parallel), 0 (not parallel)\n    v1 = Vector(2.0, 2.0, 2.0)\n    v2 = Vector(4.0, 4.0, 4.0)      # parallel (same direction)\n    v3 = Vector(-1.0, -1.0, -1.0)   # anti-parallel (opposite direction)\n    v4 = Vector(1.0, 0.0, 0.0)      # not parallel",
     "checks": [
@@ -363,7 +363,7 @@
     "group": "Vector",
     "test_name": "Is Perpendicular To",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.014,
     "line": 259,
     "code": "    from session_py import Vector\n\n    # is_perpendicular_to: checks if two vectors are perpendicular (dot product ~ 0)\n    v1 = Vector(1.0, 0.0, 0.0)\n    v2 = Vector(0.0, 1.0, 0.0)  # perpendicular\n    v3 = Vector(0.0, 0.0, 1.0)  # perpendicular\n    v4 = Vector(1.0, 1.0, 0.0)  # not perpendicular\n\n    # perpendicular_to: sets a vector to be perpendicular to another\n    z_axis = Vector(0.0, 0.0, 1.0)\n    x_axis = Vector.zero()\n    # x_axis is now perpendicular to z_axis\n    x_axis.perpendicular_to(z_axis)\n\n    arbitrary = Vector(1.0, 2.0, 3.0)\n    perp = Vector.zero()\n    # perp is now perpendicular to arbitrary\n    perp.perpendicular_to(arbitrary)",
     "checks": [
@@ -496,7 +496,7 @@
     "group": "Vector",
     "test_name": "Sum Of Vectors",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.01,
     "line": 347,
     "code": "    from session_py import Vector\n\n    # Sum of multiple vectors\n    vecs = [\n        Vector(1.0, 1.0, 1.0),\n        Vector(2.0, 2.0, 2.0),\n        Vector(3.0, 3.0, 3.0),\n    ]\n    sum_v = Vector.sum_of_vectors(vecs)\n\n    # Empty list returns zero vector\n    empty = []\n    zero = Vector.sum_of_vectors(empty)",
     "checks": [
@@ -537,7 +537,7 @@
     "group": "Vector",
     "test_name": "Average",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.008,
     "line": 370,
     "code": "    from session_py import Vector\n\n    # Average of multiple vectors\n    vecs = [\n        Vector(1.0, 2.0, 3.0),\n        Vector(3.0, 4.0, 5.0),\n        Vector(5.0, 6.0, 7.0),\n    ]\n    avg = Vector.average(vecs)",
     "checks": [
@@ -563,7 +563,7 @@
     "group": "Vector",
     "test_name": "Is Zero",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.007,
     "line": 386,
     "code": "    from session_py import Vector\n\n    zero = Vector(0.0, 0.0, 0.0)\n    nonzero = Vector(1.0, 0.0, 0.0)\n    tiny = Vector(1e-13, 1e-13, 1e-13)  # Magnitude ~ 1.7e-13 < 1e-12",
     "checks": [
@@ -615,7 +615,7 @@
     "group": "Vector",
     "test_name": "Reflect",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.008,
     "line": 416,
     "code": "    from session_py import Vector\n\n    v = Vector(1.0, 2.0, 3.0)\n    n = Vector.x_axis()\n    r = v.reflect(n)",
     "checks": [
@@ -641,7 +641,7 @@
     "group": "Vector",
     "test_name": "Average Normal",
     "passed": true,
-    "time_ms": 0.026,
+    "time_ms": 0.025,
     "line": 429,
     "code": "    from session_py import Point\n    from session_py import Vector\n\n    sq = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0),\n    ]\n    n = Vector.average_normal(sq)",
     "checks": [
@@ -662,7 +662,7 @@
     "group": "Vector",
     "test_name": "Interpolate Points",
     "passed": true,
-    "time_ms": 0.021,
+    "time_ms": 0.019,
     "line": 447,
     "code": "    from session_py import Point\n    from session_py.vector import interpolate_points\n\n    from_pt = Point(0.0, 0.0, 0.0)\n    to_pt = Point(1.0, 0.0, 0.0)\n    pts0 = interpolate_points(from_pt, to_pt, 2, 0)\n    pts1 = interpolate_points(from_pt, to_pt, 1, 1)",
     "checks": [
@@ -698,7 +698,7 @@
     "group": "Vector",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.136,
+    "time_ms": 8.216,
     "line": 464,
     "code": "    from session_py import Vector\n    from pathlib import Path\n\n    v = Vector(42.1, 84.2, 126.3)\n    v.name = \"test_vector\"\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   json_dumps()    \u2502 str          \u2502 to JSON string\n    #   json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   json_dump(path) \u2502 file         \u2502 write to file\n    #   json_load(path) \u2502 file         \u2502 read from file\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_vector.json\"\n    v.json_dump(fname)\n    loaded = Vector.json_load(fname)",
     "checks": [
@@ -729,7 +729,7 @@
     "group": "Vector",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 1.801,
+    "time_ms": 1.356,
     "line": 490,
     "code": "    from session_py import Vector\n    from pathlib import Path\n\n    v = Vector(42.1, 84.2, 126.3)\n    v.name = \"test_vector\"\n\n    #   pb_dumps()      \u2502 bytes        \u2502 to protobuf bytes\n    #   pb_loads(b)     \u2502 bytes        \u2502 from protobuf bytes\n    #   pb_dump(path)   \u2502 file         \u2502 write to file\n    #   pb_load(path)   \u2502 file         \u2502 read from file\n\n    # pb_dump(filename) / pb_load(filename) - file-based serialization\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_vector.bin\"\n    v.pb_dump(path)\n    loaded = Vector.pb_load(path)",
     "checks": [

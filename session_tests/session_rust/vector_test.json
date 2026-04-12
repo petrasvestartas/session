@@ -103,7 +103,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.348
+    "time_ms": 0.027
   },
   {
     "checks": [
@@ -145,7 +145,7 @@
     "line": 121,
     "passed": true,
     "test_name": "Normalize",
-    "time_ms": 0.006
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 147,
     "passed": true,
     "test_name": "Dot Product",
-    "time_ms": 0.007
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -274,7 +274,7 @@
     "line": 199,
     "passed": true,
     "test_name": "Angle",
-    "time_ms": 0.009
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -300,7 +300,7 @@
     "line": 241,
     "passed": true,
     "test_name": "Projection",
-    "time_ms": 0.01
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -326,7 +326,7 @@
     "line": 261,
     "passed": true,
     "test_name": "Is Parallel To",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -362,7 +362,7 @@
     "line": 277,
     "passed": true,
     "test_name": "Is Perpendicular To",
-    "time_ms": 0.01
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -378,7 +378,7 @@
     "line": 306,
     "passed": true,
     "test_name": "Get Leveled Vector",
-    "time_ms": 0.004
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -500,7 +500,7 @@
     "line": 368,
     "passed": true,
     "test_name": "Sum Of Vectors",
-    "time_ms": 0.004
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -526,7 +526,7 @@
     "line": 393,
     "passed": true,
     "test_name": "Average",
-    "time_ms": 0.005
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -552,7 +552,7 @@
     "line": 411,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -583,7 +583,7 @@
     "line": 496,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 11.771
+    "time_ms": 9.264
   },
   {
     "checks": [
@@ -614,7 +614,7 @@
     "line": 519,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 12.803
+    "time_ms": 7.443
   },
   {
     "checks": [
@@ -650,7 +650,7 @@
     "line": 478,
     "passed": true,
     "test_name": "Interpolate Points",
-    "time_ms": 0.01
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -671,7 +671,7 @@
     "line": 459,
     "passed": true,
     "test_name": "Average Normal",
-    "time_ms": 0.007
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -697,7 +697,7 @@
     "line": 445,
     "passed": true,
     "test_name": "Reflect",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -733,7 +733,7 @@
     "line": 425,
     "passed": true,
     "test_name": "Scale",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -764,6 +764,6 @@
     "line": 86,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.004
+    "time_ms": 0.002
   }
 ]

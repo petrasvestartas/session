@@ -1,5 +1,21 @@
 # Serialization - Rust
 
+## Import Convention
+
+Each import on a separate line. Never combine multiple symbols using `{...}`.
+
+**Wrong:**
+```rust
+use crate::{ConvexHull, Point};
+use crate::{BVH, OBB, Point, Vector};
+```
+
+**Correct:**
+```rust
+use crate::ConvexHull;
+use crate::Point;
+```
+
 ## JSON (serde_json)
 
 Rust uses serde `Serialize`/`Deserialize` traits. The struct derives these traits,

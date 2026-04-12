@@ -3,17 +3,17 @@
     "group": "KDTree",
     "test_name": "Nearest",
     "passed": true,
-    "time_ms": 0.145,
+    "time_ms": 0.084,
     "line": 8,
-    "code": "    from session_py import KDTree, Point\n\n    # 5 known points on a line: 0, 1, 2, 3, 4\n    # Query at 1.1 \u2014 nearest should be index 1 (point at x=1), distance 0.1\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(1.1, 0.0, 0.0)\n    idx, dist = tree.nearest(query)",
+    "code": "    from session_py import KDTree\n    from session_py import Point\n\n    # 5 known points on a line: 0, 1, 2, 3, 4\n    # Query at 1.1 \u2014 nearest should be index 1 (point at x=1), distance 0.1\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(1.1, 0.0, 0.0)\n    idx, dist = tree.nearest(query)",
     "checks": [
       {
-        "line": 25,
+        "line": 26,
         "code_line": "idx == 1",
         "passed": true
       },
       {
-        "line": 26,
+        "line": 27,
         "code_line": "TOLERANCE.is_close(dist, 0.1)",
         "passed": true
       }
@@ -24,27 +24,27 @@
     "group": "KDTree",
     "test_name": "Nearest K",
     "passed": true,
-    "time_ms": 0.058,
-    "line": 29,
-    "code": "    from session_py import KDTree, Point\n\n    # 5 points on X axis: 0, 1, 2, 3, 4\n    # Query at 1.5 \u2014 3 nearest are: x=1 (d=0.5), x=2 (d=0.5), x=3 (d=1.5)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(1.5, 0.0, 0.0)\n    result = tree.nearest_k(query, 3)",
+    "time_ms": 0.065,
+    "line": 30,
+    "code": "    from session_py import KDTree\n    from session_py import Point\n\n    # 5 points on X axis: 0, 1, 2, 3, 4\n    # Query at 1.5 \u2014 3 nearest are: x=1 (d=0.5), x=2 (d=0.5), x=3 (d=1.5)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(1.5, 0.0, 0.0)\n    result = tree.nearest_k(query, 3)",
     "checks": [
       {
-        "line": 46,
+        "line": 48,
         "code_line": "len(result) == 3",
         "passed": true
       },
       {
-        "line": 47,
+        "line": 49,
         "code_line": "TOLERANCE.is_close(result[0][1], 0.5)",
         "passed": true
       },
       {
-        "line": 48,
+        "line": 50,
         "code_line": "TOLERANCE.is_close(result[1][1], 0.5)",
         "passed": true
       },
       {
-        "line": 49,
+        "line": 51,
         "code_line": "TOLERANCE.is_close(result[2][1], 1.5)",
         "passed": true
       }
@@ -55,22 +55,22 @@
     "group": "KDTree",
     "test_name": "Radius Search",
     "passed": true,
-    "time_ms": 0.034,
-    "line": 52,
-    "code": "    from session_py import KDTree, Point\n\n    # 4 points: 0, 1, 2, 5 on X axis\n    # Query at 0.5, radius 1.1 \u2014 finds x=0 (d=0.5) and x=1 (d=0.5)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(0.5, 0.0, 0.0)\n    result = tree.radius_search(query, 1.1)",
+    "time_ms": 0.044,
+    "line": 54,
+    "code": "    from session_py import KDTree\n    from session_py import Point\n\n    # 4 points: 0, 1, 2, 5 on X axis\n    # Query at 0.5, radius 1.1 \u2014 finds x=0 (d=0.5) and x=1 (d=0.5)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(0.5, 0.0, 0.0)\n    result = tree.radius_search(query, 1.1)",
     "checks": [
       {
-        "line": 68,
+        "line": 71,
         "code_line": "len(result) == 2",
         "passed": true
       },
       {
-        "line": 69,
+        "line": 72,
         "code_line": "TOLERANCE.is_close(result[0][1], 0.5)",
         "passed": true
       },
       {
-        "line": 70,
+        "line": 73,
         "code_line": "TOLERANCE.is_close(result[1][1], 0.5)",
         "passed": true
       }

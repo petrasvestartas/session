@@ -13,7 +13,7 @@
     "line": 8,
     "passed": true,
     "test_name": "Make Clamped Uniform",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -82,7 +82,7 @@
     "line": 68,
     "passed": true,
     "test_name": "Find Span",
-    "time_ms": 0.005
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 101,
     "passed": true,
     "test_name": "Compute Parameters",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -130,7 +130,7 @@
     "line": 112,
     "passed": true,
     "test_name": "Build Interpolation Knots",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -162,7 +162,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Build Fitted Knots Adaptive",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -178,7 +178,7 @@
     "line": 159,
     "passed": true,
     "test_name": "Build Fitted Knots Periodic Adaptive",
-    "time_ms": 0.008
+    "time_ms": 0.006
   },
   {
     "checks": [

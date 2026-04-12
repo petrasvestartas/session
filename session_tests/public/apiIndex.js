@@ -83953,101 +83953,101 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "ConvexHull.test_Hull2d",
+      "name": "ConvexHull.test_Hull 2d",
       "implementations": {
         "cpp": {
-          "sig": "MINI_TEST(\"ConvexHull\", \"Hull2d\")",
-          "code": "MINI_TEST(\"ConvexHull\", \"Hull2d\") {\n    // uncomment #include \"convex_hull.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.5, 0.5, 0.0),\n        Point(0.3, 0.3, 0.0),\n    };\n    std::vector<Point> hull = ConvexHull::hull_2d(pts);\n\n    MINI_CHECK(hull.size() == 4);\n}",
+          "sig": "MINI_TEST(\"ConvexHull\", \"Hull 2d\")",
+          "code": "MINI_TEST(\"ConvexHull\", \"Hull 2d\") {\n    // uncomment #include \"convex_hull.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.5, 0.5, 0.0),\n        Point(0.3, 0.3, 0.0),\n    };\n    std::vector<Point> hull = ConvexHull::hull_2d(pts);\n\n    MINI_CHECK(hull.size() == 4);\n}",
           "file": "convex_hull_test.cpp"
         },
         "python": {
-          "sig": "@MINI_TEST(\"ConvexHull\", \"Hull2d\")",
-          "code": "@MINI_TEST(\"ConvexHull\", \"Hull2d\")\ndef test_convex_hull_hull_2d():\n    from session_py import ConvexHull, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.5, 0.5, 0.0),\n        Point(0.3, 0.3, 0.0),\n    ]\n    hull = ConvexHull.hull_2d(pts)\n\n    MINI_CHECK(len(hull) == 4)",
+          "sig": "@MINI_TEST(\"ConvexHull\", \"Hull 2d\")",
+          "code": "@MINI_TEST(\"ConvexHull\", \"Hull 2d\")\ndef test_convex_hull_hull_2d():\n    from session_py import ConvexHull\n    from session_py import Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.5, 0.5, 0.0),\n        Point(0.3, 0.3, 0.0),\n    ]\n    hull = ConvexHull.hull_2d(pts)\n\n    MINI_CHECK(len(hull) == 4)",
           "file": "convex_hull_test.py"
         },
         "rust": {
-          "sig": "MINI_TEST!(\"ConvexHull\", \"Hull2d\")",
-          "code": "MINI_TEST!(\"ConvexHull\", \"Hull2d\", crate::convex_hull_test::run_convex_hull_hull_2d);\n\npub fn run_convex_hull_hull_2d_collinear() -> TestResult {\n    MINI_TEST!(\"Hull2dCollinear\", {\n        use crate::{ConvexHull, Point};\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(1.5, 1.0, 0.0),\n        ];\n        let hull = ConvexHull::hull_2d(&pts);\n\n        MINI_CHECK!(hull.len() >= 3);\n    })\n}",
+          "sig": "MINI_TEST!(\"ConvexHull\", \"Hull 2d\")",
+          "code": "MINI_TEST!(\"ConvexHull\", \"Hull 2d\", crate::convex_hull_test::run_convex_hull_hull_2d);\n\npub fn run_convex_hull_hull_2d_collinear() -> TestResult {\n    MINI_TEST!(\"Hull 2d Collinear\", {\n        use crate::ConvexHull;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(1.5, 1.0, 0.0),\n        ];\n        let hull = ConvexHull::hull_2d(&pts);\n\n        MINI_CHECK!(hull.len() >= 3);\n    })\n}",
           "file": "convex_hull_test.rs"
         }
       }
     },
     {
-      "name": "ConvexHull.test_Hull2dCollinear",
+      "name": "ConvexHull.test_Hull 2d Collinear",
       "implementations": {
         "cpp": {
-          "sig": "MINI_TEST(\"ConvexHull\", \"Hull2dCollinear\")",
-          "code": "MINI_TEST(\"ConvexHull\", \"Hull2dCollinear\") {\n    // uncomment #include \"convex_hull.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(1.5, 1.0, 0.0),\n    };\n    std::vector<Point> hull = ConvexHull::hull_2d(pts);\n\n    MINI_CHECK(hull.size() >= 3);\n}",
+          "sig": "MINI_TEST(\"ConvexHull\", \"Hull 2d Collinear\")",
+          "code": "MINI_TEST(\"ConvexHull\", \"Hull 2d Collinear\") {\n    // uncomment #include \"convex_hull.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(1.5, 1.0, 0.0),\n    };\n    std::vector<Point> hull = ConvexHull::hull_2d(pts);\n\n    MINI_CHECK(hull.size() >= 3);\n}",
           "file": "convex_hull_test.cpp"
         },
         "python": {
-          "sig": "@MINI_TEST(\"ConvexHull\", \"Hull2dCollinear\")",
-          "code": "@MINI_TEST(\"ConvexHull\", \"Hull2dCollinear\")\ndef test_convex_hull_hull_2d_collinear():\n    from session_py import ConvexHull, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(1.5, 1.0, 0.0),\n    ]\n    hull = ConvexHull.hull_2d(pts)\n\n    MINI_CHECK(len(hull) >= 3)",
+          "sig": "@MINI_TEST(\"ConvexHull\", \"Hull 2d Collinear\")",
+          "code": "@MINI_TEST(\"ConvexHull\", \"Hull 2d Collinear\")\ndef test_convex_hull_hull_2d_collinear():\n    from session_py import ConvexHull\n    from session_py import Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(1.5, 1.0, 0.0),\n    ]\n    hull = ConvexHull.hull_2d(pts)\n\n    MINI_CHECK(len(hull) >= 3)",
           "file": "convex_hull_test.py"
         },
         "rust": {
-          "sig": "MINI_TEST!(\"ConvexHull\", \"Hull2dCollinear\")",
-          "code": "MINI_TEST!(\"ConvexHull\", \"Hull2dCollinear\", crate::convex_hull_test::run_convex_hull_hull_2d_collinear);\n\npub fn run_convex_hull_hull_2d_circle() -> TestResult {\n    MINI_TEST!(\"Hull2dCircle\", {\n        use crate::{ConvexHull, Point};\n        let n = 12_usize;\n        let mut pts = vec![];\n        for i in 0..n {\n            let angle = 2.0 * PI * i as f64 / n as f64;\n            pts.push(Point::new(angle.cos(), angle.sin(), 0.0));\n        }\n        pts.push(Point::new(0.0, 0.0, 0.0));\n        let hull = ConvexHull::hull_2d(&pts);\n\n        MINI_CHECK!(hull.len() == n);\n    })\n}",
+          "sig": "MINI_TEST!(\"ConvexHull\", \"Hull 2d Collinear\")",
+          "code": "MINI_TEST!(\"ConvexHull\", \"Hull 2d Collinear\", crate::convex_hull_test::run_convex_hull_hull_2d_collinear);\n\npub fn run_convex_hull_hull_2d_circle() -> TestResult {\n    MINI_TEST!(\"Hull 2d Circle\", {\n        use crate::ConvexHull;\n        use crate::Point;\n        let n = 12_usize;\n        let mut pts = vec![];\n        for i in 0..n {\n            let angle = 2.0 * PI * i as f64 / n as f64;\n            pts.push(Point::new(angle.cos(), angle.sin(), 0.0));\n        }\n        pts.push(Point::new(0.0, 0.0, 0.0));\n        let hull = ConvexHull::hull_2d(&pts);\n\n        MINI_CHECK!(hull.len() == n);\n    })\n}",
           "file": "convex_hull_test.rs"
         }
       }
     },
     {
-      "name": "ConvexHull.test_Hull2dCircle",
+      "name": "ConvexHull.test_Hull 2d Circle",
       "implementations": {
         "cpp": {
-          "sig": "MINI_TEST(\"ConvexHull\", \"Hull2dCircle\")",
-          "code": "MINI_TEST(\"ConvexHull\", \"Hull2dCircle\") {\n    // uncomment #include \"convex_hull.h\"\n    // uncomment #include \"point.h\"\n    int n = 12;\n    std::vector<Point> pts;\n    for (int i = 0; i < n; ++i) {\n        double angle = 2.0 * std::numbers::pi * i / n;\n        pts.push_back(Point(std::cos(angle), std::sin(angle), 0.0));\n    }\n    pts.push_back(Point(0.0, 0.0, 0.0));\n    std::vector<Point> hull = ConvexHull::hull_2d(pts);\n\n    MINI_CHECK(hull.size() == static_cast<size_t>(n));\n}",
+          "sig": "MINI_TEST(\"ConvexHull\", \"Hull 2d Circle\")",
+          "code": "MINI_TEST(\"ConvexHull\", \"Hull 2d Circle\") {\n    // uncomment #include \"convex_hull.h\"\n    // uncomment #include \"point.h\"\n    int n = 12;\n    std::vector<Point> pts;\n    for (int i = 0; i < n; ++i) {\n        double angle = 2.0 * std::numbers::pi * i / n;\n        pts.push_back(Point(std::cos(angle), std::sin(angle), 0.0));\n    }\n    pts.push_back(Point(0.0, 0.0, 0.0));\n    std::vector<Point> hull = ConvexHull::hull_2d(pts);\n\n    MINI_CHECK(hull.size() == static_cast<size_t>(n));\n}",
           "file": "convex_hull_test.cpp"
         },
         "python": {
-          "sig": "@MINI_TEST(\"ConvexHull\", \"Hull2dCircle\")",
-          "code": "@MINI_TEST(\"ConvexHull\", \"Hull2dCircle\")\ndef test_convex_hull_hull_2d_circle():\n    from session_py import ConvexHull, Point\n    pts = []\n    n = 12\n    for i in range(n):\n        angle = 2.0 * PI * i / n\n        pts.append(Point(math.cos(angle), math.sin(angle), 0.0))\n    pts.append(Point(0.0, 0.0, 0.0))\n    hull = ConvexHull.hull_2d(pts)\n\n    MINI_CHECK(len(hull) == n)",
+          "sig": "@MINI_TEST(\"ConvexHull\", \"Hull 2d Circle\")",
+          "code": "@MINI_TEST(\"ConvexHull\", \"Hull 2d Circle\")\ndef test_convex_hull_hull_2d_circle():\n    from session_py import ConvexHull\n    from session_py import Point\n    pts = []\n    n = 12\n    for i in range(n):\n        angle = 2.0 * PI * i / n\n        pts.append(Point(math.cos(angle), math.sin(angle), 0.0))\n    pts.append(Point(0.0, 0.0, 0.0))\n    hull = ConvexHull.hull_2d(pts)\n\n    MINI_CHECK(len(hull) == n)",
           "file": "convex_hull_test.py"
         },
         "rust": {
-          "sig": "MINI_TEST!(\"ConvexHull\", \"Hull2dCircle\")",
-          "code": "MINI_TEST!(\"ConvexHull\", \"Hull2dCircle\", crate::convex_hull_test::run_convex_hull_hull_2d_circle);\n\npub fn run_convex_hull_hull_3d() -> TestResult {\n    MINI_TEST!(\"Hull3d\", {\n        use crate::{ConvexHull, Point};\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(0.0, 0.0, 1.0),\n            Point::new(0.25, 0.25, 0.25),\n        ];\n        let mesh = ConvexHull::hull_3d(&pts);\n\n        MINI_CHECK!(mesh.number_of_vertices() == 4);\n        MINI_CHECK!(mesh.number_of_faces() == 4);\n    })\n}",
+          "sig": "MINI_TEST!(\"ConvexHull\", \"Hull 2d Circle\")",
+          "code": "MINI_TEST!(\"ConvexHull\", \"Hull 2d Circle\", crate::convex_hull_test::run_convex_hull_hull_2d_circle);\n\npub fn run_convex_hull_hull_3d() -> TestResult {\n    MINI_TEST!(\"Hull 3d\", {\n        use crate::ConvexHull;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(0.0, 0.0, 1.0),\n            Point::new(0.25, 0.25, 0.25),\n        ];\n        let mesh = ConvexHull::hull_3d(&pts);\n\n        MINI_CHECK!(mesh.number_of_vertices() == 4);\n        MINI_CHECK!(mesh.number_of_faces() == 4);\n    })\n}",
           "file": "convex_hull_test.rs"
         }
       }
     },
     {
-      "name": "ConvexHull.test_Hull3d",
+      "name": "ConvexHull.test_Hull 3d",
       "implementations": {
         "cpp": {
-          "sig": "MINI_TEST(\"ConvexHull\", \"Hull3d\")",
-          "code": "MINI_TEST(\"ConvexHull\", \"Hull3d\") {\n    // uncomment #include \"convex_hull.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(0.25, 0.25, 0.25),\n    };\n    Mesh mesh = ConvexHull::hull_3d(pts);\n\n    MINI_CHECK(mesh.number_of_vertices() == 4);\n    MINI_CHECK(mesh.number_of_faces() == 4);\n}",
+          "sig": "MINI_TEST(\"ConvexHull\", \"Hull 3d\")",
+          "code": "MINI_TEST(\"ConvexHull\", \"Hull 3d\") {\n    // uncomment #include \"convex_hull.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(0.25, 0.25, 0.25),\n    };\n    Mesh mesh = ConvexHull::hull_3d(pts);\n\n    MINI_CHECK(mesh.number_of_vertices() == 4);\n    MINI_CHECK(mesh.number_of_faces() == 4);\n}",
           "file": "convex_hull_test.cpp"
         },
         "python": {
-          "sig": "@MINI_TEST(\"ConvexHull\", \"Hull3d\")",
-          "code": "@MINI_TEST(\"ConvexHull\", \"Hull3d\")\ndef test_convex_hull_hull_3d():\n    from session_py import ConvexHull, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(0.25, 0.25, 0.25),\n    ]\n    mesh = ConvexHull.hull_3d(pts)\n\n    MINI_CHECK(mesh.number_of_vertices() == 4)\n    MINI_CHECK(mesh.number_of_faces() == 4)",
+          "sig": "@MINI_TEST(\"ConvexHull\", \"Hull 3d\")",
+          "code": "@MINI_TEST(\"ConvexHull\", \"Hull 3d\")\ndef test_convex_hull_hull_3d():\n    from session_py import ConvexHull\n    from session_py import Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(0.25, 0.25, 0.25),\n    ]\n    mesh = ConvexHull.hull_3d(pts)\n\n    MINI_CHECK(mesh.number_of_vertices() == 4)\n    MINI_CHECK(mesh.number_of_faces() == 4)",
           "file": "convex_hull_test.py"
         },
         "rust": {
-          "sig": "MINI_TEST!(\"ConvexHull\", \"Hull3d\")",
-          "code": "MINI_TEST!(\"ConvexHull\", \"Hull3d\", crate::convex_hull_test::run_convex_hull_hull_3d);\n\npub fn run_convex_hull_hull_3d_cube() -> TestResult {\n    MINI_TEST!(\"Hull3dCube\", {\n        use crate::{ConvexHull, Point};\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(0.0, 0.0, 1.0),\n            Point::new(1.0, 0.0, 1.0),\n            Point::new(1.0, 1.0, 1.0),\n            Point::new(0.0, 1.0, 1.0),\n            Point::new(0.5, 0.5, 0.5),\n        ];\n        let mesh = ConvexHull::hull_3d(&pts);\n\n        MINI_CHECK!(mesh.number_of_vertices() == 8);\n        MINI_CHECK!(mesh.number_of_faces() == 12);\n    })\n}",
+          "sig": "MINI_TEST!(\"ConvexHull\", \"Hull 3d\")",
+          "code": "MINI_TEST!(\"ConvexHull\", \"Hull 3d\", crate::convex_hull_test::run_convex_hull_hull_3d);\n\npub fn run_convex_hull_hull_3d_cube() -> TestResult {\n    MINI_TEST!(\"Hull 3d Cube\", {\n        use crate::ConvexHull;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(0.0, 0.0, 1.0),\n            Point::new(1.0, 0.0, 1.0),\n            Point::new(1.0, 1.0, 1.0),\n            Point::new(0.0, 1.0, 1.0),\n            Point::new(0.5, 0.5, 0.5),\n        ];\n        let mesh = ConvexHull::hull_3d(&pts);\n\n        MINI_CHECK!(mesh.number_of_vertices() == 8);\n        MINI_CHECK!(mesh.number_of_faces() == 12);\n    })\n}",
           "file": "convex_hull_test.rs"
         }
       }
     },
     {
-      "name": "ConvexHull.test_Hull3dCube",
+      "name": "ConvexHull.test_Hull 3d Cube",
       "implementations": {
         "cpp": {
-          "sig": "MINI_TEST(\"ConvexHull\", \"Hull3dCube\")",
-          "code": "MINI_TEST(\"ConvexHull\", \"Hull3dCube\") {\n    // uncomment #include \"convex_hull.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(1.0, 0.0, 1.0),\n        Point(1.0, 1.0, 1.0),\n        Point(0.0, 1.0, 1.0),\n        Point(0.5, 0.5, 0.5),\n    };\n    Mesh mesh = ConvexHull::hull_3d(pts);\n\n    MINI_CHECK(mesh.number_of_vertices() == 8);\n    MINI_CHECK(mesh.number_of_faces() == 12);\n}",
+          "sig": "MINI_TEST(\"ConvexHull\", \"Hull 3d Cube\")",
+          "code": "MINI_TEST(\"ConvexHull\", \"Hull 3d Cube\") {\n    // uncomment #include \"convex_hull.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(1.0, 0.0, 1.0),\n        Point(1.0, 1.0, 1.0),\n        Point(0.0, 1.0, 1.0),\n        Point(0.5, 0.5, 0.5),\n    };\n    Mesh mesh = ConvexHull::hull_3d(pts);\n\n    MINI_CHECK(mesh.number_of_vertices() == 8);\n    MINI_CHECK(mesh.number_of_faces() == 12);\n}",
           "file": "convex_hull_test.cpp"
         },
         "python": {
-          "sig": "@MINI_TEST(\"ConvexHull\", \"Hull3dCube\")",
-          "code": "@MINI_TEST(\"ConvexHull\", \"Hull3dCube\")\ndef test_convex_hull_hull_3d_cube():\n    from session_py import ConvexHull, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(1.0, 0.0, 1.0),\n        Point(1.0, 1.0, 1.0),\n        Point(0.0, 1.0, 1.0),\n        Point(0.5, 0.5, 0.5),\n    ]\n    mesh = ConvexHull.hull_3d(pts)\n\n    MINI_CHECK(mesh.number_of_vertices() == 8)\n    MINI_CHECK(mesh.number_of_faces() == 12)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "sig": "@MINI_TEST(\"ConvexHull\", \"Hull 3d Cube\")",
+          "code": "@MINI_TEST(\"ConvexHull\", \"Hull 3d Cube\")\ndef test_convex_hull_hull_3d_cube():\n    from session_py import ConvexHull\n    from session_py import Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(1.0, 0.0, 1.0),\n        Point(1.0, 1.0, 1.0),\n        Point(0.0, 1.0, 1.0),\n        Point(0.5, 0.5, 0.5),\n    ]\n    mesh = ConvexHull.hull_3d(pts)\n\n    MINI_CHECK(mesh.number_of_vertices() == 8)\n    MINI_CHECK(mesh.number_of_faces() == 12)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
           "file": "convex_hull_test.py"
         },
         "rust": {
-          "sig": "MINI_TEST!(\"ConvexHull\", \"Hull3dCube\")",
-          "code": "MINI_TEST!(\"ConvexHull\", \"Hull3dCube\", crate::convex_hull_test::run_convex_hull_hull_3d_cube);",
+          "sig": "MINI_TEST!(\"ConvexHull\", \"Hull 3d Cube\")",
+          "code": "MINI_TEST!(\"ConvexHull\", \"Hull 3d Cube\", crate::convex_hull_test::run_convex_hull_hull_3d_cube);",
           "file": "convex_hull_test.rs"
         }
       }
@@ -86902,7 +86902,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"KDTree\", \"Nearest\")",
-          "code": "@MINI_TEST(\"KDTree\", \"Nearest\")\ndef test_kdtree_nearest():\n    from session_py import KDTree, Point\n\n    # 5 known points on a line: 0, 1, 2, 3, 4\n    # Query at 1.1 \u00e2\u20ac\u201d nearest should be index 1 (point at x=1), distance 0.1\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(1.1, 0.0, 0.0)\n    idx, dist = tree.nearest(query)\n\n    MINI_CHECK(idx == 1)\n    MINI_CHECK(TOLERANCE.is_close(dist, 0.1))",
+          "code": "@MINI_TEST(\"KDTree\", \"Nearest\")\ndef test_kdtree_nearest():\n    from session_py import KDTree\n    from session_py import Point\n\n    # 5 known points on a line: 0, 1, 2, 3, 4\n    # Query at 1.1 \u00e2\u20ac\u201d nearest should be index 1 (point at x=1), distance 0.1\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(1.1, 0.0, 0.0)\n    idx, dist = tree.nearest(query)\n\n    MINI_CHECK(idx == 1)\n    MINI_CHECK(TOLERANCE.is_close(dist, 0.1))",
           "file": "kdtree_test.py"
         },
         "rust": {
@@ -86922,7 +86922,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"KDTree\", \"Nearest K\")",
-          "code": "@MINI_TEST(\"KDTree\", \"Nearest K\")\ndef test_kdtree_nearest_k():\n    from session_py import KDTree, Point\n\n    # 5 points on X axis: 0, 1, 2, 3, 4\n    # Query at 1.5 \u00e2\u20ac\u201d 3 nearest are: x=1 (d=0.5), x=2 (d=0.5), x=3 (d=1.5)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(1.5, 0.0, 0.0)\n    result = tree.nearest_k(query, 3)\n\n    MINI_CHECK(len(result) == 3)\n    MINI_CHECK(TOLERANCE.is_close(result[0][1], 0.5))\n    MINI_CHECK(TOLERANCE.is_close(result[1][1], 0.5))\n    MINI_CHECK(TOLERANCE.is_close(result[2][1], 1.5))",
+          "code": "@MINI_TEST(\"KDTree\", \"Nearest K\")\ndef test_kdtree_nearest_k():\n    from session_py import KDTree\n    from session_py import Point\n\n    # 5 points on X axis: 0, 1, 2, 3, 4\n    # Query at 1.5 \u00e2\u20ac\u201d 3 nearest are: x=1 (d=0.5), x=2 (d=0.5), x=3 (d=1.5)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(1.5, 0.0, 0.0)\n    result = tree.nearest_k(query, 3)\n\n    MINI_CHECK(len(result) == 3)\n    MINI_CHECK(TOLERANCE.is_close(result[0][1], 0.5))\n    MINI_CHECK(TOLERANCE.is_close(result[1][1], 0.5))\n    MINI_CHECK(TOLERANCE.is_close(result[2][1], 1.5))",
           "file": "kdtree_test.py"
         },
         "rust": {
@@ -86942,7 +86942,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"KDTree\", \"Radius Search\")",
-          "code": "@MINI_TEST(\"KDTree\", \"Radius Search\")\ndef test_kdtree_radius_search():\n    from session_py import KDTree, Point\n\n    # 4 points: 0, 1, 2, 5 on X axis\n    # Query at 0.5, radius 1.1 \u00e2\u20ac\u201d finds x=0 (d=0.5) and x=1 (d=0.5)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(0.5, 0.0, 0.0)\n    result = tree.radius_search(query, 1.1)\n\n    MINI_CHECK(len(result) == 2)\n    MINI_CHECK(TOLERANCE.is_close(result[0][1], 0.5))\n    MINI_CHECK(TOLERANCE.is_close(result[1][1], 0.5))\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "code": "@MINI_TEST(\"KDTree\", \"Radius Search\")\ndef test_kdtree_radius_search():\n    from session_py import KDTree\n    from session_py import Point\n\n    # 4 points: 0, 1, 2, 5 on X axis\n    # Query at 0.5, radius 1.1 \u00e2\u20ac\u201d finds x=0 (d=0.5) and x=1 (d=0.5)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(0.5, 0.0, 0.0)\n    result = tree.radius_search(query, 1.1)\n\n    MINI_CHECK(len(result) == 2)\n    MINI_CHECK(TOLERANCE.is_close(result[0][1], 0.5))\n    MINI_CHECK(TOLERANCE.is_close(result[1][1], 0.5))\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
           "file": "kdtree_test.py"
         },
         "rust": {
@@ -87627,7 +87627,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Matrix\", \"Constructor\")",
-          "code": "MINI_TEST!(\"Matrix\", \"Constructor\", crate::matrix_test::run_matrix_constructor);\nREGISTER_MINI_TEST!(\"Matrix\", \"Properties\", crate::matrix_test::run_matrix_properties);\nREGISTER_MINI_TEST!(\"Matrix\", \"Add\", crate::matrix_test::run_matrix_add);\nREGISTER_MINI_TEST!(\"Matrix\", \"Subtract\", crate::matrix_test::run_matrix_subtract);\nREGISTER_MINI_TEST!(\"Matrix\", \"Scale\", crate::matrix_test::run_matrix_scale);\nREGISTER_MINI_TEST!(\"Matrix\", \"Multiply\", crate::matrix_test::run_matrix_multiply);\nREGISTER_MINI_TEST!(\"Matrix\", \"Transpose\", crate::matrix_test::run_matrix_transpose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"LuDecompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"QrDecompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"Matrix\", \"Constructor\", crate::matrix_test::run_matrix_constructor);\nREGISTER_MINI_TEST!(\"Matrix\", \"Properties\", crate::matrix_test::run_matrix_properties);\nREGISTER_MINI_TEST!(\"Matrix\", \"Add\", crate::matrix_test::run_matrix_add);\nREGISTER_MINI_TEST!(\"Matrix\", \"Subtract\", crate::matrix_test::run_matrix_subtract);\nREGISTER_MINI_TEST!(\"Matrix\", \"Scale\", crate::matrix_test::run_matrix_scale);\nREGISTER_MINI_TEST!(\"Matrix\", \"Multiply\", crate::matrix_test::run_matrix_multiply);\nREGISTER_MINI_TEST!(\"Matrix\", \"Transpose\", crate::matrix_test::run_matrix_transpose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"Lu Decompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Qr Decompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
           "file": "matrix_test.rs"
         }
       }
@@ -87647,7 +87647,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Matrix\", \"Properties\")",
-          "code": "MINI_TEST!(\"Matrix\", \"Properties\", crate::matrix_test::run_matrix_properties);\nREGISTER_MINI_TEST!(\"Matrix\", \"Add\", crate::matrix_test::run_matrix_add);\nREGISTER_MINI_TEST!(\"Matrix\", \"Subtract\", crate::matrix_test::run_matrix_subtract);\nREGISTER_MINI_TEST!(\"Matrix\", \"Scale\", crate::matrix_test::run_matrix_scale);\nREGISTER_MINI_TEST!(\"Matrix\", \"Multiply\", crate::matrix_test::run_matrix_multiply);\nREGISTER_MINI_TEST!(\"Matrix\", \"Transpose\", crate::matrix_test::run_matrix_transpose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"LuDecompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"QrDecompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"Matrix\", \"Properties\", crate::matrix_test::run_matrix_properties);\nREGISTER_MINI_TEST!(\"Matrix\", \"Add\", crate::matrix_test::run_matrix_add);\nREGISTER_MINI_TEST!(\"Matrix\", \"Subtract\", crate::matrix_test::run_matrix_subtract);\nREGISTER_MINI_TEST!(\"Matrix\", \"Scale\", crate::matrix_test::run_matrix_scale);\nREGISTER_MINI_TEST!(\"Matrix\", \"Multiply\", crate::matrix_test::run_matrix_multiply);\nREGISTER_MINI_TEST!(\"Matrix\", \"Transpose\", crate::matrix_test::run_matrix_transpose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"Lu Decompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Qr Decompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
           "file": "matrix_test.rs"
         }
       }
@@ -87667,7 +87667,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Matrix\", \"Add\")",
-          "code": "MINI_TEST!(\"Matrix\", \"Add\", crate::matrix_test::run_matrix_add);\nREGISTER_MINI_TEST!(\"Matrix\", \"Subtract\", crate::matrix_test::run_matrix_subtract);\nREGISTER_MINI_TEST!(\"Matrix\", \"Scale\", crate::matrix_test::run_matrix_scale);\nREGISTER_MINI_TEST!(\"Matrix\", \"Multiply\", crate::matrix_test::run_matrix_multiply);\nREGISTER_MINI_TEST!(\"Matrix\", \"Transpose\", crate::matrix_test::run_matrix_transpose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"LuDecompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"QrDecompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"Matrix\", \"Add\", crate::matrix_test::run_matrix_add);\nREGISTER_MINI_TEST!(\"Matrix\", \"Subtract\", crate::matrix_test::run_matrix_subtract);\nREGISTER_MINI_TEST!(\"Matrix\", \"Scale\", crate::matrix_test::run_matrix_scale);\nREGISTER_MINI_TEST!(\"Matrix\", \"Multiply\", crate::matrix_test::run_matrix_multiply);\nREGISTER_MINI_TEST!(\"Matrix\", \"Transpose\", crate::matrix_test::run_matrix_transpose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"Lu Decompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Qr Decompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
           "file": "matrix_test.rs"
         }
       }
@@ -87687,7 +87687,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Matrix\", \"Subtract\")",
-          "code": "MINI_TEST!(\"Matrix\", \"Subtract\", crate::matrix_test::run_matrix_subtract);\nREGISTER_MINI_TEST!(\"Matrix\", \"Scale\", crate::matrix_test::run_matrix_scale);\nREGISTER_MINI_TEST!(\"Matrix\", \"Multiply\", crate::matrix_test::run_matrix_multiply);\nREGISTER_MINI_TEST!(\"Matrix\", \"Transpose\", crate::matrix_test::run_matrix_transpose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"LuDecompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"QrDecompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"Matrix\", \"Subtract\", crate::matrix_test::run_matrix_subtract);\nREGISTER_MINI_TEST!(\"Matrix\", \"Scale\", crate::matrix_test::run_matrix_scale);\nREGISTER_MINI_TEST!(\"Matrix\", \"Multiply\", crate::matrix_test::run_matrix_multiply);\nREGISTER_MINI_TEST!(\"Matrix\", \"Transpose\", crate::matrix_test::run_matrix_transpose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"Lu Decompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Qr Decompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
           "file": "matrix_test.rs"
         }
       }
@@ -87707,7 +87707,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Matrix\", \"Scale\")",
-          "code": "MINI_TEST!(\"Matrix\", \"Scale\", crate::matrix_test::run_matrix_scale);\nREGISTER_MINI_TEST!(\"Matrix\", \"Multiply\", crate::matrix_test::run_matrix_multiply);\nREGISTER_MINI_TEST!(\"Matrix\", \"Transpose\", crate::matrix_test::run_matrix_transpose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"LuDecompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"QrDecompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"Matrix\", \"Scale\", crate::matrix_test::run_matrix_scale);\nREGISTER_MINI_TEST!(\"Matrix\", \"Multiply\", crate::matrix_test::run_matrix_multiply);\nREGISTER_MINI_TEST!(\"Matrix\", \"Transpose\", crate::matrix_test::run_matrix_transpose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"Lu Decompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Qr Decompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
           "file": "matrix_test.rs"
         }
       }
@@ -87727,7 +87727,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Matrix\", \"Multiply\")",
-          "code": "MINI_TEST!(\"Matrix\", \"Multiply\", crate::matrix_test::run_matrix_multiply);\nREGISTER_MINI_TEST!(\"Matrix\", \"Transpose\", crate::matrix_test::run_matrix_transpose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"LuDecompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"QrDecompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"Matrix\", \"Multiply\", crate::matrix_test::run_matrix_multiply);\nREGISTER_MINI_TEST!(\"Matrix\", \"Transpose\", crate::matrix_test::run_matrix_transpose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"Lu Decompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Qr Decompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
           "file": "matrix_test.rs"
         }
       }
@@ -87747,7 +87747,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Matrix\", \"Transpose\")",
-          "code": "MINI_TEST!(\"Matrix\", \"Transpose\", crate::matrix_test::run_matrix_transpose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"LuDecompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"QrDecompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"Matrix\", \"Transpose\", crate::matrix_test::run_matrix_transpose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"Lu Decompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Qr Decompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
           "file": "matrix_test.rs"
         }
       }
@@ -87767,7 +87767,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Matrix\", \"Determinant\")",
-          "code": "MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"LuDecompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"QrDecompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"Matrix\", \"Determinant\", crate::matrix_test::run_matrix_determinant);\nREGISTER_MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"Lu Decompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Qr Decompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
           "file": "matrix_test.rs"
         }
       }
@@ -87787,7 +87787,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Matrix\", \"Inverse\")",
-          "code": "MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"LuDecompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"QrDecompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"Matrix\", \"Inverse\", crate::matrix_test::run_matrix_inverse);\nREGISTER_MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"Lu Decompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Qr Decompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
           "file": "matrix_test.rs"
         }
       }
@@ -87807,47 +87807,47 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Matrix\", \"Solve\")",
-          "code": "MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"LuDecompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"QrDecompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"Matrix\", \"Solve\", crate::matrix_test::run_matrix_solve);\nREGISTER_MINI_TEST!(\"Matrix\", \"Lu Decompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Qr Decompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
           "file": "matrix_test.rs"
         }
       }
     },
     {
-      "name": "Matrix.test_LuDecompose",
+      "name": "Matrix.test_Lu Decompose",
       "implementations": {
         "cpp": {
-          "sig": "MINI_TEST(\"Matrix\", \"LuDecompose\")",
-          "code": "MINI_TEST(\"Matrix\", \"LuDecompose\") {\n    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(3, 3, {2.0, 1.0, 1.0, 4.0, 3.0, 3.0, 8.0, 7.0, 9.0});\n    auto [l, u, p] = a.lu_decompose();\n    Matrix pa = p.multiply(a);\n    Matrix lu = l.multiply(u);\n\n    MINI_CHECK(l.rows == 3 && u.cols == 3);\n    MINI_CHECK(TOLERANCE.is_close(pa(0, 0), lu(0, 0)) && TOLERANCE.is_close(pa(0, 1), lu(0, 1)));\n    MINI_CHECK(TOLERANCE.is_close(pa(1, 0), lu(1, 0)) && TOLERANCE.is_close(pa(2, 2), lu(2, 2)));\n    MINI_CHECK(TOLERANCE.is_close(l(0, 1), 0.0) && TOLERANCE.is_close(l(0, 2), 0.0));\n    MINI_CHECK(TOLERANCE.is_close(l(1, 2), 0.0));\n}",
+          "sig": "MINI_TEST(\"Matrix\", \"Lu Decompose\")",
+          "code": "MINI_TEST(\"Matrix\", \"Lu Decompose\") {\n    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(3, 3, {2.0, 1.0, 1.0, 4.0, 3.0, 3.0, 8.0, 7.0, 9.0});\n    auto [l, u, p] = a.lu_decompose();\n    Matrix pa = p.multiply(a);\n    Matrix lu = l.multiply(u);\n\n    MINI_CHECK(l.rows == 3 && u.cols == 3);\n    MINI_CHECK(TOLERANCE.is_close(pa(0, 0), lu(0, 0)) && TOLERANCE.is_close(pa(0, 1), lu(0, 1)));\n    MINI_CHECK(TOLERANCE.is_close(pa(1, 0), lu(1, 0)) && TOLERANCE.is_close(pa(2, 2), lu(2, 2)));\n    MINI_CHECK(TOLERANCE.is_close(l(0, 1), 0.0) && TOLERANCE.is_close(l(0, 2), 0.0));\n    MINI_CHECK(TOLERANCE.is_close(l(1, 2), 0.0));\n}",
           "file": "matrix_test.cpp"
         },
         "python": {
-          "sig": "@MINI_TEST(\"Matrix\", \"LuDecompose\")",
-          "code": "@MINI_TEST(\"Matrix\", \"LuDecompose\")\ndef test_matrix_lu_decompose():\n    from session_py import Matrix\n    a = Matrix.from_list(3, 3, [2.0, 1.0, 1.0, 4.0, 3.0, 3.0, 8.0, 7.0, 9.0])\n    l, u, p = a.lu_decompose()\n    pa = p.multiply(a)\n    lu = l.multiply(u)\n\n    MINI_CHECK(l.rows == 3 and u.cols == 3)\n    MINI_CHECK(TOLERANCE.is_close(pa[0, 0], lu[0, 0]))\n    MINI_CHECK(TOLERANCE.is_close(pa[0, 1], lu[0, 1]))\n    MINI_CHECK(TOLERANCE.is_close(pa[1, 0], lu[1, 0]))\n    MINI_CHECK(TOLERANCE.is_close(pa[2, 2], lu[2, 2]))\n    # L is lower triangular\n    MINI_CHECK(TOLERANCE.is_close(l[0, 1], 0.0) and TOLERANCE.is_close(l[0, 2], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(l[1, 2], 0.0))",
+          "sig": "@MINI_TEST(\"Matrix\", \"Lu Decompose\")",
+          "code": "@MINI_TEST(\"Matrix\", \"Lu Decompose\")\ndef test_matrix_lu_decompose():\n    from session_py import Matrix\n    a = Matrix.from_list(3, 3, [2.0, 1.0, 1.0, 4.0, 3.0, 3.0, 8.0, 7.0, 9.0])\n    l, u, p = a.lu_decompose()\n    pa = p.multiply(a)\n    lu = l.multiply(u)\n\n    MINI_CHECK(l.rows == 3 and u.cols == 3)\n    MINI_CHECK(TOLERANCE.is_close(pa[0, 0], lu[0, 0]))\n    MINI_CHECK(TOLERANCE.is_close(pa[0, 1], lu[0, 1]))\n    MINI_CHECK(TOLERANCE.is_close(pa[1, 0], lu[1, 0]))\n    MINI_CHECK(TOLERANCE.is_close(pa[2, 2], lu[2, 2]))\n    # L is lower triangular\n    MINI_CHECK(TOLERANCE.is_close(l[0, 1], 0.0) and TOLERANCE.is_close(l[0, 2], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(l[1, 2], 0.0))",
           "file": "matrix_test.py"
         },
         "rust": {
-          "sig": "MINI_TEST!(\"Matrix\", \"LuDecompose\")",
-          "code": "MINI_TEST!(\"Matrix\", \"LuDecompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"QrDecompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
+          "sig": "MINI_TEST!(\"Matrix\", \"Lu Decompose\")",
+          "code": "MINI_TEST!(\"Matrix\", \"Lu Decompose\", crate::matrix_test::run_matrix_lu_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Qr Decompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
           "file": "matrix_test.rs"
         }
       }
     },
     {
-      "name": "Matrix.test_QrDecompose",
+      "name": "Matrix.test_Qr Decompose",
       "implementations": {
         "cpp": {
-          "sig": "MINI_TEST(\"Matrix\", \"QrDecompose\")",
-          "code": "MINI_TEST(\"Matrix\", \"QrDecompose\") {\n    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(3, 3, {12.0, -51.0, 4.0, 6.0, 167.0, -68.0, -4.0, 24.0, -41.0});\n    auto [q, r] = a.qr_decompose();\n    Matrix qt = q.transpose();\n    Matrix qtq = qt.multiply(q);\n    Matrix qr_prod = q.multiply(r);\n\n    MINI_CHECK(TOLERANCE.is_close(qtq(0, 0), 1.0));\n    MINI_CHECK(TOLERANCE.is_close(qtq(1, 1), 1.0));\n    MINI_CHECK(TOLERANCE.is_close(qtq(2, 2), 1.0));\n    MINI_CHECK(TOLERANCE.is_close(qtq(0, 1), 0.0) && TOLERANCE.is_close(qtq(0, 2), 0.0));\n    MINI_CHECK(TOLERANCE.is_close(qr_prod(0, 0), 12.0));\n    MINI_CHECK(TOLERANCE.is_close(qr_prod(1, 1), 167.0));\n    MINI_CHECK(TOLERANCE.is_close(qr_prod(2, 2), -41.0));\n}",
+          "sig": "MINI_TEST(\"Matrix\", \"Qr Decompose\")",
+          "code": "MINI_TEST(\"Matrix\", \"Qr Decompose\") {\n    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(3, 3, {12.0, -51.0, 4.0, 6.0, 167.0, -68.0, -4.0, 24.0, -41.0});\n    auto [q, r] = a.qr_decompose();\n    Matrix qt = q.transpose();\n    Matrix qtq = qt.multiply(q);\n    Matrix qr_prod = q.multiply(r);\n\n    MINI_CHECK(TOLERANCE.is_close(qtq(0, 0), 1.0));\n    MINI_CHECK(TOLERANCE.is_close(qtq(1, 1), 1.0));\n    MINI_CHECK(TOLERANCE.is_close(qtq(2, 2), 1.0));\n    MINI_CHECK(TOLERANCE.is_close(qtq(0, 1), 0.0) && TOLERANCE.is_close(qtq(0, 2), 0.0));\n    MINI_CHECK(TOLERANCE.is_close(qr_prod(0, 0), 12.0));\n    MINI_CHECK(TOLERANCE.is_close(qr_prod(1, 1), 167.0));\n    MINI_CHECK(TOLERANCE.is_close(qr_prod(2, 2), -41.0));\n}",
           "file": "matrix_test.cpp"
         },
         "python": {
-          "sig": "@MINI_TEST(\"Matrix\", \"QrDecompose\")",
-          "code": "@MINI_TEST(\"Matrix\", \"QrDecompose\")\ndef test_matrix_qr_decompose():\n    from session_py import Matrix\n    a = Matrix.from_list(3, 3, [12.0, -51.0, 4.0, 6.0, 167.0, -68.0, -4.0, 24.0, -41.0])\n    q, r = a.qr_decompose()\n    qt = q.transpose()\n    qtq = qt.multiply(q)\n    qr_prod = q.multiply(r)\n\n    MINI_CHECK(TOLERANCE.is_close(qtq[0, 0], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(qtq[1, 1], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(qtq[2, 2], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(qtq[0, 1], 0.0) and TOLERANCE.is_close(qtq[0, 2], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(qr_prod[0, 0], 12.0))\n    MINI_CHECK(TOLERANCE.is_close(qr_prod[1, 1], 167.0))\n    MINI_CHECK(TOLERANCE.is_close(qr_prod[2, 2], -41.0))",
+          "sig": "@MINI_TEST(\"Matrix\", \"Qr Decompose\")",
+          "code": "@MINI_TEST(\"Matrix\", \"Qr Decompose\")\ndef test_matrix_qr_decompose():\n    from session_py import Matrix\n    a = Matrix.from_list(3, 3, [12.0, -51.0, 4.0, 6.0, 167.0, -68.0, -4.0, 24.0, -41.0])\n    q, r = a.qr_decompose()\n    qt = q.transpose()\n    qtq = qt.multiply(q)\n    qr_prod = q.multiply(r)\n\n    MINI_CHECK(TOLERANCE.is_close(qtq[0, 0], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(qtq[1, 1], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(qtq[2, 2], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(qtq[0, 1], 0.0) and TOLERANCE.is_close(qtq[0, 2], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(qr_prod[0, 0], 12.0))\n    MINI_CHECK(TOLERANCE.is_close(qr_prod[1, 1], 167.0))\n    MINI_CHECK(TOLERANCE.is_close(qr_prod[2, 2], -41.0))",
           "file": "matrix_test.py"
         },
         "rust": {
-          "sig": "MINI_TEST!(\"Matrix\", \"QrDecompose\")",
-          "code": "MINI_TEST!(\"Matrix\", \"QrDecompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
+          "sig": "MINI_TEST!(\"Matrix\", \"Qr Decompose\")",
+          "code": "MINI_TEST!(\"Matrix\", \"Qr Decompose\", crate::matrix_test::run_matrix_qr_decompose);\nREGISTER_MINI_TEST!(\"Matrix\", \"Cholesky\", crate::matrix_test::run_matrix_cholesky);\nREGISTER_MINI_TEST!(\"Matrix\", \"Eigenvalues\", crate::matrix_test::run_matrix_eigenvalues);\nREGISTER_MINI_TEST!(\"Matrix\", \"Svd\", crate::matrix_test::run_matrix_svd);\nREGISTER_MINI_TEST!(\"Matrix\", \"Norms\", crate::matrix_test::run_matrix_norms);\nREGISTER_MINI_TEST!(\"Matrix\", \"Rank\", crate::matrix_test::run_matrix_rank);\nREGISTER_MINI_TEST!(\"Matrix\", \"Json Roundtrip\", crate::matrix_test::run_matrix_json_roundtrip);\nREGISTER_MINI_TEST!(\"Matrix\", \"Protobuf Roundtrip\", crate::matrix_test::run_matrix_protobuf_roundtrip);",
           "file": "matrix_test.rs"
         }
       }
@@ -95402,10 +95402,10 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
-        "n",
         "points",
         "subdivide",
+        "into",
+        "n",
         "circle",
         "divide_by_count",
         "nurbscurve",
@@ -95420,11 +95420,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "subdivide",
         "length",
-        "by",
         "arc",
         "ellipse",
+        "subdivide",
+        "by",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -95438,9 +95438,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "points",
-        "through",
         "arc",
+        "through",
+        "points",
         "nurbscurve",
         "primitives",
         "point"
@@ -95455,11 +95455,11 @@ window.API_INDEX = {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
         "open",
-        "from",
-        "polyline",
         "curve",
-        "adaptive",
+        "polyline",
+        "from",
         "points",
+        "adaptive",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -95474,10 +95474,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "evaluation",
-        "parameter",
         "at",
         "curve",
+        "parameter",
+        "evaluation",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -95496,10 +95496,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
+        "curve",
         "along",
         "length",
         "frames",
-        "curve",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -95522,8 +95522,8 @@ window.API_INDEX = {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
         "perpendicular",
-        "frames",
         "ellipse",
+        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -95544,10 +95544,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "point",
-        "cylinder",
-        "surface",
         "evaluate",
+        "point",
+        "surface",
+        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -95562,11 +95562,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "from",
         "vertices",
+        "from",
         "and",
-        "mesh",
         "faces",
+        "mesh",
         "add_vertex",
         "add_face",
         "vertex"
@@ -95713,15 +95713,11 @@ window.API_INDEX = {
       ],
       "summary": "TriangulateResult geometry class"
     },
-    "GlobalTolerance": {
+    "GeometryDecoder": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Point",
-        "Tolerance",
-        "Vector"
-      ],
-      "summary": "GlobalTolerance geometry class"
+      "uses": [],
+      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
     },
     "MarchingSquares": {
       "composition": [],
@@ -95732,18 +95728,6 @@ window.API_INDEX = {
       ],
       "summary": "Marching squares iso-contour extraction."
     },
-    "GeometryEncoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
-    },
-    "GeometryDecoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
-    },
     "BooleanPolyline": {
       "composition": [],
       "factories": [],
@@ -95752,25 +95736,27 @@ window.API_INDEX = {
       ],
       "summary": "BooleanPolyline geometry class"
     },
-    "_PartitionVars": {
+    "GeometryEncoder": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_PartitionVars geometry class"
+      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
+    },
+    "GlobalTolerance": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "Tolerance",
+        "Vector"
+      ],
+      "summary": "GlobalTolerance geometry class"
     },
     "VIntersectNode": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VIntersectNode geometry class"
-    },
-    "ToleranceGuard": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tolerance"
-      ],
-      "summary": "ToleranceGuard geometry class"
     },
     "CurveKnotStyle": {
       "composition": [],
@@ -95790,6 +95776,20 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "TrimmedSurface geometry class"
+    },
+    "ToleranceGuard": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Tolerance"
+      ],
+      "summary": "ToleranceGuard geometry class"
+    },
+    "_PartitionVars": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_PartitionVars geometry class"
     },
     "ElementColumn": {
       "composition": [],
@@ -95829,31 +95829,11 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
-    "Intersection": {
-      "composition": [
-        "Element",
-        "Line",
-        "Polyline",
-        "Tolerance",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "ElementPlate",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point"
-      ],
-      "summary": "Intersection geometry class"
-    },
-    "BRepLoopType": {
+    "LoftWallFace": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepLoopType geometry class"
+      "summary": "LoftWallFace geometry class"
     },
     "ScanlineHeap": {
       "composition": [],
@@ -95861,32 +95841,11 @@ window.API_INDEX = {
       "uses": [],
       "summary": "ScanlineHeap geometry class"
     },
-    "VattiScratch": {
+    "BRepLoopType": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VattiScratch geometry class"
-    },
-    "LoftWallFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftWallFace geometry class"
-    },
-    "BRepTrimType": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "BRep",
-        "BRepLoopType",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRepTrimType geometry class"
+      "summary": "BRepLoopType geometry class"
     },
     "ElementPlate": {
       "composition": [],
@@ -95908,11 +95867,46 @@ window.API_INDEX = {
       "uses": [],
       "summary": "VLocalMinima geometry class"
     },
-    "LoftAdjPair": {
+    "BRepTrimType": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "BRep",
+        "BRepLoopType",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRepTrimType geometry class"
+    },
+    "VattiScratch": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "LoftAdjPair geometry class"
+      "summary": "VattiScratch geometry class"
+    },
+    "Intersection": {
+      "composition": [
+        "Element",
+        "Line",
+        "Polyline",
+        "Tolerance",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "ElementPlate",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point"
+      ],
+      "summary": "Intersection geometry class"
     },
     "ElementBeam": {
       "composition": [],
@@ -95926,21 +95920,11 @@ window.API_INDEX = {
       ],
       "summary": "ElementBeam geometry class"
     },
-    "Primitives": {
-      "composition": [
-        "CurveKnotStyle",
-        "NurbsCurve",
-        "Vector"
-      ],
+    "LoftAdjPair": {
+      "composition": [],
       "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsSurface",
-        "Point",
-        "Xform"
-      ],
-      "summary": "Static factory methods for creating NURBS curve primitives."
+      "uses": [],
+      "summary": "LoftAdjPair geometry class"
     },
     "NurbsCurve": {
       "composition": [
@@ -95962,20 +95946,13 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
-    "Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Delaunay2D geometry class"
-    },
-    "ConvexHull": {
+    "VertexData": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Mesh",
         "Point"
       ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+      "summary": "Vertex data containing position and attributes."
     },
     "PointCloud": {
       "composition": [
@@ -95992,6 +95969,37 @@ window.API_INDEX = {
       ],
       "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
     },
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
+    },
+    "ConvexHull": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Point"
+      ],
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+    },
+    "Primitives": {
+      "composition": [
+        "CurveKnotStyle",
+        "NurbsCurve",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsSurface",
+        "Point",
+        "Xform"
+      ],
+      "summary": "Static factory methods for creating NURBS curve primitives."
+    },
     "Quaternion": {
       "composition": [
         "Vector"
@@ -96002,35 +96010,23 @@ window.API_INDEX = {
       ],
       "summary": "A quaternion for 3D rotations (scalar + vector)."
     },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "Vertex data containing position and attributes."
-    },
     "BRepVertex": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepVertex geometry class"
     },
+    "_Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay geometry class"
+    },
     "LoftPanel": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "LoftPanel geometry class"
-    },
-    "Tolerance": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "ToleranceGuard",
-        "Vector"
-      ],
-      "summary": "Tolerance settings for geometric operations."
     },
     "ColorMode": {
       "composition": [],
@@ -96048,27 +96044,6 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
-    "RemeshCDT": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Polyline"
-      ],
-      "summary": "RemeshCDT geometry class"
-    },
-    "VHorzJoin": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzJoin geometry class"
-    },
-    "_Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay geometry class"
-    },
     "FlatMap64": {
       "composition": [],
       "factories": [],
@@ -96079,42 +96054,30 @@ window.API_INDEX = {
       ],
       "summary": "FlatMap64 geometry class"
     },
-    "BRepTrim": {
+    "Tolerance": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "BRepTrim geometry class"
-    },
-    "BRepLoop": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoop geometry class"
-    },
-    "TpmsType": {
-      "composition": [],
-      "factories": [
-        "MeshIso"
+      "uses": [
+        "Point",
+        "ToleranceGuard",
+        "Vector"
       ],
+      "summary": "Tolerance settings for geometric operations."
+    },
+    "VHorzJoin": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzJoin geometry class"
+    },
+    "RemeshCDT": {
+      "composition": [],
+      "factories": [],
       "uses": [
         "Mesh",
-        "OBB",
-        "Point",
-        "TpmsMode"
+        "Polyline"
       ],
-      "summary": "TpmsType geometry class"
-    },
-    "Geometry": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Geometry geometry class"
-    },
-    "VHorzSeg": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzSeg geometry class"
+      "summary": "RemeshCDT geometry class"
     },
     "TreeNode": {
       "composition": [
@@ -96123,44 +96086,6 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "A node of a tree data structure."
-    },
-    "BRepEdge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
-    },
-    "BRepFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepFace geometry class"
-    },
-    "TpmsMode": {
-      "composition": [],
-      "factories": [
-        "MeshIso",
-        "TpmsType"
-      ],
-      "uses": [],
-      "summary": "TpmsMode geometry class"
-    },
-    "AABBTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB"
-      ],
-      "summary": "AABBTree geometry class"
-    },
-    "Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Edge",
-        "TriangulateResult"
-      ],
-      "summary": "Delaunay geometry class"
     },
     "Polyline": {
       "composition": [
@@ -96185,70 +96110,80 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "VOutRec": {
+    "TpmsMode": {
+      "composition": [],
+      "factories": [
+        "MeshIso",
+        "TpmsType"
+      ],
+      "uses": [],
+      "summary": "TpmsMode geometry class"
+    },
+    "VHorzSeg": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VOutRec geometry class"
+      "summary": "VHorzSeg geometry class"
     },
-    "Closest": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Static methods for finding closest points between geometry objects."
-    },
-    "Session": {
-      "composition": [
-        "BVH",
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [
-        "BRep",
-        "Element",
-        "Geometry",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Objects",
-        "Plane",
-        "Point",
-        "PointCloud",
-        "Polyline",
-        "RayHit",
-        "T",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "A Session containing geometry objects with hierarchical and graph structures."
-    },
-    "BVHNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "BVH",
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "A node in the BVH tree."
-    },
-    "VActive": {
+    "BRepFace": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VActive geometry class"
+      "summary": "BRepFace geometry class"
+    },
+    "BRepLoop": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoop geometry class"
+    },
+    "BRepEdge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepEdge geometry class"
+    },
+    "AABBTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB"
+      ],
+      "summary": "AABBTree geometry class"
+    },
+    "Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Edge",
+        "TriangulateResult"
+      ],
+      "summary": "Delaunay geometry class"
+    },
+    "TpmsType": {
+      "composition": [],
+      "factories": [
+        "MeshIso"
+      ],
+      "uses": [
+        "Mesh",
+        "OBB",
+        "Point",
+        "TpmsMode"
+      ],
+      "summary": "TpmsType geometry class"
+    },
+    "BRepTrim": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepTrim geometry class"
+    },
+    "Geometry": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Geometry geometry class"
     },
     "Default": {
       "composition": [],
@@ -96260,12 +96195,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "Default geometry class"
-    },
-    "_Branch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Branch geometry class"
     },
     "Element": {
       "composition": [
@@ -96287,11 +96216,43 @@ window.API_INDEX = {
       ],
       "summary": "Element geometry class"
     },
-    "VVertex": {
+    "_Branch": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VVertex geometry class"
+      "summary": "_Branch geometry class"
+    },
+    "BVHNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "BVH",
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "A node in the BVH tree."
+    },
+    "Closest": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Static methods for finding closest points between geometry objects."
+    },
+    "VActive": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VActive geometry class"
     },
     "MeshIso": {
       "composition": [],
@@ -96323,6 +96284,51 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A collection of all geometry objects."
     },
+    "VVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VVertex geometry class"
+    },
+    "VOutRec": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutRec geometry class"
+    },
+    "Session": {
+      "composition": [
+        "BVH",
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [
+        "BRep",
+        "Element",
+        "Geometry",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Objects",
+        "Plane",
+        "Point",
+        "PointCloud",
+        "Polyline",
+        "RayHit",
+        "T",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "A Session containing geometry objects with hierarchical and graph structures."
+    },
+    "BIVec2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BIVec2 geometry class"
+    },
     "Vertex": {
       "composition": [],
       "factories": [],
@@ -96331,11 +96337,28 @@ window.API_INDEX = {
       ],
       "summary": "A graph vertex with a unique identifier and attribute string."
     },
-    "BIVec2": {
-      "composition": [],
-      "factories": [],
+    "Vector": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [
+        "Line",
+        "Plane",
+        "Quaternion",
+        "Xform"
+      ],
       "uses": [],
-      "summary": "BIVec2 geometry class"
+      "summary": "A 3D vector with visual properties."
+    },
+    "KDTree": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [],
+      "uses": [
+        "_Node"
+      ],
+      "summary": "KD-tree for point-to-point nearest-neighbor queries."
     },
     "RayHit": {
       "composition": [],
@@ -96355,47 +96378,11 @@ window.API_INDEX = {
       "uses": [],
       "summary": "VOutPt geometry class"
     },
-    "KDTree": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [],
-      "uses": [
-        "_Node"
-      ],
-      "summary": "KD-tree for point-to-point nearest-neighbor queries."
-    },
-    "Vector": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [
-        "Line",
-        "Plane",
-        "Quaternion",
-        "Xform"
-      ],
-      "uses": [],
-      "summary": "A 3D vector with visual properties."
-    },
     "_Rect": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Rect geometry class"
-    },
-    "Plane": {
-      "composition": [],
-      "factories": [
-        "OBB",
-        "Quaternion"
-      ],
-      "uses": [
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "A 3D plane defined by origin and coordinate axes."
     },
     "Graph": {
       "composition": [
@@ -96413,11 +96400,36 @@ window.API_INDEX = {
       "uses": [],
       "summary": "An index-based 0-255 color with RGBA values."
     },
+    "Plane": {
+      "composition": [],
+      "factories": [
+        "OBB",
+        "Quaternion"
+      ],
+      "uses": [
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "A 3D plane defined by origin and coordinate axes."
+    },
     "RTree": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "RTree geometry class"
+    },
+    "_Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Edge geometry class"
+    },
+    "_Node": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Node geometry class"
     },
     "Xform": {
       "composition": [
@@ -96445,64 +96457,6 @@ window.API_INDEX = {
       ],
       "uses": [],
       "summary": "A 3D point with visual properties."
-    },
-    "_Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Edge geometry class"
-    },
-    "_Node": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Node geometry class"
-    },
-    "_P64": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_P64 geometry class"
-    },
-    "AABB": {
-      "composition": [],
-      "factories": [
-        "OBB"
-      ],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Axis-aligned bounding box (center + half-size)."
-    },
-    "BRep": {
-      "composition": [
-        "BRepEdge",
-        "BRepFace",
-        "BRepLoop",
-        "BRepLoopType",
-        "BRepTrim",
-        "BRepTrimType",
-        "BRepVertex",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point"
-      ],
-      "factories": [
-        "BRepTrimType",
-        "Element"
-      ],
-      "uses": [
-        "Mesh",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRep geometry class"
     },
     "Mesh": {
       "composition": [
@@ -96532,11 +96486,11 @@ window.API_INDEX = {
       ],
       "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
-    "Edge": {
+    "_Tri": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
+      "summary": "_Tri geometry class"
     },
     "Line": {
       "composition": [
@@ -96553,6 +96507,36 @@ window.API_INDEX = {
       ],
       "summary": "A 3D line segment with visual properties."
     },
+    "Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
+    "BRep": {
+      "composition": [
+        "BRepEdge",
+        "BRepFace",
+        "BRepLoop",
+        "BRepLoopType",
+        "BRepTrim",
+        "BRepTrimType",
+        "BRepVertex",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point"
+      ],
+      "factories": [
+        "BRepTrimType",
+        "Element"
+      ],
+      "uses": [
+        "Mesh",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRep geometry class"
+    },
     "Tree": {
       "composition": [
         "TreeNode"
@@ -96561,32 +96545,27 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A hierarchical data structure with parent-child relationships."
     },
-    "_Tri": {
+    "_P64": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Tri geometry class"
+      "summary": "_P64 geometry class"
     },
-    "_V2": {
+    "AABB": {
       "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_V2 geometry class"
-    },
-    "BVH": {
-      "composition": [
-        "AABB",
-        "BVHNode"
-      ],
       "factories": [
-        "BVHNode"
+        "OBB"
       ],
       "uses": [
-        "OBB",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
         "Point",
-        "Vector"
+        "PointCloud",
+        "Polyline"
       ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
+      "summary": "Axis-aligned bounding box (center + half-size)."
     },
     "OBB": {
       "composition": [
@@ -96611,6 +96590,27 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
+    },
+    "_V2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_V2 geometry class"
+    },
+    "BVH": {
+      "composition": [
+        "AABB",
+        "BVHNode"
+      ],
+      "factories": [
+        "BVHNode"
+      ],
+      "uses": [
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
     },
     "Sc": {
       "composition": [],

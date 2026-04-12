@@ -34,6 +34,31 @@ Polyline pl({
 ## Naming
 
 - Test names must start from a capital letter e.g. "MINI_TEST("Quaternion", "Normalized")". This rule must be applied to all languages. Here there two strings "Quaternion" and "Normalized" starts from the capital letters.
+- Test names must use spaces between words. Never write CamelCase test names. Wrong: "Hull2dCircle", "LuDecompose". Correct: "Hull 2d Circle", "Lu Decompose".
+
+## Import Style
+
+Never import multiple symbols on one line. Each import must be on its own line.
+
+**Python — wrong:**
+```python
+from session_py import ConvexHull, Point
+```
+**Python — correct:**
+```python
+from session_py import ConvexHull
+from session_py import Point
+```
+
+**Rust — wrong:**
+```rust
+use crate::{ConvexHull, Point};
+```
+**Rust — correct:**
+```rust
+use crate::ConvexHull;
+use crate::Point;
+```
 
 ## Rules
 

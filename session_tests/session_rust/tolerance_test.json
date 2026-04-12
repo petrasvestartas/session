@@ -29,7 +29,7 @@
     "line": 15,
     "passed": true,
     "test_name": "Is Close",
-    "time_ms": 0.006
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -109,7 +109,7 @@
     "line": 55,
     "passed": true,
     "test_name": "Key",
-    "time_ms": 0.013
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -201,7 +201,7 @@
     "line": 154,
     "passed": true,
     "test_name": "Count Digits",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -279,7 +279,7 @@
     "line": 126,
     "passed": true,
     "test_name": "Rad Deg Conversion",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -394,7 +394,7 @@
     "line": 213,
     "passed": true,
     "test_name": "Round To",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -410,7 +410,7 @@
     "line": 205,
     "passed": true,
     "test_name": "Key Xy",
-    "time_ms": 0.005
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -452,7 +452,7 @@
     "line": 181,
     "passed": true,
     "test_name": "Is Point Close",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [

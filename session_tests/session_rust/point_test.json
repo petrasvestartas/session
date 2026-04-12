@@ -88,7 +88,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.176
+    "time_ms": 0.033
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 82,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.146
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -170,7 +170,7 @@
     "line": 98,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 11.289
+    "time_ms": 9.543
   },
   {
     "checks": [
@@ -226,7 +226,7 @@
     "line": 129,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 10.969
+    "time_ms": 13.084
   },
   {
     "checks": [
@@ -279,7 +279,7 @@
     "line": 184,
     "passed": true,
     "test_name": "Distance",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -311,7 +311,7 @@
     "line": 210,
     "passed": true,
     "test_name": "Area",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -337,7 +337,7 @@
     "line": 224,
     "passed": true,
     "test_name": "Centroid Quad",
-    "time_ms": 0.013
+    "time_ms": 0.026
   },
   {
     "checks": [
@@ -353,7 +353,7 @@
     "line": 257,
     "passed": true,
     "test_name": "Dihedral Angle Deg",
-    "time_ms": 0.008
+    "time_ms": 0.007
   },
   {
     "checks": [

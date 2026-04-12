@@ -120,9 +120,18 @@ if proto.HasField('xform'):
 
 ## Import Convention
 
-Each import on a separate line (per project style):
+Each import on a separate line. Never combine multiple symbols on one line.
 
+**Wrong:**
 ```python
+from session_py import ConvexHull, Point
+from .proto import classname_pb2, color_pb2
+```
+
+**Correct:**
+```python
+from session_py import ConvexHull
+from session_py import Point
 from .proto import classname_pb2
 from .proto import color_pb2
 from .proto import xform_pb2
