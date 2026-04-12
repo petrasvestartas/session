@@ -3,7 +3,7 @@
     "group": "OBB",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.097,
+    "time_ms": 0.217,
     "line": 7,
     "code": "    from session_py import OBB\n    from session_py import Point\n    from session_py import Vector\n\n    # from_point\n    bb1 = OBB.from_point(Point(5.0, 5.0, 5.0), 2.0)\n\n\n    # from_points (AABB)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 3.0, 4.0),\n    ]\n    bb2 = OBB.from_points(pts)\n    mn = bb2.min_point()\n    mx = bb2.max_point()\n\n\n    # OBB constructor\n    box = OBB(\n        center=Point(0.0, 0.0, 0.0),\n        x_axis=Vector(1.0, 0.0, 0.0),\n        y_axis=Vector(0.0, 1.0, 0.0),\n        z_axis=Vector(0.0, 0.0, 1.0),\n        half_size=Vector(1.0, 2.0, 3.0)\n    )\n\n\n    # aabb\n    bb_aabb = bb2.aabb()\n\n\n    # corners\n    corners = bb2.corners()\n\n\n    # point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n    p_center = bb2.point_at(0.0, 0.0, 0.0)\n    hx, hy, hz = bb2.half_size[0], bb2.half_size[1], bb2.half_size[2]\n    p_max_pt = bb2.point_at(hx, hy, hz)\n\n\n    # inflate\n    bb3 = OBB.from_points([\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 2.0, 2.0),\n    ])\n    bb3.inflate(1.0)\n\n\n    # guid and name\n    bb1.name = \"test_bbox\"",
     "checks": [
@@ -94,7 +94,7 @@
     "group": "OBB",
     "test_name": "Collision",
     "passed": true,
-    "time_ms": 0.13,
+    "time_ms": 0.231,
     "line": 80,
     "code": "    from session_py import OBB\n    from session_py import Point\n\n    bb1 = OBB.from_point(Point(0.0, 0.0, 0.0), 1.0)\n    bb2 = OBB.from_point(Point(1.5, 0.0, 0.0), 1.0)\n    bb3 = OBB.from_point(Point(5.0, 5.0, 5.0), 0.5)",
     "checks": [
@@ -125,7 +125,7 @@
     "group": "OBB",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.117,
+    "time_ms": 0.206,
     "line": 95,
     "code": "    from session_py import OBB\n    from session_py import Point\n    from session_py import Xform\n\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n    ]\n    bb = OBB.from_points(pts)\n    bb.xform = Xform.translation(0.0, 0.0, 5.0)\n\n    bbt = bb.transformed()\n\n\n    bb.transform()",
     "checks": [
@@ -151,7 +151,7 @@
     "group": "OBB",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 6.557,
+    "time_ms": 10.014,
     "line": 118,
     "code": "    from session_py import OBB\n    from session_py import Point\n    from pathlib import Path\n\n    bb = OBB.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox\"\n\n    # JSON object\n    d = bb.__jsondump__()\n    loaded_j = OBB.__jsonload__(d)\n\n\n    # String\n    s = bb.json_dumps()\n    loaded_s = OBB.json_loads(s)\n\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_obb.json\"\n    bb.json_dump(fname)\n    loaded = OBB.json_load(fname)",
     "checks": [
@@ -197,7 +197,7 @@
     "group": "OBB",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 5.289,
+    "time_ms": 109.069,
     "line": 151,
     "code": "    from session_py import OBB\n    from session_py import Point\n    from pathlib import Path\n\n    bb = OBB.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox_proto\"\n\n    # Bytes\n    b = bb.pb_dumps()\n    loaded_s = OBB.pb_loads(b)\n\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_obb.bin\"\n    bb.pb_dump(fname)\n    loaded = OBB.pb_load(fname)",
     "checks": [
@@ -243,7 +243,7 @@
     "group": "OBB",
     "test_name": "Accessors",
     "passed": true,
-    "time_ms": 0.124,
+    "time_ms": 0.294,
     "line": 179,
     "code": "    import math\n    from session_py import OBB\n    from session_py import Point\n\n    # axis-aligned OBB: center=(1,2,3), half_size=(1,2,3), dims 2\u00d74\u00d76\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n        Point(0.0, 0.0, 6.0),\n        Point(2.0, 4.0, 6.0),\n    ]\n    b = OBB.from_points(pts)\n\n    c = OBB.from_point(Point(5.0, 2.0, 3.0), 1.0)\n    b.union(c)",
     "checks": [

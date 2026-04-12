@@ -3,7 +3,7 @@
     "group": "Xform",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.163,
+    "time_ms": 0.184,
     "line": 8,
     "code": "    from session_py import Xform\n    from session_py import Point\n\n    # Constructor (identity by default)\n    x = Xform()\n\n    # Matrix access\n    m00 = x.m[0]\n    m11 = x.m[5]\n    m22 = x.m[10]\n    m33 = x.m[15]\n\n    # Check identity\n    is_id = x.is_identity()\n\n    # From matrix constructor\n    xfrom = Xform.from_matrix([\n        1.0, 0.0, 0.0, 0.0,\n        0.0, 1.0, 0.0, 0.0,\n        0.0, 0.0, 1.0, 0.0,\n        5.0, 10.0, 15.0, 1.0,\n    ])\n\n    # Minimal and Full String Representation\n    xstr = str(x)\n    xrepr = repr(x)\n\n    # Copy (duplicates everything except guid)\n    xcopy = x.duplicate()\n    xother = Xform()\n\n    # Matrix multiplication (*)\n    t = Xform.translation(10.0, 0.0, 0.0)\n    s = Xform.scale_xyz(2.0, 1.0, 1.0)\n    combined = t * s\n    p = Point(1.0, 0.0, 0.0)\n    p.xform = combined\n    result = p.transformed()\n\n    # In-place multiplication (*=)\n    t2 = Xform.translation(10.0, 0.0, 0.0)\n    t2 *= s\n    p = Point(1.0, 0.0, 0.0)\n    p.xform = t2\n    result2 = p.transformed()",
     "checks": [
@@ -74,7 +74,7 @@
     "group": "Xform",
     "test_name": "Translation",
     "passed": true,
-    "time_ms": 0.231,
+    "time_ms": 0.323,
     "line": 70,
     "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    xf = Xform.translation(1.5, 1.0, 0.5)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
@@ -125,7 +125,7 @@
     "group": "Xform",
     "test_name": "Rotation X",
     "passed": true,
-    "time_ms": 0.195,
+    "time_ms": 0.281,
     "line": 89,
     "code": "    import math\n    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    s = math.sqrt(2.0)\n    xf = Xform.rotation_x(PI / 4.0)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
@@ -176,7 +176,7 @@
     "group": "Xform",
     "test_name": "Rotation Y",
     "passed": true,
-    "time_ms": 0.174,
+    "time_ms": 0.275,
     "line": 110,
     "code": "    import math\n    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    s = math.sqrt(2.0)\n    xf = Xform.rotation_y(PI / 4.0)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
@@ -227,7 +227,7 @@
     "group": "Xform",
     "test_name": "Rotation Z",
     "passed": true,
-    "time_ms": 0.169,
+    "time_ms": 0.231,
     "line": 131,
     "code": "    import math\n    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    s = math.sqrt(2.0)\n    xf = Xform.rotation_z(PI / 4.0)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
@@ -278,7 +278,7 @@
     "group": "Xform",
     "test_name": "Rotation Axis",
     "passed": true,
-    "time_ms": 0.182,
+    "time_ms": 0.214,
     "line": 152,
     "code": "    import math\n    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n\n    axis = Vector(1.0, 1.0, 1.0)\n    xf = Xform.rotation(axis, 2.0 * PI / 4.0)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)\n    t = 1.0 / 3.0\n    k = 2.0 / math.sqrt(3.0)",
     "checks": [
@@ -329,7 +329,7 @@
     "group": "Xform",
     "test_name": "Rotation Around Line",
     "passed": true,
-    "time_ms": 0.199,
+    "time_ms": 0.231,
     "line": 176,
     "code": "    import math\n    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Line\n\n    s = math.sqrt(2.0)\n    line = Line(-1.0, -1.0, -1.0, -1.0, -1.0, 1.0)\n    xf = Xform.rotation_around_line(line, PI / 4.0)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
@@ -380,7 +380,7 @@
     "group": "Xform",
     "test_name": "Change Basis",
     "passed": true,
-    "time_ms": 0.196,
+    "time_ms": 0.253,
     "line": 199,
     "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n\n    o0 = Point(0, 0, 0)\n    x0 = Vector(1, 0, 0)\n    y0 = Vector(0, 1, 0)\n    z0 = Vector(0, 0, 1)\n    o1 = Point(0.5, -1.0, 0.5)\n    x1 = Vector(1.2, 0.0, 0.0)\n    y1 = Vector(0.3, -1.0, -0.15)\n    z1 = Vector(0.0, 0.0, 1.1)\n    xf = Xform.change_basis(o0, x0, y0, z0, o1, x1, y1, z1)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
@@ -431,7 +431,7 @@
     "group": "Xform",
     "test_name": "Plane To Plane",
     "passed": true,
-    "time_ms": 0.228,
+    "time_ms": 0.231,
     "line": 227,
     "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Plane\n\n    pf = Plane(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0))\n    pt = Plane(Point(2, 0, 0), Vector(0, 1, 0), Vector(-1, 0, 0))\n    xf = Xform.plane_to_plane(pf, pt)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
@@ -482,7 +482,7 @@
     "group": "Xform",
     "test_name": "Scale XYZ",
     "passed": true,
-    "time_ms": 0.157,
+    "time_ms": 0.22,
     "line": 250,
     "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    xf = Xform.scale_xyz(1.5, 1.2, 1.8)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
@@ -533,7 +533,7 @@
     "group": "Xform",
     "test_name": "Scale Uniform",
     "passed": true,
-    "time_ms": 0.178,
+    "time_ms": 0.191,
     "line": 269,
     "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    c = Point(0, 0, 0)\n    xf = Xform.scale_uniform(c, 2.0)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
@@ -584,7 +584,7 @@
     "group": "Xform",
     "test_name": "Scale Non Uniform",
     "passed": true,
-    "time_ms": 0.178,
+    "time_ms": 0.206,
     "line": 289,
     "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    c = Point(0, 0, 0)\n    xf = Xform.scale_non_uniform(c, 1.5, 1.2, 1.8)\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
@@ -635,7 +635,7 @@
     "group": "Xform",
     "test_name": "Look At Right Handed",
     "passed": true,
-    "time_ms": 0.175,
+    "time_ms": 0.192,
     "line": 309,
     "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n\n    eye = Point(0, 3, 0)\n    target = Point(0, 0, 0)\n    xf = Xform.look_at_right_handed(eye, target, Vector(0, 0, 1))\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
@@ -686,7 +686,7 @@
     "group": "Xform",
     "test_name": "Look To Right Handed",
     "passed": true,
-    "time_ms": 0.173,
+    "time_ms": 0.184,
     "line": 331,
     "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n\n    eye = Point(0, 3, 0)\n    direction = Vector(0, -1, 0)\n    xf = Xform.look_to_right_handed(eye, direction, Vector(0, 0, 1))\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
@@ -737,7 +737,7 @@
     "group": "Xform",
     "test_name": "Perspective",
     "passed": true,
-    "time_ms": 0.218,
+    "time_ms": 0.194,
     "line": 353,
     "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    view = Xform.translation(0, 0, -2)\n    proj = Xform.perspective(PI / 2.0, 1.0, 1.0, 3.0)\n    xf = proj * view\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)\n    t = 1.0 / 3.0",
     "checks": [
@@ -788,7 +788,7 @@
     "group": "Xform",
     "test_name": "Orthographic",
     "passed": true,
-    "time_ms": 0.248,
+    "time_ms": 0.187,
     "line": 375,
     "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    view = Xform.translation(0, 0, -2)\n    proj = Xform.orthographic(-1.0, 1.0, -1.0, 1.0, 1.0, 3.0)\n    xf = proj * view\n    mesh = Mesh.create_box(2, 2, 2)\n    result = mesh.transformed(xf)",
     "checks": [
@@ -839,7 +839,7 @@
     "group": "Xform",
     "test_name": "Project To Plane",
     "passed": true,
-    "time_ms": 0.165,
+    "time_ms": 0.199,
     "line": 396,
     "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Plane\n    from session_py import Polyline\n\n    plane = Plane(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0))\n    move = Xform.translation(0, 0, 1)\n    proj = Xform.project_to_plane(plane)\n    xf = proj * move\n    def tp(x, y, z):\n        p = Point(x, y, z)\n        p.xform = xf\n        return p.transformed()\n    outline = Polyline([\n        tp(-1, -1, -1),\n        tp(1, -1, -1),\n        tp(1, 1, -1),\n        tp(-1, 1, -1),\n        tp(-1, -1, -1)\n    ])\n    pts = outline.get_points()",
     "checks": [
@@ -875,7 +875,7 @@
     "group": "Xform",
     "test_name": "Project To Plane By Axis",
     "passed": true,
-    "time_ms": 0.151,
+    "time_ms": 0.155,
     "line": 428,
     "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Plane\n    from session_py import Polyline\n\n    plane = Plane(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0))\n    direction = Vector(1, 0, 1)\n    move = Xform.translation(0, 0, 1)\n    proj = Xform.project_to_plane_by_axis(plane, direction)\n    xf = proj * move\n    def tp(x, y, z):\n        p = Point(x, y, z)\n        p.xform = xf\n        return p.transformed()\n    outline = Polyline([\n        tp(-1, -1, 1),\n        tp(1, -1, -1),\n        tp(1, 1, -1),\n        tp(-1, 1, 1),\n        tp(-1, -1, 1)\n    ])\n    pts = outline.get_points()",
     "checks": [
@@ -911,7 +911,7 @@
     "group": "Xform",
     "test_name": "Inverse",
     "passed": true,
-    "time_ms": 0.397,
+    "time_ms": 0.437,
     "line": 461,
     "code": "    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    t = Xform.translation(1.0, 0.5, 0.5)\n    s = Xform.scale_xyz(1.5, 1.2, 1.3)\n    composite = t * s\n    inv = composite.inverse()\n    mesh = Mesh.create_box(2, 2, 2)\n    forward = mesh.transformed(composite)\n    roundtrip = forward.transformed(inv)",
     "checks": [
@@ -962,7 +962,7 @@
     "group": "Xform",
     "test_name": "Transform Geometry",
     "passed": true,
-    "time_ms": 0.207,
+    "time_ms": 0.221,
     "line": 484,
     "code": "    from session_py import Xform\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Line\n    from session_py import Plane\n    from session_py import Polyline\n\n    # Simple translation by (10, 20, 30)\n    t = Xform.translation(10.0, 20.0, 30.0)\n\n    # Transform Point: (1,2,3) -> (11,22,33)\n    pt = Point(1.0, 2.0, 3.0)\n    pt.xform = t\n    pt_transformed = pt.transformed()\n\n    # Transform Vector: translation should NOT affect vectors\n    v = Vector(1.0, 0.0, 0.0)\n    v.xform = t\n    v_transformed = v.transformed()\n\n    # Transform Line: (0,0,0)-(1,0,0) -> (10,20,30)-(11,20,30)\n    ln = Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)\n    ln.xform = t\n    ln_transformed = ln.transformed()\n\n    # Transform Plane: origin (0,0,0) -> (10,20,30)\n    pl = Plane(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0))\n    pl.xform = t\n    pl_transformed = pl.transformed()\n\n    # Transform Polyline: 3 points translated\n    poly = Polyline([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)])\n    poly.xform = t\n    poly_transformed = poly.transformed()\n    pts = poly_transformed.get_points()",
     "checks": [
@@ -1013,7 +1013,7 @@
     "group": "Xform",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 7.951,
+    "time_ms": 8.055,
     "line": 532,
     "code": "    from session_py import Xform\n    from pathlib import Path\n\n    xform = Xform.translation(1.0, 2.0, 3.0)\n    xform.name = \"test_xform\"\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_xform.json\"\n    xform.json_dump(fname)\n    loaded = Xform.json_load(fname)",
     "checks": [
@@ -1074,7 +1074,7 @@
     "group": "Xform",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 6.982,
+    "time_ms": 8.409,
     "line": 556,
     "code": "    from session_py import Xform\n    from pathlib import Path\n\n    xform = Xform.translation(1.0, 2.0, 3.0)\n    xform.name = \"test_xform_proto\"\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_xform.bin\"\n    xform.pb_dump(fname)\n    loaded = Xform.pb_load(fname)",
     "checks": [
@@ -1135,7 +1135,7 @@
     "group": "Xform",
     "test_name": "From Change Of Basis",
     "passed": true,
-    "time_ms": 0.037,
+    "time_ms": 0.053,
     "line": 580,
     "code": "    from session_py import Point, Polyline, Xform\n    rect0 = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 3.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n    ])\n    rect1 = Polyline([Point(0.0, 0.0, 4.0)])\n    xf = Xform.from_change_of_basis(rect0, rect1)",
     "checks": [

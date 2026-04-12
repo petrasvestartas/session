@@ -23,7 +23,7 @@
     "line": 32,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 6.743
+    "time_ms": 8.164
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 171,
     "passed": true,
     "test_name": "Traverse",
-    "time_ms": 0.141
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -101,7 +101,7 @@
     "line": 135,
     "passed": true,
     "test_name": "Descendants",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -127,7 +127,7 @@
     "line": 117,
     "passed": true,
     "test_name": "Ancestors",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -148,7 +148,7 @@
     "line": 104,
     "passed": true,
     "test_name": "Parent",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -174,7 +174,7 @@
     "line": 89,
     "passed": true,
     "test_name": "Remove",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -195,7 +195,7 @@
     "line": 76,
     "passed": true,
     "test_name": "Add",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -283,6 +283,6 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.004
+    "time_ms": 0.005
   }
 ]

@@ -98,7 +98,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.085
+    "time_ms": 0.495
   },
   {
     "checks": [
@@ -129,7 +129,7 @@
     "line": 100,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.016
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -165,7 +165,7 @@
     "line": 122,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 9.491
+    "time_ms": 9.986
   },
   {
     "checks": [
@@ -201,7 +201,7 @@
     "line": 152,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 8.601
+    "time_ms": 10.391
   },
   {
     "checks": [
@@ -222,7 +222,7 @@
     "line": 177,
     "passed": true,
     "test_name": "Length",
-    "time_ms": 0.01
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -248,7 +248,7 @@
     "line": 196,
     "passed": true,
     "test_name": "Center",
-    "time_ms": 0.008
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -295,7 +295,7 @@
     "line": 265,
     "passed": true,
     "test_name": "Reverse",
-    "time_ms": 0.01
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -326,7 +326,7 @@
     "line": 291,
     "passed": true,
     "test_name": "Closest Point",
-    "time_ms": 0.009
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -347,7 +347,7 @@
     "line": 313,
     "passed": true,
     "test_name": "Extend Segment",
-    "time_ms": 0.016
+    "time_ms": 0.024
   },
   {
     "checks": [
@@ -424,7 +424,7 @@
     "line": 349,
     "passed": true,
     "test_name": "Get Points",
-    "time_ms": 0.005
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -445,7 +445,7 @@
     "line": 390,
     "passed": true,
     "test_name": "Shift",
-    "time_ms": 0.007
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -466,7 +466,7 @@
     "line": 409,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -487,7 +487,7 @@
     "line": 424,
     "passed": true,
     "test_name": "Is Clockwise",
-    "time_ms": 0.013
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -503,7 +503,7 @@
     "line": 447,
     "passed": true,
     "test_name": "Convex Corners",
-    "time_ms": 0.02
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -524,7 +524,7 @@
     "line": 462,
     "passed": true,
     "test_name": "Tween",
-    "time_ms": 0.012
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -550,7 +550,7 @@
     "line": 482,
     "passed": true,
     "test_name": "Average Plane",
-    "time_ms": 0.025
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -576,7 +576,7 @@
     "line": 819,
     "passed": true,
     "test_name": "Extend Edge Equally",
-    "time_ms": 0.016
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -618,7 +618,7 @@
     "line": 791,
     "passed": true,
     "test_name": "Transformed Xform",
-    "time_ms": 0.012
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -634,7 +634,7 @@
     "line": 775,
     "passed": true,
     "test_name": "Simplify Two Points",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -655,7 +655,7 @@
     "line": 755,
     "passed": true,
     "test_name": "Simplify Zigzag",
-    "time_ms": 0.015
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -707,7 +707,7 @@
     "line": 714,
     "passed": true,
     "test_name": "Simplify",
-    "time_ms": 0.025
+    "time_ms": 0.031
   },
   {
     "checks": [
@@ -743,7 +743,7 @@
     "line": 690,
     "passed": true,
     "test_name": "Simplify Points",
-    "time_ms": 0.08
+    "time_ms": 0.071
   },
   {
     "checks": [
@@ -859,7 +859,7 @@
     "line": 670,
     "passed": true,
     "test_name": "Boolean Op Plane",
-    "time_ms": 0.049
+    "time_ms": 0.048
   },
   {
     "checks": [
@@ -945,7 +945,7 @@
     "line": 612,
     "passed": true,
     "test_name": "Boolean Op",
-    "time_ms": 0.045
+    "time_ms": 0.039
   },
   {
     "checks": [
@@ -1121,7 +1121,7 @@
     "line": 564,
     "passed": true,
     "test_name": "Grid Of Points In Polygon",
-    "time_ms": 0.03
+    "time_ms": 0.023
   },
   {
     "checks": [
@@ -1147,7 +1147,7 @@
     "line": 541,
     "passed": true,
     "test_name": "Bounding Rectangle",
-    "time_ms": 0.048
+    "time_ms": 0.035
   },
   {
     "checks": [
@@ -1163,7 +1163,7 @@
     "line": 523,
     "passed": true,
     "test_name": "Quick Hull",
-    "time_ms": 0.022
+    "time_ms": 0.018
   },
   {
     "checks": [
@@ -1209,7 +1209,7 @@
     "line": 500,
     "passed": true,
     "test_name": "Interpolate Points",
-    "time_ms": 0.005
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -1240,7 +1240,7 @@
     "line": 372,
     "passed": true,
     "test_name": "Get Lines",
-    "time_ms": 0.013
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -1271,6 +1271,6 @@
     "line": 246,
     "passed": true,
     "test_name": "Closed",
-    "time_ms": 0.015
+    "time_ms": 0.011
   }
 ]

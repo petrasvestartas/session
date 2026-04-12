@@ -68,7 +68,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.028
+    "time_ms": 0.032
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 297,
     "passed": true,
     "test_name": "Transform",
-    "time_ms": 0.007
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -130,7 +130,7 @@
     "line": 330,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.687
+    "time_ms": 9.362
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 363,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 7.875
+    "time_ms": 8.499
   },
   {
     "checks": [
@@ -223,7 +223,7 @@
     "line": 283,
     "passed": true,
     "test_name": "Get Normals",
-    "time_ms": 0.004
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -244,7 +244,7 @@
     "line": 270,
     "passed": true,
     "test_name": "Add Normal",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -270,7 +270,7 @@
     "line": 256,
     "passed": true,
     "test_name": "Set Normal",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -296,7 +296,7 @@
     "line": 242,
     "passed": true,
     "test_name": "Get Normal",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -433,7 +433,7 @@
     "line": 155,
     "passed": true,
     "test_name": "Get Points",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -464,7 +464,7 @@
     "line": 140,
     "passed": true,
     "test_name": "Add Point",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -537,7 +537,7 @@
     "line": 99,
     "passed": true,
     "test_name": "Is Empty",
-    "time_ms": 0.004
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -553,7 +553,7 @@
     "line": 88,
     "passed": true,
     "test_name": "Len",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
