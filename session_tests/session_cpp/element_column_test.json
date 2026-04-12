@@ -3,7 +3,7 @@
     "group": "ElementColumn",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.124,
+    "time_ms": 0.136,
     "line": 13,
     "code": "    // uncomment #include \"element_column.h\"\n    // uncomment #include \"mesh.h\"\n    ElementColumn c(0.4, 0.4, 3.0, \"col1\");\n\n    auto& geo = c.geometry();\n    std::string name = c.name;\n    const std::string& guid = c.guid();\n    std::string cstr = c.str();\n    std::string crepr = c.repr();\n\n    ElementColumn ccopy = c.duplicate();\n    ElementColumn c2(0.4, 0.4, 3.0, \"col1\");\n    ElementColumn c3(0.5, 0.4, 3.0, \"col1\");",
     "checks": [
@@ -69,7 +69,7 @@
     "group": "ElementColumn",
     "test_name": "Setters",
     "passed": true,
-    "time_ms": 0.112,
+    "time_ms": 0.144,
     "line": 41,
     "code": "    // uncomment #include \"element_column.h\"\n    ElementColumn c;\n    c.set_width(0.5);\n    c.set_depth(0.6);\n    c.set_height(4.0);",
     "checks": [
@@ -100,7 +100,7 @@
     "group": "ElementColumn",
     "test_name": "Center Line",
     "passed": true,
-    "time_ms": 0.033,
+    "time_ms": 0.037,
     "line": 54,
     "code": "    // uncomment #include \"element_column.h\"\n    // uncomment #include \"line.h\"\n    ElementColumn c(0.4, 0.4, 5.0);\n    Line cl = c.center_line();",
     "checks": [
@@ -121,7 +121,7 @@
     "group": "ElementColumn",
     "test_name": "Extend",
     "passed": true,
-    "time_ms": 0.084,
+    "time_ms": 0.055,
     "line": 64,
     "code": "    // uncomment #include \"element_column.h\"\n    ElementColumn c(0.4, 0.4, 3.0);\n    c.extend(0.5);",
     "checks": [
@@ -137,7 +137,7 @@
     "group": "ElementColumn",
     "test_name": "Aabb",
     "passed": true,
-    "time_ms": 0.084,
+    "time_ms": 0.093,
     "line": 72,
     "code": "    // uncomment #include \"element_column.h\"\n    // uncomment #include \"obb.h\"\n    ElementColumn c(0.4, 0.4, 3.0);\n    OBB aabb = c.aabb();",
     "checks": [
@@ -163,7 +163,7 @@
     "group": "ElementColumn",
     "test_name": "Compute Point",
     "passed": true,
-    "time_ms": 0.071,
+    "time_ms": 0.07,
     "line": 83,
     "code": "    // uncomment #include \"element_column.h\"\n    // uncomment #include \"point.h\"\n    ElementColumn c(0.4, 0.4, 3.0);\n    Point pt = c.point();",
     "checks": [
@@ -189,7 +189,7 @@
     "group": "ElementColumn",
     "test_name": "Session Geometry",
     "passed": true,
-    "time_ms": 0.066,
+    "time_ms": 0.07,
     "line": 94,
     "code": "    // uncomment #include \"element_column.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"xform.h\"\n    ElementColumn c(0.4, 0.4, 3.0);\n    c.session_transformation = Xform::translation(10.0, 0.0, 0.0);\n    auto sg = c.session_geometry();\n\n    auto& mesh = std::get<Mesh>(sg);\n    double min_x = 1e9;\n    for (const auto& [k, v] : mesh.vertex) if (v.x < min_x) min_x = v.x;",
     "checks": [
@@ -210,7 +210,7 @@
     "group": "ElementColumn",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.318,
+    "time_ms": 11.02,
     "line": 109,
     "code": "    // uncomment #include \"element_column.h\"\n    // uncomment #include \"xform.h\"\n    ElementColumn c(0.5, 0.6, 4.0, \"json_col\");\n    c.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string fname = \"serialization/test_column_element.json\";\n    c.json_dump(fname);\n    ElementColumn loaded = ElementColumn::json_load(fname);",
     "checks": [
@@ -241,7 +241,7 @@
     "group": "ElementColumn",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 7.581,
+    "time_ms": 9.269,
     "line": 125,
     "code": "    // uncomment #include \"element_column.h\"\n    // uncomment #include \"xform.h\"\n    ElementColumn c(0.5, 0.6, 4.0, \"proto_col\");\n    c.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string path = \"serialization/test_column_element.bin\";\n    c.pb_dump(path);\n    ElementColumn loaded = ElementColumn::pb_load(path);",
     "checks": [
@@ -318,7 +318,7 @@
     "group": "ElementColumn",
     "test_name": "Planes",
     "passed": true,
-    "time_ms": 0.032,
+    "time_ms": 0.041,
     "line": 152,
     "code": "    ElementColumn c(0.4, 0.4, 3.0);\n    auto pls = c.planes();",
     "checks": [
@@ -344,7 +344,7 @@
     "group": "ElementColumn",
     "test_name": "Edge Vectors",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.035,
     "line": 160,
     "code": "    ElementColumn c(0.4, 0.4, 3.0);\n    auto evs = c.edge_vectors();",
     "checks": [

@@ -3,7 +3,7 @@
     "group": "Color",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.015,
     "line": 12,
     "code": "        // uncomment #include \"color.h\"\n\n        // Constructor\n        Color c(255, 0, 0, 255, \"red\");\n\n        // Setters\n        c[0] = 255;\n        c[1] = 0;\n        c[2] = 0;\n        c[3] = 255;\n\n        // Getters\n        int r = c[0];\n        int g = c[1];\n        int b = c[2];\n        int a = c[3];\n\n        // Minimal and Full String Representation\n        std::string cstr = c.str();\n        std::string crepr = c.repr();\n\n        // Copy (duplicates everything except guid())\n        Color ccopy = c;\n        Color cother(255, 0, 0, 255, \"red\");",
     "checks": [
@@ -54,7 +54,7 @@
     "group": "Color",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 10.069,
+    "time_ms": 11.251,
     "line": 48,
     "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255, \"serialization/test_color\");\n\n      //   jsondump()      │ ordered_json │ to JSON object (internal use)\n      //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n      //   json_dumps()    │ std::string  │ to JSON string\n      //   json_loads(s)   │ std::string  │ from JSON string\n      //   json_dump(path) │ file         │ write to file\n      //   json_load(path) │ file         │ read from file\n\n      std::string filename = \"serialization/test_color.json\";\n      c.json_dump(filename);\n      Color loaded = Color::json_load(filename);",
     "checks": [
@@ -90,7 +90,7 @@
     "group": "Color",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 7.772,
+    "time_ms": 9.785,
     "line": 71,
     "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255, \"serialization/test_color\");\n\n      std::string filename = \"serialization/test_color.bin\";\n      c.pb_dump(filename);\n      Color loaded = Color::pb_load(filename);",
     "checks": [
@@ -126,7 +126,7 @@
     "group": "Color",
     "test_name": "Conversion",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 87,
     "code": "      // uncomment #include \"color.h\"\n\n      Color c(255, 128, 64, 255);\n      std::array<double, 4> flts = c.to_unified_array();\n      Color ints = Color::from_unified_array(flts);",
     "checks": [
@@ -162,7 +162,7 @@
     "group": "Color",
     "test_name": "Presets",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.018,
     "line": 101,
     "code": "      // uncomment #include \"color.h\"\n\n      Color white = Color::white();\n      Color black = Color::black();\n      Color grey = Color::grey();\n      Color red = Color::red();\n      Color orange = Color::orange();\n      Color yellow = Color::yellow();\n      Color lime = Color::lime();\n      Color green = Color::green();\n      Color mint = Color::mint();\n      Color cyan = Color::cyan();\n      Color azure = Color::azure();\n      Color blue = Color::blue();\n      Color violet = Color::violet();\n      Color magenta = Color::magenta();\n      Color pink = Color::pink();\n      Color maroon = Color::maroon();\n      Color brown = Color::brown();\n      Color olive = Color::olive();\n      Color teal = Color::teal();\n      Color navy = Color::navy();\n      Color purple = Color::purple();\n      Color silver = Color::silver();",
     "checks": [

@@ -23,7 +23,7 @@
     "line": 148,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 11.453
+    "time_ms": 12.692
   },
   {
     "checks": [
@@ -39,7 +39,7 @@
     "line": 411,
     "passed": true,
     "test_name": "Cycle Basis",
-    "time_ms": 0.175
+    "time_ms": 0.182
   },
   {
     "checks": [
@@ -60,7 +60,7 @@
     "line": 395,
     "passed": true,
     "test_name": "Has Cycle",
-    "time_ms": 0.019
+    "time_ms": 0.023
   },
   {
     "checks": [
@@ -91,7 +91,7 @@
     "line": 378,
     "passed": true,
     "test_name": "Shortest Path",
-    "time_ms": 0.027
+    "time_ms": 0.022
   },
   {
     "checks": [
@@ -117,7 +117,7 @@
     "line": 361,
     "passed": true,
     "test_name": "Connected Components",
-    "time_ms": 0.042
+    "time_ms": 0.034
   },
   {
     "checks": [
@@ -133,7 +133,7 @@
     "line": 346,
     "passed": true,
     "test_name": "Dfs",
-    "time_ms": 0.015
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -149,7 +149,7 @@
     "line": 331,
     "passed": true,
     "test_name": "Bfs",
-    "time_ms": 0.013
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -181,7 +181,7 @@
     "line": 309,
     "passed": true,
     "test_name": "Node Attribute",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -202,7 +202,7 @@
     "line": 297,
     "passed": true,
     "test_name": "Clear",
-    "time_ms": 0.035
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -218,7 +218,7 @@
     "line": 286,
     "passed": true,
     "test_name": "Number Of Edges",
-    "time_ms": 0.005
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -266,7 +266,7 @@
     "line": 248,
     "passed": true,
     "test_name": "Get Edges",
-    "time_ms": 0.008
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -282,7 +282,7 @@
     "line": 235,
     "passed": true,
     "test_name": "Get Vertices",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -308,7 +308,7 @@
     "line": 222,
     "passed": true,
     "test_name": "Remove Edge",
-    "time_ms": 0.005
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -329,7 +329,7 @@
     "line": 210,
     "passed": true,
     "test_name": "Remove Node",
-    "time_ms": 0.004
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -350,7 +350,7 @@
     "line": 198,
     "passed": true,
     "test_name": "Add Edge",
-    "time_ms": 0.003
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -376,7 +376,7 @@
     "line": 186,
     "passed": true,
     "test_name": "Add Node",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -397,7 +397,7 @@
     "line": 175,
     "passed": true,
     "test_name": "Has Edge",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -444,6 +444,6 @@
     "line": 132,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.0
+    "time_ms": 0.001
   }
 ]

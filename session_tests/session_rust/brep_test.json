@@ -53,7 +53,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.016
+    "time_ms": 0.382
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 28,
     "passed": true,
     "test_name": "Create Box",
-    "time_ms": 2.192
+    "time_ms": 3.814
   },
   {
     "checks": [
@@ -135,7 +135,7 @@
     "line": 43,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 2.818
+    "time_ms": 1.996
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 62,
     "passed": true,
     "test_name": "Add Face",
-    "time_ms": 0.065
+    "time_ms": 0.079
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 92,
     "passed": true,
     "test_name": "Mesh",
-    "time_ms": 614.454
+    "time_ms": 223.405
   },
   {
     "checks": [
@@ -208,7 +208,7 @@
     "line": 105,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 1.686
+    "time_ms": 2.249
   },
   {
     "checks": [
@@ -229,7 +229,7 @@
     "line": 118,
     "passed": true,
     "test_name": "Is Solid",
-    "time_ms": 1.838
+    "time_ms": 2.098
   },
   {
     "checks": [
@@ -255,7 +255,7 @@
     "line": 139,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 1.736
+    "time_ms": 4.396
   },
   {
     "checks": [
@@ -276,7 +276,7 @@
     "line": 157,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 258.775
+    "time_ms": 21.019
   },
   {
     "checks": [
@@ -317,7 +317,7 @@
     "line": 225,
     "passed": true,
     "test_name": "Create Cylinder",
-    "time_ms": 1632.345
+    "time_ms": 146.243
   },
   {
     "checks": [
@@ -358,7 +358,7 @@
     "line": 241,
     "passed": true,
     "test_name": "Create Sphere",
-    "time_ms": 82.413
+    "time_ms": 66.854
   },
   {
     "checks": [
@@ -404,7 +404,7 @@
     "line": 257,
     "passed": true,
     "test_name": "From Polylines",
-    "time_ms": 204.933
+    "time_ms": 179.563
   },
   {
     "checks": [
@@ -435,7 +435,7 @@
     "line": 307,
     "passed": true,
     "test_name": "From Nurbscurves",
-    "time_ms": 233.624
+    "time_ms": 106.348
   },
   {
     "checks": [
@@ -481,7 +481,7 @@
     "line": 354,
     "passed": true,
     "test_name": "From Nurbscurves Holes",
-    "time_ms": 84.697
+    "time_ms": 70.785
   },
   {
     "checks": [
@@ -502,7 +502,7 @@
     "line": 199,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 18.124
+    "time_ms": 17.372
   },
   {
     "checks": [
@@ -543,6 +543,6 @@
     "line": 183,
     "passed": true,
     "test_name": "Create Block With Hole",
-    "time_ms": 743.925
+    "time_ms": 321.67
   }
 ]
