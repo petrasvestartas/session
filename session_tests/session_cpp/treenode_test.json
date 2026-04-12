@@ -49,7 +49,7 @@
     "group": "TreeNode",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 8.536,
+    "time_ms": 8.795,
     "line": 35,
     "code": "    // uncomment #include \"treenode.h\"\n    // uncomment #include \"encoders.h\"\n\n    auto original = std::make_shared<TreeNode>(\"test_node\");\n    auto child = std::make_shared<TreeNode>(\"child_node\");\n    original->add(child);\n\n    std::string fname = \"serialization/test_treenode.json\";\n    encoders::json_dump(original->jsondump(), fname);\n    auto loaded_json = encoders::json_load_data(fname);\n    auto loaded = TreeNode::jsonload(loaded_json);",
     "checks": [
@@ -75,7 +75,7 @@
     "group": "TreeNode",
     "test_name": "Is Root",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 53,
     "code": "    // uncomment #include \"treenode.h\"\n\n    auto root = std::make_shared<TreeNode>(\"root\");\n    auto child = std::make_shared<TreeNode>(\"child\");\n    root->add(child);",
     "checks": [
@@ -201,7 +201,7 @@
     "group": "TreeNode",
     "test_name": "Ancestors",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 118,
     "code": "    // uncomment #include \"treenode.h\"\n\n    auto root = std::make_shared<TreeNode>(\"root\");\n    auto mid = std::make_shared<TreeNode>(\"mid\");\n    auto leaf = std::make_shared<TreeNode>(\"leaf\");\n    root->add(mid);\n    mid->add(leaf);\n\n    auto anc = leaf->ancestors();",
     "checks": [
@@ -227,7 +227,7 @@
     "group": "TreeNode",
     "test_name": "Descendants",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 134,
     "code": "    // uncomment #include \"treenode.h\"\n\n    auto root = std::make_shared<TreeNode>(\"root\");\n    auto mid = std::make_shared<TreeNode>(\"mid\");\n    auto leaf = std::make_shared<TreeNode>(\"leaf\");\n    root->add(mid);\n    mid->add(leaf);\n\n    auto desc = root->descendants();",
     "checks": [
@@ -253,7 +253,7 @@
     "group": "TreeNode",
     "test_name": "Children",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 150,
     "code": "    // uncomment #include \"treenode.h\"\n\n    auto parent = std::make_shared<TreeNode>(\"parent\");\n    auto c1 = std::make_shared<TreeNode>(\"c1\");\n    auto c2 = std::make_shared<TreeNode>(\"c2\");\n    parent->add(c1);\n    parent->add(c2);\n\n    auto kids = parent->children();",
     "checks": [
