@@ -3,7 +3,7 @@
     "group": "Feature",
     "test_name": "Cross Constructor",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.005,
     "line": 9,
     "code": "    // uncomment #include \"feature.h\"\n    CrossFeature cf;",
     "checks": [
@@ -75,7 +75,7 @@
     "group": "Feature",
     "test_name": "Cross Json Round Trip",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.023,
     "line": 38,
     "code": "    // uncomment #include \"feature.h\"\n    CrossFeature a;\n    a.face_ids_a = {2, 4};\n    a.face_ids_b = {3, 5};\n    a.joint_area_guid = \"area\";\n    a.joint_volume_guids = {\"v0\", \"v1\"};\n    a.joint_line_guids   = {\"l0\", \"l1\"};\n    (void)a.guid();\n\n    auto json = a.json_dumps();\n    auto b = CrossFeature::json_loads(json);",
     "checks": [
@@ -96,7 +96,7 @@
     "group": "Feature",
     "test_name": "Cross Pb Round Trip",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.016,
     "line": 54,
     "code": "    // uncomment #include \"feature.h\"\n    CrossFeature a;\n    a.face_ids_a = {2, 4};\n    a.face_ids_b = {3, 5};\n    a.joint_area_guid = \"area\";\n    a.joint_volume_guids = {\"v0\", \"v1\"};\n    a.joint_line_guids   = {\"l0\", \"l1\"};\n    (void)a.guid();\n\n    auto bytes = a.pb_dumps();\n    auto b = CrossFeature::pb_loads(bytes);",
     "checks": [
@@ -117,7 +117,7 @@
     "group": "Feature",
     "test_name": "Face Round Trip",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.013,
     "line": 70,
     "code": "    // uncomment #include \"feature.h\"\n    FaceFeature a;\n    a.face_id_a = 3;\n    a.face_id_b = 5;\n    a.joint_area_guid = \"area\";\n    (void)a.guid();\n\n    auto bytes = a.pb_dumps();\n    auto b = FaceFeature::pb_loads(bytes);\n\n    auto json = a.json_dumps();\n    auto c = FaceFeature::json_loads(json);",
     "checks": [
@@ -143,7 +143,7 @@
     "group": "Feature",
     "test_name": "Axis Round Trip",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.015,
     "line": 88,
     "code": "    // uncomment #include \"feature.h\"\n    AxisFeature a;\n    a.axis_a_guid = \"axis_a\";\n    a.axis_b_guid = \"axis_b\";\n    a.connector_guid = \"conn\";\n    a.distance = 1.5;\n    (void)a.guid();\n\n    auto bytes = a.pb_dumps();\n    auto b = AxisFeature::pb_loads(bytes);\n\n    auto json = a.json_dumps();\n    auto c = AxisFeature::json_loads(json);",
     "checks": [
@@ -174,7 +174,7 @@
     "group": "Feature",
     "test_name": "Collision Round Trip",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.008,
     "line": 108,
     "code": "    // uncomment #include \"feature.h\"\n    CollisionFeature a;\n    a.mode = \"bvh\";\n    (void)a.guid();\n\n    auto bytes = a.pb_dumps();\n    auto b = CollisionFeature::pb_loads(bytes);\n\n    auto json = a.json_dumps();\n    auto c = CollisionFeature::json_loads(json);",
     "checks": [
@@ -200,7 +200,7 @@
     "group": "Feature",
     "test_name": "Edge Feature Variant",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.015,
     "line": 124,
     "code": "    // uncomment #include \"feature.h\"\n    CrossFeature cf;\n    cf.joint_area_guid = \"area\";\n    EdgeFeature f1 = cf;\n\n    auto bytes = edge_feature_pb_dumps(f1);\n    auto f2 = edge_feature_pb_loads(bytes);\n\n    FaceFeature ff;\n    ff.face_id_a = 2;\n    EdgeFeature f3 = ff;\n    auto f4 = edge_feature_pb_loads(edge_feature_pb_dumps(f3));\n\n    EdgeFeature empty{};\n    auto f5 = edge_feature_pb_loads(edge_feature_pb_dumps(empty));",
     "checks": [
@@ -231,7 +231,7 @@
     "group": "Feature",
     "test_name": "Session Add Feature",
     "passed": true,
-    "time_ms": 0.049,
+    "time_ms": 0.065,
     "line": 146,
     "code": "    // uncomment #include \"feature.h\"\n    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n    Session session;\n    auto p1 = std::make_shared<Point>(0, 0, 0);\n    auto p2 = std::make_shared<Point>(1, 1, 1);\n    session.add_point(p1);\n    session.add_point(p2);\n\n    CrossFeature cf;\n    cf.face_ids_a = {2, 3};\n    cf.face_ids_b = {4, 5};\n    cf.joint_area_guid = \"area_abc\";\n\n    auto feat_guid = session.add_feature(p1->guid(), p2->guid(), cf);\n\n    auto edge_key = std::make_tuple(p1->guid(), p2->guid());",
     "checks": [
@@ -262,7 +262,7 @@
     "group": "Feature",
     "test_name": "Session Pb Round Trip",
     "passed": true,
-    "time_ms": 0.159,
+    "time_ms": 0.155,
     "line": 170,
     "code": "    // uncomment #include \"feature.h\"\n    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n    Session session;\n    auto p1 = std::make_shared<Point>(0, 0, 0);\n    auto p2 = std::make_shared<Point>(1, 1, 1);\n    session.add_point(p1);\n    session.add_point(p2);\n\n    CrossFeature cf;\n    cf.face_ids_a = {2, 3};\n    cf.face_ids_b = {4, 5};\n    cf.joint_area_guid = \"area_abc\";\n    cf.joint_volume_guids = {\"v0\", \"v1\"};\n    auto feat_guid = session.add_feature(p1->guid(), p2->guid(), cf);\n\n    auto bytes = session.pb_dumps();\n    auto session2 = Session::pb_loads(bytes);\n\n    auto& recovered = std::get<CrossFeature>(session2.edge_features.at(feat_guid));",
     "checks": [

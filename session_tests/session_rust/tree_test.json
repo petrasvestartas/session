@@ -18,7 +18,7 @@
     "line": 25,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 106.834
+    "time_ms": 7.081
   },
   {
     "checks": [
@@ -44,7 +44,7 @@
     "line": 250,
     "passed": true,
     "test_name": "Get Children Guids",
-    "time_ms": 0.01
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -65,7 +65,7 @@
     "line": 229,
     "passed": true,
     "test_name": "Add Child By Guid",
-    "time_ms": 0.021
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -91,7 +91,7 @@
     "line": 211,
     "passed": true,
     "test_name": "Find Node By Guid",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -107,7 +107,7 @@
     "line": 192,
     "passed": true,
     "test_name": "Get Nodes By Name",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -128,7 +128,7 @@
     "line": 174,
     "passed": true,
     "test_name": "Get Node By Name",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -149,7 +149,7 @@
     "line": 153,
     "passed": true,
     "test_name": "Traverse",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -175,7 +175,7 @@
     "line": 132,
     "passed": true,
     "test_name": "Leaves",
-    "time_ms": 0.003
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -217,7 +217,7 @@
     "line": 97,
     "passed": true,
     "test_name": "Nodes",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -254,7 +254,7 @@
     "line": 68,
     "passed": true,
     "test_name": "Root",
-    "time_ms": 0.002
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -275,7 +275,7 @@
     "line": 50,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 11.411
+    "time_ms": 7.143
   },
   {
     "checks": [
@@ -306,6 +306,6 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.008
+    "time_ms": 0.004
   }
 ]

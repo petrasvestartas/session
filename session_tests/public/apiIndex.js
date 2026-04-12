@@ -47743,6 +47743,11 @@ window.API_INDEX = {
           "code": "def interpolate_points(\n        from_pt: Point, to_pt: Point, steps: int, kind: int = 0\n    ) -> List[Point]:\n\n        \"\"\"Linear interpolation between two points.\n\n        kind: 0=no endpoints, 1=both endpoints, 2=start only\n        \"\"\"\n        result = []\n        for i in range(1, steps + 1):\n            t = float(i) / float(steps + 1)\n            result.append(Point(\n                from_pt[0] + t * (to_pt[0] - from_pt[0]),\n                from_pt[1] + t * (to_pt[1] - from_pt[1]),\n                from_pt[2] + t * (to_pt[2] - from_pt[2]),\n            ))\n        if kind == 1:\n            result.insert(0, Point(from_pt[0], from_pt[1], from_pt[2]))\n            result.append(Point(to_pt[0], to_pt[1], to_pt[2]))\n        elif kind == 2:\n            result.insert(0, Point(from_pt[0], from_pt[1], from_pt[2]))\n        return result\n\n    @staticmethod\n    def quick_hull(polygon: \"Polyline\") -> \"Polyline\":\n        \"\"\"2D convex hull via quickhull in the polygon's local plane.\"\"\"\n        pts = polygon.get_points()\n        if len(pts) < 3:\n            return Polyline(pts[:])\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        def cross2d(o, a, b):\n            return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])\n\n        def qh_upper(a, b, points):\n            if not points:\n                return []\n            apex = max(points, key=lambda p: cross2d(a, b, p))\n            if cross2d(a, b, apex) <= 0.0:\n                return []\n            left = [p for p in points if cross2d(a, apex, p) > 0.0]\n            right = [p for p in points if cross2d(apex, b, p) > 0.0]\n            return qh_upper(a, apex, left) + [apex] + qh_upper(apex, b, right)\n\n        pts2d = [proj2d(p) for p in pts]\n        min_x = min(pts2d, key=lambda p: p[0])\n        max_x = max(pts2d, key=lambda p: p[0])\n\n        upper = [p for p in pts2d if cross2d(min_x, max_x, p) > 0.0]\n        lower = [p for p in pts2d if cross2d(max_x, min_x, p) > 0.0]\n\n        hull2d = (\n            [min_x]\n            + qh_upper(min_x, max_x, upper)\n            + [max_x]\n            + qh_upper(max_x, min_x, lower)\n        )\n\n        return Polyline([unproj(u, v) for u, v in hull2d])\n\n    @staticmethod\n    def bounding_rectangle(polygon: \"Polyline\") -> Optional[\"Polyline\"]:\n        \"\"\"Minimum area bounding rectangle via rotating calipers; returns closed 5-point Polyline.\"\"\"\n        import math\n\n        hull = Polyline.quick_hull(polygon)\n        hull_pts = hull.get_points()\n        n = len(hull_pts)\n        if n < 3:\n            return None\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])",
           "file": "polyline.py"
         },
+        "cpp": {
+          "sig": "std::vector<Point> interpolate_points(const Point& from, const Point& to, int steps, int kind)",
+          "code": "std::vector<Point> Polyline::interpolate_points(const Point& from, const Point& to, int steps, int kind) {\n    std::vector<Point> pts;\n    if (kind == 1 || kind == 2) {\n        pts.push_back(from);\n    }",
+          "file": "polyline.cpp"
+        },
         "rust": {
           "sig": "interpolate_points(from: &Point, to: &Point, steps: usize, kind: u8) -> Vec<Point>",
           "code": "pub fn interpolate_points(from: &Point, to: &Point, steps: usize, kind: u8) -> Vec<Point> {\n        let lerp = |t: f64| {\n            Point::new(\n                from[0] + t * (to[0] - from[0]),\n                from[1] + t * (to[1] - from[1]),\n                from[2] + t * (to[2] - from[2]),\n            )\n        };\n        let mut pts = Vec::new();\n        match kind {\n            1 => {\n                pts.push(from.clone());\n                for i in 1..=steps {\n                    pts.push(lerp(i as f64 / (steps + 1) as f64));\n                }\n                pts.push(to.clone());\n            }\n            2 => {\n                pts.push(from.clone());\n                for i in 1..=steps {\n                    pts.push(lerp(i as f64 / (steps + 1) as f64));\n                }\n            }\n            _ => {\n                for i in 1..=steps {\n                    pts.push(lerp(i as f64 / (steps + 1) as f64));\n                }\n            }\n        }\n        pts\n    }",
@@ -57971,6 +57976,11 @@ window.API_INDEX = {
           "sig": "unique_from_two_int(a: int, b: int) -> int",
           "code": "def unique_from_two_int(a: int, b: int) -> int:\n\n    \"\"\"Cantor-style hash: order-independent key from two ints.\n\n    The larger value goes into the high 32 bits; the smaller into the\n    low 32 bits.  Mirrors the C++ / Rust implementations exactly.\n    \"\"\"\n    lo, hi = (a, b) if b >= a else (b, a)\n    return (hi << 32) | (lo & 0xFFFFFFFF)\n\n\ndef wrap_index(index: int, n: int) -> int:\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
+        },
+        "cpp": {
+          "sig": "uint64_t unique_from_two_int(int a, int b)",
+          "code": "uint64_t unique_from_two_int(int a, int b);",
+          "file": "tolerance.h"
         }
       },
       "related": [
@@ -57997,6 +58007,11 @@ window.API_INDEX = {
           "sig": "wrap_index(index: int, n: int) -> int",
           "code": "def wrap_index(index: int, n: int) -> int:\n\n    \"\"\"Signed modulo returning a value in [0, n-1].  Returns 0 when n == 0.\"\"\"\n    if n == 0:\n        return 0\n    return ((index % n) + n) % n\n\n\ndef triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
+        },
+        "cpp": {
+          "sig": "int wrap_index(int index, int n)",
+          "code": "int wrap_index(int index, int n);",
+          "file": "tolerance.h"
         }
       },
       "related": [
@@ -58021,6 +58036,11 @@ window.API_INDEX = {
           "sig": "triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float",
           "code": "def triangle_edge_by_angle(edge_length: float, angle_deg: float) -> float:\n\n    \"\"\"Length of the opposite side in a right triangle.\n\n    = edge_length * tan(angle_deg)\n    Used in joint taper geometry.\n    \"\"\"\n    return edge_length * math.tan(angle_deg * TO_RADIANS)\n\n\ndef rad_to_deg(radians: float) -> float:\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
+        },
+        "cpp": {
+          "sig": "double triangle_edge_by_angle(double edge_length, double angle_deg)",
+          "code": "double triangle_edge_by_angle(double edge_length, double angle_deg);",
+          "file": "tolerance.h"
         }
       },
       "related": [
@@ -58045,6 +58065,11 @@ window.API_INDEX = {
           "sig": "rad_to_deg(radians: float) -> float",
           "code": "def rad_to_deg(radians: float) -> float:\n\n    \"\"\"Convert radians to degrees.\"\"\"\n    return radians * TO_DEGREES\n\n\ndef deg_to_rad(degrees: float) -> float:\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
+        },
+        "cpp": {
+          "sig": "double rad_to_deg(double radians)",
+          "code": "double rad_to_deg(double radians);",
+          "file": "tolerance.h"
         }
       },
       "related": [
@@ -58068,6 +58093,11 @@ window.API_INDEX = {
           "sig": "deg_to_rad(degrees: float) -> float",
           "code": "def deg_to_rad(degrees: float) -> float:\n\n    \"\"\"Convert degrees to radians.\"\"\"\n    return degrees * TO_RADIANS\n\n\ndef count_digits(n: float) -> int:\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
+        },
+        "cpp": {
+          "sig": "double deg_to_rad(double degrees)",
+          "code": "double deg_to_rad(double degrees);",
+          "file": "tolerance.h"
         }
       },
       "related": [
@@ -58091,6 +58121,11 @@ window.API_INDEX = {
           "sig": "count_digits(n: float) -> int",
           "code": "def count_digits(n: float) -> int:\n\n    \"\"\"Number of decimal digits of the integer part of |n|.  Returns 0 for n == 0.\"\"\"\n    v = int(abs(n))\n    if v == 0:\n        return 0\n    count = 0\n    while v != 0:\n        v //= 10\n        count += 1\n    return count",
           "file": "tolerance.py"
+        },
+        "cpp": {
+          "sig": "int count_digits(double n)",
+          "code": "int count_digits(double n);",
+          "file": "tolerance.h"
         }
       },
       "related": [
@@ -77766,7 +77801,8 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "std.sin"
+        "std.sin",
+        "std.tan"
       ]
     },
     {
@@ -78039,6 +78075,20 @@ window.API_INDEX = {
           "file": "tolerance.cpp"
         }
       }
+    },
+    {
+      "name": "std.tan",
+      "implementations": {
+        "cpp": {
+          "sig": "return edge_length * tan(Tolerance::to_radians(angle_deg)",
+          "code": "return edge_length * std::tan(Tolerance::to_radians(angle_deg));\n}",
+          "file": "tolerance.cpp"
+        }
+      },
+      "related": [
+        "std.atan2",
+        "std.visit"
+      ]
     },
     {
       "name": "Tree.constructor",
@@ -79113,7 +79163,10 @@ window.API_INDEX = {
           "code": "return std::atan2(vector[1], vector[0]) * static_cast<double>(Tolerance::TO_DEGREES);\n}",
           "file": "vector.cpp"
         }
-      }
+      },
+      "related": [
+        "std.tan"
+      ]
     },
     {
       "name": "std.fabs",
@@ -83629,12 +83682,32 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"BVH\", \"Fixed 100 Boxes\")",
-          "code": "@MINI_TEST(\"BVH\", \"Fixed 100 Boxes\")\ndef test_bvh_fixed_100_boxes():\n    from session_py.bvh import BVH\n    from session_py import OBB\n    from session_py import Point\n    from session_py import Vector\n\n    boxes = []\n\n    def add(min_x, min_y, min_z, max_x, max_y, max_z):\n        cx = (min_x + max_x) * 0.5\n        cy = (min_y + max_y) * 0.5\n        cz = (min_z + max_z) * 0.5\n        hx = (max_x - min_x) * 0.5\n        hy = (max_y - min_y) * 0.5\n        hz = (max_z - min_z) * 0.5\n        boxes.append(OBB(Point(cx, cy, cz), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(hx, hy, hz)))\n\n    add(-53.1254, -0.98185, 20.5516, -46.8089, 5.89927, 26.5331)\n    add(44.4446, -1.5359, -1.49382, 50.7301, 3.99953, 7.58362)\n    add(36.9359, -7.76782, -28.7694, 43.173, -1.82645, -22.1528)\n    add(-44.2654, 26.3949, 0.745263, -35.0431, 35.0799, 6.13693)\n    add(0.239448, -40.5791, 32.6275, 7.56243, -33.2192, 39.8776)\n    add(-31.6363, -53.5568, -52.162, -21.6687, -43.9796, -43.2328)\n    add(3.72143, 23.485, 9.18924, 10.4425, 30.3631, 15.5248)\n    add(-17.4583, 10.2729, -16.5162, -12.1943, 17.9162, -10.7277)\n    add(-7.27998, -22.0384, -34.5872, -1.95631, -12.1058, -26.8567)\n    add(-45.341, 46.3634, -10.4862, -36.8332, 52.2971, -2.76774)\n    add(46.0445, -34.6013, 14.0587, 53.0414, -27.4064, 22.7938)\n    add(-34.9367, 28.5039, 27.7749, -29.4494, 33.6524, 33.4448)\n    add(9.97675, -15.7696, -27.8198, 17.5104, -8.16385, -22.3021)\n    add(45.1965, -19.307, 22.0449, 51.5233, -10.9748, 31.6205)\n    add(-7.03031, -10.8607, 38.8429, 0.306212, -0.974567, 45.443)\n    add(25.5248, 31.9848, 20.436, 33.3122, 41.1186, 28.0921)\n    add(-22.8772, -19.5722, -22.9988, -15.6443, -11.7384, -14.7361)\n    add(-46.2318, -5.27625, -7.84674, -41.1843, 3.22896, -0.905452)\n    add(-8.8814, 40.3852, -41.0122, -1.73994, 46.8478, -33.9574)\n    add(-30.4719, -15.9782, 17.3287, -20.7941, -10.8891, 24.7185)\n    add(28.6586, 0.44821, -41.9327, 35.6602, 6.09223, -32.8706)\n    add(-14.173, -45.5086, 6.29666, -7.48969, -39.2406, 13.229)\n    add(-21.8039, 6.68129, -32.5692, -15.3816, 16.6269, -26.5873)\n    add(13.3659, -1.97758, 25.4002, 19.0017, 4.81311, 31.5121)\n    add(-24.433, -37.1532, 41.849, -15.8042, -29.2066, 49.4371)\n    add(-4.54629, -16.9216, -24.2439, 2.40272, -9.87919, -17.0974)\n    add(-22.1316, -18.2577, -41.6624, -13.4863, -11.2109, -36.6118)\n    add(-19.5562, -1.13082, -35.7364, -10.2048, 8.43363, -25.912)\n    add(26.4514, -31.3635, -3.53901, 32.4376, -22.007, 5.52268)\n    add(44.2805, -20.3072, 10.0337, 52.6535, -10.845, 15.6482)\n    add(15.1756, 46.2379, 44.9662, 20.8272, 53.0835, 50.1683)\n    add(1.39766, -37.0106, -2.59787, 7.17823, -28.0455, 3.65286)\n    add(-31.882, -21.1354, 20.6053, -24.8106, -11.3482, 28.4804)\n    add(-8.54435, 10.0787, 41.0063, -1.08096, 17.3793, 46.4334)\n    add(21.317, -38.2325, 3.71512, 29.3482, -31.5114, 10.6611)\n    add(-31.9136, 27.8033, -4.48008, -23.6666, 35.3487, 0.804813)\n    add(8.52067, 14.4157, -37.4169, 17.5301, 20.4823, -32.1696)\n    add(-7.88355, 21.208, 42.2586, -0.205483, 26.4206, 50.4889)\n    add(-15.322, -4.75221, -17.9083, -8.4181, 4.47693, -8.67731)\n    add(37.1268, 2.17059, -48.8049, 45.7917, 8.4744, -40.7264)\n    add(-52.3809, -6.49423, 8.92399, -42.9845, 0.188961, 18.343)\n    add(41.5732, -7.42366, -4.54156, 51.0067, -2.29871, 0.643029)\n    add(-5.78252, 0.645065, -13.4131, 1.93946, 8.96885, -5.49512)\n    add(7.58556, -41.9641, 23.8841, 16.6142, -32.1089, 31.049)\n    add(-46.102, -9.30967, 44.8527, -36.2572, -2.2869, 51.5056)\n    add(45.8031, 27.0115, -17.4386, 52.3382, 32.367, -7.79126)\n    add(8.21008, 39.3673, 20.643, 17.4628, 45.1004, 28.0194)\n    add(-47.9111, -24.7374, -29.2773, -40.7686, -16.0819, -20.6671)\n    add(-29.8193, -10.8358, 24.5871, -21.6958, -3.36907, 33.5925)\n    add(26.9713, -26.2038, -31.9261, 35.2619, -20.0422, -25.0245)\n    add(-29.7903, 8.92347, -40.826, -21.7701, 15.776, -35.2006)\n    add(-1.39845, -13.7028, -13.4383, 8.26331, -8.56298, -7.95241)\n    add(-27.3862, 17.0337, 30.1216, -19.7585, 22.0732, 39.076)\n    add(-15.102, -39.6467, -37.4648, -8.16651, -34.4574, -31.1032)\n    add(14.1428, -34.4961, -47.6358, 22.6478, -25.6985, -42.1577)\n    add(32.7187, -0.0187469, -2.54834, 41.5605, 9.91946, 3.89622)\n    add(18.869, -24.3319, -0.588445, 27.1926, -18.2572, 6.42131)\n    add(4.33372, 6.78191, -26.4923, 12.7318, 13.5283, -19.058)\n    add(-3.88995, -20.8689, 18.4182, 4.99471, -11.484, 25.6025)\n    add(-10.2896, -22.7252, -40.4815, -3.08794, -13.9661, -30.6919)\n    add(30.2898, 7.94805, -2.19314, 35.3154, 17.6367, 5.55489)\n    add(-33.8415, 21.4915, -16.5747, -26.6066, 27.2365, -10.8669)\n    add(-22.4042, 38.4298, 21.7984, -13.9447, 47.0733, 28.4925)\n    add(-6.87762, 2.83366, 10.2831, -0.784998, 11.5311, 18.5943)\n    add(-34.4398, -36.757, 27.0559, -27.6572, -27.51, 36.7491)\n    add(35.4006, -17.8502, -21.4524, 41.7323, -10.0449, -12.5719)\n    add(28.1073, 31.8896, -16.4485, 33.4307, 37.9012, -9.80763)\n    add(13.5936, 25.9705, 8.3269, 22.4543, 32.3162, 16.4279)\n    add(28.2281, -51.9913, -14.7078, 35.0256, -42.5897, -6.77297)\n    add(-27.4511, -21.3243, 42.9791, -18.7936, -14.3339, 50.3538)\n    add(-42.0679, -47.6033, -33.2027, -32.8703, -38.8405, -26.6373)\n    add(-52.2085, -52.5573, -33.0963, -45.8755, -44.5128, -23.5496)\n    add(-11.2779, -9.99167, 24.9689, -5.92983, -0.191222, 31.1336)\n    add(33.121, 2.70727, -33.8816, 38.3024, 10.367, -26.2656)\n    add(-5.30061, -39.8595, 33.6105, 4.23731, -31.0826, 42.5769)\n    add(-0.704829, -26.0593, -30.9797, 4.64116, -16.105, -24.9783)\n    add(37.3045, 34.9896, 2.13491, 46.4151, 40.7296, 10.6969)\n    add(-27.6823, 41.9125, -36.4809, -17.7935, 47.2728, -26.7252)\n    add(34.666, 27.0233, 23.9605, 44.5308, 33.3, 30.9151)\n    add(-37.3694, -40.3928, -6.27422, -28.0124, -31.5777, -0.670845)\n    add(-34.1601, 33.6584, -28.8227, -27.286, 42.4497, -22.2408)\n    add(-30.329, -4.34317, -43.1085, -23.815, 5.64745, -35.7657)\n    add(-31.824, 8.78623, 25.1597, -24.1868, 17.2063, 31.7098)\n    add(8.9247, -12.5921, 35.2262, 16.9325, -5.38381, 44.3014)\n    add(-11.6258, 44.3936, -29.2716, -3.07673, 49.3977, -20.2529)\n    add(-27.9412, 32.9874, -20.8262, -22.5216, 39.9326, -12.0579)\n    add(39.7539, -22.0106, 31.131, 46.0297, -14.2677, 40.1578)\n    add(-10.4385, 20.3835, 5.16852, -5.23064, 28.6092, 14.2703)\n    add(19.9106, -32.364, 8.76233, 25.9003, -24.1348, 16.1047)\n    add(-0.62887, 18.0559, 41.0991, 5.37937, 23.5869, 49.7166)\n    add(20.6713, -12.7322, -19.7395, 28.0693, -3.71518, -11.0217)\n    add(42.2797, -30.3842, 8.4357, 51.5113, -24.6986, 15.3918)\n    add(-18.9658, -26.1333, -9.25188, -12.9283, -17.8373, -3.68668)\n    add(32.8414, -44.7499, -3.96548, 41.3729, -35.5501, 1.88547)\n    add(-12.0107, -43.9043, 15.2958, -6.24849, -38.452, 21.6608)\n    add(-28.9449, 35.0651, -45.8908, -23.5524, 42.0763, -39.3406)\n    add(25.2023, -12.4615, 8.84863, 30.8803, -6.57652, 18.4333)\n    add(31.7285, 31.0991, -7.73725, 39.8767, 38.2288, 0.932107)\n    add(-35.1346, -8.00369, 14.4611, -27.1614, -1.58541, 21.4893)\n    add(13.9228, -49.9973, -2.77406, 23.104, -41.5596, 4.89623)\n\n    MINI_CHECK(len(boxes) == 100)\n    bvh = BVH.from_boxes(boxes, 100.0)\n    pairs, colliding_indices, checks = bvh.check_all_collisions(boxes)\n    pairs.sort()\n    MINI_CHECK(len(pairs) > 0)\n    MINI_CHECK(len(pairs) <= 26)\n    for i, j in pairs:\n        MINI_CHECK(0 <= i < 100)\n        MINI_CHECK(0 <= j < 100)\n        MINI_CHECK(i < j)\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "code": "@MINI_TEST(\"BVH\", \"Fixed 100 Boxes\")\ndef test_bvh_fixed_100_boxes():\n    from session_py.bvh import BVH\n    from session_py import OBB\n    from session_py import Point\n    from session_py import Vector\n\n    boxes = []\n\n    def add(min_x, min_y, min_z, max_x, max_y, max_z):\n        cx = (min_x + max_x) * 0.5\n        cy = (min_y + max_y) * 0.5\n        cz = (min_z + max_z) * 0.5\n        hx = (max_x - min_x) * 0.5\n        hy = (max_y - min_y) * 0.5\n        hz = (max_z - min_z) * 0.5\n        boxes.append(OBB(Point(cx, cy, cz), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(hx, hy, hz)))\n\n    add(-53.1254, -0.98185, 20.5516, -46.8089, 5.89927, 26.5331)\n    add(44.4446, -1.5359, -1.49382, 50.7301, 3.99953, 7.58362)\n    add(36.9359, -7.76782, -28.7694, 43.173, -1.82645, -22.1528)\n    add(-44.2654, 26.3949, 0.745263, -35.0431, 35.0799, 6.13693)\n    add(0.239448, -40.5791, 32.6275, 7.56243, -33.2192, 39.8776)\n    add(-31.6363, -53.5568, -52.162, -21.6687, -43.9796, -43.2328)\n    add(3.72143, 23.485, 9.18924, 10.4425, 30.3631, 15.5248)\n    add(-17.4583, 10.2729, -16.5162, -12.1943, 17.9162, -10.7277)\n    add(-7.27998, -22.0384, -34.5872, -1.95631, -12.1058, -26.8567)\n    add(-45.341, 46.3634, -10.4862, -36.8332, 52.2971, -2.76774)\n    add(46.0445, -34.6013, 14.0587, 53.0414, -27.4064, 22.7938)\n    add(-34.9367, 28.5039, 27.7749, -29.4494, 33.6524, 33.4448)\n    add(9.97675, -15.7696, -27.8198, 17.5104, -8.16385, -22.3021)\n    add(45.1965, -19.307, 22.0449, 51.5233, -10.9748, 31.6205)\n    add(-7.03031, -10.8607, 38.8429, 0.306212, -0.974567, 45.443)\n    add(25.5248, 31.9848, 20.436, 33.3122, 41.1186, 28.0921)\n    add(-22.8772, -19.5722, -22.9988, -15.6443, -11.7384, -14.7361)\n    add(-46.2318, -5.27625, -7.84674, -41.1843, 3.22896, -0.905452)\n    add(-8.8814, 40.3852, -41.0122, -1.73994, 46.8478, -33.9574)\n    add(-30.4719, -15.9782, 17.3287, -20.7941, -10.8891, 24.7185)\n    add(28.6586, 0.44821, -41.9327, 35.6602, 6.09223, -32.8706)\n    add(-14.173, -45.5086, 6.29666, -7.48969, -39.2406, 13.229)\n    add(-21.8039, 6.68129, -32.5692, -15.3816, 16.6269, -26.5873)\n    add(13.3659, -1.97758, 25.4002, 19.0017, 4.81311, 31.5121)\n    add(-24.433, -37.1532, 41.849, -15.8042, -29.2066, 49.4371)\n    add(-4.54629, -16.9216, -24.2439, 2.40272, -9.87919, -17.0974)\n    add(-22.1316, -18.2577, -41.6624, -13.4863, -11.2109, -36.6118)\n    add(-19.5562, -1.13082, -35.7364, -10.2048, 8.43363, -25.912)\n    add(26.4514, -31.3635, -3.53901, 32.4376, -22.007, 5.52268)\n    add(44.2805, -20.3072, 10.0337, 52.6535, -10.845, 15.6482)\n    add(15.1756, 46.2379, 44.9662, 20.8272, 53.0835, 50.1683)\n    add(1.39766, -37.0106, -2.59787, 7.17823, -28.0455, 3.65286)\n    add(-31.882, -21.1354, 20.6053, -24.8106, -11.3482, 28.4804)\n    add(-8.54435, 10.0787, 41.0063, -1.08096, 17.3793, 46.4334)\n    add(21.317, -38.2325, 3.71512, 29.3482, -31.5114, 10.6611)\n    add(-31.9136, 27.8033, -4.48008, -23.6666, 35.3487, 0.804813)\n    add(8.52067, 14.4157, -37.4169, 17.5301, 20.4823, -32.1696)\n    add(-7.88355, 21.208, 42.2586, -0.205483, 26.4206, 50.4889)\n    add(-15.322, -4.75221, -17.9083, -8.4181, 4.47693, -8.67731)\n    add(37.1268, 2.17059, -48.8049, 45.7917, 8.4744, -40.7264)\n    add(-52.3809, -6.49423, 8.92399, -42.9845, 0.188961, 18.343)\n    add(41.5732, -7.42366, -4.54156, 51.0067, -2.29871, 0.643029)\n    add(-5.78252, 0.645065, -13.4131, 1.93946, 8.96885, -5.49512)\n    add(7.58556, -41.9641, 23.8841, 16.6142, -32.1089, 31.049)\n    add(-46.102, -9.30967, 44.8527, -36.2572, -2.2869, 51.5056)\n    add(45.8031, 27.0115, -17.4386, 52.3382, 32.367, -7.79126)\n    add(8.21008, 39.3673, 20.643, 17.4628, 45.1004, 28.0194)\n    add(-47.9111, -24.7374, -29.2773, -40.7686, -16.0819, -20.6671)\n    add(-29.8193, -10.8358, 24.5871, -21.6958, -3.36907, 33.5925)\n    add(26.9713, -26.2038, -31.9261, 35.2619, -20.0422, -25.0245)\n    add(-29.7903, 8.92347, -40.826, -21.7701, 15.776, -35.2006)\n    add(-1.39845, -13.7028, -13.4383, 8.26331, -8.56298, -7.95241)\n    add(-27.3862, 17.0337, 30.1216, -19.7585, 22.0732, 39.076)\n    add(-15.102, -39.6467, -37.4648, -8.16651, -34.4574, -31.1032)\n    add(14.1428, -34.4961, -47.6358, 22.6478, -25.6985, -42.1577)\n    add(32.7187, -0.0187469, -2.54834, 41.5605, 9.91946, 3.89622)\n    add(18.869, -24.3319, -0.588445, 27.1926, -18.2572, 6.42131)\n    add(4.33372, 6.78191, -26.4923, 12.7318, 13.5283, -19.058)\n    add(-3.88995, -20.8689, 18.4182, 4.99471, -11.484, 25.6025)\n    add(-10.2896, -22.7252, -40.4815, -3.08794, -13.9661, -30.6919)\n    add(30.2898, 7.94805, -2.19314, 35.3154, 17.6367, 5.55489)\n    add(-33.8415, 21.4915, -16.5747, -26.6066, 27.2365, -10.8669)\n    add(-22.4042, 38.4298, 21.7984, -13.9447, 47.0733, 28.4925)\n    add(-6.87762, 2.83366, 10.2831, -0.784998, 11.5311, 18.5943)\n    add(-34.4398, -36.757, 27.0559, -27.6572, -27.51, 36.7491)\n    add(35.4006, -17.8502, -21.4524, 41.7323, -10.0449, -12.5719)\n    add(28.1073, 31.8896, -16.4485, 33.4307, 37.9012, -9.80763)\n    add(13.5936, 25.9705, 8.3269, 22.4543, 32.3162, 16.4279)\n    add(28.2281, -51.9913, -14.7078, 35.0256, -42.5897, -6.77297)\n    add(-27.4511, -21.3243, 42.9791, -18.7936, -14.3339, 50.3538)\n    add(-42.0679, -47.6033, -33.2027, -32.8703, -38.8405, -26.6373)\n    add(-52.2085, -52.5573, -33.0963, -45.8755, -44.5128, -23.5496)\n    add(-11.2779, -9.99167, 24.9689, -5.92983, -0.191222, 31.1336)\n    add(33.121, 2.70727, -33.8816, 38.3024, 10.367, -26.2656)\n    add(-5.30061, -39.8595, 33.6105, 4.23731, -31.0826, 42.5769)\n    add(-0.704829, -26.0593, -30.9797, 4.64116, -16.105, -24.9783)\n    add(37.3045, 34.9896, 2.13491, 46.4151, 40.7296, 10.6969)\n    add(-27.6823, 41.9125, -36.4809, -17.7935, 47.2728, -26.7252)\n    add(34.666, 27.0233, 23.9605, 44.5308, 33.3, 30.9151)\n    add(-37.3694, -40.3928, -6.27422, -28.0124, -31.5777, -0.670845)\n    add(-34.1601, 33.6584, -28.8227, -27.286, 42.4497, -22.2408)\n    add(-30.329, -4.34317, -43.1085, -23.815, 5.64745, -35.7657)\n    add(-31.824, 8.78623, 25.1597, -24.1868, 17.2063, 31.7098)\n    add(8.9247, -12.5921, 35.2262, 16.9325, -5.38381, 44.3014)\n    add(-11.6258, 44.3936, -29.2716, -3.07673, 49.3977, -20.2529)\n    add(-27.9412, 32.9874, -20.8262, -22.5216, 39.9326, -12.0579)\n    add(39.7539, -22.0106, 31.131, 46.0297, -14.2677, 40.1578)\n    add(-10.4385, 20.3835, 5.16852, -5.23064, 28.6092, 14.2703)\n    add(19.9106, -32.364, 8.76233, 25.9003, -24.1348, 16.1047)\n    add(-0.62887, 18.0559, 41.0991, 5.37937, 23.5869, 49.7166)\n    add(20.6713, -12.7322, -19.7395, 28.0693, -3.71518, -11.0217)\n    add(42.2797, -30.3842, 8.4357, 51.5113, -24.6986, 15.3918)\n    add(-18.9658, -26.1333, -9.25188, -12.9283, -17.8373, -3.68668)\n    add(32.8414, -44.7499, -3.96548, 41.3729, -35.5501, 1.88547)\n    add(-12.0107, -43.9043, 15.2958, -6.24849, -38.452, 21.6608)\n    add(-28.9449, 35.0651, -45.8908, -23.5524, 42.0763, -39.3406)\n    add(25.2023, -12.4615, 8.84863, 30.8803, -6.57652, 18.4333)\n    add(31.7285, 31.0991, -7.73725, 39.8767, 38.2288, 0.932107)\n    add(-35.1346, -8.00369, 14.4611, -27.1614, -1.58541, 21.4893)\n    add(13.9228, -49.9973, -2.77406, 23.104, -41.5596, 4.89623)\n\n    MINI_CHECK(len(boxes) == 100)\n    bvh = BVH.from_boxes(boxes, 100.0)\n    pairs, colliding_indices, checks = bvh.check_all_collisions(boxes)\n    pairs.sort()\n    MINI_CHECK(len(pairs) > 0)\n    MINI_CHECK(len(pairs) <= 26)\n    for i, j in pairs:\n        MINI_CHECK(0 <= i < 100)\n        MINI_CHECK(0 <= j < 100)\n        MINI_CHECK(i < j)",
           "file": "bvh_test.py"
         },
         "rust": {
           "sig": "MINI_TEST!(\"BVH\", \"Fixed 100 Boxes\")",
           "code": "MINI_TEST!(\"BVH\", \"Fixed 100 Boxes\", crate::bvh_test::run_bvh_fixed_100_boxes);\nREGISTER_MINI_TEST!(\"BVH\", \"Query Aabb\", crate::bvh_test::run_bvh_query_aabb);\nREGISTER_MINI_TEST!(\"BVH\", \"Nearest Neighbors\", crate::bvh_test::run_bvh_nearest_neighbors);",
+          "file": "bvh_test.rs"
+        }
+      }
+    },
+    {
+      "name": "BVH.test_Query Aabb",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"BVH\", \"Query Aabb\")",
+          "code": "MINI_TEST(\"BVH\", \"Query Aabb\") {\n    // uncomment #include \"bvh.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    std::vector<OBB> bboxes = {\n        OBB(Point(0.0, 0.0, 0.0),\n            Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0),\n            Vector(0.0, 0.0, 1.0), Vector(1.0, 1.0, 1.0)),\n        OBB(Point(5.0, 0.0, 0.0),\n            Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0),\n            Vector(0.0, 0.0, 1.0), Vector(1.0, 1.0, 1.0)),\n        OBB(Point(0.0, 5.0, 0.0),\n            Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0),\n            Vector(0.0, 0.0, 1.0), Vector(1.0, 1.0, 1.0)),\n    };\n    BVH bvh = BVH::from_boxes(bboxes, 100.0);\n    // Query near origin \u00e2\u20ac\u201d should hit box 0 only\n    AABB query(0.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n    std::vector<int> hits = bvh.query_aabb(query);\n\n    MINI_CHECK(!hits.empty());\n    MINI_CHECK(std::find(hits.begin(), hits.end(), 0) != hits.end());\n    MINI_CHECK(std::find(hits.begin(), hits.end(), 1) == hits.end());\n    MINI_CHECK(std::find(hits.begin(), hits.end(), 2) == hits.end());\n    // Query covering all three boxes\n    AABB query_all(2.5, 2.5, 0.0, 5.0, 5.0, 2.0);\n    std::vector<int> hits_all = bvh.query_aabb(query_all);\n    MINI_CHECK(hits_all.size() == 3);\n}",
+          "file": "bvh_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"BVH\", \"Query Aabb\")",
+          "code": "@MINI_TEST(\"BVH\", \"Query Aabb\")\ndef test_bvh_query_aabb():\n    from session_py.bvh import BVH\n    from session_py import OBB\n    from session_py import Point\n    from session_py import Vector\n\n    bboxes = [\n        OBB(Point(0.0, 0.0, 0.0),\n            Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0),\n            Vector(0.0, 0.0, 1.0), Vector(1.0, 1.0, 1.0)),\n        OBB(Point(5.0, 0.0, 0.0),\n            Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0),\n            Vector(0.0, 0.0, 1.0), Vector(1.0, 1.0, 1.0)),\n        OBB(Point(0.0, 5.0, 0.0),\n            Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0),\n            Vector(0.0, 0.0, 1.0), Vector(1.0, 1.0, 1.0)),\n    ]\n    bvh = BVH.from_boxes(bboxes, 100.0)\n    # Query near origin \u00e2\u20ac\u201d should hit box 0 only\n    query = OBB(\n        Point(0.0, 0.0, 0.0),\n        Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0),\n        Vector(0.0, 0.0, 1.0), Vector(0.5, 0.5, 0.5))\n    hits = bvh.query_aabb(query)\n\n    MINI_CHECK(len(hits) > 0)\n    MINI_CHECK(0 in hits)\n    MINI_CHECK(1 not in hits)\n    MINI_CHECK(2 not in hits)\n    # Query covering all three boxes\n    query_all = OBB(\n        Point(2.5, 2.5, 0.0),\n        Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0),\n        Vector(0.0, 0.0, 1.0), Vector(5.0, 5.0, 2.0))\n    hits_all = bvh.query_aabb(query_all)\n    MINI_CHECK(len(hits_all) == 3)\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "file": "bvh_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"BVH\", \"Query Aabb\")",
+          "code": "MINI_TEST!(\"BVH\", \"Query Aabb\", crate::bvh_test::run_bvh_query_aabb);\nREGISTER_MINI_TEST!(\"BVH\", \"Nearest Neighbors\", crate::bvh_test::run_bvh_nearest_neighbors);",
           "file": "bvh_test.rs"
         }
       }
@@ -86824,17 +86897,17 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"KDTree\", \"Nearest\")",
-          "code": "MINI_TEST(\"KDTree\", \"Nearest\") {\n    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    // Simple deterministic random using LCG\n    uint64_t seed = 42;\n    auto rng = [&]() -> double {\n        seed = seed * 6364136223846793005ULL + 1442695040888963407ULL;\n        return static_cast<double>(seed >> 33) / static_cast<double>(0xFFFFFFFFU) * 20.0 - 10.0;\n    };\n    std::vector<Point> pts;\n    for (int i = 0; i < 100; ++i) pts.push_back(Point(rng(), rng(), rng()));\n    KDTree tree(pts);\n    Point query(0.0, 0.0, 0.0);\n    auto [idx, dist] = tree.nearest(query);\n    int brute_idx = 0;\n    for (int i = 1; i < (int)pts.size(); ++i) {\n        if (pts[i][0]*pts[i][0]+pts[i][1]*pts[i][1]+pts[i][2]*pts[i][2] < pts[brute_idx][0]*pts[brute_idx][0]+pts[brute_idx][1]*pts[brute_idx][1]+pts[brute_idx][2]*pts[brute_idx][2])\n            brute_idx = i;\n    }\n    double brute_dist = std::sqrt(pts[brute_idx][0]*pts[brute_idx][0]+pts[brute_idx][1]*pts[brute_idx][1]+pts[brute_idx][2]*pts[brute_idx][2]);\n\n    MINI_CHECK(idx == brute_idx);\n    MINI_CHECK(TOLERANCE.is_close(dist, brute_dist));\n}",
+          "code": "MINI_TEST(\"KDTree\", \"Nearest\") {\n    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    // 5 known points on a line: 0, 1, 2, 3, 4\n    // Query at 1.1 \u00e2\u20ac\u201d nearest should be index 1 (point at x=1), distance 0.1\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    };\n    KDTree tree(pts);\n    Point query(1.1, 0.0, 0.0);\n    auto [idx, dist] = tree.nearest(query);\n\n    MINI_CHECK(idx == 1);\n    MINI_CHECK(TOLERANCE.is_close(dist, 0.1));\n}",
           "file": "kdtree_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"KDTree\", \"Nearest\")",
-          "code": "@MINI_TEST(\"KDTree\", \"Nearest\")\ndef test_kdtree_nearest():\n    from session_py import KDTree, Point\n    import random\n    rng = random.Random(42)\n    pts = []\n    for _ in range(100):\n        pts.append(Point(rng.uniform(-10.0, 10.0), rng.uniform(-10.0, 10.0), rng.uniform(-10.0, 10.0)))\n    tree = KDTree(pts)\n    query = Point(0.0, 0.0, 0.0)\n    idx, dist = tree.nearest(query)\n    brute_idx = min(range(len(pts)), key=lambda i: (pts[i][0]**2 + pts[i][1]**2 + pts[i][2]**2))\n    brute_dist = math.sqrt(pts[brute_idx][0]**2 + pts[brute_idx][1]**2 + pts[brute_idx][2]**2)\n\n    MINI_CHECK(idx == brute_idx)\n    MINI_CHECK(TOLERANCE.is_close(dist, brute_dist))",
+          "code": "@MINI_TEST(\"KDTree\", \"Nearest\")\ndef test_kdtree_nearest():\n    from session_py import KDTree, Point\n\n    # 5 known points on a line: 0, 1, 2, 3, 4\n    # Query at 1.1 \u00e2\u20ac\u201d nearest should be index 1 (point at x=1), distance 0.1\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(1.1, 0.0, 0.0)\n    idx, dist = tree.nearest(query)\n\n    MINI_CHECK(idx == 1)\n    MINI_CHECK(TOLERANCE.is_close(dist, 0.1))",
           "file": "kdtree_test.py"
         },
         "rust": {
           "sig": "MINI_TEST!(\"KDTree\", \"Nearest\")",
-          "code": "MINI_TEST!(\"KDTree\", \"Nearest\", crate::kdtree_test::run_kdtree_nearest);\n\npub fn run_kdtree_nearest_k() -> TestResult {\n    MINI_TEST!(\"NearestK\", {\n        use crate::{KDTree, Point};\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n        let tree = KDTree::new(pts);\n        let query = Point::new(1.5, 0.0, 0.0);\n        let result = tree.nearest_k(&query, 3);\n\n        MINI_CHECK!(result.len() == 3);\n        MINI_CHECK!(TOLERANCE.is_close(result[0].1, 0.5));\n        MINI_CHECK!(TOLERANCE.is_close(result[1].1, 0.5));\n        MINI_CHECK!(TOLERANCE.is_close(result[2].1, 1.5));\n    })\n}",
+          "code": "MINI_TEST!(\"KDTree\", \"Nearest\", crate::kdtree_test::run_kdtree_nearest);\nREGISTER_MINI_TEST!(\"KDTree\", \"Nearest K\", crate::kdtree_test::run_kdtree_nearest_k);\nREGISTER_MINI_TEST!(\"KDTree\", \"Radius Search\", crate::kdtree_test::run_kdtree_radius_search);\nREGISTER_MINI_TEST!(\"KDTree\", \"Single Point\", crate::kdtree_test::run_kdtree_single_point);\nREGISTER_MINI_TEST!(\"KDTree\", \"Nearest Brute Force\", crate::kdtree_test::run_kdtree_nearest_brute_force);",
           "file": "kdtree_test.rs"
         }
       }
@@ -86844,8 +86917,18 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"KDTree\", \"Nearest K\")",
-          "code": "MINI_TEST(\"KDTree\", \"Nearest K\") {\n    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    };\n    KDTree tree(pts);\n    Point query(1.5, 0.0, 0.0);\n    auto result = tree.nearest_k(query, 3);\n\n    MINI_CHECK(result.size() == 3);\n    MINI_CHECK(TOLERANCE.is_close(result[0].second, 0.5));\n    MINI_CHECK(TOLERANCE.is_close(result[1].second, 0.5));\n    MINI_CHECK(TOLERANCE.is_close(result[2].second, 1.5));\n}",
+          "code": "MINI_TEST(\"KDTree\", \"Nearest K\") {\n    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    // 5 points on X axis: 0, 1, 2, 3, 4\n    // Query at 1.5 \u00e2\u20ac\u201d 3 nearest are: x=1 (d=0.5), x=2 (d=0.5), x=3 (d=1.5)\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    };\n    KDTree tree(pts);\n    Point query(1.5, 0.0, 0.0);\n    auto result = tree.nearest_k(query, 3);\n\n    MINI_CHECK(result.size() == 3);\n    MINI_CHECK(TOLERANCE.is_close(result[0].second, 0.5));\n    MINI_CHECK(TOLERANCE.is_close(result[1].second, 0.5));\n    MINI_CHECK(TOLERANCE.is_close(result[2].second, 1.5));\n}",
           "file": "kdtree_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"KDTree\", \"Nearest K\")",
+          "code": "@MINI_TEST(\"KDTree\", \"Nearest K\")\ndef test_kdtree_nearest_k():\n    from session_py import KDTree, Point\n\n    # 5 points on X axis: 0, 1, 2, 3, 4\n    # Query at 1.5 \u00e2\u20ac\u201d 3 nearest are: x=1 (d=0.5), x=2 (d=0.5), x=3 (d=1.5)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(1.5, 0.0, 0.0)\n    result = tree.nearest_k(query, 3)\n\n    MINI_CHECK(len(result) == 3)\n    MINI_CHECK(TOLERANCE.is_close(result[0][1], 0.5))\n    MINI_CHECK(TOLERANCE.is_close(result[1][1], 0.5))\n    MINI_CHECK(TOLERANCE.is_close(result[2][1], 1.5))",
+          "file": "kdtree_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"KDTree\", \"Nearest K\")",
+          "code": "MINI_TEST!(\"KDTree\", \"Nearest K\", crate::kdtree_test::run_kdtree_nearest_k);\nREGISTER_MINI_TEST!(\"KDTree\", \"Radius Search\", crate::kdtree_test::run_kdtree_radius_search);\nREGISTER_MINI_TEST!(\"KDTree\", \"Single Point\", crate::kdtree_test::run_kdtree_single_point);\nREGISTER_MINI_TEST!(\"KDTree\", \"Nearest Brute Force\", crate::kdtree_test::run_kdtree_nearest_brute_force);",
+          "file": "kdtree_test.rs"
         }
       }
     },
@@ -86854,8 +86937,18 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"KDTree\", \"Radius Search\")",
-          "code": "MINI_TEST(\"KDTree\", \"Radius Search\") {\n    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n    };\n    KDTree tree(pts);\n    Point query(0.5, 0.0, 0.0);\n    auto result = tree.radius_search(query, 1.1);\n\n    MINI_CHECK(result.size() == 2);\n    MINI_CHECK(TOLERANCE.is_close(result[0].second, 0.5));\n    MINI_CHECK(TOLERANCE.is_close(result[1].second, 0.5));\n}",
+          "code": "MINI_TEST(\"KDTree\", \"Radius Search\") {\n    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    // 4 points: 0, 1, 2, 5 on X axis\n    // Query at 0.5, radius 1.1 \u00e2\u20ac\u201d finds x=0 (d=0.5) and x=1 (d=0.5)\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n    };\n    KDTree tree(pts);\n    Point query(0.5, 0.0, 0.0);\n    auto result = tree.radius_search(query, 1.1);\n\n    MINI_CHECK(result.size() == 2);\n    MINI_CHECK(TOLERANCE.is_close(result[0].second, 0.5));\n    MINI_CHECK(TOLERANCE.is_close(result[1].second, 0.5));\n}",
           "file": "kdtree_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"KDTree\", \"Radius Search\")",
+          "code": "@MINI_TEST(\"KDTree\", \"Radius Search\")\ndef test_kdtree_radius_search():\n    from session_py import KDTree, Point\n\n    # 4 points: 0, 1, 2, 5 on X axis\n    # Query at 0.5, radius 1.1 \u00e2\u20ac\u201d finds x=0 (d=0.5) and x=1 (d=0.5)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(0.5, 0.0, 0.0)\n    result = tree.radius_search(query, 1.1)\n\n    MINI_CHECK(len(result) == 2)\n    MINI_CHECK(TOLERANCE.is_close(result[0][1], 0.5))\n    MINI_CHECK(TOLERANCE.is_close(result[1][1], 0.5))",
+          "file": "kdtree_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"KDTree\", \"Radius Search\")",
+          "code": "MINI_TEST!(\"KDTree\", \"Radius Search\", crate::kdtree_test::run_kdtree_radius_search);\nREGISTER_MINI_TEST!(\"KDTree\", \"Single Point\", crate::kdtree_test::run_kdtree_single_point);\nREGISTER_MINI_TEST!(\"KDTree\", \"Nearest Brute Force\", crate::kdtree_test::run_kdtree_nearest_brute_force);",
+          "file": "kdtree_test.rs"
         }
       }
     },
@@ -86864,8 +86957,18 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"KDTree\", \"Single Point\")",
-          "code": "MINI_TEST(\"KDTree\", \"Single Point\") {\n    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {Point(3.0, 4.0, 0.0)};\n    KDTree tree(pts);\n    Point query(0.0, 0.0, 0.0);\n    auto [idx, dist] = tree.nearest(query);\n\n    MINI_CHECK(idx == 0);\n    MINI_CHECK(TOLERANCE.is_close(dist, 5.0));\n}",
+          "code": "MINI_TEST(\"KDTree\", \"Single Point\") {\n    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    // Tree with one point at (3,4,0). Query from origin.\n    // Distance = sqrt(9+16) = 5 (3-4-5 right triangle)\n    std::vector<Point> pts = {Point(3.0, 4.0, 0.0)};\n    KDTree tree(pts);\n    Point query(0.0, 0.0, 0.0);\n    auto [idx, dist] = tree.nearest(query);\n\n    MINI_CHECK(idx == 0);\n    MINI_CHECK(TOLERANCE.is_close(dist, 5.0));\n}",
           "file": "kdtree_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"KDTree\", \"Single Point\")",
+          "code": "@MINI_TEST(\"KDTree\", \"Single Point\")\ndef test_kdtree_single_point():\n    from session_py import KDTree, Point\n\n    # Tree with one point at (3,4,0). Query from origin.\n    # Distance = sqrt(9+16) = 5 (3-4-5 right triangle)\n    pts = [Point(3.0, 4.0, 0.0)]\n    tree = KDTree(pts)\n    query = Point(0.0, 0.0, 0.0)\n    idx, dist = tree.nearest(query)\n\n    MINI_CHECK(idx == 0)\n    MINI_CHECK(TOLERANCE.is_close(dist, 5.0))",
+          "file": "kdtree_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"KDTree\", \"Single Point\")",
+          "code": "MINI_TEST!(\"KDTree\", \"Single Point\", crate::kdtree_test::run_kdtree_single_point);\nREGISTER_MINI_TEST!(\"KDTree\", \"Nearest Brute Force\", crate::kdtree_test::run_kdtree_nearest_brute_force);",
+          "file": "kdtree_test.rs"
         }
       }
     },
@@ -86874,8 +86977,18 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"KDTree\", \"Nearest Brute Force\")",
-          "code": "MINI_TEST(\"KDTree\", \"Nearest Brute Force\") {\n    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    uint64_t seed = 7;\n    auto rng = [&]() -> double {\n        seed = seed * 6364136223846793005ULL + 1442695040888963407ULL;\n        return static_cast<double>(seed >> 33) / static_cast<double>(0xFFFFFFFFU) * 100.0;\n    };\n    std::vector<Point> pts;\n    for (int i = 0; i < 50; ++i) pts.push_back(Point(rng(), rng(), rng()));\n    std::vector<Point> queries;\n    for (int i = 0; i < 10; ++i) queries.push_back(Point(rng(), rng(), rng()));\n    KDTree tree(pts);\n    bool all_match = true;\n    for (const auto& q : queries) {\n        auto [idx, dist] = tree.nearest(q);\n        int brute = 0;\n        for (int i = 1; i < (int)pts.size(); ++i) {\n            double da = (pts[i][0]-q[0])*(pts[i][0]-q[0])+(pts[i][1]-q[1])*(pts[i][1]-q[1])+(pts[i][2]-q[2])*(pts[i][2]-q[2]);\n            double db = (pts[brute][0]-q[0])*(pts[brute][0]-q[0])+(pts[brute][1]-q[1])*(pts[brute][1]-q[1])+(pts[brute][2]-q[2])*(pts[brute][2]-q[2]);\n            if (da < db) brute = i;\n        }\n        double brute_d = std::sqrt((pts[brute][0]-q[0])*(pts[brute][0]-q[0])+(pts[brute][1]-q[1])*(pts[brute][1]-q[1])+(pts[brute][2]-q[2])*(pts[brute][2]-q[2]));\n        if (!TOLERANCE.is_close(dist, brute_d)) all_match = false;\n    }\n\n    MINI_CHECK(all_match);\n}",
+          "code": "MINI_TEST(\"KDTree\", \"Nearest Brute Force\") {\n    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    // 8 points in 3D \u00e2\u20ac\u201d verify KDTree matches brute-force for several queries\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(5.0, 5.0, 5.0),\n        Point(-3.0, 2.0, 1.0),\n        Point(2.0, -1.0, 3.0),\n        Point(-1.0, -1.0, -1.0),\n    };\n    KDTree tree(pts);\n    std::vector<Point> queries = {\n        Point(0.5, 0.5, 0.5),\n        Point(4.0, 4.0, 4.0),\n        Point(-2.0, 1.0, 0.0),\n    };\n    bool all_match = true;\n    for (const auto& q : queries) {\n        auto [idx, dist] = tree.nearest(q);\n        // Brute-force: find closest by scanning all points\n        int brute = 0;\n        for (int i = 1; i < (int)pts.size(); ++i) {\n            if (Point::squared_distance(pts[i], q) < Point::squared_distance(pts[brute], q))\n                brute = i;\n        }\n        double brute_d = Point::distance(pts[brute], q);\n        if (!TOLERANCE.is_close(dist, brute_d)) all_match = false;\n    }\n\n    MINI_CHECK(all_match);\n}",
           "file": "kdtree_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"KDTree\", \"Nearest Brute Force\")",
+          "code": "@MINI_TEST(\"KDTree\", \"Nearest Brute Force\")\ndef test_kdtree_nearest_brute_force():\n    from session_py import KDTree, Point\n\n    # 8 points in 3D \u00e2\u20ac\u201d verify KDTree matches brute-force for several queries\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(5.0, 5.0, 5.0),\n        Point(-3.0, 2.0, 1.0),\n        Point(2.0, -1.0, 3.0),\n        Point(-1.0, -1.0, -1.0),\n    ]\n    tree = KDTree(pts)\n    queries = [\n        Point(0.5, 0.5, 0.5),\n        Point(4.0, 4.0, 4.0),\n        Point(-2.0, 1.0, 0.0),\n    ]\n    all_match = True\n    for q in queries:\n        idx, dist = tree.nearest(q)\n        # Brute-force: find closest by scanning all points\n        brute = min(range(len(pts)), key=lambda i: pts[i].squared_distance(q))\n        brute_d = pts[brute].distance(q)\n        if not TOLERANCE.is_close(dist, brute_d):\n            all_match = False\n\n    MINI_CHECK(all_match)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "file": "kdtree_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"KDTree\", \"Nearest Brute Force\")",
+          "code": "MINI_TEST!(\"KDTree\", \"Nearest Brute Force\", crate::kdtree_test::run_kdtree_nearest_brute_force);",
+          "file": "kdtree_test.rs"
         }
       }
     },
@@ -87164,7 +87277,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Line\", \"Json Roundtrip\")",
-          "code": "MINI_TEST(\"Line\", \"Json Roundtrip\") {\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    // JSON object\n    nlohmann::ordered_json j = l.jsondump();\n    Line loaded_j = Line::jsonload(j);\n\n    MINI_CHECK(loaded_j.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded_j[0], 42.1));\n\n    // String\n    std::string s = l.json_dumps();\n    Line loaded_s = Line::json_loads(s);\n    MINI_CHECK(loaded_s.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded_s[0], 42.1));\n\n    // File\n    std::string fname = \"serialization/test_line.json\";\n    l.json_dump(fname);\n    Line loaded = Line::json_load(fname);\n    MINI_CHECK(loaded.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded[0], 42.1));\n    MINI_CHECK(TOLERANCE.is_close(loaded[1], 84.2));\n    MINI_CHECK(TOLERANCE.is_close(loaded[2], 126.3));\n    MINI_CHECK(TOLERANCE.is_close(loaded[3], 168.4));\n    MINI_CHECK(TOLERANCE.is_close(loaded[4], 210.5));\n    MINI_CHECK(TOLERANCE.is_close(loaded[5], 252.6));\n}",
+          "code": "MINI_TEST(\"Line\", \"Json Roundtrip\") {\n    // uncomment #include \"line.h\"\n\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    //   jsondump()      | ordered_json | to JSON object\n    //   jsonload(j)     | ordered_json | from JSON object\n    //   json_dumps()    | string       | to JSON string\n    //   json_loads(s)   | string       | from JSON string\n    //   json_dump(path) | file         | write to file\n    //   json_load(path) | file         | read from file\n\n    // JSON object\n    nlohmann::ordered_json j = l.jsondump();\n    Line loaded_j = Line::jsonload(j);\n\n    MINI_CHECK(loaded_j.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded_j[0], 42.1));\n\n    // String\n    std::string s = l.json_dumps();\n    Line loaded_s = Line::json_loads(s);\n    MINI_CHECK(loaded_s.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded_s[0], 42.1));\n\n    // File\n    std::string fname = \"serialization/test_line.json\";\n    l.json_dump(fname);\n    Line loaded = Line::json_load(fname);\n    MINI_CHECK(loaded.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded[0], 42.1));\n    MINI_CHECK(TOLERANCE.is_close(loaded[1], 84.2));\n    MINI_CHECK(TOLERANCE.is_close(loaded[2], 126.3));\n    MINI_CHECK(TOLERANCE.is_close(loaded[3], 168.4));\n    MINI_CHECK(TOLERANCE.is_close(loaded[4], 210.5));\n    MINI_CHECK(TOLERANCE.is_close(loaded[5], 252.6));\n}",
           "file": "line_test.cpp"
         },
         "python": {
@@ -87184,7 +87297,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Line\", \"Protobuf Roundtrip\")",
-          "code": "MINI_TEST(\"Line\", \"Protobuf Roundtrip\") {\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    // String\n    std::string s = l.pb_dumps();\n    Line loaded_s = Line::pb_loads(s);\n\n    MINI_CHECK(loaded_s.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded_s[0], 42.1));\n    MINI_CHECK(loaded_s.guid() == l.guid());\n\n    // File\n    std::string fname = \"serialization/test_line.bin\";\n    l.pb_dump(fname);\n    Line loaded = Line::pb_load(fname);\n    MINI_CHECK(loaded.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded[0], 42.1));\n    MINI_CHECK(TOLERANCE.is_close(loaded[1], 84.2));\n    MINI_CHECK(TOLERANCE.is_close(loaded[2], 126.3));\n    MINI_CHECK(TOLERANCE.is_close(loaded[3], 168.4));\n    MINI_CHECK(TOLERANCE.is_close(loaded[4], 210.5));\n    MINI_CHECK(TOLERANCE.is_close(loaded[5], 252.6));\n    MINI_CHECK(loaded.guid() == l.guid());\n}",
+          "code": "MINI_TEST(\"Line\", \"Protobuf Roundtrip\") {\n    // uncomment #include \"line.h\"\n\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    //   pb_dumps()      | string       | to protobuf bytes\n    //   pb_loads(s)     | string       | from protobuf bytes\n    //   pb_dump(path)   | file         | write to file\n    //   pb_load(path)   | file         | read from file\n\n    // String\n    std::string s = l.pb_dumps();\n    Line loaded_s = Line::pb_loads(s);\n\n    MINI_CHECK(loaded_s.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded_s[0], 42.1));\n    MINI_CHECK(loaded_s.guid() == l.guid());\n\n    // File\n    std::string fname = \"serialization/test_line.bin\";\n    l.pb_dump(fname);\n    Line loaded = Line::pb_load(fname);\n    MINI_CHECK(loaded.name == \"test_line\");\n    MINI_CHECK(TOLERANCE.is_close(loaded[0], 42.1));\n    MINI_CHECK(TOLERANCE.is_close(loaded[1], 84.2));\n    MINI_CHECK(TOLERANCE.is_close(loaded[2], 126.3));\n    MINI_CHECK(TOLERANCE.is_close(loaded[3], 168.4));\n    MINI_CHECK(TOLERANCE.is_close(loaded[4], 210.5));\n    MINI_CHECK(TOLERANCE.is_close(loaded[5], 252.6));\n    MINI_CHECK(loaded.guid() == l.guid());\n}",
           "file": "line_test.cpp"
         },
         "python": {
@@ -87440,62 +87553,82 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "MarchingSquares.test_ExtractFromFunc",
+      "name": "MarchingSquares.test_Extract From Func",
       "implementations": {
         "cpp": {
-          "sig": "MINI_TEST(\"MarchingSquares\", \"ExtractFromFunc\")",
-          "code": "MINI_TEST(\"MarchingSquares\", \"ExtractFromFunc\") {\n    // uncomment #include \"marching_squares.h\"\n    auto result = MarchingSquares::extract_from_func(\n        [](double x, double y) { return 1.0 - (x * x + y * y); },\n        {-2.0, 2.0}, {-2.0, 2.0}, 20, 20, 0.0\n    );\n\n    MINI_CHECK(result.size() > 0);\n}",
+          "sig": "MINI_TEST(\"MarchingSquares\", \"Extract From Func\")",
+          "code": "MINI_TEST(\"MarchingSquares\", \"Extract From Func\") {\n    // uncomment #include \"marching_squares.h\"\n    auto result = MarchingSquares::extract_from_func(\n        [](double x, double y) { return 1.0 - (x * x + y * y); },\n        {-2.0, 2.0}, {-2.0, 2.0}, 20, 20, 0.0\n    );\n\n    MINI_CHECK(result.size() > 0);\n}",
           "file": "marching_squares_test.cpp"
         },
         "python": {
-          "sig": "@MINI_TEST(\"MarchingSquares\", \"ExtractFromFunc\")",
-          "code": "@MINI_TEST(\"MarchingSquares\", \"ExtractFromFunc\")\ndef test_marching_squares_extract_from_func():\n    from session_py import MarchingSquares\n    # Circle: x^2 + y^2 = 1\n    def circle(x, y):\n        return 1.0 - (x * x + y * y)\n    result = MarchingSquares.extract_from_func(circle, (-2.0, 2.0), (-2.0, 2.0), 20, 20, 0.0)\n\n    MINI_CHECK(len(result) > 0)",
+          "sig": "@MINI_TEST(\"MarchingSquares\", \"Extract From Func\")",
+          "code": "@MINI_TEST(\"MarchingSquares\", \"Extract From Func\")\ndef test_marching_squares_extract_from_func():\n    from session_py import MarchingSquares\n    # Circle: x^2 + y^2 = 1\n    def circle(x, y):\n        return 1.0 - (x * x + y * y)\n    result = MarchingSquares.extract_from_func(circle, (-2.0, 2.0), (-2.0, 2.0), 20, 20, 0.0)\n\n    MINI_CHECK(len(result) > 0)",
           "file": "marching_squares_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"MarchingSquares\", \"Extract From Func\")",
+          "code": "MINI_TEST!(\"MarchingSquares\", \"Extract From Func\", crate::marching_squares_test::run_marching_squares_extract_from_func);\n\npub fn run_marching_squares_empty_grid() -> TestResult {\n    MINI_TEST!(\"Empty Grid\", {\n        use crate::MarchingSquares;\n        let grid: Vec<Vec<f64>> = vec![];\n        let result = MarchingSquares::extract(&grid, 0.5, 1.0);\n\n        MINI_CHECK!(result.len() == 0);\n    })\n}",
+          "file": "marching_squares_test.rs"
         }
       }
     },
     {
-      "name": "MarchingSquares.test_EmptyGrid",
+      "name": "MarchingSquares.test_Empty Grid",
       "implementations": {
         "cpp": {
-          "sig": "MINI_TEST(\"MarchingSquares\", \"EmptyGrid\")",
-          "code": "MINI_TEST(\"MarchingSquares\", \"EmptyGrid\") {\n    // uncomment #include \"marching_squares.h\"\n    std::vector<std::vector<double>> grid;\n    auto result = MarchingSquares::extract(grid, 0.5, 1.0);\n\n    MINI_CHECK(result.size() == 0);\n}",
+          "sig": "MINI_TEST(\"MarchingSquares\", \"Empty Grid\")",
+          "code": "MINI_TEST(\"MarchingSquares\", \"Empty Grid\") {\n    // uncomment #include \"marching_squares.h\"\n    std::vector<std::vector<double>> grid;\n    auto result = MarchingSquares::extract(grid, 0.5, 1.0);\n\n    MINI_CHECK(result.size() == 0);\n}",
           "file": "marching_squares_test.cpp"
         },
         "python": {
-          "sig": "@MINI_TEST(\"MarchingSquares\", \"EmptyGrid\")",
-          "code": "@MINI_TEST(\"MarchingSquares\", \"EmptyGrid\")\ndef test_marching_squares_empty_grid():\n    from session_py import MarchingSquares\n    result = MarchingSquares.extract([], 0.5)\n\n    MINI_CHECK(len(result) == 0)",
+          "sig": "@MINI_TEST(\"MarchingSquares\", \"Empty Grid\")",
+          "code": "@MINI_TEST(\"MarchingSquares\", \"Empty Grid\")\ndef test_marching_squares_empty_grid():\n    from session_py import MarchingSquares\n    result = MarchingSquares.extract([], 0.5)\n\n    MINI_CHECK(len(result) == 0)",
           "file": "marching_squares_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"MarchingSquares\", \"Empty Grid\")",
+          "code": "MINI_TEST!(\"MarchingSquares\", \"Empty Grid\", crate::marching_squares_test::run_marching_squares_empty_grid);\n\npub fn run_marching_squares_all_above() -> TestResult {\n    MINI_TEST!(\"All Above\", {\n        use crate::MarchingSquares;\n        let grid = vec![\n            vec![2.0, 2.0, 2.0],\n            vec![2.0, 2.0, 2.0],\n            vec![2.0, 2.0, 2.0],\n        ];\n        let result = MarchingSquares::extract(&grid, 1.0, 1.0);\n\n        MINI_CHECK!(result.len() == 0);\n    })\n}",
+          "file": "marching_squares_test.rs"
         }
       }
     },
     {
-      "name": "MarchingSquares.test_AllAbove",
+      "name": "MarchingSquares.test_All Above",
       "implementations": {
         "cpp": {
-          "sig": "MINI_TEST(\"MarchingSquares\", \"AllAbove\")",
-          "code": "MINI_TEST(\"MarchingSquares\", \"AllAbove\") {\n    // uncomment #include \"marching_squares.h\"\n    std::vector<std::vector<double>> grid = {\n        {2.0, 2.0, 2.0},\n        {2.0, 2.0, 2.0},\n        {2.0, 2.0, 2.0},\n    };\n    auto result = MarchingSquares::extract(grid, 1.0, 1.0);\n\n    MINI_CHECK(result.size() == 0);\n}",
+          "sig": "MINI_TEST(\"MarchingSquares\", \"All Above\")",
+          "code": "MINI_TEST(\"MarchingSquares\", \"All Above\") {\n    // uncomment #include \"marching_squares.h\"\n    std::vector<std::vector<double>> grid = {\n        {2.0, 2.0, 2.0},\n        {2.0, 2.0, 2.0},\n        {2.0, 2.0, 2.0},\n    };\n    auto result = MarchingSquares::extract(grid, 1.0, 1.0);\n\n    MINI_CHECK(result.size() == 0);\n}",
           "file": "marching_squares_test.cpp"
         },
         "python": {
-          "sig": "@MINI_TEST(\"MarchingSquares\", \"AllAbove\")",
-          "code": "@MINI_TEST(\"MarchingSquares\", \"AllAbove\")\ndef test_marching_squares_all_above():\n    from session_py import MarchingSquares\n    grid = [\n        [2.0, 2.0, 2.0],\n        [2.0, 2.0, 2.0],\n        [2.0, 2.0, 2.0],\n    ]\n    result = MarchingSquares.extract(grid, 1.0)\n\n    MINI_CHECK(len(result) == 0)",
+          "sig": "@MINI_TEST(\"MarchingSquares\", \"All Above\")",
+          "code": "@MINI_TEST(\"MarchingSquares\", \"All Above\")\ndef test_marching_squares_all_above():\n    from session_py import MarchingSquares\n    grid = [\n        [2.0, 2.0, 2.0],\n        [2.0, 2.0, 2.0],\n        [2.0, 2.0, 2.0],\n    ]\n    result = MarchingSquares.extract(grid, 1.0)\n\n    MINI_CHECK(len(result) == 0)",
           "file": "marching_squares_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"MarchingSquares\", \"All Above\")",
+          "code": "MINI_TEST!(\"MarchingSquares\", \"All Above\", crate::marching_squares_test::run_marching_squares_all_above);\n\npub fn run_marching_squares_all_below() -> TestResult {\n    MINI_TEST!(\"All Below\", {\n        use crate::MarchingSquares;\n        let grid = vec![\n            vec![0.0, 0.0, 0.0],\n            vec![0.0, 0.0, 0.0],\n            vec![0.0, 0.0, 0.0],\n        ];\n        let result = MarchingSquares::extract(&grid, 1.0, 1.0);\n\n        MINI_CHECK!(result.len() == 0);\n    })\n}",
+          "file": "marching_squares_test.rs"
         }
       }
     },
     {
-      "name": "MarchingSquares.test_AllBelow",
+      "name": "MarchingSquares.test_All Below",
       "implementations": {
         "cpp": {
-          "sig": "MINI_TEST(\"MarchingSquares\", \"AllBelow\")",
-          "code": "MINI_TEST(\"MarchingSquares\", \"AllBelow\") {\n    // uncomment #include \"marching_squares.h\"\n    std::vector<std::vector<double>> grid = {\n        {0.0, 0.0, 0.0},\n        {0.0, 0.0, 0.0},\n        {0.0, 0.0, 0.0},\n    };\n    auto result = MarchingSquares::extract(grid, 1.0, 1.0);\n\n    MINI_CHECK(result.size() == 0);\n}",
+          "sig": "MINI_TEST(\"MarchingSquares\", \"All Below\")",
+          "code": "MINI_TEST(\"MarchingSquares\", \"All Below\") {\n    // uncomment #include \"marching_squares.h\"\n    std::vector<std::vector<double>> grid = {\n        {0.0, 0.0, 0.0},\n        {0.0, 0.0, 0.0},\n        {0.0, 0.0, 0.0},\n    };\n    auto result = MarchingSquares::extract(grid, 1.0, 1.0);\n\n    MINI_CHECK(result.size() == 0);\n}",
           "file": "marching_squares_test.cpp"
         },
         "python": {
-          "sig": "@MINI_TEST(\"MarchingSquares\", \"AllBelow\")",
-          "code": "@MINI_TEST(\"MarchingSquares\", \"AllBelow\")\ndef test_marching_squares_all_below():\n    from session_py import MarchingSquares\n    grid = [\n        [0.0, 0.0, 0.0],\n        [0.0, 0.0, 0.0],\n        [0.0, 0.0, 0.0],\n    ]\n    result = MarchingSquares.extract(grid, 1.0)\n\n    MINI_CHECK(len(result) == 0)",
+          "sig": "@MINI_TEST(\"MarchingSquares\", \"All Below\")",
+          "code": "@MINI_TEST(\"MarchingSquares\", \"All Below\")\ndef test_marching_squares_all_below():\n    from session_py import MarchingSquares\n    grid = [\n        [0.0, 0.0, 0.0],\n        [0.0, 0.0, 0.0],\n        [0.0, 0.0, 0.0],\n    ]\n    result = MarchingSquares.extract(grid, 1.0)\n\n    MINI_CHECK(len(result) == 0)",
           "file": "marching_squares_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"MarchingSquares\", \"All Below\")",
+          "code": "MINI_TEST!(\"MarchingSquares\", \"All Below\", crate::marching_squares_test::run_marching_squares_all_below);\n\npub fn run_marching_squares_interpolation() -> TestResult {\n    MINI_TEST!(\"Interpolation\", {\n        use crate::MarchingSquares;\n        let grid = vec![\n            vec![0.0, 2.0],\n            vec![0.0, 2.0],\n        ];\n        let result = MarchingSquares::extract(&grid, 1.0, 1.0);\n\n        MINI_CHECK!(result.len() == 1);\n        let seg = &result[0];\n        MINI_CHECK!(TOLERANCE.is_close(seg.get_point(0).unwrap()[0], 0.5));\n        MINI_CHECK!(TOLERANCE.is_close(seg.get_point(1).unwrap()[0], 0.5));\n    })\n}",
+          "file": "marching_squares_test.rs"
         }
       }
     },
@@ -88235,6 +88368,26 @@ window.API_INDEX = {
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\")",
           "code": "MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);",
+          "file": "mesh_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Mesh.test_Edges",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Mesh\", \"Edges\")",
+          "code": "MINI_TEST(\"Mesh\", \"Edges\") {\n        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        size_t v0 = mesh.vertices()[0];\n        size_t v1 = mesh.vertices()[1];\n        auto edges = mesh.edges();\n\n        MINI_CHECK(edges.size() == 12);\n        MINI_CHECK(edges[0] == std::make_pair(v0, v1));\n    }",
+          "file": "mesh_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Mesh\", \"Edges\")",
+          "code": "@MINI_TEST(\"Mesh\", \"Edges\")\ndef test_mesh_edges():\n    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    v0 = mesh.vertices()[0]\n    v1 = mesh.vertices()[1]\n    edges = mesh.edges()\n    MINI_CHECK(len(edges) == 12)\n    MINI_CHECK(isinstance(edges[0], tuple))\n    MINI_CHECK(edges[0] == (v0, v1))",
+          "file": "mesh_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Mesh\", \"Edges\")",
+          "code": "MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);",
           "file": "mesh_test.rs"
         }
       }
@@ -89169,7 +89322,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"OBJ\", \"Write Read Roundtrip\")",
-          "code": "@MINI_TEST(\"OBJ\", \"Write Read Roundtrip\")\ndef test_write_read_roundtrip():\n    from session_py import Mesh, Point\n    from session_py.obj import read_obj, write_obj\n    original_mesh = Mesh()\n    v0 = original_mesh.add_vertex(Point(0, 0, 0))\n    v1 = original_mesh.add_vertex(Point(1, 0, 0))\n    v2 = original_mesh.add_vertex(Point(0, 1, 0))\n    v3 = original_mesh.add_vertex(Point(0, 0, 1))\n    original_mesh.add_face([v0, v1, v2])\n    original_mesh.add_face([v0, v1, v3])\n\n    MINI_CHECK(original_mesh.number_of_vertices() == 4)\n    MINI_CHECK(original_mesh.number_of_faces() == 2)\n    temp_file = str(Path(__file__).resolve().parents[2] / \"serialization\" / \"test_temp_roundtrip.obj\")\n    write_obj(original_mesh, temp_file)\n    MINI_CHECK(os.path.exists(temp_file))\n    loaded_mesh = read_obj(temp_file)\n    MINI_CHECK(loaded_mesh.number_of_vertices() == original_mesh.number_of_vertices())\n    MINI_CHECK(loaded_mesh.number_of_faces() == original_mesh.number_of_faces())\n    os.remove(temp_file)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "code": "@MINI_TEST(\"OBJ\", \"Write Read Roundtrip\")\ndef test_write_read_roundtrip():\n    from session_py import Mesh, Point\n    from session_py.obj import read_obj, write_obj\n    original_mesh = Mesh()\n    v0 = original_mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = original_mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = original_mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    v3 = original_mesh.add_vertex(Point(0.0, 0.0, 1.0))\n    original_mesh.add_face([v0, v1, v2])\n    original_mesh.add_face([v0, v1, v3])\n\n    MINI_CHECK(original_mesh.number_of_vertices() == 4)\n    MINI_CHECK(original_mesh.number_of_faces() == 2)\n    temp_file = str(Path(__file__).resolve().parents[2] / \"serialization\" / \"test_temp_roundtrip.obj\")\n    write_obj(original_mesh, temp_file)\n    MINI_CHECK(os.path.exists(temp_file))\n    loaded_mesh = read_obj(temp_file)\n    MINI_CHECK(loaded_mesh.number_of_vertices() == original_mesh.number_of_vertices())\n    MINI_CHECK(loaded_mesh.number_of_faces() == original_mesh.number_of_faces())\n    os.remove(temp_file)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
           "file": "obj_test.py"
         },
         "rust": {
@@ -89184,7 +89337,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Objects\", \"Json Roundtrip\")",
-          "code": "MINI_TEST(\"Objects\", \"Json Roundtrip\") {\n    // uncomment #include \"objects.h\"\n    // uncomment #include \"encoders.h\"\n    // uncomment #include \"point.h\"\n    std::filesystem::create_directories(\"./serialization\");\n    Objects original;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    original.points->push_back(point1);\n    original.points->push_back(point2);\n\n    std::string filename = \"./serialization/test_objects.json\";\n    encoders::json_dump(original, filename);\n    Objects loaded = encoders::json_load<Objects>(filename);\n\n    MINI_CHECK(loaded.points->size() == original.points->size());\n\n    std::filesystem::remove(filename);\n}",
+          "code": "MINI_TEST(\"Objects\", \"Json Roundtrip\") {\n    // uncomment #include \"objects.h\"\n    // uncomment #include \"encoders.h\"\n    // uncomment #include \"point.h\"\n    Objects original;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    original.points->push_back(point1);\n    original.points->push_back(point2);\n\n    std::string filename = \"serialization/test_objects.json\";\n    encoders::json_dump(original, filename);\n    Objects loaded = encoders::json_load<Objects>(filename);\n\n    MINI_CHECK(loaded.points->size() == original.points->size());\n}",
           "file": "objects_test.cpp"
         },
         "python": {
@@ -90580,6 +90733,26 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Polyline.test_Interpolate Points",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Polyline\", \"Interpolate Points\")",
+          "code": "MINI_TEST(\"Polyline\", \"Interpolate Points\") {\n    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    Point a(0.0, 0.0, 0.0);\n    Point b(4.0, 0.0, 0.0);\n\n    // kind 0: no endpoints \u00e2\u20ac\u201d 3 interior points at t=0.25, 0.5, 0.75\n    auto pts0 = Polyline::interpolate_points(a, b, 3, 0);\n    // kind 1: both endpoints \u00e2\u20ac\u201d 5 points\n    auto pts1 = Polyline::interpolate_points(a, b, 3, 1);\n    // kind 2: start only \u00e2\u20ac\u201d 4 points (from + 3 interior)\n    auto pts2 = Polyline::interpolate_points(a, b, 3, 2);\n\n    MINI_CHECK(pts0.size() == 3);\n    MINI_CHECK(TOLERANCE.is_close(pts0[0][0], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(pts0[1][0], 2.0));\n    MINI_CHECK(TOLERANCE.is_close(pts0[2][0], 3.0));\n    MINI_CHECK(pts1.size() == 5);\n    MINI_CHECK(TOLERANCE.is_close(pts1[0][0], 0.0));\n    MINI_CHECK(TOLERANCE.is_close(pts1[4][0], 4.0));\n    MINI_CHECK(pts2.size() == 4);\n    MINI_CHECK(TOLERANCE.is_close(pts2[0][0], 0.0));\n}",
+          "file": "polyline_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Polyline\", \"Interpolate Points\")",
+          "code": "@MINI_TEST(\"Polyline\", \"Interpolate Points\")\ndef test_polyline_interpolate_points():\n    from session_py import Polyline\n    from session_py import Point\n\n    a = Point(0.0, 0.0, 0.0)\n    b = Point(4.0, 0.0, 0.0)\n\n    # kind 0: no endpoints \u00e2\u20ac\u201d 3 interior points at t=0.25, 0.5, 0.75\n    pts0 = Polyline.interpolate_points(a, b, 3, 0)\n    # kind 1: both endpoints \u00e2\u20ac\u201d 5 points\n    pts1 = Polyline.interpolate_points(a, b, 3, 1)\n    # kind 2: start only \u00e2\u20ac\u201d 4 points (from + 3 interior)\n    pts2 = Polyline.interpolate_points(a, b, 3, 2)\n\n    MINI_CHECK(len(pts0) == 3)\n    MINI_CHECK(TOLERANCE.is_close(pts0[0][0], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(pts0[1][0], 2.0))\n    MINI_CHECK(TOLERANCE.is_close(pts0[2][0], 3.0))\n    MINI_CHECK(len(pts1) == 5)\n    MINI_CHECK(TOLERANCE.is_close(pts1[0][0], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(pts1[4][0], 4.0))\n    MINI_CHECK(len(pts2) == 4)\n    MINI_CHECK(TOLERANCE.is_close(pts2[0][0], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(pts2[3][0], 3.0))",
+          "file": "polyline_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Polyline\", \"Interpolate Points\")",
+          "code": "MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "file": "polyline_test.rs"
+        }
+      }
+    },
+    {
       "name": "Polyline.test_Quick Hull",
       "implementations": {
         "cpp": {
@@ -90875,6 +91048,26 @@ window.API_INDEX = {
         "rust": {
           "sig": "MINI_TEST!(\"Primitives\", \"Mesh Cylinder\")",
           "code": "MINI_TEST!(\"Primitives\", \"Mesh Cylinder\", crate::primitives_test::run_primitives_mesh_cylinder);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Edge Pipes\", crate::primitives_test::run_primitives_mesh_edge_pipes);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Polyline\", crate::primitives_test::run_primitives_nurbscurve_polyline);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Circle\", crate::primitives_test::run_primitives_nurbscurve_circle);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Ellipse\", crate::primitives_test::run_primitives_nurbscurve_ellipse);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Arc\", crate::primitives_test::run_primitives_nurbscurve_arc);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Parabola\", crate::primitives_test::run_primitives_nurbscurve_parabola);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Hyperbola\", crate::primitives_test::run_primitives_nurbscurve_hyperbola);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Spiral\", crate::primitives_test::run_primitives_nurbscurve_spiral);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Cylinder\", crate::primitives_test::run_primitives_nurbssurface_cylinder);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Cone\", crate::primitives_test::run_primitives_nurbssurface_cone);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Sphere\", crate::primitives_test::run_primitives_nurbssurface_sphere);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Quad Sphere\", crate::primitives_test::run_primitives_nurbssurface_quad_sphere);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Torus\", crate::primitives_test::run_primitives_nurbssurface_torus);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Ruled\", crate::primitives_test::run_primitives_nurbssurface_ruled);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Planar\", crate::primitives_test::run_primitives_nurbssurface_planar);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Extrusion\", crate::primitives_test::run_primitives_nurbssurface_extrusion);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Loft\", crate::primitives_test::run_primitives_nurbssurface_loft);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Revolve\", crate::primitives_test::run_primitives_nurbssurface_revolve);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Sweep\", crate::primitives_test::run_primitives_nurbssurface_sweep);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Edge\", crate::primitives_test::run_primitives_nurbssurface_edge);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Quad Mesh\", crate::primitives_test::run_primitives_mesh_quad_mesh);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Diamond Mesh\", crate::primitives_test::run_primitives_mesh_diamond_mesh);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Hex Mesh\", crate::primitives_test::run_primitives_mesh_hex_mesh);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Cone Subdivisions\", crate::primitives_test::run_primitives_mesh_cone_subdivisions);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Interpolated\", crate::primitives_test::run_primitives_nurbscurve_interpolated);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Tetrahedron\", crate::primitives_test::run_primitives_mesh_tetrahedron);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Cube\", crate::primitives_test::run_primitives_mesh_cube);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Octahedron\", crate::primitives_test::run_primitives_mesh_octahedron);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Icosahedron\", crate::primitives_test::run_primitives_mesh_icosahedron);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Wave\", crate::primitives_test::run_primitives_nurbssurface_wave);",
+          "file": "primitives_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Primitives.test_Mesh Edge Pipes",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Primitives\", \"Mesh Edge Pipes\")",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh Edge Pipes\") {\n    // uncomment #include \"primitives.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"color.h\"\n    Mesh mesh;\n    size_t v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0));\n    size_t v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0));\n    size_t v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0));\n    size_t v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0));\n    mesh.add_face({v0, v1, v2, v3});\n    mesh.set_linecolors({\n        Color(255, 0, 0, 255),\n        Color(255, 0, 0, 255),\n        Color(255, 0, 0, 255),\n        Color(255, 0, 0, 255),\n    });\n\n    std::vector<Mesh> pipes = Primitives::edge_pipes(mesh, 0.1);\n    MINI_CHECK(pipes.size() == 4);\n    MINI_CHECK(pipes[0].number_of_faces() > 0);\n}",
+          "file": "primitives_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Primitives\", \"Mesh Edge Pipes\")",
+          "code": "@MINI_TEST(\"Primitives\", \"Mesh Edge Pipes\")\ndef test_mesh_edge_pipes():\n    from session_py import Primitives\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Color\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2, v3])\n    mesh.linecolors[0] = Color.red()\n\n    pipes = Primitives.edge_pipes(mesh, 0.1)\n    MINI_CHECK(len(pipes) == 4)\n    MINI_CHECK(isinstance(pipes[0], Mesh))\n    MINI_CHECK(pipes[0].facecolors[0][0] == Color.red()[0])",
+          "file": "primitives_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Primitives\", \"Mesh Edge Pipes\")",
+          "code": "MINI_TEST!(\"Primitives\", \"Mesh Edge Pipes\", crate::primitives_test::run_primitives_mesh_edge_pipes);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Polyline\", crate::primitives_test::run_primitives_nurbscurve_polyline);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Circle\", crate::primitives_test::run_primitives_nurbscurve_circle);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Ellipse\", crate::primitives_test::run_primitives_nurbscurve_ellipse);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Arc\", crate::primitives_test::run_primitives_nurbscurve_arc);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Parabola\", crate::primitives_test::run_primitives_nurbscurve_parabola);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Hyperbola\", crate::primitives_test::run_primitives_nurbscurve_hyperbola);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Spiral\", crate::primitives_test::run_primitives_nurbscurve_spiral);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Cylinder\", crate::primitives_test::run_primitives_nurbssurface_cylinder);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Cone\", crate::primitives_test::run_primitives_nurbssurface_cone);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Sphere\", crate::primitives_test::run_primitives_nurbssurface_sphere);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Quad Sphere\", crate::primitives_test::run_primitives_nurbssurface_quad_sphere);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Torus\", crate::primitives_test::run_primitives_nurbssurface_torus);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Ruled\", crate::primitives_test::run_primitives_nurbssurface_ruled);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Planar\", crate::primitives_test::run_primitives_nurbssurface_planar);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Extrusion\", crate::primitives_test::run_primitives_nurbssurface_extrusion);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Loft\", crate::primitives_test::run_primitives_nurbssurface_loft);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Revolve\", crate::primitives_test::run_primitives_nurbssurface_revolve);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Sweep\", crate::primitives_test::run_primitives_nurbssurface_sweep);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Edge\", crate::primitives_test::run_primitives_nurbssurface_edge);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Quad Mesh\", crate::primitives_test::run_primitives_mesh_quad_mesh);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Diamond Mesh\", crate::primitives_test::run_primitives_mesh_diamond_mesh);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Hex Mesh\", crate::primitives_test::run_primitives_mesh_hex_mesh);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Cone Subdivisions\", crate::primitives_test::run_primitives_mesh_cone_subdivisions);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Interpolated\", crate::primitives_test::run_primitives_nurbscurve_interpolated);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Tetrahedron\", crate::primitives_test::run_primitives_mesh_tetrahedron);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Cube\", crate::primitives_test::run_primitives_mesh_cube);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Octahedron\", crate::primitives_test::run_primitives_mesh_octahedron);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Icosahedron\", crate::primitives_test::run_primitives_mesh_icosahedron);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Wave\", crate::primitives_test::run_primitives_nurbssurface_wave);",
           "file": "primitives_test.rs"
         }
       }
@@ -91264,7 +91457,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Primitives\", \"Mesh Quad Mesh\")",
-          "code": "MINI_TEST(\"Primitives\", \"Mesh Quad Mesh\") {\n    NurbsSurface cyl = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::quad_mesh(cyl, 8, 4);\n\n    MINI_CHECK(m.number_of_vertices() == 40);\n    MINI_CHECK(m.number_of_faces() == 32);\n    MINI_CHECK(m.is_valid());\n\n    NurbsSurface sph = Primitives::sphere_surface(0, 0, 0, 3.0);\n    Mesh m2 = Primitives::quad_mesh(sph, 8, 4);\n\n    MINI_CHECK(m2.number_of_vertices() == 26);\n    MINI_CHECK(m2.number_of_faces() == 32);\n    MINI_CHECK(m2.is_valid());\n}",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh Quad Mesh\") {\n    // uncomment #include \"primitives.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"mesh.h\"\n    NurbsSurface cyl = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::quad_mesh(cyl, 8, 4);\n\n    MINI_CHECK(m.number_of_vertices() == 40);\n    MINI_CHECK(m.number_of_faces() == 32);\n    MINI_CHECK(m.is_valid());\n\n    NurbsSurface sph = Primitives::sphere_surface(0, 0, 0, 3.0);\n    Mesh m2 = Primitives::quad_mesh(sph, 8, 4);\n\n    MINI_CHECK(m2.number_of_vertices() == 26);\n    MINI_CHECK(m2.number_of_faces() == 32);\n    MINI_CHECK(m2.is_valid());\n}",
           "file": "primitives_test.cpp"
         },
         "python": {
@@ -91284,7 +91477,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Primitives\", \"Mesh Diamond Mesh\")",
-          "code": "MINI_TEST(\"Primitives\", \"Mesh Diamond Mesh\") {\n    NurbsSurface cyl = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::diamond_mesh(cyl, 8, 4);\n\n    MINI_CHECK(m.number_of_vertices() == 40);\n    MINI_CHECK(m.number_of_faces() == 20);\n    MINI_CHECK(m.is_valid());\n\n    NurbsSurface sph = Primitives::sphere_surface(0, 0, 0, 3.0);\n    Mesh m2 = Primitives::diamond_mesh(sph, 8, 4);\n\n    MINI_CHECK(m2.number_of_vertices() == 26);\n    MINI_CHECK(m2.number_of_faces() == 12);\n    MINI_CHECK(m2.is_valid());\n}",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh Diamond Mesh\") {\n    // uncomment #include \"primitives.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"mesh.h\"\n    NurbsSurface cyl = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::diamond_mesh(cyl, 8, 4);\n\n    MINI_CHECK(m.number_of_vertices() == 40);\n    MINI_CHECK(m.number_of_faces() == 20);\n    MINI_CHECK(m.is_valid());\n\n    NurbsSurface sph = Primitives::sphere_surface(0, 0, 0, 3.0);\n    Mesh m2 = Primitives::diamond_mesh(sph, 8, 4);\n\n    MINI_CHECK(m2.number_of_vertices() == 26);\n    MINI_CHECK(m2.number_of_faces() == 12);\n    MINI_CHECK(m2.is_valid());\n}",
           "file": "primitives_test.cpp"
         },
         "python": {
@@ -91304,7 +91497,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Primitives\", \"Mesh Hex Mesh\")",
-          "code": "MINI_TEST(\"Primitives\", \"Mesh Hex Mesh\") {\n    NurbsSurface cyl = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::hex_mesh(cyl, 6, 4, 1.0/3.0);\n\n    MINI_CHECK(m.number_of_vertices() == 78);\n    MINI_CHECK(m.number_of_faces() == 15);\n    MINI_CHECK(m.is_valid());\n\n    NurbsSurface sph = Primitives::sphere_surface(0, 0, 0, 3.0);\n    Mesh m2 = Primitives::hex_mesh(sph, 6, 4, 1.0/3.0);\n\n    MINI_CHECK(m2.number_of_vertices() == 68);\n    MINI_CHECK(m2.number_of_faces() == 15);\n    MINI_CHECK(m2.is_valid());\n}",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh Hex Mesh\") {\n    // uncomment #include \"primitives.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"mesh.h\"\n    NurbsSurface cyl = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = Primitives::hex_mesh(cyl, 6, 4, 1.0/3.0);\n\n    MINI_CHECK(m.number_of_vertices() == 78);\n    MINI_CHECK(m.number_of_faces() == 15);\n    MINI_CHECK(m.is_valid());\n\n    NurbsSurface sph = Primitives::sphere_surface(0, 0, 0, 3.0);\n    Mesh m2 = Primitives::hex_mesh(sph, 6, 4, 1.0/3.0);\n\n    MINI_CHECK(m2.number_of_vertices() == 68);\n    MINI_CHECK(m2.number_of_faces() == 15);\n    MINI_CHECK(m2.is_valid());\n}",
           "file": "primitives_test.cpp"
         },
         "python": {
@@ -91324,7 +91517,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Primitives\", \"Mesh Cone Subdivisions\")",
-          "code": "MINI_TEST(\"Primitives\", \"Mesh Cone Subdivisions\") {\n    NurbsSurface cone = Primitives::cone_surface(0, 0, 0, 3.0, 5.0);\n\n    Mesh m1 = Primitives::quad_mesh(cone, 8, 4);\n\n    MINI_CHECK(m1.number_of_vertices() == 33);\n    MINI_CHECK(m1.number_of_faces() == 32);\n    MINI_CHECK(m1.is_valid());\n\n    Mesh m2 = Primitives::diamond_mesh(cone, 8, 4);\n\n    MINI_CHECK(m2.number_of_vertices() == 33);\n    MINI_CHECK(m2.number_of_faces() == 16);\n    MINI_CHECK(m2.is_valid());\n\n    Mesh m3 = Primitives::hex_mesh(cone, 6, 4, 1.0/3.0);\n\n    MINI_CHECK(m3.number_of_vertices() == 73);\n    MINI_CHECK(m3.number_of_faces() == 15);\n    MINI_CHECK(m3.is_valid());\n}",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh Cone Subdivisions\") {\n    // uncomment #include \"primitives.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"mesh.h\"\n    NurbsSurface cone = Primitives::cone_surface(0, 0, 0, 3.0, 5.0);\n\n    Mesh m1 = Primitives::quad_mesh(cone, 8, 4);\n\n    MINI_CHECK(m1.number_of_vertices() == 33);\n    MINI_CHECK(m1.number_of_faces() == 32);\n    MINI_CHECK(m1.is_valid());\n\n    Mesh m2 = Primitives::diamond_mesh(cone, 8, 4);\n\n    MINI_CHECK(m2.number_of_vertices() == 33);\n    MINI_CHECK(m2.number_of_faces() == 16);\n    MINI_CHECK(m2.is_valid());\n\n    Mesh m3 = Primitives::hex_mesh(cone, 6, 4, 1.0/3.0);\n\n    MINI_CHECK(m3.number_of_vertices() == 73);\n    MINI_CHECK(m3.number_of_faces() == 15);\n    MINI_CHECK(m3.is_valid());\n}",
           "file": "primitives_test.cpp"
         },
         "python": {
@@ -91364,7 +91557,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Primitives\", \"Mesh Tetrahedron\")",
-          "code": "MINI_TEST(\"Primitives\", \"Mesh Tetrahedron\") {\n    Mesh m = Primitives::tetrahedron(2.0);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() == 4);\n    MINI_CHECK(m.number_of_faces() == 4);\n}",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh Tetrahedron\") {\n    // uncomment #include \"primitives.h\"\n    // uncomment #include \"mesh.h\"\n    Mesh m = Primitives::tetrahedron(2.0);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() == 4);\n    MINI_CHECK(m.number_of_faces() == 4);\n}",
           "file": "primitives_test.cpp"
         },
         "python": {
@@ -91384,7 +91577,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Primitives\", \"Mesh Cube\")",
-          "code": "MINI_TEST(\"Primitives\", \"Mesh Cube\") {\n    Mesh m = Primitives::cube(2.0);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() == 8);\n    MINI_CHECK(m.number_of_faces() == 6);\n}",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh Cube\") {\n    // uncomment #include \"primitives.h\"\n    // uncomment #include \"mesh.h\"\n    Mesh m = Primitives::cube(2.0);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() == 8);\n    MINI_CHECK(m.number_of_faces() == 6);\n}",
           "file": "primitives_test.cpp"
         },
         "python": {
@@ -91404,7 +91597,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Primitives\", \"Mesh Octahedron\")",
-          "code": "MINI_TEST(\"Primitives\", \"Mesh Octahedron\") {\n    Mesh m = Primitives::octahedron(2.0);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() == 6);\n    MINI_CHECK(m.number_of_faces() == 8);\n}",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh Octahedron\") {\n    // uncomment #include \"primitives.h\"\n    // uncomment #include \"mesh.h\"\n    Mesh m = Primitives::octahedron(2.0);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() == 6);\n    MINI_CHECK(m.number_of_faces() == 8);\n}",
           "file": "primitives_test.cpp"
         },
         "python": {
@@ -91424,7 +91617,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Primitives\", \"Mesh Icosahedron\")",
-          "code": "MINI_TEST(\"Primitives\", \"Mesh Icosahedron\") {\n    Mesh m = Primitives::icosahedron(2.0);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() == 12);\n    MINI_CHECK(m.number_of_faces() == 20);\n}",
+          "code": "MINI_TEST(\"Primitives\", \"Mesh Icosahedron\") {\n    // uncomment #include \"primitives.h\"\n    // uncomment #include \"mesh.h\"\n    Mesh m = Primitives::icosahedron(2.0);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() == 12);\n    MINI_CHECK(m.number_of_faces() == 20);\n}",
           "file": "primitives_test.cpp"
         },
         "python": {
@@ -91444,7 +91637,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Primitives\", \"Nurbssurface Wave\")",
-          "code": "MINI_TEST(\"Primitives\", \"Nurbssurface Wave\") {\n    NurbsSurface srf = Primitives::wave_surface(10.0, 2.0);\n\n    MINI_CHECK(srf.is_valid());\n    MINI_CHECK(srf.degree(0) == 3);\n    MINI_CHECK(srf.degree(1) == 3);\n    MINI_CHECK(srf.cv_count(0) == 13);\n    MINI_CHECK(srf.cv_count(1) == 13);\n    Point corner = srf.point_at(0.0, 0.0);\n    MINI_CHECK(std::abs(corner[2]) < 0.1);\n}",
+          "code": "MINI_TEST(\"Primitives\", \"Nurbssurface Wave\") {\n    // uncomment #include \"primitives.h\"\n    // uncomment #include \"nurbssurface.h\"\n    NurbsSurface srf = Primitives::wave_surface(10.0, 2.0);\n\n    MINI_CHECK(srf.is_valid());\n    MINI_CHECK(srf.degree(0) == 3);\n    MINI_CHECK(srf.degree(1) == 3);\n    MINI_CHECK(srf.cv_count(0) == 13);\n    MINI_CHECK(srf.cv_count(1) == 13);\n    Point corner = srf.point_at(0.0, 0.0);\n    MINI_CHECK(std::abs(corner[2]) < 0.1);\n}",
           "file": "primitives_test.cpp"
         },
         "python": {
@@ -92454,7 +92647,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"RTree\", \"Creation\")",
-          "code": "MINI_TEST!(\"RTree\", \"Creation\", crate::rtree_test::run_rtree_creation);\nREGISTER_MINI_TEST!(\"RTree\", \"Insert\", crate::rtree_test::run_rtree_insert);\nREGISTER_MINI_TEST!(\"RTree\", \"Insert Multiple\", crate::rtree_test::run_rtree_insert_multiple);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Hit\", crate::rtree_test::run_rtree_search_hit);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Miss\", crate::rtree_test::run_rtree_search_miss);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove\", crate::rtree_test::run_rtree_remove);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove All\", crate::rtree_test::run_rtree_remove_all);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);\nREGISTER_MINI_TEST!(\"RTree\", \"Perf 10k\", crate::rtree_test::run_rtree_perf);",
+          "code": "MINI_TEST!(\"RTree\", \"Creation\", crate::rtree_test::run_rtree_creation);\nREGISTER_MINI_TEST!(\"RTree\", \"Insert\", crate::rtree_test::run_rtree_insert);\nREGISTER_MINI_TEST!(\"RTree\", \"Insert Multiple\", crate::rtree_test::run_rtree_insert_multiple);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Hit\", crate::rtree_test::run_rtree_search_hit);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Miss\", crate::rtree_test::run_rtree_search_miss);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove\", crate::rtree_test::run_rtree_remove);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove All\", crate::rtree_test::run_rtree_remove_all);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);",
           "file": "rtree_test.rs"
         }
       }
@@ -92474,7 +92667,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"RTree\", \"Insert\")",
-          "code": "MINI_TEST!(\"RTree\", \"Insert\", crate::rtree_test::run_rtree_insert);\nREGISTER_MINI_TEST!(\"RTree\", \"Insert Multiple\", crate::rtree_test::run_rtree_insert_multiple);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Hit\", crate::rtree_test::run_rtree_search_hit);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Miss\", crate::rtree_test::run_rtree_search_miss);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove\", crate::rtree_test::run_rtree_remove);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove All\", crate::rtree_test::run_rtree_remove_all);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);\nREGISTER_MINI_TEST!(\"RTree\", \"Perf 10k\", crate::rtree_test::run_rtree_perf);",
+          "code": "MINI_TEST!(\"RTree\", \"Insert\", crate::rtree_test::run_rtree_insert);\nREGISTER_MINI_TEST!(\"RTree\", \"Insert Multiple\", crate::rtree_test::run_rtree_insert_multiple);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Hit\", crate::rtree_test::run_rtree_search_hit);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Miss\", crate::rtree_test::run_rtree_search_miss);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove\", crate::rtree_test::run_rtree_remove);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove All\", crate::rtree_test::run_rtree_remove_all);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);",
           "file": "rtree_test.rs"
         }
       }
@@ -92494,7 +92687,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"RTree\", \"Insert Multiple\")",
-          "code": "MINI_TEST!(\"RTree\", \"Insert Multiple\", crate::rtree_test::run_rtree_insert_multiple);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Hit\", crate::rtree_test::run_rtree_search_hit);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Miss\", crate::rtree_test::run_rtree_search_miss);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove\", crate::rtree_test::run_rtree_remove);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove All\", crate::rtree_test::run_rtree_remove_all);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);\nREGISTER_MINI_TEST!(\"RTree\", \"Perf 10k\", crate::rtree_test::run_rtree_perf);",
+          "code": "MINI_TEST!(\"RTree\", \"Insert Multiple\", crate::rtree_test::run_rtree_insert_multiple);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Hit\", crate::rtree_test::run_rtree_search_hit);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Miss\", crate::rtree_test::run_rtree_search_miss);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove\", crate::rtree_test::run_rtree_remove);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove All\", crate::rtree_test::run_rtree_remove_all);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);",
           "file": "rtree_test.rs"
         }
       }
@@ -92514,7 +92707,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"RTree\", \"Search Hit\")",
-          "code": "MINI_TEST!(\"RTree\", \"Search Hit\", crate::rtree_test::run_rtree_search_hit);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Miss\", crate::rtree_test::run_rtree_search_miss);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove\", crate::rtree_test::run_rtree_remove);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove All\", crate::rtree_test::run_rtree_remove_all);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);\nREGISTER_MINI_TEST!(\"RTree\", \"Perf 10k\", crate::rtree_test::run_rtree_perf);",
+          "code": "MINI_TEST!(\"RTree\", \"Search Hit\", crate::rtree_test::run_rtree_search_hit);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Miss\", crate::rtree_test::run_rtree_search_miss);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove\", crate::rtree_test::run_rtree_remove);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove All\", crate::rtree_test::run_rtree_remove_all);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);",
           "file": "rtree_test.rs"
         }
       }
@@ -92534,7 +92727,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"RTree\", \"Search Miss\")",
-          "code": "MINI_TEST!(\"RTree\", \"Search Miss\", crate::rtree_test::run_rtree_search_miss);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove\", crate::rtree_test::run_rtree_remove);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove All\", crate::rtree_test::run_rtree_remove_all);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);\nREGISTER_MINI_TEST!(\"RTree\", \"Perf 10k\", crate::rtree_test::run_rtree_perf);",
+          "code": "MINI_TEST!(\"RTree\", \"Search Miss\", crate::rtree_test::run_rtree_search_miss);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove\", crate::rtree_test::run_rtree_remove);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove All\", crate::rtree_test::run_rtree_remove_all);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);",
           "file": "rtree_test.rs"
         }
       }
@@ -92554,7 +92747,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"RTree\", \"Remove\")",
-          "code": "MINI_TEST!(\"RTree\", \"Remove\", crate::rtree_test::run_rtree_remove);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove All\", crate::rtree_test::run_rtree_remove_all);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);\nREGISTER_MINI_TEST!(\"RTree\", \"Perf 10k\", crate::rtree_test::run_rtree_perf);",
+          "code": "MINI_TEST!(\"RTree\", \"Remove\", crate::rtree_test::run_rtree_remove);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove All\", crate::rtree_test::run_rtree_remove_all);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);",
           "file": "rtree_test.rs"
         }
       }
@@ -92574,7 +92767,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"RTree\", \"Remove All\")",
-          "code": "MINI_TEST!(\"RTree\", \"Remove All\", crate::rtree_test::run_rtree_remove_all);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);\nREGISTER_MINI_TEST!(\"RTree\", \"Perf 10k\", crate::rtree_test::run_rtree_perf);",
+          "code": "MINI_TEST!(\"RTree\", \"Remove All\", crate::rtree_test::run_rtree_remove_all);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);",
           "file": "rtree_test.rs"
         }
       }
@@ -92594,7 +92787,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"RTree\", \"Search Count\")",
-          "code": "MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);\nREGISTER_MINI_TEST!(\"RTree\", \"Perf 10k\", crate::rtree_test::run_rtree_perf);",
+          "code": "MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);",
           "file": "rtree_test.rs"
         }
       }
@@ -92614,7 +92807,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"RTree\", \"Search Stop\")",
-          "code": "MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);\nREGISTER_MINI_TEST!(\"RTree\", \"Perf 10k\", crate::rtree_test::run_rtree_perf);",
+          "code": "MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);",
           "file": "rtree_test.rs"
         }
       }
@@ -92634,7 +92827,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"RTree\", \"Search 100 Boxes\")",
-          "code": "MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);\nREGISTER_MINI_TEST!(\"RTree\", \"Perf 10k\", crate::rtree_test::run_rtree_perf);",
+          "code": "MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);",
           "file": "rtree_test.rs"
         }
       }
@@ -93060,36 +93253,16 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "SessionConfig.test_Default Values",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"SessionConfig\", \"Default Values\")",
-          "code": "MINI_TEST(\"SessionConfig\", \"Default Values\") {\n        // uncomment #include \"session_config.h\"\n        MINI_CHECK(!SESSION_CONFIG.explode_mesh_faces);\n        MINI_CHECK(std::abs(SESSION_CONFIG.scale_factor - 1.0) < 1e-10);\n    }",
-          "file": "session_config_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"SessionConfig\", \"Default Values\")",
-          "code": "@MINI_TEST(\"SessionConfig\", \"Default Values\")\ndef test_session_config_default_values():\n    MINI_CHECK(not SESSION_CONFIG.explode_mesh_faces)\n    MINI_CHECK(SESSION_CONFIG.scale_factor == 1.0)",
-          "file": "session_config_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"SessionConfig\", \"Default Values\")",
-          "code": "MINI_TEST!(\"SessionConfig\", \"Default Values\", crate::session_config_test::run_session_config_default_values);\nREGISTER_MINI_TEST!(\"SessionConfig\", \"Runtime Modification\", crate::session_config_test::run_session_config_runtime_modification);",
-          "file": "session_config_test.rs"
-        }
-      }
-    },
-    {
       "name": "SessionConfig.test_Runtime Modification",
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"SessionConfig\", \"Runtime Modification\")",
-          "code": "MINI_TEST(\"SessionConfig\", \"Runtime Modification\") {\n        // uncomment #include \"session_config.h\"\n        MINI_CHECK(!SESSION_CONFIG.explode_mesh_faces);\n        SESSION_CONFIG.explode_mesh_faces = true;\n        MINI_CHECK(SESSION_CONFIG.explode_mesh_faces);\n        MINI_CHECK(std::abs(SESSION_CONFIG.scale_factor - 1.0) < 1e-10);\n        SESSION_CONFIG.scale_factor = 0.001;\n        MINI_CHECK(std::abs(SESSION_CONFIG.scale_factor - 0.001) < 1e-10);\n        SESSION_CONFIG.reset();\n        MINI_CHECK(!SESSION_CONFIG.explode_mesh_faces);\n        MINI_CHECK(std::abs(SESSION_CONFIG.scale_factor - 1.0) < 1e-10);\n    }",
+          "code": "MINI_TEST(\"SessionConfig\", \"Runtime Modification\") {\n        // uncomment #include \"session_config.h\"\n        // SessionConfig holds global rendering/export flags.\n        // explode_mesh_faces: when true, each mesh face is a separate mesh (for coloring)\n        // scale_factor: unit conversion multiplier applied during export (1.0 = meters)\n        // Modify config at runtime, then reset() restores all defaults.\n\n        MINI_CHECK(!SESSION_CONFIG.explode_mesh_faces);\n        SESSION_CONFIG.explode_mesh_faces = true;\n        MINI_CHECK(SESSION_CONFIG.explode_mesh_faces);\n        MINI_CHECK(std::abs(SESSION_CONFIG.scale_factor - 1.0) < 1e-10);\n        SESSION_CONFIG.scale_factor = 0.001;\n        MINI_CHECK(std::abs(SESSION_CONFIG.scale_factor - 0.001) < 1e-10);\n        SESSION_CONFIG.reset();\n        MINI_CHECK(!SESSION_CONFIG.explode_mesh_faces);\n        MINI_CHECK(std::abs(SESSION_CONFIG.scale_factor - 1.0) < 1e-10);\n    }",
           "file": "session_config_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"SessionConfig\", \"Runtime Modification\")",
-          "code": "@MINI_TEST(\"SessionConfig\", \"Runtime Modification\")\ndef test_session_config_runtime_modification():\n    MINI_CHECK(not SESSION_CONFIG.explode_mesh_faces)\n    SESSION_CONFIG.explode_mesh_faces = True\n    MINI_CHECK(SESSION_CONFIG.explode_mesh_faces)\n    MINI_CHECK(SESSION_CONFIG.scale_factor == 1.0)\n    SESSION_CONFIG.scale_factor = 0.001\n    MINI_CHECK(SESSION_CONFIG.scale_factor == 0.001)\n    SESSION_CONFIG.reset()\n    MINI_CHECK(not SESSION_CONFIG.explode_mesh_faces)\n    MINI_CHECK(SESSION_CONFIG.scale_factor == 1.0)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "code": "@MINI_TEST(\"SessionConfig\", \"Runtime Modification\")\ndef test_session_config_runtime_modification():\n    # SessionConfig holds global rendering/export flags.\n    # explode_mesh_faces: when true, each mesh face is a separate mesh (for coloring)\n    # scale_factor: unit conversion multiplier applied during export (1.0 = meters)\n    # Modify config at runtime, then reset() restores all defaults.\n\n    MINI_CHECK(not SESSION_CONFIG.explode_mesh_faces)\n    SESSION_CONFIG.explode_mesh_faces = True\n    MINI_CHECK(SESSION_CONFIG.explode_mesh_faces)\n    MINI_CHECK(SESSION_CONFIG.scale_factor == 1.0)\n    SESSION_CONFIG.scale_factor = 0.001\n    MINI_CHECK(SESSION_CONFIG.scale_factor == 0.001)\n    SESSION_CONFIG.reset()\n    MINI_CHECK(not SESSION_CONFIG.explode_mesh_faces)\n    MINI_CHECK(SESSION_CONFIG.scale_factor == 1.0)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
           "file": "session_config_test.py"
         },
         "rust": {
@@ -93295,6 +93468,246 @@ window.API_INDEX = {
         "rust": {
           "sig": "MINI_TEST!(\"Tolerance\", \"Runtime Modification\")",
           "code": "MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
+          "file": "tolerance_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Unique From Two Int",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Tolerance\", \"Unique From Two Int\")",
+          "code": "MINI_TEST(\"Tolerance\", \"Unique From Two Int\") {\n        // uncomment #include \"tolerance.h\"\n        uint64_t r0 = unique_from_two_int(3, 7);\n        uint64_t r1 = unique_from_two_int(7, 3);\n\n        MINI_CHECK(r0 == r1);\n        MINI_CHECK(r0 == ((uint64_t(7) << 32) | uint64_t(3)));\n    }",
+          "file": "tolerance_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Unique From Two Int\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Unique From Two Int\")\ndef test_tolerance_unique_from_two_int():\n    r0 = unique_from_two_int(3, 7)\n    r1 = unique_from_two_int(7, 3)\n\n    MINI_CHECK(r0 == r1)\n    MINI_CHECK(r0 == (7 << 32) | 3)",
+          "file": "tolerance_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Tolerance\", \"Unique From Two Int\")",
+          "code": "MINI_TEST!(\"Tolerance\", \"Unique From Two Int\", crate::tolerance_test::run_tolerance_unique_from_two_int);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Wrap Index\", crate::tolerance_test::run_tolerance_wrap_index);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Triangle Edge By Angle\", crate::tolerance_test::run_tolerance_triangle_edge_by_angle);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\", crate::tolerance_test::run_tolerance_rad_deg);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Radians\", crate::tolerance_test::run_tolerance_to_radians);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Degrees\", crate::tolerance_test::run_tolerance_to_degrees);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
+          "file": "tolerance_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Wrap Index",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Tolerance\", \"Wrap Index\")",
+          "code": "MINI_TEST(\"Tolerance\", \"Wrap Index\") {\n        // uncomment #include \"tolerance.h\"\n        MINI_CHECK(wrap_index(0, 4)  == 0);\n        MINI_CHECK(wrap_index(3, 4)  == 3);\n        MINI_CHECK(wrap_index(4, 4)  == 0);\n        MINI_CHECK(wrap_index(-1, 4) == 3);\n        MINI_CHECK(wrap_index(0, 0)  == 0);\n    }",
+          "file": "tolerance_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Wrap Index\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Wrap Index\")\ndef test_tolerance_wrap_index():\n    MINI_CHECK(wrap_index(0, 4)  == 0)\n    MINI_CHECK(wrap_index(3, 4)  == 3)\n    MINI_CHECK(wrap_index(4, 4)  == 0)\n    MINI_CHECK(wrap_index(-1, 4) == 3)\n    MINI_CHECK(wrap_index(0, 0)  == 0)",
+          "file": "tolerance_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Tolerance\", \"Wrap Index\")",
+          "code": "MINI_TEST!(\"Tolerance\", \"Wrap Index\", crate::tolerance_test::run_tolerance_wrap_index);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Triangle Edge By Angle\", crate::tolerance_test::run_tolerance_triangle_edge_by_angle);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\", crate::tolerance_test::run_tolerance_rad_deg);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Radians\", crate::tolerance_test::run_tolerance_to_radians);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Degrees\", crate::tolerance_test::run_tolerance_to_degrees);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
+          "file": "tolerance_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Triangle Edge By Angle",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Tolerance\", \"Triangle Edge By Angle\")",
+          "code": "MINI_TEST(\"Tolerance\", \"Triangle Edge By Angle\") {\n        // uncomment #include \"tolerance.h\"\n        double r = triangle_edge_by_angle(1.0, 45.0);\n\n        MINI_CHECK(std::abs(r - 1.0) < 1e-9);\n        double r2 = triangle_edge_by_angle(5.0, 0.0);\n        MINI_CHECK(std::abs(r2) < 1e-9);\n    }",
+          "file": "tolerance_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Triangle Edge By Angle\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Triangle Edge By Angle\")\ndef test_tolerance_triangle_edge_by_angle():\n    MINI_CHECK(abs(triangle_edge_by_angle(1.0, 45.0) - 1.0) < 1e-9)\n    MINI_CHECK(abs(triangle_edge_by_angle(5.0, 0.0)) < 1e-9)",
+          "file": "tolerance_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Tolerance\", \"Triangle Edge By Angle\")",
+          "code": "MINI_TEST!(\"Tolerance\", \"Triangle Edge By Angle\", crate::tolerance_test::run_tolerance_triangle_edge_by_angle);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\", crate::tolerance_test::run_tolerance_rad_deg);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Radians\", crate::tolerance_test::run_tolerance_to_radians);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Degrees\", crate::tolerance_test::run_tolerance_to_degrees);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
+          "file": "tolerance_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Rad Deg Conversion",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Tolerance\", \"Rad Deg Conversion\")",
+          "code": "MINI_TEST(\"Tolerance\", \"Rad Deg Conversion\") {\n        // uncomment #include \"tolerance.h\"\n        MINI_CHECK(std::abs(rad_to_deg(Tolerance::PI) - 180.0) < 1e-9);\n        MINI_CHECK(std::abs(deg_to_rad(180.0) - Tolerance::PI) < 1e-9);\n        MINI_CHECK(std::abs(deg_to_rad(rad_to_deg(1.234)) - 1.234) < 1e-9);\n    }",
+          "file": "tolerance_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Rad Deg Conversion\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Rad Deg Conversion\")\ndef test_tolerance_rad_deg():\n    MINI_CHECK(abs(rad_to_deg(PI) - 180.0) < 1e-9)\n    MINI_CHECK(abs(deg_to_rad(180.0) - PI) < 1e-9)\n    MINI_CHECK(abs(deg_to_rad(rad_to_deg(1.234)) - 1.234) < 1e-9)",
+          "file": "tolerance_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\")",
+          "code": "MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\", crate::tolerance_test::run_tolerance_rad_deg);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Radians\", crate::tolerance_test::run_tolerance_to_radians);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Degrees\", crate::tolerance_test::run_tolerance_to_degrees);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
+          "file": "tolerance_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Count Digits",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Tolerance\", \"Count Digits\")",
+          "code": "MINI_TEST(\"Tolerance\", \"Count Digits\") {\n        // uncomment #include \"tolerance.h\"\n        MINI_CHECK(count_digits(0.0)   == 0);\n        MINI_CHECK(count_digits(1.0)   == 1);\n        MINI_CHECK(count_digits(9.9)   == 1);\n        MINI_CHECK(count_digits(10.0)  == 2);\n        MINI_CHECK(count_digits(100.5) == 3);\n        MINI_CHECK(count_digits(-42.0) == 2);\n    }",
+          "file": "tolerance_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Count Digits\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Count Digits\")\ndef test_tolerance_count_digits():\n    MINI_CHECK(count_digits(0.0)   == 0)\n    MINI_CHECK(count_digits(1.0)   == 1)\n    MINI_CHECK(count_digits(9.9)   == 1)\n    MINI_CHECK(count_digits(10.0)  == 2)\n    MINI_CHECK(count_digits(100.5) == 3)\n    MINI_CHECK(count_digits(-42.0) == 2)",
+          "file": "tolerance_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Tolerance\", \"Count Digits\")",
+          "code": "MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
+          "file": "tolerance_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Is Angle Zero",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Tolerance\", \"Is Angle Zero\")",
+          "code": "MINI_TEST(\"Tolerance\", \"Is Angle Zero\") {\n        // uncomment #include \"tolerance.h\"\n        // Angular tolerance default is 1e-6\n        MINI_CHECK(TOLERANCE.is_angle_zero(1e-8));\n        MINI_CHECK(!TOLERANCE.is_angle_zero(0.1));\n    }",
+          "file": "tolerance_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Is Angle Zero\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Is Angle Zero\")\ndef test_tolerance_is_angle_zero():\n    # Angular tolerance default is 1e-6\n    MINI_CHECK(TOLERANCE.is_angle_zero(1e-8))\n    MINI_CHECK(not TOLERANCE.is_angle_zero(0.1))",
+          "file": "tolerance_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Tolerance\", \"Is Angle Zero\")",
+          "code": "MINI_TEST!(\"Tolerance\", \"Is Angle Zero\", crate::tolerance_test::run_tolerance_is_angle_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Angles Close\", crate::tolerance_test::run_tolerance_is_angles_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Point Close\", crate::tolerance_test::run_tolerance_is_point_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Allclose\", crate::tolerance_test::run_tolerance_is_allclose);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key Xy\", crate::tolerance_test::run_tolerance_key_xy);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Round To\", crate::tolerance_test::run_tolerance_round_to);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Precision From Tolerance\", crate::tolerance_test::run_tolerance_precision_from_tolerance);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Unique From Two Int\", crate::tolerance_test::run_tolerance_unique_from_two_int);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Wrap Index\", crate::tolerance_test::run_tolerance_wrap_index);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Triangle Edge By Angle\", crate::tolerance_test::run_tolerance_triangle_edge_by_angle);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\", crate::tolerance_test::run_tolerance_rad_deg);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Radians\", crate::tolerance_test::run_tolerance_to_radians);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Degrees\", crate::tolerance_test::run_tolerance_to_degrees);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
+          "file": "tolerance_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Is Angles Close",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Tolerance\", \"Is Angles Close\")",
+          "code": "MINI_TEST(\"Tolerance\", \"Is Angles Close\") {\n        // uncomment #include \"tolerance.h\"\n        MINI_CHECK(TOLERANCE.is_angles_close(1.0, 1.0 + 1e-8));\n        MINI_CHECK(!TOLERANCE.is_angles_close(1.0, 2.0));\n    }",
+          "file": "tolerance_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Is Angles Close\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Is Angles Close\")\ndef test_tolerance_is_angles_close():\n    MINI_CHECK(TOLERANCE.is_angles_close(1.0, 1.0 + 1e-8))\n    MINI_CHECK(not TOLERANCE.is_angles_close(1.0, 2.0))",
+          "file": "tolerance_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Tolerance\", \"Is Angles Close\")",
+          "code": "MINI_TEST!(\"Tolerance\", \"Is Angles Close\", crate::tolerance_test::run_tolerance_is_angles_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Point Close\", crate::tolerance_test::run_tolerance_is_point_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Allclose\", crate::tolerance_test::run_tolerance_is_allclose);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key Xy\", crate::tolerance_test::run_tolerance_key_xy);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Round To\", crate::tolerance_test::run_tolerance_round_to);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Precision From Tolerance\", crate::tolerance_test::run_tolerance_precision_from_tolerance);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Unique From Two Int\", crate::tolerance_test::run_tolerance_unique_from_two_int);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Wrap Index\", crate::tolerance_test::run_tolerance_wrap_index);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Triangle Edge By Angle\", crate::tolerance_test::run_tolerance_triangle_edge_by_angle);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\", crate::tolerance_test::run_tolerance_rad_deg);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Radians\", crate::tolerance_test::run_tolerance_to_radians);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Degrees\", crate::tolerance_test::run_tolerance_to_degrees);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
+          "file": "tolerance_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Is Point Close",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Tolerance\", \"Is Point Close\")",
+          "code": "MINI_TEST(\"Tolerance\", \"Is Point Close\") {\n        // uncomment #include \"tolerance.h\"\n        Point a(1.0, 2.0, 3.0);\n        Point b(1.0, 2.0, 3.0 + 1e-12);\n        Point c(1.0, 2.0, 4.0);\n\n        MINI_CHECK(TOLERANCE.is_point_close(a, b));\n        MINI_CHECK(!TOLERANCE.is_point_close(a, c));\n    }",
+          "file": "tolerance_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Is Point Close\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Is Point Close\")\ndef test_tolerance_is_point_close():\n    from session_py import Point\n\n    a = Point(1.0, 2.0, 3.0)\n    b = Point(1.0, 2.0, 3.0 + 1e-12)\n    c = Point(1.0, 2.0, 4.0)\n\n    MINI_CHECK(TOLERANCE.is_point_close(a, b))\n    MINI_CHECK(not TOLERANCE.is_point_close(a, c))",
+          "file": "tolerance_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Tolerance\", \"Is Point Close\")",
+          "code": "MINI_TEST!(\"Tolerance\", \"Is Point Close\", crate::tolerance_test::run_tolerance_is_point_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Allclose\", crate::tolerance_test::run_tolerance_is_allclose);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key Xy\", crate::tolerance_test::run_tolerance_key_xy);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Round To\", crate::tolerance_test::run_tolerance_round_to);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Precision From Tolerance\", crate::tolerance_test::run_tolerance_precision_from_tolerance);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Unique From Two Int\", crate::tolerance_test::run_tolerance_unique_from_two_int);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Wrap Index\", crate::tolerance_test::run_tolerance_wrap_index);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Triangle Edge By Angle\", crate::tolerance_test::run_tolerance_triangle_edge_by_angle);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\", crate::tolerance_test::run_tolerance_rad_deg);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Radians\", crate::tolerance_test::run_tolerance_to_radians);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Degrees\", crate::tolerance_test::run_tolerance_to_degrees);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
+          "file": "tolerance_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Is Allclose",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Tolerance\", \"Is Allclose\")",
+          "code": "MINI_TEST(\"Tolerance\", \"Is Allclose\") {\n        // uncomment #include \"tolerance.h\"\n        std::vector<double> a = {1.0, 2.0, 3.0};\n        std::vector<double> b = {1.0, 2.0, 3.0 + 1e-12};\n        std::vector<double> c = {1.0, 2.0, 4.0};\n\n        MINI_CHECK(TOLERANCE.is_allclose(a, b));\n        MINI_CHECK(!TOLERANCE.is_allclose(a, c));\n    }",
+          "file": "tolerance_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Is Allclose\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Is Allclose\")\ndef test_tolerance_is_allclose():\n    a = [1.0, 2.0, 3.0]\n    b = [1.0, 2.0, 3.0 + 1e-12]\n    c = [1.0, 2.0, 4.0]\n\n    MINI_CHECK(TOLERANCE.is_allclose(a, b))\n    MINI_CHECK(not TOLERANCE.is_allclose(a, c))",
+          "file": "tolerance_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Tolerance\", \"Is Allclose\")",
+          "code": "MINI_TEST!(\"Tolerance\", \"Is Allclose\", crate::tolerance_test::run_tolerance_is_allclose);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key Xy\", crate::tolerance_test::run_tolerance_key_xy);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Round To\", crate::tolerance_test::run_tolerance_round_to);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Precision From Tolerance\", crate::tolerance_test::run_tolerance_precision_from_tolerance);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Unique From Two Int\", crate::tolerance_test::run_tolerance_unique_from_two_int);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Wrap Index\", crate::tolerance_test::run_tolerance_wrap_index);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Triangle Edge By Angle\", crate::tolerance_test::run_tolerance_triangle_edge_by_angle);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\", crate::tolerance_test::run_tolerance_rad_deg);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Radians\", crate::tolerance_test::run_tolerance_to_radians);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Degrees\", crate::tolerance_test::run_tolerance_to_degrees);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
+          "file": "tolerance_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Key Xy",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Tolerance\", \"Key Xy\")",
+          "code": "MINI_TEST(\"Tolerance\", \"Key Xy\") {\n        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.key_xy(1.0, 2.0);\n\n        MINI_CHECK(result == \"1.000,2.000\");\n    }",
+          "file": "tolerance_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Key Xy\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Key Xy\")\ndef test_tolerance_key_xy():\n    result = TOLERANCE.key_xy([1.0, 2.0])\n\n    MINI_CHECK(result == \"1.000,2.000\")",
+          "file": "tolerance_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Tolerance\", \"Key Xy\")",
+          "code": "MINI_TEST!(\"Tolerance\", \"Key Xy\", crate::tolerance_test::run_tolerance_key_xy);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Round To\", crate::tolerance_test::run_tolerance_round_to);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Precision From Tolerance\", crate::tolerance_test::run_tolerance_precision_from_tolerance);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Unique From Two Int\", crate::tolerance_test::run_tolerance_unique_from_two_int);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Wrap Index\", crate::tolerance_test::run_tolerance_wrap_index);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Triangle Edge By Angle\", crate::tolerance_test::run_tolerance_triangle_edge_by_angle);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\", crate::tolerance_test::run_tolerance_rad_deg);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Radians\", crate::tolerance_test::run_tolerance_to_radians);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Degrees\", crate::tolerance_test::run_tolerance_to_degrees);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
+          "file": "tolerance_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Round To",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Tolerance\", \"Round To\")",
+          "code": "MINI_TEST(\"Tolerance\", \"Round To\") {\n        // uncomment #include \"tolerance.h\"\n        MINI_CHECK(std::abs(Tolerance::round_to(3.14159, 2) - 3.14) < 1e-9);\n        MINI_CHECK(std::abs(Tolerance::round_to(2.5, 0) - 3.0) < 1e-9);\n    }",
+          "file": "tolerance_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Round To\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Round To\")\ndef test_tolerance_round_to():\n    MINI_CHECK(abs(Tolerance.round_to(3.14159, 2) - 3.14) < 1e-9)\n    MINI_CHECK(abs(Tolerance.round_to(2.5, 0) - 2.0) < 1e-9)",
+          "file": "tolerance_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Tolerance\", \"Round To\")",
+          "code": "MINI_TEST!(\"Tolerance\", \"Round To\", crate::tolerance_test::run_tolerance_round_to);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Precision From Tolerance\", crate::tolerance_test::run_tolerance_precision_from_tolerance);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Unique From Two Int\", crate::tolerance_test::run_tolerance_unique_from_two_int);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Wrap Index\", crate::tolerance_test::run_tolerance_wrap_index);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Triangle Edge By Angle\", crate::tolerance_test::run_tolerance_triangle_edge_by_angle);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\", crate::tolerance_test::run_tolerance_rad_deg);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Radians\", crate::tolerance_test::run_tolerance_to_radians);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Degrees\", crate::tolerance_test::run_tolerance_to_degrees);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
+          "file": "tolerance_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Tolerance.test_Precision From Tolerance",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Tolerance\", \"Precision From Tolerance\")",
+          "code": "MINI_TEST(\"Tolerance\", \"Precision From Tolerance\") {\n        // uncomment #include \"tolerance.h\"\n        // Default absolute tolerance is 1e-9 \u00e2\u2020\u2019 precision should be 9\n        int prec = TOLERANCE.precision_from_tolerance();\n\n        MINI_CHECK(prec == 9);\n    }",
+          "file": "tolerance_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Tolerance\", \"Precision From Tolerance\")",
+          "code": "@MINI_TEST(\"Tolerance\", \"Precision From Tolerance\")\ndef test_tolerance_precision_from_tolerance():\n    # Default absolute tolerance is 1e-9 -> precision should be 9\n    prec = TOLERANCE.precision_from_tolerance()\n\n    MINI_CHECK(prec == 9)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "file": "tolerance_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Tolerance\", \"Precision From Tolerance\")",
+          "code": "MINI_TEST!(\"Tolerance\", \"Precision From Tolerance\", crate::tolerance_test::run_tolerance_precision_from_tolerance);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Unique From Two Int\", crate::tolerance_test::run_tolerance_unique_from_two_int);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Wrap Index\", crate::tolerance_test::run_tolerance_wrap_index);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Triangle Edge By Angle\", crate::tolerance_test::run_tolerance_triangle_edge_by_angle);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\", crate::tolerance_test::run_tolerance_rad_deg);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Radians\", crate::tolerance_test::run_tolerance_to_radians);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Degrees\", crate::tolerance_test::run_tolerance_to_degrees);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
           "file": "tolerance_test.rs"
         }
       }
@@ -93594,7 +94007,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"TreeNode\", \"Constructor\")",
-          "code": "MINI_TEST!(\"TreeNode\", \"Constructor\", crate::treenode_test::run_treenode_constructor);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Json Roundtrip\", crate::treenode_test::run_treenode_json_roundtrip);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Is Root\", crate::treenode_test::run_treenode_is_root);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Is Leaf\", crate::treenode_test::run_treenode_is_leaf);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Add\", crate::treenode_test::run_treenode_add);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Remove\", crate::treenode_test::run_treenode_remove);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Parent\", crate::treenode_test::run_treenode_parent);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Ancestors\", crate::treenode_test::run_treenode_ancestors);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Descendants\", crate::treenode_test::run_treenode_descendants);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Children\", crate::treenode_test::run_treenode_children);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Traverse\", crate::treenode_test::run_treenode_traverse);",
+          "code": "MINI_TEST!(\"TreeNode\", \"Constructor\", crate::treenode_test::run_treenode_constructor);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Json Roundtrip\", crate::treenode_test::run_treenode_json_roundtrip);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Is Root\", crate::treenode_test::run_treenode_is_root);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Is Leaf\", crate::treenode_test::run_treenode_is_leaf);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Tree\", crate::treenode_test::run_treenode_tree);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Add\", crate::treenode_test::run_treenode_add);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Remove\", crate::treenode_test::run_treenode_remove);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Parent\", crate::treenode_test::run_treenode_parent);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Ancestors\", crate::treenode_test::run_treenode_ancestors);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Descendants\", crate::treenode_test::run_treenode_descendants);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Children\", crate::treenode_test::run_treenode_children);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Traverse\", crate::treenode_test::run_treenode_traverse);",
           "file": "treenode_test.rs"
         }
       }
@@ -93614,7 +94027,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"TreeNode\", \"Json Roundtrip\")",
-          "code": "MINI_TEST!(\"TreeNode\", \"Json Roundtrip\", crate::treenode_test::run_treenode_json_roundtrip);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Is Root\", crate::treenode_test::run_treenode_is_root);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Is Leaf\", crate::treenode_test::run_treenode_is_leaf);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Add\", crate::treenode_test::run_treenode_add);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Remove\", crate::treenode_test::run_treenode_remove);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Parent\", crate::treenode_test::run_treenode_parent);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Ancestors\", crate::treenode_test::run_treenode_ancestors);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Descendants\", crate::treenode_test::run_treenode_descendants);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Children\", crate::treenode_test::run_treenode_children);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Traverse\", crate::treenode_test::run_treenode_traverse);",
+          "code": "MINI_TEST!(\"TreeNode\", \"Json Roundtrip\", crate::treenode_test::run_treenode_json_roundtrip);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Is Root\", crate::treenode_test::run_treenode_is_root);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Is Leaf\", crate::treenode_test::run_treenode_is_leaf);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Tree\", crate::treenode_test::run_treenode_tree);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Add\", crate::treenode_test::run_treenode_add);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Remove\", crate::treenode_test::run_treenode_remove);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Parent\", crate::treenode_test::run_treenode_parent);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Ancestors\", crate::treenode_test::run_treenode_ancestors);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Descendants\", crate::treenode_test::run_treenode_descendants);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Children\", crate::treenode_test::run_treenode_children);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Traverse\", crate::treenode_test::run_treenode_traverse);",
           "file": "treenode_test.rs"
         }
       }
@@ -93634,7 +94047,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"TreeNode\", \"Is Root\")",
-          "code": "MINI_TEST!(\"TreeNode\", \"Is Root\", crate::treenode_test::run_treenode_is_root);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Is Leaf\", crate::treenode_test::run_treenode_is_leaf);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Add\", crate::treenode_test::run_treenode_add);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Remove\", crate::treenode_test::run_treenode_remove);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Parent\", crate::treenode_test::run_treenode_parent);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Ancestors\", crate::treenode_test::run_treenode_ancestors);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Descendants\", crate::treenode_test::run_treenode_descendants);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Children\", crate::treenode_test::run_treenode_children);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Traverse\", crate::treenode_test::run_treenode_traverse);",
+          "code": "MINI_TEST!(\"TreeNode\", \"Is Root\", crate::treenode_test::run_treenode_is_root);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Is Leaf\", crate::treenode_test::run_treenode_is_leaf);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Tree\", crate::treenode_test::run_treenode_tree);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Add\", crate::treenode_test::run_treenode_add);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Remove\", crate::treenode_test::run_treenode_remove);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Parent\", crate::treenode_test::run_treenode_parent);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Ancestors\", crate::treenode_test::run_treenode_ancestors);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Descendants\", crate::treenode_test::run_treenode_descendants);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Children\", crate::treenode_test::run_treenode_children);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Traverse\", crate::treenode_test::run_treenode_traverse);",
           "file": "treenode_test.rs"
         }
       }
@@ -93654,7 +94067,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"TreeNode\", \"Is Leaf\")",
-          "code": "MINI_TEST!(\"TreeNode\", \"Is Leaf\", crate::treenode_test::run_treenode_is_leaf);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Add\", crate::treenode_test::run_treenode_add);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Remove\", crate::treenode_test::run_treenode_remove);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Parent\", crate::treenode_test::run_treenode_parent);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Ancestors\", crate::treenode_test::run_treenode_ancestors);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Descendants\", crate::treenode_test::run_treenode_descendants);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Children\", crate::treenode_test::run_treenode_children);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Traverse\", crate::treenode_test::run_treenode_traverse);",
+          "code": "MINI_TEST!(\"TreeNode\", \"Is Leaf\", crate::treenode_test::run_treenode_is_leaf);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Tree\", crate::treenode_test::run_treenode_tree);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Add\", crate::treenode_test::run_treenode_add);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Remove\", crate::treenode_test::run_treenode_remove);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Parent\", crate::treenode_test::run_treenode_parent);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Ancestors\", crate::treenode_test::run_treenode_ancestors);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Descendants\", crate::treenode_test::run_treenode_descendants);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Children\", crate::treenode_test::run_treenode_children);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Traverse\", crate::treenode_test::run_treenode_traverse);",
           "file": "treenode_test.rs"
         }
       }
@@ -93671,6 +94084,11 @@ window.API_INDEX = {
           "sig": "@MINI_TEST(\"TreeNode\", \"Tree\")",
           "code": "@MINI_TEST(\"TreeNode\", \"Tree\")\ndef test_treenode_tree():\n    from session_py import TreeNode\n\n    n = TreeNode(\"standalone\")\n\n    MINI_CHECK(n.tree is None)",
           "file": "treenode_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"TreeNode\", \"Tree\")",
+          "code": "MINI_TEST!(\"TreeNode\", \"Tree\", crate::treenode_test::run_treenode_tree);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Add\", crate::treenode_test::run_treenode_add);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Remove\", crate::treenode_test::run_treenode_remove);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Parent\", crate::treenode_test::run_treenode_parent);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Ancestors\", crate::treenode_test::run_treenode_ancestors);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Descendants\", crate::treenode_test::run_treenode_descendants);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Children\", crate::treenode_test::run_treenode_children);\nREGISTER_MINI_TEST!(\"TreeNode\", \"Traverse\", crate::treenode_test::run_treenode_traverse);",
+          "file": "treenode_test.rs"
         }
       }
     },
@@ -95018,257 +95436,17 @@ window.API_INDEX = {
           "file": "graph_test.rs"
         }
       }
-    },
-    {
-      "name": "KDTree.test_NearestK",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"KDTree\", \"NearestK\")",
-          "code": "@MINI_TEST(\"KDTree\", \"NearestK\")\ndef test_kdtree_nearest_k():\n    from session_py import KDTree, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(1.5, 0.0, 0.0)\n    result = tree.nearest_k(query, 3)\n\n    MINI_CHECK(len(result) == 3)\n    MINI_CHECK(TOLERANCE.is_close(result[0][1], 0.5))\n    MINI_CHECK(TOLERANCE.is_close(result[1][1], 0.5))\n    MINI_CHECK(TOLERANCE.is_close(result[2][1], 1.5))",
-          "file": "kdtree_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"KDTree\", \"NearestK\")",
-          "code": "MINI_TEST!(\"KDTree\", \"NearestK\", crate::kdtree_test::run_kdtree_nearest_k);\n\npub fn run_kdtree_radius_search() -> TestResult {\n    MINI_TEST!(\"RadiusSearch\", {\n        use crate::{KDTree, Point};\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(5.0, 0.0, 0.0),\n        ];\n        let tree = KDTree::new(pts);\n        let query = Point::new(0.5, 0.0, 0.0);\n        let result = tree.radius_search(&query, 1.1);\n\n        MINI_CHECK!(result.len() == 2);\n        MINI_CHECK!(TOLERANCE.is_close(result[0].1, 0.5));\n        MINI_CHECK!(TOLERANCE.is_close(result[1].1, 0.5));\n    })\n}",
-          "file": "kdtree_test.rs"
-        }
-      }
-    },
-    {
-      "name": "KDTree.test_RadiusSearch",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"KDTree\", \"RadiusSearch\")",
-          "code": "@MINI_TEST(\"KDTree\", \"RadiusSearch\")\ndef test_kdtree_radius_search():\n    from session_py import KDTree, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(0.5, 0.0, 0.0)\n    result = tree.radius_search(query, 1.1)\n\n    MINI_CHECK(len(result) == 2)\n    MINI_CHECK(TOLERANCE.is_close(result[0][1], 0.5))\n    MINI_CHECK(TOLERANCE.is_close(result[1][1], 0.5))",
-          "file": "kdtree_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"KDTree\", \"RadiusSearch\")",
-          "code": "MINI_TEST!(\"KDTree\", \"RadiusSearch\", crate::kdtree_test::run_kdtree_radius_search);\n\npub fn run_kdtree_single_point() -> TestResult {\n    MINI_TEST!(\"SinglePoint\", {\n        use crate::{KDTree, Point};\n        let pts = vec![Point::new(3.0, 4.0, 0.0)];\n        let tree = KDTree::new(pts);\n        let query = Point::new(0.0, 0.0, 0.0);\n        let (idx, dist) = tree.nearest(&query);\n\n        MINI_CHECK!(idx == 0);\n        MINI_CHECK!(TOLERANCE.is_close(dist, 5.0));\n    })\n}",
-          "file": "kdtree_test.rs"
-        }
-      }
-    },
-    {
-      "name": "KDTree.test_SinglePoint",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"KDTree\", \"SinglePoint\")",
-          "code": "@MINI_TEST(\"KDTree\", \"SinglePoint\")\ndef test_kdtree_single_point():\n    from session_py import KDTree, Point\n    pts = [Point(3.0, 4.0, 0.0)]\n    tree = KDTree(pts)\n    query = Point(0.0, 0.0, 0.0)\n    idx, dist = tree.nearest(query)\n\n    MINI_CHECK(idx == 0)\n    MINI_CHECK(TOLERANCE.is_close(dist, 5.0))",
-          "file": "kdtree_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"KDTree\", \"SinglePoint\")",
-          "code": "MINI_TEST!(\"KDTree\", \"SinglePoint\", crate::kdtree_test::run_kdtree_single_point);\n\npub fn run_kdtree_nearest_brute_force() -> TestResult {\n    MINI_TEST!(\"NearestBruteForce\", {\n        use crate::{KDTree, Point};\n        let mut seed: u64 = 7;\n        let mut rng = || -> f64 {\n            seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);\n            (seed >> 33) as f64 / (u32::MAX as f64) * 100.0\n        };\n        let mut pts = vec![];\n        for _ in 0..50 {\n            pts.push(Point::new(rng(), rng(), rng()));\n        }\n        let mut queries = vec![];\n        for _ in 0..10 {\n            queries.push(Point::new(rng(), rng(), rng()));\n        }\n        let tree = KDTree::new(pts.clone());\n        let mut all_match = true;\n        for q in &queries {\n            let (_idx, dist) = tree.nearest(q);\n            let brute = (0..pts.len()).min_by(|&a, &b| {\n                let da = (pts[a][0]-q[0]).powi(2)+(pts[a][1]-q[1]).powi(2)+(pts[a][2]-q[2]).powi(2);\n                let db = (pts[b][0]-q[0]).powi(2)+(pts[b][1]-q[1]).powi(2)+(pts[b][2]-q[2]).powi(2);\n                da.partial_cmp(&db).unwrap()\n            }).unwrap();\n            let brute_d = ((pts[brute][0]-q[0]).powi(2)+(pts[brute][1]-q[1]).powi(2)+(pts[brute][2]-q[2]).powi(2)).sqrt();\n            if !TOLERANCE.is_close(dist, brute_d) {\n                all_match = false;\n            }\n        }\n\n        MINI_CHECK!(all_match);\n    })\n}",
-          "file": "kdtree_test.rs"
-        }
-      }
-    },
-    {
-      "name": "KDTree.test_NearestBruteForce",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"KDTree\", \"NearestBruteForce\")",
-          "code": "@MINI_TEST(\"KDTree\", \"NearestBruteForce\")\ndef test_kdtree_nearest_brute_force():\n    from session_py import KDTree, Point\n    import random\n    rng = random.Random(7)\n    pts = []\n    for _ in range(50):\n        pts.append(Point(rng.uniform(0.0, 100.0), rng.uniform(0.0, 100.0), rng.uniform(0.0, 100.0)))\n    tree = KDTree(pts)\n    queries = [Point(rng.uniform(0.0, 100.0), rng.uniform(0.0, 100.0), rng.uniform(0.0, 100.0)) for _ in range(10)]\n    all_match = True\n    for q in queries:\n        idx, dist = tree.nearest(q)\n        brute = min(range(len(pts)), key=lambda i: (pts[i][0]-q[0])**2+(pts[i][1]-q[1])**2+(pts[i][2]-q[2])**2)\n        brute_d = math.sqrt((pts[brute][0]-q[0])**2+(pts[brute][1]-q[1])**2+(pts[brute][2]-q[2])**2)\n        if not TOLERANCE.is_close(dist, brute_d):\n            all_match = False\n\n    MINI_CHECK(all_match)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
-          "file": "kdtree_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"KDTree\", \"NearestBruteForce\")",
-          "code": "MINI_TEST!(\"KDTree\", \"NearestBruteForce\", crate::kdtree_test::run_kdtree_nearest_brute_force);",
-          "file": "kdtree_test.rs"
-        }
-      }
-    },
-    {
-      "name": "Mesh.test_Edges",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"Mesh\", \"Edges\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Edges\")\ndef test_mesh_edges():\n    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    v0 = mesh.vertices()[0]\n    v1 = mesh.vertices()[1]\n    edges = mesh.edges()\n    MINI_CHECK(len(edges) == 12)\n    MINI_CHECK(isinstance(edges[0], tuple))\n    MINI_CHECK(edges[0] == (v0, v1))",
-          "file": "mesh_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"Mesh\", \"Edges\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);",
-          "file": "mesh_test.rs"
-        }
-      }
-    },
-    {
-      "name": "Polyline.test_Interpolate Points",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"Polyline\", \"Interpolate Points\")",
-          "code": "@MINI_TEST(\"Polyline\", \"Interpolate Points\")\ndef test_polyline_interpolate_points():\n    from session_py import Polyline\n    from session_py import Point\n\n    a = Point(0.0, 0.0, 0.0)\n    b = Point(4.0, 0.0, 0.0)\n\n    # kind 0: no endpoints \u00e2\u20ac\u201d 3 interior points at t=0.25, 0.5, 0.75\n    pts0 = Polyline.interpolate_points(a, b, 3, 0)\n    # kind 1: both endpoints \u00e2\u20ac\u201d 5 points\n    pts1 = Polyline.interpolate_points(a, b, 3, 1)\n    # kind 2: start only \u00e2\u20ac\u201d 4 points (from + 3 interior)\n    pts2 = Polyline.interpolate_points(a, b, 3, 2)\n\n    MINI_CHECK(len(pts0) == 3)\n    MINI_CHECK(TOLERANCE.is_close(pts0[0][0], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(pts0[1][0], 2.0))\n    MINI_CHECK(TOLERANCE.is_close(pts0[2][0], 3.0))\n    MINI_CHECK(len(pts1) == 5)\n    MINI_CHECK(TOLERANCE.is_close(pts1[0][0], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(pts1[4][0], 4.0))\n    MINI_CHECK(len(pts2) == 4)\n    MINI_CHECK(TOLERANCE.is_close(pts2[0][0], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(pts2[3][0], 3.0))",
-          "file": "polyline_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"Polyline\", \"Interpolate Points\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
-          "file": "polyline_test.rs"
-        }
-      }
-    },
-    {
-      "name": "Primitives.test_Mesh Edge Pipes",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"Primitives\", \"Mesh Edge Pipes\")",
-          "code": "@MINI_TEST(\"Primitives\", \"Mesh Edge Pipes\")\ndef test_mesh_edge_pipes():\n    from session_py import Primitives\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Color\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2, v3])\n    mesh.linecolors[0] = Color.red()\n\n    pipes = Primitives.edge_pipes(mesh, 0.1)\n    MINI_CHECK(len(pipes) == 4)\n    MINI_CHECK(isinstance(pipes[0], Mesh))\n    MINI_CHECK(pipes[0].facecolors[0][0] == Color.red()[0])",
-          "file": "primitives_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"Primitives\", \"Mesh Edge Pipes\")",
-          "code": "MINI_TEST!(\"Primitives\", \"Mesh Edge Pipes\", crate::primitives_test::run_primitives_mesh_edge_pipes);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Polyline\", crate::primitives_test::run_primitives_nurbscurve_polyline);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Circle\", crate::primitives_test::run_primitives_nurbscurve_circle);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Ellipse\", crate::primitives_test::run_primitives_nurbscurve_ellipse);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Arc\", crate::primitives_test::run_primitives_nurbscurve_arc);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Parabola\", crate::primitives_test::run_primitives_nurbscurve_parabola);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Hyperbola\", crate::primitives_test::run_primitives_nurbscurve_hyperbola);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Spiral\", crate::primitives_test::run_primitives_nurbscurve_spiral);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Cylinder\", crate::primitives_test::run_primitives_nurbssurface_cylinder);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Cone\", crate::primitives_test::run_primitives_nurbssurface_cone);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Sphere\", crate::primitives_test::run_primitives_nurbssurface_sphere);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Quad Sphere\", crate::primitives_test::run_primitives_nurbssurface_quad_sphere);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Torus\", crate::primitives_test::run_primitives_nurbssurface_torus);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Ruled\", crate::primitives_test::run_primitives_nurbssurface_ruled);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Planar\", crate::primitives_test::run_primitives_nurbssurface_planar);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Extrusion\", crate::primitives_test::run_primitives_nurbssurface_extrusion);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Loft\", crate::primitives_test::run_primitives_nurbssurface_loft);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Revolve\", crate::primitives_test::run_primitives_nurbssurface_revolve);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Sweep\", crate::primitives_test::run_primitives_nurbssurface_sweep);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Edge\", crate::primitives_test::run_primitives_nurbssurface_edge);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Quad Mesh\", crate::primitives_test::run_primitives_mesh_quad_mesh);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Diamond Mesh\", crate::primitives_test::run_primitives_mesh_diamond_mesh);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Hex Mesh\", crate::primitives_test::run_primitives_mesh_hex_mesh);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Cone Subdivisions\", crate::primitives_test::run_primitives_mesh_cone_subdivisions);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbscurve Interpolated\", crate::primitives_test::run_primitives_nurbscurve_interpolated);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Tetrahedron\", crate::primitives_test::run_primitives_mesh_tetrahedron);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Cube\", crate::primitives_test::run_primitives_mesh_cube);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Octahedron\", crate::primitives_test::run_primitives_mesh_octahedron);\nREGISTER_MINI_TEST!(\"Primitives\", \"Mesh Icosahedron\", crate::primitives_test::run_primitives_mesh_icosahedron);\nREGISTER_MINI_TEST!(\"Primitives\", \"Nurbssurface Wave\", crate::primitives_test::run_primitives_nurbssurface_wave);",
-          "file": "primitives_test.rs"
-        }
-      }
-    },
-    {
-      "name": "Tolerance.test_Unique From Two Int",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"Tolerance\", \"Unique From Two Int\")",
-          "code": "@MINI_TEST(\"Tolerance\", \"Unique From Two Int\")\ndef test_tolerance_unique_from_two_int():\n    r0 = unique_from_two_int(3, 7)\n    r1 = unique_from_two_int(7, 3)\n\n    MINI_CHECK(r0 == r1)\n    MINI_CHECK(r0 == (7 << 32) | 3)",
-          "file": "tolerance_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"Tolerance\", \"Unique From Two Int\")",
-          "code": "MINI_TEST!(\"Tolerance\", \"Unique From Two Int\", crate::tolerance_test::run_tolerance_unique_from_two_int);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Wrap Index\", crate::tolerance_test::run_tolerance_wrap_index);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Triangle Edge By Angle\", crate::tolerance_test::run_tolerance_triangle_edge_by_angle);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\", crate::tolerance_test::run_tolerance_rad_deg);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Radians\", crate::tolerance_test::run_tolerance_to_radians);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Degrees\", crate::tolerance_test::run_tolerance_to_degrees);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
-          "file": "tolerance_test.rs"
-        }
-      }
-    },
-    {
-      "name": "Tolerance.test_Wrap Index",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"Tolerance\", \"Wrap Index\")",
-          "code": "@MINI_TEST(\"Tolerance\", \"Wrap Index\")\ndef test_tolerance_wrap_index():\n    MINI_CHECK(wrap_index(0, 4)  == 0)\n    MINI_CHECK(wrap_index(3, 4)  == 3)\n    MINI_CHECK(wrap_index(4, 4)  == 0)\n    MINI_CHECK(wrap_index(-1, 4) == 3)\n    MINI_CHECK(wrap_index(0, 0)  == 0)",
-          "file": "tolerance_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"Tolerance\", \"Wrap Index\")",
-          "code": "MINI_TEST!(\"Tolerance\", \"Wrap Index\", crate::tolerance_test::run_tolerance_wrap_index);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Triangle Edge By Angle\", crate::tolerance_test::run_tolerance_triangle_edge_by_angle);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\", crate::tolerance_test::run_tolerance_rad_deg);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Radians\", crate::tolerance_test::run_tolerance_to_radians);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Degrees\", crate::tolerance_test::run_tolerance_to_degrees);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
-          "file": "tolerance_test.rs"
-        }
-      }
-    },
-    {
-      "name": "Tolerance.test_Triangle Edge By Angle",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"Tolerance\", \"Triangle Edge By Angle\")",
-          "code": "@MINI_TEST(\"Tolerance\", \"Triangle Edge By Angle\")\ndef test_tolerance_triangle_edge_by_angle():\n    MINI_CHECK(abs(triangle_edge_by_angle(1.0, 45.0) - 1.0) < 1e-9)\n    MINI_CHECK(abs(triangle_edge_by_angle(5.0, 0.0)) < 1e-9)",
-          "file": "tolerance_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"Tolerance\", \"Triangle Edge By Angle\")",
-          "code": "MINI_TEST!(\"Tolerance\", \"Triangle Edge By Angle\", crate::tolerance_test::run_tolerance_triangle_edge_by_angle);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\", crate::tolerance_test::run_tolerance_rad_deg);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Radians\", crate::tolerance_test::run_tolerance_to_radians);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Degrees\", crate::tolerance_test::run_tolerance_to_degrees);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
-          "file": "tolerance_test.rs"
-        }
-      }
-    },
-    {
-      "name": "Tolerance.test_Rad Deg Conversion",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"Tolerance\", \"Rad Deg Conversion\")",
-          "code": "@MINI_TEST(\"Tolerance\", \"Rad Deg Conversion\")\ndef test_tolerance_rad_deg():\n    MINI_CHECK(abs(rad_to_deg(PI) - 180.0) < 1e-9)\n    MINI_CHECK(abs(deg_to_rad(180.0) - PI) < 1e-9)\n    MINI_CHECK(abs(deg_to_rad(rad_to_deg(1.234)) - 1.234) < 1e-9)",
-          "file": "tolerance_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\")",
-          "code": "MINI_TEST!(\"Tolerance\", \"Rad Deg Conversion\", crate::tolerance_test::run_tolerance_rad_deg);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Radians\", crate::tolerance_test::run_tolerance_to_radians);\nREGISTER_MINI_TEST!(\"Tolerance\", \"To Degrees\", crate::tolerance_test::run_tolerance_to_degrees);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
-          "file": "tolerance_test.rs"
-        }
-      }
-    },
-    {
-      "name": "Tolerance.test_Count Digits",
-      "implementations": {
-        "python": {
-          "sig": "@MINI_TEST(\"Tolerance\", \"Count Digits\")",
-          "code": "@MINI_TEST(\"Tolerance\", \"Count Digits\")\ndef test_tolerance_count_digits():\n    MINI_CHECK(count_digits(0.0)   == 0)\n    MINI_CHECK(count_digits(1.0)   == 1)\n    MINI_CHECK(count_digits(9.9)   == 1)\n    MINI_CHECK(count_digits(10.0)  == 2)\n    MINI_CHECK(count_digits(100.5) == 3)\n    MINI_CHECK(count_digits(-42.0) == 2)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
-          "file": "tolerance_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"Tolerance\", \"Count Digits\")",
-          "code": "MINI_TEST!(\"Tolerance\", \"Count Digits\", crate::tolerance_test::run_tolerance_count_digits);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Zero\", crate::tolerance_test::run_tolerance_is_zero);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Close\", crate::tolerance_test::run_tolerance_is_close);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Positive\", crate::tolerance_test::run_tolerance_is_positive);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Negative\", crate::tolerance_test::run_tolerance_is_negative);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Is Between\", crate::tolerance_test::run_tolerance_is_between);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Format Number\", crate::tolerance_test::run_tolerance_format_number);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Key\", crate::tolerance_test::run_tolerance_key);\nREGISTER_MINI_TEST!(\"Tolerance\", \"Runtime Modification\", crate::tolerance_test::run_tolerance_runtime_modification);",
-          "file": "tolerance_test.rs"
-        }
-      }
-    },
-    {
-      "name": "BVH.test_Query Aabb",
-      "implementations": {
-        "rust": {
-          "sig": "MINI_TEST!(\"BVH\", \"Query Aabb\")",
-          "code": "MINI_TEST!(\"BVH\", \"Query Aabb\", crate::bvh_test::run_bvh_query_aabb);\nREGISTER_MINI_TEST!(\"BVH\", \"Nearest Neighbors\", crate::bvh_test::run_bvh_nearest_neighbors);",
-          "file": "bvh_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MarchingSquares.test_Extract From Func",
-      "implementations": {
-        "rust": {
-          "sig": "MINI_TEST!(\"MarchingSquares\", \"Extract From Func\")",
-          "code": "MINI_TEST!(\"MarchingSquares\", \"Extract From Func\", crate::marching_squares_test::run_marching_squares_extract_from_func);\n\npub fn run_marching_squares_empty_grid() -> TestResult {\n    MINI_TEST!(\"Empty Grid\", {\n        use crate::MarchingSquares;\n        let grid: Vec<Vec<f64>> = vec![];\n        let result = MarchingSquares::extract(&grid, 0.5, 1.0);\n\n        MINI_CHECK!(result.len() == 0);\n    })\n}",
-          "file": "marching_squares_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MarchingSquares.test_Empty Grid",
-      "implementations": {
-        "rust": {
-          "sig": "MINI_TEST!(\"MarchingSquares\", \"Empty Grid\")",
-          "code": "MINI_TEST!(\"MarchingSquares\", \"Empty Grid\", crate::marching_squares_test::run_marching_squares_empty_grid);\n\npub fn run_marching_squares_all_above() -> TestResult {\n    MINI_TEST!(\"All Above\", {\n        use crate::MarchingSquares;\n        let grid = vec![\n            vec![2.0, 2.0, 2.0],\n            vec![2.0, 2.0, 2.0],\n            vec![2.0, 2.0, 2.0],\n        ];\n        let result = MarchingSquares::extract(&grid, 1.0, 1.0);\n\n        MINI_CHECK!(result.len() == 0);\n    })\n}",
-          "file": "marching_squares_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MarchingSquares.test_All Above",
-      "implementations": {
-        "rust": {
-          "sig": "MINI_TEST!(\"MarchingSquares\", \"All Above\")",
-          "code": "MINI_TEST!(\"MarchingSquares\", \"All Above\", crate::marching_squares_test::run_marching_squares_all_above);\n\npub fn run_marching_squares_all_below() -> TestResult {\n    MINI_TEST!(\"All Below\", {\n        use crate::MarchingSquares;\n        let grid = vec![\n            vec![0.0, 0.0, 0.0],\n            vec![0.0, 0.0, 0.0],\n            vec![0.0, 0.0, 0.0],\n        ];\n        let result = MarchingSquares::extract(&grid, 1.0, 1.0);\n\n        MINI_CHECK!(result.len() == 0);\n    })\n}",
-          "file": "marching_squares_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MarchingSquares.test_All Below",
-      "implementations": {
-        "rust": {
-          "sig": "MINI_TEST!(\"MarchingSquares\", \"All Below\")",
-          "code": "MINI_TEST!(\"MarchingSquares\", \"All Below\", crate::marching_squares_test::run_marching_squares_all_below);\n\npub fn run_marching_squares_interpolation() -> TestResult {\n    MINI_TEST!(\"Interpolation\", {\n        use crate::MarchingSquares;\n        let grid = vec![\n            vec![0.0, 2.0],\n            vec![0.0, 2.0],\n        ];\n        let result = MarchingSquares::extract(&grid, 1.0, 1.0);\n\n        MINI_CHECK!(result.len() == 1);\n        let seg = &result[0];\n        MINI_CHECK!(TOLERANCE.is_close(seg.get_point(0).unwrap()[0], 0.5));\n        MINI_CHECK!(TOLERANCE.is_close(seg.get_point(1).unwrap()[0], 0.5));\n    })\n}",
-          "file": "marching_squares_test.rs"
-        }
-      }
-    },
-    {
-      "name": "RTree.test_Perf 10k",
-      "implementations": {
-        "rust": {
-          "sig": "MINI_TEST!(\"RTree\", \"Perf 10k\")",
-          "code": "MINI_TEST!(\"RTree\", \"Perf 10k\", crate::rtree_test::run_rtree_perf);",
-          "file": "rtree_test.rs"
-        }
-      }
     }
   ],
   "recipes": [
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "circle",
+        "n",
         "points",
         "into",
         "subdivide",
-        "n",
+        "circle",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -95282,11 +95460,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "length",
-        "ellipse",
         "by",
-        "arc",
+        "ellipse",
+        "length",
         "subdivide",
+        "arc",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -95301,8 +95479,8 @@ window.API_INDEX = {
       "title": "Arc Through 3 Points",
       "tags": [
         "points",
-        "arc",
         "through",
+        "arc",
         "nurbscurve",
         "primitives",
         "point"
@@ -95316,12 +95494,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "points",
-        "curve",
-        "open",
-        "from",
         "adaptive",
+        "open",
+        "curve",
+        "points",
         "polyline",
+        "from",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -95337,9 +95515,9 @@ window.API_INDEX = {
       "title": "Curve Evaluation at Parameter",
       "tags": [
         "curve",
-        "parameter",
-        "evaluation",
         "at",
+        "evaluation",
+        "parameter",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -95358,9 +95536,9 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
+        "along",
         "length",
         "curve",
-        "along",
         "frames",
         "divide_by_count",
         "frame_at",
@@ -95383,8 +95561,8 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "perpendicular",
         "ellipse",
+        "perpendicular",
         "frames",
         "divide_by_count",
         "frame_at",
@@ -95406,10 +95584,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "surface",
-        "point",
         "evaluate",
         "cylinder",
+        "point",
+        "surface",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -95424,11 +95602,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "and",
-        "from",
-        "vertices",
         "faces",
+        "vertices",
         "mesh",
+        "from",
+        "and",
         "add_vertex",
         "add_face",
         "vertex"
@@ -95575,6 +95753,16 @@ window.API_INDEX = {
       ],
       "summary": "TriangulateResult geometry class"
     },
+    "GlobalTolerance": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "Tolerance",
+        "Vector"
+      ],
+      "summary": "GlobalTolerance geometry class"
+    },
     "MarchingSquares": {
       "composition": [],
       "factories": [],
@@ -95590,22 +95778,6 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
     },
-    "GlobalTolerance": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "Tolerance",
-        "Vector"
-      ],
-      "summary": "GlobalTolerance geometry class"
-    },
-    "GeometryEncoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
-    },
     "BooleanPolyline": {
       "composition": [],
       "factories": [],
@@ -95613,6 +95785,12 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "BooleanPolyline geometry class"
+    },
+    "GeometryEncoder": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
     },
     "CurveKnotStyle": {
       "composition": [],
@@ -95633,18 +95811,6 @@ window.API_INDEX = {
       ],
       "summary": "TrimmedSurface geometry class"
     },
-    "VIntersectNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VIntersectNode geometry class"
-    },
-    "_PartitionVars": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_PartitionVars geometry class"
-    },
     "ToleranceGuard": {
       "composition": [],
       "factories": [],
@@ -95652,6 +95818,18 @@ window.API_INDEX = {
         "Tolerance"
       ],
       "summary": "ToleranceGuard geometry class"
+    },
+    "_PartitionVars": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_PartitionVars geometry class"
+    },
+    "VIntersectNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VIntersectNode geometry class"
     },
     "ElementColumn": {
       "composition": [],
@@ -95670,41 +95848,6 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "SessionConfig geometry class"
-    },
-    "BRepTrimType": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "BRep",
-        "BRepLoopType",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRepTrimType geometry class"
-    },
-    "Intersection": {
-      "composition": [
-        "Element",
-        "Line",
-        "Polyline",
-        "Tolerance",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "ElementPlate",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point"
-      ],
-      "summary": "Intersection geometry class"
     },
     "VattiScratch": {
       "composition": [],
@@ -95732,23 +95875,25 @@ window.API_INDEX = {
       ],
       "summary": "ElementPlate geometry class"
     },
-    "BRepLoopType": {
-      "composition": [],
+    "Intersection": {
+      "composition": [
+        "Element",
+        "Line",
+        "Polyline",
+        "Tolerance",
+        "Vector"
+      ],
       "factories": [],
-      "uses": [],
-      "summary": "BRepLoopType geometry class"
-    },
-    "VLocalMinima": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VLocalMinima geometry class"
-    },
-    "ScanlineHeap": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "ScanlineHeap geometry class"
+      "uses": [
+        "ElementPlate",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point"
+      ],
+      "summary": "Intersection geometry class"
     },
     "NurbsSurface": {
       "composition": [
@@ -95770,6 +95915,39 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
+    "BRepTrimType": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "BRep",
+        "BRepLoopType",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRepTrimType geometry class"
+    },
+    "BRepLoopType": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoopType geometry class"
+    },
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
+    },
+    "ScanlineHeap": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "ScanlineHeap geometry class"
+    },
     "LoftAdjPair": {
       "composition": [],
       "factories": [],
@@ -95788,26 +95966,40 @@ window.API_INDEX = {
       ],
       "summary": "ElementBeam geometry class"
     },
-    "PointCloud": {
-      "composition": [
-        "Color",
-        "Xform"
-      ],
-      "factories": [
-        "AABB",
-        "OBB"
-      ],
-      "uses": [
-        "Point",
-        "Vector"
-      ],
-      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
-    },
-    "Delaunay2D": {
+    "BRepVertex": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Delaunay2D geometry class"
+      "summary": "BRepVertex geometry class"
+    },
+    "ConvexHull": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Point"
+      ],
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+    },
+    "NurbsCurve": {
+      "composition": [
+        "Color",
+        "CurveKnotStyle",
+        "Point",
+        "Tolerance"
+      ],
+      "factories": [
+        "AABB",
+        "BRep",
+        "BRepTrimType",
+        "OBB"
+      ],
+      "uses": [
+        "Plane",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
     "Quaternion": {
       "composition": [
@@ -95835,6 +96027,27 @@ window.API_INDEX = {
       ],
       "summary": "Static factory methods for creating NURBS curve primitives."
     },
+    "PointCloud": {
+      "composition": [
+        "Color",
+        "Xform"
+      ],
+      "factories": [
+        "AABB",
+        "OBB"
+      ],
+      "uses": [
+        "Point",
+        "Vector"
+      ],
+      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
+    },
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
+    },
     "VertexData": {
       "composition": [],
       "factories": [],
@@ -95843,49 +96056,21 @@ window.API_INDEX = {
       ],
       "summary": "Vertex data containing position and attributes."
     },
-    "NurbsCurve": {
-      "composition": [
-        "Color",
-        "CurveKnotStyle",
-        "Point",
-        "Tolerance"
-      ],
-      "factories": [
-        "AABB",
-        "BRep",
-        "BRepTrimType",
-        "OBB"
-      ],
+    "ColorMode": {
+      "composition": [],
+      "factories": [],
       "uses": [
-        "Plane",
+        "AABBTree",
+        "BVH",
+        "Color",
+        "Line",
+        "Mesh",
+        "Point",
+        "Polyline",
         "Vector",
         "Xform"
       ],
-      "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
-    },
-    "BRepVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepVertex geometry class"
-    },
-    "ConvexHull": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Point"
-      ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
-    },
-    "RemeshCDT": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Polyline"
-      ],
-      "summary": "RemeshCDT geometry class"
+      "summary": "ColorMode geometry class"
     },
     "_Delaunay": {
       "composition": [],
@@ -95909,12 +96094,6 @@ window.API_INDEX = {
       ],
       "summary": "FlatMap64 geometry class"
     },
-    "VHorzJoin": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzJoin geometry class"
-    },
     "Tolerance": {
       "composition": [],
       "factories": [],
@@ -95925,21 +96104,64 @@ window.API_INDEX = {
       ],
       "summary": "Tolerance settings for geometric operations."
     },
-    "ColorMode": {
+    "VHorzJoin": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzJoin geometry class"
+    },
+    "RemeshCDT": {
       "composition": [],
       "factories": [],
       "uses": [
-        "AABBTree",
-        "BVH",
-        "Color",
-        "Line",
         "Mesh",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
+        "Polyline"
       ],
-      "summary": "ColorMode geometry class"
+      "summary": "RemeshCDT geometry class"
+    },
+    "TreeNode": {
+      "composition": [
+        "Color"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A node of a tree data structure."
+    },
+    "VHorzSeg": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzSeg geometry class"
+    },
+    "BRepLoop": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoop geometry class"
+    },
+    "Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Edge",
+        "TriangulateResult"
+      ],
+      "summary": "Delaunay geometry class"
+    },
+    "TpmsMode": {
+      "composition": [],
+      "factories": [
+        "MeshIso",
+        "TpmsType"
+      ],
+      "uses": [],
+      "summary": "TpmsMode geometry class"
+    },
+    "BRepTrim": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepTrim geometry class"
     },
     "AABBTree": {
       "composition": [],
@@ -95961,32 +96183,6 @@ window.API_INDEX = {
         "TpmsMode"
       ],
       "summary": "TpmsType geometry class"
-    },
-    "BRepEdge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
-    },
-    "VHorzSeg": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzSeg geometry class"
-    },
-    "TreeNode": {
-      "composition": [
-        "Color"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A node of a tree data structure."
-    },
-    "BRepLoop": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoop geometry class"
     },
     "Polyline": {
       "composition": [
@@ -96011,14 +96207,11 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "TpmsMode": {
+    "BRepFace": {
       "composition": [],
-      "factories": [
-        "MeshIso",
-        "TpmsType"
-      ],
+      "factories": [],
       "uses": [],
-      "summary": "TpmsMode geometry class"
+      "summary": "BRepFace geometry class"
     },
     "Geometry": {
       "composition": [],
@@ -96026,75 +96219,11 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Geometry geometry class"
     },
-    "BRepTrim": {
+    "BRepEdge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepTrim geometry class"
-    },
-    "Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Edge",
-        "TriangulateResult"
-      ],
-      "summary": "Delaunay geometry class"
-    },
-    "BRepFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepFace geometry class"
-    },
-    "_Branch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Branch geometry class"
-    },
-    "VVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VVertex geometry class"
-    },
-    "VActive": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VActive geometry class"
-    },
-    "Default": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "Default geometry class"
-    },
-    "Element": {
-      "composition": [
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "BRep",
-        "ElementBeam",
-        "ElementColumn",
-        "ElementPlate"
-      ],
-      "summary": "Element geometry class"
+      "summary": "BRepEdge geometry class"
     },
     "Session": {
       "composition": [
@@ -96123,37 +96252,25 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "BVHNode": {
-      "composition": [],
+    "Element": {
+      "composition": [
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
       "factories": [],
       "uses": [
         "AABB",
-        "BVH",
-        "OBB",
-        "Point",
-        "Vector"
+        "BRep",
+        "ElementBeam",
+        "ElementColumn",
+        "ElementPlate"
       ],
-      "summary": "A node in the BVH tree."
-    },
-    "Closest": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Static methods for finding closest points between geometry objects."
-    },
-    "VOutRec": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutRec geometry class"
+      "summary": "Element geometry class"
     },
     "Objects": {
       "composition": [
@@ -96173,6 +96290,55 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A collection of all geometry objects."
     },
+    "Default": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "Default geometry class"
+    },
+    "VOutRec": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutRec geometry class"
+    },
+    "VVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VVertex geometry class"
+    },
+    "VActive": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VActive geometry class"
+    },
+    "Closest": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Static methods for finding closest points between geometry objects."
+    },
+    "_Branch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Branch geometry class"
+    },
     "MeshIso": {
       "composition": [],
       "factories": [],
@@ -96185,11 +96351,59 @@ window.API_INDEX = {
       ],
       "summary": "MeshIso geometry class"
     },
+    "BVHNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "BVH",
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "A node in the BVH tree."
+    },
+    "Vertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Graph"
+      ],
+      "summary": "A graph vertex with a unique identifier and attribute string."
+    },
     "RayHit": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "RayHit geometry class"
+    },
+    "KDTree": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [],
+      "uses": [
+        "_Node"
+      ],
+      "summary": "KD-tree for point-to-point nearest-neighbor queries."
+    },
+    "VOutPt": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutPt geometry class"
+    },
+    "Matrix": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Matrix geometry class"
+    },
+    "BIVec2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BIVec2 geometry class"
     },
     "Vector": {
       "composition": [
@@ -96203,67 +96417,6 @@ window.API_INDEX = {
       ],
       "uses": [],
       "summary": "A 3D vector with visual properties."
-    },
-    "VOutPt": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutPt geometry class"
-    },
-    "KDTree": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [],
-      "uses": [
-        "_Node"
-      ],
-      "summary": "KD-tree for point-to-point nearest-neighbor queries."
-    },
-    "BIVec2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BIVec2 geometry class"
-    },
-    "Matrix": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Matrix geometry class"
-    },
-    "Vertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Graph"
-      ],
-      "summary": "A graph vertex with a unique identifier and attribute string."
-    },
-    "RTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RTree geometry class"
-    },
-    "_Node": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Node geometry class"
-    },
-    "Xform": {
-      "composition": [
-        "Point",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Plane",
-        "Polyline"
-      ],
-      "summary": "Xform geometry class"
     },
     "Point": {
       "composition": [],
@@ -96279,6 +96432,37 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A 3D point with visual properties."
     },
+    "_Node": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Node geometry class"
+    },
+    "RTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "RTree geometry class"
+    },
+    "Xform": {
+      "composition": [
+        "Point",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Line",
+        "Plane",
+        "Polyline"
+      ],
+      "summary": "Xform geometry class"
+    },
+    "Color": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "An index-based 0-255 color with RGBA values."
+    },
     "Graph": {
       "composition": [
         "Edge"
@@ -96289,11 +96473,11 @@ window.API_INDEX = {
       ],
       "summary": "A graph data structure with string-only vertices and attributes."
     },
-    "Color": {
+    "_Edge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "An index-based 0-255 color with RGBA values."
+      "summary": "_Edge geometry class"
     },
     "Plane": {
       "composition": [],
@@ -96308,51 +96492,35 @@ window.API_INDEX = {
       ],
       "summary": "A 3D plane defined by origin and coordinate axes."
     },
-    "_Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Edge geometry class"
-    },
     "_Rect": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Rect geometry class"
     },
-    "Mesh": {
+    "Tree": {
       "composition": [
-        "AABBTree",
-        "ColorMode",
-        "LoftAdjPair",
-        "LoftPanel",
-        "LoftWallFace"
+        "TreeNode"
       ],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Element",
-        "MeshIso",
-        "OBB",
-        "RemeshCDT",
-        "RemeshNurbsSurfaceGrid",
-        "TpmsType"
-      ],
-      "uses": [
-        "Color",
-        "Line",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "A halfedge mesh data structure for representing polygonal surfaces."
-    },
-    "_Tri": {
-      "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Tri geometry class"
+      "summary": "A hierarchical data structure with parent-child relationships."
+    },
+    "AABB": {
+      "composition": [],
+      "factories": [
+        "OBB"
+      ],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Axis-aligned bounding box (center + half-size)."
     },
     "Line": {
       "composition": [
@@ -96393,56 +96561,51 @@ window.API_INDEX = {
       ],
       "summary": "BRep geometry class"
     },
-    "AABB": {
-      "composition": [],
-      "factories": [
-        "OBB"
-      ],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Axis-aligned bounding box (center + half-size)."
-    },
     "_P64": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_P64 geometry class"
     },
+    "_Tri": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Tri geometry class"
+    },
+    "Mesh": {
+      "composition": [
+        "AABBTree",
+        "ColorMode",
+        "LoftAdjPair",
+        "LoftPanel",
+        "LoftWallFace"
+      ],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Element",
+        "MeshIso",
+        "OBB",
+        "RemeshCDT",
+        "RemeshNurbsSurfaceGrid",
+        "TpmsType"
+      ],
+      "uses": [
+        "Color",
+        "Line",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "A halfedge mesh data structure for representing polygonal surfaces."
+    },
     "Edge": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "A graph edge connecting two vertices with an attribute string."
-    },
-    "Tree": {
-      "composition": [
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
-    },
-    "BVH": {
-      "composition": [
-        "AABB",
-        "BVHNode"
-      ],
-      "factories": [
-        "BVHNode"
-      ],
-      "uses": [
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
     },
     "OBB": {
       "composition": [
@@ -96467,6 +96630,21 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
+    },
+    "BVH": {
+      "composition": [
+        "AABB",
+        "BVHNode"
+      ],
+      "factories": [
+        "BVHNode"
+      ],
+      "uses": [
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
     },
     "_V2": {
       "composition": [],
@@ -101640,6 +101818,9 @@ window.API_INDEX = {
     "isfinite": [
       "std.isfinite"
     ],
+    "tan": [
+      "std.tan"
+    ],
     "in_circumcircle": [
       "Delaunay2D.in_circumcircle",
       "FlatMap64.in_circumcircle"
@@ -102567,10 +102748,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Polyline": {
-      "cpp": 82,
+      "cpp": 83,
       "python": 97,
       "rust": 72,
-      "gaps": 73,
+      "gaps": 72,
       "present_in": [
         "cpp",
         "python",
@@ -102765,7 +102946,7 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Tolerance": {
-      "cpp": 41,
+      "cpp": 47,
       "python": 40,
       "rust": 36,
       "gaps": 24,
@@ -102858,10 +103039,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "std": {
-      "cpp": 21,
+      "cpp": 22,
       "python": 0,
       "rust": 0,
-      "gaps": 21,
+      "gaps": 22,
       "present_in": [
         "cpp"
       ],

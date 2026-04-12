@@ -29,7 +29,7 @@
     "line": 15,
     "passed": true,
     "test_name": "Is Close",
-    "time_ms": 0.001
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 23,
     "passed": true,
     "test_name": "Is Positive",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -93,7 +93,7 @@
     "line": 47,
     "passed": true,
     "test_name": "Format Number",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -109,7 +109,7 @@
     "line": 55,
     "passed": true,
     "test_name": "Key",
-    "time_ms": 0.007
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -160,7 +160,7 @@
     "line": 63,
     "passed": true,
     "test_name": "Runtime Modification",
-    "time_ms": 0.005
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -201,7 +201,7 @@
     "line": 154,
     "passed": true,
     "test_name": "Count Digits",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -357,6 +357,143 @@
     "line": 93,
     "passed": true,
     "test_name": "Unique From Two Int",
+    "time_ms": 0.0
+  },
+  {
+    "checks": [
+      {
+        "code_line": "prec == 9",
+        "line": 225,
+        "passed": true
+      }
+    ],
+    "code": "        // Default absolute tolerance is 1e-9 -> precision should be 9\n        let prec = TOLERANCE.precision_from_tolerance(None);\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 221,
+    "passed": true,
+    "test_name": "Precision From Tolerance",
+    "time_ms": 0.002
+  },
+  {
+    "checks": [
+      {
+        "code_line": "(Tolerance::round_to(3.14159, 2) - 3.14).abs() < 1e-9",
+        "line": 215,
+        "passed": true
+      },
+      {
+        "code_line": "(Tolerance::round_to(2.5, 0) - 3.0).abs() < 1e-9",
+        "line": 216,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tolerance::Tolerance;",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 213,
+    "passed": true,
+    "test_name": "Round To",
+    "time_ms": 0.0
+  },
+  {
+    "checks": [
+      {
+        "code_line": "result == \"1.000,2.000\"",
+        "line": 208,
+        "passed": true
+      }
+    ],
+    "code": "        let result = TOLERANCE.key_xy([1.0, 2.0], -999);\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 205,
+    "passed": true,
+    "test_name": "Key Xy",
+    "time_ms": 0.003
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_allclose(&a, &b)",
+        "line": 199,
+        "passed": true
+      },
+      {
+        "code_line": "!TOLERANCE.is_allclose(&a, &c)",
+        "line": 200,
+        "passed": true
+      }
+    ],
+    "code": "        let a = vec![1.0, 2.0, 3.0];\n        let b = vec![1.0, 2.0, 3.0 + 1e-12];\n        let c = vec![1.0, 2.0, 4.0];\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 194,
+    "passed": true,
+    "test_name": "Is Allclose",
+    "time_ms": 0.0
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_point_close(&a, &b)",
+        "line": 188,
+        "passed": true
+      },
+      {
+        "code_line": "!TOLERANCE.is_point_close(&a, &c)",
+        "line": 189,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Point;\n\n        let a = Point::new(1.0, 2.0, 3.0);\n        let b = Point::new(1.0, 2.0, 3.0 + 1e-12);\n        let c = Point::new(1.0, 2.0, 4.0);\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 181,
+    "passed": true,
+    "test_name": "Is Point Close",
+    "time_ms": 0.002
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_angles_close(1.0, 1.0 + 1e-8)",
+        "line": 175,
+        "passed": true
+      },
+      {
+        "code_line": "!TOLERANCE.is_angles_close(1.0, 2.0)",
+        "line": 176,
+        "passed": true
+      }
+    ],
+    "code": "",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 174,
+    "passed": true,
+    "test_name": "Is Angles Close",
+    "time_ms": 0.0
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_angle_zero(1e-8)",
+        "line": 168,
+        "passed": true
+      },
+      {
+        "code_line": "!TOLERANCE.is_angle_zero(0.1)",
+        "line": 169,
+        "passed": true
+      }
+    ],
+    "code": "        // Angular tolerance default is 1e-6",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 166,
+    "passed": true,
+    "test_name": "Is Angle Zero",
     "time_ms": 0.0
   }
 ]

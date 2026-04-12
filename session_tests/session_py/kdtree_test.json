@@ -3,18 +3,18 @@
     "group": "KDTree",
     "test_name": "Nearest",
     "passed": true,
-    "time_ms": 2.581,
+    "time_ms": 0.051,
     "line": 8,
-    "code": "    from session_py import KDTree, Point\n    import random\n    rng = random.Random(42)\n    pts = []\n    for _ in range(100):\n        pts.append(Point(rng.uniform(-10.0, 10.0), rng.uniform(-10.0, 10.0), rng.uniform(-10.0, 10.0)))\n    tree = KDTree(pts)\n    query = Point(0.0, 0.0, 0.0)\n    idx, dist = tree.nearest(query)\n    brute_idx = min(range(len(pts)), key=lambda i: (pts[i][0]**2 + pts[i][1]**2 + pts[i][2]**2))\n    brute_dist = math.sqrt(pts[brute_idx][0]**2 + pts[brute_idx][1]**2 + pts[brute_idx][2]**2)",
+    "code": "    from session_py import KDTree, Point\n\n    # 5 known points on a line: 0, 1, 2, 3, 4\n    # Query at 1.1 \u2014 nearest should be index 1 (point at x=1), distance 0.1\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(1.1, 0.0, 0.0)\n    idx, dist = tree.nearest(query)",
     "checks": [
       {
-        "line": 22,
-        "code_line": "idx == brute_idx",
+        "line": 25,
+        "code_line": "idx == 1",
         "passed": true
       },
       {
-        "line": 23,
-        "code_line": "TOLERANCE.is_close(dist, brute_dist)",
+        "line": 26,
+        "code_line": "TOLERANCE.is_close(dist, 0.1)",
         "passed": true
       }
     ],
@@ -22,29 +22,29 @@
   },
   {
     "group": "KDTree",
-    "test_name": "NearestK",
+    "test_name": "Nearest K",
     "passed": true,
-    "time_ms": 0.077,
-    "line": 26,
-    "code": "    from session_py import KDTree, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(1.5, 0.0, 0.0)\n    result = tree.nearest_k(query, 3)",
+    "time_ms": 0.046,
+    "line": 29,
+    "code": "    from session_py import KDTree, Point\n\n    # 5 points on X axis: 0, 1, 2, 3, 4\n    # Query at 1.5 \u2014 3 nearest are: x=1 (d=0.5), x=2 (d=0.5), x=3 (d=1.5)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(1.5, 0.0, 0.0)\n    result = tree.nearest_k(query, 3)",
     "checks": [
       {
-        "line": 40,
+        "line": 46,
         "code_line": "len(result) == 3",
         "passed": true
       },
       {
-        "line": 41,
+        "line": 47,
         "code_line": "TOLERANCE.is_close(result[0][1], 0.5)",
         "passed": true
       },
       {
-        "line": 42,
+        "line": 48,
         "code_line": "TOLERANCE.is_close(result[1][1], 0.5)",
         "passed": true
       },
       {
-        "line": 43,
+        "line": 49,
         "code_line": "TOLERANCE.is_close(result[2][1], 1.5)",
         "passed": true
       }
@@ -53,24 +53,24 @@
   },
   {
     "group": "KDTree",
-    "test_name": "RadiusSearch",
+    "test_name": "Radius Search",
     "passed": true,
-    "time_ms": 0.053,
-    "line": 46,
-    "code": "    from session_py import KDTree, Point\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(0.5, 0.0, 0.0)\n    result = tree.radius_search(query, 1.1)",
+    "time_ms": 0.067,
+    "line": 52,
+    "code": "    from session_py import KDTree, Point\n\n    # 4 points: 0, 1, 2, 5 on X axis\n    # Query at 0.5, radius 1.1 \u2014 finds x=0 (d=0.5) and x=1 (d=0.5)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    query = Point(0.5, 0.0, 0.0)\n    result = tree.radius_search(query, 1.1)",
     "checks": [
       {
-        "line": 59,
+        "line": 68,
         "code_line": "len(result) == 2",
         "passed": true
       },
       {
-        "line": 60,
+        "line": 69,
         "code_line": "TOLERANCE.is_close(result[0][1], 0.5)",
         "passed": true
       },
       {
-        "line": 61,
+        "line": 70,
         "code_line": "TOLERANCE.is_close(result[1][1], 0.5)",
         "passed": true
       }
@@ -79,19 +79,19 @@
   },
   {
     "group": "KDTree",
-    "test_name": "SinglePoint",
+    "test_name": "Single Point",
     "passed": true,
-    "time_ms": 0.028,
-    "line": 64,
-    "code": "    from session_py import KDTree, Point\n    pts = [Point(3.0, 4.0, 0.0)]\n    tree = KDTree(pts)\n    query = Point(0.0, 0.0, 0.0)\n    idx, dist = tree.nearest(query)",
+    "time_ms": 0.02,
+    "line": 73,
+    "code": "    from session_py import KDTree, Point\n\n    # Tree with one point at (3,4,0). Query from origin.\n    # Distance = sqrt(9+16) = 5 (3-4-5 right triangle)\n    pts = [Point(3.0, 4.0, 0.0)]\n    tree = KDTree(pts)\n    query = Point(0.0, 0.0, 0.0)\n    idx, dist = tree.nearest(query)",
     "checks": [
       {
-        "line": 72,
+        "line": 84,
         "code_line": "idx == 0",
         "passed": true
       },
       {
-        "line": 73,
+        "line": 85,
         "code_line": "TOLERANCE.is_close(dist, 5.0)",
         "passed": true
       }
@@ -100,14 +100,14 @@
   },
   {
     "group": "KDTree",
-    "test_name": "NearestBruteForce",
+    "test_name": "Nearest Brute Force",
     "passed": true,
-    "time_ms": 1.002,
-    "line": 76,
-    "code": "    from session_py import KDTree, Point\n    import random\n    rng = random.Random(7)\n    pts = []\n    for _ in range(50):\n        pts.append(Point(rng.uniform(0.0, 100.0), rng.uniform(0.0, 100.0), rng.uniform(0.0, 100.0)))\n    tree = KDTree(pts)\n    queries = [Point(rng.uniform(0.0, 100.0), rng.uniform(0.0, 100.0), rng.uniform(0.0, 100.0)) for _ in range(10)]\n    all_match = True\n    for q in queries:\n        idx, dist = tree.nearest(q)\n        brute = min(range(len(pts)), key=lambda i: (pts[i][0]-q[0])**2+(pts[i][1]-q[1])**2+(pts[i][2]-q[2])**2)\n        brute_d = math.sqrt((pts[brute][0]-q[0])**2+(pts[brute][1]-q[1])**2+(pts[brute][2]-q[2])**2)\n        if not TOLERANCE.is_close(dist, brute_d):\n            all_match = False",
+    "time_ms": 0.089,
+    "line": 88,
+    "code": "    from session_py import KDTree, Point\n\n    # 8 points in 3D \u2014 verify KDTree matches brute-force for several queries\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(5.0, 5.0, 5.0),\n        Point(-3.0, 2.0, 1.0),\n        Point(2.0, -1.0, 3.0),\n        Point(-1.0, -1.0, -1.0),\n    ]\n    tree = KDTree(pts)\n    queries = [\n        Point(0.5, 0.5, 0.5),\n        Point(4.0, 4.0, 4.0),\n        Point(-2.0, 1.0, 0.0),\n    ]\n    all_match = True\n    for q in queries:\n        idx, dist = tree.nearest(q)\n        # Brute-force: find closest by scanning all points\n        brute = min(range(len(pts)), key=lambda i: pts[i].squared_distance(q))\n        brute_d = pts[brute].distance(q)\n        if not TOLERANCE.is_close(dist, brute_d):\n            all_match = False",
     "checks": [
       {
-        "line": 94,
+        "line": 118,
         "code_line": "all_match",
         "passed": true
       }

@@ -3,7 +3,7 @@
     "group": "MarchingSquares",
     "test_name": "Extract",
     "passed": true,
-    "time_ms": 0.041,
+    "time_ms": 0.037,
     "line": 10,
     "code": "    // uncomment #include \"marching_squares.h\"\n    std::vector<std::vector<double>> grid = {\n        {0.0, 0.0, 0.0},\n        {0.0, 1.0, 0.0},\n        {0.0, 0.0, 0.0},\n    };\n    auto result = MarchingSquares::extract(grid, 0.5, 1.0);",
     "checks": [
@@ -27,9 +27,9 @@
   },
   {
     "group": "MarchingSquares",
-    "test_name": "ExtractFromFunc",
+    "test_name": "Extract From Func",
     "passed": true,
-    "time_ms": 0.161,
+    "time_ms": 0.119,
     "line": 24,
     "code": "    // uncomment #include \"marching_squares.h\"\n    auto result = MarchingSquares::extract_from_func(\n        [](double x, double y) { return 1.0 - (x * x + y * y); },\n        {-2.0, 2.0}, {-2.0, 2.0}, 20, 20, 0.0\n    );",
     "checks": [
@@ -43,9 +43,9 @@
   },
   {
     "group": "MarchingSquares",
-    "test_name": "EmptyGrid",
+    "test_name": "Empty Grid",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.006,
     "line": 34,
     "code": "    // uncomment #include \"marching_squares.h\"\n    std::vector<std::vector<double>> grid;\n    auto result = MarchingSquares::extract(grid, 0.5, 1.0);",
     "checks": [
@@ -59,9 +59,9 @@
   },
   {
     "group": "MarchingSquares",
-    "test_name": "AllAbove",
+    "test_name": "All Above",
     "passed": true,
-    "time_ms": 0.03,
+    "time_ms": 0.002,
     "line": 42,
     "code": "    // uncomment #include \"marching_squares.h\"\n    std::vector<std::vector<double>> grid = {\n        {2.0, 2.0, 2.0},\n        {2.0, 2.0, 2.0},\n        {2.0, 2.0, 2.0},\n    };\n    auto result = MarchingSquares::extract(grid, 1.0, 1.0);",
     "checks": [
@@ -75,7 +75,7 @@
   },
   {
     "group": "MarchingSquares",
-    "test_name": "AllBelow",
+    "test_name": "All Below",
     "passed": true,
     "time_ms": 0.002,
     "line": 54,
@@ -93,7 +93,7 @@
     "group": "MarchingSquares",
     "test_name": "Interpolation",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.01,
     "line": 66,
     "code": "    // uncomment #include \"marching_squares.h\"\n    std::vector<std::vector<double>> grid = {\n        {0.0, 2.0},\n        {0.0, 2.0},\n    };\n    auto result = MarchingSquares::extract(grid, 1.0, 1.0);\n\n    auto seg = result[0];",
     "checks": [

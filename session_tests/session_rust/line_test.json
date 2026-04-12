@@ -128,7 +128,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.049
+    "time_ms": 0.027
   },
   {
     "checks": [
@@ -154,7 +154,7 @@
     "line": 116,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.01
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -215,205 +215,205 @@
     "line": 132,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 9.844
+    "time_ms": 5.896
   },
   {
     "checks": [
       {
         "code_line": "loaded_s.name == \"test_line\"",
-        "line": 183,
+        "line": 188,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded_s[0], 42.1)",
-        "line": 184,
+        "line": 189,
         "passed": true
       },
       {
         "code_line": "loaded_s.guid() == l.guid()",
-        "line": 185,
+        "line": 190,
         "passed": true
       },
       {
         "code_line": "loaded.name == \"test_line\"",
-        "line": 192,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(loaded[0], 42.1)",
-        "line": 193,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(loaded[1], 84.2)",
-        "line": 194,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(loaded[2], 126.3)",
-        "line": 195,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(loaded[3], 168.4)",
-        "line": 196,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(loaded[4], 210.5)",
         "line": 197,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(loaded[5], 252.6)",
+        "code_line": "TOLERANCE.is_close(loaded[0], 42.1)",
         "line": 198,
         "passed": true
       },
       {
-        "code_line": "loaded.guid() == l.guid()",
+        "code_line": "TOLERANCE.is_close(loaded[1], 84.2)",
         "line": 199,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded[2], 126.3)",
+        "line": 200,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded[3], 168.4)",
+        "line": 201,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded[4], 210.5)",
+        "line": 202,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded[5], 252.6)",
+        "line": 203,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.guid() == l.guid()",
+        "line": 204,
         "passed": true
       }
     ],
-    "code": "        use crate::Line;\n\n        let mut l = Line::new(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n        l.name = \"test_line\".to_string();\n\n        // Bytes\n        let b = l.pb_dumps();\n        let loaded_s = Line::pb_loads(&b).unwrap();\n\n\n        // File\n        let fname = \"serialization/test_line.bin\";\n        l.pb_dump(fname);\n        let loaded = Line::pb_load(fname);\n",
+    "code": "        use crate::Line;\n\n        let mut l = Line::new(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n        l.name = \"test_line\".to_string();\n\n        //   pb_dumps()      | bytes        | to protobuf bytes\n        //   pb_loads(b)     | bytes        | from protobuf bytes\n        //   pb_dump(path)   | file         | write to file\n        //   pb_load(path)   | file         | read from file\n\n        // Bytes\n        let b = l.pb_dumps();\n        let loaded_s = Line::pb_loads(&b).unwrap();\n\n\n        // File\n        let fname = \"serialization/test_line.bin\";\n        l.pb_dump(fname);\n        let loaded = Line::pb_load(fname);\n",
     "failures": [],
     "group": "Line",
     "line": 173,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 12.382
+    "time_ms": 5.726
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(ln, 5.0)",
-        "line": 211,
+        "line": 216,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(lsq, 25.0)",
-        "line": 212,
+        "line": 217,
         "passed": true
       }
     ],
     "code": "        use crate::Line;\n\n        let l = Line::new(0.0, 0.0, 0.0, 3.0, 4.0, 0.0);\n        let ln = l.length();\n        let lsq = l.squared_length();\n",
     "failures": [],
     "group": "Line",
-    "line": 204,
+    "line": 209,
     "passed": true,
     "test_name": "Length",
-    "time_ms": 0.011
+    "time_ms": 0.0
   },
   {
     "checks": [
       {
         "code_line": "v[0] == 3.0 && v[1] == 4.0 && v[2] == 6.0",
-        "line": 223,
+        "line": 228,
         "passed": true
       }
     ],
     "code": "        use crate::Line;\n\n        let l = Line::new(1.0, 2.0, 3.0, 4.0, 6.0, 9.0);\n        let v = l.to_vector();\n",
     "failures": [],
     "group": "Line",
-    "line": 217,
+    "line": 222,
     "passed": true,
     "test_name": "To Vector",
-    "time_ms": 0.005
+    "time_ms": 0.004
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(d[0], 0.6)",
-        "line": 234,
+        "line": 239,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(d[1], 0.8)",
-        "line": 235,
+        "line": 240,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(d[2], 0.0)",
-        "line": 236,
+        "line": 241,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(d.magnitude(), 1.0)",
-        "line": 237,
+        "line": 242,
         "passed": true
       }
     ],
     "code": "        use crate::Line;\n\n        let l = Line::new(0.0, 0.0, 0.0, 3.0, 4.0, 0.0);\n        let d = l.to_direction();\n",
     "failures": [],
     "group": "Line",
-    "line": 228,
+    "line": 233,
     "passed": true,
     "test_name": "To Direction",
-    "time_ms": 0.01
+    "time_ms": 0.001
   },
   {
     "checks": [
       {
         "code_line": "ps[0] == 0.0 && ps[1] == 0.0 && ps[2] == 0.0",
-        "line": 250,
+        "line": 255,
         "passed": true
       },
       {
         "code_line": "pm[0] == 5.0 && pm[1] == 5.0 && pm[2] == 5.0",
-        "line": 251,
+        "line": 256,
         "passed": true
       },
       {
         "code_line": "pe[0] == 10.0 && pe[1] == 10.0 && pe[2] == 10.0",
-        "line": 252,
+        "line": 257,
         "passed": true
       }
     ],
     "code": "        use crate::Line;\n\n        let l = Line::new(0.0, 0.0, 0.0, 10.0, 10.0, 10.0);\n        let ps = l.point_at(0.0);\n        let pm = l.point_at(0.5);\n        let pe = l.point_at(1.0);\n",
     "failures": [],
     "group": "Line",
-    "line": 242,
+    "line": 247,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.006
+    "time_ms": 0.001
   },
   {
     "checks": [
       {
         "code_line": "cp1[0] == 5.0 && cp1[1] == 0.0 && cp1[2] == 0.0",
-        "line": 269,
+        "line": 274,
         "passed": true
       },
       {
         "code_line": "cp2[0] == 0.0 && cp2[1] == 0.0 && cp2[2] == 0.0",
-        "line": 270,
+        "line": 275,
         "passed": true
       },
       {
         "code_line": "cp3[0] == 10.0 && cp3[1] == 0.0 && cp3[2] == 0.0",
-        "line": 271,
+        "line": 276,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(t1, 0.5)",
-        "line": 272,
+        "line": 277,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(t2, 0.0)",
-        "line": 273,
+        "line": 278,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(t3, 1.0)",
-        "line": 274,
+        "line": 279,
         "passed": true
       }
     ],
     "code": "        use crate::Line;\n        use crate::Point;\n\n        let l = Line::new(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n        let p1 = Point::new(5.0, 5.0, 0.0);\n        let p2 = Point::new(-5.0, 0.0, 0.0);\n        let p3 = Point::new(15.0, 0.0, 0.0);\n        let (t1, cp1) = l.closest_point(&p1, true);\n        let (t2, cp2) = l.closest_point(&p2, true);\n        let (t3, cp3) = l.closest_point(&p3, true);\n",
     "failures": [],
     "group": "Line",
-    "line": 257,
+    "line": 262,
     "passed": true,
     "test_name": "Closest Point",
     "time_ms": 0.005
@@ -422,156 +422,156 @@
     "checks": [
       {
         "code_line": "start[0] == 1.0 && start[1] == 2.0 && start[2] == 3.0",
-        "line": 287,
+        "line": 292,
         "passed": true
       },
       {
         "code_line": "end[0] == 4.0 && end[1] == 5.0 && end[2] == 6.0",
-        "line": 288,
+        "line": 293,
         "passed": true
       },
       {
         "code_line": "center[0] == 2.5 && center[1] == 3.5 && center[2] == 4.5",
-        "line": 289,
+        "line": 294,
         "passed": true
       }
     ],
     "code": "        use crate::Line;\n\n        let l = Line::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);\n        let start = l.start();\n        let end = l.end();\n        let center = l.center();\n",
     "failures": [],
     "group": "Line",
-    "line": 279,
+    "line": 284,
     "passed": true,
     "test_name": "Start End Center",
-    "time_ms": 0.204
+    "time_ms": 0.003
   },
   {
     "checks": [
       {
         "code_line": "l_fit.length() > 0.0",
-        "line": 306,
+        "line": 311,
         "passed": true
       }
     ],
     "code": "        use crate::Line;\n        use crate::Point;\n\n        let fit_pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.5),\n            Point::new(2.0, 2.0, 1.0),\n            Point::new(3.0, 3.0, 1.5),\n        ];\n        let l_fit = Line::fit_points(&fit_pts, None);\n",
     "failures": [],
     "group": "Line",
-    "line": 294,
+    "line": 299,
     "passed": true,
     "test_name": "Fit Points",
-    "time_ms": 0.006
+    "time_ms": 0.004
   },
   {
     "checks": [
       {
         "code_line": "pts.len() == 3",
-        "line": 322,
-        "passed": true
-      },
-      {
-        "code_line": "pts[0][0] == 0.0",
-        "line": 323,
-        "passed": true
-      },
-      {
-        "code_line": "pts[1][0] == 5.0",
-        "line": 324,
-        "passed": true
-      },
-      {
-        "code_line": "pts[2][0] == 10.0",
-        "line": 325,
-        "passed": true
-      },
-      {
-        "code_line": "pts_dist.len() == 5",
-        "line": 326,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pts_dist[0][0], 0.0)",
         "line": 327,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(pts_dist[1][0], 2.5)",
+        "code_line": "pts[0][0] == 0.0",
         "line": 328,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(pts_dist[4][0], 10.0)",
+        "code_line": "pts[1][0] == 5.0",
         "line": 329,
+        "passed": true
+      },
+      {
+        "code_line": "pts[2][0] == 10.0",
+        "line": 330,
+        "passed": true
+      },
+      {
+        "code_line": "pts_dist.len() == 5",
+        "line": 331,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pts_dist[0][0], 0.0)",
+        "line": 332,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pts_dist[1][0], 2.5)",
+        "line": 333,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pts_dist[4][0], 10.0)",
+        "line": 334,
         "passed": true
       }
     ],
     "code": "        use crate::Line;\n\n        let l = Line::new(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n\n        // subdivide by count\n        let pts = l.subdivide(3);\n\n        // subdivide_by_distance\n        let pts_dist = l.subdivide_by_distance(2.5);\n",
     "failures": [],
     "group": "Line",
-    "line": 311,
+    "line": 316,
     "passed": true,
     "test_name": "Subdivide",
-    "time_ms": 0.013
+    "time_ms": 0.004
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(l.start()[0], -1.0)",
-        "line": 360,
+        "line": 365,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(l.end()[0], 12.0)",
-        "line": 361,
+        "line": 366,
         "passed": true
       }
     ],
     "code": "        use crate::{Line, Point};\n        let mut l = Line::from_points(&Point::new(0.0, 0.0, 0.0), &Point::new(10.0, 0.0, 0.0));\n        l.extend(1.0, 2.0);",
     "failures": [],
     "group": "Line",
-    "line": 356,
+    "line": 361,
     "passed": true,
     "test_name": "Extend",
-    "time_ms": 0.009
+    "time_ms": 0.004
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(out.start()[0], 5.0)",
-        "line": 350,
+        "line": 355,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(out.end()[0], 10.0)",
-        "line": 351,
+        "line": 356,
         "passed": true
       }
     ],
     "code": "        use crate::{Line, Point};\n        let l0 = Line::from_points(&Point::new(0.0, 0.0, 0.0), &Point::new(10.0, 0.0, 0.0));\n        let l1 = Line::from_points(&Point::new(5.0, 0.0, 0.0), &Point::new(15.0, 0.0, 0.0));\n        let out = l0.overlap_average(&l1).unwrap();",
     "failures": [],
     "group": "Line",
-    "line": 345,
+    "line": 350,
     "passed": true,
     "test_name": "Overlap Average",
-    "time_ms": 0.166
+    "time_ms": 0.008
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(out.start()[0], 5.0)",
-        "line": 339,
+        "line": 344,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(out.end()[0], 10.0)",
-        "line": 340,
+        "line": 345,
         "passed": true
       }
     ],
     "code": "        use crate::{Line, Point};\n        let l0 = Line::from_points(&Point::new(0.0, 0.0, 0.0), &Point::new(10.0, 0.0, 0.0));\n        let l1 = Line::from_points(&Point::new(5.0, 0.0, 0.0), &Point::new(15.0, 0.0, 0.0));\n        let out = l0.overlap(&l1).unwrap();",
     "failures": [],
     "group": "Line",
-    "line": 334,
+    "line": 339,
     "passed": true,
     "test_name": "Overlap",
-    "time_ms": 0.006
+    "time_ms": 0.003
   }
 ]

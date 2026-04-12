@@ -3,17 +3,17 @@
     "checks": [
       {
         "code_line": "all_match",
-        "line": 121,
+        "line": 125,
         "passed": true
       }
     ],
-    "code": "        use crate::{KDTree, Point};\n        let mut seed: u64 = 7;\n        let mut rng = || -> f64 {\n            seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);\n            (seed >> 33) as f64 / (u32::MAX as f64) * 100.0\n        };\n        let mut pts = vec![];\n        for _ in 0..50 {\n            pts.push(Point::new(rng(), rng(), rng()));\n        }\n        let mut queries = vec![];\n        for _ in 0..10 {\n            queries.push(Point::new(rng(), rng(), rng()));\n        }\n        let tree = KDTree::new(pts.clone());\n        let mut all_match = true;\n        for q in &queries {\n            let (_idx, dist) = tree.nearest(q);\n            let brute = (0..pts.len()).min_by(|&a, &b| {\n                let da = (pts[a][0]-q[0]).powi(2)+(pts[a][1]-q[1]).powi(2)+(pts[a][2]-q[2]).powi(2);\n                let db = (pts[b][0]-q[0]).powi(2)+(pts[b][1]-q[1]).powi(2)+(pts[b][2]-q[2]).powi(2);\n                da.partial_cmp(&db).unwrap()\n            }).unwrap();\n            let brute_d = ((pts[brute][0]-q[0]).powi(2)+(pts[brute][1]-q[1]).powi(2)+(pts[brute][2]-q[2]).powi(2)).sqrt();\n            if !TOLERANCE.is_close(dist, brute_d) {\n                all_match = false;\n            }\n        }\n",
+    "code": "        use crate::{KDTree, Point};\n\n        // 8 points in 3D — verify KDTree matches brute-force for several queries\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(0.0, 0.0, 1.0),\n            Point::new(5.0, 5.0, 5.0),\n            Point::new(-3.0, 2.0, 1.0),\n            Point::new(2.0, -1.0, 3.0),\n            Point::new(-1.0, -1.0, -1.0),\n        ];\n        let tree = KDTree::new(pts.clone());\n        let queries = vec![\n            Point::new(0.5, 0.5, 0.5),\n            Point::new(4.0, 4.0, 4.0),\n            Point::new(-2.0, 1.0, 0.0),\n        ];\n        let mut all_match = true;\n        for q in &queries {\n            let (_idx, dist) = tree.nearest(q);\n            // Brute-force: find closest by scanning all points\n            let brute = (0..pts.len()).min_by(|&a, &b| {\n                let da = pts[a].squared_distance(q, None);\n                let db = pts[b].squared_distance(q, None);\n                da.partial_cmp(&db).unwrap()\n            }).unwrap();\n            let brute_d = pts[brute].distance(q, None);\n            if !TOLERANCE.is_close(dist, brute_d) {\n                all_match = false;\n            }\n        }\n",
     "failures": [],
     "group": "KDTree",
-    "line": 91,
+    "line": 90,
     "passed": true,
-    "test_name": "NearestBruteForce",
-    "time_ms": 0.602
+    "test_name": "Nearest Brute Force",
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -28,90 +28,90 @@
         "passed": true
       }
     ],
-    "code": "        use crate::{KDTree, Point};\n        let pts = vec![Point::new(3.0, 4.0, 0.0)];\n        let tree = KDTree::new(pts);\n        let query = Point::new(0.0, 0.0, 0.0);\n        let (idx, dist) = tree.nearest(&query);\n",
+    "code": "        use crate::{KDTree, Point};\n\n        // Tree with one point at (3,4,0). Query from origin.\n        // Distance = sqrt(9+16) = 5 (3-4-5 right triangle)\n        let pts = vec![Point::new(3.0, 4.0, 0.0)];\n        let tree = KDTree::new(pts);\n        let query = Point::new(0.0, 0.0, 0.0);\n        let (idx, dist) = tree.nearest(&query);\n",
     "failures": [],
     "group": "KDTree",
-    "line": 77,
+    "line": 74,
     "passed": true,
-    "test_name": "SinglePoint",
-    "time_ms": 0.003
+    "test_name": "Single Point",
+    "time_ms": 0.001
   },
   {
     "checks": [
       {
         "code_line": "result.len() == 2",
-        "line": 69,
+        "line": 67,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(result[0].1, 0.5)",
-        "line": 70,
+        "line": 68,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(result[1].1, 0.5)",
-        "line": 71,
+        "line": 69,
         "passed": true
       }
     ],
-    "code": "        use crate::{KDTree, Point};\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(5.0, 0.0, 0.0),\n        ];\n        let tree = KDTree::new(pts);\n        let query = Point::new(0.5, 0.0, 0.0);\n        let result = tree.radius_search(&query, 1.1);\n",
+    "code": "        use crate::{KDTree, Point};\n\n        // 4 points: 0, 1, 2, 5 on X axis\n        // Query at 0.5, radius 1.1 — finds x=0 (d=0.5) and x=1 (d=0.5)\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(5.0, 0.0, 0.0),\n        ];\n        let tree = KDTree::new(pts);\n        let query = Point::new(0.5, 0.0, 0.0);\n        let result = tree.radius_search(&query, 1.1);\n",
     "failures": [],
     "group": "KDTree",
-    "line": 57,
+    "line": 52,
     "passed": true,
-    "test_name": "RadiusSearch",
-    "time_ms": 0.005
+    "test_name": "Radius Search",
+    "time_ms": 0.004
   },
   {
     "checks": [
       {
         "code_line": "result.len() == 3",
-        "line": 48,
+        "line": 44,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(result[0].1, 0.5)",
-        "line": 49,
+        "line": 45,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(result[1].1, 0.5)",
-        "line": 50,
+        "line": 46,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(result[2].1, 1.5)",
-        "line": 51,
+        "line": 47,
         "passed": true
       }
     ],
-    "code": "        use crate::{KDTree, Point};\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n        let tree = KDTree::new(pts);\n        let query = Point::new(1.5, 0.0, 0.0);\n        let result = tree.nearest_k(&query, 3);\n",
+    "code": "        use crate::{KDTree, Point};\n\n        // 5 points on X axis: 0, 1, 2, 3, 4\n        // Query at 1.5 — 3 nearest are: x=1 (d=0.5), x=2 (d=0.5), x=3 (d=1.5)\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n        let tree = KDTree::new(pts);\n        let query = Point::new(1.5, 0.0, 0.0);\n        let result = tree.nearest_k(&query, 3);\n",
     "failures": [],
     "group": "KDTree",
-    "line": 35,
+    "line": 28,
     "passed": true,
-    "test_name": "NearestK",
-    "time_ms": 0.011
+    "test_name": "Nearest K",
+    "time_ms": 0.003
   },
   {
     "checks": [
       {
-        "code_line": "idx == brute_idx",
-        "line": 28,
+        "code_line": "idx == 1",
+        "line": 22,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(dist, brute_dist)",
-        "line": 29,
+        "code_line": "TOLERANCE.is_close(dist, 0.1)",
+        "line": 23,
         "passed": true
       }
     ],
-    "code": "        use crate::{KDTree, Point};\n        // Simple deterministic random using LCG\n        let mut seed: u64 = 42;\n        let mut rng = || -> f64 {\n            seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);\n            (seed >> 33) as f64 / (u32::MAX as f64) * 20.0 - 10.0\n        };\n        let mut pts = vec![];\n        for _ in 0..100 {\n            pts.push(Point::new(rng(), rng(), rng()));\n        }\n        let tree = KDTree::new(pts.clone());\n        let query = Point::new(0.0, 0.0, 0.0);\n        let (idx, dist) = tree.nearest(&query);\n        let brute_idx = (0..pts.len()).min_by(|&a, &b| {\n            let da = pts[a][0]*pts[a][0]+pts[a][1]*pts[a][1]+pts[a][2]*pts[a][2];\n            let db = pts[b][0]*pts[b][0]+pts[b][1]*pts[b][1]+pts[b][2]*pts[b][2];\n            da.partial_cmp(&db).unwrap()\n        }).unwrap();\n        let brute_dist = (pts[brute_idx][0].powi(2)+pts[brute_idx][1].powi(2)+pts[brute_idx][2].powi(2)).sqrt();\n",
+    "code": "        use crate::{KDTree, Point};\n\n        // 5 known points on a line: 0, 1, 2, 3, 4\n        // Query at 1.1 — nearest should be index 1 (point at x=1), distance 0.1\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n        let tree = KDTree::new(pts);\n        let query = Point::new(1.1, 0.0, 0.0);\n        let (idx, dist) = tree.nearest(&query);\n",
     "failures": [],
     "group": "KDTree",
     "line": 6,
     "passed": true,
     "test_name": "Nearest",
-    "time_ms": 0.119
+    "time_ms": 0.002
   }
 ]

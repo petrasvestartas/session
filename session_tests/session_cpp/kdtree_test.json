@@ -3,18 +3,18 @@
     "group": "KDTree",
     "test_name": "Nearest",
     "passed": true,
-    "time_ms": 0.243,
+    "time_ms": 0.007,
     "line": 13,
-    "code": "    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    // Simple deterministic random using LCG\n    uint64_t seed = 42;\n    auto rng = [&]() -> double {\n        seed = seed * 6364136223846793005ULL + 1442695040888963407ULL;\n        return static_cast<double>(seed >> 33) / static_cast<double>(0xFFFFFFFFU) * 20.0 - 10.0;\n    };\n    std::vector<Point> pts;\n    for (int i = 0; i < 100; ++i) pts.push_back(Point(rng(), rng(), rng()));\n    KDTree tree(pts);\n    Point query(0.0, 0.0, 0.0);\n    auto [idx, dist] = tree.nearest(query);\n    int brute_idx = 0;\n    for (int i = 1; i < (int)pts.size(); ++i) {\n        if (pts[i][0]*pts[i][0]+pts[i][1]*pts[i][1]+pts[i][2]*pts[i][2] < pts[brute_idx][0]*pts[brute_idx][0]+pts[brute_idx][1]*pts[brute_idx][1]+pts[brute_idx][2]*pts[brute_idx][2])\n            brute_idx = i;\n    }\n    double brute_dist = std::sqrt(pts[brute_idx][0]*pts[brute_idx][0]+pts[brute_idx][1]*pts[brute_idx][1]+pts[brute_idx][2]*pts[brute_idx][2]);",
+    "code": "    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    // 5 known points on a line: 0, 1, 2, 3, 4\n    // Query at 1.1 — nearest should be index 1 (point at x=1), distance 0.1\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    };\n    KDTree tree(pts);\n    Point query(1.1, 0.0, 0.0);\n    auto [idx, dist] = tree.nearest(query);",
     "checks": [
       {
-        "line": 34,
-        "code_line": "idx == brute_idx",
+        "line": 29,
+        "code_line": "idx == 1",
         "passed": true
       },
       {
-        "line": 35,
-        "code_line": "TOLERANCE.is_close(dist, brute_dist)",
+        "line": 30,
+        "code_line": "TOLERANCE.is_close(dist, 0.1)",
         "passed": true
       }
     ],
@@ -24,27 +24,27 @@
     "group": "KDTree",
     "test_name": "Nearest K",
     "passed": true,
-    "time_ms": 0.006,
-    "line": 38,
-    "code": "    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    };\n    KDTree tree(pts);\n    Point query(1.5, 0.0, 0.0);\n    auto result = tree.nearest_k(query, 3);",
+    "time_ms": 0.011,
+    "line": 33,
+    "code": "    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    // 5 points on X axis: 0, 1, 2, 3, 4\n    // Query at 1.5 — 3 nearest are: x=1 (d=0.5), x=2 (d=0.5), x=3 (d=1.5)\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    };\n    KDTree tree(pts);\n    Point query(1.5, 0.0, 0.0);\n    auto result = tree.nearest_k(query, 3);",
     "checks": [
       {
-        "line": 52,
+        "line": 49,
         "code_line": "result.size() == 3",
         "passed": true
       },
       {
-        "line": 53,
+        "line": 50,
         "code_line": "TOLERANCE.is_close(result[0].second, 0.5)",
         "passed": true
       },
       {
-        "line": 54,
+        "line": 51,
         "code_line": "TOLERANCE.is_close(result[1].second, 0.5)",
         "passed": true
       },
       {
-        "line": 55,
+        "line": 52,
         "code_line": "TOLERANCE.is_close(result[2].second, 1.5)",
         "passed": true
       }
@@ -56,21 +56,21 @@
     "test_name": "Radius Search",
     "passed": true,
     "time_ms": 0.004,
-    "line": 58,
-    "code": "    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n    };\n    KDTree tree(pts);\n    Point query(0.5, 0.0, 0.0);\n    auto result = tree.radius_search(query, 1.1);",
+    "line": 55,
+    "code": "    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    // 4 points: 0, 1, 2, 5 on X axis\n    // Query at 0.5, radius 1.1 — finds x=0 (d=0.5) and x=1 (d=0.5)\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n    };\n    KDTree tree(pts);\n    Point query(0.5, 0.0, 0.0);\n    auto result = tree.radius_search(query, 1.1);",
     "checks": [
       {
-        "line": 71,
+        "line": 70,
         "code_line": "result.size() == 2",
         "passed": true
       },
       {
-        "line": 72,
+        "line": 71,
         "code_line": "TOLERANCE.is_close(result[0].second, 0.5)",
         "passed": true
       },
       {
-        "line": 73,
+        "line": 72,
         "code_line": "TOLERANCE.is_close(result[1].second, 0.5)",
         "passed": true
       }
@@ -81,17 +81,17 @@
     "group": "KDTree",
     "test_name": "Single Point",
     "passed": true,
-    "time_ms": 0.002,
-    "line": 76,
-    "code": "    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {Point(3.0, 4.0, 0.0)};\n    KDTree tree(pts);\n    Point query(0.0, 0.0, 0.0);\n    auto [idx, dist] = tree.nearest(query);",
+    "time_ms": 0.005,
+    "line": 75,
+    "code": "    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    // Tree with one point at (3,4,0). Query from origin.\n    // Distance = sqrt(9+16) = 5 (3-4-5 right triangle)\n    std::vector<Point> pts = {Point(3.0, 4.0, 0.0)};\n    KDTree tree(pts);\n    Point query(0.0, 0.0, 0.0);\n    auto [idx, dist] = tree.nearest(query);",
     "checks": [
       {
-        "line": 84,
+        "line": 85,
         "code_line": "idx == 0",
         "passed": true
       },
       {
-        "line": 85,
+        "line": 86,
         "code_line": "TOLERANCE.is_close(dist, 5.0)",
         "passed": true
       }
@@ -102,12 +102,12 @@
     "group": "KDTree",
     "test_name": "Nearest Brute Force",
     "passed": true,
-    "time_ms": 0.079,
-    "line": 88,
-    "code": "    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    uint64_t seed = 7;\n    auto rng = [&]() -> double {\n        seed = seed * 6364136223846793005ULL + 1442695040888963407ULL;\n        return static_cast<double>(seed >> 33) / static_cast<double>(0xFFFFFFFFU) * 100.0;\n    };\n    std::vector<Point> pts;\n    for (int i = 0; i < 50; ++i) pts.push_back(Point(rng(), rng(), rng()));\n    std::vector<Point> queries;\n    for (int i = 0; i < 10; ++i) queries.push_back(Point(rng(), rng(), rng()));\n    KDTree tree(pts);\n    bool all_match = true;\n    for (const auto& q : queries) {\n        auto [idx, dist] = tree.nearest(q);\n        int brute = 0;\n        for (int i = 1; i < (int)pts.size(); ++i) {\n            double da = (pts[i][0]-q[0])*(pts[i][0]-q[0])+(pts[i][1]-q[1])*(pts[i][1]-q[1])+(pts[i][2]-q[2])*(pts[i][2]-q[2]);\n            double db = (pts[brute][0]-q[0])*(pts[brute][0]-q[0])+(pts[brute][1]-q[1])*(pts[brute][1]-q[1])+(pts[brute][2]-q[2])*(pts[brute][2]-q[2]);\n            if (da < db) brute = i;\n        }\n        double brute_d = std::sqrt((pts[brute][0]-q[0])*(pts[brute][0]-q[0])+(pts[brute][1]-q[1])*(pts[brute][1]-q[1])+(pts[brute][2]-q[2])*(pts[brute][2]-q[2]));\n        if (!TOLERANCE.is_close(dist, brute_d)) all_match = false;\n    }",
+    "time_ms": 0.007,
+    "line": 89,
+    "code": "    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    // 8 points in 3D — verify KDTree matches brute-force for several queries\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 1.0),\n        Point(5.0, 5.0, 5.0),\n        Point(-3.0, 2.0, 1.0),\n        Point(2.0, -1.0, 3.0),\n        Point(-1.0, -1.0, -1.0),\n    };\n    KDTree tree(pts);\n    std::vector<Point> queries = {\n        Point(0.5, 0.5, 0.5),\n        Point(4.0, 4.0, 4.0),\n        Point(-2.0, 1.0, 0.0),\n    };\n    bool all_match = true;\n    for (const auto& q : queries) {\n        auto [idx, dist] = tree.nearest(q);\n        // Brute-force: find closest by scanning all points\n        int brute = 0;\n        for (int i = 1; i < (int)pts.size(); ++i) {\n            if (Point::squared_distance(pts[i], q) < Point::squared_distance(pts[brute], q))\n                brute = i;\n        }\n        double brute_d = Point::distance(pts[brute], q);\n        if (!TOLERANCE.is_close(dist, brute_d)) all_match = false;\n    }",
     "checks": [
       {
-        "line": 114,
+        "line": 122,
         "code_line": "all_match",
         "passed": true
       }

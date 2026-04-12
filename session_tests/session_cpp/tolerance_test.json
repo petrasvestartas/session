@@ -4,11 +4,11 @@
     "test_name": "Is Zero",
     "passed": true,
     "time_ms": 0.001,
-    "line": 8,
+    "line": 10,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_zero(1e-10);",
     "checks": [
       {
-        "line": 12,
+        "line": 14,
         "code_line": "result",
         "passed": true
       }
@@ -19,12 +19,12 @@
     "group": "Tolerance",
     "test_name": "Is Close",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 15,
+    "time_ms": 0.118,
+    "line": 17,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
     "checks": [
       {
-        "line": 19,
+        "line": 21,
         "code_line": "result",
         "passed": true
       }
@@ -35,12 +35,12 @@
     "group": "Tolerance",
     "test_name": "Is Positive",
     "passed": true,
-    "time_ms": 0.0,
-    "line": 22,
+    "time_ms": 0.001,
+    "line": 24,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_positive(1.0);",
     "checks": [
       {
-        "line": 26,
+        "line": 28,
         "code_line": "result",
         "passed": true
       }
@@ -52,11 +52,11 @@
     "test_name": "Is Negative",
     "passed": true,
     "time_ms": 0.0,
-    "line": 29,
+    "line": 31,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_negative(-1.0);",
     "checks": [
       {
-        "line": 33,
+        "line": 35,
         "code_line": "result",
         "passed": true
       }
@@ -68,11 +68,11 @@
     "test_name": "Is Between",
     "passed": true,
     "time_ms": 0.0,
-    "line": 36,
+    "line": 38,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_between(0.5, 0.0, 1.0);",
     "checks": [
       {
-        "line": 40,
+        "line": 42,
         "code_line": "result",
         "passed": true
       }
@@ -83,12 +83,12 @@
     "group": "Tolerance",
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.005,
-    "line": 43,
+    "time_ms": 0.007,
+    "line": 45,
     "code": "        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.format_number(3.14159, 2);",
     "checks": [
       {
-        "line": 47,
+        "line": 49,
         "code_line": "result == \"3.14\"",
         "passed": true
       }
@@ -100,11 +100,11 @@
     "test_name": "Key",
     "passed": true,
     "time_ms": 0.009,
-    "line": 50,
+    "line": 52,
     "code": "        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
     "checks": [
       {
-        "line": 54,
+        "line": 56,
         "code_line": "result == \"1.000,2.000,3.000\"",
         "passed": true
       }
@@ -116,21 +116,21 @@
     "test_name": "To Radians",
     "passed": true,
     "time_ms": 0.0,
-    "line": 57,
+    "line": 59,
     "code": "        // uncomment #include \"tolerance.h\"",
     "checks": [
       {
-        "line": 59,
+        "line": 61,
         "code_line": "std::abs(Tolerance::to_radians(180.0) - Tolerance::PI) < 1e-9",
         "passed": true
       },
       {
-        "line": 60,
+        "line": 62,
         "code_line": "std::abs(Tolerance::to_radians(90.0) - Tolerance::PI / 2.0) < 1e-9",
         "passed": true
       },
       {
-        "line": 61,
+        "line": 63,
         "code_line": "std::abs(Tolerance::to_radians(0.0)) < 1e-9",
         "passed": true
       }
@@ -142,21 +142,21 @@
     "test_name": "To Degrees",
     "passed": true,
     "time_ms": 0.0,
-    "line": 64,
+    "line": 66,
     "code": "        // uncomment #include \"tolerance.h\"",
     "checks": [
       {
-        "line": 66,
+        "line": 68,
         "code_line": "std::abs(Tolerance::to_degrees(Tolerance::PI) - 180.0) < 1e-9",
         "passed": true
       },
       {
-        "line": 67,
+        "line": 69,
         "code_line": "std::abs(Tolerance::to_degrees(Tolerance::PI / 2.0) - 90.0) < 1e-9",
         "passed": true
       },
       {
-        "line": 68,
+        "line": 70,
         "code_line": "std::abs(Tolerance::to_degrees(0.0)) < 1e-9",
         "passed": true
       }
@@ -168,47 +168,329 @@
     "test_name": "Runtime Modification",
     "passed": true,
     "time_ms": 0.001,
-    "line": 71,
+    "line": 73,
     "code": "        // uncomment #include \"tolerance.h\"\n        // Get current default values\n        double original_absolute = TOLERANCE.absolute();\n        double original_relative = TOLERANCE.relative();\n\n\n        // Modify tolerance values at runtime\n        TOLERANCE.set_absolute(1e-12);\n        TOLERANCE.set_relative(1e-12);\n\n        // Test with new tolerance - 1e-11 difference now fails is_close\n        bool close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11);\n\n        // Reset to defaults\n        TOLERANCE.reset();\n\n        // Same test now passes with default tolerance\n        bool close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11);",
     "checks": [
       {
-        "line": 77,
+        "line": 79,
         "code_line": "original_absolute == 1e-9",
         "passed": true
       },
       {
-        "line": 78,
+        "line": 80,
         "code_line": "original_relative == 1e-6",
         "passed": true
       },
       {
-        "line": 83,
+        "line": 85,
         "code_line": "TOLERANCE.absolute() == 1e-12",
         "passed": true
       },
       {
-        "line": 84,
+        "line": 86,
         "code_line": "TOLERANCE.relative() == 1e-12",
         "passed": true
       },
       {
-        "line": 88,
+        "line": 90,
         "code_line": "!close_with_tight",
         "passed": true
       },
       {
-        "line": 92,
+        "line": 94,
         "code_line": "TOLERANCE.absolute() == 1e-9",
         "passed": true
       },
       {
-        "line": 93,
+        "line": 95,
         "code_line": "TOLERANCE.relative() == 1e-6",
         "passed": true
       },
       {
-        "line": 97,
+        "line": 99,
         "code_line": "close_with_default",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tolerance",
+    "test_name": "Unique From Two Int",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 102,
+    "code": "        // uncomment #include \"tolerance.h\"\n        uint64_t r0 = unique_from_two_int(3, 7);\n        uint64_t r1 = unique_from_two_int(7, 3);",
+    "checks": [
+      {
+        "line": 107,
+        "code_line": "r0 == r1",
+        "passed": true
+      },
+      {
+        "line": 108,
+        "code_line": "r0 == ((uint64_t(7) << 32) | uint64_t(3))",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tolerance",
+    "test_name": "Wrap Index",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 111,
+    "code": "        // uncomment #include \"tolerance.h\"",
+    "checks": [
+      {
+        "line": 113,
+        "code_line": "wrap_index(0, 4) == 0",
+        "passed": true
+      },
+      {
+        "line": 114,
+        "code_line": "wrap_index(3, 4) == 3",
+        "passed": true
+      },
+      {
+        "line": 115,
+        "code_line": "wrap_index(4, 4) == 0",
+        "passed": true
+      },
+      {
+        "line": 116,
+        "code_line": "wrap_index(-1, 4) == 3",
+        "passed": true
+      },
+      {
+        "line": 117,
+        "code_line": "wrap_index(0, 0) == 0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tolerance",
+    "test_name": "Triangle Edge By Angle",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 120,
+    "code": "        // uncomment #include \"tolerance.h\"\n        double r = triangle_edge_by_angle(1.0, 45.0);\n\n        double r2 = triangle_edge_by_angle(5.0, 0.0);",
+    "checks": [
+      {
+        "line": 124,
+        "code_line": "std::abs(r - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 126,
+        "code_line": "std::abs(r2) < 1e-9",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tolerance",
+    "test_name": "Rad Deg Conversion",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 129,
+    "code": "        // uncomment #include \"tolerance.h\"",
+    "checks": [
+      {
+        "line": 131,
+        "code_line": "std::abs(rad_to_deg(Tolerance::PI) - 180.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 132,
+        "code_line": "std::abs(deg_to_rad(180.0) - Tolerance::PI) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 133,
+        "code_line": "std::abs(deg_to_rad(rad_to_deg(1.234)) - 1.234) < 1e-9",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tolerance",
+    "test_name": "Count Digits",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 136,
+    "code": "        // uncomment #include \"tolerance.h\"",
+    "checks": [
+      {
+        "line": 138,
+        "code_line": "count_digits(0.0) == 0",
+        "passed": true
+      },
+      {
+        "line": 139,
+        "code_line": "count_digits(1.0) == 1",
+        "passed": true
+      },
+      {
+        "line": 140,
+        "code_line": "count_digits(9.9) == 1",
+        "passed": true
+      },
+      {
+        "line": 141,
+        "code_line": "count_digits(10.0) == 2",
+        "passed": true
+      },
+      {
+        "line": 142,
+        "code_line": "count_digits(100.5) == 3",
+        "passed": true
+      },
+      {
+        "line": 143,
+        "code_line": "count_digits(-42.0) == 2",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tolerance",
+    "test_name": "Is Angle Zero",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 146,
+    "code": "        // uncomment #include \"tolerance.h\"\n        // Angular tolerance default is 1e-6",
+    "checks": [
+      {
+        "line": 149,
+        "code_line": "TOLERANCE.is_angle_zero(1e-8)",
+        "passed": true
+      },
+      {
+        "line": 150,
+        "code_line": "!TOLERANCE.is_angle_zero(0.1)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tolerance",
+    "test_name": "Is Angles Close",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 153,
+    "code": "        // uncomment #include \"tolerance.h\"",
+    "checks": [
+      {
+        "line": 155,
+        "code_line": "TOLERANCE.is_angles_close(1.0, 1.0 + 1e-8)",
+        "passed": true
+      },
+      {
+        "line": 156,
+        "code_line": "!TOLERANCE.is_angles_close(1.0, 2.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tolerance",
+    "test_name": "Is Point Close",
+    "passed": true,
+    "time_ms": 0.003,
+    "line": 159,
+    "code": "        // uncomment #include \"tolerance.h\"\n        Point a(1.0, 2.0, 3.0);\n        Point b(1.0, 2.0, 3.0 + 1e-12);\n        Point c(1.0, 2.0, 4.0);",
+    "checks": [
+      {
+        "line": 165,
+        "code_line": "TOLERANCE.is_point_close(a, b)",
+        "passed": true
+      },
+      {
+        "line": 166,
+        "code_line": "!TOLERANCE.is_point_close(a, c)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tolerance",
+    "test_name": "Is Allclose",
+    "passed": true,
+    "time_ms": 0.001,
+    "line": 169,
+    "code": "        // uncomment #include \"tolerance.h\"\n        std::vector<double> a = {1.0, 2.0, 3.0};\n        std::vector<double> b = {1.0, 2.0, 3.0 + 1e-12};\n        std::vector<double> c = {1.0, 2.0, 4.0};",
+    "checks": [
+      {
+        "line": 175,
+        "code_line": "TOLERANCE.is_allclose(a, b)",
+        "passed": true
+      },
+      {
+        "line": 176,
+        "code_line": "!TOLERANCE.is_allclose(a, c)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tolerance",
+    "test_name": "Key Xy",
+    "passed": true,
+    "time_ms": 0.002,
+    "line": 179,
+    "code": "        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.key_xy(1.0, 2.0);",
+    "checks": [
+      {
+        "line": 183,
+        "code_line": "result == \"1.000,2.000\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tolerance",
+    "test_name": "Round To",
+    "passed": true,
+    "time_ms": 0.0,
+    "line": 186,
+    "code": "        // uncomment #include \"tolerance.h\"",
+    "checks": [
+      {
+        "line": 188,
+        "code_line": "std::abs(Tolerance::round_to(3.14159, 2) - 3.14) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 189,
+        "code_line": "std::abs(Tolerance::round_to(2.5, 0) - 3.0) < 1e-9",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Tolerance",
+    "test_name": "Precision From Tolerance",
+    "passed": true,
+    "time_ms": 0.019,
+    "line": 192,
+    "code": "        // uncomment #include \"tolerance.h\"\n        // Default absolute tolerance is 1e-9 → precision should be 9\n        int prec = TOLERANCE.precision_from_tolerance();",
+    "checks": [
+      {
+        "line": 197,
+        "code_line": "prec == 9",
         "passed": true
       }
     ],
