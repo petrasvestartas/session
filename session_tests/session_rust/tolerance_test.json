@@ -13,7 +13,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -109,7 +109,7 @@
     "line": 60,
     "passed": true,
     "test_name": "Key",
-    "time_ms": 0.005
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -160,7 +160,7 @@
     "line": 69,
     "passed": true,
     "test_name": "Runtime Modification",
-    "time_ms": 0.004
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -181,7 +181,7 @@
     "line": 323,
     "passed": true,
     "test_name": "Temporary",
-    "time_ms": 0.0
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -202,7 +202,7 @@
     "line": 309,
     "passed": true,
     "test_name": "Is Vector Close",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -276,7 +276,7 @@
     "line": 268,
     "passed": true,
     "test_name": "Precision From Tolerance",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -313,7 +313,7 @@
     "line": 248,
     "passed": true,
     "test_name": "Key Xy",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -355,7 +355,7 @@
     "line": 222,
     "passed": true,
     "test_name": "Is Point Close",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [

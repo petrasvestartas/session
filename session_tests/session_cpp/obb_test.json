@@ -3,87 +3,87 @@
     "group": "OBB",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.012,
-    "line": 12,
+    "time_ms": 0.016,
+    "line": 22,
     "code": "    // uncomment #include \"obb.h\"\n    // uncomment #include \"aabb.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // from_point\n    OBB bb1 = OBB::from_point(Point(5.0, 5.0, 5.0), 2.0);\n\n\n    // from_points (AABB)\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 3.0, 4.0),\n    };\n    OBB bb2 = OBB::from_points(pts);\n    Point mn = bb2.min_point();\n    Point mx = bb2.max_point();\n\n\n    // OBB constructor\n    OBB box(\n        Point(0.0, 0.0, 0.0),\n        Vector(1.0, 0.0, 0.0),\n        Vector(0.0, 1.0, 0.0),\n        Vector(0.0, 0.0, 1.0),\n        Vector(1.0, 2.0, 3.0)\n    );\n\n\n    // aabb\n    AABB bb_aabb = bb2.aabb();\n\n\n    // corners\n    std::array<Point, 8> corners = bb2.corners();\n\n\n    // point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n    Point p_center = bb2.point_at(0.0, 0.0, 0.0);\n    double hx = bb2.half_size[0], hy = bb2.half_size[1], hz = bb2.half_size[2];\n    Point p_max_pt = bb2.point_at(hx, hy, hz);\n\n\n    // inflate\n    OBB bb3 = OBB::from_points({\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 2.0, 2.0),\n    });\n    bb3.inflate(1.0);\n\n\n    // guid() and name\n    bb1.name = \"test_bbox\";",
     "checks": [
       {
-        "line": 20,
+        "line": 30,
         "code_line": "TOLERANCE.is_close(bb1.center[0], 5.0)",
         "passed": true
       },
       {
-        "line": 21,
+        "line": 31,
         "code_line": "TOLERANCE.is_close(bb1.half_size[0], 2.0)",
         "passed": true
       },
       {
-        "line": 32,
+        "line": 42,
         "code_line": "TOLERANCE.is_close(mn[0], 0.0) && TOLERANCE.is_close(mn[2], 0.0)",
         "passed": true
       },
       {
-        "line": 33,
+        "line": 43,
         "code_line": "TOLERANCE.is_close(mx[0], 2.0) && TOLERANCE.is_close(mx[2], 4.0)",
         "passed": true
       },
       {
-        "line": 44,
+        "line": 54,
         "code_line": "TOLERANCE.is_close(box.half_size[0], 1.0)",
         "passed": true
       },
       {
-        "line": 45,
+        "line": 55,
         "code_line": "TOLERANCE.is_close(box.half_size[1], 2.0)",
         "passed": true
       },
       {
-        "line": 46,
+        "line": 56,
         "code_line": "TOLERANCE.is_close(box.half_size[2], 3.0)",
         "passed": true
       },
       {
-        "line": 51,
+        "line": 61,
         "code_line": "TOLERANCE.is_close(bb_aabb.min_point()[0], 0.0)",
         "passed": true
       },
       {
-        "line": 52,
+        "line": 62,
         "code_line": "TOLERANCE.is_close(bb_aabb.max_point()[2], 4.0)",
         "passed": true
       },
       {
-        "line": 57,
+        "line": 67,
         "code_line": "corners.size() == 8",
         "passed": true
       },
       {
-        "line": 64,
+        "line": 74,
         "code_line": "TOLERANCE.is_close(p_center[0], 1.0) && TOLERANCE.is_close(p_center[2], 2.0)",
         "passed": true
       },
       {
-        "line": 65,
+        "line": 75,
         "code_line": "TOLERANCE.is_close(p_max_pt[0], 2.0) && TOLERANCE.is_close(p_max_pt[2], 4.0)",
         "passed": true
       },
       {
-        "line": 74,
+        "line": 84,
         "code_line": "TOLERANCE.is_close(bb3.min_point()[0], -1.0)",
         "passed": true
       },
       {
-        "line": 75,
+        "line": 85,
         "code_line": "TOLERANCE.is_close(bb3.max_point()[0], 3.0)",
         "passed": true
       },
       {
-        "line": 78,
+        "line": 88,
         "code_line": "!bb1.guid().empty()",
         "passed": true
       },
       {
-        "line": 80,
+        "line": 90,
         "code_line": "bb1.name == \"test_bbox\"",
         "passed": true
       }
@@ -94,47 +94,47 @@
     "group": "OBB",
     "test_name": "Collision",
     "passed": true,
-    "time_ms": 0.003,
-    "line": 83,
+    "time_ms": 0.005,
+    "line": 93,
     "code": "    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    OBB bb1 = OBB::from_point(Point(0.0, 0.0, 0.0), 1.0);\n    OBB bb2 = OBB::from_point(Point(1.5, 0.0, 0.0), 1.0);\n    OBB bb3 = OBB::from_point(Point(5.0, 5.0, 5.0), 0.5);",
     "checks": [
       {
-        "line": 90,
+        "line": 100,
         "code_line": "bb1.collides_with(bb2)",
         "passed": true
       },
       {
-        "line": 91,
+        "line": 101,
         "code_line": "!bb1.collides_with(bb3)",
         "passed": true
       },
       {
-        "line": 92,
+        "line": 102,
         "code_line": "bb1.collides_with_broad(bb2)",
         "passed": true
       },
       {
-        "line": 93,
+        "line": 103,
         "code_line": "!bb1.collides_with_broad(bb3)",
         "passed": true
       },
       {
-        "line": 94,
+        "line": 104,
         "code_line": "bb1.collides_with_rtcd(bb2)",
         "passed": true
       },
       {
-        "line": 95,
+        "line": 105,
         "code_line": "!bb1.collides_with_rtcd(bb3)",
         "passed": true
       },
       {
-        "line": 96,
+        "line": 106,
         "code_line": "bb1.collides_with_naive(bb2)",
         "passed": true
       },
       {
-        "line": 97,
+        "line": 107,
         "code_line": "!bb1.collides_with_naive(bb3)",
         "passed": true
       }
@@ -145,22 +145,22 @@
     "group": "OBB",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.004,
-    "line": 100,
+    "time_ms": 0.006,
+    "line": 110,
     "code": "    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n    };\n    OBB bb = OBB::from_points(pts);\n    bb.xform = Xform::translation(0.0, 0.0, 5.0);\n\n    OBB bbt = bb.transformed();\n\n\n    bb.transform();",
     "checks": [
       {
-        "line": 113,
+        "line": 123,
         "code_line": "TOLERANCE.is_close(bbt.center[2], 5.0)",
         "passed": true
       },
       {
-        "line": 117,
+        "line": 127,
         "code_line": "bb.xform == Xform::identity()",
         "passed": true
       },
       {
-        "line": 118,
+        "line": 128,
         "code_line": "TOLERANCE.is_close(bb.center[2], 5.0)",
         "passed": true
       }
@@ -171,42 +171,42 @@
     "group": "OBB",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 6.099,
-    "line": 121,
+    "time_ms": 9.054,
+    "line": 131,
     "code": "    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    OBB bb = OBB::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox\";\n\n    // JSON object\n    nlohmann::ordered_json j = bb.jsondump();\n    OBB loaded_j = OBB::jsonload(j);\n\n\n    // String\n    std::string s = bb.json_dumps();\n    OBB loaded_s = OBB::json_loads(s);\n\n\n    // File\n    std::string fname = \"serialization/test_obb.json\";\n    bb.json_dump(fname);\n    OBB loaded = OBB::json_load(fname);",
     "checks": [
       {
-        "line": 131,
+        "line": 141,
         "code_line": "loaded_j.name == \"test_bbox\"",
         "passed": true
       },
       {
-        "line": 132,
+        "line": 142,
         "code_line": "TOLERANCE.is_close(loaded_j.center[0], 1.0)",
         "passed": true
       },
       {
-        "line": 138,
+        "line": 148,
         "code_line": "loaded_s.name == \"test_bbox\"",
         "passed": true
       },
       {
-        "line": 139,
+        "line": 149,
         "code_line": "TOLERANCE.is_close(loaded_s.half_size[0], 5.0)",
         "passed": true
       },
       {
-        "line": 146,
+        "line": 156,
         "code_line": "loaded.name == \"test_bbox\"",
         "passed": true
       },
       {
-        "line": 147,
+        "line": 157,
         "code_line": "TOLERANCE.is_close(loaded.center[0], 1.0)",
         "passed": true
       },
       {
-        "line": 148,
+        "line": 158,
         "code_line": "TOLERANCE.is_close(loaded.half_size[0], 5.0)",
         "passed": true
       }
@@ -217,42 +217,42 @@
     "group": "OBB",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 3.934,
-    "line": 151,
+    "time_ms": 8.32,
+    "line": 161,
     "code": "    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    OBB bb = OBB::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox_proto\";\n\n    // String\n    std::string s = bb.pb_dumps();\n    OBB loaded_s = OBB::pb_loads(s);\n\n\n    // File\n    std::string fname = \"serialization/test_obb.bin\";\n    bb.pb_dump(fname);\n    OBB loaded = OBB::pb_load(fname);",
     "checks": [
       {
-        "line": 161,
+        "line": 171,
         "code_line": "loaded_s.name == \"test_bbox_proto\"",
         "passed": true
       },
       {
-        "line": 162,
+        "line": 172,
         "code_line": "loaded_s.guid() == bb.guid()",
         "passed": true
       },
       {
-        "line": 163,
+        "line": 173,
         "code_line": "TOLERANCE.is_close(loaded_s.center[0], 1.0)",
         "passed": true
       },
       {
-        "line": 170,
+        "line": 180,
         "code_line": "loaded.name == \"test_bbox_proto\"",
         "passed": true
       },
       {
-        "line": 171,
+        "line": 181,
         "code_line": "loaded.guid() == bb.guid()",
         "passed": true
       },
       {
-        "line": 172,
+        "line": 182,
         "code_line": "TOLERANCE.is_close(loaded.center[0], 1.0)",
         "passed": true
       },
       {
-        "line": 173,
+        "line": 183,
         "code_line": "TOLERANCE.is_close(loaded.half_size[0], 5.0)",
         "passed": true
       }
@@ -263,73 +263,231 @@
     "group": "OBB",
     "test_name": "Accessors",
     "passed": true,
-    "time_ms": 0.007,
-    "line": 176,
+    "time_ms": 0.008,
+    "line": 186,
     "code": "    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    // axis-aligned OBB: center=(1,2,3), half_size=(1,2,3), dims 2×4×6\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n        Point(0.0, 0.0, 6.0),\n        Point(2.0, 4.0, 6.0),\n    };\n    OBB b = OBB::from_points(pts);\n\n\n\n\n    OBB c = OBB::from_point(Point(5.0, 2.0, 3.0), 1.0);\n    b.union_with(c);",
     "checks": [
       {
-        "line": 190,
+        "line": 200,
         "code_line": "TOLERANCE.is_close(b.area(), 88.0)",
         "passed": true
       },
       {
-        "line": 191,
+        "line": 201,
         "code_line": "TOLERANCE.is_close(b.diagonal(), 2.0 * std::sqrt(14.0))",
         "passed": true
       },
       {
-        "line": 192,
+        "line": 202,
         "code_line": "b.is_valid()",
         "passed": true
       },
       {
-        "line": 193,
+        "line": 203,
         "code_line": "TOLERANCE.is_close(b.volume(), 48.0)",
         "passed": true
       },
       {
-        "line": 195,
+        "line": 205,
         "code_line": "b.closest_point(Point(1.0, 2.0, 3.0)) == Point(1.0, 2.0, 3.0)",
         "passed": true
       },
       {
-        "line": 196,
+        "line": 206,
         "code_line": "b.closest_point(Point(10.0, 2.0, 3.0)) == Point(2.0, 2.0, 3.0)",
         "passed": true
       },
       {
-        "line": 197,
+        "line": 207,
         "code_line": "b.contains(Point(1.0, 2.0, 3.0))",
         "passed": true
       },
       {
-        "line": 198,
+        "line": 208,
         "code_line": "!b.contains(Point(10.0, 2.0, 3.0))",
         "passed": true
       },
       {
-        "line": 200,
+        "line": 210,
         "code_line": "b.corner(false, false, false) == Point(0.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 201,
+        "line": 211,
         "code_line": "b.corner(true, true, true) == Point(2.0, 4.0, 6.0)",
         "passed": true
       },
       {
-        "line": 202,
+        "line": 212,
         "code_line": "b.get_corners().size() == 8",
         "passed": true
       },
       {
-        "line": 203,
+        "line": 213,
         "code_line": "b.get_edges().size() == 12",
         "passed": true
       },
       {
-        "line": 208,
+        "line": 218,
         "code_line": "TOLERANCE.is_close(b.half_size[0], 3.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "OBB",
+    "test_name": "From Geometry",
+    "passed": true,
+    "time_ms": 0.212,
+    "line": 221,
+    "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"polyline.h\"\n    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"nurbscurve.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    OBB bb_line = OBB::from_line(Line(0.0, 0.0, 0.0, 4.0, 0.0, 0.0), 0.1);\n\n\n    OBB bb_pl = OBB::from_polyline(Polyline({\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 4.0, 4.0),\n    }), 0.0);\n\n\n    OBB bb_mesh = OBB::from_mesh(Primitives::cube(2.0), 0.0);\n\n\n    OBB bb_pc = OBB::from_pointcloud(PointCloud(\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(0.0, 2.0, 0.0),\n            Point(0.0, 0.0, 2.0),\n        },\n        {\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        },\n        {\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n            Color(0, 0, 255, 255),\n            Color(255, 255, 0, 255),\n        }\n    ), 0.0);\n\n\n    OBB bb_nc = OBB::from_nurbscurve(NurbsCurve::create(false, 2, {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    }), 0.5, false);\n\n\n    OBB bb_ns = OBB::from_nurbssurface(NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n        Point(2.0, 2.0, 2.0),\n    }), 0.0);",
+    "checks": [
+      {
+        "line": 230,
+        "code_line": "bb_line.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 231,
+        "code_line": "TOLERANCE.is_close(bb_line.center[0], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 239,
+        "code_line": "bb_pl.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 240,
+        "code_line": "bb_pl.volume() > 0.0",
+        "passed": true
+      },
+      {
+        "line": 244,
+        "code_line": "bb_mesh.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 245,
+        "code_line": "TOLERANCE.is_close(bb_mesh.center[0], 0.0)",
+        "passed": true
+      },
+      {
+        "line": 246,
+        "code_line": "TOLERANCE.is_close(bb_mesh.volume(), 8.0)",
+        "passed": true
+      },
+      {
+        "line": 269,
+        "code_line": "bb_pc.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 270,
+        "code_line": "bb_pc.volume() > 0.0",
+        "passed": true
+      },
+      {
+        "line": 279,
+        "code_line": "bb_nc.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 288,
+        "code_line": "bb_ns.is_valid()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "OBB",
+    "test_name": "From Plane",
+    "passed": true,
+    "time_ms": 0.014,
+    "line": 291,
+    "code": "    // uncomment #include \"obb.h\"\n    // uncomment #include \"plane.h\"\n    Plane plane = Plane::xy_plane();\n    OBB box(plane, 2.0, 3.0, 4.0);\n\n\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 3.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n    };\n    OBB bb = OBB::from_points(pts, plane, 0.0);",
+    "checks": [
+      {
+        "line": 297,
+        "code_line": "TOLERANCE.is_close(box.half_size[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 298,
+        "code_line": "TOLERANCE.is_close(box.half_size[1], 1.5)",
+        "passed": true
+      },
+      {
+        "line": 299,
+        "code_line": "TOLERANCE.is_close(box.half_size[2], 2.0)",
+        "passed": true
+      },
+      {
+        "line": 300,
+        "code_line": "box.center == Point(0.0, 0.0, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 310,
+        "code_line": "TOLERANCE.is_close(bb.half_size[0], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 311,
+        "code_line": "TOLERANCE.is_close(bb.half_size[1], 1.5)",
+        "passed": true
+      },
+      {
+        "line": 312,
+        "code_line": "TOLERANCE.is_close(bb.x_axis[0], 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "OBB",
+    "test_name": "Two Rectangles",
+    "passed": true,
+    "time_ms": 0.003,
+    "line": 315,
+    "code": "    // uncomment #include \"obb.h\"\n    OBB bb(\n        Point(1.0, 2.0, 3.0),\n        Vector(1.0, 0.0, 0.0),\n        Vector(0.0, 1.0, 0.0),\n        Vector(0.0, 0.0, 1.0),\n        Vector(2.0, 3.0, 4.0)\n    );\n    std::array<Point, 10> rects = bb.two_rectangles();\n\n    // bottom rect (z=-4 offset): corners at z=-1; top rect (z=+4 offset): corners at z=7",
+    "checks": [
+      {
+        "line": 327,
+        "code_line": "rects.size() == 10",
+        "passed": true
+      },
+      {
+        "line": 328,
+        "code_line": "rects[0] == Point(3.0, 5.0, -1.0)",
+        "passed": true
+      },
+      {
+        "line": 329,
+        "code_line": "rects[2] == Point(-1.0, -1.0, -1.0)",
+        "passed": true
+      },
+      {
+        "line": 330,
+        "code_line": "rects[4] == rects[0]",
+        "passed": true
+      },
+      {
+        "line": 331,
+        "code_line": "rects[5] == Point(3.0, 5.0, 7.0)",
+        "passed": true
+      },
+      {
+        "line": 332,
+        "code_line": "rects[7] == Point(-1.0, -1.0, 7.0)",
+        "passed": true
+      },
+      {
+        "line": 333,
+        "code_line": "rects[9] == rects[5]",
         "passed": true
       }
     ],

@@ -6819,7 +6819,14 @@ window.API_INDEX = {
           "code": "pub fn curve_point(curve: &NurbsCurve, test_point: &Point, t0: f64, t1: f64) -> (f64, f64) {\n        if !curve.is_valid() {\n            return (0.0, f64::INFINITY);\n        }\n\n        let (domain_start, domain_end) = curve.domain();\n        let mut t0 = if t0 <= 0.0 { domain_start } else { t0 };\n        let mut t1 = if t1 <= 0.0 { domain_end } else { t1 };\n\n        t0 = t0.max(domain_start);\n        t1 = t1.min(domain_end);\n\n        let num_samples = (curve.degree() * 2).max(10);\n        let dt = (t1 - t0) / num_samples as f64;\n\n        let mut best_t = t0;\n        let mut best_dist = curve.point_at(t0).distance(test_point, None);\n\n        for i in 0..=num_samples {\n            let t = t0 + i as f64 * dt;\n            let dist = curve.point_at(t).distance(test_point, None);\n            if dist < best_dist {\n                best_dist = dist;\n                best_t = t;\n            }\n        }\n\n        let max_iterations = 20;\n        let step_tolerance = (t1 - t0) * 1e-10;\n\n        let mut t = best_t;\n\n        for _ in 0..max_iterations {\n            let pt = curve.point_at(t);\n            let tangent = curve.tangent_at(t);\n\n            let delta = Vector::new(\n                test_point[0] - pt[0],\n                test_point[1] - pt[1],\n                test_point[2] - pt[2],\n            );\n\n            let f = -delta.dot(&tangent);\n\n            if f.abs() < step_tolerance {\n                break;\n            }\n\n            let derivs = curve.evaluate(t, 2);\n            if derivs.len() < 3 {\n                break;\n            }\n\n            let d2 = Vector::new(derivs[2][0], derivs[2][1], derivs[2][2]);\n            let tangent_mag = tangent.magnitude();\n            let df = delta.dot(&d2) - tangent_mag * tangent_mag;\n\n            if df.abs() < 1e-12 {\n                break;\n            }\n\n            let mut dt_step = f / df;\n\n            if dt_step.abs() > (t1 - t0) * 0.5 {\n                dt_step = dt_step.signum() * (t1 - t0) * 0.5;\n            }\n\n            t += dt_step;\n\n            if t < t0 {\n                t = t0;\n            }\n            if t > t1 {\n                t = t1;\n            }\n\n            if dt_step.abs() < step_tolerance {\n                break;\n            }\n        }\n\n        let mut final_dist = curve.point_at(t).distance(test_point, None);\n\n        let dist_start = curve.point_at(t0).distance(test_point, None);\n        let dist_end = curve.point_at(t1).distance(test_point, None);\n\n        if dist_start < final_dist {\n            t = t0;\n            final_dist = dist_start;\n        }\n        if dist_end < final_dist {\n            t = t1;\n            final_dist = dist_end;\n        }\n\n        (t, final_dist)\n    }",
           "file": "closest.rs"
         }
-      }
+      },
+      "related": [
+        "Closest._aabb_to_aabb_min_dist",
+        "Closest.dfs",
+        "Closest.lines_closest",
+        "Closest.nurbscurves_closest",
+        "Closest.polylines_closest"
+      ]
     },
     {
       "name": "Closest.line_point",
@@ -6841,7 +6848,16 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Closest.polyline_point"
+        "Closest._aabb_to_aabb_min_dist",
+        "Closest._build_aabb_nodes",
+        "Closest._build_raw_boxes",
+        "Closest._query_aabb_nodes",
+        "Closest.build",
+        "Closest.dfs",
+        "Closest.lines_closest",
+        "Closest.overlaps",
+        "Closest.polyline_point",
+        "Closest.polylines_closest"
       ]
     },
     {
@@ -6864,7 +6880,13 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Closest._aabb_to_aabb_min_dist",
+        "Closest._query_aabb_nodes",
+        "Closest.dfs",
         "Closest.line_point",
+        "Closest.lines_closest",
+        "Closest.overlaps",
+        "Closest.polylines_closest",
         "Closest.surface_point"
       ]
     },
@@ -6903,7 +6925,6 @@ window.API_INDEX = {
       "related": [
         "Closest.aabb_min_dist",
         "Closest.build_node",
-        "Closest.dfs",
         "Closest.mesh_point",
         "Closest.mesh_point_aabb"
       ]
@@ -6929,6 +6950,7 @@ window.API_INDEX = {
       },
       "related": [
         "Closest._closest_point_on_triangle",
+        "Closest.build",
         "Closest.build_node",
         "Closest.mesh_point_aabb"
       ]
@@ -6955,6 +6977,7 @@ window.API_INDEX = {
       "related": [
         "Closest._closest_point_on_triangle",
         "Closest.aabb_min_dist",
+        "Closest.build",
         "Closest.build_node",
         "Closest.dfs",
         "Closest.mesh_point"
@@ -6965,17 +6988,19 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "build_node(ids)",
-          "code": "def build_node(ids):\n\n            ni = len(nodes)\n            nodes.append([None, -1, -1])\n            lx = ly = lz = 1e308\n            hx = hy = hz = -1e308\n            for i in ids:\n                b = boxes[i]\n                lx = min(lx, b[0]-b[3]); hx = max(hx, b[0]+b[3])\n                ly = min(ly, b[1]-b[4]); hy = max(hy, b[1]+b[4])\n                lz = min(lz, b[2]-b[5]); hz = max(hz, b[2]+b[5])\n            nodes[ni][0] = ((lx+hx)*0.5, (ly+hy)*0.5, (lz+hz)*0.5,\n                            (hx-lx)*0.5, (hy-ly)*0.5, (hz-lz)*0.5)\n            if len(ids) == 1:\n                nodes[ni][2] = ids[0]\n                return\n            dx, dy, dz = hx-lx, hy-ly, hz-lz\n            axis = 0 if dx >= dy and dx >= dz else (1 if dy >= dz else 2)\n            ids.sort(key=lambda i: boxes[i][axis])\n            mid = len(ids) // 2\n            build_node(ids[:mid])\n            nodes[ni][1] = len(nodes)\n            build_node(ids[mid:])\n\n        build_node(list(range(len(tris))))\n\n        def aabb_min_dist(aabb, pt):\n            dx = max(0.0, abs(pt[0] - aabb[0]) - aabb[3])\n            dy = max(0.0, abs(pt[1] - aabb[1]) - aabb[4])\n            dz = max(0.0, abs(pt[2] - aabb[2]) - aabb[5])\n            return (dx*dx + dy*dy + dz*dz) ** 0.5\n\n        best = [Point(0, 0, 0), 0, float('inf')]\n\n        def dfs(ni):\n            aabb, right, obj = nodes[ni]\n            if aabb_min_dist(aabb, test_point) >= best[2]:\n                return\n            if obj >= 0:\n                v0, v1, v2 = tris[obj]\n                cp = Closest._closest_point_on_triangle(test_point, v0, v1, v2)\n                d = cp.distance(test_point)\n                if d < best[2]:\n                    best[0] = cp\n                    best[1] = sorted_face_keys[tri_face_idx[obj]]\n                    best[2] = d\n                return\n            left = ni + 1\n            ld = aabb_min_dist(nodes[left][0], test_point)\n            rd = aabb_min_dist(nodes[right][0], test_point)\n            if ld <= rd:\n                if ld < best[2]: dfs(left)\n                if rd < best[2]: dfs(right)\n            else:\n                if rd < best[2]: dfs(right)\n                if ld < best[2]: dfs(left)\n\n        dfs(0)\n        return tuple(best)\n\n    @staticmethod\n    def pointcloud_point(cloud, test_point):\n        if cloud.point_count() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        best_point = cloud.get_point(0)\n        best_index = 0\n        best_dist = best_point.distance(test_point)\n\n        for i in range(1, cloud.point_count()):\n            p = cloud.get_point(i)\n            dist = p.distance(test_point)\n            if dist < best_dist:\n                best_dist = dist\n                best_point = p\n                best_index = i\n\n        return (best_point, best_index, best_dist)",
+          "code": "def build_node(ids):\n\n            ni = len(nodes)\n            nodes.append([None, -1, -1])\n            lx = ly = lz = 1e308\n            hx = hy = hz = -1e308\n            for i in ids:\n                b = boxes[i]\n                lx = min(lx, b[0]-b[3]); hx = max(hx, b[0]+b[3])\n                ly = min(ly, b[1]-b[4]); hy = max(hy, b[1]+b[4])\n                lz = min(lz, b[2]-b[5]); hz = max(hz, b[2]+b[5])\n            nodes[ni][0] = ((lx+hx)*0.5, (ly+hy)*0.5, (lz+hz)*0.5,\n                            (hx-lx)*0.5, (hy-ly)*0.5, (hz-lz)*0.5)\n            if len(ids) == 1:\n                nodes[ni][2] = ids[0]\n                return\n            dx, dy, dz = hx-lx, hy-ly, hz-lz\n            axis = 0 if dx >= dy and dx >= dz else (1 if dy >= dz else 2)\n            ids.sort(key=lambda i: boxes[i][axis])\n            mid = len(ids) // 2\n            build_node(ids[:mid])\n            nodes[ni][1] = len(nodes)\n            build_node(ids[mid:])\n\n        build_node(list(range(len(tris))))\n\n        def aabb_min_dist(aabb, pt):\n            dx = max(0.0, abs(pt[0] - aabb[0]) - aabb[3])\n            dy = max(0.0, abs(pt[1] - aabb[1]) - aabb[4])\n            dz = max(0.0, abs(pt[2] - aabb[2]) - aabb[5])\n            return (dx*dx + dy*dy + dz*dz) ** 0.5\n\n        best = [Point(0, 0, 0), 0, float('inf')]\n\n        def dfs(ni):\n            aabb, right, obj = nodes[ni]\n            if aabb_min_dist(aabb, test_point) >= best[2]:\n                return\n            if obj >= 0:\n                v0, v1, v2 = tris[obj]\n                cp = Closest._closest_point_on_triangle(test_point, v0, v1, v2)\n                d = cp.distance(test_point)\n                if d < best[2]:\n                    best[0] = cp\n                    best[1] = sorted_face_keys[tri_face_idx[obj]]\n                    best[2] = d\n                return\n            left = ni + 1\n            ld = aabb_min_dist(nodes[left][0], test_point)\n            rd = aabb_min_dist(nodes[right][0], test_point)\n            if ld <= rd:\n                if ld < best[2]: dfs(left)\n                if rd < best[2]: dfs(right)\n            else:\n                if rd < best[2]: dfs(right)\n                if ld < best[2]: dfs(left)\n\n        dfs(0)\n        return tuple(best)\n\n    @staticmethod\n    def pointcloud_point(cloud, test_point):\n        if cloud.point_count() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        best_point = cloud.get_point(0)\n        best_index = 0\n        best_dist = best_point.distance(test_point)\n\n        for i in range(1, cloud.point_count()):\n            p = cloud.get_point(i)\n            dist = p.distance(test_point)\n            if dist < best_dist:\n                best_dist = dist\n                best_point = p\n                best_index = i\n\n        return (best_point, best_index, best_dist)\n\n    @staticmethod\n    def pointcloud_point_kdtree(cloud, test_point):",
           "file": "closest.py"
         }
       },
       "related": [
         "Closest._closest_point_on_triangle",
         "Closest.aabb_min_dist",
+        "Closest.build",
         "Closest.dfs",
         "Closest.mesh_point",
         "Closest.mesh_point_aabb",
-        "Closest.pointcloud_point"
+        "Closest.pointcloud_point",
+        "Closest.pointcloud_point_kdtree"
       ]
     },
     {
@@ -6983,16 +7008,26 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "aabb_min_dist(aabb, pt)",
-          "code": "def aabb_min_dist(aabb, pt):\n\n            dx = max(0.0, abs(pt[0] - aabb[0]) - aabb[3])\n            dy = max(0.0, abs(pt[1] - aabb[1]) - aabb[4])\n            dz = max(0.0, abs(pt[2] - aabb[2]) - aabb[5])\n            return (dx*dx + dy*dy + dz*dz) ** 0.5\n\n        best = [Point(0, 0, 0), 0, float('inf')]\n\n        def dfs(ni):\n            aabb, right, obj = nodes[ni]\n            if aabb_min_dist(aabb, test_point) >= best[2]:\n                return\n            if obj >= 0:\n                v0, v1, v2 = tris[obj]\n                cp = Closest._closest_point_on_triangle(test_point, v0, v1, v2)\n                d = cp.distance(test_point)\n                if d < best[2]:\n                    best[0] = cp\n                    best[1] = sorted_face_keys[tri_face_idx[obj]]\n                    best[2] = d\n                return\n            left = ni + 1\n            ld = aabb_min_dist(nodes[left][0], test_point)\n            rd = aabb_min_dist(nodes[right][0], test_point)\n            if ld <= rd:\n                if ld < best[2]: dfs(left)\n                if rd < best[2]: dfs(right)\n            else:\n                if rd < best[2]: dfs(right)\n                if ld < best[2]: dfs(left)\n\n        dfs(0)\n        return tuple(best)\n\n    @staticmethod\n    def pointcloud_point(cloud, test_point):\n        if cloud.point_count() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        best_point = cloud.get_point(0)\n        best_index = 0\n        best_dist = best_point.distance(test_point)\n\n        for i in range(1, cloud.point_count()):\n            p = cloud.get_point(i)\n            dist = p.distance(test_point)\n            if dist < best_dist:\n                best_dist = dist\n                best_point = p\n                best_index = i\n\n        return (best_point, best_index, best_dist)",
+          "code": "def aabb_min_dist(aabb, pt):\n\n            dx = max(0.0, abs(pt[0] - aabb[0]) - aabb[3])\n            dy = max(0.0, abs(pt[1] - aabb[1]) - aabb[4])\n            dz = max(0.0, abs(pt[2] - aabb[2]) - aabb[5])\n            return (dx*dx + dy*dy + dz*dz) ** 0.5\n\n        best = [Point(0, 0, 0), 0, float('inf')]\n\n        def dfs(ni):\n            aabb, right, obj = nodes[ni]\n            if aabb_min_dist(aabb, test_point) >= best[2]:\n                return\n            if obj >= 0:\n                v0, v1, v2 = tris[obj]\n                cp = Closest._closest_point_on_triangle(test_point, v0, v1, v2)\n                d = cp.distance(test_point)\n                if d < best[2]:\n                    best[0] = cp\n                    best[1] = sorted_face_keys[tri_face_idx[obj]]\n                    best[2] = d\n                return\n            left = ni + 1\n            ld = aabb_min_dist(nodes[left][0], test_point)\n            rd = aabb_min_dist(nodes[right][0], test_point)\n            if ld <= rd:\n                if ld < best[2]: dfs(left)\n                if rd < best[2]: dfs(right)\n            else:\n                if rd < best[2]: dfs(right)\n                if ld < best[2]: dfs(left)\n\n        dfs(0)\n        return tuple(best)\n\n    @staticmethod\n    def pointcloud_point(cloud, test_point):\n        if cloud.point_count() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        best_point = cloud.get_point(0)\n        best_index = 0\n        best_dist = best_point.distance(test_point)\n\n        for i in range(1, cloud.point_count()):\n            p = cloud.get_point(i)\n            dist = p.distance(test_point)\n            if dist < best_dist:\n                best_dist = dist\n                best_point = p\n                best_index = i\n\n        return (best_point, best_index, best_dist)\n\n    @staticmethod\n    def pointcloud_point_kdtree(cloud, test_point):\n        if cloud.point_count() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n        from session_py import KDTree\n        pts = [cloud.get_point(i) for i in range(cloud.point_count())]\n        tree = KDTree(pts)\n        idx, dist = tree.nearest(test_point)\n        return (cloud.get_point(idx), idx, dist)\n\n    @staticmethod\n    def _build_raw_boxes(aabbs):\n        return [(b.cx, b.cy, b.cz, b.hx, b.hy, b.hz) for b in aabbs]\n\n    @staticmethod\n    def _build_aabb_nodes(raw_boxes):\n        nodes = []\n\n        def build(ids):\n            ni = len(nodes)\n            nodes.append([None, -1, -1])\n            lx = ly = lz = 1e308\n            hx = hy = hz = -1e308\n            for i in ids:\n                b = raw_boxes[i]\n                lx = min(lx, b[0]-b[3]); hx = max(hx, b[0]+b[3])\n                ly = min(ly, b[1]-b[4]); hy = max(hy, b[1]+b[4])",
           "file": "closest.py"
         }
       },
       "related": [
+        "Closest._aabb_to_aabb_min_dist",
+        "Closest._build_aabb_nodes",
+        "Closest._build_raw_boxes",
         "Closest._closest_point_on_triangle",
+        "Closest._query_aabb_nodes",
+        "Closest.boxes_closest",
+        "Closest.build",
         "Closest.build_node",
         "Closest.dfs",
         "Closest.mesh_point_aabb",
-        "Closest.pointcloud_point"
+        "Closest.nurbscurves_closest",
+        "Closest.overlaps",
+        "Closest.pointcloud_point",
+        "Closest.pointcloud_point_kdtree",
+        "Closest.polylines_closest"
       ]
     },
     {
@@ -7000,16 +7035,28 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "dfs(ni)",
-          "code": "def dfs(ni):\n\n            aabb, right, obj = nodes[ni]\n            if aabb_min_dist(aabb, test_point) >= best[2]:\n                return\n            if obj >= 0:\n                v0, v1, v2 = tris[obj]\n                cp = Closest._closest_point_on_triangle(test_point, v0, v1, v2)\n                d = cp.distance(test_point)\n                if d < best[2]:\n                    best[0] = cp\n                    best[1] = sorted_face_keys[tri_face_idx[obj]]\n                    best[2] = d\n                return\n            left = ni + 1\n            ld = aabb_min_dist(nodes[left][0], test_point)\n            rd = aabb_min_dist(nodes[right][0], test_point)\n            if ld <= rd:\n                if ld < best[2]: dfs(left)\n                if rd < best[2]: dfs(right)\n            else:\n                if rd < best[2]: dfs(right)\n                if ld < best[2]: dfs(left)\n\n        dfs(0)\n        return tuple(best)\n\n    @staticmethod\n    def pointcloud_point(cloud, test_point):\n        if cloud.point_count() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        best_point = cloud.get_point(0)\n        best_index = 0\n        best_dist = best_point.distance(test_point)\n\n        for i in range(1, cloud.point_count()):\n            p = cloud.get_point(i)\n            dist = p.distance(test_point)\n            if dist < best_dist:\n                best_dist = dist\n                best_point = p\n                best_index = i\n\n        return (best_point, best_index, best_dist)",
+          "code": "def dfs(ni):\n\n            aabb, right, obj = nodes[ni]\n            if not overlaps(aabb, query):\n                return\n            if obj >= 0:\n                result.append(obj)\n                return\n            dfs(ni + 1)\n            dfs(right)\n\n        dfs(0)\n\n    @staticmethod\n    def _aabb_to_aabb_min_dist(a, b):\n        dx = max(0.0, abs(a[0]-b[0]) - a[3] - b[3])\n        dy = max(0.0, abs(a[1]-b[1]) - a[4] - b[4])\n        dz = max(0.0, abs(a[2]-b[2]) - a[5] - b[5])\n        return (dx*dx + dy*dy + dz*dz) ** 0.5\n\n    @staticmethod\n    def lines_closest(lines, threshold=0.0):\n        if len(lines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_line(ln, threshold) for ln in lines])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(lines)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                _, _, d_a = Closest.line_point(lines[j], lines[i].start())\n                _, _, d_b = Closest.line_point(lines[j], lines[i].end())\n                _, _, d_c = Closest.line_point(lines[i], lines[j].start())\n                _, _, d_d = Closest.line_point(lines[i], lines[j].end())\n                if min(d_a, d_b, d_c, d_d) <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def polylines_closest(polylines, threshold=0.0):\n        if len(polylines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_polyline(pl, threshold) for pl in polylines])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(polylines)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                pts_a = polylines[i].get_points()\n                dist = min(Closest.polyline_point(polylines[j], pt)[2] for pt in pts_a)\n                if dist <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def nurbscurves_closest(curves, threshold=0.0):\n        if len(curves) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_nurbscurve(crv, threshold, False) for crv in curves])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(curves)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                t0, t1 = curves[i].domain()\n                p_start = curves[i].point_at(t0)\n                p_end = curves[i].point_at(t1)\n                _, d_a = Closest.curve_point(curves[j], p_start)\n                _, d_b = Closest.curve_point(curves[j], p_end)",
           "file": "closest.py"
         }
       },
       "related": [
-        "Closest._closest_point_on_triangle",
+        "Closest._aabb_to_aabb_min_dist",
+        "Closest._build_aabb_nodes",
+        "Closest._build_raw_boxes",
+        "Closest._query_aabb_nodes",
         "Closest.aabb_min_dist",
+        "Closest.build",
         "Closest.build_node",
+        "Closest.curve_point",
+        "Closest.line_point",
+        "Closest.lines_closest",
         "Closest.mesh_point_aabb",
-        "Closest.pointcloud_point"
+        "Closest.nurbscurves_closest",
+        "Closest.overlaps",
+        "Closest.pointcloud_point",
+        "Closest.pointcloud_point_kdtree",
+        "Closest.polyline_point",
+        "Closest.polylines_closest"
       ]
     },
     {
@@ -7017,7 +7064,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pointcloud_point(cloud, test_point)",
-          "code": "def pointcloud_point(cloud, test_point):\n\n        if cloud.point_count() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        best_point = cloud.get_point(0)\n        best_index = 0\n        best_dist = best_point.distance(test_point)\n\n        for i in range(1, cloud.point_count()):\n            p = cloud.get_point(i)\n            dist = p.distance(test_point)\n            if dist < best_dist:\n                best_dist = dist\n                best_point = p\n                best_index = i\n\n        return (best_point, best_index, best_dist)",
+          "code": "def pointcloud_point(cloud, test_point):\n\n        if cloud.point_count() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        best_point = cloud.get_point(0)\n        best_index = 0\n        best_dist = best_point.distance(test_point)\n\n        for i in range(1, cloud.point_count()):\n            p = cloud.get_point(i)\n            dist = p.distance(test_point)\n            if dist < best_dist:\n                best_dist = dist\n                best_point = p\n                best_index = i\n\n        return (best_point, best_index, best_dist)\n\n    @staticmethod\n    def pointcloud_point_kdtree(cloud, test_point):\n        if cloud.point_count() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n        from session_py import KDTree\n        pts = [cloud.get_point(i) for i in range(cloud.point_count())]\n        tree = KDTree(pts)\n        idx, dist = tree.nearest(test_point)\n        return (cloud.get_point(idx), idx, dist)\n\n    @staticmethod\n    def _build_raw_boxes(aabbs):\n        return [(b.cx, b.cy, b.cz, b.hx, b.hy, b.hz) for b in aabbs]\n\n    @staticmethod\n    def _build_aabb_nodes(raw_boxes):\n        nodes = []\n\n        def build(ids):\n            ni = len(nodes)\n            nodes.append([None, -1, -1])\n            lx = ly = lz = 1e308\n            hx = hy = hz = -1e308\n            for i in ids:\n                b = raw_boxes[i]\n                lx = min(lx, b[0]-b[3]); hx = max(hx, b[0]+b[3])\n                ly = min(ly, b[1]-b[4]); hy = max(hy, b[1]+b[4])\n                lz = min(lz, b[2]-b[5]); hz = max(hz, b[2]+b[5])\n            nodes[ni][0] = ((lx+hx)*0.5, (ly+hy)*0.5, (lz+hz)*0.5,\n                            (hx-lx)*0.5, (hy-ly)*0.5, (hz-lz)*0.5)\n            if len(ids) == 1:\n                nodes[ni][2] = ids[0]\n                return\n            dx = hx-lx; dy = hy-ly; dz = hz-lz\n            axis = 0 if dx >= dy and dx >= dz else (1 if dy >= dz else 2)\n            ids.sort(key=lambda i: raw_boxes[i][axis])\n            mid = len(ids) // 2\n            build(ids[:mid])\n            nodes[ni][1] = len(nodes)\n            build(ids[mid:])\n\n        build(list(range(len(raw_boxes))))\n        return nodes\n\n    @staticmethod\n    def _query_aabb_nodes(nodes, query, result):\n        def overlaps(a, b):\n            return (abs(a[0]-b[0]) <= a[3]+b[3] and\n                    abs(a[1]-b[1]) <= a[4]+b[4] and\n                    abs(a[2]-b[2]) <= a[5]+b[5])\n\n        def dfs(ni):\n            aabb, right, obj = nodes[ni]\n            if not overlaps(aabb, query):\n                return\n            if obj >= 0:\n                result.append(obj)\n                return\n            dfs(ni + 1)\n            dfs(right)\n\n        dfs(0)",
           "file": "closest.py"
         },
         "cpp": {
@@ -7032,9 +7079,346 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Closest._build_aabb_nodes",
+        "Closest._build_raw_boxes",
+        "Closest._query_aabb_nodes",
         "Closest.aabb_min_dist",
+        "Closest.build",
         "Closest.build_node",
-        "Closest.dfs"
+        "Closest.dfs",
+        "Closest.overlaps",
+        "Closest.pointcloud_point_kdtree"
+      ]
+    },
+    {
+      "name": "Closest.pointcloud_point_kdtree",
+      "implementations": {
+        "python": {
+          "sig": "pointcloud_point_kdtree(cloud, test_point)",
+          "code": "def pointcloud_point_kdtree(cloud, test_point):\n\n        if cloud.point_count() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n        from session_py import KDTree\n        pts = [cloud.get_point(i) for i in range(cloud.point_count())]\n        tree = KDTree(pts)\n        idx, dist = tree.nearest(test_point)\n        return (cloud.get_point(idx), idx, dist)\n\n    @staticmethod\n    def _build_raw_boxes(aabbs):\n        return [(b.cx, b.cy, b.cz, b.hx, b.hy, b.hz) for b in aabbs]\n\n    @staticmethod\n    def _build_aabb_nodes(raw_boxes):\n        nodes = []\n\n        def build(ids):\n            ni = len(nodes)\n            nodes.append([None, -1, -1])\n            lx = ly = lz = 1e308\n            hx = hy = hz = -1e308\n            for i in ids:\n                b = raw_boxes[i]\n                lx = min(lx, b[0]-b[3]); hx = max(hx, b[0]+b[3])\n                ly = min(ly, b[1]-b[4]); hy = max(hy, b[1]+b[4])\n                lz = min(lz, b[2]-b[5]); hz = max(hz, b[2]+b[5])\n            nodes[ni][0] = ((lx+hx)*0.5, (ly+hy)*0.5, (lz+hz)*0.5,\n                            (hx-lx)*0.5, (hy-ly)*0.5, (hz-lz)*0.5)\n            if len(ids) == 1:\n                nodes[ni][2] = ids[0]\n                return\n            dx = hx-lx; dy = hy-ly; dz = hz-lz\n            axis = 0 if dx >= dy and dx >= dz else (1 if dy >= dz else 2)\n            ids.sort(key=lambda i: raw_boxes[i][axis])\n            mid = len(ids) // 2\n            build(ids[:mid])\n            nodes[ni][1] = len(nodes)\n            build(ids[mid:])\n\n        build(list(range(len(raw_boxes))))\n        return nodes\n\n    @staticmethod\n    def _query_aabb_nodes(nodes, query, result):\n        def overlaps(a, b):\n            return (abs(a[0]-b[0]) <= a[3]+b[3] and\n                    abs(a[1]-b[1]) <= a[4]+b[4] and\n                    abs(a[2]-b[2]) <= a[5]+b[5])\n\n        def dfs(ni):\n            aabb, right, obj = nodes[ni]\n            if not overlaps(aabb, query):\n                return\n            if obj >= 0:\n                result.append(obj)\n                return\n            dfs(ni + 1)\n            dfs(right)\n\n        dfs(0)\n\n    @staticmethod\n    def _aabb_to_aabb_min_dist(a, b):\n        dx = max(0.0, abs(a[0]-b[0]) - a[3] - b[3])\n        dy = max(0.0, abs(a[1]-b[1]) - a[4] - b[4])\n        dz = max(0.0, abs(a[2]-b[2]) - a[5] - b[5])\n        return (dx*dx + dy*dy + dz*dz) ** 0.5\n\n    @staticmethod\n    def lines_closest(lines, threshold=0.0):\n        if len(lines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_line(ln, threshold) for ln in lines])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(lines)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)",
+          "file": "closest.py"
+        },
+        "cpp": {
+          "sig": "std::tuple<Point, size_t, double> pointcloud_point_kdtree(\n    const PointCloud& cloud,\n    const Point& test_point\n)",
+          "code": "std::tuple<Point, size_t, double> Closest::pointcloud_point_kdtree(\n    const PointCloud& cloud,\n    const Point& test_point\n) {\n    if (cloud.point_count() == 0) {\n        return {Point(0, 0, 0), 0, std::numeric_limits<double>::infinity()}",
+          "file": "closest.cpp"
+        },
+        "rust": {
+          "sig": "pointcloud_point_kdtree(cloud: &PointCloud, test_point: &Point) -> (Point, usize, f64)",
+          "code": "pub fn pointcloud_point_kdtree(cloud: &PointCloud, test_point: &Point) -> (Point, usize, f64) {\n        if cloud.point_count() == 0 {\n            return (Point::new(0.0, 0.0, 0.0), 0, f64::INFINITY);\n        }\n        use crate::kdtree::KDTree;\n        let pts: Vec<Point> = (0..cloud.point_count()).map(|i| cloud.get_point(i)).collect();\n        let kd = KDTree::new(pts);\n        let (idx, dist) = kd.nearest(test_point);\n        (cloud.get_point(idx), idx, dist)\n    }",
+          "file": "closest.rs"
+        }
+      },
+      "related": [
+        "Closest._aabb_to_aabb_min_dist",
+        "Closest._build_aabb_nodes",
+        "Closest._build_raw_boxes",
+        "Closest._query_aabb_nodes",
+        "Closest.aabb_min_dist",
+        "Closest.build",
+        "Closest.build_node",
+        "Closest.dfs",
+        "Closest.lines_closest",
+        "Closest.overlaps",
+        "Closest.pointcloud_point"
+      ]
+    },
+    {
+      "name": "Closest._build_raw_boxes",
+      "implementations": {
+        "python": {
+          "sig": "_build_raw_boxes(aabbs)",
+          "code": "def _build_raw_boxes(aabbs):\n\n        return [(b.cx, b.cy, b.cz, b.hx, b.hy, b.hz) for b in aabbs]\n\n    @staticmethod\n    def _build_aabb_nodes(raw_boxes):\n        nodes = []\n\n        def build(ids):\n            ni = len(nodes)\n            nodes.append([None, -1, -1])\n            lx = ly = lz = 1e308\n            hx = hy = hz = -1e308\n            for i in ids:\n                b = raw_boxes[i]\n                lx = min(lx, b[0]-b[3]); hx = max(hx, b[0]+b[3])\n                ly = min(ly, b[1]-b[4]); hy = max(hy, b[1]+b[4])\n                lz = min(lz, b[2]-b[5]); hz = max(hz, b[2]+b[5])\n            nodes[ni][0] = ((lx+hx)*0.5, (ly+hy)*0.5, (lz+hz)*0.5,\n                            (hx-lx)*0.5, (hy-ly)*0.5, (hz-lz)*0.5)\n            if len(ids) == 1:\n                nodes[ni][2] = ids[0]\n                return\n            dx = hx-lx; dy = hy-ly; dz = hz-lz\n            axis = 0 if dx >= dy and dx >= dz else (1 if dy >= dz else 2)\n            ids.sort(key=lambda i: raw_boxes[i][axis])\n            mid = len(ids) // 2\n            build(ids[:mid])\n            nodes[ni][1] = len(nodes)\n            build(ids[mid:])\n\n        build(list(range(len(raw_boxes))))\n        return nodes\n\n    @staticmethod\n    def _query_aabb_nodes(nodes, query, result):\n        def overlaps(a, b):\n            return (abs(a[0]-b[0]) <= a[3]+b[3] and\n                    abs(a[1]-b[1]) <= a[4]+b[4] and\n                    abs(a[2]-b[2]) <= a[5]+b[5])\n\n        def dfs(ni):\n            aabb, right, obj = nodes[ni]\n            if not overlaps(aabb, query):\n                return\n            if obj >= 0:\n                result.append(obj)\n                return\n            dfs(ni + 1)\n            dfs(right)\n\n        dfs(0)\n\n    @staticmethod\n    def _aabb_to_aabb_min_dist(a, b):\n        dx = max(0.0, abs(a[0]-b[0]) - a[3] - b[3])\n        dy = max(0.0, abs(a[1]-b[1]) - a[4] - b[4])\n        dz = max(0.0, abs(a[2]-b[2]) - a[5] - b[5])\n        return (dx*dx + dy*dy + dz*dz) ** 0.5\n\n    @staticmethod\n    def lines_closest(lines, threshold=0.0):\n        if len(lines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_line(ln, threshold) for ln in lines])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(lines)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                _, _, d_a = Closest.line_point(lines[j], lines[i].start())\n                _, _, d_b = Closest.line_point(lines[j], lines[i].end())\n                _, _, d_c = Closest.line_point(lines[i], lines[j].start())\n                _, _, d_d = Closest.line_point(lines[i], lines[j].end())\n                if min(d_a, d_b, d_c, d_d) <= threshold:\n                    pairs.append((i, j))\n        return pairs",
+          "file": "closest.py"
+        }
+      },
+      "related": [
+        "Closest._aabb_to_aabb_min_dist",
+        "Closest._build_aabb_nodes",
+        "Closest._query_aabb_nodes",
+        "Closest.aabb_min_dist",
+        "Closest.boxes_closest",
+        "Closest.build",
+        "Closest.dfs",
+        "Closest.line_point",
+        "Closest.lines_closest",
+        "Closest.nurbscurves_closest",
+        "Closest.overlaps",
+        "Closest.pointcloud_point",
+        "Closest.pointcloud_point_kdtree",
+        "Closest.polylines_closest"
+      ]
+    },
+    {
+      "name": "Closest._build_aabb_nodes",
+      "implementations": {
+        "python": {
+          "sig": "_build_aabb_nodes(raw_boxes)",
+          "code": "def _build_aabb_nodes(raw_boxes):\n\n        nodes = []\n\n        def build(ids):\n            ni = len(nodes)\n            nodes.append([None, -1, -1])\n            lx = ly = lz = 1e308\n            hx = hy = hz = -1e308\n            for i in ids:\n                b = raw_boxes[i]\n                lx = min(lx, b[0]-b[3]); hx = max(hx, b[0]+b[3])\n                ly = min(ly, b[1]-b[4]); hy = max(hy, b[1]+b[4])\n                lz = min(lz, b[2]-b[5]); hz = max(hz, b[2]+b[5])\n            nodes[ni][0] = ((lx+hx)*0.5, (ly+hy)*0.5, (lz+hz)*0.5,\n                            (hx-lx)*0.5, (hy-ly)*0.5, (hz-lz)*0.5)\n            if len(ids) == 1:\n                nodes[ni][2] = ids[0]\n                return\n            dx = hx-lx; dy = hy-ly; dz = hz-lz\n            axis = 0 if dx >= dy and dx >= dz else (1 if dy >= dz else 2)\n            ids.sort(key=lambda i: raw_boxes[i][axis])\n            mid = len(ids) // 2\n            build(ids[:mid])\n            nodes[ni][1] = len(nodes)\n            build(ids[mid:])\n\n        build(list(range(len(raw_boxes))))\n        return nodes\n\n    @staticmethod\n    def _query_aabb_nodes(nodes, query, result):\n        def overlaps(a, b):\n            return (abs(a[0]-b[0]) <= a[3]+b[3] and\n                    abs(a[1]-b[1]) <= a[4]+b[4] and\n                    abs(a[2]-b[2]) <= a[5]+b[5])\n\n        def dfs(ni):\n            aabb, right, obj = nodes[ni]\n            if not overlaps(aabb, query):\n                return\n            if obj >= 0:\n                result.append(obj)\n                return\n            dfs(ni + 1)\n            dfs(right)\n\n        dfs(0)\n\n    @staticmethod\n    def _aabb_to_aabb_min_dist(a, b):\n        dx = max(0.0, abs(a[0]-b[0]) - a[3] - b[3])\n        dy = max(0.0, abs(a[1]-b[1]) - a[4] - b[4])\n        dz = max(0.0, abs(a[2]-b[2]) - a[5] - b[5])\n        return (dx*dx + dy*dy + dz*dz) ** 0.5\n\n    @staticmethod\n    def lines_closest(lines, threshold=0.0):\n        if len(lines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_line(ln, threshold) for ln in lines])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(lines)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                _, _, d_a = Closest.line_point(lines[j], lines[i].start())\n                _, _, d_b = Closest.line_point(lines[j], lines[i].end())\n                _, _, d_c = Closest.line_point(lines[i], lines[j].start())\n                _, _, d_d = Closest.line_point(lines[i], lines[j].end())\n                if min(d_a, d_b, d_c, d_d) <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def polylines_closest(polylines, threshold=0.0):\n        if len(polylines) < 2:",
+          "file": "closest.py"
+        }
+      },
+      "related": [
+        "Closest._aabb_to_aabb_min_dist",
+        "Closest._build_raw_boxes",
+        "Closest._query_aabb_nodes",
+        "Closest.aabb_min_dist",
+        "Closest.boxes_closest",
+        "Closest.build",
+        "Closest.dfs",
+        "Closest.line_point",
+        "Closest.lines_closest",
+        "Closest.nurbscurves_closest",
+        "Closest.overlaps",
+        "Closest.pointcloud_point",
+        "Closest.pointcloud_point_kdtree",
+        "Closest.polylines_closest"
+      ]
+    },
+    {
+      "name": "Closest.build",
+      "implementations": {
+        "python": {
+          "sig": "build(ids)",
+          "code": "def build(ids):\n\n            ni = len(nodes)\n            nodes.append([None, -1, -1])\n            lx = ly = lz = 1e308\n            hx = hy = hz = -1e308\n            for i in ids:\n                b = raw_boxes[i]\n                lx = min(lx, b[0]-b[3]); hx = max(hx, b[0]+b[3])\n                ly = min(ly, b[1]-b[4]); hy = max(hy, b[1]+b[4])\n                lz = min(lz, b[2]-b[5]); hz = max(hz, b[2]+b[5])\n            nodes[ni][0] = ((lx+hx)*0.5, (ly+hy)*0.5, (lz+hz)*0.5,\n                            (hx-lx)*0.5, (hy-ly)*0.5, (hz-lz)*0.5)\n            if len(ids) == 1:\n                nodes[ni][2] = ids[0]\n                return\n            dx = hx-lx; dy = hy-ly; dz = hz-lz\n            axis = 0 if dx >= dy and dx >= dz else (1 if dy >= dz else 2)\n            ids.sort(key=lambda i: raw_boxes[i][axis])\n            mid = len(ids) // 2\n            build(ids[:mid])\n            nodes[ni][1] = len(nodes)\n            build(ids[mid:])\n\n        build(list(range(len(raw_boxes))))\n        return nodes\n\n    @staticmethod\n    def _query_aabb_nodes(nodes, query, result):\n        def overlaps(a, b):\n            return (abs(a[0]-b[0]) <= a[3]+b[3] and\n                    abs(a[1]-b[1]) <= a[4]+b[4] and\n                    abs(a[2]-b[2]) <= a[5]+b[5])\n\n        def dfs(ni):\n            aabb, right, obj = nodes[ni]\n            if not overlaps(aabb, query):\n                return\n            if obj >= 0:\n                result.append(obj)\n                return\n            dfs(ni + 1)\n            dfs(right)\n\n        dfs(0)\n\n    @staticmethod\n    def _aabb_to_aabb_min_dist(a, b):\n        dx = max(0.0, abs(a[0]-b[0]) - a[3] - b[3])\n        dy = max(0.0, abs(a[1]-b[1]) - a[4] - b[4])\n        dz = max(0.0, abs(a[2]-b[2]) - a[5] - b[5])\n        return (dx*dx + dy*dy + dz*dz) ** 0.5\n\n    @staticmethod\n    def lines_closest(lines, threshold=0.0):\n        if len(lines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_line(ln, threshold) for ln in lines])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(lines)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                _, _, d_a = Closest.line_point(lines[j], lines[i].start())\n                _, _, d_b = Closest.line_point(lines[j], lines[i].end())\n                _, _, d_c = Closest.line_point(lines[i], lines[j].start())\n                _, _, d_d = Closest.line_point(lines[i], lines[j].end())\n                if min(d_a, d_b, d_c, d_d) <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def polylines_closest(polylines, threshold=0.0):\n        if len(polylines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_polyline(pl, threshold) for pl in polylines])",
+          "file": "closest.py"
+        }
+      },
+      "related": [
+        "Closest._aabb_to_aabb_min_dist",
+        "Closest._build_aabb_nodes",
+        "Closest._build_raw_boxes",
+        "Closest._query_aabb_nodes",
+        "Closest.aabb_min_dist",
+        "Closest.boxes_closest",
+        "Closest.build_node",
+        "Closest.dfs",
+        "Closest.line_point",
+        "Closest.lines_closest",
+        "Closest.mesh_point",
+        "Closest.mesh_point_aabb",
+        "Closest.nurbscurves_closest",
+        "Closest.overlaps",
+        "Closest.pointcloud_point",
+        "Closest.pointcloud_point_kdtree",
+        "Closest.polylines_closest"
+      ]
+    },
+    {
+      "name": "Closest._query_aabb_nodes",
+      "implementations": {
+        "python": {
+          "sig": "_query_aabb_nodes(nodes, query, result)",
+          "code": "def _query_aabb_nodes(nodes, query, result):\n\n        def overlaps(a, b):\n            return (abs(a[0]-b[0]) <= a[3]+b[3] and\n                    abs(a[1]-b[1]) <= a[4]+b[4] and\n                    abs(a[2]-b[2]) <= a[5]+b[5])\n\n        def dfs(ni):\n            aabb, right, obj = nodes[ni]\n            if not overlaps(aabb, query):\n                return\n            if obj >= 0:\n                result.append(obj)\n                return\n            dfs(ni + 1)\n            dfs(right)\n\n        dfs(0)\n\n    @staticmethod\n    def _aabb_to_aabb_min_dist(a, b):\n        dx = max(0.0, abs(a[0]-b[0]) - a[3] - b[3])\n        dy = max(0.0, abs(a[1]-b[1]) - a[4] - b[4])\n        dz = max(0.0, abs(a[2]-b[2]) - a[5] - b[5])\n        return (dx*dx + dy*dy + dz*dz) ** 0.5\n\n    @staticmethod\n    def lines_closest(lines, threshold=0.0):\n        if len(lines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_line(ln, threshold) for ln in lines])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(lines)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                _, _, d_a = Closest.line_point(lines[j], lines[i].start())\n                _, _, d_b = Closest.line_point(lines[j], lines[i].end())\n                _, _, d_c = Closest.line_point(lines[i], lines[j].start())\n                _, _, d_d = Closest.line_point(lines[i], lines[j].end())\n                if min(d_a, d_b, d_c, d_d) <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def polylines_closest(polylines, threshold=0.0):\n        if len(polylines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_polyline(pl, threshold) for pl in polylines])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(polylines)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                pts_a = polylines[i].get_points()\n                dist = min(Closest.polyline_point(polylines[j], pt)[2] for pt in pts_a)\n                if dist <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def nurbscurves_closest(curves, threshold=0.0):\n        if len(curves) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_nurbscurve(crv, threshold, False) for crv in curves])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(curves)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:",
+          "file": "closest.py"
+        }
+      },
+      "related": [
+        "Closest._aabb_to_aabb_min_dist",
+        "Closest._build_aabb_nodes",
+        "Closest._build_raw_boxes",
+        "Closest.aabb_min_dist",
+        "Closest.boxes_closest",
+        "Closest.build",
+        "Closest.dfs",
+        "Closest.line_point",
+        "Closest.lines_closest",
+        "Closest.nurbscurves_closest",
+        "Closest.overlaps",
+        "Closest.pointcloud_point",
+        "Closest.pointcloud_point_kdtree",
+        "Closest.polyline_point",
+        "Closest.polylines_closest"
+      ]
+    },
+    {
+      "name": "Closest.overlaps",
+      "implementations": {
+        "python": {
+          "sig": "overlaps(a, b)",
+          "code": "def overlaps(a, b):\n\n            return (abs(a[0]-b[0]) <= a[3]+b[3] and\n                    abs(a[1]-b[1]) <= a[4]+b[4] and\n                    abs(a[2]-b[2]) <= a[5]+b[5])\n\n        def dfs(ni):\n            aabb, right, obj = nodes[ni]\n            if not overlaps(aabb, query):\n                return\n            if obj >= 0:\n                result.append(obj)\n                return\n            dfs(ni + 1)\n            dfs(right)\n\n        dfs(0)\n\n    @staticmethod\n    def _aabb_to_aabb_min_dist(a, b):\n        dx = max(0.0, abs(a[0]-b[0]) - a[3] - b[3])\n        dy = max(0.0, abs(a[1]-b[1]) - a[4] - b[4])\n        dz = max(0.0, abs(a[2]-b[2]) - a[5] - b[5])\n        return (dx*dx + dy*dy + dz*dz) ** 0.5\n\n    @staticmethod\n    def lines_closest(lines, threshold=0.0):\n        if len(lines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_line(ln, threshold) for ln in lines])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(lines)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                _, _, d_a = Closest.line_point(lines[j], lines[i].start())\n                _, _, d_b = Closest.line_point(lines[j], lines[i].end())\n                _, _, d_c = Closest.line_point(lines[i], lines[j].start())\n                _, _, d_d = Closest.line_point(lines[i], lines[j].end())\n                if min(d_a, d_b, d_c, d_d) <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def polylines_closest(polylines, threshold=0.0):\n        if len(polylines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_polyline(pl, threshold) for pl in polylines])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(polylines)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                pts_a = polylines[i].get_points()\n                dist = min(Closest.polyline_point(polylines[j], pt)[2] for pt in pts_a)\n                if dist <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def nurbscurves_closest(curves, threshold=0.0):\n        if len(curves) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_nurbscurve(crv, threshold, False) for crv in curves])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(curves)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue",
+          "file": "closest.py"
+        }
+      },
+      "related": [
+        "Closest._aabb_to_aabb_min_dist",
+        "Closest._build_aabb_nodes",
+        "Closest._build_raw_boxes",
+        "Closest._query_aabb_nodes",
+        "Closest.aabb_min_dist",
+        "Closest.build",
+        "Closest.dfs",
+        "Closest.line_point",
+        "Closest.lines_closest",
+        "Closest.nurbscurves_closest",
+        "Closest.pointcloud_point",
+        "Closest.pointcloud_point_kdtree",
+        "Closest.polyline_point",
+        "Closest.polylines_closest"
+      ]
+    },
+    {
+      "name": "Closest._aabb_to_aabb_min_dist",
+      "implementations": {
+        "python": {
+          "sig": "_aabb_to_aabb_min_dist(a, b)",
+          "code": "def _aabb_to_aabb_min_dist(a, b):\n\n        dx = max(0.0, abs(a[0]-b[0]) - a[3] - b[3])\n        dy = max(0.0, abs(a[1]-b[1]) - a[4] - b[4])\n        dz = max(0.0, abs(a[2]-b[2]) - a[5] - b[5])\n        return (dx*dx + dy*dy + dz*dz) ** 0.5\n\n    @staticmethod\n    def lines_closest(lines, threshold=0.0):\n        if len(lines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_line(ln, threshold) for ln in lines])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(lines)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                _, _, d_a = Closest.line_point(lines[j], lines[i].start())\n                _, _, d_b = Closest.line_point(lines[j], lines[i].end())\n                _, _, d_c = Closest.line_point(lines[i], lines[j].start())\n                _, _, d_d = Closest.line_point(lines[i], lines[j].end())\n                if min(d_a, d_b, d_c, d_d) <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def polylines_closest(polylines, threshold=0.0):\n        if len(polylines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_polyline(pl, threshold) for pl in polylines])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(polylines)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                pts_a = polylines[i].get_points()\n                dist = min(Closest.polyline_point(polylines[j], pt)[2] for pt in pts_a)\n                if dist <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def nurbscurves_closest(curves, threshold=0.0):\n        if len(curves) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_nurbscurve(crv, threshold, False) for crv in curves])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(curves)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                t0, t1 = curves[i].domain()\n                p_start = curves[i].point_at(t0)\n                p_end = curves[i].point_at(t1)\n                _, d_a = Closest.curve_point(curves[j], p_start)\n                _, d_b = Closest.curve_point(curves[j], p_end)\n                if min(d_a, d_b) <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def boxes_closest(boxes, threshold=0.0):\n        if len(boxes) < 2:\n            return []\n        inflated = []\n        for b in boxes:\n            from session_py import AABB\n            inf = AABB(b.cx, b.cy, b.cz, b.hx + threshold, b.hy + threshold, b.hz + threshold)\n            inflated.append(inf)",
+          "file": "closest.py"
+        }
+      },
+      "related": [
+        "Closest._build_aabb_nodes",
+        "Closest._build_raw_boxes",
+        "Closest._query_aabb_nodes",
+        "Closest.aabb_min_dist",
+        "Closest.boxes_closest",
+        "Closest.build",
+        "Closest.curve_point",
+        "Closest.dfs",
+        "Closest.line_point",
+        "Closest.lines_closest",
+        "Closest.nurbscurves_closest",
+        "Closest.overlaps",
+        "Closest.pointcloud_point_kdtree",
+        "Closest.polyline_point",
+        "Closest.polylines_closest"
+      ]
+    },
+    {
+      "name": "Closest.lines_closest",
+      "implementations": {
+        "python": {
+          "sig": "lines_closest(lines, threshold=0.0)",
+          "code": "def lines_closest(lines, threshold=0.0):\n\n        if len(lines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_line(ln, threshold) for ln in lines])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(lines)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                _, _, d_a = Closest.line_point(lines[j], lines[i].start())\n                _, _, d_b = Closest.line_point(lines[j], lines[i].end())\n                _, _, d_c = Closest.line_point(lines[i], lines[j].start())\n                _, _, d_d = Closest.line_point(lines[i], lines[j].end())\n                if min(d_a, d_b, d_c, d_d) <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def polylines_closest(polylines, threshold=0.0):\n        if len(polylines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_polyline(pl, threshold) for pl in polylines])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(polylines)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                pts_a = polylines[i].get_points()\n                dist = min(Closest.polyline_point(polylines[j], pt)[2] for pt in pts_a)\n                if dist <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def nurbscurves_closest(curves, threshold=0.0):\n        if len(curves) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_nurbscurve(crv, threshold, False) for crv in curves])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(curves)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                t0, t1 = curves[i].domain()\n                p_start = curves[i].point_at(t0)\n                p_end = curves[i].point_at(t1)\n                _, d_a = Closest.curve_point(curves[j], p_start)\n                _, d_b = Closest.curve_point(curves[j], p_end)\n                if min(d_a, d_b) <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def boxes_closest(boxes, threshold=0.0):\n        if len(boxes) < 2:\n            return []\n        inflated = []\n        for b in boxes:\n            from session_py import AABB\n            inf = AABB(b.cx, b.cy, b.cz, b.hx + threshold, b.hy + threshold, b.hz + threshold)\n            inflated.append(inf)\n        raw = Closest._build_raw_boxes(inflated)\n        nodes = Closest._build_aabb_nodes(raw)\n        raw_orig = Closest._build_raw_boxes(boxes)\n        pairs = []\n        for i in range(len(boxes)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)",
+          "file": "closest.py"
+        },
+        "cpp": {
+          "sig": "std::vector<std::pair<size_t, size_t>> lines_closest(\n    const std::vector<Line>& lines,\n    double threshold\n)",
+          "code": "std::vector<std::pair<size_t, size_t>> Closest::lines_closest(\n    const std::vector<Line>& lines,\n    double threshold\n) {\n    std::vector<std::pair<size_t, size_t>> result;\n    if (lines.size() < 2) return result;\n\n    std::vector<AABB> aabbs;\n    aabbs.reserve(lines.size());\n    for (const auto& ln : lines) aabbs.push_back(AABB::from_line(ln, threshold));\n\n    AABBTree tree;\n    tree.build(aabbs.data(), aabbs.size());\n\n    for (size_t i = 0; i < lines.size(); i++) {\n        std::vector<int> candidates;\n        collection_aabb_dfs(tree, 0, aabbs[i], candidates);\n        for (int j_raw : candidates) {\n            size_t j = static_cast<size_t>(j_raw);\n            if (j <= i) continue;\n            auto [cp_a, t_a, d_a] = line_point(lines[j], lines[i].start());\n            auto [cp_b, t_b, d_b] = line_point(lines[j], lines[i].end());\n            auto [cp_c, t_c, d_c] = line_point(lines[i], lines[j].start());\n            auto [cp_d, t_d, d_d] = line_point(lines[i], lines[j].end());\n            double dist = std::min({d_a, d_b, d_c, d_d}",
+          "file": "closest.cpp"
+        },
+        "rust": {
+          "sig": "lines_closest(lines: &[Line], threshold: f64) -> Vec<(usize, usize)>",
+          "code": "pub fn lines_closest(lines: &[Line], threshold: f64) -> Vec<(usize, usize)> {\n        use crate::aabb::AABB;\n        if lines.len() < 2 { return Vec::new(); }\n        let raw: Vec<[f64; 6]> = lines.iter().map(|ln| {\n            let b = AABB::from_line(ln, threshold);\n            [b.cx, b.cy, b.cz, b.hx, b.hy, b.hz]\n        }).collect();\n        let nodes = Self::build_raw_boxes(&raw);\n        let mut pairs = Vec::new();\n        for i in 0..lines.len() {\n            let mut candidates = Vec::new();\n            Self::query_raw_nodes(0, &nodes, &raw[i], &mut candidates);\n            for j in candidates {\n                if j <= i { continue; }\n                let (_, _, d_a) = Self::line_point(&lines[j], &lines[i].start());\n                let (_, _, d_b) = Self::line_point(&lines[j], &lines[i].end());\n                let (_, _, d_c) = Self::line_point(&lines[i], &lines[j].start());\n                let (_, _, d_d) = Self::line_point(&lines[i], &lines[j].end());\n                if d_a.min(d_b).min(d_c).min(d_d) <= threshold { pairs.push((i, j)); }\n            }\n        }\n        pairs\n    }",
+          "file": "closest.rs"
+        }
+      },
+      "related": [
+        "Closest._aabb_to_aabb_min_dist",
+        "Closest._build_aabb_nodes",
+        "Closest._build_raw_boxes",
+        "Closest._query_aabb_nodes",
+        "Closest.boxes_closest",
+        "Closest.build",
+        "Closest.curve_point",
+        "Closest.dfs",
+        "Closest.line_point",
+        "Closest.nurbscurves_closest",
+        "Closest.overlaps",
+        "Closest.pointcloud_point_kdtree",
+        "Closest.polyline_point",
+        "Closest.polylines_closest"
+      ]
+    },
+    {
+      "name": "Closest.polylines_closest",
+      "implementations": {
+        "python": {
+          "sig": "polylines_closest(polylines, threshold=0.0)",
+          "code": "def polylines_closest(polylines, threshold=0.0):\n\n        if len(polylines) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_polyline(pl, threshold) for pl in polylines])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(polylines)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                pts_a = polylines[i].get_points()\n                dist = min(Closest.polyline_point(polylines[j], pt)[2] for pt in pts_a)\n                if dist <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def nurbscurves_closest(curves, threshold=0.0):\n        if len(curves) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_nurbscurve(crv, threshold, False) for crv in curves])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(curves)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                t0, t1 = curves[i].domain()\n                p_start = curves[i].point_at(t0)\n                p_end = curves[i].point_at(t1)\n                _, d_a = Closest.curve_point(curves[j], p_start)\n                _, d_b = Closest.curve_point(curves[j], p_end)\n                if min(d_a, d_b) <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def boxes_closest(boxes, threshold=0.0):\n        if len(boxes) < 2:\n            return []\n        inflated = []\n        for b in boxes:\n            from session_py import AABB\n            inf = AABB(b.cx, b.cy, b.cz, b.hx + threshold, b.hy + threshold, b.hz + threshold)\n            inflated.append(inf)\n        raw = Closest._build_raw_boxes(inflated)\n        nodes = Closest._build_aabb_nodes(raw)\n        raw_orig = Closest._build_raw_boxes(boxes)\n        pairs = []\n        for i in range(len(boxes)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                dist = Closest._aabb_to_aabb_min_dist(raw_orig[i], raw_orig[j])\n                if dist <= threshold:\n                    pairs.append((i, j))\n        return pairs",
+          "file": "closest.py"
+        },
+        "cpp": {
+          "sig": "std::vector<std::pair<size_t, size_t>> polylines_closest(\n    const std::vector<Polyline>& polylines,\n    double threshold\n)",
+          "code": "std::vector<std::pair<size_t, size_t>> Closest::polylines_closest(\n    const std::vector<Polyline>& polylines,\n    double threshold\n) {\n    std::vector<std::pair<size_t, size_t>> result;\n    if (polylines.size() < 2) return result;\n\n    std::vector<AABB> aabbs;\n    aabbs.reserve(polylines.size());\n    for (const auto& pl : polylines) aabbs.push_back(AABB::from_polyline(pl, threshold));\n\n    AABBTree tree;\n    tree.build(aabbs.data(), aabbs.size());\n\n    for (size_t i = 0; i < polylines.size(); i++) {\n        std::vector<int> candidates;\n        collection_aabb_dfs(tree, 0, aabbs[i], candidates);\n        for (int j_raw : candidates) {\n            size_t j = static_cast<size_t>(j_raw);\n            if (j <= i) continue;\n            const auto pts_a = polylines[i].get_points();\n            double dist = std::numeric_limits<double>::infinity();\n            for (const auto& pt : pts_a) {\n                auto [cp, t, d] = polyline_point(polylines[j], pt);\n                if (d < dist) dist = d;\n            }",
+          "file": "closest.cpp"
+        },
+        "rust": {
+          "sig": "polylines_closest(polylines: &[Polyline], threshold: f64) -> Vec<(usize, usize)>",
+          "code": "pub fn polylines_closest(polylines: &[Polyline], threshold: f64) -> Vec<(usize, usize)> {\n        use crate::aabb::AABB;\n        if polylines.len() < 2 { return Vec::new(); }\n        let raw: Vec<[f64; 6]> = polylines.iter().map(|pl| {\n            let b = AABB::from_polyline(pl, threshold);\n            [b.cx, b.cy, b.cz, b.hx, b.hy, b.hz]\n        }).collect();\n        let nodes = Self::build_raw_boxes(&raw);\n        let mut pairs = Vec::new();\n        for i in 0..polylines.len() {\n            let mut candidates = Vec::new();\n            Self::query_raw_nodes(0, &nodes, &raw[i], &mut candidates);\n            for j in candidates {\n                if j <= i { continue; }\n                let pts_a = polylines[i].get_points();\n                let dist = pts_a.iter().map(|pt| Self::polyline_point(&polylines[j], pt).2)\n                    .fold(f64::INFINITY, f64::min);\n                if dist <= threshold { pairs.push((i, j)); }\n            }\n        }\n        pairs\n    }",
+          "file": "closest.rs"
+        }
+      },
+      "related": [
+        "Closest._aabb_to_aabb_min_dist",
+        "Closest._build_aabb_nodes",
+        "Closest._build_raw_boxes",
+        "Closest._query_aabb_nodes",
+        "Closest.aabb_min_dist",
+        "Closest.boxes_closest",
+        "Closest.build",
+        "Closest.curve_point",
+        "Closest.dfs",
+        "Closest.line_point",
+        "Closest.lines_closest",
+        "Closest.nurbscurves_closest",
+        "Closest.overlaps",
+        "Closest.polyline_point"
+      ]
+    },
+    {
+      "name": "Closest.nurbscurves_closest",
+      "implementations": {
+        "python": {
+          "sig": "nurbscurves_closest(curves, threshold=0.0)",
+          "code": "def nurbscurves_closest(curves, threshold=0.0):\n\n        if len(curves) < 2:\n            return []\n        from session_py import AABB\n        raw = Closest._build_raw_boxes([AABB.from_nurbscurve(crv, threshold, False) for crv in curves])\n        nodes = Closest._build_aabb_nodes(raw)\n        pairs = []\n        for i in range(len(curves)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                t0, t1 = curves[i].domain()\n                p_start = curves[i].point_at(t0)\n                p_end = curves[i].point_at(t1)\n                _, d_a = Closest.curve_point(curves[j], p_start)\n                _, d_b = Closest.curve_point(curves[j], p_end)\n                if min(d_a, d_b) <= threshold:\n                    pairs.append((i, j))\n        return pairs\n\n    @staticmethod\n    def boxes_closest(boxes, threshold=0.0):\n        if len(boxes) < 2:\n            return []\n        inflated = []\n        for b in boxes:\n            from session_py import AABB\n            inf = AABB(b.cx, b.cy, b.cz, b.hx + threshold, b.hy + threshold, b.hz + threshold)\n            inflated.append(inf)\n        raw = Closest._build_raw_boxes(inflated)\n        nodes = Closest._build_aabb_nodes(raw)\n        raw_orig = Closest._build_raw_boxes(boxes)\n        pairs = []\n        for i in range(len(boxes)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                dist = Closest._aabb_to_aabb_min_dist(raw_orig[i], raw_orig[j])\n                if dist <= threshold:\n                    pairs.append((i, j))\n        return pairs",
+          "file": "closest.py"
+        },
+        "cpp": {
+          "sig": "std::vector<std::pair<size_t, size_t>> nurbscurves_closest(\n    const std::vector<NurbsCurve>& curves,\n    double threshold\n)",
+          "code": "std::vector<std::pair<size_t, size_t>> Closest::nurbscurves_closest(\n    const std::vector<NurbsCurve>& curves,\n    double threshold\n) {\n    std::vector<std::pair<size_t, size_t>> result;\n    if (curves.size() < 2) return result;\n\n    std::vector<AABB> aabbs;\n    aabbs.reserve(curves.size());\n    for (const auto& crv : curves) aabbs.push_back(AABB::from_nurbscurve(crv, threshold, false));\n\n    AABBTree tree;\n    tree.build(aabbs.data(), aabbs.size());\n\n    for (size_t i = 0; i < curves.size(); i++) {\n        std::vector<int> candidates;\n        collection_aabb_dfs(tree, 0, aabbs[i], candidates);\n        for (int j_raw : candidates) {\n            size_t j = static_cast<size_t>(j_raw);\n            if (j <= i) continue;\n            auto [domain_s, domain_e] = curves[i].domain();\n            Point p_start = curves[i].point_at(domain_s);\n            Point p_end = curves[i].point_at(domain_e);\n            auto [t_a, d_a] = curve_point(curves[j], p_start);\n            auto [t_b, d_b] = curve_point(curves[j], p_end);\n            double dist = std::min(d_a, d_b);\n            if (dist <= threshold) result.push_back({i, j}",
+          "file": "closest.cpp"
+        },
+        "rust": {
+          "sig": "nurbscurves_closest(curves: &[NurbsCurve], threshold: f64) -> Vec<(usize, usize)>",
+          "code": "pub fn nurbscurves_closest(curves: &[NurbsCurve], threshold: f64) -> Vec<(usize, usize)> {\n        use crate::aabb::AABB;\n        if curves.len() < 2 { return Vec::new(); }\n        let raw: Vec<[f64; 6]> = curves.iter().map(|crv| {\n            let b = AABB::from_nurbscurve(crv, threshold, false);\n            [b.cx, b.cy, b.cz, b.hx, b.hy, b.hz]\n        }).collect();\n        let nodes = Self::build_raw_boxes(&raw);\n        let mut pairs = Vec::new();\n        for i in 0..curves.len() {\n            let mut candidates = Vec::new();\n            Self::query_raw_nodes(0, &nodes, &raw[i], &mut candidates);\n            for j in candidates {\n                if j <= i { continue; }\n                let (t0, t1) = curves[i].domain();\n                let p_start = curves[i].point_at(t0);\n                let p_end = curves[i].point_at(t1);\n                let (_, d_a) = Self::curve_point(&curves[j], &p_start, 0.0, 0.0);\n                let (_, d_b) = Self::curve_point(&curves[j], &p_end, 0.0, 0.0);\n                if d_a.min(d_b) <= threshold { pairs.push((i, j)); }\n            }\n        }\n        pairs\n    }",
+          "file": "closest.rs"
+        }
+      },
+      "related": [
+        "Closest._aabb_to_aabb_min_dist",
+        "Closest._build_aabb_nodes",
+        "Closest._build_raw_boxes",
+        "Closest._query_aabb_nodes",
+        "Closest.aabb_min_dist",
+        "Closest.boxes_closest",
+        "Closest.build",
+        "Closest.curve_point",
+        "Closest.dfs",
+        "Closest.lines_closest",
+        "Closest.overlaps",
+        "Closest.polylines_closest"
+      ]
+    },
+    {
+      "name": "Closest.boxes_closest",
+      "implementations": {
+        "python": {
+          "sig": "boxes_closest(boxes, threshold=0.0)",
+          "code": "def boxes_closest(boxes, threshold=0.0):\n\n        if len(boxes) < 2:\n            return []\n        inflated = []\n        for b in boxes:\n            from session_py import AABB\n            inf = AABB(b.cx, b.cy, b.cz, b.hx + threshold, b.hy + threshold, b.hz + threshold)\n            inflated.append(inf)\n        raw = Closest._build_raw_boxes(inflated)\n        nodes = Closest._build_aabb_nodes(raw)\n        raw_orig = Closest._build_raw_boxes(boxes)\n        pairs = []\n        for i in range(len(boxes)):\n            candidates = []\n            Closest._query_aabb_nodes(nodes, raw[i], candidates)\n            for j in candidates:\n                if j <= i:\n                    continue\n                dist = Closest._aabb_to_aabb_min_dist(raw_orig[i], raw_orig[j])\n                if dist <= threshold:\n                    pairs.append((i, j))\n        return pairs",
+          "file": "closest.py"
+        },
+        "cpp": {
+          "sig": "std::vector<std::pair<size_t, size_t>> boxes_closest(\n    const std::vector<AABB>& boxes,\n    double threshold\n)",
+          "code": "std::vector<std::pair<size_t, size_t>> Closest::boxes_closest(\n    const std::vector<AABB>& boxes,\n    double threshold\n) {\n    std::vector<std::pair<size_t, size_t>> result;\n    if (boxes.size() < 2) return result;\n\n    std::vector<AABB> inflated;\n    inflated.reserve(boxes.size());\n    for (const auto& b : boxes) {\n        AABB inf = b;\n        inf.inflate(threshold);\n        inflated.push_back(inf);\n    }",
+          "file": "closest.cpp"
+        },
+        "rust": {
+          "sig": "boxes_closest(boxes: &[crate::aabb::AABB], threshold: f64) -> Vec<(usize, usize)>",
+          "code": "pub fn boxes_closest(boxes: &[crate::aabb::AABB], threshold: f64) -> Vec<(usize, usize)> {\n        if boxes.len() < 2 { return Vec::new(); }\n        let raw_orig: Vec<[f64; 6]> = boxes.iter().map(|b| [b.cx, b.cy, b.cz, b.hx, b.hy, b.hz]).collect();\n        let raw_inf: Vec<[f64; 6]> = boxes.iter().map(|b| [b.cx, b.cy, b.cz, b.hx + threshold, b.hy + threshold, b.hz + threshold]).collect();\n        let nodes = Self::build_raw_boxes(&raw_inf);\n        let mut pairs = Vec::new();\n        for i in 0..boxes.len() {\n            let mut candidates = Vec::new();\n            Self::query_raw_nodes(0, &nodes, &raw_inf[i], &mut candidates);\n            for j in candidates {\n                if j <= i { continue; }\n                let dist = Self::aabb_to_aabb_min_dist(&raw_orig[i], &raw_orig[j]);\n                if dist <= threshold { pairs.push((i, j)); }\n            }\n        }\n        pairs\n    }",
+          "file": "closest.rs"
+        }
+      },
+      "related": [
+        "Closest._aabb_to_aabb_min_dist",
+        "Closest._build_aabb_nodes",
+        "Closest._build_raw_boxes",
+        "Closest._query_aabb_nodes",
+        "Closest.aabb_min_dist",
+        "Closest.build",
+        "Closest.lines_closest",
+        "Closest.nurbscurves_closest",
+        "Closest.polylines_closest"
       ]
     },
     {
@@ -45935,7 +46319,6 @@ window.API_INDEX = {
         "Polyline.get_point",
         "Polyline.guid",
         "Polyline.insert_point",
-        "Polyline.is_clockwise",
         "Polyline.is_empty",
         "Polyline.length",
         "Polyline.linecolor",
@@ -46248,6 +46631,7 @@ window.API_INDEX = {
         "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.insert_point",
+        "Polyline.is_clockwise",
         "Polyline.len",
         "Polyline.linecolor",
         "Polyline.new",
@@ -46648,7 +47032,6 @@ window.API_INDEX = {
         "Polyline.extend_edge_equally",
         "Polyline.format",
         "Polyline.get_point",
-        "Polyline.is_clockwise",
         "Polyline.lines",
         "Polyline.new",
         "Polyline.point_count",
@@ -47726,7 +48109,7 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "bool is_clockwise(const Plane& pln)",
-          "code": "bool Polyline::is_clockwise(const Plane& pln) const {\n    (void)pln;  // Reserved for future use - may project to plane\n    if (point_count() < 3) return false;\n\n    // Create a copy for transformation\n    Polyline cp = *this;\n\n    // Ensure closed for winding calculation\n    if (!cp.is_closed()) {\n        cp.add_point(cp.get_point(0));\n    }",
+          "code": "bool Polyline::is_clockwise(const Plane& pln) const {\n    size_t n = point_count();\n    if (n < 3) return false;\n\n    // Project onto plane's local XY axes and compute shoelace signed area.\n    // Matches wood's cgal_polyline_util::is_clockwise which uses plane_to_xy.\n    const Vector& xv = pln.x_axis();\n    const Vector& yv = pln.y_axis();\n    const Point& orig = pln.origin();\n\n    // For closed polylines the last point duplicates the first; iterate n-1\n    // unique edges. For open polylines iterate n edges (last\u00e2\u2020\u2019first closes it).\n    size_t lim = is_closed() ? n - 1 : n;\n\n    double area = 0.0;\n    for (size_t i = 0; i < lim; i++) {\n        Point pi  = get_point(i);\n        Point pi1 = get_point((i + 1) % lim);\n        double u0 = (pi[0]-orig[0])*xv[0]  + (pi[1]-orig[1])*xv[1]  + (pi[2]-orig[2])*xv[2];\n        double v0 = (pi[0]-orig[0])*yv[0]  + (pi[1]-orig[1])*yv[1]  + (pi[2]-orig[2])*yv[2];\n        double u1 = (pi1[0]-orig[0])*xv[0] + (pi1[1]-orig[1])*xv[1] + (pi1[2]-orig[2])*xv[2];\n        double v1 = (pi1[0]-orig[0])*yv[0] + (pi1[1]-orig[1])*yv[1] + (pi1[2]-orig[2])*yv[2];\n        area += (u1 - u0) * (v1 + v0);\n    }",
           "file": "polyline.cpp"
         },
         "rust": {
@@ -47738,14 +48121,13 @@ window.API_INDEX = {
       "related": [
         "Polyline.Polyline",
         "Polyline._average_normal",
-        "Polyline.add_point",
         "Polyline.average_normal",
         "Polyline.closed",
+        "Polyline.duplicate",
         "Polyline.extend_line_segment",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
-        "Polyline.format",
         "Polyline.get_convex_corners",
         "Polyline.get_point",
         "Polyline.interpolate_points",
@@ -47755,10 +48137,8 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
-        "Polyline.project",
         "Polyline.quick_hull",
         "Polyline.shrink_line_segment",
-        "Polyline.transform",
         "Polyline.tween_two_polylines"
       ]
     },
@@ -48987,7 +49367,6 @@ window.API_INDEX = {
         "Polyline.ensure_ccw",
         "Polyline.extend",
         "Polyline.guid",
-        "Polyline.is_clockwise",
         "Polyline.len",
         "Polyline.line_from_projected_points",
         "Polyline.line_line_average",
@@ -75720,7 +76099,6 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
-        "Polyline.is_clockwise",
         "Polyline.json_dump",
         "Polyline.json_dumps",
         "Polyline.json_load",
@@ -82939,6 +83317,26 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "AABBTree.test_Constructor",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"AABBTree\", \"Constructor\")",
+          "code": "MINI_TEST(\"AABBTree\", \"Constructor\") {\n    // uncomment #include \"aabb.h\"\n    // uncomment #include \"closest.h\"\n    // AABBTree: O(n log n) build, O(log n) cull \u00e2\u20ac\u201d prune candidates before exact test\n    std::vector<AABB> boxes = {\n        AABB(0.0, 0.0, 0.0, 0.5, 0.5, 0.5),\n        AABB(5.0, 0.0, 0.0, 0.5, 0.5, 0.5),\n        AABB(10.0, 0.0, 0.0, 0.5, 0.5, 0.5),\n    };\n    auto pairs = Closest::boxes_closest(boxes, 0.0);\n\n    MINI_CHECK(pairs.empty());\n\n    std::vector<AABB> boxes_near = {\n        AABB(0.0, 0.0, 0.0, 0.5, 0.5, 0.5),\n        AABB(1.0, 0.0, 0.0, 0.5, 0.5, 0.5),\n    };\n    auto pairs_near = Closest::boxes_closest(boxes_near, 0.0);\n\n    MINI_CHECK(pairs_near.size() == 1);\n    MINI_CHECK(pairs_near[0].first == 0);\n    MINI_CHECK(pairs_near[0].second == 1);\n}",
+          "file": "aabb_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"AABBTree\", \"Constructor\")",
+          "code": "@MINI_TEST(\"AABBTree\", \"Constructor\")\ndef test_aabbtree_constructor():\n    from session_py import AABB\n    from session_py import Closest\n\n    # AABBTree: O(n log n) build, O(log n) cull \u00e2\u20ac\u201d prune candidates before exact test\n    box0 = AABB(0.0, 0.0, 0.0, 0.5, 0.5, 0.5)\n    box1 = AABB(5.0, 0.0, 0.0, 0.5, 0.5, 0.5)\n    box2 = AABB(10.0, 0.0, 0.0, 0.5, 0.5, 0.5)\n    pairs = Closest.boxes_closest([box0, box1, box2], 0.0)\n\n    MINI_CHECK(len(pairs) == 0)\n\n    pairs_near = Closest.boxes_closest([box0, AABB(1.0, 0.0, 0.0, 0.5, 0.5, 0.5)], 0.0)\n\n    MINI_CHECK(len(pairs_near) == 1)\n    MINI_CHECK(pairs_near[0][0] == 0)\n    MINI_CHECK(pairs_near[0][1] == 1)",
+          "file": "aabb_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"AABBTree\", \"Constructor\")",
+          "code": "MINI_TEST!(\"AABBTree\", \"Constructor\", crate::aabb_test::run_aabbtree_constructor);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Build Empty\", crate::aabb_test::run_aabbtree_build_empty);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Build Single\", crate::aabb_test::run_aabbtree_build_single);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Build Multiple\", crate::aabb_test::run_aabbtree_build_multiple);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Node Count\", crate::aabb_test::run_aabbtree_node_count);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb\", crate::aabb_test::run_aabbtree_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb Matches Bvh\", crate::aabb_test::run_aabbtree_mesh_point_aabb_matches_bvh);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Query Aabb\", crate::aabb_test::run_aabbtree_query_aabb);\nREGISTER_MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);\nREGISTER_MINI_TEST!(\"Aabb\", \"From Geometry\", crate::aabb_test::run_aabb_from_geometry);",
+          "file": "aabb_test.rs"
+        }
+      }
+    },
+    {
       "name": "AABBTree.test_Build Empty",
       "implementations": {
         "cpp": {
@@ -82953,7 +83351,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"AABBTree\", \"Build Empty\")",
-          "code": "MINI_TEST!(\"AABBTree\", \"Build Empty\", crate::aabb_test::run_aabbtree_build_empty);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Build Single\", crate::aabb_test::run_aabbtree_build_single);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Build Multiple\", crate::aabb_test::run_aabbtree_build_multiple);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Node Count\", crate::aabb_test::run_aabbtree_node_count);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb\", crate::aabb_test::run_aabbtree_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb Matches Bvh\", crate::aabb_test::run_aabbtree_mesh_point_aabb_matches_bvh);\nREGISTER_MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);",
+          "code": "MINI_TEST!(\"AABBTree\", \"Build Empty\", crate::aabb_test::run_aabbtree_build_empty);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Build Single\", crate::aabb_test::run_aabbtree_build_single);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Build Multiple\", crate::aabb_test::run_aabbtree_build_multiple);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Node Count\", crate::aabb_test::run_aabbtree_node_count);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb\", crate::aabb_test::run_aabbtree_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb Matches Bvh\", crate::aabb_test::run_aabbtree_mesh_point_aabb_matches_bvh);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Query Aabb\", crate::aabb_test::run_aabbtree_query_aabb);\nREGISTER_MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);\nREGISTER_MINI_TEST!(\"Aabb\", \"From Geometry\", crate::aabb_test::run_aabb_from_geometry);",
           "file": "aabb_test.rs"
         }
       }
@@ -82973,7 +83371,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"AABBTree\", \"Build Single\")",
-          "code": "MINI_TEST!(\"AABBTree\", \"Build Single\", crate::aabb_test::run_aabbtree_build_single);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Build Multiple\", crate::aabb_test::run_aabbtree_build_multiple);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Node Count\", crate::aabb_test::run_aabbtree_node_count);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb\", crate::aabb_test::run_aabbtree_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb Matches Bvh\", crate::aabb_test::run_aabbtree_mesh_point_aabb_matches_bvh);\nREGISTER_MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);",
+          "code": "MINI_TEST!(\"AABBTree\", \"Build Single\", crate::aabb_test::run_aabbtree_build_single);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Build Multiple\", crate::aabb_test::run_aabbtree_build_multiple);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Node Count\", crate::aabb_test::run_aabbtree_node_count);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb\", crate::aabb_test::run_aabbtree_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb Matches Bvh\", crate::aabb_test::run_aabbtree_mesh_point_aabb_matches_bvh);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Query Aabb\", crate::aabb_test::run_aabbtree_query_aabb);\nREGISTER_MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);\nREGISTER_MINI_TEST!(\"Aabb\", \"From Geometry\", crate::aabb_test::run_aabb_from_geometry);",
           "file": "aabb_test.rs"
         }
       }
@@ -82993,7 +83391,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"AABBTree\", \"Build Multiple\")",
-          "code": "MINI_TEST!(\"AABBTree\", \"Build Multiple\", crate::aabb_test::run_aabbtree_build_multiple);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Node Count\", crate::aabb_test::run_aabbtree_node_count);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb\", crate::aabb_test::run_aabbtree_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb Matches Bvh\", crate::aabb_test::run_aabbtree_mesh_point_aabb_matches_bvh);\nREGISTER_MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);",
+          "code": "MINI_TEST!(\"AABBTree\", \"Build Multiple\", crate::aabb_test::run_aabbtree_build_multiple);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Node Count\", crate::aabb_test::run_aabbtree_node_count);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb\", crate::aabb_test::run_aabbtree_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb Matches Bvh\", crate::aabb_test::run_aabbtree_mesh_point_aabb_matches_bvh);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Query Aabb\", crate::aabb_test::run_aabbtree_query_aabb);\nREGISTER_MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);\nREGISTER_MINI_TEST!(\"Aabb\", \"From Geometry\", crate::aabb_test::run_aabb_from_geometry);",
           "file": "aabb_test.rs"
         }
       }
@@ -83013,7 +83411,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"AABBTree\", \"Node Count\")",
-          "code": "MINI_TEST!(\"AABBTree\", \"Node Count\", crate::aabb_test::run_aabbtree_node_count);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb\", crate::aabb_test::run_aabbtree_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb Matches Bvh\", crate::aabb_test::run_aabbtree_mesh_point_aabb_matches_bvh);\nREGISTER_MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);",
+          "code": "MINI_TEST!(\"AABBTree\", \"Node Count\", crate::aabb_test::run_aabbtree_node_count);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb\", crate::aabb_test::run_aabbtree_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb Matches Bvh\", crate::aabb_test::run_aabbtree_mesh_point_aabb_matches_bvh);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Query Aabb\", crate::aabb_test::run_aabbtree_query_aabb);\nREGISTER_MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);\nREGISTER_MINI_TEST!(\"Aabb\", \"From Geometry\", crate::aabb_test::run_aabb_from_geometry);",
           "file": "aabb_test.rs"
         }
       }
@@ -83033,7 +83431,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb\")",
-          "code": "MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb\", crate::aabb_test::run_aabbtree_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb Matches Bvh\", crate::aabb_test::run_aabbtree_mesh_point_aabb_matches_bvh);\nREGISTER_MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);",
+          "code": "MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb\", crate::aabb_test::run_aabbtree_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb Matches Bvh\", crate::aabb_test::run_aabbtree_mesh_point_aabb_matches_bvh);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Query Aabb\", crate::aabb_test::run_aabbtree_query_aabb);\nREGISTER_MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);\nREGISTER_MINI_TEST!(\"Aabb\", \"From Geometry\", crate::aabb_test::run_aabb_from_geometry);",
           "file": "aabb_test.rs"
         }
       }
@@ -83053,7 +83451,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb Matches Bvh\")",
-          "code": "MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb Matches Bvh\", crate::aabb_test::run_aabbtree_mesh_point_aabb_matches_bvh);\nREGISTER_MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);",
+          "code": "MINI_TEST!(\"AABBTree\", \"Mesh Point Aabb Matches Bvh\", crate::aabb_test::run_aabbtree_mesh_point_aabb_matches_bvh);\nREGISTER_MINI_TEST!(\"AABBTree\", \"Query Aabb\", crate::aabb_test::run_aabbtree_query_aabb);\nREGISTER_MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);\nREGISTER_MINI_TEST!(\"Aabb\", \"From Geometry\", crate::aabb_test::run_aabb_from_geometry);",
           "file": "aabb_test.rs"
         }
       }
@@ -83068,12 +83466,52 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Aabb\", \"Constructor\")",
-          "code": "@MINI_TEST(\"Aabb\", \"Constructor\")\ndef test_aabb_constructor():\n    import math\n    from session_py import AABB\n    from session_py import Point\n\n    # AABB(0,0,0, 1,2,3) \u00e2\u20ac\u201d dims 2\u00c3\u20144\u00c3\u20146\n    a = AABB(0.0, 0.0, 0.0, 1.0, 2.0, 3.0)\n\n    MINI_CHECK(TOLERANCE.is_close(a.area(), 88.0))\n    MINI_CHECK(a.center() == Point(0.0, 0.0, 0.0))\n    MINI_CHECK(TOLERANCE.is_close(a.diagonal(), 2.0 * math.sqrt(14.0)))\n    MINI_CHECK(a.is_valid())\n    MINI_CHECK(TOLERANCE.is_close(a.volume(), 48.0))\n    MINI_CHECK(a.closest_point(Point(0.0, 0.0, 0.0)) == Point(0.0, 0.0, 0.0))\n    MINI_CHECK(a.closest_point(Point(10.0, 0.0, 0.0)) == Point(1.0, 0.0, 0.0))\n    MINI_CHECK(a.contains(Point(0.0, 0.0, 0.0)))\n    MINI_CHECK(not a.contains(Point(10.0, 0.0, 0.0)))\n    MINI_CHECK(a.corner(False, False, False) == Point(-1.0, -2.0, -3.0))\n    MINI_CHECK(a.corner(True, True, True) == Point(1.0, 2.0, 3.0))\n    MINI_CHECK(len(a.get_corners()) == 8)\n    MINI_CHECK(len(a.get_edges()) == 12)\n    MINI_CHECK(a.point_at(1.0, 0.0, 0.0) == Point(1.0, 0.0, 0.0))\n    MINI_CHECK(a.point_at(0.0, 0.0, 0.0) == Point(0.0, 0.0, 0.0))\n    MINI_CHECK(a.intersects(AABB(0.5, 0.0, 0.0, 0.5, 0.5, 0.5)))\n    MINI_CHECK(not a.intersects(AABB(10.0, 0.0, 0.0, 0.5, 0.5, 0.5)))\n    b = AABB(5.0, 0.0, 0.0, 1.0, 1.0, 1.0)\n    a = a.union_with(b)\n    MINI_CHECK(a.min_point() == Point(-1.0, -2.0, -3.0))\n    MINI_CHECK(a.max_point() == Point(6.0, 2.0, 3.0))\n    c = AABB.merge(AABB(0.0, 0.0, 0.0, 1.0, 1.0, 1.0), AABB(4.0, 0.0, 0.0, 1.0, 1.0, 1.0))\n    MINI_CHECK(c.min_point() == Point(-1.0, -1.0, -1.0))\n    MINI_CHECK(c.max_point() == Point(5.0, 1.0, 1.0))\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "code": "@MINI_TEST(\"Aabb\", \"Constructor\")\ndef test_aabb_constructor():\n    import math\n    from session_py import AABB\n    from session_py import Point\n\n    # AABB(0,0,0, 1,2,3) \u00e2\u20ac\u201d dims 2\u00c3\u20144\u00c3\u20146\n    a = AABB(0.0, 0.0, 0.0, 1.0, 2.0, 3.0)\n\n    MINI_CHECK(TOLERANCE.is_close(a.area(), 88.0))\n    MINI_CHECK(a.center() == Point(0.0, 0.0, 0.0))\n    MINI_CHECK(TOLERANCE.is_close(a.diagonal(), 2.0 * math.sqrt(14.0)))\n    MINI_CHECK(a.is_valid())\n    MINI_CHECK(TOLERANCE.is_close(a.volume(), 48.0))\n    MINI_CHECK(a.closest_point(Point(0.0, 0.0, 0.0)) == Point(0.0, 0.0, 0.0))\n    MINI_CHECK(a.closest_point(Point(10.0, 0.0, 0.0)) == Point(1.0, 0.0, 0.0))\n    MINI_CHECK(a.contains(Point(0.0, 0.0, 0.0)))\n    MINI_CHECK(not a.contains(Point(10.0, 0.0, 0.0)))\n    MINI_CHECK(a.corner(False, False, False) == Point(-1.0, -2.0, -3.0))\n    MINI_CHECK(a.corner(True, True, True) == Point(1.0, 2.0, 3.0))\n    MINI_CHECK(len(a.get_corners()) == 8)\n    MINI_CHECK(len(a.get_edges()) == 12)\n    MINI_CHECK(a.point_at(1.0, 0.0, 0.0) == Point(1.0, 0.0, 0.0))\n    MINI_CHECK(a.point_at(0.0, 0.0, 0.0) == Point(0.0, 0.0, 0.0))\n    MINI_CHECK(a.intersects(AABB(0.5, 0.0, 0.0, 0.5, 0.5, 0.5)))\n    MINI_CHECK(not a.intersects(AABB(10.0, 0.0, 0.0, 0.5, 0.5, 0.5)))\n    b = AABB(5.0, 0.0, 0.0, 1.0, 1.0, 1.0)\n    a = a.union_with(b)\n    MINI_CHECK(a.min_point() == Point(-1.0, -2.0, -3.0))\n    MINI_CHECK(a.max_point() == Point(6.0, 2.0, 3.0))\n    c = AABB.merge(AABB(0.0, 0.0, 0.0, 1.0, 1.0, 1.0), AABB(4.0, 0.0, 0.0, 1.0, 1.0, 1.0))\n    MINI_CHECK(c.min_point() == Point(-1.0, -1.0, -1.0))\n    MINI_CHECK(c.max_point() == Point(5.0, 1.0, 1.0))",
           "file": "aabb_test.py"
         },
         "rust": {
           "sig": "MINI_TEST!(\"Aabb\", \"Constructor\")",
-          "code": "MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);",
+          "code": "MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);\nREGISTER_MINI_TEST!(\"Aabb\", \"From Geometry\", crate::aabb_test::run_aabb_from_geometry);",
+          "file": "aabb_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Aabb.test_From Geometry",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Aabb\", \"From Geometry\")",
+          "code": "MINI_TEST(\"Aabb\", \"From Geometry\") {\n    // uncomment #include \"line.h\"\n    // uncomment #include \"polyline.h\"\n    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"nurbscurve.h\"\n    // uncomment #include \"nurbssurface.h\"\n    AABB a_pt = AABB::from_point(Point(1.0, 2.0, 3.0), 0.5);\n\n    MINI_CHECK(a_pt.center() == Point(1.0, 2.0, 3.0));\n    MINI_CHECK(TOLERANCE.is_close(a_pt.hx, 0.5));\n\n    AABB a_pts = AABB::from_points({\n        Point(0.0, 0.0, 0.0),\n        Point(3.0, 4.0, 5.0),\n    }, 0.0);\n\n    MINI_CHECK(a_pts.min_point() == Point(0.0, 0.0, 0.0));\n    MINI_CHECK(a_pts.max_point() == Point(3.0, 4.0, 5.0));\n\n    Line ln(0.0, 0.0, 0.0, 4.0, 0.0, 0.0);\n    AABB a_line = AABB::from_line(ln, 1.0);\n\n    MINI_CHECK(a_line.min_point() == Point(-1.0, -1.0, -1.0));\n    MINI_CHECK(a_line.max_point() == Point(5.0, 1.0, 1.0));\n\n    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n    });\n    AABB a_pl = AABB::from_polyline(pl, 0.0);\n\n    MINI_CHECK(a_pl.min_point() == Point(0.0, 0.0, 0.0));\n    MINI_CHECK(a_pl.max_point() == Point(2.0, 2.0, 0.0));\n\n    Mesh cube = Primitives::cube(2.0);\n    AABB a_mesh = AABB::from_mesh(cube, 0.0);\n\n    MINI_CHECK(a_mesh.min_point() == Point(-1.0, -1.0, -1.0));\n    MINI_CHECK(a_mesh.max_point() == Point(1.0, 1.0, 1.0));\n\n    PointCloud pc(\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(4.0, 2.0, 6.0),\n        },\n        {\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        },\n        {\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n        }\n    );\n    AABB a_pc = AABB::from_pointcloud(pc, 0.0);\n\n    MINI_CHECK(a_pc.min_point() == Point(0.0, 0.0, 0.0));\n    MINI_CHECK(a_pc.max_point() == Point(4.0, 2.0, 6.0));\n\n    NurbsCurve curve = NurbsCurve::create(false, 2, {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    });\n    AABB a_nc = AABB::from_nurbscurve(curve, 0.5, false);\n\n    MINI_CHECK(a_nc.is_valid());\n    MINI_CHECK(a_nc.contains(Point(1.5, 0.0, 0.0)));\n\n    NurbsSurface surf = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n        Point(2.0, 2.0, 2.0),\n    });\n    AABB a_ns = AABB::from_nurbssurface(surf, 0.0);\n\n    MINI_CHECK(a_ns.is_valid());\n    MINI_CHECK(TOLERANCE.is_close(a_ns.volume(), 8.0));\n}",
+          "file": "aabb_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Aabb\", \"From Geometry\")",
+          "code": "@MINI_TEST(\"Aabb\", \"From Geometry\")\ndef test_aabb_from_geometry():\n    from session_py import AABB\n    from session_py import Color\n    from session_py import Line\n    from session_py import Mesh\n    from session_py import NurbsCurve\n    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py import PointCloud\n    from session_py import Polyline\n    from session_py import Primitives\n    from session_py import Vector\n\n    a_pt = AABB.from_point(Point(1.0, 2.0, 3.0), 0.5)\n\n    MINI_CHECK(a_pt.center() == Point(1.0, 2.0, 3.0))\n    MINI_CHECK(TOLERANCE.is_close(a_pt.hx, 0.5))\n\n    a_pts = AABB.from_points([\n        Point(0.0, 0.0, 0.0),\n        Point(3.0, 4.0, 5.0),\n    ], 0.0)\n\n    MINI_CHECK(a_pts.min_point() == Point(0.0, 0.0, 0.0))\n    MINI_CHECK(a_pts.max_point() == Point(3.0, 4.0, 5.0))\n\n    ln = Line(0.0, 0.0, 0.0, 4.0, 0.0, 0.0)\n    a_line = AABB.from_line(ln, 1.0)\n\n    MINI_CHECK(a_line.min_point() == Point(-1.0, -1.0, -1.0))\n    MINI_CHECK(a_line.max_point() == Point(5.0, 1.0, 1.0))\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n    ])\n    a_pl = AABB.from_polyline(pl, 0.0)\n\n    MINI_CHECK(a_pl.min_point() == Point(0.0, 0.0, 0.0))\n    MINI_CHECK(a_pl.max_point() == Point(2.0, 2.0, 0.0))\n\n    cube = Primitives.cube(2.0)\n    a_mesh = AABB.from_mesh(cube, 0.0)\n\n    MINI_CHECK(a_mesh.min_point() == Point(-1.0, -1.0, -1.0))\n    MINI_CHECK(a_mesh.max_point() == Point(1.0, 1.0, 1.0))\n\n    pc = PointCloud(\n        [\n            Point(0.0, 0.0, 0.0),\n            Point(4.0, 2.0, 6.0),\n        ],\n        [\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        ],\n        [\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n        ]\n    )\n    a_pc = AABB.from_pointcloud(pc, 0.0)\n\n    MINI_CHECK(a_pc.min_point() == Point(0.0, 0.0, 0.0))\n    MINI_CHECK(a_pc.max_point() == Point(4.0, 2.0, 6.0))\n\n    curve = NurbsCurve.create(False, 2, [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    ])\n    a_nc = AABB.from_nurbscurve(curve, 0.5, False)\n\n    MINI_CHECK(a_nc.is_valid())\n    MINI_CHECK(a_nc.contains(Point(1.5, 0.0, 0.0)))\n\n    surf = NurbsSurface.create(False, False, 1, 1, 2, 2, [\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n        Point(2.0, 2.0, 2.0),\n    ])\n    a_ns = AABB.from_nurbssurface(surf, 0.0)\n\n    MINI_CHECK(a_ns.is_valid())\n    MINI_CHECK(TOLERANCE.is_close(a_ns.volume(), 8.0))",
+          "file": "aabb_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Aabb\", \"From Geometry\")",
+          "code": "MINI_TEST!(\"Aabb\", \"From Geometry\", crate::aabb_test::run_aabb_from_geometry);",
+          "file": "aabb_test.rs"
+        }
+      }
+    },
+    {
+      "name": "AABBTree.test_Query Aabb",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"AABBTree\", \"Query Aabb\")",
+          "code": "MINI_TEST(\"AABBTree\", \"Query Aabb\") {\n    // uncomment #include \"aabb.h\"\n    std::vector<AABB> aabbs = {\n        {0.0, 0.0, 0.0, 0.5, 0.5, 0.5},\n        {5.0, 0.0, 0.0, 0.5, 0.5, 0.5},\n        {10.0, 0.0, 0.0, 0.5, 0.5, 0.5},\n    };\n    AABBTree tree;\n    tree.build(aabbs.data(), aabbs.size());\n\n    std::vector<int> hits = tree.query_aabb(AABB(0.0, 0.0, 0.0, 1.0, 1.0, 1.0));\n\n    MINI_CHECK(hits.size() == 1);\n    MINI_CHECK(hits[0] == 0);\n\n    std::vector<int> none = tree.query_aabb(AABB(20.0, 0.0, 0.0, 0.5, 0.5, 0.5));\n\n    MINI_CHECK(none.empty());\n\n    std::vector<int> all = tree.query_aabb(AABB(5.0, 0.0, 0.0, 10.0, 1.0, 1.0));\n\n    MINI_CHECK(all.size() == 3);\n}",
+          "file": "aabb_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"AABBTree\", \"Query Aabb\")",
+          "code": "@MINI_TEST(\"AABBTree\", \"Query Aabb\")\ndef test_aabbtree_query_aabb():\n    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    vk0 = m.add_vertex(Point(0.0, 0.0, 0.0))\n    vk1 = m.add_vertex(Point(1.0, 0.0, 0.0))\n    vk2 = m.add_vertex(Point(0.5, 1.0, 0.0))\n    vk3 = m.add_vertex(Point(20.0, 0.0, 0.0))\n    vk4 = m.add_vertex(Point(21.0, 0.0, 0.0))\n    vk5 = m.add_vertex(Point(20.5, 1.0, 0.0))\n    m.add_face([vk0, vk1, vk2])\n    m.add_face([vk3, vk4, vk5])\n    cp_near, fk_near, d_near = Closest.mesh_point_aabb(m, Point(0.5, 0.25, 0.0))\n    cp_far, fk_far, d_far = Closest.mesh_point_aabb(m, Point(20.5, 0.25, 0.0))\n\n    MINI_CHECK(TOLERANCE.is_close(d_near, 0.0))\n    MINI_CHECK(TOLERANCE.is_close(d_far, 0.0))\n    MINI_CHECK(fk_near != fk_far)\n    MINI_CHECK(cp_near[0] < 2.0)\n    MINI_CHECK(cp_far[0] > 15.0)\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "file": "aabb_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"AABBTree\", \"Query Aabb\")",
+          "code": "MINI_TEST!(\"AABBTree\", \"Query Aabb\", crate::aabb_test::run_aabbtree_query_aabb);\nREGISTER_MINI_TEST!(\"Aabb\", \"Constructor\", crate::aabb_test::run_aabb_constructor);\nREGISTER_MINI_TEST!(\"Aabb\", \"From Geometry\", crate::aabb_test::run_aabb_from_geometry);",
           "file": "aabb_test.rs"
         }
       }
@@ -83395,6 +83833,26 @@ window.API_INDEX = {
           "sig": "MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\")",
           "code": "MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
           "file": "brep_test.rs"
+        }
+      }
+    },
+    {
+      "name": "BVH.test_Constructor",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"BVH\", \"Constructor\")",
+          "code": "MINI_TEST(\"BVH\", \"Constructor\") {\n    // uncomment #include \"bvh.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // BVH: Morton-ordered static hierarchy \u00e2\u20ac\u201d O(log n) nearest-neighbour for OBBs\n    std::vector<OBB> boxes = {\n        OBB(Point(0, 0, 0),  Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n        OBB(Point(2, 0, 0),  Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n        OBB(Point(20, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n    };\n    BVH bvh = BVH::from_boxes(boxes, 100.0);\n    std::vector<int> n = bvh.nearest_neighbors(0, boxes, 1.5);\n\n    MINI_CHECK(n.size() == 1);\n    MINI_CHECK(n[0] == 1);\n}",
+          "file": "bvh_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"BVH\", \"Constructor\")",
+          "code": "@MINI_TEST(\"BVH\", \"Constructor\")\ndef test_bvh_constructor():\n    from session_py.bvh import BVH\n    from session_py import OBB\n    from session_py import Point\n    from session_py import Vector\n\n    # BVH: Morton-ordered static hierarchy \u00e2\u20ac\u201d O(log n) nearest-neighbour for OBBs\n    boxes = [\n        OBB(Point(0, 0, 0),  Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n        OBB(Point(2, 0, 0),  Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n        OBB(Point(20, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n    ]\n    bvh = BVH.from_boxes(boxes, 100.0)\n    n = bvh.nearest_neighbors(0, boxes, 1.5)\n\n    MINI_CHECK(len(n) == 1)\n    MINI_CHECK(n[0] == 1)",
+          "file": "bvh_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"BVH\", \"Constructor\")",
+          "code": "MINI_TEST!(\"BVH\", \"Constructor\", crate::bvh_test::run_bvh_constructor);\nREGISTER_MINI_TEST!(\"BVH\", \"Expand Bits\", crate::bvh_test::run_bvh_expand_bits);\nREGISTER_MINI_TEST!(\"BVH\", \"Morton Code Origin\", crate::bvh_test::run_bvh_morton_code_origin);\nREGISTER_MINI_TEST!(\"BVH\", \"Morton Code Corners\", crate::bvh_test::run_bvh_morton_code_corners);\nREGISTER_MINI_TEST!(\"BVH\", \"Morton Code Spatial Locality\", crate::bvh_test::run_bvh_morton_code_spatial_locality);\nREGISTER_MINI_TEST!(\"BVH\", \"Node Creation\", crate::bvh_test::run_bvh_node_creation);\nREGISTER_MINI_TEST!(\"BVH\", \"Node Leaf\", crate::bvh_test::run_bvh_node_leaf);\nREGISTER_MINI_TEST!(\"BVH\", \"Creation\", crate::bvh_test::run_bvh_creation);\nREGISTER_MINI_TEST!(\"BVH\", \"Build Empty\", crate::bvh_test::run_bvh_build_empty);\nREGISTER_MINI_TEST!(\"BVH\", \"Build Single\", crate::bvh_test::run_bvh_build_single);\nREGISTER_MINI_TEST!(\"BVH\", \"Build Multiple\", crate::bvh_test::run_bvh_build_multiple);\nREGISTER_MINI_TEST!(\"BVH\", \"Aabb Intersect\", crate::bvh_test::run_bvh_aabb_intersect);\nREGISTER_MINI_TEST!(\"BVH\", \"Check All Collisions\", crate::bvh_test::run_bvh_check_all_collisions);\nREGISTER_MINI_TEST!(\"BVH\", \"Merge Aabb\", crate::bvh_test::run_bvh_merge_aabb);\nREGISTER_MINI_TEST!(\"BVH\", \"Fixed 100 Boxes\", crate::bvh_test::run_bvh_fixed_100_boxes);\nREGISTER_MINI_TEST!(\"BVH\", \"Query Aabb\", crate::bvh_test::run_bvh_query_aabb);\nREGISTER_MINI_TEST!(\"BVH\", \"Nearest Neighbors\", crate::bvh_test::run_bvh_nearest_neighbors);",
+          "file": "bvh_test.rs"
         }
       }
     },
@@ -83733,7 +84191,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Closest\", \"Line Point\")",
-          "code": "MINI_TEST!(\"Closest\", \"Line Point\", crate::closest_test::run_closest_line_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Polyline Point\", crate::closest_test::run_closest_polyline_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Curve Point\", crate::closest_test::run_closest_curve_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);",
+          "code": "MINI_TEST!(\"Closest\", \"Line Point\", crate::closest_test::run_closest_line_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Polyline Point\", crate::closest_test::run_closest_polyline_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Curve Point\", crate::closest_test::run_closest_curve_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point KDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
           "file": "closest_test.rs"
         }
       }
@@ -83753,7 +84211,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Closest\", \"Polyline Point\")",
-          "code": "MINI_TEST!(\"Closest\", \"Polyline Point\", crate::closest_test::run_closest_polyline_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Curve Point\", crate::closest_test::run_closest_curve_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);",
+          "code": "MINI_TEST!(\"Closest\", \"Polyline Point\", crate::closest_test::run_closest_polyline_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Curve Point\", crate::closest_test::run_closest_curve_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point KDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
           "file": "closest_test.rs"
         }
       }
@@ -83773,7 +84231,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Closest\", \"Curve Point\")",
-          "code": "MINI_TEST!(\"Closest\", \"Curve Point\", crate::closest_test::run_closest_curve_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);",
+          "code": "MINI_TEST!(\"Closest\", \"Curve Point\", crate::closest_test::run_closest_curve_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point KDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
           "file": "closest_test.rs"
         }
       }
@@ -83793,7 +84251,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Closest\", \"Surface Point\")",
-          "code": "MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);",
+          "code": "MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point KDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
           "file": "closest_test.rs"
         }
       }
@@ -83813,7 +84271,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Closest\", \"Mesh Point\")",
-          "code": "MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);",
+          "code": "MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point KDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
           "file": "closest_test.rs"
         }
       }
@@ -83833,7 +84291,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Closest\", \"Mesh Point AABB\")",
-          "code": "MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);",
+          "code": "MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point KDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
           "file": "closest_test.rs"
         }
       }
@@ -83848,12 +84306,112 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Closest\", \"Pointcloud Point\")",
-          "code": "@MINI_TEST(\"Closest\", \"Pointcloud Point\")\ndef test_closest_pointcloud_point():\n    from session_py import Closest\n    from session_py import PointCloud\n    from session_py import Point\n\n    pc = PointCloud([\n        Point(0.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    ])\n\n    cp1, i1, d1 = Closest.pointcloud_point(pc, Point(4.0, 0.0, 0.0))\n\n    MINI_CHECK(TOLERANCE.is_close(cp1[0], 5.0))\n    MINI_CHECK(i1 == 1)\n    MINI_CHECK(TOLERANCE.is_close(d1, 1.0))\n\n    cp2, i2, d2 = Closest.pointcloud_point(pc, Point(10.0, 10.0, 0.0))\n    MINI_CHECK(TOLERANCE.is_close(d2, 0.0))\n    MINI_CHECK(i2 == 3)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "code": "@MINI_TEST(\"Closest\", \"Pointcloud Point\")\ndef test_closest_pointcloud_point():\n    from session_py import Closest\n    from session_py import PointCloud\n    from session_py import Point\n\n    pc = PointCloud([\n        Point(0.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    ])\n\n    cp1, i1, d1 = Closest.pointcloud_point(pc, Point(4.0, 0.0, 0.0))\n\n    MINI_CHECK(TOLERANCE.is_close(cp1[0], 5.0))\n    MINI_CHECK(i1 == 1)\n    MINI_CHECK(TOLERANCE.is_close(d1, 1.0))\n\n    cp2, i2, d2 = Closest.pointcloud_point(pc, Point(10.0, 10.0, 0.0))\n    MINI_CHECK(TOLERANCE.is_close(d2, 0.0))\n    MINI_CHECK(i2 == 3)",
           "file": "closest_test.py"
         },
         "rust": {
           "sig": "MINI_TEST!(\"Closest\", \"Pointcloud Point\")",
-          "code": "MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);",
+          "code": "MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point KDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
+          "file": "closest_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Closest.test_Pointcloud Point KDTree",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Closest\", \"Pointcloud Point KDTree\")",
+          "code": "MINI_TEST(\"Closest\", \"Pointcloud Point KDTree\") {\n    // uncomment #include \"closest.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"pointcloud.h\"\n    // KDTree variant: same result as linear scan, O(log n) query\n    PointCloud pc({\n        Point(0.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    }, {}, {});\n\n    auto [cp1, i1, d1] = Closest::pointcloud_point_kdtree(pc, Point(4.0, 0.0, 0.0));\n\n    MINI_CHECK(TOLERANCE.is_close(cp1[0], 5.0));\n    MINI_CHECK(i1 == 1);\n    MINI_CHECK(TOLERANCE.is_close(d1, 1.0));\n\n    auto [cp2, i2, d2] = Closest::pointcloud_point_kdtree(pc, Point(10.0, 10.0, 0.0));\n    MINI_CHECK(TOLERANCE.is_close(d2, 0.0));\n    MINI_CHECK(i2 == 3);\n}",
+          "file": "closest_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Closest\", \"Pointcloud Point KDTree\")",
+          "code": "@MINI_TEST(\"Closest\", \"Pointcloud Point KDTree\")\ndef test_closest_pointcloud_point_kdtree():\n    from session_py import Closest\n    from session_py import PointCloud\n    from session_py import Point\n\n    # KDTree variant: same result as linear scan, O(log n) query\n    pc = PointCloud([\n        Point(0.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    ])\n\n    cp1, i1, d1 = Closest.pointcloud_point_kdtree(pc, Point(4.0, 0.0, 0.0))\n\n    MINI_CHECK(TOLERANCE.is_close(cp1[0], 5.0))\n    MINI_CHECK(i1 == 1)\n    MINI_CHECK(TOLERANCE.is_close(d1, 1.0))\n\n    cp2, i2, d2 = Closest.pointcloud_point_kdtree(pc, Point(10.0, 10.0, 0.0))\n    MINI_CHECK(TOLERANCE.is_close(d2, 0.0))\n    MINI_CHECK(i2 == 3)",
+          "file": "closest_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Closest\", \"Pointcloud Point KDTree\")",
+          "code": "MINI_TEST!(\"Closest\", \"Pointcloud Point KDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
+          "file": "closest_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Closest.test_Lines Closest",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Closest\", \"Lines Closest\")",
+          "code": "MINI_TEST(\"Closest\", \"Lines Closest\") {\n    // uncomment #include \"closest.h\"\n    // uncomment #include \"aabb.h\"\n    // uncomment #include \"line.h\"\n    // 3 lines: first two sharing an endpoint, third far away\n    std::vector<Line> lines = {\n        Line(0.0, 0.0, 0.0, 5.0, 0.0, 0.0),\n        Line(5.0, 0.0, 0.0, 10.0, 0.0, 0.0),\n        Line(100.0, 0.0, 0.0, 110.0, 0.0, 0.0),\n    };\n\n    auto pairs = Closest::lines_closest(lines, 0.01);\n\n    MINI_CHECK(pairs.size() == 1);\n    MINI_CHECK(pairs[0].first == 0);\n    MINI_CHECK(pairs[0].second == 1);\n}",
+          "file": "closest_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Closest\", \"Lines Closest\")",
+          "code": "@MINI_TEST(\"Closest\", \"Lines Closest\")\ndef test_closest_lines_closest():\n    from session_py import Closest\n    from session_py import Line\n\n    # 3 lines: first two sharing an endpoint, third far away\n    lines = [\n        Line(0.0, 0.0, 0.0, 5.0, 0.0, 0.0),\n        Line(5.0, 0.0, 0.0, 10.0, 0.0, 0.0),\n        Line(100.0, 0.0, 0.0, 110.0, 0.0, 0.0),\n    ]\n\n    pairs = Closest.lines_closest(lines, 0.01)\n\n    MINI_CHECK(len(pairs) == 1)\n    MINI_CHECK(pairs[0][0] == 0)\n    MINI_CHECK(pairs[0][1] == 1)",
+          "file": "closest_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Closest\", \"Lines Closest\")",
+          "code": "MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
+          "file": "closest_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Closest.test_Polylines Closest",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Closest\", \"Polylines Closest\")",
+          "code": "MINI_TEST(\"Closest\", \"Polylines Closest\") {\n    // uncomment #include \"closest.h\"\n    // uncomment #include \"aabb.h\"\n    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Polyline> pls = {\n        Polyline({Point(0.0, 0.0, 0.0), Point(5.0, 0.0, 0.0)}),\n        Polyline({Point(5.0, 0.0, 0.0), Point(10.0, 0.0, 0.0)}),\n        Polyline({Point(100.0, 0.0, 0.0), Point(110.0, 0.0, 0.0)}),\n    };\n\n    auto pairs = Closest::polylines_closest(pls, 0.01);\n\n    MINI_CHECK(pairs.size() == 1);\n    MINI_CHECK(pairs[0].first == 0);\n    MINI_CHECK(pairs[0].second == 1);\n}",
+          "file": "closest_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Closest\", \"Polylines Closest\")",
+          "code": "@MINI_TEST(\"Closest\", \"Polylines Closest\")\ndef test_closest_polylines_closest():\n    from session_py import Closest\n    from session_py import Polyline\n    from session_py import Point\n\n    pls = [\n        Polyline([Point(0.0, 0.0, 0.0), Point(5.0, 0.0, 0.0)]),\n        Polyline([Point(5.0, 0.0, 0.0), Point(10.0, 0.0, 0.0)]),\n        Polyline([Point(100.0, 0.0, 0.0), Point(110.0, 0.0, 0.0)]),\n    ]\n\n    pairs = Closest.polylines_closest(pls, 0.01)\n\n    MINI_CHECK(len(pairs) == 1)\n    MINI_CHECK(pairs[0][0] == 0)\n    MINI_CHECK(pairs[0][1] == 1)",
+          "file": "closest_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Closest\", \"Polylines Closest\")",
+          "code": "MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
+          "file": "closest_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Closest.test_Nurbscurves Closest",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Closest\", \"Nurbscurves Closest\")",
+          "code": "MINI_TEST(\"Closest\", \"Nurbscurves Closest\") {\n    // uncomment #include \"closest.h\"\n    // uncomment #include \"aabb.h\"\n    // uncomment #include \"nurbscurve.h\"\n    // uncomment #include \"point.h\"\n    std::vector<NurbsCurve> curves = {\n        NurbsCurve::create(false, 1, {Point(0.0, 0.0, 0.0), Point(5.0, 0.0, 0.0)}),\n        NurbsCurve::create(false, 1, {Point(5.0, 0.0, 0.0), Point(10.0, 0.0, 0.0)}),\n        NurbsCurve::create(false, 1, {Point(100.0, 0.0, 0.0), Point(110.0, 0.0, 0.0)}),\n    };\n\n    auto pairs = Closest::nurbscurves_closest(curves, 0.01);\n\n    MINI_CHECK(pairs.size() == 1);\n    MINI_CHECK(pairs[0].first == 0);\n    MINI_CHECK(pairs[0].second == 1);\n}",
+          "file": "closest_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Closest\", \"Nurbscurves Closest\")",
+          "code": "@MINI_TEST(\"Closest\", \"Nurbscurves Closest\")\ndef test_closest_nurbscurves_closest():\n    from session_py import Closest\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    curves = [\n        NurbsCurve.create(False, 1, [Point(0.0, 0.0, 0.0), Point(5.0, 0.0, 0.0)]),\n        NurbsCurve.create(False, 1, [Point(5.0, 0.0, 0.0), Point(10.0, 0.0, 0.0)]),\n        NurbsCurve.create(False, 1, [Point(100.0, 0.0, 0.0), Point(110.0, 0.0, 0.0)]),\n    ]\n\n    pairs = Closest.nurbscurves_closest(curves, 0.01)\n\n    MINI_CHECK(len(pairs) == 1)\n    MINI_CHECK(pairs[0][0] == 0)\n    MINI_CHECK(pairs[0][1] == 1)",
+          "file": "closest_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Closest\", \"Nurbscurves Closest\")",
+          "code": "MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
+          "file": "closest_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Closest.test_Boxes Closest",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Closest\", \"Boxes Closest\")",
+          "code": "MINI_TEST(\"Closest\", \"Boxes Closest\") {\n    // uncomment #include \"closest.h\"\n    // uncomment #include \"aabb.h\"\n    // 3 boxes: first two touching faces (shared at x=1), third far away\n    std::vector<AABB> boxes = {\n        AABB(0.0, 0.0, 0.0, 1.0, 1.0, 1.0),\n        AABB(2.0, 0.0, 0.0, 1.0, 1.0, 1.0),\n        AABB(20.0, 0.0, 0.0, 1.0, 1.0, 1.0),\n    };\n\n    auto pairs = Closest::boxes_closest(boxes, 0.01);\n\n    MINI_CHECK(pairs.size() == 1);\n    MINI_CHECK(pairs[0].first == 0);\n    MINI_CHECK(pairs[0].second == 1);\n}",
+          "file": "closest_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Closest\", \"Boxes Closest\")",
+          "code": "@MINI_TEST(\"Closest\", \"Boxes Closest\")\ndef test_closest_boxes_closest():\n    from session_py import AABB\n    from session_py import Closest\n\n    # 3 boxes: first two touching faces (shared at x=1), third far away\n    boxes = [\n        AABB(0.0, 0.0, 0.0, 1.0, 1.0, 1.0),\n        AABB(2.0, 0.0, 0.0, 1.0, 1.0, 1.0),\n        AABB(20.0, 0.0, 0.0, 1.0, 1.0, 1.0),\n    ]\n\n    pairs = Closest.boxes_closest(boxes, 0.01)\n\n    MINI_CHECK(len(pairs) == 1)\n    MINI_CHECK(pairs[0][0] == 0)\n    MINI_CHECK(pairs[0][1] == 1)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "file": "closest_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Closest\", \"Boxes Closest\")",
+          "code": "MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
           "file": "closest_test.rs"
         }
       }
@@ -87079,6 +87637,26 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "KDTree.test_Constructor",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"KDTree\", \"Constructor\")",
+          "code": "MINI_TEST(\"KDTree\", \"Constructor\") {\n    // uncomment #include \"kdtree.h\"\n    // uncomment #include \"point.h\"\n    // KDTree: O(n log n) build, O(log n) nearest \u00e2\u20ac\u201d static point set closest search\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n    };\n    KDTree tree(pts);\n    auto [idx, dist] = tree.nearest(Point(2.0, 0.0, 0.0));\n\n    MINI_CHECK(idx == 1);\n    MINI_CHECK(TOLERANCE.is_close(dist, 1.0));\n}",
+          "file": "kdtree_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"KDTree\", \"Constructor\")",
+          "code": "@MINI_TEST(\"KDTree\", \"Constructor\")\ndef test_kdtree_constructor():\n    from session_py import KDTree\n    from session_py import Point\n\n    # KDTree: O(n log n) build, O(log n) nearest \u00e2\u20ac\u201d static point set closest search\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n    ]\n    tree = KDTree(pts)\n    idx, dist = tree.nearest(Point(2.0, 0.0, 0.0))\n\n    MINI_CHECK(idx == 1)\n    MINI_CHECK(TOLERANCE.is_close(dist, 1.0))",
+          "file": "kdtree_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"KDTree\", \"Constructor\")",
+          "code": "MINI_TEST!(\"KDTree\", \"Constructor\", crate::kdtree_test::run_kdtree_constructor);\nREGISTER_MINI_TEST!(\"KDTree\", \"Nearest\", crate::kdtree_test::run_kdtree_nearest);\nREGISTER_MINI_TEST!(\"KDTree\", \"Nearest K\", crate::kdtree_test::run_kdtree_nearest_k);\nREGISTER_MINI_TEST!(\"KDTree\", \"Radius Search\", crate::kdtree_test::run_kdtree_radius_search);",
+          "file": "kdtree_test.rs"
+        }
+      }
+    },
+    {
       "name": "KDTree.test_Nearest",
       "implementations": {
         "cpp": {
@@ -89353,7 +89931,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"OBB\", \"Constructor\")",
-          "code": "MINI_TEST!(\"OBB\", \"Constructor\", crate::obb_test::run_obb_constructor);\nREGISTER_MINI_TEST!(\"OBB\", \"Collision\", crate::obb_test::run_obb_collision);\nREGISTER_MINI_TEST!(\"OBB\", \"Transformation\", crate::obb_test::run_obb_transformation);\nREGISTER_MINI_TEST!(\"OBB\", \"Json Roundtrip\", crate::obb_test::run_obb_json_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Protobuf Roundtrip\", crate::obb_test::run_obb_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Accessors\", crate::obb_test::run_obb_accessors);",
+          "code": "MINI_TEST!(\"OBB\", \"Constructor\", crate::obb_test::run_obb_constructor);\nREGISTER_MINI_TEST!(\"OBB\", \"Collision\", crate::obb_test::run_obb_collision);\nREGISTER_MINI_TEST!(\"OBB\", \"Transformation\", crate::obb_test::run_obb_transformation);\nREGISTER_MINI_TEST!(\"OBB\", \"Json Roundtrip\", crate::obb_test::run_obb_json_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Protobuf Roundtrip\", crate::obb_test::run_obb_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Accessors\", crate::obb_test::run_obb_accessors);\nREGISTER_MINI_TEST!(\"OBB\", \"From Geometry\", crate::obb_test::run_obb_from_geometry);\nREGISTER_MINI_TEST!(\"OBB\", \"From Plane\", crate::obb_test::run_obb_from_plane);\nREGISTER_MINI_TEST!(\"OBB\", \"Two Rectangles\", crate::obb_test::run_obb_two_rectangles);",
           "file": "obb_test.rs"
         }
       }
@@ -89373,7 +89951,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"OBB\", \"Collision\")",
-          "code": "MINI_TEST!(\"OBB\", \"Collision\", crate::obb_test::run_obb_collision);\nREGISTER_MINI_TEST!(\"OBB\", \"Transformation\", crate::obb_test::run_obb_transformation);\nREGISTER_MINI_TEST!(\"OBB\", \"Json Roundtrip\", crate::obb_test::run_obb_json_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Protobuf Roundtrip\", crate::obb_test::run_obb_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Accessors\", crate::obb_test::run_obb_accessors);",
+          "code": "MINI_TEST!(\"OBB\", \"Collision\", crate::obb_test::run_obb_collision);\nREGISTER_MINI_TEST!(\"OBB\", \"Transformation\", crate::obb_test::run_obb_transformation);\nREGISTER_MINI_TEST!(\"OBB\", \"Json Roundtrip\", crate::obb_test::run_obb_json_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Protobuf Roundtrip\", crate::obb_test::run_obb_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Accessors\", crate::obb_test::run_obb_accessors);\nREGISTER_MINI_TEST!(\"OBB\", \"From Geometry\", crate::obb_test::run_obb_from_geometry);\nREGISTER_MINI_TEST!(\"OBB\", \"From Plane\", crate::obb_test::run_obb_from_plane);\nREGISTER_MINI_TEST!(\"OBB\", \"Two Rectangles\", crate::obb_test::run_obb_two_rectangles);",
           "file": "obb_test.rs"
         }
       }
@@ -89393,7 +89971,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"OBB\", \"Transformation\")",
-          "code": "MINI_TEST!(\"OBB\", \"Transformation\", crate::obb_test::run_obb_transformation);\nREGISTER_MINI_TEST!(\"OBB\", \"Json Roundtrip\", crate::obb_test::run_obb_json_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Protobuf Roundtrip\", crate::obb_test::run_obb_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Accessors\", crate::obb_test::run_obb_accessors);",
+          "code": "MINI_TEST!(\"OBB\", \"Transformation\", crate::obb_test::run_obb_transformation);\nREGISTER_MINI_TEST!(\"OBB\", \"Json Roundtrip\", crate::obb_test::run_obb_json_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Protobuf Roundtrip\", crate::obb_test::run_obb_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Accessors\", crate::obb_test::run_obb_accessors);\nREGISTER_MINI_TEST!(\"OBB\", \"From Geometry\", crate::obb_test::run_obb_from_geometry);\nREGISTER_MINI_TEST!(\"OBB\", \"From Plane\", crate::obb_test::run_obb_from_plane);\nREGISTER_MINI_TEST!(\"OBB\", \"Two Rectangles\", crate::obb_test::run_obb_two_rectangles);",
           "file": "obb_test.rs"
         }
       }
@@ -89413,7 +89991,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"OBB\", \"Json Roundtrip\")",
-          "code": "MINI_TEST!(\"OBB\", \"Json Roundtrip\", crate::obb_test::run_obb_json_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Protobuf Roundtrip\", crate::obb_test::run_obb_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Accessors\", crate::obb_test::run_obb_accessors);",
+          "code": "MINI_TEST!(\"OBB\", \"Json Roundtrip\", crate::obb_test::run_obb_json_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Protobuf Roundtrip\", crate::obb_test::run_obb_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Accessors\", crate::obb_test::run_obb_accessors);\nREGISTER_MINI_TEST!(\"OBB\", \"From Geometry\", crate::obb_test::run_obb_from_geometry);\nREGISTER_MINI_TEST!(\"OBB\", \"From Plane\", crate::obb_test::run_obb_from_plane);\nREGISTER_MINI_TEST!(\"OBB\", \"Two Rectangles\", crate::obb_test::run_obb_two_rectangles);",
           "file": "obb_test.rs"
         }
       }
@@ -89433,7 +90011,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"OBB\", \"Protobuf Roundtrip\")",
-          "code": "MINI_TEST!(\"OBB\", \"Protobuf Roundtrip\", crate::obb_test::run_obb_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Accessors\", crate::obb_test::run_obb_accessors);",
+          "code": "MINI_TEST!(\"OBB\", \"Protobuf Roundtrip\", crate::obb_test::run_obb_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"OBB\", \"Accessors\", crate::obb_test::run_obb_accessors);\nREGISTER_MINI_TEST!(\"OBB\", \"From Geometry\", crate::obb_test::run_obb_from_geometry);\nREGISTER_MINI_TEST!(\"OBB\", \"From Plane\", crate::obb_test::run_obb_from_plane);\nREGISTER_MINI_TEST!(\"OBB\", \"Two Rectangles\", crate::obb_test::run_obb_two_rectangles);",
           "file": "obb_test.rs"
         }
       }
@@ -89448,12 +90026,72 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"OBB\", \"Accessors\")",
-          "code": "@MINI_TEST(\"OBB\", \"Accessors\")\ndef test_obb_accessors():\n    import math\n    from session_py import OBB\n    from session_py import Point\n\n    # axis-aligned OBB: center=(1,2,3), half_size=(1,2,3), dims 2\u00c3\u20144\u00c3\u20146\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n        Point(0.0, 0.0, 6.0),\n        Point(2.0, 4.0, 6.0),\n    ]\n    b = OBB.from_points(pts)\n\n    MINI_CHECK(TOLERANCE.is_close(b.area(), 88.0))\n    MINI_CHECK(TOLERANCE.is_close(b.diagonal(), 2.0 * math.sqrt(14.0)))\n    MINI_CHECK(b.is_valid())\n    MINI_CHECK(TOLERANCE.is_close(b.volume(), 48.0))\n    MINI_CHECK(b.closest_point(Point(1.0, 2.0, 3.0)) == Point(1.0, 2.0, 3.0))\n    MINI_CHECK(b.closest_point(Point(10.0, 2.0, 3.0)) == Point(2.0, 2.0, 3.0))\n    MINI_CHECK(b.contains(Point(1.0, 2.0, 3.0)))\n    MINI_CHECK(not b.contains(Point(10.0, 2.0, 3.0)))\n    MINI_CHECK(b.corner(False, False, False) == Point(0.0, 0.0, 0.0))\n    MINI_CHECK(b.corner(True, True, True) == Point(2.0, 4.0, 6.0))\n    MINI_CHECK(len(b.get_corners()) == 8)\n    MINI_CHECK(len(b.get_edges()) == 12)\n    c = OBB.from_point(Point(5.0, 2.0, 3.0), 1.0)\n    b.union_with(c)\n\n    MINI_CHECK(TOLERANCE.is_close(b.half_size[0], 3.0))\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "code": "@MINI_TEST(\"OBB\", \"Accessors\")\ndef test_obb_accessors():\n    import math\n    from session_py import OBB\n    from session_py import Point\n\n    # axis-aligned OBB: center=(1,2,3), half_size=(1,2,3), dims 2\u00c3\u20144\u00c3\u20146\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n        Point(0.0, 0.0, 6.0),\n        Point(2.0, 4.0, 6.0),\n    ]\n    b = OBB.from_points(pts)\n\n    MINI_CHECK(TOLERANCE.is_close(b.area(), 88.0))\n    MINI_CHECK(TOLERANCE.is_close(b.diagonal(), 2.0 * math.sqrt(14.0)))\n    MINI_CHECK(b.is_valid())\n    MINI_CHECK(TOLERANCE.is_close(b.volume(), 48.0))\n    MINI_CHECK(b.closest_point(Point(1.0, 2.0, 3.0)) == Point(1.0, 2.0, 3.0))\n    MINI_CHECK(b.closest_point(Point(10.0, 2.0, 3.0)) == Point(2.0, 2.0, 3.0))\n    MINI_CHECK(b.contains(Point(1.0, 2.0, 3.0)))\n    MINI_CHECK(not b.contains(Point(10.0, 2.0, 3.0)))\n    MINI_CHECK(b.corner(False, False, False) == Point(0.0, 0.0, 0.0))\n    MINI_CHECK(b.corner(True, True, True) == Point(2.0, 4.0, 6.0))\n    MINI_CHECK(len(b.get_corners()) == 8)\n    MINI_CHECK(len(b.get_edges()) == 12)\n    c = OBB.from_point(Point(5.0, 2.0, 3.0), 1.0)\n    b.union_with(c)\n\n    MINI_CHECK(TOLERANCE.is_close(b.half_size[0], 3.0))",
           "file": "obb_test.py"
         },
         "rust": {
           "sig": "MINI_TEST!(\"OBB\", \"Accessors\")",
-          "code": "MINI_TEST!(\"OBB\", \"Accessors\", crate::obb_test::run_obb_accessors);",
+          "code": "MINI_TEST!(\"OBB\", \"Accessors\", crate::obb_test::run_obb_accessors);\nREGISTER_MINI_TEST!(\"OBB\", \"From Geometry\", crate::obb_test::run_obb_from_geometry);\nREGISTER_MINI_TEST!(\"OBB\", \"From Plane\", crate::obb_test::run_obb_from_plane);\nREGISTER_MINI_TEST!(\"OBB\", \"Two Rectangles\", crate::obb_test::run_obb_two_rectangles);",
+          "file": "obb_test.rs"
+        }
+      }
+    },
+    {
+      "name": "OBB.test_From Geometry",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"OBB\", \"From Geometry\")",
+          "code": "MINI_TEST(\"OBB\", \"From Geometry\") {\n    // uncomment #include \"line.h\"\n    // uncomment #include \"polyline.h\"\n    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"nurbscurve.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    OBB bb_line = OBB::from_line(Line(0.0, 0.0, 0.0, 4.0, 0.0, 0.0), 0.1);\n\n    MINI_CHECK(bb_line.is_valid());\n    MINI_CHECK(TOLERANCE.is_close(bb_line.center[0], 2.0));\n\n    OBB bb_pl = OBB::from_polyline(Polyline({\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 4.0, 4.0),\n    }), 0.0);\n\n    MINI_CHECK(bb_pl.is_valid());\n    MINI_CHECK(bb_pl.volume() > 0.0);\n\n    OBB bb_mesh = OBB::from_mesh(Primitives::cube(2.0), 0.0);\n\n    MINI_CHECK(bb_mesh.is_valid());\n    MINI_CHECK(TOLERANCE.is_close(bb_mesh.center[0], 0.0));\n    MINI_CHECK(TOLERANCE.is_close(bb_mesh.volume(), 8.0));\n\n    OBB bb_pc = OBB::from_pointcloud(PointCloud(\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(0.0, 2.0, 0.0),\n            Point(0.0, 0.0, 2.0),\n        },\n        {\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        },\n        {\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n            Color(0, 0, 255, 255),\n            Color(255, 255, 0, 255),\n        }\n    ), 0.0);\n\n    MINI_CHECK(bb_pc.is_valid());\n    MINI_CHECK(bb_pc.volume() > 0.0);\n\n    OBB bb_nc = OBB::from_nurbscurve(NurbsCurve::create(false, 2, {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    }), 0.5, false);\n\n    MINI_CHECK(bb_nc.is_valid());\n\n    OBB bb_ns = OBB::from_nurbssurface(NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n        Point(2.0, 2.0, 2.0),\n    }), 0.0);\n\n    MINI_CHECK(bb_ns.is_valid());\n}",
+          "file": "obb_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"OBB\", \"From Geometry\")",
+          "code": "@MINI_TEST(\"OBB\", \"From Geometry\")\ndef test_obb_from_geometry():\n    from session_py import Color\n    from session_py import Line\n    from session_py import NurbsCurve\n    from session_py import NurbsSurface\n    from session_py import OBB\n    from session_py import Point\n    from session_py import PointCloud\n    from session_py import Polyline\n    from session_py import Primitives\n    from session_py import Vector\n\n    bb_line = OBB.from_line(Line(0.0, 0.0, 0.0, 4.0, 0.0, 0.0), 0.1)\n\n    MINI_CHECK(bb_line.is_valid())\n    MINI_CHECK(TOLERANCE.is_close(bb_line.center[0], 2.0))\n\n    bb_pl = OBB.from_polyline(Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 4.0, 4.0),\n    ]), 0.0)\n\n    MINI_CHECK(bb_pl.is_valid())\n    MINI_CHECK(bb_pl.volume() > 0.0)\n\n    bb_mesh = OBB.from_mesh(Primitives.cube(2.0), 0.0)\n\n    MINI_CHECK(bb_mesh.is_valid())\n    MINI_CHECK(TOLERANCE.is_close(bb_mesh.center[0], 0.0))\n    MINI_CHECK(TOLERANCE.is_close(bb_mesh.volume(), 8.0))\n\n    bb_pc = OBB.from_pointcloud(PointCloud(\n        [\n            Point(0.0, 0.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(0.0, 2.0, 0.0),\n            Point(0.0, 0.0, 2.0),\n        ],\n        [\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        ],\n        [\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n            Color(0, 0, 255, 255),\n            Color(255, 255, 0, 255),\n        ]\n    ), 0.0)\n\n    MINI_CHECK(bb_pc.is_valid())\n    MINI_CHECK(bb_pc.volume() > 0.0)\n\n    bb_nc = OBB.from_nurbscurve(NurbsCurve.create(False, 2, [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    ]), 0.5, False)\n\n    MINI_CHECK(bb_nc.is_valid())\n\n    bb_ns = OBB.from_nurbssurface(NurbsSurface.create(False, False, 1, 1, 2, 2, [\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n        Point(2.0, 2.0, 2.0),\n    ]), 0.0)\n\n    MINI_CHECK(bb_ns.is_valid())",
+          "file": "obb_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"OBB\", \"From Geometry\")",
+          "code": "MINI_TEST!(\"OBB\", \"From Geometry\", crate::obb_test::run_obb_from_geometry);\nREGISTER_MINI_TEST!(\"OBB\", \"From Plane\", crate::obb_test::run_obb_from_plane);\nREGISTER_MINI_TEST!(\"OBB\", \"Two Rectangles\", crate::obb_test::run_obb_two_rectangles);",
+          "file": "obb_test.rs"
+        }
+      }
+    },
+    {
+      "name": "OBB.test_From Plane",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"OBB\", \"From Plane\")",
+          "code": "MINI_TEST(\"OBB\", \"From Plane\") {\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"plane.h\"\n    Plane plane = Plane::xy_plane();\n    OBB box(plane, 2.0, 3.0, 4.0);\n\n    MINI_CHECK(TOLERANCE.is_close(box.half_size[0], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(box.half_size[1], 1.5));\n    MINI_CHECK(TOLERANCE.is_close(box.half_size[2], 2.0));\n    MINI_CHECK(box.center == Point(0.0, 0.0, 0.0));\n\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 3.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n    };\n    OBB bb = OBB::from_points(pts, plane, 0.0);\n\n    MINI_CHECK(TOLERANCE.is_close(bb.half_size[0], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(bb.half_size[1], 1.5));\n    MINI_CHECK(TOLERANCE.is_close(bb.x_axis[0], 1.0));\n}",
+          "file": "obb_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"OBB\", \"From Plane\")",
+          "code": "@MINI_TEST(\"OBB\", \"From Plane\")\ndef test_obb_from_plane():\n    from session_py import OBB\n    from session_py import Plane\n    from session_py import Point\n\n    plane = Plane.xy_plane()\n    box = OBB.from_plane(plane, 2.0, 3.0, 4.0)\n\n    MINI_CHECK(TOLERANCE.is_close(box.half_size[0], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(box.half_size[1], 1.5))\n    MINI_CHECK(TOLERANCE.is_close(box.half_size[2], 2.0))\n    MINI_CHECK(box.center == Point(0.0, 0.0, 0.0))\n\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 3.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n    ]\n    bb = OBB.from_points_with_plane(pts, plane, 0.0)\n\n    MINI_CHECK(TOLERANCE.is_close(bb.half_size[0], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(bb.half_size[1], 1.5))\n    MINI_CHECK(TOLERANCE.is_close(bb.x_axis[0], 1.0))",
+          "file": "obb_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"OBB\", \"From Plane\")",
+          "code": "MINI_TEST!(\"OBB\", \"From Plane\", crate::obb_test::run_obb_from_plane);\nREGISTER_MINI_TEST!(\"OBB\", \"Two Rectangles\", crate::obb_test::run_obb_two_rectangles);",
+          "file": "obb_test.rs"
+        }
+      }
+    },
+    {
+      "name": "OBB.test_Two Rectangles",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"OBB\", \"Two Rectangles\")",
+          "code": "MINI_TEST(\"OBB\", \"Two Rectangles\") {\n    // uncomment #include \"obb.h\"\n    OBB bb(\n        Point(1.0, 2.0, 3.0),\n        Vector(1.0, 0.0, 0.0),\n        Vector(0.0, 1.0, 0.0),\n        Vector(0.0, 0.0, 1.0),\n        Vector(2.0, 3.0, 4.0)\n    );\n    std::array<Point, 10> rects = bb.two_rectangles();\n\n    // bottom rect (z=-4 offset): corners at z=-1; top rect (z=+4 offset): corners at z=7\n    MINI_CHECK(rects.size() == 10);\n    MINI_CHECK(rects[0] == Point(3.0, 5.0, -1.0));\n    MINI_CHECK(rects[2] == Point(-1.0, -1.0, -1.0));\n    MINI_CHECK(rects[4] == rects[0]);\n    MINI_CHECK(rects[5] == Point(3.0, 5.0, 7.0));\n    MINI_CHECK(rects[7] == Point(-1.0, -1.0, 7.0));\n    MINI_CHECK(rects[9] == rects[5]);\n}",
+          "file": "obb_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"OBB\", \"Two Rectangles\")",
+          "code": "@MINI_TEST(\"OBB\", \"Two Rectangles\")\ndef test_obb_two_rectangles():\n    from session_py import OBB\n    from session_py import Point\n    from session_py import Vector\n\n    bb = OBB(\n        center=Point(1.0, 2.0, 3.0),\n        x_axis=Vector(1.0, 0.0, 0.0),\n        y_axis=Vector(0.0, 1.0, 0.0),\n        z_axis=Vector(0.0, 0.0, 1.0),\n        half_size=Vector(2.0, 3.0, 4.0)\n    )\n    rects = bb.two_rectangles()\n\n    # bottom rect (z=-4 offset): corners at z=-1; top rect (z=+4 offset): corners at z=7\n    MINI_CHECK(len(rects) == 10)\n    MINI_CHECK(rects[0] == Point(3.0, 5.0, -1.0))\n    MINI_CHECK(rects[2] == Point(-1.0, -1.0, -1.0))\n    MINI_CHECK(rects[4] == rects[0])\n    MINI_CHECK(rects[5] == Point(3.0, 5.0, 7.0))\n    MINI_CHECK(rects[7] == Point(-1.0, -1.0, 7.0))\n    MINI_CHECK(rects[9] == rects[5])\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "file": "obb_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"OBB\", \"Two Rectangles\")",
+          "code": "MINI_TEST!(\"OBB\", \"Two Rectangles\", crate::obb_test::run_obb_two_rectangles);",
           "file": "obb_test.rs"
         }
       }
@@ -93119,6 +93757,26 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "RTree.test_Constructor",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"RTree\", \"Constructor\")",
+          "code": "MINI_TEST(\"RTree\", \"Constructor\") {\n    // uncomment #include \"rtree.h\"\n    // RTree3: dynamic spatial index \u00e2\u20ac\u201d insert/remove support, O(log n) overlap search\n    RTree3 t;\n    double a0[3] = {0, 0, 0}, b0[3] = {1, 1, 1};\n    t.insert(a0, b0, 0);\n    double a1[3] = {5, 0, 0}, b1[3] = {6, 1, 1};\n    t.insert(a1, b1, 1);\n    double a2[3] = {10, 0, 0}, b2[3] = {11, 1, 1};\n    t.insert(a2, b2, 2);\n    int found = -1;\n    t.search(a0, b0, [&](int id) -> bool { found = id; return true; });\n\n    MINI_CHECK(found == 0);\n}",
+          "file": "rtree_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"RTree\", \"Constructor\")",
+          "code": "@MINI_TEST(\"RTree\", \"Constructor\")\ndef test_rtree_constructor():\n    from session_py.rtree import RTree\n\n    # RTree3: dynamic spatial index \u00e2\u20ac\u201d insert/remove support, O(log n) overlap search\n    t = RTree()\n    t.insert([0.0, 0.0, 0.0], [1.0, 1.0, 1.0], 0)\n    t.insert([5.0, 0.0, 0.0], [6.0, 1.0, 1.0], 1)\n    t.insert([10.0, 0.0, 0.0], [11.0, 1.0, 1.0], 2)\n    found = []\n    t.search([0.0, 0.0, 0.0], [1.0, 1.0, 1.0], lambda id: found.append(id) or True)\n\n    MINI_CHECK(0 in found)",
+          "file": "rtree_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"RTree\", \"Constructor\")",
+          "code": "MINI_TEST!(\"RTree\", \"Constructor\", crate::rtree_test::run_rtree_constructor);\nREGISTER_MINI_TEST!(\"RTree\", \"Creation\", crate::rtree_test::run_rtree_creation);\nREGISTER_MINI_TEST!(\"RTree\", \"Insert\", crate::rtree_test::run_rtree_insert);\nREGISTER_MINI_TEST!(\"RTree\", \"Insert Multiple\", crate::rtree_test::run_rtree_insert_multiple);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Hit\", crate::rtree_test::run_rtree_search_hit);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Miss\", crate::rtree_test::run_rtree_search_miss);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove\", crate::rtree_test::run_rtree_remove);\nREGISTER_MINI_TEST!(\"RTree\", \"Remove All\", crate::rtree_test::run_rtree_remove_all);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Count\", crate::rtree_test::run_rtree_search_count);\nREGISTER_MINI_TEST!(\"RTree\", \"Search Stop\", crate::rtree_test::run_rtree_search_stop);\nREGISTER_MINI_TEST!(\"RTree\", \"Search 100 Boxes\", crate::rtree_test::run_rtree_search_100_boxes);",
+          "file": "rtree_test.rs"
+        }
+      }
+    },
+    {
       "name": "RTree.test_Creation",
       "implementations": {
         "cpp": {
@@ -96043,8 +96701,8 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
         "points",
+        "into",
         "circle",
         "n",
         "subdivide",
@@ -96061,10 +96719,10 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "ellipse",
         "arc",
         "by",
         "length",
+        "ellipse",
         "subdivide",
         "divide_by_length",
         "nurbscurve",
@@ -96079,9 +96737,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
+        "points",
         "through",
         "arc",
-        "points",
         "nurbscurve",
         "primitives",
         "point"
@@ -96095,10 +96753,10 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "adaptive",
         "points",
-        "curve",
         "open",
+        "curve",
+        "adaptive",
         "from",
         "polyline",
         "to_polyline_adaptive",
@@ -96115,10 +96773,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "evaluation",
-        "at",
         "parameter",
         "curve",
+        "evaluation",
+        "at",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -96137,10 +96795,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
+        "length",
+        "curve",
         "along",
         "frames",
-        "curve",
-        "length",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -96162,9 +96820,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "perpendicular",
         "ellipse",
         "frames",
-        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -96185,10 +96843,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "cylinder",
+        "point",
         "evaluate",
         "surface",
-        "point",
+        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -96203,10 +96861,10 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "and",
         "mesh",
         "vertices",
         "from",
+        "and",
         "faces",
         "add_vertex",
         "add_face",
@@ -96354,12 +97012,6 @@ window.API_INDEX = {
       ],
       "summary": "TriangulateResult geometry class"
     },
-    "GeometryDecoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
-    },
     "MarchingSquares": {
       "composition": [],
       "factories": [],
@@ -96377,6 +97029,12 @@ window.API_INDEX = {
       ],
       "summary": "BooleanPolyline geometry class"
     },
+    "GeometryEncoder": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
+    },
     "GlobalTolerance": {
       "composition": [],
       "factories": [],
@@ -96387,11 +97045,11 @@ window.API_INDEX = {
       ],
       "summary": "GlobalTolerance geometry class"
     },
-    "GeometryEncoder": {
+    "GeometryDecoder": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
+      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
     },
     "TrimmedSurface": {
       "composition": [
@@ -96406,20 +97064,6 @@ window.API_INDEX = {
       ],
       "summary": "TrimmedSurface geometry class"
     },
-    "CurveKnotStyle": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Knot spacing style for interpolated curves (matches Rhino's CurveKnotStyle)."
-    },
-    "ToleranceGuard": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tolerance"
-      ],
-      "summary": "ToleranceGuard geometry class"
-    },
     "_PartitionVars": {
       "composition": [],
       "factories": [],
@@ -96431,6 +97075,20 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "VIntersectNode geometry class"
+    },
+    "ToleranceGuard": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Tolerance"
+      ],
+      "summary": "ToleranceGuard geometry class"
+    },
+    "CurveKnotStyle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Knot spacing style for interpolated curves (matches Rhino's CurveKnotStyle)."
     },
     "SessionConfig": {
       "composition": [],
@@ -96456,6 +97114,41 @@ window.API_INDEX = {
       "uses": [],
       "summary": "VLocalMinima geometry class"
     },
+    "BRepLoopType": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoopType geometry class"
+    },
+    "ElementPlate": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "ElementPlate geometry class"
+    },
+    "BRepTrimType": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "BRep",
+        "BRepLoopType",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRepTrimType geometry class"
+    },
     "Intersection": {
       "composition": [
         "Element",
@@ -96476,32 +97169,23 @@ window.API_INDEX = {
       ],
       "summary": "Intersection geometry class"
     },
-    "BRepTrimType": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "BRep",
-        "BRepLoopType",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRepTrimType geometry class"
-    },
     "VattiScratch": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VattiScratch geometry class"
     },
-    "BRepLoopType": {
+    "LoftWallFace": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepLoopType geometry class"
+      "summary": "LoftWallFace geometry class"
+    },
+    "ScanlineHeap": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "ScanlineHeap geometry class"
     },
     "NurbsSurface": {
       "composition": [
@@ -96522,32 +97206,6 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
-    },
-    "ElementPlate": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "ElementPlate geometry class"
-    },
-    "ScanlineHeap": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "ScanlineHeap geometry class"
-    },
-    "LoftWallFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftWallFace geometry class"
     },
     "ElementBeam": {
       "composition": [],
@@ -96576,12 +97234,6 @@ window.API_INDEX = {
       ],
       "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
     },
-    "BRepVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepVertex geometry class"
-    },
     "Primitives": {
       "composition": [
         "CurveKnotStyle",
@@ -96598,20 +97250,11 @@ window.API_INDEX = {
       ],
       "summary": "Static factory methods for creating NURBS curve primitives."
     },
-    "PointCloud": {
-      "composition": [
-        "Color",
-        "Xform"
-      ],
-      "factories": [
-        "AABB",
-        "OBB"
-      ],
-      "uses": [
-        "Point",
-        "Vector"
-      ],
-      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
     },
     "NurbsCurve": {
       "composition": [
@@ -96633,11 +97276,26 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
-    "Delaunay2D": {
+    "BRepVertex": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Delaunay2D geometry class"
+      "summary": "BRepVertex geometry class"
+    },
+    "PointCloud": {
+      "composition": [
+        "Color",
+        "Xform"
+      ],
+      "factories": [
+        "AABB",
+        "OBB"
+      ],
+      "uses": [
+        "Point",
+        "Vector"
+      ],
+      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
     },
     "Quaternion": {
       "composition": [
@@ -96657,21 +97315,27 @@ window.API_INDEX = {
       ],
       "summary": "Vertex data containing position and attributes."
     },
+    "_Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay geometry class"
+    },
+    "FlatMap64": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Delaunay2D",
+        "Point",
+        "Vector"
+      ],
+      "summary": "FlatMap64 geometry class"
+    },
     "VHorzJoin": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VHorzJoin geometry class"
-    },
-    "Tolerance": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "ToleranceGuard",
-        "Vector"
-      ],
-      "summary": "Tolerance settings for geometric operations."
     },
     "ColorMode": {
       "composition": [],
@@ -96689,22 +97353,6 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
-    "LoftPanel": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftPanel geometry class"
-    },
-    "FlatMap64": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Delaunay2D",
-        "Point",
-        "Vector"
-      ],
-      "summary": "FlatMap64 geometry class"
-    },
     "RemeshCDT": {
       "composition": [],
       "factories": [],
@@ -96714,17 +97362,54 @@ window.API_INDEX = {
       ],
       "summary": "RemeshCDT geometry class"
     },
-    "_Delaunay": {
+    "Tolerance": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "_Delaunay geometry class"
+      "uses": [
+        "Point",
+        "ToleranceGuard",
+        "Vector"
+      ],
+      "summary": "Tolerance settings for geometric operations."
     },
-    "BRepTrim": {
+    "LoftPanel": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepTrim geometry class"
+      "summary": "LoftPanel geometry class"
+    },
+    "VHorzSeg": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzSeg geometry class"
+    },
+    "TpmsMode": {
+      "composition": [],
+      "factories": [
+        "MeshIso",
+        "TpmsType"
+      ],
+      "uses": [],
+      "summary": "TpmsMode geometry class"
+    },
+    "BRepFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepFace geometry class"
+    },
+    "BRepLoop": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoop geometry class"
+    },
+    "BRepEdge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepEdge geometry class"
     },
     "Polyline": {
       "composition": [
@@ -96749,26 +97434,6 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "BRepLoop": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoop geometry class"
-    },
-    "Geometry": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Geometry geometry class"
-    },
-    "AABBTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB"
-      ],
-      "summary": "AABBTree geometry class"
-    },
     "Delaunay": {
       "composition": [],
       "factories": [],
@@ -96777,33 +97442,6 @@ window.API_INDEX = {
         "TriangulateResult"
       ],
       "summary": "Delaunay geometry class"
-    },
-    "BRepEdge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
-    },
-    "TpmsMode": {
-      "composition": [],
-      "factories": [
-        "MeshIso",
-        "TpmsType"
-      ],
-      "uses": [],
-      "summary": "TpmsMode geometry class"
-    },
-    "VHorzSeg": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzSeg geometry class"
-    },
-    "BRepFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepFace geometry class"
     },
     "TpmsType": {
       "composition": [],
@@ -96818,6 +97456,26 @@ window.API_INDEX = {
       ],
       "summary": "TpmsType geometry class"
     },
+    "BRepTrim": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepTrim geometry class"
+    },
+    "AABBTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB"
+      ],
+      "summary": "AABBTree geometry class"
+    },
+    "Geometry": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Geometry geometry class"
+    },
     "TreeNode": {
       "composition": [
         "Color"
@@ -96826,29 +97484,17 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A node of a tree data structure."
     },
-    "VActive": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VActive geometry class"
-    },
     "VVertex": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VVertex geometry class"
     },
-    "BVHNode": {
+    "VOutRec": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "AABB",
-        "BVH",
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "A node in the BVH tree."
+      "uses": [],
+      "summary": "VOutRec geometry class"
     },
     "Objects": {
       "composition": [
@@ -96888,25 +97534,11 @@ window.API_INDEX = {
       ],
       "summary": "Element geometry class"
     },
-    "_Branch": {
+    "VActive": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Branch geometry class"
-    },
-    "Closest": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Static methods for finding closest points between geometry objects."
+      "summary": "VActive geometry class"
     },
     "Session": {
       "composition": [
@@ -96935,6 +97567,17 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
+    "Default": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "Default geometry class"
+    },
     "MeshIso": {
       "composition": [],
       "factories": [],
@@ -96947,22 +97590,44 @@ window.API_INDEX = {
       ],
       "summary": "MeshIso geometry class"
     },
-    "VOutRec": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutRec geometry class"
-    },
-    "Default": {
+    "BVHNode": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
+        "AABB",
+        "BVH",
+        "OBB",
+        "Point",
         "Vector"
       ],
-      "summary": "Default geometry class"
+      "summary": "A node in the BVH tree."
+    },
+    "Closest": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Static methods for finding closest points between geometry objects."
+    },
+    "_Branch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Branch geometry class"
+    },
+    "VOutPt": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutPt geometry class"
     },
     "Vertex": {
       "composition": [],
@@ -96977,6 +97642,22 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "Matrix geometry class"
+    },
+    "BIVec2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BIVec2 geometry class"
+    },
+    "KDTree": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [],
+      "uses": [
+        "_Node"
+      ],
+      "summary": "KD-tree for point-to-point nearest-neighbor queries."
     },
     "RayHit": {
       "composition": [],
@@ -96997,46 +97678,11 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A 3D vector with visual properties."
     },
-    "KDTree": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [],
-      "uses": [
-        "_Node"
-      ],
-      "summary": "KD-tree for point-to-point nearest-neighbor queries."
-    },
-    "VOutPt": {
+    "_Node": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VOutPt geometry class"
-    },
-    "BIVec2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BIVec2 geometry class"
-    },
-    "Plane": {
-      "composition": [],
-      "factories": [
-        "OBB",
-        "Quaternion"
-      ],
-      "uses": [
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "A 3D plane defined by origin and coordinate axes."
-    },
-    "Color": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "An index-based 0-255 color with RGBA values."
+      "summary": "_Node geometry class"
     },
     "_Edge": {
       "composition": [],
@@ -97054,17 +97700,24 @@ window.API_INDEX = {
       ],
       "summary": "A graph data structure with string-only vertices and attributes."
     },
-    "_Node": {
+    "_Rect": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Node geometry class"
+      "summary": "_Rect geometry class"
     },
-    "RTree": {
+    "Plane": {
       "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RTree geometry class"
+      "factories": [
+        "OBB",
+        "Quaternion"
+      ],
+      "uses": [
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "A 3D plane defined by origin and coordinate axes."
     },
     "Xform": {
       "composition": [
@@ -97078,6 +97731,12 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "Xform geometry class"
+    },
+    "Color": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "An index-based 0-255 color with RGBA values."
     },
     "Point": {
       "composition": [],
@@ -97093,25 +97752,11 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A 3D point with visual properties."
     },
-    "_Rect": {
+    "RTree": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Rect geometry class"
-    },
-    "Tree": {
-      "composition": [
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
-    },
-    "_Tri": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Tri geometry class"
+      "summary": "RTree geometry class"
     },
     "BRep": {
       "composition": [
@@ -97136,6 +97781,12 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "BRep geometry class"
+    },
+    "Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "A graph edge connecting two vertices with an attribute string."
     },
     "Mesh": {
       "composition": [
@@ -97165,6 +97816,20 @@ window.API_INDEX = {
       ],
       "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
+    "Tree": {
+      "composition": [
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A hierarchical data structure with parent-child relationships."
+    },
+    "_Tri": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Tri geometry class"
+    },
     "AABB": {
       "composition": [],
       "factories": [
@@ -97181,12 +97846,6 @@ window.API_INDEX = {
       ],
       "summary": "Axis-aligned bounding box (center + half-size)."
     },
-    "_P64": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_P64 geometry class"
-    },
     "Line": {
       "composition": [
         "Point"
@@ -97202,26 +97861,17 @@ window.API_INDEX = {
       ],
       "summary": "A 3D line segment with visual properties."
     },
-    "Edge": {
+    "_P64": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
+      "summary": "_P64 geometry class"
     },
-    "BVH": {
-      "composition": [
-        "AABB",
-        "BVHNode"
-      ],
-      "factories": [
-        "BVHNode"
-      ],
-      "uses": [
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
+    "_V2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_V2 geometry class"
     },
     "OBB": {
       "composition": [
@@ -97247,11 +97897,20 @@ window.API_INDEX = {
       ],
       "summary": "OBB geometry class"
     },
-    "_V2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_V2 geometry class"
+    "BVH": {
+      "composition": [
+        "AABB",
+        "BVHNode"
+      ],
+      "factories": [
+        "BVHNode"
+      ],
+      "uses": [
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
     },
     "Sc": {
       "composition": [],
@@ -98403,6 +99062,7 @@ window.API_INDEX = {
     ],
     "build": [
       "BVH.build",
+      "Closest.build",
       "AABBTree.build",
       "BVHNode.build",
       "KDTree.build"
@@ -98493,6 +99153,37 @@ window.API_INDEX = {
     ],
     "pointcloud_point": [
       "Closest.pointcloud_point"
+    ],
+    "pointcloud_point_kdtree": [
+      "Closest.pointcloud_point_kdtree"
+    ],
+    "_build_raw_boxes": [
+      "Closest._build_raw_boxes"
+    ],
+    "_build_aabb_nodes": [
+      "Closest._build_aabb_nodes"
+    ],
+    "_query_aabb_nodes": [
+      "Closest._query_aabb_nodes"
+    ],
+    "overlaps": [
+      "Closest.overlaps",
+      "RTree.overlaps"
+    ],
+    "_aabb_to_aabb_min_dist": [
+      "Closest._aabb_to_aabb_min_dist"
+    ],
+    "lines_closest": [
+      "Closest.lines_closest"
+    ],
+    "polylines_closest": [
+      "Closest.polylines_closest"
+    ],
+    "nurbscurves_closest": [
+      "Closest.nurbscurves_closest"
+    ],
+    "boxes_closest": [
+      "Closest.boxes_closest"
     ],
     "r": [
       "Color.r"
@@ -102294,9 +102985,6 @@ window.API_INDEX = {
     "combine_rect": [
       "RTree.combine_rect"
     ],
-    "overlaps": [
-      "RTree.overlaps"
-    ],
     "node_cover": [
       "RTree.node_cover"
     ],
@@ -102984,10 +103672,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Closest": {
-      "cpp": 7,
-      "python": 11,
-      "rust": 7,
-      "gaps": 4,
+      "cpp": 12,
+      "python": 22,
+      "rust": 12,
+      "gaps": 10,
       "present_in": [
         "cpp",
         "python",

@@ -43,21 +43,21 @@ def view(filepath_or_session):
 
     viewer = Viewer()
 
-    # Build viewer groups from session layers
-    layer_groups = {}
-    for guid, layer_name in data.layers.items():
-        if layer_name not in layer_groups:
-            layer_groups[layer_name] = viewer.scene.add_group(layer_name)
+    # Build viewer groups from session tree
+    # Group TreeNodes are direct children of root whose name is not a guid
+    viewer_groups = {}  # guid (of geometry obj) -> viewer group
+    for group_node in data.tree.root.children:
+        vg = viewer.scene.add_group(group_node.name)
+        for child in group_node.children:
+            # child.name is the guid of a geometry object
+            viewer_groups[child.name] = vg
 
     def _get_parent(obj):
         """Return the viewer group for this object, or None."""
         guid = getattr(obj, "guid", None)
         if guid is None:
             return None
-        layer_name = data.layers.get(guid)
-        if layer_name is None:
-            return None
-        return layer_groups.get(layer_name)
+        return viewer_groups.get(guid)
 
     collections = [
         data.objects.points, data.objects.lines,
@@ -79,7 +79,7 @@ def view(filepath_or_session):
             viewer.scene.add(compas_obj, name=name, parent=parent)
     for plane_obj in data.objects.planes:
         if xf is not None:
-            plane_obj.xform = xf
+            plane_obj.xform  = xf
             plane_obj.transform()
         module = _get_module("Plane")
         rect, normal = module.to_compas(plane_obj)
@@ -89,4 +89,16 @@ def view(filepath_or_session):
         parent = _get_parent(plane_obj)
         viewer.scene.add(rect, name=name, parent=parent, **kw)
         viewer.scene.add(normal, name=name + "_normal", parent=parent, **kw)
+    for elem in data.objects.elements:
+        mesh = elem.session_geometry
+        if mesh is None:
+            continue
+        if xf is not None:
+            mesh.xform = xf
+            mesh.transform()
+        module = _get_module("Mesh")
+        compas_obj = module.to_compas(mesh)
+        name = getattr(elem, "name", None) or "Element"
+        parent = _get_parent(elem)
+        viewer.scene.add(compas_obj, name=name, parent=parent)
     viewer.show()

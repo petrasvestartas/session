@@ -34,7 +34,7 @@
     "group": "Objects",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 5.36,
+    "time_ms": 7.188,
     "line": 21,
     "code": "    // uncomment #include \"objects.h\"\n    // uncomment #include \"encoders.h\"\n    // uncomment #include \"point.h\"\n    Objects original;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    original.points->push_back(point1);\n    original.points->push_back(point2);\n\n    std::string filename = \"serialization/test_objects.json\";\n    encoders::json_dump(original, filename);\n    Objects loaded = encoders::json_load<Objects>(filename);",
     "checks": [
@@ -50,7 +50,7 @@
     "group": "Objects",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 5.484,
+    "time_ms": 6.039,
     "line": 38,
     "code": "    // uncomment #include \"objects.h\"\n    // uncomment #include \"point.h\"\n    Objects original;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    original.points->push_back(point1);\n    original.points->push_back(point2);\n\n    std::string filename = \"serialization/test_objects.bin\";\n    original.pb_dump(filename);\n    Objects loaded = Objects::pb_load(filename);",
     "checks": [
@@ -61,5 +61,122 @@
       }
     ],
     "failures": []
+  },
+  {
+    "group": "Objects",
+    "test_name": "Component Constructor",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 54,
+    "code": "    // Component is a generic envelope for custom domain objects.\n    // type_name identifies the class; extra holds all custom fields as JSON.\n    Component c;\n    c.type_name = \"FloorBuilder\";\n    c.name      = \"floor_builder\";\n    c.extra     = {{\"size\", 3000}, {\"height\", 650}};",
+    "checks": [
+      {
+        "line": 62,
+        "code_line": "c.type_name == \"FloorBuilder\"",
+        "passed": true
+      },
+      {
+        "line": 63,
+        "code_line": "c.name == \"floor_builder\"",
+        "passed": true
+      },
+      {
+        "line": 64,
+        "code_line": "!c.guid().empty()",
+        "passed": true
+      },
+      {
+        "line": 65,
+        "code_line": "c.extra[\"size\"] == 3000",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Objects",
+    "test_name": "Component Json Roundtrip",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 68,
+    "code": "    // Round-trip a Component through JSON: all custom fields must survive.\n    Component original;\n    original.type_name = \"FloorBuilder\";\n    original.name      = \"floor_builder\";\n    original.extra     = {{\"size\", 3000}, {\"height\", 650}, {\"rise\", 453}};\n    std::string original_guid = original.guid();\n\n    // jsondump produces a flat dict: type/guid/name + all extra fields\n    auto j = original.jsondump();\n\n    // jsonload reconstructs the Component from that dict\n    Component loaded = Component::jsonload(j);",
+    "checks": [
+      {
+        "line": 78,
+        "code_line": "j[\"type\"] == \"FloorBuilder\"",
+        "passed": true
+      },
+      {
+        "line": 79,
+        "code_line": "j[\"guid\"] == original_guid",
+        "passed": true
+      },
+      {
+        "line": 80,
+        "code_line": "j[\"size\"] == 3000",
+        "passed": true
+      },
+      {
+        "line": 81,
+        "code_line": "j[\"height\"] == 650",
+        "passed": true
+      },
+      {
+        "line": 85,
+        "code_line": "loaded.type_name == \"FloorBuilder\"",
+        "passed": true
+      },
+      {
+        "line": 86,
+        "code_line": "loaded.guid() == original_guid",
+        "passed": true
+      },
+      {
+        "line": 87,
+        "code_line": "loaded.extra[\"size\"] == 3000",
+        "passed": true
+      },
+      {
+        "line": 88,
+        "code_line": "loaded.extra[\"rise\"] == 453",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "Objects",
+    "test_name": "Objects Component Json Roundtrip",
+    "passed": false,
+    "time_ms": 5.854,
+    "line": 91,
+    "code": "    // An Objects collection serializes components alongside geometry.\n    Objects original;\n    Component c;\n    c.type_name = \"FloorBuilder\";\n    c.name      = \"floor_builder\";\n    c.extra     = {{\"size\", 3000}, {\"height\", 650}};\n    original.components->push_back(c);\n\n    std::string filename = \"serialization/test_objects_component.json\";\n    encoders::json_dump(original, filename);\n    Objects loaded = encoders::json_load<Objects>(filename);",
+    "checks": [
+      {
+        "line": 104,
+        "code_line": "loaded.components->size() == 1",
+        "passed": true
+      },
+      {
+        "line": 105,
+        "code_line": "loaded.components->at(0).type_name == \"FloorBuilder\"",
+        "passed": true
+      },
+      {
+        "line": 106,
+        "code_line": "loaded.components->at(0).extra[\"size\"] == 3000",
+        "passed": true
+      },
+      {
+        "line": 107,
+        "code_line": "loaded.components->at(0).guid() == c.guid()",
+        "passed": false
+      }
+    ],
+    "failures": [
+      {
+        "error": "loaded.components->at(0).guid() == c.guid()"
+      }
+    ]
   }
 ]
