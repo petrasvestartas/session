@@ -13,7 +13,7 @@
     "line": 8,
     "passed": true,
     "test_name": "Make Clamped Uniform",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 20,
     "passed": true,
     "test_name": "Make Periodic Uniform",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 32,
     "passed": true,
     "test_name": "Is Clamped",
-    "time_ms": 0.005
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 101,
     "passed": true,
     "test_name": "Compute Parameters",
-    "time_ms": 0.004
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -146,7 +146,7 @@
     "line": 127,
     "passed": true,
     "test_name": "Evaluation Basis",
-    "time_ms": 0.003
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -178,7 +178,7 @@
     "line": 159,
     "passed": true,
     "test_name": "Build Fitted Knots Periodic Adaptive",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [

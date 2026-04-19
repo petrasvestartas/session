@@ -23,7 +23,7 @@
     "line": 63,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 5.46
+    "time_ms": 5.408
   },
   {
     "checks": [
@@ -44,7 +44,7 @@
     "line": 113,
     "passed": true,
     "test_name": "Other Vertex",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -70,7 +70,7 @@
     "line": 97,
     "passed": true,
     "test_name": "Connects",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [

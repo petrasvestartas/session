@@ -9891,8 +9891,8 @@ window.API_INDEX = {
       "name": "Element.__init__",
       "implementations": {
         "python": {
-          "sig": "__init__(geometry=None, name=\"my_element\")",
-          "code": "def __init__(self, geometry=None, name=\"my_element\"):\n\n        self._guid = None\n        self.name = name\n        self._geometry = geometry\n        self._session_transformation = None\n        self._features = []\n        self._is_dirty = True\n        self._aabb = None\n        self._obb = None\n        self._collision_mesh = None\n        self._point = None\n        self._polylines = None\n        self._planes = None\n        self._edge_vectors = None\n        self._axis = None\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def geometry(self):\n        return self._geometry\n\n    @property\n    def session_transformation(self):\n        if self._session_transformation is None:\n            self._session_transformation = Xform.identity()\n        return self._session_transformation\n\n    @session_transformation.setter\n    def session_transformation(self, value):\n        self._session_transformation = value\n        self._is_dirty = True\n\n    @property\n    def session_geometry(self):\n        if self._geometry is None:\n            return None\n        geo = copy.deepcopy(self._geometry)\n        geo = self.apply_features(geo)\n        xf = self.session_transformation\n        if not xf.is_identity():\n            geo.xform = xf * geo.xform\n            geo.transform()\n        return geo\n\n    @property\n    def aabb(self):\n        if self._is_dirty or self._aabb is None:\n            self._aabb = self.compute_aabb()\n        return self._aabb\n\n    @property\n    def obb(self):\n        if self._is_dirty or self._obb is None:\n            self._obb = self.compute_obb()\n        return self._obb\n\n    @property\n    def collision_mesh(self):\n        if self._is_dirty or self._collision_mesh is None:\n            self._collision_mesh = self.compute_collision_mesh()\n        return self._collision_mesh\n\n    @property\n    def point(self):\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:",
+          "sig": "__init__(geometry=None, transformation=None, name=\"my_element\")",
+          "code": "def __init__(self, geometry=None, transformation=None, name=\"my_element\"):\n\n        self._guid = None\n        self.name = name\n        self._geometry = geometry\n        self._session_transformation = transformation\n        self._features = []\n        self._is_dirty = True\n        self._aabb = None\n        self._obb = None\n        self._collision_mesh = None\n        self._point = None\n        self._polylines = None\n        self._planes = None\n        self._edge_vectors = None\n        self._axis = None\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def geometry(self):\n        return self._geometry\n\n    @property\n    def session_transformation(self):\n        if self._session_transformation is None:\n            self._session_transformation = Xform.identity()\n        return self._session_transformation\n\n    @session_transformation.setter\n    def session_transformation(self, value):\n        self._session_transformation = value\n        self._is_dirty = True\n\n    @property\n    def session_geometry(self):\n        if self._geometry is None:\n            return None\n        geo = copy.deepcopy(self._geometry)\n        geo = self.apply_features(geo)\n        xf = self.session_transformation\n        if not xf.is_identity():\n            geo.xform = xf * geo.xform\n            geo.transform()\n        return geo\n\n    @property\n    def aabb(self):\n        if self._is_dirty or self._aabb is None:\n            self._aabb = self.compute_aabb()\n        return self._aabb\n\n    @property\n    def obb(self):\n        if self._is_dirty or self._obb is None:\n            self._obb = self.compute_obb()\n        return self._obb\n\n    @property\n    def collision_mesh(self):\n        if self._is_dirty or self._collision_mesh is None:\n            self._collision_mesh = self.compute_collision_mesh()\n        return self._collision_mesh\n\n    @property\n    def point(self):\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:",
           "file": "element.py"
         }
       },
@@ -9950,9 +9950,9 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.apply_features",
         "Element.axis",
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.collision_mesh",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.compute_aabb",
         "Element.compute_axis",
         "Element.compute_collision_mesh",
@@ -9963,8 +9963,8 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
-        "Element.from_brep",
-        "Element.from_mesh",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
         "Element.geometry",
         "Element.is_dirty",
         "Element.json_dump",
@@ -9978,15 +9978,16 @@ window.API_INDEX = {
         "Element.pb_dumps",
         "Element.pb_loads",
         "Element.planes",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.point",
         "Element.polylines",
         "Element.repr",
         "Element.session_geometry",
         "Element.session_transformation",
         "Element.set_guid",
-        "Element.str"
+        "Element.str",
+        "Element.with_transformation"
       ]
     },
     {
@@ -10023,9 +10024,9 @@ window.API_INDEX = {
         "Element.add_feature",
         "Element.apply_features",
         "Element.axis",
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.collision_mesh",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.compute_aabb",
         "Element.compute_axis",
         "Element.compute_collision_mesh",
@@ -10039,7 +10040,9 @@ window.API_INDEX = {
         "Element.edge_vectors",
         "Element.extend",
         "Element.from_brep",
+        "Element.from_brep_with_transformation",
         "Element.from_mesh",
+        "Element.from_mesh_with_transformation",
         "Element.geometry_type_name",
         "Element.guid",
         "Element.has_geometry",
@@ -10051,14 +10054,13 @@ window.API_INDEX = {
         "Element.jsondump",
         "Element.jsonload",
         "Element.jsonload_value",
-        "Element.new",
         "Element.obb",
         "Element.obb_from_geometry",
         "Element.pb_dumps",
         "Element.pb_loads",
         "Element.planes",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.point",
         "Element.polylines",
         "Element.repr",
@@ -10075,7 +10077,8 @@ window.API_INDEX = {
         "Element.set_polylines",
         "Element.set_thickness",
         "Element.set_width",
-        "Element.str"
+        "Element.str",
+        "Element.with_transformation"
       ]
     },
     {
@@ -10096,9 +10099,9 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.apply_features",
         "Element.axis",
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.collision_mesh",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.compute_aabb",
         "Element.compute_axis",
         "Element.compute_collision_mesh",
@@ -10108,8 +10111,8 @@ window.API_INDEX = {
         "Element.compute_point",
         "Element.compute_polylines",
         "Element.edge_vectors",
-        "Element.from_brep",
-        "Element.from_mesh",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
@@ -10124,12 +10127,13 @@ window.API_INDEX = {
         "Element.pb_dumps",
         "Element.pb_loads",
         "Element.planes",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.point",
         "Element.polylines",
         "Element.session_geometry",
-        "Element.str"
+        "Element.str",
+        "Element.with_transformation"
       ]
     },
     {
@@ -10220,11 +10224,11 @@ window.API_INDEX = {
         "Element.add_feature",
         "Element.apply_features",
         "Element.axis",
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.cached_aabb",
         "Element.cached_aabb_ref",
         "Element.collision_mesh",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.compute_aabb",
         "Element.compute_aabb_fast",
         "Element.compute_axis",
@@ -10236,16 +10240,16 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
-        "Element.from_brep",
-        "Element.from_mesh",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
         "Element.new",
         "Element.obb",
         "Element.planes",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.point",
         "Element.polylines",
         "Element.reset",
@@ -10254,7 +10258,8 @@ window.API_INDEX = {
         "Element.set_geometry",
         "Element.set_planes",
         "Element.set_polylines",
-        "Element.str"
+        "Element.str",
+        "Element.with_transformation"
       ]
     },
     {
@@ -10290,11 +10295,11 @@ window.API_INDEX = {
         "Element.add_feature",
         "Element.apply_features",
         "Element.axis",
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.cached_obb",
         "Element.cached_obb_ref",
         "Element.collision_mesh",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.compute_aabb",
         "Element.compute_axis",
         "Element.compute_collision_mesh",
@@ -10305,8 +10310,8 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
-        "Element.from_brep",
-        "Element.from_mesh",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
@@ -10319,8 +10324,8 @@ window.API_INDEX = {
         "Element.pb_dumps",
         "Element.pb_loads",
         "Element.planes",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.point",
         "Element.polylines",
         "Element.reset",
@@ -10329,7 +10334,8 @@ window.API_INDEX = {
         "Element.set_geometry",
         "Element.set_planes",
         "Element.set_polylines",
-        "Element.str"
+        "Element.str",
+        "Element.with_transformation"
       ]
     },
     {
@@ -10361,10 +10367,10 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.add_feature",
         "Element.axis",
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.cached_collision_mesh",
         "Element.cached_collision_mesh_ref",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.compute_aabb",
         "Element.compute_axis",
         "Element.compute_collision_mesh",
@@ -10375,16 +10381,16 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
-        "Element.from_brep",
-        "Element.from_mesh",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
         "Element.new",
         "Element.obb",
         "Element.planes",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.point",
         "Element.polylines",
         "Element.reset",
@@ -10393,7 +10399,8 @@ window.API_INDEX = {
         "Element.set_geometry",
         "Element.set_planes",
         "Element.set_polylines",
-        "Element.str"
+        "Element.str",
+        "Element.with_transformation"
       ]
     },
     {
@@ -10429,11 +10436,11 @@ window.API_INDEX = {
         "Element.add_feature",
         "Element.apply_features",
         "Element.axis",
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.cached_point",
         "Element.cached_point_ref",
         "Element.collision_mesh",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.compute_aabb",
         "Element.compute_aabb_fast",
         "Element.compute_axis",
@@ -10445,8 +10452,8 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
-        "Element.from_brep",
-        "Element.from_mesh",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
@@ -10460,8 +10467,8 @@ window.API_INDEX = {
         "Element.pb_dumps",
         "Element.pb_loads",
         "Element.planes",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.polylines",
         "Element.repr",
         "Element.reset",
@@ -10470,7 +10477,8 @@ window.API_INDEX = {
         "Element.set_geometry",
         "Element.set_planes",
         "Element.set_polylines",
-        "Element.str"
+        "Element.str",
+        "Element.with_transformation"
       ]
     },
     {
@@ -10502,9 +10510,9 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.add_feature",
         "Element.axis",
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.collision_mesh",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.compute_aabb",
         "Element.compute_axis",
         "Element.compute_collision_mesh",
@@ -10515,16 +10523,16 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
-        "Element.from_brep",
-        "Element.from_mesh",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
         "Element.new",
         "Element.obb",
         "Element.planes",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.point",
         "Element.repr",
         "Element.reset",
@@ -10533,7 +10541,8 @@ window.API_INDEX = {
         "Element.set_geometry",
         "Element.set_planes",
         "Element.set_polylines",
-        "Element.str"
+        "Element.str",
+        "Element.with_transformation"
       ]
     },
     {
@@ -10565,9 +10574,9 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.add_feature",
         "Element.axis",
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.collision_mesh",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.compute_aabb",
         "Element.compute_axis",
         "Element.compute_collision_mesh",
@@ -10578,15 +10587,15 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
-        "Element.from_brep",
-        "Element.from_mesh",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
         "Element.new",
         "Element.obb",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.point",
         "Element.polylines",
         "Element.repr",
@@ -10596,7 +10605,8 @@ window.API_INDEX = {
         "Element.set_geometry",
         "Element.set_planes",
         "Element.set_polylines",
-        "Element.str"
+        "Element.str",
+        "Element.with_transformation"
       ]
     },
     {
@@ -10628,9 +10638,9 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.add_feature",
         "Element.axis",
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.collision_mesh",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.compute_aabb",
         "Element.compute_axis",
         "Element.compute_collision_mesh",
@@ -10640,16 +10650,16 @@ window.API_INDEX = {
         "Element.compute_point",
         "Element.compute_polylines",
         "Element.duplicate",
-        "Element.from_brep",
-        "Element.from_mesh",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
         "Element.new",
         "Element.obb",
         "Element.planes",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.point",
         "Element.polylines",
         "Element.repr",
@@ -10659,7 +10669,8 @@ window.API_INDEX = {
         "Element.set_geometry",
         "Element.set_planes",
         "Element.set_polylines",
-        "Element.str"
+        "Element.str",
+        "Element.with_transformation"
       ]
     },
     {
@@ -10690,9 +10701,9 @@ window.API_INDEX = {
         "Element.__str__",
         "Element.aabb",
         "Element.add_feature",
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.collision_mesh",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.compute_aabb",
         "Element.compute_axis",
         "Element.compute_collision_mesh",
@@ -10703,8 +10714,8 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
-        "Element.from_brep",
-        "Element.from_mesh",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
@@ -10712,8 +10723,8 @@ window.API_INDEX = {
         "Element.obb",
         "Element.pb_dumps",
         "Element.planes",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.point",
         "Element.polylines",
         "Element.repr",
@@ -10723,7 +10734,8 @@ window.API_INDEX = {
         "Element.set_geometry",
         "Element.set_planes",
         "Element.set_polylines",
-        "Element.str"
+        "Element.str",
+        "Element.with_transformation"
       ]
     },
     {
@@ -10755,20 +10767,20 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.add_feature",
         "Element.axis",
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.collision_mesh",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.duplicate",
         "Element.edge_vectors",
-        "Element.from_brep",
-        "Element.from_mesh",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
         "Element.geometry",
         "Element.guid",
         "Element.new",
         "Element.obb",
         "Element.planes",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.point",
         "Element.polylines",
         "Element.repr",
@@ -10779,7 +10791,8 @@ window.API_INDEX = {
         "Element.set_geometry",
         "Element.set_planes",
         "Element.set_polylines",
-        "Element.str"
+        "Element.str",
+        "Element.with_transformation"
       ]
     },
     {
@@ -11953,9 +11966,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementBeam",
-        "Element.ElementColumn",
-        "Element.ElementPlate",
         "Element.__jsondump__",
         "Element.__jsonload__",
         "Element._obb_from_geometry",
@@ -12004,9 +12014,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementBeam",
-        "Element.ElementColumn",
-        "Element.ElementPlate",
         "Element.__jsondump__",
         "Element.__jsonload__",
         "Element._obb_from_geometry",
@@ -12055,9 +12062,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementBeam",
-        "Element.ElementColumn",
-        "Element.ElementPlate",
         "Element.__jsondump__",
         "Element.__jsonload__",
         "Element._obb_from_geometry",
@@ -12104,9 +12108,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementBeam",
-        "Element.ElementColumn",
-        "Element.ElementPlate",
         "Element.__jsondump__",
         "Element.__jsonload__",
         "Element._obb_from_geometry",
@@ -12162,9 +12163,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementBeam",
-        "Element.ElementColumn",
-        "Element.ElementPlate",
         "Element.__jsondump__",
         "Element.__jsonload__",
         "Element._pb_load_geometry",
@@ -12214,9 +12212,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementBeam",
-        "Element.ElementColumn",
-        "Element.ElementPlate",
         "Element.__jsondump__",
         "Element.__jsonload__",
         "Element.geometry",
@@ -12303,8 +12298,8 @@ window.API_INDEX = {
       "name": "ElementBeam.__init__",
       "implementations": {
         "python": {
-          "sig": "__init__(width=0.1, depth=0.2, length=3.0, name=\"my_beam\")",
-          "code": "def __init__(self, width=0.1, depth=0.2, length=3.0, name=\"my_beam\"):\n\n        super().__init__(geometry=None, name=name)\n        self._width = width\n        self._depth = depth\n        self._length = length\n        self._geometry = self.compute_element_geometry()\n\n    @property\n    def width(self):\n        return self._width\n\n    @width.setter\n    def width(self, value):\n        self._width = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def depth(self):\n        return self._depth\n\n    @depth.setter\n    def depth(self, value):\n        self._depth = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def length(self):\n        return self._length\n\n    @length.setter\n    def length(self, value):\n        self._length = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def center_line(self):\n        from .line import Line\n        return Line(0, 0, 0, 0, 0, self._length)\n\n    def compute_element_geometry(self):\n        from .mesh import Mesh\n        from .point import Point\n        hx = self._width * 0.5\n        hy = self._depth * 0.5\n        vertices = [\n            Point(-hx, -hy, 0),\n            Point( hx, -hy, 0),\n            Point( hx,  hy, 0),\n            Point(-hx,  hy, 0),\n            Point(-hx, -hy, self._length),\n            Point( hx, -hy, self._length),\n            Point( hx,  hy, self._length),\n            Point(-hx,  hy, self._length),\n        ]\n        faces = [\n            [0, 3, 2, 1],\n            [4, 5, 6, 7],\n            [0, 1, 5, 4],\n            [2, 3, 7, 6],\n            [0, 4, 7, 3],\n            [1, 2, 6, 5],\n        ]\n        return Mesh.from_vertices_and_faces(vertices, faces)\n\n    def extend(self, distance):\n        self._length += distance * 2\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    def compute_polylines(self):\n        from .polyline import Polyline\n        from .point import Point\n        hx = self._width * 0.5\n        hy = self._depth * 0.5\n        b = [Point(-hx, -hy, 0), Point(hx, -hy, 0), Point(hx, hy, 0), Point(-hx, hy, 0)]\n        t = [Point(-hx, -hy, self._length), Point(hx, -hy, self._length), Point(hx, hy, self._length), Point(-hx, hy, self._length)]\n        bottom_pl = Polyline([b[0], b[3], b[2], b[1], Point(b[0][0], b[0][1], b[0][2])])",
+          "sig": "__init__(width=0.1, depth=0.2, length=3.0, transformation=None, name=\"my_beam\")",
+          "code": "def __init__(self, width=0.1, depth=0.2, length=3.0, transformation=None, name=\"my_beam\"):\n\n        super().__init__(geometry=None, transformation=transformation, name=name)\n        self._width = width\n        self._depth = depth\n        self._length = length\n        self._geometry = self.compute_element_geometry()\n\n    @property\n    def width(self):\n        return self._width\n\n    @width.setter\n    def width(self, value):\n        self._width = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def depth(self):\n        return self._depth\n\n    @depth.setter\n    def depth(self, value):\n        self._depth = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def length(self):\n        return self._length\n\n    @length.setter\n    def length(self, value):\n        self._length = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def center_line(self):\n        from .line import Line\n        return Line(0, 0, 0, 0, 0, self._length)\n\n    def compute_element_geometry(self):\n        from .mesh import Mesh\n        from .point import Point\n        hx = self._width * 0.5\n        hy = self._depth * 0.5\n        vertices = [\n            Point(-hx, -hy, 0),\n            Point( hx, -hy, 0),\n            Point( hx,  hy, 0),\n            Point(-hx,  hy, 0),\n            Point(-hx, -hy, self._length),\n            Point( hx, -hy, self._length),\n            Point( hx,  hy, self._length),\n            Point(-hx,  hy, self._length),\n        ]\n        faces = [\n            [0, 3, 2, 1],\n            [4, 5, 6, 7],\n            [0, 1, 5, 4],\n            [2, 3, 7, 6],\n            [0, 4, 7, 3],\n            [1, 2, 6, 5],\n        ]\n        return Mesh.from_vertices_and_faces(vertices, faces)\n\n    def extend(self, distance):\n        self._length += distance * 2\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    def compute_polylines(self):\n        from .polyline import Polyline\n        from .point import Point\n        hx = self._width * 0.5\n        hy = self._depth * 0.5\n        b = [Point(-hx, -hy, 0), Point(hx, -hy, 0), Point(hx, hy, 0), Point(-hx, hy, 0)]\n        t = [Point(-hx, -hy, self._length), Point(hx, -hy, self._length), Point(hx, hy, self._length), Point(-hx, hy, self._length)]\n        bottom_pl = Polyline([b[0], b[3], b[2], b[1], Point(b[0][0], b[0][1], b[0][2])])",
           "file": "element_beam.py"
         }
       },
@@ -12939,8 +12934,8 @@ window.API_INDEX = {
       "name": "ElementColumn.__init__",
       "implementations": {
         "python": {
-          "sig": "__init__(width=0.4, depth=0.4, height=3.0, name=\"my_column\")",
-          "code": "def __init__(self, width=0.4, depth=0.4, height=3.0, name=\"my_column\"):\n\n        super().__init__(geometry=None, name=name)\n        self._width = width\n        self._depth = depth\n        self._height = height\n        self._geometry = self.compute_element_geometry()\n\n    @property\n    def width(self):\n        return self._width\n\n    @width.setter\n    def width(self, value):\n        self._width = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def depth(self):\n        return self._depth\n\n    @depth.setter\n    def depth(self, value):\n        self._depth = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def height(self):\n        return self._height\n\n    @height.setter\n    def height(self, value):\n        self._height = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def center_line(self):\n        from .line import Line\n        return Line(0, 0, 0, 0, 0, self._height)\n\n    def compute_element_geometry(self):\n        from .mesh import Mesh\n        from .point import Point\n        hx = self._width * 0.5\n        hy = self._depth * 0.5\n        vertices = [\n            Point(-hx, -hy, 0),\n            Point( hx, -hy, 0),\n            Point( hx,  hy, 0),\n            Point(-hx,  hy, 0),\n            Point(-hx, -hy, self._height),\n            Point( hx, -hy, self._height),\n            Point( hx,  hy, self._height),\n            Point(-hx,  hy, self._height),\n        ]\n        faces = [\n            [0, 3, 2, 1],\n            [4, 5, 6, 7],\n            [0, 1, 5, 4],\n            [2, 3, 7, 6],\n            [0, 4, 7, 3],\n            [1, 2, 6, 5],\n        ]\n        return Mesh.from_vertices_and_faces(vertices, faces)\n\n    def extend(self, distance):\n        self._height += distance * 2\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    def compute_polylines(self):\n        from .polyline import Polyline\n        from .point import Point\n        hx = self._width * 0.5\n        hy = self._depth * 0.5\n        b = [Point(-hx, -hy, 0), Point(hx, -hy, 0), Point(hx, hy, 0), Point(-hx, hy, 0)]\n        t = [Point(-hx, -hy, self._height), Point(hx, -hy, self._height), Point(hx, hy, self._height), Point(-hx, hy, self._height)]\n        bottom_pl = Polyline([b[0], b[3], b[2], b[1], Point(b[0][0], b[0][1], b[0][2])])",
+          "sig": "__init__(width=0.4, depth=0.4, height=3.0, transformation=None, name=\"my_column\")",
+          "code": "def __init__(self, width=0.4, depth=0.4, height=3.0, transformation=None, name=\"my_column\"):\n\n        super().__init__(geometry=None, transformation=transformation, name=name)\n        self._width = width\n        self._depth = depth\n        self._height = height\n        self._geometry = self.compute_element_geometry()\n\n    @property\n    def width(self):\n        return self._width\n\n    @width.setter\n    def width(self, value):\n        self._width = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def depth(self):\n        return self._depth\n\n    @depth.setter\n    def depth(self, value):\n        self._depth = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def height(self):\n        return self._height\n\n    @height.setter\n    def height(self, value):\n        self._height = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def center_line(self):\n        from .line import Line\n        return Line(0, 0, 0, 0, 0, self._height)\n\n    def compute_element_geometry(self):\n        from .mesh import Mesh\n        from .point import Point\n        hx = self._width * 0.5\n        hy = self._depth * 0.5\n        vertices = [\n            Point(-hx, -hy, 0),\n            Point( hx, -hy, 0),\n            Point( hx,  hy, 0),\n            Point(-hx,  hy, 0),\n            Point(-hx, -hy, self._height),\n            Point( hx, -hy, self._height),\n            Point( hx,  hy, self._height),\n            Point(-hx,  hy, self._height),\n        ]\n        faces = [\n            [0, 3, 2, 1],\n            [4, 5, 6, 7],\n            [0, 1, 5, 4],\n            [2, 3, 7, 6],\n            [0, 4, 7, 3],\n            [1, 2, 6, 5],\n        ]\n        return Mesh.from_vertices_and_faces(vertices, faces)\n\n    def extend(self, distance):\n        self._height += distance * 2\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    def compute_polylines(self):\n        from .polyline import Polyline\n        from .point import Point\n        hx = self._width * 0.5\n        hy = self._depth * 0.5\n        b = [Point(-hx, -hy, 0), Point(hx, -hy, 0), Point(hx, hy, 0), Point(-hx, hy, 0)]\n        t = [Point(-hx, -hy, self._height), Point(hx, -hy, self._height), Point(hx, hy, self._height), Point(-hx, hy, self._height)]\n        bottom_pl = Polyline([b[0], b[3], b[2], b[1], Point(b[0][0], b[0][1], b[0][2])])",
           "file": "element_column.py"
         }
       },
@@ -13576,7 +13571,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_strip_closing(pts)",
-          "code": "def _strip_closing(pts):\n\n        from .point import Point\n        result = [Point(p[0], p[1], p[2]) for p in pts]\n        if len(result) > 3:\n            f, l = result[0], result[-1]\n            if abs(f[0]-l[0]) < 1e-6 and abs(f[1]-l[1]) < 1e-6 and abs(f[2]-l[2]) < 1e-6:\n                result.pop()\n        return result\n\n    def __init__(self, polygon=None, thickness=0.1, name=\"my_plate\", polygon_top=None):\n        super().__init__(geometry=None, name=name)\n        from .point import Point\n        if polygon is None:\n            polygon = [\n                Point(-0.5, -0.5, 0),\n                Point( 0.5, -0.5, 0),\n                Point( 0.5,  0.5, 0),\n                Point(-0.5,  0.5, 0),\n            ]\n        self._polygon = self._strip_closing(polygon)\n        if polygon_top is not None:\n            self._polygon_top = self._strip_closing(polygon_top)\n            # Ensure bottom normal points toward top\n            normal = self._polygon_normal(self._polygon)\n            d = sum((self._polygon_top[k][i]-self._polygon[k][i])*normal[i]\n                    for k in range(min(len(self._polygon), len(self._polygon_top))) for i in range(3))\n            if d < 0:\n                self._polygon, self._polygon_top = self._polygon_top, self._polygon\n            n = min(len(self._polygon), len(self._polygon_top))\n            self._thickness = sum(\n                ((self._polygon_top[k][0]-self._polygon[k][0])**2 +\n                 (self._polygon_top[k][1]-self._polygon[k][1])**2 +\n                 (self._polygon_top[k][2]-self._polygon[k][2])**2)**0.5\n                for k in range(n)) / n\n        else:\n            self._thickness = thickness\n            normal = self._polygon_normal(self._polygon)\n            self._polygon_top = [Point(\n                p[0]-normal[0]*thickness, p[1]-normal[1]*thickness, p[2]-normal[2]*thickness\n            ) for p in self._polygon]\n        self._joint_types = []\n        self._j_mf = []\n        self._key = \"\"\n        self._component_plane = None\n        self._geometry = self.compute_element_geometry()\n\n    @property\n    def polygon(self):\n        return self._polygon\n\n    @polygon.setter\n    def polygon(self, value):\n        from .point import Point\n        self._polygon = [Point(p[0], p[1], p[2]) for p in value]\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def thickness(self):\n        return self._thickness\n\n    @thickness.setter\n    def thickness(self, value):\n        self._thickness = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def joint_types(self):\n        return self._joint_types\n\n    @joint_types.setter\n    def joint_types(self, value):\n        self._joint_types = list(value)\n\n    @property\n    def j_mf(self):\n        return self._j_mf\n\n    @j_mf.setter",
+          "code": "def _strip_closing(pts):\n\n        from .point import Point\n        result = [Point(p[0], p[1], p[2]) for p in pts]\n        if len(result) > 3:\n            f, l = result[0], result[-1]\n            if abs(f[0]-l[0]) < 1e-6 and abs(f[1]-l[1]) < 1e-6 and abs(f[2]-l[2]) < 1e-6:\n                result.pop()\n        return result\n\n    def __init__(self, polygon=None, thickness=0.1, transformation=None, name=\"my_plate\", polygon_top=None):\n        super().__init__(geometry=None, transformation=transformation, name=name)\n        from .point import Point\n        if polygon is None:\n            polygon = [\n                Point(-0.5, -0.5, 0),\n                Point( 0.5, -0.5, 0),\n                Point( 0.5,  0.5, 0),\n                Point(-0.5,  0.5, 0),\n            ]\n        self._polygon = self._strip_closing(polygon)\n        if polygon_top is not None:\n            self._polygon_top = self._strip_closing(polygon_top)\n            # Ensure bottom normal points toward top\n            normal = self._polygon_normal(self._polygon)\n            d = sum((self._polygon_top[k][i]-self._polygon[k][i])*normal[i]\n                    for k in range(min(len(self._polygon), len(self._polygon_top))) for i in range(3))\n            if d < 0:\n                self._polygon, self._polygon_top = self._polygon_top, self._polygon\n            n = min(len(self._polygon), len(self._polygon_top))\n            self._thickness = sum(\n                ((self._polygon_top[k][0]-self._polygon[k][0])**2 +\n                 (self._polygon_top[k][1]-self._polygon[k][1])**2 +\n                 (self._polygon_top[k][2]-self._polygon[k][2])**2)**0.5\n                for k in range(n)) / n\n        else:\n            self._thickness = thickness\n            normal = self._polygon_normal(self._polygon)\n            self._polygon_top = [Point(\n                p[0]-normal[0]*thickness, p[1]-normal[1]*thickness, p[2]-normal[2]*thickness\n            ) for p in self._polygon]\n        self._joint_types = []\n        self._j_mf = []\n        self._key = \"\"\n        self._component_plane = None\n        self._geometry = self.compute_element_geometry()\n\n    @property\n    def polygon(self):\n        return self._polygon\n\n    @polygon.setter\n    def polygon(self, value):\n        from .point import Point\n        self._polygon = [Point(p[0], p[1], p[2]) for p in value]\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def thickness(self):\n        return self._thickness\n\n    @thickness.setter\n    def thickness(self, value):\n        self._thickness = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def joint_types(self):\n        return self._joint_types\n\n    @joint_types.setter\n    def joint_types(self, value):\n        self._joint_types = list(value)\n\n    @property\n    def j_mf(self):\n        return self._j_mf\n\n    @j_mf.setter",
           "file": "element_plate.py"
         }
       },
@@ -13599,8 +13594,8 @@ window.API_INDEX = {
       "name": "ElementPlate.__init__",
       "implementations": {
         "python": {
-          "sig": "__init__(polygon=None, thickness=0.1, name=\"my_plate\", polygon_top=None)",
-          "code": "def __init__(self, polygon=None, thickness=0.1, name=\"my_plate\", polygon_top=None):\n\n        super().__init__(geometry=None, name=name)\n        from .point import Point\n        if polygon is None:\n            polygon = [\n                Point(-0.5, -0.5, 0),\n                Point( 0.5, -0.5, 0),\n                Point( 0.5,  0.5, 0),\n                Point(-0.5,  0.5, 0),\n            ]\n        self._polygon = self._strip_closing(polygon)\n        if polygon_top is not None:\n            self._polygon_top = self._strip_closing(polygon_top)\n            # Ensure bottom normal points toward top\n            normal = self._polygon_normal(self._polygon)\n            d = sum((self._polygon_top[k][i]-self._polygon[k][i])*normal[i]\n                    for k in range(min(len(self._polygon), len(self._polygon_top))) for i in range(3))\n            if d < 0:\n                self._polygon, self._polygon_top = self._polygon_top, self._polygon\n            n = min(len(self._polygon), len(self._polygon_top))\n            self._thickness = sum(\n                ((self._polygon_top[k][0]-self._polygon[k][0])**2 +\n                 (self._polygon_top[k][1]-self._polygon[k][1])**2 +\n                 (self._polygon_top[k][2]-self._polygon[k][2])**2)**0.5\n                for k in range(n)) / n\n        else:\n            self._thickness = thickness\n            normal = self._polygon_normal(self._polygon)\n            self._polygon_top = [Point(\n                p[0]-normal[0]*thickness, p[1]-normal[1]*thickness, p[2]-normal[2]*thickness\n            ) for p in self._polygon]\n        self._joint_types = []\n        self._j_mf = []\n        self._key = \"\"\n        self._component_plane = None\n        self._geometry = self.compute_element_geometry()\n\n    @property\n    def polygon(self):\n        return self._polygon\n\n    @polygon.setter\n    def polygon(self, value):\n        from .point import Point\n        self._polygon = [Point(p[0], p[1], p[2]) for p in value]\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def thickness(self):\n        return self._thickness\n\n    @thickness.setter\n    def thickness(self, value):\n        self._thickness = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def joint_types(self):\n        return self._joint_types\n\n    @joint_types.setter\n    def joint_types(self, value):\n        self._joint_types = list(value)\n\n    @property\n    def j_mf(self):\n        return self._j_mf\n\n    @j_mf.setter\n    def j_mf(self, value):\n        self._j_mf = [list(face) for face in value]\n\n    @property\n    def key(self):\n        return self._key\n\n    @key.setter\n    def key(self, value):",
+          "sig": "__init__(polygon=None, thickness=0.1, transformation=None, name=\"my_plate\", polygon_top=None)",
+          "code": "def __init__(self, polygon=None, thickness=0.1, transformation=None, name=\"my_plate\", polygon_top=None):\n\n        super().__init__(geometry=None, transformation=transformation, name=name)\n        from .point import Point\n        if polygon is None:\n            polygon = [\n                Point(-0.5, -0.5, 0),\n                Point( 0.5, -0.5, 0),\n                Point( 0.5,  0.5, 0),\n                Point(-0.5,  0.5, 0),\n            ]\n        self._polygon = self._strip_closing(polygon)\n        if polygon_top is not None:\n            self._polygon_top = self._strip_closing(polygon_top)\n            # Ensure bottom normal points toward top\n            normal = self._polygon_normal(self._polygon)\n            d = sum((self._polygon_top[k][i]-self._polygon[k][i])*normal[i]\n                    for k in range(min(len(self._polygon), len(self._polygon_top))) for i in range(3))\n            if d < 0:\n                self._polygon, self._polygon_top = self._polygon_top, self._polygon\n            n = min(len(self._polygon), len(self._polygon_top))\n            self._thickness = sum(\n                ((self._polygon_top[k][0]-self._polygon[k][0])**2 +\n                 (self._polygon_top[k][1]-self._polygon[k][1])**2 +\n                 (self._polygon_top[k][2]-self._polygon[k][2])**2)**0.5\n                for k in range(n)) / n\n        else:\n            self._thickness = thickness\n            normal = self._polygon_normal(self._polygon)\n            self._polygon_top = [Point(\n                p[0]-normal[0]*thickness, p[1]-normal[1]*thickness, p[2]-normal[2]*thickness\n            ) for p in self._polygon]\n        self._joint_types = []\n        self._j_mf = []\n        self._key = \"\"\n        self._component_plane = None\n        self._geometry = self.compute_element_geometry()\n\n    @property\n    def polygon(self):\n        return self._polygon\n\n    @polygon.setter\n    def polygon(self, value):\n        from .point import Point\n        self._polygon = [Point(p[0], p[1], p[2]) for p in value]\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def thickness(self):\n        return self._thickness\n\n    @thickness.setter\n    def thickness(self, value):\n        self._thickness = value\n        self._geometry = self.compute_element_geometry()\n        self.reset()\n\n    @property\n    def joint_types(self):\n        return self._joint_types\n\n    @joint_types.setter\n    def joint_types(self, value):\n        self._joint_types = list(value)\n\n    @property\n    def j_mf(self):\n        return self._j_mf\n\n    @j_mf.setter\n    def j_mf(self, value):\n        self._j_mf = [list(face) for face in value]\n\n    @property\n    def key(self):\n        return self._key\n\n    @key.setter\n    def key(self, value):",
           "file": "element_plate.py"
         }
       },
@@ -38270,7 +38265,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__()",
-          "code": "def __init__(self):\n\n        self._guid = None\n        self.name = \"my_objects\"\n        self.points: list[Point] = []\n        self.lines: list[Line] = []\n        self.planes: list[Plane] = []\n        self.bboxes: list[OBB] = []\n        self.polylines: list[Polyline] = []\n        self.pointclouds: list[PointCloud] = []\n        self.meshes: list[Mesh] = []\n        self.nurbscurves: list[NurbsCurve] = []\n        self.nurbssurfaces: list[NurbsSurface] = []\n        self.breps: list[BRep] = []\n        self.elements: list[Element] = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def __str__(self):\n        return f\"Objects(points={len(self.points)})\"\n\n    def __repr__(self):\n        return f\"Objects({self.guid}, {self.name}, points={len(self.points)})\"\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"points\": [p.__jsondump__() for p in self.points],\n            \"lines\": [l.__jsondump__() for l in self.lines],\n            \"planes\": [pl.__jsondump__() for pl in self.planes],\n            \"bboxes\": [b.__jsondump__() for b in self.bboxes],\n            \"polylines\": [pl.__jsondump__() for pl in self.polylines],\n            \"pointclouds\": [pc.__jsondump__() for pc in self.pointclouds],\n            \"meshes\": [m.__jsondump__() for m in self.meshes],\n            \"nurbscurves\": [nc.__jsondump__() for nc in self.nurbscurves],\n            \"nurbssurfaces\": [ns.__jsondump__() for ns in self.nurbssurfaces],\n            \"breps\": [b.__jsondump__() for b in self.breps],\n            \"elements\": [e.__jsondump__() for e in self.elements],\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.\n\n        \"\"\"",
+          "code": "def __init__(self):\n\n        self._guid = None\n        self.name = \"my_objects\"\n        self.points: list[Point] = []\n        self.lines: list[Line] = []\n        self.planes: list[Plane] = []\n        self.bboxes: list[OBB] = []\n        self.polylines: list[Polyline] = []\n        self.pointclouds: list[PointCloud] = []\n        self.meshes: list[Mesh] = []\n        self.nurbscurves: list[NurbsCurve] = []\n        self.nurbssurfaces: list[NurbsSurface] = []\n        self.breps: list[BRep] = []\n        self.elements: list[Element] = []\n        self.components: list = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def __str__(self):\n        return f\"Objects(points={len(self.points)})\"\n\n    def __repr__(self):\n        return f\"Objects({self.guid}, {self.name}, points={len(self.points)})\"\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"points\": [p.__jsondump__() for p in self.points],\n            \"lines\": [l.__jsondump__() for l in self.lines],\n            \"planes\": [pl.__jsondump__() for pl in self.planes],\n            \"bboxes\": [b.__jsondump__() for b in self.bboxes],\n            \"polylines\": [pl.__jsondump__() for pl in self.polylines],\n            \"pointclouds\": [pc.__jsondump__() for pc in self.pointclouds],\n            \"meshes\": [m.__jsondump__() for m in self.meshes],\n            \"nurbscurves\": [nc.__jsondump__() for nc in self.nurbscurves],\n            \"nurbssurfaces\": [ns.__jsondump__() for ns in self.nurbssurfaces],\n            \"breps\": [b.__jsondump__() for b in self.breps],\n            \"elements\": [e.__jsondump__() for e in self.elements],\n            \"components\": [c.__jsondump__() for c in self.components],\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.",
           "file": "objects.py"
         }
       },
@@ -38291,7 +38286,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "guid(value: str)",
-          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def __str__(self):\n        return f\"Objects(points={len(self.points)})\"\n\n    def __repr__(self):\n        return f\"Objects({self.guid}, {self.name}, points={len(self.points)})\"\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"points\": [p.__jsondump__() for p in self.points],\n            \"lines\": [l.__jsondump__() for l in self.lines],\n            \"planes\": [pl.__jsondump__() for pl in self.planes],\n            \"bboxes\": [b.__jsondump__() for b in self.bboxes],\n            \"polylines\": [pl.__jsondump__() for pl in self.polylines],\n            \"pointclouds\": [pc.__jsondump__() for pc in self.pointclouds],\n            \"meshes\": [m.__jsondump__() for m in self.meshes],\n            \"nurbscurves\": [nc.__jsondump__() for nc in self.nurbscurves],\n            \"nurbssurfaces\": [ns.__jsondump__() for ns in self.nurbssurfaces],\n            \"breps\": [b.__jsondump__() for b in self.breps],\n            \"elements\": [e.__jsondump__() for e in self.elements],\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.\n\n        \"\"\"\n        from .encoders import decode_node\n\n        obj = cls()\n        obj.guid = guid if guid is not None else data.get(\"guid\", obj.guid)\n        obj.name = name if name is not None else data.get(\"name\", obj.name)\n\n        obj.points = [decode_node(p) for p in data.get(\"points\", [])]\n        obj.lines = [decode_node(l) for l in data.get(\"lines\", [])]\n        obj.planes = [decode_node(pl) for pl in data.get(\"planes\", [])]\n        obj.bboxes = [decode_node(b) for b in data.get(\"bboxes\", [])]\n        obj.polylines = [decode_node(pl) for pl in data.get(\"polylines\", [])]\n        obj.pointclouds = [decode_node(pc) for pc in data.get(\"pointclouds\", [])]\n        obj.meshes = [decode_node(m) for m in data.get(\"meshes\", [])]\n        obj.nurbscurves = [decode_node(nc) for nc in data.get(\"nurbscurves\", [])]\n        obj.nurbssurfaces = [decode_node(ns) for ns in data.get(\"nurbssurfaces\", [])]\n        obj.breps = [decode_node(b) for b in data.get(\"breps\", [])]\n        obj.elements = [decode_node(e) for e in data.get(\"elements\", [])]\n\n        return obj\n\n    def json_dumps(self):\n        import json",
+          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def __str__(self):\n        return f\"Objects(points={len(self.points)})\"\n\n    def __repr__(self):\n        return f\"Objects({self.guid}, {self.name}, points={len(self.points)})\"\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"points\": [p.__jsondump__() for p in self.points],\n            \"lines\": [l.__jsondump__() for l in self.lines],\n            \"planes\": [pl.__jsondump__() for pl in self.planes],\n            \"bboxes\": [b.__jsondump__() for b in self.bboxes],\n            \"polylines\": [pl.__jsondump__() for pl in self.polylines],\n            \"pointclouds\": [pc.__jsondump__() for pc in self.pointclouds],\n            \"meshes\": [m.__jsondump__() for m in self.meshes],\n            \"nurbscurves\": [nc.__jsondump__() for nc in self.nurbscurves],\n            \"nurbssurfaces\": [ns.__jsondump__() for ns in self.nurbssurfaces],\n            \"breps\": [b.__jsondump__() for b in self.breps],\n            \"elements\": [e.__jsondump__() for e in self.elements],\n            \"components\": [c.__jsondump__() for c in self.components],\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.\n\n        \"\"\"\n        from .encoders import decode_node\n\n        obj = cls()\n        obj.guid = guid if guid is not None else data.get(\"guid\", obj.guid)\n        obj.name = name if name is not None else data.get(\"name\", obj.name)\n\n        obj.points = [decode_node(p) for p in data.get(\"points\", [])]\n        obj.lines = [decode_node(l) for l in data.get(\"lines\", [])]\n        obj.planes = [decode_node(pl) for pl in data.get(\"planes\", [])]\n        obj.bboxes = [decode_node(b) for b in data.get(\"bboxes\", [])]\n        obj.polylines = [decode_node(pl) for pl in data.get(\"polylines\", [])]\n        obj.pointclouds = [decode_node(pc) for pc in data.get(\"pointclouds\", [])]\n        obj.meshes = [decode_node(m) for m in data.get(\"meshes\", [])]\n        obj.nurbscurves = [decode_node(nc) for nc in data.get(\"nurbscurves\", [])]\n        obj.nurbssurfaces = [decode_node(ns) for ns in data.get(\"nurbssurfaces\", [])]\n        obj.breps = [decode_node(b) for b in data.get(\"breps\", [])]\n        obj.elements = [decode_node(e) for e in data.get(\"elements\", [])]\n        obj.components = [decode_node(c) for c in data.get(\"components\", [])]\n\n        return obj",
           "file": "objects.py"
         },
         "cpp": {
@@ -38331,7 +38326,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__str__()",
-          "code": "def __str__(self):\n\n        return f\"Objects(points={len(self.points)})\"\n\n    def __repr__(self):\n        return f\"Objects({self.guid}, {self.name}, points={len(self.points)})\"\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"points\": [p.__jsondump__() for p in self.points],\n            \"lines\": [l.__jsondump__() for l in self.lines],\n            \"planes\": [pl.__jsondump__() for pl in self.planes],\n            \"bboxes\": [b.__jsondump__() for b in self.bboxes],\n            \"polylines\": [pl.__jsondump__() for pl in self.polylines],\n            \"pointclouds\": [pc.__jsondump__() for pc in self.pointclouds],\n            \"meshes\": [m.__jsondump__() for m in self.meshes],\n            \"nurbscurves\": [nc.__jsondump__() for nc in self.nurbscurves],\n            \"nurbssurfaces\": [ns.__jsondump__() for ns in self.nurbssurfaces],\n            \"breps\": [b.__jsondump__() for b in self.breps],\n            \"elements\": [e.__jsondump__() for e in self.elements],\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.\n\n        \"\"\"\n        from .encoders import decode_node\n\n        obj = cls()\n        obj.guid = guid if guid is not None else data.get(\"guid\", obj.guid)\n        obj.name = name if name is not None else data.get(\"name\", obj.name)\n\n        obj.points = [decode_node(p) for p in data.get(\"points\", [])]\n        obj.lines = [decode_node(l) for l in data.get(\"lines\", [])]\n        obj.planes = [decode_node(pl) for pl in data.get(\"planes\", [])]\n        obj.bboxes = [decode_node(b) for b in data.get(\"bboxes\", [])]\n        obj.polylines = [decode_node(pl) for pl in data.get(\"polylines\", [])]\n        obj.pointclouds = [decode_node(pc) for pc in data.get(\"pointclouds\", [])]\n        obj.meshes = [decode_node(m) for m in data.get(\"meshes\", [])]\n        obj.nurbscurves = [decode_node(nc) for nc in data.get(\"nurbscurves\", [])]\n        obj.nurbssurfaces = [decode_node(ns) for ns in data.get(\"nurbssurfaces\", [])]\n        obj.breps = [decode_node(b) for b in data.get(\"breps\", [])]\n        obj.elements = [decode_node(e) for e in data.get(\"elements\", [])]\n\n        return obj\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod",
+          "code": "def __str__(self):\n\n        return f\"Objects(points={len(self.points)})\"\n\n    def __repr__(self):\n        return f\"Objects({self.guid}, {self.name}, points={len(self.points)})\"\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"points\": [p.__jsondump__() for p in self.points],\n            \"lines\": [l.__jsondump__() for l in self.lines],\n            \"planes\": [pl.__jsondump__() for pl in self.planes],\n            \"bboxes\": [b.__jsondump__() for b in self.bboxes],\n            \"polylines\": [pl.__jsondump__() for pl in self.polylines],\n            \"pointclouds\": [pc.__jsondump__() for pc in self.pointclouds],\n            \"meshes\": [m.__jsondump__() for m in self.meshes],\n            \"nurbscurves\": [nc.__jsondump__() for nc in self.nurbscurves],\n            \"nurbssurfaces\": [ns.__jsondump__() for ns in self.nurbssurfaces],\n            \"breps\": [b.__jsondump__() for b in self.breps],\n            \"elements\": [e.__jsondump__() for e in self.elements],\n            \"components\": [c.__jsondump__() for c in self.components],\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.\n\n        \"\"\"\n        from .encoders import decode_node\n\n        obj = cls()\n        obj.guid = guid if guid is not None else data.get(\"guid\", obj.guid)\n        obj.name = name if name is not None else data.get(\"name\", obj.name)\n\n        obj.points = [decode_node(p) for p in data.get(\"points\", [])]\n        obj.lines = [decode_node(l) for l in data.get(\"lines\", [])]\n        obj.planes = [decode_node(pl) for pl in data.get(\"planes\", [])]\n        obj.bboxes = [decode_node(b) for b in data.get(\"bboxes\", [])]\n        obj.polylines = [decode_node(pl) for pl in data.get(\"polylines\", [])]\n        obj.pointclouds = [decode_node(pc) for pc in data.get(\"pointclouds\", [])]\n        obj.meshes = [decode_node(m) for m in data.get(\"meshes\", [])]\n        obj.nurbscurves = [decode_node(nc) for nc in data.get(\"nurbscurves\", [])]\n        obj.nurbssurfaces = [decode_node(ns) for ns in data.get(\"nurbssurfaces\", [])]\n        obj.breps = [decode_node(b) for b in data.get(\"breps\", [])]\n        obj.elements = [decode_node(e) for e in data.get(\"elements\", [])]\n        obj.components = [decode_node(c) for c in data.get(\"components\", [])]\n\n        return obj\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())",
           "file": "objects.py"
         }
       },
@@ -38354,7 +38349,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__repr__()",
-          "code": "def __repr__(self):\n\n        return f\"Objects({self.guid}, {self.name}, points={len(self.points)})\"\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"points\": [p.__jsondump__() for p in self.points],\n            \"lines\": [l.__jsondump__() for l in self.lines],\n            \"planes\": [pl.__jsondump__() for pl in self.planes],\n            \"bboxes\": [b.__jsondump__() for b in self.bboxes],\n            \"polylines\": [pl.__jsondump__() for pl in self.polylines],\n            \"pointclouds\": [pc.__jsondump__() for pc in self.pointclouds],\n            \"meshes\": [m.__jsondump__() for m in self.meshes],\n            \"nurbscurves\": [nc.__jsondump__() for nc in self.nurbscurves],\n            \"nurbssurfaces\": [ns.__jsondump__() for ns in self.nurbssurfaces],\n            \"breps\": [b.__jsondump__() for b in self.breps],\n            \"elements\": [e.__jsondump__() for e in self.elements],\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.\n\n        \"\"\"\n        from .encoders import decode_node\n\n        obj = cls()\n        obj.guid = guid if guid is not None else data.get(\"guid\", obj.guid)\n        obj.name = name if name is not None else data.get(\"name\", obj.name)\n\n        obj.points = [decode_node(p) for p in data.get(\"points\", [])]\n        obj.lines = [decode_node(l) for l in data.get(\"lines\", [])]\n        obj.planes = [decode_node(pl) for pl in data.get(\"planes\", [])]\n        obj.bboxes = [decode_node(b) for b in data.get(\"bboxes\", [])]\n        obj.polylines = [decode_node(pl) for pl in data.get(\"polylines\", [])]\n        obj.pointclouds = [decode_node(pc) for pc in data.get(\"pointclouds\", [])]\n        obj.meshes = [decode_node(m) for m in data.get(\"meshes\", [])]\n        obj.nurbscurves = [decode_node(nc) for nc in data.get(\"nurbscurves\", [])]\n        obj.nurbssurfaces = [decode_node(ns) for ns in data.get(\"nurbssurfaces\", [])]\n        obj.breps = [decode_node(b) for b in data.get(\"breps\", [])]\n        obj.elements = [decode_node(e) for e in data.get(\"elements\", [])]\n\n        return obj\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))",
+          "code": "def __repr__(self):\n\n        return f\"Objects({self.guid}, {self.name}, points={len(self.points)})\"\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"points\": [p.__jsondump__() for p in self.points],\n            \"lines\": [l.__jsondump__() for l in self.lines],\n            \"planes\": [pl.__jsondump__() for pl in self.planes],\n            \"bboxes\": [b.__jsondump__() for b in self.bboxes],\n            \"polylines\": [pl.__jsondump__() for pl in self.polylines],\n            \"pointclouds\": [pc.__jsondump__() for pc in self.pointclouds],\n            \"meshes\": [m.__jsondump__() for m in self.meshes],\n            \"nurbscurves\": [nc.__jsondump__() for nc in self.nurbscurves],\n            \"nurbssurfaces\": [ns.__jsondump__() for ns in self.nurbssurfaces],\n            \"breps\": [b.__jsondump__() for b in self.breps],\n            \"elements\": [e.__jsondump__() for e in self.elements],\n            \"components\": [c.__jsondump__() for c in self.components],\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.\n\n        \"\"\"\n        from .encoders import decode_node\n\n        obj = cls()\n        obj.guid = guid if guid is not None else data.get(\"guid\", obj.guid)\n        obj.name = name if name is not None else data.get(\"name\", obj.name)\n\n        obj.points = [decode_node(p) for p in data.get(\"points\", [])]\n        obj.lines = [decode_node(l) for l in data.get(\"lines\", [])]\n        obj.planes = [decode_node(pl) for pl in data.get(\"planes\", [])]\n        obj.bboxes = [decode_node(b) for b in data.get(\"bboxes\", [])]\n        obj.polylines = [decode_node(pl) for pl in data.get(\"polylines\", [])]\n        obj.pointclouds = [decode_node(pc) for pc in data.get(\"pointclouds\", [])]\n        obj.meshes = [decode_node(m) for m in data.get(\"meshes\", [])]\n        obj.nurbscurves = [decode_node(nc) for nc in data.get(\"nurbscurves\", [])]\n        obj.nurbssurfaces = [decode_node(ns) for ns in data.get(\"nurbssurfaces\", [])]\n        obj.breps = [decode_node(b) for b in data.get(\"breps\", [])]\n        obj.elements = [decode_node(e) for e in data.get(\"elements\", [])]\n        obj.components = [decode_node(c) for c in data.get(\"components\", [])]\n\n        return obj\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):",
           "file": "objects.py"
         }
       },
@@ -38379,7 +38374,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__jsondump__()",
-          "code": "def __jsondump__(self):\n\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"points\": [p.__jsondump__() for p in self.points],\n            \"lines\": [l.__jsondump__() for l in self.lines],\n            \"planes\": [pl.__jsondump__() for pl in self.planes],\n            \"bboxes\": [b.__jsondump__() for b in self.bboxes],\n            \"polylines\": [pl.__jsondump__() for pl in self.polylines],\n            \"pointclouds\": [pc.__jsondump__() for pc in self.pointclouds],\n            \"meshes\": [m.__jsondump__() for m in self.meshes],\n            \"nurbscurves\": [nc.__jsondump__() for nc in self.nurbscurves],\n            \"nurbssurfaces\": [ns.__jsondump__() for ns in self.nurbssurfaces],\n            \"breps\": [b.__jsondump__() for b in self.breps],\n            \"elements\": [e.__jsondump__() for e in self.elements],\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.\n\n        \"\"\"\n        from .encoders import decode_node\n\n        obj = cls()\n        obj.guid = guid if guid is not None else data.get(\"guid\", obj.guid)\n        obj.name = name if name is not None else data.get(\"name\", obj.name)\n\n        obj.points = [decode_node(p) for p in data.get(\"points\", [])]\n        obj.lines = [decode_node(l) for l in data.get(\"lines\", [])]\n        obj.planes = [decode_node(pl) for pl in data.get(\"planes\", [])]\n        obj.bboxes = [decode_node(b) for b in data.get(\"bboxes\", [])]\n        obj.polylines = [decode_node(pl) for pl in data.get(\"polylines\", [])]\n        obj.pointclouds = [decode_node(pc) for pc in data.get(\"pointclouds\", [])]\n        obj.meshes = [decode_node(m) for m in data.get(\"meshes\", [])]\n        obj.nurbscurves = [decode_node(nc) for nc in data.get(\"nurbscurves\", [])]\n        obj.nurbssurfaces = [decode_node(ns) for ns in data.get(\"nurbssurfaces\", [])]\n        obj.breps = [decode_node(b) for b in data.get(\"breps\", [])]\n        obj.elements = [decode_node(e) for e in data.get(\"elements\", [])]\n\n        return obj\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod",
+          "code": "def __jsondump__(self):\n\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"points\": [p.__jsondump__() for p in self.points],\n            \"lines\": [l.__jsondump__() for l in self.lines],\n            \"planes\": [pl.__jsondump__() for pl in self.planes],\n            \"bboxes\": [b.__jsondump__() for b in self.bboxes],\n            \"polylines\": [pl.__jsondump__() for pl in self.polylines],\n            \"pointclouds\": [pc.__jsondump__() for pc in self.pointclouds],\n            \"meshes\": [m.__jsondump__() for m in self.meshes],\n            \"nurbscurves\": [nc.__jsondump__() for nc in self.nurbscurves],\n            \"nurbssurfaces\": [ns.__jsondump__() for ns in self.nurbssurfaces],\n            \"breps\": [b.__jsondump__() for b in self.breps],\n            \"elements\": [e.__jsondump__() for e in self.elements],\n            \"components\": [c.__jsondump__() for c in self.components],\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.\n\n        \"\"\"\n        from .encoders import decode_node\n\n        obj = cls()\n        obj.guid = guid if guid is not None else data.get(\"guid\", obj.guid)\n        obj.name = name if name is not None else data.get(\"name\", obj.name)\n\n        obj.points = [decode_node(p) for p in data.get(\"points\", [])]\n        obj.lines = [decode_node(l) for l in data.get(\"lines\", [])]\n        obj.planes = [decode_node(pl) for pl in data.get(\"planes\", [])]\n        obj.bboxes = [decode_node(b) for b in data.get(\"bboxes\", [])]\n        obj.polylines = [decode_node(pl) for pl in data.get(\"polylines\", [])]\n        obj.pointclouds = [decode_node(pc) for pc in data.get(\"pointclouds\", [])]\n        obj.meshes = [decode_node(m) for m in data.get(\"meshes\", [])]\n        obj.nurbscurves = [decode_node(nc) for nc in data.get(\"nurbscurves\", [])]\n        obj.nurbssurfaces = [decode_node(ns) for ns in data.get(\"nurbssurfaces\", [])]\n        obj.breps = [decode_node(b) for b in data.get(\"breps\", [])]\n        obj.elements = [decode_node(e) for e in data.get(\"elements\", [])]\n        obj.components = [decode_node(c) for c in data.get(\"components\", [])]\n\n        return obj\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)",
           "file": "objects.py"
         }
       },
@@ -38404,7 +38399,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__jsonload__(cls, data, guid=None, name=None)",
-          "code": "def __jsonload__(cls, data, guid=None, name=None):\n\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.\n\n        \"\"\"\n        from .encoders import decode_node\n\n        obj = cls()\n        obj.guid = guid if guid is not None else data.get(\"guid\", obj.guid)\n        obj.name = name if name is not None else data.get(\"name\", obj.name)\n\n        obj.points = [decode_node(p) for p in data.get(\"points\", [])]\n        obj.lines = [decode_node(l) for l in data.get(\"lines\", [])]\n        obj.planes = [decode_node(pl) for pl in data.get(\"planes\", [])]\n        obj.bboxes = [decode_node(b) for b in data.get(\"bboxes\", [])]\n        obj.polylines = [decode_node(pl) for pl in data.get(\"polylines\", [])]\n        obj.pointclouds = [decode_node(pc) for pc in data.get(\"pointclouds\", [])]\n        obj.meshes = [decode_node(m) for m in data.get(\"meshes\", [])]\n        obj.nurbscurves = [decode_node(nc) for nc in data.get(\"nurbscurves\", [])]\n        obj.nurbssurfaces = [decode_node(ns) for ns in data.get(\"nurbssurfaces\", [])]\n        obj.breps = [decode_node(b) for b in data.get(\"breps\", [])]\n        obj.elements = [decode_node(e) for e in data.get(\"elements\", [])]\n\n        return obj\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())\n        for ns in self.nurbssurfaces:",
+          "code": "def __jsonload__(cls, data, guid=None, name=None):\n\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing objects data.\n        guid : str, optional\n            GUID for the objects.\n        name : str, optional\n            Name for the objects.\n\n        Returns\n        -------\n        :class:`Objects`\n            Reconstructed objects instance.\n\n        \"\"\"\n        from .encoders import decode_node\n\n        obj = cls()\n        obj.guid = guid if guid is not None else data.get(\"guid\", obj.guid)\n        obj.name = name if name is not None else data.get(\"name\", obj.name)\n\n        obj.points = [decode_node(p) for p in data.get(\"points\", [])]\n        obj.lines = [decode_node(l) for l in data.get(\"lines\", [])]\n        obj.planes = [decode_node(pl) for pl in data.get(\"planes\", [])]\n        obj.bboxes = [decode_node(b) for b in data.get(\"bboxes\", [])]\n        obj.polylines = [decode_node(pl) for pl in data.get(\"polylines\", [])]\n        obj.pointclouds = [decode_node(pc) for pc in data.get(\"pointclouds\", [])]\n        obj.meshes = [decode_node(m) for m in data.get(\"meshes\", [])]\n        obj.nurbscurves = [decode_node(nc) for nc in data.get(\"nurbscurves\", [])]\n        obj.nurbssurfaces = [decode_node(ns) for ns in data.get(\"nurbssurfaces\", [])]\n        obj.breps = [decode_node(b) for b in data.get(\"breps\", [])]\n        obj.elements = [decode_node(e) for e in data.get(\"elements\", [])]\n        obj.components = [decode_node(c) for c in data.get(\"components\", [])]\n\n        return obj\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import objects_pb2\n        proto = objects_pb2.Objects()\n        proto.name = self.name\n        proto.guid = self.guid\n        for p in self.points:\n            proto.points.add().ParseFromString(p.pb_dumps())\n        for l in self.lines:\n            proto.lines.add().ParseFromString(l.pb_dumps())\n        for pl in self.planes:\n            proto.planes.add().ParseFromString(pl.pb_dumps())\n        for b in self.bboxes:\n            proto.bboxes.add().ParseFromString(b.pb_dumps())\n        for pl in self.polylines:\n            pl.pb_fill(proto.polylines.add())\n        for pc in self.pointclouds:\n            proto.pointclouds.add().ParseFromString(pc.pb_dumps())\n        for m in self.meshes:\n            m.pb_fill(proto.meshes.add())\n        for nc in self.nurbscurves:\n            nc.pb_fill(proto.nurbscurves.add())",
           "file": "objects.py"
         }
       },
@@ -38587,12 +38582,12 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "std::string pb_dumps()",
-          "code": "std::string Objects::pb_dumps() const {\n  session_proto::Objects proto;\n  proto.set_name(name);\n  proto.set_guid(guid());\n  for (const auto& p : *points) proto.add_points()->ParseFromString(p->pb_dumps());\n  for (const auto& l : *lines) proto.add_lines()->ParseFromString(l->pb_dumps());\n  for (const auto& pl : *planes) proto.add_planes()->ParseFromString(pl->pb_dumps());\n  for (const auto& b : *bboxes) proto.add_bboxes()->ParseFromString(b->pb_dumps());\n  for (const auto& pl : *polylines) proto.add_polylines()->ParseFromString(pl->pb_dumps());\n  for (const auto& pc : *pointclouds) proto.add_pointclouds()->ParseFromString(pc->pb_dumps());\n  for (const auto& m : *meshes) proto.add_meshes()->ParseFromString(m->pb_dumps());\n  for (const auto& nc : *nurbscurves) proto.add_nurbscurves()->ParseFromString(nc->pb_dumps());\n  for (const auto& ns : *nurbssurfaces) proto.add_nurbssurfaces()->ParseFromString(ns->pb_dumps());\n  for (const auto& b : *breps) proto.add_breps()->ParseFromString(b->pb_dumps());\n  for (const auto& e : *elements) proto.add_elements()->ParseFromString(e->pb_dumps());\n  return proto.SerializeAsString();\n}",
+          "code": "std::string Objects::pb_dumps() const {\n  session_proto::Objects proto;\n  proto.set_name(name);\n  proto.set_guid(guid());\n  for (const auto& p : *points) proto.add_points()->ParseFromString(p->pb_dumps());\n  for (const auto& l : *lines) proto.add_lines()->ParseFromString(l->pb_dumps());\n  for (const auto& pl : *planes) proto.add_planes()->ParseFromString(pl->pb_dumps());\n  for (const auto& b : *bboxes) proto.add_bboxes()->ParseFromString(b->pb_dumps());\n  for (const auto& pl : *polylines) proto.add_polylines()->ParseFromString(pl->pb_dumps());\n  for (const auto& pc : *pointclouds) proto.add_pointclouds()->ParseFromString(pc->pb_dumps());\n  for (const auto& m : *meshes) proto.add_meshes()->ParseFromString(m->pb_dumps());\n  for (const auto& nc : *nurbscurves) proto.add_nurbscurves()->ParseFromString(nc->pb_dumps());\n  for (const auto& ns : *nurbssurfaces) proto.add_nurbssurfaces()->ParseFromString(ns->pb_dumps());\n  for (const auto& b : *breps) proto.add_breps()->ParseFromString(b->pb_dumps());\n  for (const auto& e : *elements) proto.add_elements()->ParseFromString(e->pb_dumps());\n  for (const auto& c : *components) {\n    auto* pc = proto.add_components();\n    pc->set_type_name(c.type_name);\n    pc->set_guid(c.guid());\n    pc->set_name(c.name);\n    pc->set_json_data(c.extra.dump());\n  }",
           "file": "objects.cpp"
         },
         "rust": {
           "sig": "pb_dumps() -> Vec<u8>",
-          "code": "pub fn pb_dumps(&self) -> Vec<u8> {\n        use prost::Message;\n        let proto = crate::proto::Objects {\n            name: self.name.clone(),\n            guid: self.guid().to_string(),\n            points: self.points.iter().map(|p| {\n                crate::proto::Point::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            lines: self.lines.iter().map(|l| {\n                crate::proto::Line::decode(l.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            planes: self.planes.iter().map(|p| {\n                crate::proto::Plane::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            bboxes: self.bboxes.iter().map(|b| {\n                crate::proto::BoundingBox::decode(b.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            polylines: self.polylines.iter().map(|p| {\n                crate::proto::Polyline::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            pointclouds: self.pointclouds.iter().map(|p| {\n                crate::proto::PointCloud::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            meshes: self.meshes.iter().map(|m| {\n                crate::proto::Mesh::decode(m.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            nurbscurves: self.nurbscurves.iter().map(|nc| {\n                crate::proto::NurbsCurve::decode(nc.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            nurbssurfaces: self.nurbssurfaces.iter().map(|ns| {\n                crate::proto::NurbsSurface::decode(ns.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            breps: self.breps.iter().map(|b| {\n                crate::proto::BRep::decode(b.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            elements: self.elements.iter().map(|e| {\n                crate::proto::Element::decode(e.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n        };\n        proto.encode_to_vec()\n    }",
+          "code": "pub fn pb_dumps(&self) -> Vec<u8> {\n        use prost::Message;\n        let proto = crate::proto::Objects {\n            name: self.name.clone(),\n            guid: self.guid().to_string(),\n            points: self.points.iter().map(|p| {\n                crate::proto::Point::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            lines: self.lines.iter().map(|l| {\n                crate::proto::Line::decode(l.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            planes: self.planes.iter().map(|p| {\n                crate::proto::Plane::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            bboxes: self.bboxes.iter().map(|b| {\n                crate::proto::BoundingBox::decode(b.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            polylines: self.polylines.iter().map(|p| {\n                crate::proto::Polyline::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            pointclouds: self.pointclouds.iter().map(|p| {\n                crate::proto::PointCloud::decode(p.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            meshes: self.meshes.iter().map(|m| {\n                crate::proto::Mesh::decode(m.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            nurbscurves: self.nurbscurves.iter().map(|nc| {\n                crate::proto::NurbsCurve::decode(nc.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            nurbssurfaces: self.nurbssurfaces.iter().map(|ns| {\n                crate::proto::NurbsSurface::decode(ns.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            breps: self.breps.iter().map(|b| {\n                crate::proto::BRep::decode(b.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            elements: self.elements.iter().map(|e| {\n                crate::proto::Element::decode(e.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n            components: self.components.iter().map(|c| {\n                crate::proto::Component::decode(c.pb_dumps().as_slice()).unwrap()\n            }).collect(),\n        };\n        proto.encode_to_vec()\n    }",
           "file": "objects.rs"
         }
       },
@@ -38642,12 +38637,12 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "Objects pb_loads(const std::string& data)",
-          "code": "Objects Objects::pb_loads(const std::string& data) {\n  session_proto::Objects proto;\n  proto.ParseFromString(data);\n  Objects objects(proto.name());\n  objects.guid() = proto.guid();\n  for (const auto& p : proto.points())\n    objects.points->push_back(std::make_shared<Point>(Point::pb_loads(p.SerializeAsString())));\n  for (const auto& l : proto.lines())\n    objects.lines->push_back(std::make_shared<Line>(Line::pb_loads(l.SerializeAsString())));\n  for (const auto& p : proto.planes())\n    objects.planes->push_back(std::make_shared<Plane>(Plane::pb_loads(p.SerializeAsString())));\n  for (const auto& b : proto.bboxes())\n    objects.bboxes->push_back(std::make_shared<OBB>(OBB::pb_loads(b.SerializeAsString())));\n  for (const auto& p : proto.polylines())\n    objects.polylines->push_back(std::make_shared<Polyline>(Polyline::pb_loads(p.SerializeAsString())));\n  for (const auto& p : proto.pointclouds())\n    objects.pointclouds->push_back(std::make_shared<PointCloud>(PointCloud::pb_loads(p.SerializeAsString())));\n  for (const auto& m : proto.meshes())\n    objects.meshes->push_back(std::make_shared<Mesh>(Mesh::pb_loads(m.SerializeAsString())));\n  for (const auto& nc : proto.nurbscurves())\n    objects.nurbscurves->push_back(std::make_shared<NurbsCurve>(NurbsCurve::pb_loads(nc.SerializeAsString())));\n  for (const auto& ns : proto.nurbssurfaces())\n    objects.nurbssurfaces->push_back(std::make_shared<NurbsSurface>(NurbsSurface::pb_loads(ns.SerializeAsString())));\n  for (const auto& b : proto.breps())\n    objects.breps->push_back(std::make_shared<BRep>(BRep::pb_loads(b.SerializeAsString())));\n  for (const auto& e : proto.elements())\n    objects.elements->push_back(std::make_shared<Element>(Element::pb_loads(e.SerializeAsString())));\n  return objects;\n}",
+          "code": "Objects Objects::pb_loads(const std::string& data) {\n  session_proto::Objects proto;\n  proto.ParseFromString(data);\n  Objects objects(proto.name());\n  objects.guid() = proto.guid();\n  for (const auto& p : proto.points())\n    objects.points->push_back(std::make_shared<Point>(Point::pb_loads(p.SerializeAsString())));\n  for (const auto& l : proto.lines())\n    objects.lines->push_back(std::make_shared<Line>(Line::pb_loads(l.SerializeAsString())));\n  for (const auto& p : proto.planes())\n    objects.planes->push_back(std::make_shared<Plane>(Plane::pb_loads(p.SerializeAsString())));\n  for (const auto& b : proto.bboxes())\n    objects.bboxes->push_back(std::make_shared<OBB>(OBB::pb_loads(b.SerializeAsString())));\n  for (const auto& p : proto.polylines())\n    objects.polylines->push_back(std::make_shared<Polyline>(Polyline::pb_loads(p.SerializeAsString())));\n  for (const auto& p : proto.pointclouds())\n    objects.pointclouds->push_back(std::make_shared<PointCloud>(PointCloud::pb_loads(p.SerializeAsString())));\n  for (const auto& m : proto.meshes())\n    objects.meshes->push_back(std::make_shared<Mesh>(Mesh::pb_loads(m.SerializeAsString())));\n  for (const auto& nc : proto.nurbscurves())\n    objects.nurbscurves->push_back(std::make_shared<NurbsCurve>(NurbsCurve::pb_loads(nc.SerializeAsString())));\n  for (const auto& ns : proto.nurbssurfaces())\n    objects.nurbssurfaces->push_back(std::make_shared<NurbsSurface>(NurbsSurface::pb_loads(ns.SerializeAsString())));\n  for (const auto& b : proto.breps())\n    objects.breps->push_back(std::make_shared<BRep>(BRep::pb_loads(b.SerializeAsString())));\n  for (const auto& e : proto.elements())\n    objects.elements->push_back(std::make_shared<Element>(Element::pb_loads(e.SerializeAsString())));\n  for (const auto& pc : proto.components()) {\n    Component c;\n    c.type_name = pc.type_name();\n    c.guid()    = pc.guid();\n    c.name      = pc.name();\n    c.extra     = nlohmann::ordered_json::parse(pc.json_data(), nullptr, false);\n    objects.components->push_back(c);\n  }",
           "file": "objects.cpp"
         },
         "rust": {
           "sig": "pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>>",
-          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n        let proto = crate::proto::Objects::decode(data)?;\n        let mut objects = Objects::new();\n        objects.set_guid(proto.guid.clone());\n        objects.name = proto.name;\n        for p in &proto.points {\n            objects.points.push(crate::point::Point::pb_loads(&p.encode_to_vec())?);\n        }\n        for l in &proto.lines {\n            objects.lines.push(crate::line::Line::pb_loads(&l.encode_to_vec())?);\n        }\n        for p in &proto.planes {\n            objects.planes.push(crate::plane::Plane::pb_loads(&p.encode_to_vec())?);\n        }\n        for b in &proto.bboxes {\n            objects.bboxes.push(crate::obb::OBB::pb_loads(&b.encode_to_vec())?);\n        }\n        for p in &proto.polylines {\n            objects.polylines.push(crate::polyline::Polyline::pb_loads(&p.encode_to_vec())?);\n        }\n        for p in &proto.pointclouds {\n            objects.pointclouds.push(crate::pointcloud::PointCloud::pb_loads(&p.encode_to_vec()));\n        }\n        for m in &proto.meshes {\n            objects.meshes.push(crate::mesh::Mesh::pb_loads(&m.encode_to_vec())?);\n        }\n        for nc in &proto.nurbscurves {\n            objects.nurbscurves.push(crate::nurbscurve::NurbsCurve::pb_loads(&nc.encode_to_vec())?);\n        }\n        for ns in &proto.nurbssurfaces {\n            objects.nurbssurfaces.push(crate::nurbssurface::NurbsSurface::pb_loads(&ns.encode_to_vec())?);\n        }\n        for b in &proto.breps {\n            objects.breps.push(crate::brep::BRep::pb_loads(&b.encode_to_vec())?);\n        }\n        for e in &proto.elements {\n            objects.elements.push(crate::element::Element::pb_loads(&e.encode_to_vec())?);\n        }\n        Ok(objects)\n    }",
+          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n        let proto = crate::proto::Objects::decode(data)?;\n        let mut objects = Objects::new();\n        objects.set_guid(proto.guid.clone());\n        objects.name = proto.name;\n        for p in &proto.points {\n            objects.points.push(crate::point::Point::pb_loads(&p.encode_to_vec())?);\n        }\n        for l in &proto.lines {\n            objects.lines.push(crate::line::Line::pb_loads(&l.encode_to_vec())?);\n        }\n        for p in &proto.planes {\n            objects.planes.push(crate::plane::Plane::pb_loads(&p.encode_to_vec())?);\n        }\n        for b in &proto.bboxes {\n            objects.bboxes.push(crate::obb::OBB::pb_loads(&b.encode_to_vec())?);\n        }\n        for p in &proto.polylines {\n            objects.polylines.push(crate::polyline::Polyline::pb_loads(&p.encode_to_vec())?);\n        }\n        for p in &proto.pointclouds {\n            objects.pointclouds.push(crate::pointcloud::PointCloud::pb_loads(&p.encode_to_vec()));\n        }\n        for m in &proto.meshes {\n            objects.meshes.push(crate::mesh::Mesh::pb_loads(&m.encode_to_vec())?);\n        }\n        for nc in &proto.nurbscurves {\n            objects.nurbscurves.push(crate::nurbscurve::NurbsCurve::pb_loads(&nc.encode_to_vec())?);\n        }\n        for ns in &proto.nurbssurfaces {\n            objects.nurbssurfaces.push(crate::nurbssurface::NurbsSurface::pb_loads(&ns.encode_to_vec())?);\n        }\n        for b in &proto.breps {\n            objects.breps.push(crate::brep::BRep::pb_loads(&b.encode_to_vec())?);\n        }\n        for e in &proto.elements {\n            objects.elements.push(crate::element::Element::pb_loads(&e.encode_to_vec())?);\n        }\n        for c in &proto.components {\n            objects.components.push(Component::pb_loads(&c.encode_to_vec())?);\n        }\n        Ok(objects)\n    }",
           "file": "objects.rs"
         }
       },
@@ -38659,6 +38654,7 @@ window.API_INDEX = {
         "Objects.json_load",
         "Objects.json_loads",
         "Objects.new",
+        "Objects.parse",
         "Objects.pb_dump",
         "Objects.pb_dumps",
         "Objects.pb_load",
@@ -39276,6 +39272,8 @@ window.API_INDEX = {
         "Plane._update_equation",
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.d",
         "Plane.duplicate",
@@ -39357,6 +39355,8 @@ window.API_INDEX = {
         "Plane.__sub__",
         "Plane._update_equation",
         "Plane.b",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.constructor",
         "Plane.d",
@@ -39449,6 +39449,8 @@ window.API_INDEX = {
         "Plane.__sub__",
         "Plane._update_equation",
         "Plane.a",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.d",
         "Plane.duplicate",
@@ -39542,6 +39544,8 @@ window.API_INDEX = {
         "Plane._update_equation",
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.constructor",
         "Plane.d",
         "Plane.duplicate",
@@ -39634,6 +39638,7 @@ window.API_INDEX = {
         "Plane._update_equation",
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
         "Plane.c",
         "Plane.constructor",
         "Plane.duplicate",
@@ -46626,6 +46631,7 @@ window.API_INDEX = {
         "Polyline._recompute_plane",
         "Polyline.add_point",
         "Polyline.extend_edge_equally",
+        "Polyline.extend_segment",
         "Polyline.from_coords",
         "Polyline.get_point",
         "Polyline.grid_of_points_in_polygon",
@@ -47895,7 +47901,7 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "void extend_segment(int segment_id, double dist0, double dist1,\n                             double proportion0, double proportion1)",
-          "code": "void Polyline::extend_segment(int segment_id, double dist0, double dist1,\n                             double proportion0, double proportion1) {\n    if (segment_id < 0 || segment_id >= static_cast<int>(segment_count())) return;\n    if (dist0 == 0 && dist1 == 0 && proportion0 == 0 && proportion1 == 0) return;\n\n    Point p0 = get_point(segment_id);\n    Point p1 = get_point(segment_id + 1);\n    Vector v = p1 - p0;\n\n    if (proportion0 != 0 || proportion1 != 0) {\n        p0 = p0 - v * static_cast<double>(proportion0);\n        p1 = p1 + v * static_cast<double>(proportion1);\n    }",
+          "code": "void Polyline::extend_segment(int segment_id, double dist0, double dist1,\n                             double proportion0, double proportion1) {\n    if (segment_id < 0 || segment_id >= static_cast<int>(segment_count())) return;\n    if (dist0 == 0 && dist1 == 0 && proportion0 == 0 && proportion1 == 0) return;\n\n    // Cache closed-ness BEFORE the mutations below. The two `set_point`\n    // calls move either pts[0] (when segment_id==0) or pts[last] (when\n    // segment_id+1==last) in isolation; the other endpoint is still at\n    // its old value, so a post-mutation `is_closed()` would falsely\n    // report \"open\" (distance \u00e2\u2030\u00a5 extension amount \u00e2\u2030\u00ab ZERO_TOLERANCE) and\n    // the closing-duplicate sync below would be skipped \u00e2\u20ac\u201d leaving the\n    // polyline's closing vertex stale. Wood's\n    // `cgal::polyline_util::extend` (`cgal_polyline_util.cpp:405-435`)\n    // does the sync unconditionally based on `sID`; caching here gives\n    // the same semantics without losing the closed-polyline precondition.\n    const bool was_closed = is_closed();\n\n    Point p0 = get_point(segment_id);\n    Point p1 = get_point(segment_id + 1);\n    Vector v = p1 - p0;\n\n    if (proportion0 != 0 || proportion1 != 0) {\n        p0 = p0 - v * static_cast<double>(proportion0);\n        p1 = p1 + v * static_cast<double>(proportion1);\n    }",
           "file": "polyline.cpp"
         },
         "rust": {
@@ -47908,6 +47914,7 @@ window.API_INDEX = {
         "Polyline.Polyline",
         "Polyline.center",
         "Polyline.closed",
+        "Polyline.duplicate",
         "Polyline.extend",
         "Polyline.extend_line",
         "Polyline.extend_line_segment",
@@ -47920,6 +47927,7 @@ window.API_INDEX = {
         "Polyline.is_closed",
         "Polyline.len",
         "Polyline.length",
+        "Polyline.move",
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
@@ -55267,7 +55275,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__(name=\"my_session\")",
-          "code": "def __init__(self, name=\"my_session\"):\n\n        self._guid = None\n        self.name = name\n        self.objects = Objects()\n        self.lookup: Dict[str, Any] = {}\n        self.tree = Tree(name=f\"{name}_tree\")\n        self.graph = Graph(name=f\"{name}_graph\")\n        self.layers: Dict[str, str] = {}  # guid -> layer name\n        self._current_layer: Optional[str] = None\n\n        # BVH for collision detection (auto-computed world size)\n        self.bvh = BVH()\n\n        # Create empty root node with session name\n        root_node = TreeNode(name=self.name)\n        self.tree.add(root_node)\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def __str__(self) -> str:\n        return f\"Session(objects={self.objects.to_str()}, tree={self.tree.to_str()}, graph={self.graph.to_str()})\"\n\n    def __repr__(self) -> str:\n        return f\"Session({self.guid}, {self.name}, {self.objects.to_str()}, {self.tree.to_str()}, {self.graph.to_str()})\"\n\n    ###########################################################################################\n    # JSON (polymorphic)\n    ###########################################################################################\n\n    def __jsondump__(self) -> dict:\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"objects\": self.objects.__jsondump__(),\n            \"tree\": self.tree.__jsondump__(),\n            \"graph\": self.graph.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        session = cls(name=data.get(\"name\", \"my_session\"))\n        session.guid = guid if guid is not None else data.get(\"guid\", session.guid)\n\n        # Load nested structures via decode_node\n        if data.get(\"objects\"):\n            session.objects = decode_node(data[\"objects\"])  # Objects\n        if data.get(\"tree\"):\n            session.tree = decode_node(data[\"tree\"])  # Tree\n        if data.get(\"graph\"):\n            session.graph = decode_node(data[\"graph\"])  # Graph\n\n        # Rebuild lookup from all objects\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:",
+          "code": "def __init__(self, name=\"my_session\"):\n\n        self._guid = None\n        self.name = name\n        self.objects = Objects()\n        self.lookup: Dict[str, Any] = {}\n        self.tree = Tree(name=f\"{name}_tree\")\n        self.graph = Graph(name=f\"{name}_graph\")\n        # BVH for collision detection (auto-computed world size)\n        self.bvh = BVH()\n\n        # Create empty root node with session name\n        root_node = TreeNode(name=self.name)\n        self.tree.add(root_node)\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def __str__(self) -> str:\n        return f\"Session(objects={self.objects.to_str()}, tree={self.tree.to_str()}, graph={self.graph.to_str()})\"\n\n    def __repr__(self) -> str:\n        return f\"Session({self.guid}, {self.name}, {self.objects.to_str()}, {self.tree.to_str()}, {self.graph.to_str()})\"\n\n    ###########################################################################################\n    # JSON (polymorphic)\n    ###########################################################################################\n\n    def __jsondump__(self) -> dict:\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"objects\": self.objects.__jsondump__(),\n            \"tree\": self.tree.__jsondump__(),\n            \"graph\": self.graph.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        session = cls(name=data.get(\"name\", \"my_session\"))\n        session.guid = guid if guid is not None else data.get(\"guid\", session.guid)\n\n        # Load nested structures via decode_node\n        if data.get(\"objects\"):\n            session.objects = decode_node(data[\"objects\"])  # Objects\n        if data.get(\"tree\"):\n            session.tree = decode_node(data[\"tree\"])  # Tree\n        if data.get(\"graph\"):\n            session.graph = decode_node(data[\"graph\"])  # Graph\n\n        # Rebuild lookup from all objects\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve",
           "file": "session.py"
         }
       },
@@ -55288,7 +55296,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "guid(value: str)",
-          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def __str__(self) -> str:\n        return f\"Session(objects={self.objects.to_str()}, tree={self.tree.to_str()}, graph={self.graph.to_str()})\"\n\n    def __repr__(self) -> str:\n        return f\"Session({self.guid}, {self.name}, {self.objects.to_str()}, {self.tree.to_str()}, {self.graph.to_str()})\"\n\n    ###########################################################################################\n    # JSON (polymorphic)\n    ###########################################################################################\n\n    def __jsondump__(self) -> dict:\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"objects\": self.objects.__jsondump__(),\n            \"tree\": self.tree.__jsondump__(),\n            \"graph\": self.graph.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        session = cls(name=data.get(\"name\", \"my_session\"))\n        session.guid = guid if guid is not None else data.get(\"guid\", session.guid)\n\n        # Load nested structures via decode_node\n        if data.get(\"objects\"):\n            session.objects = decode_node(data[\"objects\"])  # Objects\n        if data.get(\"tree\"):\n            session.tree = decode_node(data[\"tree\"])  # Tree\n        if data.get(\"graph\"):\n            session.graph = decode_node(data[\"graph\"])  # Graph\n\n        # Rebuild lookup from all objects\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n\n        return session\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:",
+          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def __str__(self) -> str:\n        return f\"Session(objects={self.objects.to_str()}, tree={self.tree.to_str()}, graph={self.graph.to_str()})\"\n\n    def __repr__(self) -> str:\n        return f\"Session({self.guid}, {self.name}, {self.objects.to_str()}, {self.tree.to_str()}, {self.graph.to_str()})\"\n\n    ###########################################################################################\n    # JSON (polymorphic)\n    ###########################################################################################\n\n    def __jsondump__(self) -> dict:\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"objects\": self.objects.__jsondump__(),\n            \"tree\": self.tree.__jsondump__(),\n            \"graph\": self.graph.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        session = cls(name=data.get(\"name\", \"my_session\"))\n        session.guid = guid if guid is not None else data.get(\"guid\", session.guid)\n\n        # Load nested structures via decode_node\n        if data.get(\"objects\"):\n            session.objects = decode_node(data[\"objects\"])  # Objects\n        if data.get(\"tree\"):\n            session.tree = decode_node(data[\"tree\"])  # Tree\n        if data.get(\"graph\"):\n            session.graph = decode_node(data[\"graph\"])  # Graph\n\n        # Rebuild lookup from all objects\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        for component in session.objects.components:\n            session.lookup[component.guid] = component\n\n        return session\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):",
           "file": "session.py"
         },
         "cpp": {
@@ -55310,9 +55318,9 @@ window.API_INDEX = {
         "Session.__str__",
         "Session._add_object",
         "Session._compute_bounding_box",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
         "Session.add_feature",
@@ -55330,6 +55338,7 @@ window.API_INDEX = {
         "Session.add_relationship",
         "Session.cache_geometry_aabb",
         "Session.compute_face_to_face",
+        "Session.find_group",
         "Session.get_children",
         "Session.get_collisions",
         "Session.get_geometry",
@@ -55351,7 +55360,6 @@ window.API_INDEX = {
         "Session.rebuild_ray_bvh_cache",
         "Session.remove_object",
         "Session.set_guid",
-        "Session.set_layer",
         "Session.str"
       ]
     },
@@ -55360,7 +55368,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__str__() -> str",
-          "code": "def __str__(self) -> str:\n\n        return f\"Session(objects={self.objects.to_str()}, tree={self.tree.to_str()}, graph={self.graph.to_str()})\"\n\n    def __repr__(self) -> str:\n        return f\"Session({self.guid}, {self.name}, {self.objects.to_str()}, {self.tree.to_str()}, {self.graph.to_str()})\"\n\n    ###########################################################################################\n    # JSON (polymorphic)\n    ###########################################################################################\n\n    def __jsondump__(self) -> dict:\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"objects\": self.objects.__jsondump__(),\n            \"tree\": self.tree.__jsondump__(),\n            \"graph\": self.graph.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        session = cls(name=data.get(\"name\", \"my_session\"))\n        session.guid = guid if guid is not None else data.get(\"guid\", session.guid)\n\n        # Load nested structures via decode_node\n        if data.get(\"objects\"):\n            session.objects = decode_node(data[\"objects\"])  # Objects\n        if data.get(\"tree\"):\n            session.tree = decode_node(data[\"tree\"])  # Tree\n        if data.get(\"graph\"):\n            session.graph = decode_node(data[\"graph\"])  # Graph\n\n        # Rebuild lookup from all objects\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n\n        return session\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod",
+          "code": "def __str__(self) -> str:\n\n        return f\"Session(objects={self.objects.to_str()}, tree={self.tree.to_str()}, graph={self.graph.to_str()})\"\n\n    def __repr__(self) -> str:\n        return f\"Session({self.guid}, {self.name}, {self.objects.to_str()}, {self.tree.to_str()}, {self.graph.to_str()})\"\n\n    ###########################################################################################\n    # JSON (polymorphic)\n    ###########################################################################################\n\n    def __jsondump__(self) -> dict:\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"objects\": self.objects.__jsondump__(),\n            \"tree\": self.tree.__jsondump__(),\n            \"graph\": self.graph.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        session = cls(name=data.get(\"name\", \"my_session\"))\n        session.guid = guid if guid is not None else data.get(\"guid\", session.guid)\n\n        # Load nested structures via decode_node\n        if data.get(\"objects\"):\n            session.objects = decode_node(data[\"objects\"])  # Objects\n        if data.get(\"tree\"):\n            session.tree = decode_node(data[\"tree\"])  # Tree\n        if data.get(\"graph\"):\n            session.graph = decode_node(data[\"graph\"])  # Graph\n\n        # Rebuild lookup from all objects\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        for component in session.objects.components:\n            session.lookup[component.guid] = component\n\n        return session\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)",
           "file": "session.py"
         }
       },
@@ -55384,7 +55392,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__repr__() -> str",
-          "code": "def __repr__(self) -> str:\n\n        return f\"Session({self.guid}, {self.name}, {self.objects.to_str()}, {self.tree.to_str()}, {self.graph.to_str()})\"\n\n    ###########################################################################################\n    # JSON (polymorphic)\n    ###########################################################################################\n\n    def __jsondump__(self) -> dict:\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"objects\": self.objects.__jsondump__(),\n            \"tree\": self.tree.__jsondump__(),\n            \"graph\": self.graph.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        session = cls(name=data.get(\"name\", \"my_session\"))\n        session.guid = guid if guid is not None else data.get(\"guid\", session.guid)\n\n        # Load nested structures via decode_node\n        if data.get(\"objects\"):\n            session.objects = decode_node(data[\"objects\"])  # Objects\n        if data.get(\"tree\"):\n            session.tree = decode_node(data[\"tree\"])  # Tree\n        if data.get(\"graph\"):\n            session.graph = decode_node(data[\"graph\"])  # Graph\n\n        # Rebuild lookup from all objects\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n\n        return session\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:",
+          "code": "def __repr__(self) -> str:\n\n        return f\"Session({self.guid}, {self.name}, {self.objects.to_str()}, {self.tree.to_str()}, {self.graph.to_str()})\"\n\n    ###########################################################################################\n    # JSON (polymorphic)\n    ###########################################################################################\n\n    def __jsondump__(self) -> dict:\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"objects\": self.objects.__jsondump__(),\n            \"tree\": self.tree.__jsondump__(),\n            \"graph\": self.graph.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        session = cls(name=data.get(\"name\", \"my_session\"))\n        session.guid = guid if guid is not None else data.get(\"guid\", session.guid)\n\n        # Load nested structures via decode_node\n        if data.get(\"objects\"):\n            session.objects = decode_node(data[\"objects\"])  # Objects\n        if data.get(\"tree\"):\n            session.tree = decode_node(data[\"tree\"])  # Tree\n        if data.get(\"graph\"):\n            session.graph = decode_node(data[\"graph\"])  # Graph\n\n        # Rebuild lookup from all objects\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        for component in session.objects.components:\n            session.lookup[component.guid] = component\n\n        return session\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):",
           "file": "session.py"
         }
       },
@@ -55408,7 +55416,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__jsondump__() -> dict",
-          "code": "def __jsondump__(self) -> dict:\n\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"objects\": self.objects.__jsondump__(),\n            \"tree\": self.tree.__jsondump__(),\n            \"graph\": self.graph.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        session = cls(name=data.get(\"name\", \"my_session\"))\n        session.guid = guid if guid is not None else data.get(\"guid\", session.guid)\n\n        # Load nested structures via decode_node\n        if data.get(\"objects\"):\n            session.objects = decode_node(data[\"objects\"])  # Objects\n        if data.get(\"tree\"):\n            session.tree = decode_node(data[\"tree\"])  # Tree\n        if data.get(\"graph\"):\n            session.graph = decode_node(data[\"graph\"])  # Graph\n\n        # Rebuild lookup from all objects\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n\n        return session\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid",
+          "code": "def __jsondump__(self) -> dict:\n\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        return {\n            \"type\": f\"{self.__class__.__name__}\",\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"objects\": self.objects.__jsondump__(),\n            \"tree\": self.tree.__jsondump__(),\n            \"graph\": self.graph.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\":\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        session = cls(name=data.get(\"name\", \"my_session\"))\n        session.guid = guid if guid is not None else data.get(\"guid\", session.guid)\n\n        # Load nested structures via decode_node\n        if data.get(\"objects\"):\n            session.objects = decode_node(data[\"objects\"])  # Objects\n        if data.get(\"tree\"):\n            session.tree = decode_node(data[\"tree\"])  # Tree\n        if data.get(\"graph\"):\n            session.graph = decode_node(data[\"graph\"])  # Graph\n\n        # Rebuild lookup from all objects\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        for component in session.objects.components:\n            session.lookup[component.guid] = component\n\n        return session\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()",
           "file": "session.py"
         }
       },
@@ -55417,6 +55425,19 @@ window.API_INDEX = {
         "Session.__jsonload__",
         "Session.__repr__",
         "Session.__str__",
+        "Session._add_object",
+        "Session.add_brep",
+        "Session.add_component",
+        "Session.add_element",
+        "Session.add_line",
+        "Session.add_mesh",
+        "Session.add_nurbscurve",
+        "Session.add_nurbssurface",
+        "Session.add_obb",
+        "Session.add_plane",
+        "Session.add_point",
+        "Session.add_pointcloud",
+        "Session.add_polyline",
         "Session.guid",
         "Session.json_dump",
         "Session.json_dumps",
@@ -55426,6 +55447,7 @@ window.API_INDEX = {
         "Session.jsonload",
         "Session.pb_dump",
         "Session.pb_dumps",
+        "Session.pb_load",
         "Session.str"
       ]
     },
@@ -55434,7 +55456,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\"",
-          "code": "def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\":\n\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        session = cls(name=data.get(\"name\", \"my_session\"))\n        session.guid = guid if guid is not None else data.get(\"guid\", session.guid)\n\n        # Load nested structures via decode_node\n        if data.get(\"objects\"):\n            session.objects = decode_node(data[\"objects\"])  # Objects\n        if data.get(\"tree\"):\n            session.tree = decode_node(data[\"tree\"])  # Tree\n        if data.get(\"graph\"):\n            session.graph = decode_node(data[\"graph\"])  # Graph\n\n        # Rebuild lookup from all objects\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n\n        return session\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())",
+          "code": "def __jsonload__(\n        cls, data: dict, guid: Optional[str] = None, name: Optional[str] = None\n    ) -> \"Session\":\n\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .encoders import decode_node\n\n        session = cls(name=data.get(\"name\", \"my_session\"))\n        session.guid = guid if guid is not None else data.get(\"guid\", session.guid)\n\n        # Load nested structures via decode_node\n        if data.get(\"objects\"):\n            session.objects = decode_node(data[\"objects\"])  # Objects\n        if data.get(\"tree\"):\n            session.tree = decode_node(data[\"tree\"])  # Tree\n        if data.get(\"graph\"):\n            session.graph = decode_node(data[\"graph\"])  # Graph\n\n        # Rebuild lookup from all objects\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        for component in session.objects.components:\n            session.lookup[component.guid] = component\n\n        return session\n\n    def json_dumps(self):\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid",
           "file": "session.py"
         }
       },
@@ -55443,6 +55465,19 @@ window.API_INDEX = {
         "Session.__jsondump__",
         "Session.__repr__",
         "Session.__str__",
+        "Session._add_object",
+        "Session.add_brep",
+        "Session.add_component",
+        "Session.add_element",
+        "Session.add_line",
+        "Session.add_mesh",
+        "Session.add_nurbscurve",
+        "Session.add_nurbssurface",
+        "Session.add_obb",
+        "Session.add_plane",
+        "Session.add_point",
+        "Session.add_pointcloud",
+        "Session.add_polyline",
         "Session.guid",
         "Session.json_dump",
         "Session.json_dumps",
@@ -55462,7 +55497,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dumps()",
-          "code": "def json_dumps(self):\n\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Layers\n    ###########################################################################################\n\n    def set_layer(self, name: Optional[str]) -> None:\n        \"\"\"Set the current layer. All subsequent add_* calls will be tagged with this layer.",
+          "code": "def json_dumps(self):\n\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def json_loads(cls, s):\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def _add_object(self, collection, obj, type_prefix, parent=None):\n        collection.append(obj)\n        self.lookup[obj.guid] = obj",
           "file": "session.py"
         },
         "cpp": {
@@ -55481,6 +55516,7 @@ window.API_INDEX = {
         "Session.__jsonload__",
         "Session.__repr__",
         "Session.__str__",
+        "Session._add_object",
         "Session.add",
         "Session.guid",
         "Session.json_dump",
@@ -55492,7 +55528,6 @@ window.API_INDEX = {
         "Session.pb_dumps",
         "Session.pb_load",
         "Session.pb_loads",
-        "Session.set_layer",
         "Session.str"
       ]
     },
@@ -55501,7 +55536,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_loads(cls, s)",
-          "code": "def json_loads(cls, s):\n\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Layers\n    ###########################################################################################\n\n    def set_layer(self, name: Optional[str]) -> None:\n        \"\"\"Set the current layer. All subsequent add_* calls will be tagged with this layer.\n\n        Parameters\n        ----------\n        name : str or None\n            Layer name, or None to clear the current layer.\n        \"\"\"",
+          "code": "def json_loads(cls, s):\n\n        import json\n        return cls.__jsonload__(json.loads(s))\n\n    def json_dump(self, filepath):\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def _add_object(self, collection, obj, type_prefix, parent=None):\n        collection.append(obj)\n        self.lookup[obj.guid] = obj\n        self.graph.add_node(obj.guid, f\"{type_prefix}_{obj.name}\")\n        node = TreeNode(name=obj.guid)\n        if parent is not None:\n            self.add(node, parent)\n        return node",
           "file": "session.py"
         },
         "cpp": {
@@ -55520,6 +55555,7 @@ window.API_INDEX = {
         "Session.__jsonload__",
         "Session.__repr__",
         "Session.__str__",
+        "Session._add_object",
         "Session.add",
         "Session.guid",
         "Session.json_dump",
@@ -55531,7 +55567,6 @@ window.API_INDEX = {
         "Session.pb_dumps",
         "Session.pb_load",
         "Session.pb_loads",
-        "Session.set_layer",
         "Session.str"
       ]
     },
@@ -55540,7 +55575,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_dump(filepath)",
-          "code": "def json_dump(self, filepath):\n\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Layers\n    ###########################################################################################\n\n    def set_layer(self, name: Optional[str]) -> None:\n        \"\"\"Set the current layer. All subsequent add_* calls will be tagged with this layer.\n\n        Parameters\n        ----------\n        name : str or None\n            Layer name, or None to clear the current layer.\n        \"\"\"\n        self._current_layer = name\n\n    def _tag_layer(self, guid: str) -> None:\n        \"\"\"Tag an object with the current layer (if set).\"\"\"",
+          "code": "def json_dump(self, filepath):\n\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def json_load(cls, filepath):\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def _add_object(self, collection, obj, type_prefix, parent=None):\n        collection.append(obj)\n        self.lookup[obj.guid] = obj\n        self.graph.add_node(obj.guid, f\"{type_prefix}_{obj.name}\")\n        node = TreeNode(name=obj.guid)\n        if parent is not None:\n            self.add(node, parent)\n        return node\n\n    def add_point(self, point, parent=None) -> TreeNode:\n        return self._add_object(self.objects.points, point, \"point\", parent)",
           "file": "session.py"
         },
         "cpp": {
@@ -55559,8 +55594,9 @@ window.API_INDEX = {
         "Session.__jsonload__",
         "Session.__repr__",
         "Session.__str__",
-        "Session._tag_layer",
+        "Session._add_object",
         "Session.add",
+        "Session.add_point",
         "Session.guid",
         "Session.json_dumps",
         "Session.json_load",
@@ -55571,7 +55607,6 @@ window.API_INDEX = {
         "Session.pb_dumps",
         "Session.pb_load",
         "Session.pb_loads",
-        "Session.set_layer",
         "Session.str"
       ]
     },
@@ -55580,7 +55615,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "json_load(cls, filepath)",
-          "code": "def json_load(cls, filepath):\n\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Layers\n    ###########################################################################################\n\n    def set_layer(self, name: Optional[str]) -> None:\n        \"\"\"Set the current layer. All subsequent add_* calls will be tagged with this layer.\n\n        Parameters\n        ----------\n        name : str or None\n            Layer name, or None to clear the current layer.\n        \"\"\"\n        self._current_layer = name\n\n    def _tag_layer(self, guid: str) -> None:\n        \"\"\"Tag an object with the current layer (if set).\"\"\"\n        if self._current_layer is not None:\n            self.layers[guid] = self._current_layer\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################",
+          "code": "def json_load(cls, filepath):\n\n        import json\n        with open(filepath, 'r') as f:\n            return cls.__jsonload__(json.load(f))\n\n    def pb_dumps(self):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def _add_object(self, collection, obj, type_prefix, parent=None):\n        collection.append(obj)\n        self.lookup[obj.guid] = obj\n        self.graph.add_node(obj.guid, f\"{type_prefix}_{obj.name}\")\n        node = TreeNode(name=obj.guid)\n        if parent is not None:\n            self.add(node, parent)\n        return node\n\n    def add_point(self, point, parent=None) -> TreeNode:\n        return self._add_object(self.objects.points, point, \"point\", parent)\n\n    def add_line(self, line, parent=None) -> TreeNode:\n        return self._add_object(self.objects.lines, line, \"line\", parent)\n\n    def add_plane(self, plane, parent=None) -> TreeNode:\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)",
           "file": "session.py"
         },
         "cpp": {
@@ -55599,8 +55634,11 @@ window.API_INDEX = {
         "Session.__jsonload__",
         "Session.__repr__",
         "Session.__str__",
-        "Session._tag_layer",
+        "Session._add_object",
         "Session.add",
+        "Session.add_line",
+        "Session.add_plane",
+        "Session.add_point",
         "Session.guid",
         "Session.json_dump",
         "Session.json_dumps",
@@ -55610,7 +55648,6 @@ window.API_INDEX = {
         "Session.pb_dumps",
         "Session.pb_load",
         "Session.pb_loads",
-        "Session.set_layer",
         "Session.str"
       ]
     },
@@ -55619,7 +55656,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dumps()",
-          "code": "def pb_dumps(self):\n\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Layers\n    ###########################################################################################\n\n    def set_layer(self, name: Optional[str]) -> None:\n        \"\"\"Set the current layer. All subsequent add_* calls will be tagged with this layer.\n\n        Parameters\n        ----------\n        name : str or None\n            Layer name, or None to clear the current layer.\n        \"\"\"\n        self._current_layer = name\n\n    def _tag_layer(self, guid: str) -> None:\n        \"\"\"Tag an object with the current layer (if set).\"\"\"\n        if self._current_layer is not None:\n            self.layers[guid] = self._current_layer\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def _add_object(self, collection, obj, type_prefix, parent=None):\n        collection.append(obj)\n        self.lookup[obj.guid] = obj\n        self._tag_layer(obj.guid)",
+          "code": "def pb_dumps(self):\n\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.name = self.name\n        proto.guid = self.guid\n        proto.objects.ParseFromString(self.objects.pb_dumps())\n        proto.tree.ParseFromString(self.tree.pb_dumps())\n        proto.graph.ParseFromString(self.graph.pb_dumps())\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def _add_object(self, collection, obj, type_prefix, parent=None):\n        collection.append(obj)\n        self.lookup[obj.guid] = obj\n        self.graph.add_node(obj.guid, f\"{type_prefix}_{obj.name}\")\n        node = TreeNode(name=obj.guid)\n        if parent is not None:\n            self.add(node, parent)\n        return node\n\n    def add_point(self, point, parent=None) -> TreeNode:\n        return self._add_object(self.objects.points, point, \"point\", parent)\n\n    def add_line(self, line, parent=None) -> TreeNode:\n        return self._add_object(self.objects.lines, line, \"line\", parent)\n\n    def add_plane(self, plane, parent=None) -> TreeNode:\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)",
           "file": "session.py"
         },
         "cpp": {
@@ -55637,8 +55674,12 @@ window.API_INDEX = {
         "Session.__jsondump__",
         "Session.__jsonload__",
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
+        "Session.add_line",
+        "Session.add_obb",
+        "Session.add_plane",
+        "Session.add_point",
+        "Session.add_polyline",
         "Session.guid",
         "Session.json_dump",
         "Session.json_dumps",
@@ -55649,7 +55690,6 @@ window.API_INDEX = {
         "Session.pb_load",
         "Session.pb_loads",
         "Session.set_guid",
-        "Session.set_layer",
         "Session.str"
       ]
     },
@@ -55658,7 +55698,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_loads(cls, data)",
-          "code": "def pb_loads(cls, data):\n\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Layers\n    ###########################################################################################\n\n    def set_layer(self, name: Optional[str]) -> None:\n        \"\"\"Set the current layer. All subsequent add_* calls will be tagged with this layer.\n\n        Parameters\n        ----------\n        name : str or None\n            Layer name, or None to clear the current layer.\n        \"\"\"\n        self._current_layer = name\n\n    def _tag_layer(self, guid: str) -> None:\n        \"\"\"Tag an object with the current layer (if set).\"\"\"\n        if self._current_layer is not None:\n            self.layers[guid] = self._current_layer\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def _add_object(self, collection, obj, type_prefix, parent=None):\n        collection.append(obj)\n        self.lookup[obj.guid] = obj\n        self._tag_layer(obj.guid)\n        self.graph.add_node(obj.guid, f\"{type_prefix}_{obj.name}\")\n        node = TreeNode(name=obj.guid)\n        if parent is not None:\n            self.add(node, parent)\n        return node\n\n    def add_point(self, point, parent=None) -> TreeNode:\n        return self._add_object(self.objects.points, point, \"point\", parent)\n\n    def add_line(self, line, parent=None) -> TreeNode:\n        return self._add_object(self.objects.lines, line, \"line\", parent)",
+          "code": "def pb_loads(cls, data):\n\n        from .proto import session_pb2\n        proto = session_pb2.Session()\n        proto.ParseFromString(data)\n        session = cls(name=proto.name)\n        session.guid = proto.guid\n        session.objects = Objects.from_proto(proto.objects)\n        session.tree = Tree.pb_loads(proto.tree.SerializeToString())\n        session.graph = Graph.pb_loads(proto.graph.SerializeToString())\n        for point in session.objects.points:\n            session.lookup[point.guid] = point\n        for line in session.objects.lines:\n            session.lookup[line.guid] = line\n        for plane in session.objects.planes:\n            session.lookup[plane.guid] = plane\n        for bbox in session.objects.bboxes:\n            session.lookup[bbox.guid] = bbox\n        for polyline in session.objects.polylines:\n            session.lookup[polyline.guid] = polyline\n        for pointcloud in session.objects.pointclouds:\n            session.lookup[pointcloud.guid] = pointcloud\n        for mesh in session.objects.meshes:\n            session.lookup[mesh.guid] = mesh\n        for nurbscurve in session.objects.nurbscurves:\n            session.lookup[nurbscurve.guid] = nurbscurve\n        for nurbssurface in session.objects.nurbssurfaces:\n            session.lookup[nurbssurface.guid] = nurbssurface\n        for brep in session.objects.breps:\n            session.lookup[brep.guid] = brep\n        for element in session.objects.elements:\n            session.lookup[element.guid] = element\n        return session\n\n    def pb_dump(self, filepath):\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def _add_object(self, collection, obj, type_prefix, parent=None):\n        collection.append(obj)\n        self.lookup[obj.guid] = obj\n        self.graph.add_node(obj.guid, f\"{type_prefix}_{obj.name}\")\n        node = TreeNode(name=obj.guid)\n        if parent is not None:\n            self.add(node, parent)\n        return node\n\n    def add_point(self, point, parent=None) -> TreeNode:\n        return self._add_object(self.objects.points, point, \"point\", parent)\n\n    def add_line(self, line, parent=None) -> TreeNode:\n        return self._add_object(self.objects.lines, line, \"line\", parent)\n\n    def add_plane(self, plane, parent=None) -> TreeNode:\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:",
           "file": "session.py"
         },
         "cpp": {
@@ -55675,11 +55715,17 @@ window.API_INDEX = {
       "related": [
         "Session.__jsonload__",
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_edge",
         "Session.add_line",
+        "Session.add_mesh",
+        "Session.add_nurbscurve",
+        "Session.add_nurbssurface",
+        "Session.add_obb",
+        "Session.add_plane",
         "Session.add_point",
+        "Session.add_pointcloud",
+        "Session.add_polyline",
         "Session.guid",
         "Session.json_dump",
         "Session.json_dumps",
@@ -55690,7 +55736,6 @@ window.API_INDEX = {
         "Session.pb_dumps",
         "Session.pb_load",
         "Session.set_guid",
-        "Session.set_layer",
         "Session.str"
       ]
     },
@@ -55699,7 +55744,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dump(filepath)",
-          "code": "def pb_dump(self, filepath):\n\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Layers\n    ###########################################################################################\n\n    def set_layer(self, name: Optional[str]) -> None:\n        \"\"\"Set the current layer. All subsequent add_* calls will be tagged with this layer.\n\n        Parameters\n        ----------\n        name : str or None\n            Layer name, or None to clear the current layer.\n        \"\"\"\n        self._current_layer = name\n\n    def _tag_layer(self, guid: str) -> None:\n        \"\"\"Tag an object with the current layer (if set).\"\"\"\n        if self._current_layer is not None:\n            self.layers[guid] = self._current_layer\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def _add_object(self, collection, obj, type_prefix, parent=None):\n        collection.append(obj)\n        self.lookup[obj.guid] = obj\n        self._tag_layer(obj.guid)\n        self.graph.add_node(obj.guid, f\"{type_prefix}_{obj.name}\")\n        node = TreeNode(name=obj.guid)\n        if parent is not None:\n            self.add(node, parent)\n        return node\n\n    def add_point(self, point, parent=None) -> TreeNode:\n        return self._add_object(self.objects.points, point, \"point\", parent)\n\n    def add_line(self, line, parent=None) -> TreeNode:\n        return self._add_object(self.objects.lines, line, \"line\", parent)\n\n    def add_plane(self, plane, parent=None) -> TreeNode:\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node",
+          "code": "def pb_dump(self, filepath):\n\n        with open(filepath, 'wb') as f:\n            f.write(self.pb_dumps())\n\n    @classmethod\n    def pb_load(cls, filepath):\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def _add_object(self, collection, obj, type_prefix, parent=None):\n        collection.append(obj)\n        self.lookup[obj.guid] = obj\n        self.graph.add_node(obj.guid, f\"{type_prefix}_{obj.name}\")\n        node = TreeNode(name=obj.guid)\n        if parent is not None:\n            self.add(node, parent)\n        return node\n\n    def add_point(self, point, parent=None) -> TreeNode:\n        return self._add_object(self.objects.points, point, \"point\", parent)\n\n    def add_line(self, line, parent=None) -> TreeNode:\n        return self._add_object(self.objects.lines, line, \"line\", parent)\n\n    def add_plane(self, plane, parent=None) -> TreeNode:\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_component(self, component, parent=None) -> TreeNode:\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements",
           "file": "session.py"
         },
         "cpp": {
@@ -55717,9 +55762,9 @@ window.API_INDEX = {
         "Session.__jsondump__",
         "Session.__jsonload__",
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_element",
         "Session.add_group",
         "Session.add_line",
@@ -55731,15 +55776,18 @@ window.API_INDEX = {
         "Session.add_point",
         "Session.add_pointcloud",
         "Session.add_polyline",
+        "Session.compute_face_to_face",
+        "Session.find_group",
         "Session.guid",
         "Session.json_dump",
         "Session.json_dumps",
         "Session.json_load",
         "Session.json_loads",
+        "Session.jsondump",
+        "Session.jsonload",
         "Session.pb_dumps",
         "Session.pb_load",
         "Session.pb_loads",
-        "Session.set_layer",
         "Session.str"
       ]
     },
@@ -55748,7 +55796,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_load(cls, filepath)",
-          "code": "def pb_load(cls, filepath):\n\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Layers\n    ###########################################################################################\n\n    def set_layer(self, name: Optional[str]) -> None:\n        \"\"\"Set the current layer. All subsequent add_* calls will be tagged with this layer.\n\n        Parameters\n        ----------\n        name : str or None\n            Layer name, or None to clear the current layer.\n        \"\"\"\n        self._current_layer = name\n\n    def _tag_layer(self, guid: str) -> None:\n        \"\"\"Tag an object with the current layer (if set).\"\"\"\n        if self._current_layer is not None:\n            self.layers[guid] = self._current_layer\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def _add_object(self, collection, obj, type_prefix, parent=None):\n        collection.append(obj)\n        self.lookup[obj.guid] = obj\n        self._tag_layer(obj.guid)\n        self.graph.add_node(obj.guid, f\"{type_prefix}_{obj.name}\")\n        node = TreeNode(name=obj.guid)\n        if parent is not None:\n            self.add(node, parent)\n        return node\n\n    def add_point(self, point, parent=None) -> TreeNode:\n        return self._add_object(self.objects.points, point, \"point\", parent)\n\n    def add_line(self, line, parent=None) -> TreeNode:\n        return self._add_object(self.objects.lines, line, \"line\", parent)\n\n    def add_plane(self, plane, parent=None) -> TreeNode:\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)",
+          "code": "def pb_load(cls, filepath):\n\n        with open(filepath, 'rb') as f:\n            return cls.pb_loads(f.read())\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def _add_object(self, collection, obj, type_prefix, parent=None):\n        collection.append(obj)\n        self.lookup[obj.guid] = obj\n        self.graph.add_node(obj.guid, f\"{type_prefix}_{obj.name}\")\n        node = TreeNode(name=obj.guid)\n        if parent is not None:\n            self.add(node, parent)\n        return node\n\n    def add_point(self, point, parent=None) -> TreeNode:\n        return self._add_object(self.objects.points, point, \"point\", parent)\n\n    def add_line(self, line, parent=None) -> TreeNode:\n        return self._add_object(self.objects.lines, line, \"line\", parent)\n\n    def add_plane(self, plane, parent=None) -> TreeNode:\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_component(self, component, parent=None) -> TreeNode:\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]",
           "file": "session.py"
         },
         "cpp": {
@@ -55763,11 +55811,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Session.__jsondump__",
         "Session.__jsonload__",
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_element",
         "Session.add_group",
         "Session.add_line",
@@ -55780,89 +55829,17 @@ window.API_INDEX = {
         "Session.add_pointcloud",
         "Session.add_polyline",
         "Session.compute_face_to_face",
+        "Session.find_group",
         "Session.guid",
         "Session.json_dump",
         "Session.json_dumps",
         "Session.json_load",
         "Session.json_loads",
+        "Session.jsondump",
+        "Session.jsonload",
         "Session.pb_dump",
         "Session.pb_dumps",
         "Session.pb_loads",
-        "Session.set_layer",
-        "Session.str"
-      ]
-    },
-    {
-      "name": "Session.set_layer",
-      "implementations": {
-        "python": {
-          "sig": "set_layer(name: Optional[str]) -> None",
-          "code": "def set_layer(self, name: Optional[str]) -> None:\n\n        \"\"\"Set the current layer. All subsequent add_* calls will be tagged with this layer.\n\n        Parameters\n        ----------\n        name : str or None\n            Layer name, or None to clear the current layer.\n        \"\"\"\n        self._current_layer = name\n\n    def _tag_layer(self, guid: str) -> None:\n        \"\"\"Tag an object with the current layer (if set).\"\"\"\n        if self._current_layer is not None:\n            self.layers[guid] = self._current_layer\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def _add_object(self, collection, obj, type_prefix, parent=None):\n        collection.append(obj)\n        self.lookup[obj.guid] = obj\n        self._tag_layer(obj.guid)\n        self.graph.add_node(obj.guid, f\"{type_prefix}_{obj.name}\")\n        node = TreeNode(name=obj.guid)\n        if parent is not None:\n            self.add(node, parent)\n        return node\n\n    def add_point(self, point, parent=None) -> TreeNode:\n        return self._add_object(self.objects.points, point, \"point\", parent)\n\n    def add_line(self, line, parent=None) -> TreeNode:\n        return self._add_object(self.objects.lines, line, \"line\", parent)\n\n    def add_plane(self, plane, parent=None) -> TreeNode:\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []",
-          "file": "session.py"
-        }
-      },
-      "related": [
-        "Session._add_object",
-        "Session._tag_layer",
-        "Session.add",
-        "Session.add_brep",
-        "Session.add_element",
-        "Session.add_group",
-        "Session.add_line",
-        "Session.add_mesh",
-        "Session.add_nurbscurve",
-        "Session.add_nurbssurface",
-        "Session.add_obb",
-        "Session.add_plane",
-        "Session.add_point",
-        "Session.add_pointcloud",
-        "Session.add_polyline",
-        "Session.compute_face_to_face",
-        "Session.guid",
-        "Session.json_dump",
-        "Session.json_dumps",
-        "Session.json_load",
-        "Session.json_loads",
-        "Session.pb_dump",
-        "Session.pb_dumps",
-        "Session.pb_load",
-        "Session.pb_loads",
-        "Session.str"
-      ]
-    },
-    {
-      "name": "Session._tag_layer",
-      "implementations": {
-        "python": {
-          "sig": "_tag_layer(guid: str) -> None",
-          "code": "def _tag_layer(self, guid: str) -> None:\n\n        \"\"\"Tag an object with the current layer (if set).\"\"\"\n        if self._current_layer is not None:\n            self.layers[guid] = self._current_layer\n\n    ###########################################################################################\n    # Details - Add objects\n    ###########################################################################################\n\n    def _add_object(self, collection, obj, type_prefix, parent=None):\n        collection.append(obj)\n        self.lookup[obj.guid] = obj\n        self._tag_layer(obj.guid)\n        self.graph.add_node(obj.guid, f\"{type_prefix}_{obj.name}\")\n        node = TreeNode(name=obj.guid)\n        if parent is not None:\n            self.add(node, parent)\n        return node\n\n    def add_point(self, point, parent=None) -> TreeNode:\n        return self._add_object(self.objects.points, point, \"point\", parent)\n\n    def add_line(self, line, parent=None) -> TreeNode:\n        return self._add_object(self.objects.lines, line, \"line\", parent)\n\n    def add_plane(self, plane, parent=None) -> TreeNode:\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")",
-          "file": "session.py"
-        }
-      },
-      "related": [
-        "Session._add_object",
-        "Session.add",
-        "Session.add_brep",
-        "Session.add_element",
-        "Session.add_group",
-        "Session.add_line",
-        "Session.add_mesh",
-        "Session.add_nurbscurve",
-        "Session.add_nurbssurface",
-        "Session.add_obb",
-        "Session.add_plane",
-        "Session.add_point",
-        "Session.add_pointcloud",
-        "Session.add_polyline",
-        "Session.compute_face_to_face",
-        "Session.guid",
-        "Session.json_dump",
-        "Session.json_load",
-        "Session.pb_dump",
-        "Session.pb_dumps",
-        "Session.pb_load",
-        "Session.pb_loads",
-        "Session.set_layer",
         "Session.str"
       ]
     },
@@ -55871,15 +55848,16 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_add_object(collection, obj, type_prefix, parent=None)",
-          "code": "def _add_object(self, collection, obj, type_prefix, parent=None):\n\n        collection.append(obj)\n        self.lookup[obj.guid] = obj\n        self._tag_layer(obj.guid)\n        self.graph.add_node(obj.guid, f\"{type_prefix}_{obj.name}\")\n        node = TreeNode(name=obj.guid)\n        if parent is not None:\n            self.add(node, parent)\n        return node\n\n    def add_point(self, point, parent=None) -> TreeNode:\n        return self._add_object(self.objects.points, point, \"point\", parent)\n\n    def add_line(self, line, parent=None) -> TreeNode:\n        return self._add_object(self.objects.lines, line, \"line\", parent)\n\n    def add_plane(self, plane, parent=None) -> TreeNode:\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.",
+          "code": "def _add_object(self, collection, obj, type_prefix, parent=None):\n\n        collection.append(obj)\n        self.lookup[obj.guid] = obj\n        self.graph.add_node(obj.guid, f\"{type_prefix}_{obj.name}\")\n        node = TreeNode(name=obj.guid)\n        if parent is not None:\n            self.add(node, parent)\n        return node\n\n    def add_point(self, point, parent=None) -> TreeNode:\n        return self._add_object(self.objects.points, point, \"point\", parent)\n\n    def add_line(self, line, parent=None) -> TreeNode:\n        return self._add_object(self.objects.lines, line, \"line\", parent)\n\n    def add_plane(self, plane, parent=None) -> TreeNode:\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_component(self, component, parent=None) -> TreeNode:\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []",
           "file": "session.py"
         }
       },
       "related": [
-        "Session._tag_layer",
+        "Session.__jsondump__",
+        "Session.__jsonload__",
         "Session.add",
         "Session.add_brep",
-        "Session.add_edge",
+        "Session.add_component",
         "Session.add_element",
         "Session.add_group",
         "Session.add_line",
@@ -55892,12 +55870,18 @@ window.API_INDEX = {
         "Session.add_pointcloud",
         "Session.add_polyline",
         "Session.compute_face_to_face",
+        "Session.find_group",
         "Session.guid",
+        "Session.json_dump",
+        "Session.json_dumps",
+        "Session.json_load",
+        "Session.json_loads",
+        "Session.jsondump",
+        "Session.jsonload",
         "Session.pb_dump",
         "Session.pb_dumps",
         "Session.pb_load",
         "Session.pb_loads",
-        "Session.set_layer",
         "Session.str"
       ]
     },
@@ -55906,7 +55890,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_point(point, parent=None) -> TreeNode",
-          "code": "def add_point(self, point, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.points, point, \"point\", parent)\n\n    def add_line(self, line, parent=None) -> TreeNode:\n        return self._add_object(self.objects.lines, line, \"line\", parent)\n\n    def add_plane(self, plane, parent=None) -> TreeNode:\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)",
+          "code": "def add_point(self, point, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.points, point, \"point\", parent)\n\n    def add_line(self, line, parent=None) -> TreeNode:\n        return self._add_object(self.objects.lines, line, \"line\", parent)\n\n    def add_plane(self, plane, parent=None) -> TreeNode:\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_component(self, component, parent=None) -> TreeNode:\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"",
           "file": "session.py"
         },
         "cpp": {
@@ -55921,11 +55905,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Session.__jsondump__",
+        "Session.__jsonload__",
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
-        "Session.add_edge",
+        "Session.add_component",
         "Session.add_element",
         "Session.add_group",
         "Session.add_line",
@@ -55938,12 +55923,17 @@ window.API_INDEX = {
         "Session.add_polyline",
         "Session.cache_geometry_aabb",
         "Session.compute_face_to_face",
+        "Session.find_group",
         "Session.guid",
+        "Session.json_dump",
+        "Session.json_load",
+        "Session.jsondump",
+        "Session.jsonload",
         "Session.new",
         "Session.pb_dump",
+        "Session.pb_dumps",
         "Session.pb_load",
         "Session.pb_loads",
-        "Session.set_layer",
         "Session.str"
       ]
     },
@@ -55952,7 +55942,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_line(line, parent=None) -> TreeNode",
-          "code": "def add_line(self, line, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.lines, line, \"line\", parent)\n\n    def add_plane(self, plane, parent=None) -> TreeNode:\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)",
+          "code": "def add_line(self, line, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.lines, line, \"line\", parent)\n\n    def add_plane(self, plane, parent=None) -> TreeNode:\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_component(self, component, parent=None) -> TreeNode:\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")",
           "file": "session.py"
         },
         "cpp": {
@@ -55967,10 +55957,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Session.__jsondump__",
+        "Session.__jsonload__",
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
         "Session.add_group",
@@ -55984,12 +55976,16 @@ window.API_INDEX = {
         "Session.add_polyline",
         "Session.cache_geometry_aabb",
         "Session.compute_face_to_face",
+        "Session.find_group",
         "Session.guid",
+        "Session.json_load",
+        "Session.jsondump",
+        "Session.jsonload",
         "Session.new",
         "Session.pb_dump",
+        "Session.pb_dumps",
         "Session.pb_load",
         "Session.pb_loads",
-        "Session.set_layer",
         "Session.str"
       ]
     },
@@ -55998,7 +55994,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_plane(plane, parent=None) -> TreeNode",
-          "code": "def add_plane(self, plane, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.",
+          "code": "def add_plane(self, plane, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.planes, plane, \"plane\", parent)\n\n    def add_obb(self, bbox, parent=None) -> TreeNode:\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_component(self, component, parent=None) -> TreeNode:\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.",
           "file": "session.py"
         },
         "cpp": {
@@ -56013,10 +56009,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Session.__jsondump__",
+        "Session.__jsonload__",
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
         "Session.add_group",
@@ -56030,11 +56028,16 @@ window.API_INDEX = {
         "Session.add_polyline",
         "Session.cache_geometry_aabb",
         "Session.compute_face_to_face",
+        "Session.find_group",
         "Session.guid",
+        "Session.json_load",
+        "Session.jsondump",
+        "Session.jsonload",
         "Session.new",
         "Session.pb_dump",
+        "Session.pb_dumps",
         "Session.pb_load",
-        "Session.set_layer",
+        "Session.pb_loads",
         "Session.str"
       ]
     },
@@ -56043,7 +56046,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_obb(bbox, parent=None) -> TreeNode",
-          "code": "def add_obb(self, bbox, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str",
+          "code": "def add_obb(self, bbox, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.bboxes, bbox, \"bbox\", parent)\n\n    def add_polyline(self, polyline, parent=None) -> TreeNode:\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_component(self, component, parent=None) -> TreeNode:\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------",
           "file": "session.py"
         },
         "cpp": {
@@ -56058,10 +56061,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Session.__jsondump__",
+        "Session.__jsonload__",
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
         "Session.add_group",
@@ -56075,11 +56080,15 @@ window.API_INDEX = {
         "Session.add_polyline",
         "Session.cache_geometry_aabb",
         "Session.compute_face_to_face",
+        "Session.find_group",
         "Session.guid",
+        "Session.jsondump",
+        "Session.jsonload",
         "Session.new",
         "Session.pb_dump",
+        "Session.pb_dumps",
         "Session.pb_load",
-        "Session.set_layer",
+        "Session.pb_loads",
         "Session.str"
       ]
     },
@@ -56088,7 +56097,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_polyline(polyline, parent=None) -> TreeNode",
-          "code": "def add_polyline(self, polyline, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.",
+          "code": "def add_polyline(self, polyline, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.polylines, polyline, \"polyline\", parent)\n\n    def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_component(self, component, parent=None) -> TreeNode:\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional",
           "file": "session.py"
         },
         "cpp": {
@@ -56103,10 +56112,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Session.__jsondump__",
+        "Session.__jsonload__",
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
         "Session.add_group",
@@ -56120,11 +56131,15 @@ window.API_INDEX = {
         "Session.add_pointcloud",
         "Session.cache_geometry_aabb",
         "Session.compute_face_to_face",
+        "Session.find_group",
         "Session.guid",
+        "Session.jsondump",
+        "Session.jsonload",
         "Session.new",
         "Session.pb_dump",
+        "Session.pb_dumps",
         "Session.pb_load",
-        "Session.set_layer",
+        "Session.pb_loads",
         "Session.str"
       ]
     },
@@ -56133,7 +56148,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_pointcloud(pointcloud, parent=None) -> TreeNode",
-          "code": "def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"",
+          "code": "def add_pointcloud(self, pointcloud, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.pointclouds, pointcloud, \"pointcloud\", parent)\n\n    def add_mesh(self, mesh, parent=None) -> TreeNode:\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_component(self, component, parent=None) -> TreeNode:\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:",
           "file": "session.py"
         },
         "cpp": {
@@ -56148,10 +56163,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Session.__jsondump__",
+        "Session.__jsonload__",
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
         "Session.add_group",
@@ -56165,11 +56182,14 @@ window.API_INDEX = {
         "Session.add_polyline",
         "Session.cache_geometry_aabb",
         "Session.compute_face_to_face",
+        "Session.find_group",
         "Session.guid",
+        "Session.jsondump",
+        "Session.jsonload",
         "Session.new",
         "Session.pb_dump",
         "Session.pb_load",
-        "Session.set_layer",
+        "Session.pb_loads",
         "Session.str"
       ]
     },
@@ -56178,7 +56198,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_mesh(mesh, parent=None) -> TreeNode",
-          "code": "def add_mesh(self, mesh, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################",
+          "code": "def add_mesh(self, mesh, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.meshes, mesh, \"mesh\", parent)\n\n    def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_component(self, component, parent=None) -> TreeNode:\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)",
           "file": "session.py"
         },
         "cpp": {
@@ -56193,10 +56213,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Session.__jsondump__",
+        "Session.__jsonload__",
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
         "Session.add_group",
@@ -56210,11 +56232,14 @@ window.API_INDEX = {
         "Session.add_polyline",
         "Session.cache_geometry_aabb",
         "Session.compute_face_to_face",
+        "Session.find_group",
         "Session.guid",
+        "Session.jsondump",
+        "Session.jsonload",
         "Session.new",
         "Session.pb_dump",
         "Session.pb_load",
-        "Session.set_layer",
+        "Session.pb_loads",
         "Session.str"
       ]
     },
@@ -56223,7 +56248,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_nurbscurve(nurbscurve, parent=None) -> TreeNode",
-          "code": "def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################",
+          "code": "def add_nurbscurve(self, nurbscurve, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.nurbscurves, nurbscurve, \"nurbscurve\", parent)\n\n    def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_component(self, component, parent=None) -> TreeNode:\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.",
           "file": "session.py"
         },
         "cpp": {
@@ -56233,10 +56258,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Session.__jsondump__",
+        "Session.__jsonload__",
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
         "Session.add_group",
@@ -56250,10 +56277,13 @@ window.API_INDEX = {
         "Session.add_polyline",
         "Session.cache_geometry_aabb",
         "Session.compute_face_to_face",
+        "Session.find_group",
         "Session.guid",
+        "Session.jsondump",
+        "Session.jsonload",
         "Session.pb_dump",
         "Session.pb_load",
-        "Session.set_layer",
+        "Session.pb_loads",
         "Session.str"
       ]
     },
@@ -56262,7 +56292,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_nurbssurface(nurbssurface, parent=None) -> TreeNode",
-          "code": "def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.",
+          "code": "def add_nurbssurface(self, nurbssurface, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.nurbssurfaces, nurbssurface, \"nurbssurface\", parent)\n\n    def add_brep(self, brep, parent=None) -> TreeNode:\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_component(self, component, parent=None) -> TreeNode:\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------",
           "file": "session.py"
         },
         "cpp": {
@@ -56272,10 +56302,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Session.__jsondump__",
+        "Session.__jsonload__",
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
         "Session.add_group",
@@ -56289,11 +56321,13 @@ window.API_INDEX = {
         "Session.add_polyline",
         "Session.cache_geometry_aabb",
         "Session.compute_face_to_face",
-        "Session.get_object",
+        "Session.find_group",
         "Session.guid",
+        "Session.jsondump",
+        "Session.jsonload",
         "Session.pb_dump",
         "Session.pb_load",
-        "Session.set_layer",
+        "Session.pb_loads",
         "Session.str"
       ]
     },
@@ -56302,7 +56336,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_brep(brep, parent=None) -> TreeNode",
-          "code": "def add_brep(self, brep, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str",
+          "code": "def add_brep(self, brep, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.breps, brep, \"brep\", parent)\n\n    def add_element(self, element, parent=None) -> TreeNode:\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_component(self, component, parent=None) -> TreeNode:\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str",
           "file": "session.py"
         },
         "cpp": {
@@ -56317,9 +56351,11 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Session.__jsondump__",
+        "Session.__jsonload__",
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
+        "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
         "Session.add_group",
@@ -56333,12 +56369,13 @@ window.API_INDEX = {
         "Session.add_pointcloud",
         "Session.add_polyline",
         "Session.compute_face_to_face",
-        "Session.get_object",
+        "Session.find_group",
         "Session.guid",
+        "Session.jsondump",
+        "Session.jsonload",
         "Session.new",
         "Session.pb_dump",
         "Session.pb_load",
-        "Session.set_layer",
         "Session.str"
       ]
     },
@@ -56347,7 +56384,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_element(element, parent=None) -> TreeNode",
-          "code": "def add_element(self, element, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns",
+          "code": "def add_element(self, element, parent=None) -> TreeNode:\n\n        return self._add_object(self.objects.elements, element, \"element\", parent)\n\n    def add_component(self, component, parent=None) -> TreeNode:\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.",
           "file": "session.py"
         },
         "cpp": {
@@ -56362,10 +56399,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Session.__jsondump__",
+        "Session.__jsonload__",
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_edge",
         "Session.add_group",
         "Session.add_line",
@@ -56378,12 +56417,61 @@ window.API_INDEX = {
         "Session.add_pointcloud",
         "Session.add_polyline",
         "Session.compute_face_to_face",
-        "Session.get_object",
+        "Session.find_group",
         "Session.guid",
+        "Session.jsondump",
+        "Session.jsonload",
         "Session.new",
         "Session.pb_dump",
         "Session.pb_load",
-        "Session.set_layer",
+        "Session.str"
+      ]
+    },
+    {
+      "name": "Session.add_component",
+      "implementations": {
+        "python": {
+          "sig": "add_component(component, parent=None) -> TreeNode",
+          "code": "def add_component(self, component, parent=None) -> TreeNode:\n\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)",
+          "file": "session.py"
+        },
+        "cpp": {
+          "sig": "std::shared_ptr<TreeNode> add_component(Component component, std::shared_ptr<TreeNode> parent)",
+          "code": "std::shared_ptr<TreeNode> Session::add_component(Component component, std::shared_ptr<TreeNode> parent) {\n  component_lookup[component.guid()] = component;\n  objects.components->push_back(component);\n  graph.add_node(component.guid(), \"component_\" + component.name);\n  auto node = std::make_shared<TreeNode>(component.guid());\n  if (parent) add(node, parent);\n  return node;\n}",
+          "file": "session.cpp"
+        },
+        "rust": {
+          "sig": "add_component(component: crate::objects::Component, parent: Option<&Rc<RefCell<TreeNode>>>) -> Rc<RefCell<TreeNode>>",
+          "code": "pub fn add_component(&mut self, component: crate::objects::Component, parent: Option<&Rc<RefCell<TreeNode>>>) -> Rc<RefCell<TreeNode>> {\n        let guid = component.guid().to_string();\n        let name = component.name.clone();\n        self.objects.components.push(component);\n        self.graph.add_node(&guid, &format!(\"component_{name}\"));\n        let node = TreeNode::new(&guid);\n        if let Some(p) = parent { self.tree.add(&node, Some(p)); }\n        node\n    }",
+          "file": "session.rs"
+        }
+      },
+      "related": [
+        "Session.__jsondump__",
+        "Session.__jsonload__",
+        "Session._add_object",
+        "Session.add",
+        "Session.add_brep",
+        "Session.add_edge",
+        "Session.add_element",
+        "Session.add_group",
+        "Session.add_line",
+        "Session.add_mesh",
+        "Session.add_nurbscurve",
+        "Session.add_nurbssurface",
+        "Session.add_obb",
+        "Session.add_plane",
+        "Session.add_point",
+        "Session.add_pointcloud",
+        "Session.add_polyline",
+        "Session.compute_face_to_face",
+        "Session.find_group",
+        "Session.guid",
+        "Session.jsondump",
+        "Session.jsonload",
+        "Session.new",
+        "Session.pb_dump",
+        "Session.pb_load",
         "Session.str"
       ]
     },
@@ -56392,7 +56480,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_group(name: str) -> TreeNode",
-          "code": "def add_group(self, name: str) -> TreeNode:\n\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.",
+          "code": "def add_group(self, name: str) -> TreeNode:\n\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################",
           "file": "session.py"
         },
         "cpp": {
@@ -56408,9 +56496,9 @@ window.API_INDEX = {
       },
       "related": [
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
         "Session.add_line",
@@ -56423,12 +56511,55 @@ window.API_INDEX = {
         "Session.add_pointcloud",
         "Session.add_polyline",
         "Session.compute_face_to_face",
-        "Session.get_object",
+        "Session.find_group",
         "Session.guid",
         "Session.new",
         "Session.pb_dump",
         "Session.pb_load",
-        "Session.set_layer",
+        "Session.str"
+      ]
+    },
+    {
+      "name": "Session.find_group",
+      "implementations": {
+        "python": {
+          "sig": "find_group(name: str) -> TreeNode",
+          "code": "def find_group(self, name: str) -> TreeNode:\n\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------",
+          "file": "session.py"
+        },
+        "cpp": {
+          "sig": "std::shared_ptr<TreeNode> find_group(const std::string& group_name)",
+          "code": "std::shared_ptr<TreeNode> Session::find_group(const std::string& group_name) const {\n  auto r = tree.root();\n  if (r) {\n    for (auto* child : r->children()) {\n      if (child && child->name == group_name) {\n        return child->shared_from_this();\n      }",
+          "file": "session.cpp"
+        },
+        "rust": {
+          "sig": "find_group(name: &str) -> Rc<RefCell<TreeNode>>",
+          "code": "pub fn find_group(&self, name: &str) -> Rc<RefCell<TreeNode>> {\n        if let Some(root) = self.tree.root() {\n            for child in root.borrow().children() {\n                if child.borrow().name == name {\n                    return child.clone();\n                }\n            }\n        }\n        panic!(\"Group '{}' not found\", name);\n    }",
+          "file": "session.rs"
+        }
+      },
+      "related": [
+        "Session._add_object",
+        "Session.add",
+        "Session.add_brep",
+        "Session.add_component",
+        "Session.add_edge",
+        "Session.add_element",
+        "Session.add_group",
+        "Session.add_line",
+        "Session.add_mesh",
+        "Session.add_nurbscurve",
+        "Session.add_nurbssurface",
+        "Session.add_obb",
+        "Session.add_plane",
+        "Session.add_point",
+        "Session.add_pointcloud",
+        "Session.add_polyline",
+        "Session.compute_face_to_face",
+        "Session.get_object",
+        "Session.guid",
+        "Session.pb_dump",
+        "Session.pb_load",
         "Session.str"
       ]
     },
@@ -56453,9 +56584,9 @@ window.API_INDEX = {
       },
       "related": [
         "Session._add_object",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
         "Session.add_group",
@@ -56468,12 +56599,13 @@ window.API_INDEX = {
         "Session.add_point",
         "Session.add_pointcloud",
         "Session.add_polyline",
+        "Session.find_group",
         "Session.get_object",
         "Session.guid",
         "Session.new",
+        "Session.pb_dump",
         "Session.pb_load",
         "Session.remove_object",
-        "Session.set_layer",
         "Session.str"
       ]
     },
@@ -56500,8 +56632,8 @@ window.API_INDEX = {
         "Session.__init__",
         "Session._add_object",
         "Session._compute_bounding_box",
-        "Session._tag_layer",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_curve",
         "Session.add_edge",
         "Session.add_element",
@@ -56521,6 +56653,7 @@ window.API_INDEX = {
         "Session.add_surface",
         "Session.compute_face_to_face",
         "Session.constructor",
+        "Session.find_group",
         "Session.get_children",
         "Session.get_collisions",
         "Session.get_geometry",
@@ -56538,7 +56671,6 @@ window.API_INDEX = {
         "Session.ray_cast",
         "Session.rebuild_ray_bvh_cache",
         "Session.remove_object",
-        "Session.set_layer",
         "Session.str"
       ]
     },
@@ -56562,10 +56694,10 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Session._add_object",
         "Session._compute_bounding_box",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_element",
         "Session.add_feature",
         "Session.add_group",
@@ -56576,12 +56708,12 @@ window.API_INDEX = {
         "Session.add_nurbssurface",
         "Session.add_obb",
         "Session.add_plane",
-        "Session.add_point",
         "Session.add_pointcloud",
         "Session.add_polyline",
         "Session.add_relationship",
         "Session.compute_bounding_box",
         "Session.compute_face_to_face",
+        "Session.find_group",
         "Session.get_children",
         "Session.get_collisions",
         "Session.get_object",
@@ -56613,13 +56745,10 @@ window.API_INDEX = {
       "related": [
         "Session._compute_bounding_box",
         "Session.add",
-        "Session.add_brep",
         "Session.add_edge",
-        "Session.add_element",
-        "Session.add_group",
-        "Session.add_nurbssurface",
         "Session.compute_bounding_box",
         "Session.compute_face_to_face",
+        "Session.find_group",
         "Session.guid",
         "Session.remove_object",
         "Session.str"
@@ -56789,7 +56918,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_children(guid: str) -> list[str]",
-          "code": "def get_children(self, guid: str) -> list[str]:\n\n        \"\"\"Get all children GUIDs of a geometry object in the tree.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID to search for.\n\n        Returns\n        -------\n        list[UUID]\n            List of children GUIDs.\n        \"\"\"\n        return self.tree.get_children_guids(guid)\n\n    ###########################################################################################\n    # Details - Graph\n    ###########################################################################################\n\n    def add_relationship(\n        self, from_guid: str, to_guid: str, relationship_type: str = \"default\"\n    ) -> None:\n        \"\"\"Add a relationship edge in the graph structure.\n\n        Parameters\n        ----------\n        from_guid : UUID\n            The GUID of the source geometry object.\n        to_guid : UUID\n            The GUID of the target geometry object.\n        relationship_type : str, optional\n            The type of relationship. Defaults to \"default\".\n        \"\"\"\n        self.graph.add_edge(from_guid, to_guid, relationship_type)\n\n    def get_neighbours(self, guid: str) -> list[str]:\n        \"\"\"Get all GUIDs connected to the given GUID in the graph.\n\n        Parameters\n        ----------\n        guid : UUID\n            The GUID of the geometry object to find connections for.\n\n        Returns\n        -------\n        list[str]\n            List of connected geometry GUIDs as strings.\n        \"\"\"\n        return self.graph.get_neighbors(guid)\n\n    ###########################################################################################\n    # Details - Transformed Geometry\n    ###########################################################################################\n\n    def get_geometry(self) -> Objects:\n        \"\"\"Get all geometry with transformations applied from tree hierarchy.\n\n        Recursively traverses the tree and applies parent transformations to children.\n        Each child's transformation is the composition of all ancestor transformations\n        multiplied by its own transformation.\n\n        Returns\n        -------\n        Objects\n            Collection of transformed geometry objects.\n        \"\"\"\n        from .xform import Xform\n        import copy\n\n        # Deep copy all objects\n        transformed_objects = copy.deepcopy(self.objects)\n\n        # Rebuild lookup from copied objects\n        transformed_lookup = {}\n        for collection in [\n            transformed_objects.points,\n            transformed_objects.lines,\n            transformed_objects.planes,\n            transformed_objects.bboxes,\n            transformed_objects.polylines,",
+          "code": "def get_children(self, guid: str) -> list[str]:\n\n        \"\"\"Get all children GUIDs of a geometry object in the tree.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID to search for.\n\n        Returns\n        -------\n        list[UUID]\n            List of children GUIDs.\n        \"\"\"\n        return self.tree.get_children_guids(guid)\n\n    ###########################################################################################\n    # Details - Graph\n    ###########################################################################################\n\n    def add_relationship(\n        self, from_guid: str, to_guid: str, relationship_type: str = \"default\"\n    ) -> None:\n        \"\"\"Add a relationship edge in the graph structure.\n\n        Parameters\n        ----------\n        from_guid : UUID\n            The GUID of the source geometry object.\n        to_guid : UUID\n            The GUID of the target geometry object.\n        relationship_type : str, optional\n            The type of relationship. Defaults to \"default\".\n        \"\"\"\n        self.graph.add_edge(from_guid, to_guid, relationship_type)\n\n    def get_neighbours(self, guid: str) -> list[str]:\n        \"\"\"Get all GUIDs connected to the given GUID in the graph.\n\n        Parameters\n        ----------\n        guid : UUID\n            The GUID of the geometry object to find connections for.\n\n        Returns\n        -------\n        list[str]\n            List of connected geometry GUIDs as strings.\n        \"\"\"\n        return self.graph.get_neighbors(guid)\n\n    ###########################################################################################\n    # Details - Transformed Geometry\n    ###########################################################################################\n\n    def get_geometry(self) -> Objects:\n        \"\"\"Get all geometry with transformations applied from tree hierarchy.\n\n        Recursively traverses the tree and applies parent transformations to children.\n        Each child's transformation is the composition of all ancestor transformations\n        multiplied by its own transformation.\n\n        Returns\n        -------\n        Objects\n            Collection of transformed geometry objects.\n        \"\"\"\n        from .xform import Xform\n        import copy\n\n        # Deep copy all objects\n        transformed_objects = copy.deepcopy(self.objects)\n\n\n        # Rebuild lookup from copied objects\n        transformed_lookup = {}\n        for collection in [\n            transformed_objects.points,\n            transformed_objects.lines,\n            transformed_objects.planes,\n            transformed_objects.bboxes,",
           "file": "session.py"
         },
         "cpp": {
@@ -56819,7 +56948,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_relationship(\n        from_guid: str, to_guid: str, relationship_type: str = \"default\"\n    ) -> None",
-          "code": "def add_relationship(\n        self, from_guid: str, to_guid: str, relationship_type: str = \"default\"\n    ) -> None:\n\n        \"\"\"Add a relationship edge in the graph structure.\n\n        Parameters\n        ----------\n        from_guid : UUID\n            The GUID of the source geometry object.\n        to_guid : UUID\n            The GUID of the target geometry object.\n        relationship_type : str, optional\n            The type of relationship. Defaults to \"default\".\n        \"\"\"\n        self.graph.add_edge(from_guid, to_guid, relationship_type)\n\n    def get_neighbours(self, guid: str) -> list[str]:\n        \"\"\"Get all GUIDs connected to the given GUID in the graph.\n\n        Parameters\n        ----------\n        guid : UUID\n            The GUID of the geometry object to find connections for.\n\n        Returns\n        -------\n        list[str]\n            List of connected geometry GUIDs as strings.\n        \"\"\"\n        return self.graph.get_neighbors(guid)\n\n    ###########################################################################################\n    # Details - Transformed Geometry\n    ###########################################################################################\n\n    def get_geometry(self) -> Objects:\n        \"\"\"Get all geometry with transformations applied from tree hierarchy.\n\n        Recursively traverses the tree and applies parent transformations to children.\n        Each child's transformation is the composition of all ancestor transformations\n        multiplied by its own transformation.\n\n        Returns\n        -------\n        Objects\n            Collection of transformed geometry objects.\n        \"\"\"\n        from .xform import Xform\n        import copy\n\n        # Deep copy all objects\n        transformed_objects = copy.deepcopy(self.objects)\n\n        # Rebuild lookup from copied objects\n        transformed_lookup = {}\n        for collection in [\n            transformed_objects.points,\n            transformed_objects.lines,\n            transformed_objects.planes,\n            transformed_objects.bboxes,\n            transformed_objects.polylines,\n            transformed_objects.pointclouds,\n            transformed_objects.meshes,\n            transformed_objects.elements,\n        ]:\n            for geom in collection:\n                transformed_lookup[geom.guid] = geom\n\n        def transform_node(node: TreeNode, parent_xform: Xform) -> None:\n            \"\"\"Recursively transform geometry in tree node and its children.\"\"\"\n\n            # Get geometry from the lookup,\n            geom = transformed_lookup.get(node.name)\n\n            if geom is not None:\n                geom.xform = parent_xform * geom.xform\n                current_xform = geom.xform\n            else:\n                current_xform = parent_xform\n\n            for child in node.children:\n                transform_node(child, current_xform)",
+          "code": "def add_relationship(\n        self, from_guid: str, to_guid: str, relationship_type: str = \"default\"\n    ) -> None:\n\n        \"\"\"Add a relationship edge in the graph structure.\n\n        Parameters\n        ----------\n        from_guid : UUID\n            The GUID of the source geometry object.\n        to_guid : UUID\n            The GUID of the target geometry object.\n        relationship_type : str, optional\n            The type of relationship. Defaults to \"default\".\n        \"\"\"\n        self.graph.add_edge(from_guid, to_guid, relationship_type)\n\n    def get_neighbours(self, guid: str) -> list[str]:\n        \"\"\"Get all GUIDs connected to the given GUID in the graph.\n\n        Parameters\n        ----------\n        guid : UUID\n            The GUID of the geometry object to find connections for.\n\n        Returns\n        -------\n        list[str]\n            List of connected geometry GUIDs as strings.\n        \"\"\"\n        return self.graph.get_neighbors(guid)\n\n    ###########################################################################################\n    # Details - Transformed Geometry\n    ###########################################################################################\n\n    def get_geometry(self) -> Objects:\n        \"\"\"Get all geometry with transformations applied from tree hierarchy.\n\n        Recursively traverses the tree and applies parent transformations to children.\n        Each child's transformation is the composition of all ancestor transformations\n        multiplied by its own transformation.\n\n        Returns\n        -------\n        Objects\n            Collection of transformed geometry objects.\n        \"\"\"\n        from .xform import Xform\n        import copy\n\n        # Deep copy all objects\n        transformed_objects = copy.deepcopy(self.objects)\n\n\n        # Rebuild lookup from copied objects\n        transformed_lookup = {}\n        for collection in [\n            transformed_objects.points,\n            transformed_objects.lines,\n            transformed_objects.planes,\n            transformed_objects.bboxes,\n            transformed_objects.polylines,\n            transformed_objects.pointclouds,\n            transformed_objects.meshes,\n            transformed_objects.elements,\n        ]:\n            for geom in collection:\n                transformed_lookup[geom.guid] = geom\n\n        def transform_node(node: TreeNode, parent_xform: Xform) -> None:\n            \"\"\"Recursively transform geometry in tree node and its children.\"\"\"\n\n            # Get geometry from the lookup,\n            geom = transformed_lookup.get(node.name)\n\n            if geom is not None:\n                geom.xform = parent_xform * geom.xform\n                current_xform = geom.xform\n            else:\n                current_xform = parent_xform\n\n            for child in node.children:",
           "file": "session.py"
         },
         "cpp": {
@@ -56850,7 +56979,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_neighbours(guid: str) -> list[str]",
-          "code": "def get_neighbours(self, guid: str) -> list[str]:\n\n        \"\"\"Get all GUIDs connected to the given GUID in the graph.\n\n        Parameters\n        ----------\n        guid : UUID\n            The GUID of the geometry object to find connections for.\n\n        Returns\n        -------\n        list[str]\n            List of connected geometry GUIDs as strings.\n        \"\"\"\n        return self.graph.get_neighbors(guid)\n\n    ###########################################################################################\n    # Details - Transformed Geometry\n    ###########################################################################################\n\n    def get_geometry(self) -> Objects:\n        \"\"\"Get all geometry with transformations applied from tree hierarchy.\n\n        Recursively traverses the tree and applies parent transformations to children.\n        Each child's transformation is the composition of all ancestor transformations\n        multiplied by its own transformation.\n\n        Returns\n        -------\n        Objects\n            Collection of transformed geometry objects.\n        \"\"\"\n        from .xform import Xform\n        import copy\n\n        # Deep copy all objects\n        transformed_objects = copy.deepcopy(self.objects)\n\n        # Rebuild lookup from copied objects\n        transformed_lookup = {}\n        for collection in [\n            transformed_objects.points,\n            transformed_objects.lines,\n            transformed_objects.planes,\n            transformed_objects.bboxes,\n            transformed_objects.polylines,\n            transformed_objects.pointclouds,\n            transformed_objects.meshes,\n            transformed_objects.elements,\n        ]:\n            for geom in collection:\n                transformed_lookup[geom.guid] = geom\n\n        def transform_node(node: TreeNode, parent_xform: Xform) -> None:\n            \"\"\"Recursively transform geometry in tree node and its children.\"\"\"\n\n            # Get geometry from the lookup,\n            geom = transformed_lookup.get(node.name)\n\n            if geom is not None:\n                geom.xform = parent_xform * geom.xform\n                current_xform = geom.xform\n            else:\n                current_xform = parent_xform\n\n            for child in node.children:\n                transform_node(child, current_xform)\n\n        if self.tree.root:\n            transform_node(self.tree.root, Xform.identity())\n\n        # Apply accumulated transformations to actual geometry coordinates\n        for collection in [\n            transformed_objects.points,\n            transformed_objects.lines,\n            transformed_objects.planes,\n            transformed_objects.bboxes,\n            transformed_objects.polylines,\n            transformed_objects.pointclouds,\n            transformed_objects.meshes,\n        ]:",
+          "code": "def get_neighbours(self, guid: str) -> list[str]:\n\n        \"\"\"Get all GUIDs connected to the given GUID in the graph.\n\n        Parameters\n        ----------\n        guid : UUID\n            The GUID of the geometry object to find connections for.\n\n        Returns\n        -------\n        list[str]\n            List of connected geometry GUIDs as strings.\n        \"\"\"\n        return self.graph.get_neighbors(guid)\n\n    ###########################################################################################\n    # Details - Transformed Geometry\n    ###########################################################################################\n\n    def get_geometry(self) -> Objects:\n        \"\"\"Get all geometry with transformations applied from tree hierarchy.\n\n        Recursively traverses the tree and applies parent transformations to children.\n        Each child's transformation is the composition of all ancestor transformations\n        multiplied by its own transformation.\n\n        Returns\n        -------\n        Objects\n            Collection of transformed geometry objects.\n        \"\"\"\n        from .xform import Xform\n        import copy\n\n        # Deep copy all objects\n        transformed_objects = copy.deepcopy(self.objects)\n\n\n        # Rebuild lookup from copied objects\n        transformed_lookup = {}\n        for collection in [\n            transformed_objects.points,\n            transformed_objects.lines,\n            transformed_objects.planes,\n            transformed_objects.bboxes,\n            transformed_objects.polylines,\n            transformed_objects.pointclouds,\n            transformed_objects.meshes,\n            transformed_objects.elements,\n        ]:\n            for geom in collection:\n                transformed_lookup[geom.guid] = geom\n\n        def transform_node(node: TreeNode, parent_xform: Xform) -> None:\n            \"\"\"Recursively transform geometry in tree node and its children.\"\"\"\n\n            # Get geometry from the lookup,\n            geom = transformed_lookup.get(node.name)\n\n            if geom is not None:\n                geom.xform = parent_xform * geom.xform\n                current_xform = geom.xform\n            else:\n                current_xform = parent_xform\n\n            for child in node.children:\n                transform_node(child, current_xform)\n\n        if self.tree.root:\n            transform_node(self.tree.root, Xform.identity())\n\n        # Apply accumulated transformations to actual geometry coordinates\n        for collection in [\n            transformed_objects.points,\n            transformed_objects.lines,\n            transformed_objects.planes,\n            transformed_objects.bboxes,\n            transformed_objects.polylines,\n            transformed_objects.pointclouds,\n            transformed_objects.meshes,",
           "file": "session.py"
         },
         "cpp": {
@@ -56879,7 +57008,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_geometry() -> Objects",
-          "code": "def get_geometry(self) -> Objects:\n\n        \"\"\"Get all geometry with transformations applied from tree hierarchy.\n\n        Recursively traverses the tree and applies parent transformations to children.\n        Each child's transformation is the composition of all ancestor transformations\n        multiplied by its own transformation.\n\n        Returns\n        -------\n        Objects\n            Collection of transformed geometry objects.\n        \"\"\"\n        from .xform import Xform\n        import copy\n\n        # Deep copy all objects\n        transformed_objects = copy.deepcopy(self.objects)\n\n        # Rebuild lookup from copied objects\n        transformed_lookup = {}\n        for collection in [\n            transformed_objects.points,\n            transformed_objects.lines,\n            transformed_objects.planes,\n            transformed_objects.bboxes,\n            transformed_objects.polylines,\n            transformed_objects.pointclouds,\n            transformed_objects.meshes,\n            transformed_objects.elements,\n        ]:\n            for geom in collection:\n                transformed_lookup[geom.guid] = geom\n\n        def transform_node(node: TreeNode, parent_xform: Xform) -> None:\n            \"\"\"Recursively transform geometry in tree node and its children.\"\"\"\n\n            # Get geometry from the lookup,\n            geom = transformed_lookup.get(node.name)\n\n            if geom is not None:\n                geom.xform = parent_xform * geom.xform\n                current_xform = geom.xform\n            else:\n                current_xform = parent_xform\n\n            for child in node.children:\n                transform_node(child, current_xform)\n\n        if self.tree.root:\n            transform_node(self.tree.root, Xform.identity())\n\n        # Apply accumulated transformations to actual geometry coordinates\n        for collection in [\n            transformed_objects.points,\n            transformed_objects.lines,\n            transformed_objects.planes,\n            transformed_objects.bboxes,\n            transformed_objects.polylines,\n            transformed_objects.pointclouds,\n            transformed_objects.meshes,\n        ]:\n            for geom in collection:\n                geom.transform()\n\n        return transformed_objects",
+          "code": "def get_geometry(self) -> Objects:\n\n        \"\"\"Get all geometry with transformations applied from tree hierarchy.\n\n        Recursively traverses the tree and applies parent transformations to children.\n        Each child's transformation is the composition of all ancestor transformations\n        multiplied by its own transformation.\n\n        Returns\n        -------\n        Objects\n            Collection of transformed geometry objects.\n        \"\"\"\n        from .xform import Xform\n        import copy\n\n        # Deep copy all objects\n        transformed_objects = copy.deepcopy(self.objects)\n\n\n        # Rebuild lookup from copied objects\n        transformed_lookup = {}\n        for collection in [\n            transformed_objects.points,\n            transformed_objects.lines,\n            transformed_objects.planes,\n            transformed_objects.bboxes,\n            transformed_objects.polylines,\n            transformed_objects.pointclouds,\n            transformed_objects.meshes,\n            transformed_objects.elements,\n        ]:\n            for geom in collection:\n                transformed_lookup[geom.guid] = geom\n\n        def transform_node(node: TreeNode, parent_xform: Xform) -> None:\n            \"\"\"Recursively transform geometry in tree node and its children.\"\"\"\n\n            # Get geometry from the lookup,\n            geom = transformed_lookup.get(node.name)\n\n            if geom is not None:\n                geom.xform = parent_xform * geom.xform\n                current_xform = geom.xform\n            else:\n                current_xform = parent_xform\n\n            for child in node.children:\n                transform_node(child, current_xform)\n\n        if self.tree.root:\n            transform_node(self.tree.root, Xform.identity())\n\n        # Apply accumulated transformations to actual geometry coordinates\n        for collection in [\n            transformed_objects.points,\n            transformed_objects.lines,\n            transformed_objects.planes,\n            transformed_objects.bboxes,\n            transformed_objects.polylines,\n            transformed_objects.pointclouds,\n            transformed_objects.meshes,\n        ]:\n            for geom in collection:\n                geom.transform()\n\n        return transformed_objects",
           "file": "session.py"
         },
         "cpp": {
@@ -66850,6 +66979,29 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "BooleanPolyline.clip_open_against_closed",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<Polyline> clip_open_against_closed(\n        const Polyline& open_subject,\n        const Polyline& closed_clip)",
+          "code": "static std::vector<Polyline> clip_open_against_closed(\n        const Polyline& open_subject,\n        const Polyline& closed_clip);",
+          "file": "boolean_polyline.h"
+        }
+      }
+    },
+    {
+      "name": "std.abs",
+      "implementations": {
+        "cpp": {
+          "sig": "return abs(a - b)",
+          "code": "return std::abs(a - b) <= angular();\n}",
+          "file": "tolerance.cpp"
+        }
+      },
+      "related": [
+        "std.fabs"
+      ]
+    },
+    {
       "name": "BRepTrimType.guid",
       "implementations": {
         "cpp": {
@@ -68124,14 +68276,11 @@ window.API_INDEX = {
       "name": "Element.constructor",
       "implementations": {
         "cpp": {
-          "sig": "Element(const std::string& name = \"my_element\")",
-          "code": "Element(const std::string& name = \"my_element\");",
+          "sig": "Element(const Element& other)",
+          "code": "Element(const Element& other);",
           "file": "element.h"
         }
-      },
-      "related": [
-        "Element.str"
-      ]
+      }
     },
     {
       "name": "Element.has_geometry",
@@ -68184,16 +68333,16 @@ window.API_INDEX = {
       },
       "related": [
         "Element.aabb",
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.cached_aabb_ref",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.duplicate",
-        "Element.from_brep",
-        "Element.from_mesh",
-        "Element.new",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
-        "Element.reset"
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
+        "Element.reset",
+        "Element.with_transformation"
       ]
     },
     {
@@ -68206,17 +68355,17 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.cached_obb_ref",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.duplicate",
-        "Element.from_brep",
-        "Element.from_mesh",
-        "Element.new",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
         "Element.obb",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
-        "Element.reset"
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
+        "Element.reset",
+        "Element.with_transformation"
       ]
     },
     {
@@ -68229,17 +68378,17 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.cached_collision_mesh_ref",
         "Element.collision_mesh",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.duplicate",
-        "Element.from_brep",
-        "Element.from_mesh",
-        "Element.new",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
-        "Element.reset"
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
+        "Element.reset",
+        "Element.with_transformation"
       ]
     },
     {
@@ -68252,17 +68401,17 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.beam",
+        "Element.beam_with_transformation",
         "Element.cached_point_ref",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.duplicate",
-        "Element.from_brep",
-        "Element.from_mesh",
-        "Element.new",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.point",
-        "Element.reset"
+        "Element.reset",
+        "Element.with_transformation"
       ]
     },
     {
@@ -68295,9 +68444,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementBeam",
-        "Element.ElementColumn",
-        "Element.ElementPlate",
         "Element.__deepcopy__",
         "Element.__eq__",
         "Element.__init__",
@@ -68306,14 +68452,17 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.axis",
         "Element.beam",
+        "Element.beam_with_transformation",
         "Element.collision_mesh",
         "Element.column",
-        "Element.constructor",
+        "Element.column_with_transformation",
         "Element.depth",
         "Element.duplicate",
         "Element.edge_vectors",
         "Element.from_brep",
+        "Element.from_brep_with_transformation",
         "Element.from_mesh",
+        "Element.from_mesh_with_transformation",
         "Element.geometry",
         "Element.geometry_type_name",
         "Element.guid",
@@ -68337,6 +68486,8 @@ window.API_INDEX = {
         "Element.planes",
         "Element.plate",
         "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.point",
         "Element.polygon",
         "Element.polylines",
@@ -68346,7 +68497,8 @@ window.API_INDEX = {
         "Element.set_key",
         "Element.thickness",
         "Element.type_name",
-        "Element.width"
+        "Element.width",
+        "Element.with_transformation"
       ]
     },
     {
@@ -68364,9 +68516,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementBeam",
-        "Element.ElementColumn",
-        "Element.ElementPlate",
         "Element.__deepcopy__",
         "Element.__eq__",
         "Element.__ne__",
@@ -68407,9 +68556,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementBeam",
-        "Element.ElementColumn",
-        "Element.ElementPlate",
         "Element.__jsondump__",
         "Element.__jsonload__",
         "Element._obb_from_geometry",
@@ -68508,33 +68654,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Element.ElementColumn",
-      "implementations": {
-        "cpp": {
-          "sig": "public: ElementColumn(double width = 0.4, double depth = 0.4, double height = 3.0,\n                  const std::string& name = \"my_column\")",
-          "code": "public:\n    ElementColumn(double width = 0.4, double depth = 0.4, double height = 3.0,\n                  const std::string& name = \"my_column\");",
-          "file": "element.h"
-        }
-      },
-      "related": [
-        "Element._pb_load_geometry",
-        "Element.column",
-        "Element.depth",
-        "Element.height",
-        "Element.json_dump",
-        "Element.json_load",
-        "Element.json_loads",
-        "Element.jsondump",
-        "Element.jsonload_value",
-        "Element.pb_dumps",
-        "Element.pb_loads",
-        "Element.repr",
-        "Element.str",
-        "Element.type_name",
-        "Element.width"
-      ]
-    },
-    {
       "name": "Element.width",
       "implementations": {
         "cpp": {
@@ -68549,10 +68668,10 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementBeam",
-        "Element.ElementColumn",
         "Element.beam",
+        "Element.beam_with_transformation",
         "Element.column",
+        "Element.column_with_transformation",
         "Element.extend",
         "Element.jsondump",
         "Element.jsonload_value",
@@ -68581,10 +68700,10 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementBeam",
-        "Element.ElementColumn",
         "Element.beam",
+        "Element.beam_with_transformation",
         "Element.column",
+        "Element.column_with_transformation",
         "Element.extend",
         "Element.jsondump",
         "Element.jsonload_value",
@@ -68613,9 +68732,9 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementColumn",
         "Element.center_line",
         "Element.column",
+        "Element.column_with_transformation",
         "Element.extend",
         "Element.jsondump",
         "Element.jsonload_value",
@@ -68760,33 +68879,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Element.ElementBeam",
-      "implementations": {
-        "cpp": {
-          "sig": "public: ElementBeam(double width = 0.1, double depth = 0.2, double length = 3.0,\n                const std::string& name = \"my_beam\")",
-          "code": "public:\n    ElementBeam(double width = 0.1, double depth = 0.2, double length = 3.0,\n                const std::string& name = \"my_beam\");",
-          "file": "element.h"
-        }
-      },
-      "related": [
-        "Element._pb_load_geometry",
-        "Element.beam",
-        "Element.depth",
-        "Element.json_dump",
-        "Element.json_load",
-        "Element.json_loads",
-        "Element.jsondump",
-        "Element.jsonload_value",
-        "Element.length",
-        "Element.pb_dumps",
-        "Element.pb_loads",
-        "Element.repr",
-        "Element.str",
-        "Element.type_name",
-        "Element.width"
-      ]
-    },
-    {
       "name": "Element.length",
       "implementations": {
         "cpp": {
@@ -68801,8 +68893,8 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementBeam",
         "Element.beam",
+        "Element.beam_with_transformation",
         "Element.center_line",
         "Element.extend",
         "Element.jsondump",
@@ -68839,32 +68931,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Element.ElementPlate",
-      "implementations": {
-        "cpp": {
-          "sig": "public: ElementPlate(const std::vector<Point>& polygon = {}, double thickness = 0.1,\n                 const std::string& name = \"my_plate\")",
-          "code": "public:\n    ElementPlate(const std::vector<Point>& polygon = {}, double thickness = 0.1,\n                 const std::string& name = \"my_plate\");",
-          "file": "element.h"
-        }
-      },
-      "related": [
-        "Element._pb_load_geometry",
-        "Element.json_dump",
-        "Element.json_load",
-        "Element.json_loads",
-        "Element.jsondump",
-        "Element.jsonload_value",
-        "Element.pb_dumps",
-        "Element.pb_loads",
-        "Element.plate",
-        "Element.polygon",
-        "Element.repr",
-        "Element.str",
-        "Element.thickness",
-        "Element.type_name"
-      ]
-    },
-    {
       "name": "Element.polygon",
       "implementations": {
         "cpp": {
@@ -68879,7 +68945,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementPlate",
         "Element.compute_aabb_fast",
         "Element.jsondump",
         "Element.jsonload_value",
@@ -68887,7 +68952,8 @@ window.API_INDEX = {
         "Element.pb_loads",
         "Element.plate",
         "Element.plate_default",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.polygon_normal",
         "Element.polygon_top",
         "Element.repr",
@@ -68917,8 +68983,8 @@ window.API_INDEX = {
         "Element.jsonload_value",
         "Element.pb_dumps",
         "Element.pb_loads",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.polygon",
         "Element.set_polygon",
         "Element.set_polygon_top",
@@ -68940,13 +69006,13 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementPlate",
         "Element.jsondump",
         "Element.jsonload_value",
         "Element.pb_dumps",
         "Element.pb_loads",
         "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.repr",
         "Element.set_polygon",
         "Element.set_thickness",
@@ -68971,6 +69037,7 @@ window.API_INDEX = {
         "Element.geometry",
         "Element.new",
         "Element.plate",
+        "Element.plate_with_transformation",
         "Element.polygon",
         "Element.polygon_top",
         "Element.reset",
@@ -68989,7 +69056,7 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.plate",
+        "Element.plate_with_transformation",
         "Element.polygon",
         "Element.polygon_top",
         "Element.set_polygon",
@@ -69060,7 +69127,7 @@ window.API_INDEX = {
       },
       "related": [
         "Element.new",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
         "Element.polygon"
       ]
     },
@@ -69083,8 +69150,8 @@ window.API_INDEX = {
         "Element.jsonload_value",
         "Element.pb_dumps",
         "Element.pb_loads",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.set_joint_types"
       ]
     },
@@ -69127,8 +69194,8 @@ window.API_INDEX = {
         "Element.jsonload_value",
         "Element.pb_dumps",
         "Element.pb_loads",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.set_j_mf"
       ]
     },
@@ -69173,8 +69240,8 @@ window.API_INDEX = {
         "Element.jsonload_value",
         "Element.pb_dumps",
         "Element.pb_loads",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.set_key",
         "Element.str"
       ]
@@ -69219,8 +69286,8 @@ window.API_INDEX = {
         "Element.jsonload_value",
         "Element.pb_dumps",
         "Element.pb_loads",
-        "Element.plate",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.set_component_plane"
       ]
     },
@@ -69248,8 +69315,8 @@ window.API_INDEX = {
       "name": "ElementColumn.constructor",
       "implementations": {
         "cpp": {
-          "sig": "ElementColumn(double width, double depth, double height, const std::string& name)",
-          "code": "ElementColumn::ElementColumn(double width, double depth, double height, const std::string& name)\n    : Element(name), _width(width), _depth(depth), _height(height) {\n    _geometry = compute_element_geometry();\n}",
+          "sig": "ElementColumn(double width, double depth, double height, const std::string& name, const Xform& transformation)",
+          "code": "ElementColumn::ElementColumn(double width, double depth, double height, const std::string& name, const Xform& transformation)\n    : Element(name, transformation), _width(width), _depth(depth), _height(height) {\n    _geometry = compute_element_geometry();\n}",
           "file": "element.cpp"
         }
       },
@@ -69265,8 +69332,8 @@ window.API_INDEX = {
       "name": "ElementBeam.constructor",
       "implementations": {
         "cpp": {
-          "sig": "ElementBeam(double width, double depth, double length, const std::string& name)",
-          "code": "ElementBeam::ElementBeam(double width, double depth, double length, const std::string& name)\n    : Element(name), _width(width), _depth(depth), _length(length) {\n    _geometry = compute_element_geometry();\n}",
+          "sig": "ElementBeam(double width, double depth, double length, const std::string& name, const Xform& transformation)",
+          "code": "ElementBeam::ElementBeam(double width, double depth, double length, const std::string& name, const Xform& transformation)\n    : Element(name, transformation), _width(width), _depth(depth), _length(length) {\n    _geometry = compute_element_geometry();\n}",
           "file": "element.cpp"
         }
       },
@@ -69282,8 +69349,8 @@ window.API_INDEX = {
       "name": "ElementPlate.constructor",
       "implementations": {
         "cpp": {
-          "sig": "ElementPlate(const std::vector<Point>& polygon, double thickness,\n                           const std::string& name)",
-          "code": "ElementPlate::ElementPlate(const std::vector<Point>& polygon, double thickness,\n                           const std::string& name)\n    : Element(name), _thickness(thickness) {\n    if (polygon.empty()) {\n        _polygon = {Point(-0.5,-0.5,0), Point(0.5,-0.5,0), Point(0.5,0.5,0), Point(-0.5,0.5,0)}",
+          "sig": "ElementPlate(const std::vector<Point>& polygon, double thickness,\n                           const std::string& name, const Xform& transformation)",
+          "code": "ElementPlate::ElementPlate(const std::vector<Point>& polygon, double thickness,\n                           const std::string& name, const Xform& transformation)\n    : Element(name, transformation), _thickness(thickness) {\n    if (polygon.empty()) {\n        _polygon = {Point(-0.5,-0.5,0), Point(0.5,-0.5,0), Point(0.5,0.5,0), Point(-0.5,0.5,0)}",
           "file": "element.cpp"
         }
       },
@@ -70788,7 +70855,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "bool plane_plane(\n    const Plane& plane0,\n    const Plane& plane1,\n    Line& output)",
-          "code": "bool Intersection::plane_plane(\n    const Plane& plane0,\n    const Plane& plane1,\n    Line& output) {\n    \n    Vector d = plane1.z_axis().cross(plane0.z_axis());\n    \n    Point p = Point(\n        (plane0.origin()[0] + plane1.origin()[0]) * 0.5,\n        (plane0.origin()[1] + plane1.origin()[1]) * 0.5,\n        (plane0.origin()[2] + plane1.origin()[2]) * 0.5\n    );\n    \n    Plane plane2 = Plane::from_point_normal(p, d);\n    \n    Point output_p;\n    bool rc = plane_plane_plane(plane0, plane1, plane2, output_p);\n    if (!rc) {\n        return false;\n    }",
+          "code": "bool Intersection::plane_plane(\n    const Plane& plane0,\n    const Plane& plane1,\n    Line& output) {\n\n    Vector d = plane1.z_axis().cross(plane0.z_axis());\n\n    Point p = Point(\n        (plane0.origin()[0] + plane1.origin()[0]) * 0.5,\n        (plane0.origin()[1] + plane1.origin()[1]) * 0.5,\n        (plane0.origin()[2] + plane1.origin()[2]) * 0.5\n    );\n\n    Plane plane2 = Plane::from_point_normal(p, d);\n\n    Point output_p;\n    bool rc = plane_plane_plane(plane0, plane1, plane2, output_p);\n    if (!rc) {\n        return false;\n    }",
           "file": "intersection.cpp"
         }
       },
@@ -70798,7 +70865,22 @@ window.API_INDEX = {
         "Intersection.plane_4planes_open",
         "Intersection.plane_plane_plane",
         "Intersection.plane_plane_plane_check",
+        "Intersection.plane_plane_to_line_canonical",
         "Intersection.quad_from_line_top_bottom_planes"
+      ]
+    },
+    {
+      "name": "Intersection.plane_plane_to_line_canonical",
+      "implementations": {
+        "cpp": {
+          "sig": "bool plane_plane_to_line_canonical(\n    const Plane& plane0,\n    const Plane& plane1,\n    Line& output)",
+          "code": "bool Intersection::plane_plane_to_line_canonical(\n    const Plane& plane0,\n    const Plane& plane1,\n    Line& output)\n{\n    // Direct port of the CGAL canonical formulation used by wood's\n    // `cgal::intersection_util::plane_plane` (cgal_intersection_util.cpp:493-511)\n    // and downstream `get_orthogonal_vector_between_two_plane_pairs`\n    // (cgal_intersection_util.cpp:618-628). Anchor is foot-of-\n    // perpendicular from world origin onto the intersection line:\n    //     c0 = (k0\u00c2\u00b7(n1\u00c2\u00b7n1) - k1\u00c2\u00b7(n0\u00c2\u00b7n1)) / det\n    //     c1 = (k1\u00c2\u00b7(n0\u00c2\u00b7n0) - k0\u00c2\u00b7(n0\u00c2\u00b7n1)) / det\n    //     anchor = c0\u00c2\u00b7n0 + c1\u00c2\u00b7n1\n    // where k_i = n_i\u00c2\u00b7plane_i.origin() and det = |n0|\u00c2\u00b2|n1|\u00c2\u00b2 - (n0\u00c2\u00b7n1)\u00c2\u00b2.\n    //\n    // Direction convention: d = n1 \u00c3\u2014 n0 (matches session's existing\n    // `plane_plane` at line 325 + wood's cgal_intersection_util.cpp:497).\n    Vector n0 = plane0.z_axis();\n    Vector n1 = plane1.z_axis();\n    Vector d(\n        n1[1]*n0[2] - n1[2]*n0[1],\n        n1[2]*n0[0] - n1[0]*n0[2],\n        n1[0]*n0[1] - n1[1]*n0[0]\n    );\n    double d_sq = d[0]*d[0] + d[1]*d[1] + d[2]*d[2];\n    if (d_sq < 1e-20) return false;\n\n    double k0 = n0[0]*plane0.origin()[0] + n0[1]*plane0.origin()[1] + n0[2]*plane0.origin()[2];\n    double k1 = n1[0]*plane1.origin()[0] + n1[1]*plane1.origin()[1] + n1[2]*plane1.origin()[2];\n    double n0n0 = n0[0]*n0[0] + n0[1]*n0[1] + n0[2]*n0[2];\n    double n1n1 = n1[0]*n1[0] + n1[1]*n1[1] + n1[2]*n1[2];\n    double n0n1 = n0[0]*n1[0] + n0[1]*n1[1] + n0[2]*n1[2];\n    double det = n0n0 * n1n1 - n0n1 * n0n1;\n    if (std::abs(det) < 1e-20) return false;\n    double c0 = (k0 * n1n1 - k1 * n0n1) / det;\n    double c1 = (k1 * n0n0 - k0 * n0n1) / det;\n    Point anchor(\n        c0 * n0[0] + c1 * n1[0],\n        c0 * n0[1] + c1 * n1[1],\n        c0 * n0[2] + c1 * n1[2]\n    );\n    output = Line::from_points(\n        anchor,\n        Point(anchor[0] + d[0], anchor[1] + d[1], anchor[2] + d[2])\n    );\n    return true;\n}",
+          "file": "intersection.cpp"
+        }
+      },
+      "related": [
+        "Intersection.orthogonal_vector_between_two_plane_pairs",
+        "Intersection.plane_plane"
       ]
     },
     {
@@ -70813,10 +70895,12 @@ window.API_INDEX = {
       "related": [
         "Intersection.line_two_planes",
         "Intersection.plane_4lines",
+        "Intersection.plane_4planes_open",
         "Intersection.plane_value_at",
         "Intersection.polyline_plane",
         "Intersection.polyline_plane_cross_joint",
         "Intersection.polyline_plane_to_line",
+        "Intersection.quad_from_line_top_bottom_planes",
         "Intersection.scale_vector_to_distance_of_2planes"
       ]
     },
@@ -70825,7 +70909,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "bool plane_plane_plane(\n    const Plane& plane0,\n    const Plane& plane1,\n    const Plane& plane2,\n    Point& output)",
-          "code": "bool Intersection::plane_plane_plane(\n    const Plane& plane0,\n    const Plane& plane1,\n    const Plane& plane2,\n    Point& output) {\n    \n    double pr = 0.0;\n    double x, y, z;\n    \n    const double plane_0[3] = { plane0.a(), plane0.b(), plane0.c() }",
+          "code": "bool Intersection::plane_plane_plane(\n    const Plane& plane0,\n    const Plane& plane1,\n    const Plane& plane2,\n    Point& output) {\n\n    double pr = 0.0;\n    double x, y, z;\n\n    const double plane_0[3] = { plane0.a(), plane0.b(), plane0.c() }",
           "file": "intersection.cpp"
         }
       },
@@ -70833,8 +70917,7 @@ window.API_INDEX = {
         "Intersection.plane_4planes",
         "Intersection.plane_4planes_open",
         "Intersection.plane_plane",
-        "Intersection.plane_plane_plane_check",
-        "Intersection.quad_from_line_top_bottom_planes"
+        "Intersection.plane_plane_plane_check"
       ]
     },
     {
@@ -71030,7 +71113,8 @@ window.API_INDEX = {
         "Intersection.plane_4planes_open",
         "Intersection.plane_plane",
         "Intersection.plane_plane_plane",
-        "Intersection.plane_plane_plane_check"
+        "Intersection.plane_plane_plane_check",
+        "Intersection.quad_from_line_top_bottom_planes"
       ]
     },
     {
@@ -71038,15 +71122,17 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "bool plane_4planes_open(const Plane& main_plane, const std::array<Plane, 4>& planes, Polyline& output)",
-          "code": "bool Intersection::plane_4planes_open(const Plane& main_plane, const std::array<Plane, 4>& planes, Polyline& output) {\n    Point p0, p1, p2, p3;\n    if (!plane_plane_plane_check(planes[0], planes[1], main_plane, 0.1, p0)) return false;\n    if (!plane_plane_plane_check(planes[1], planes[2], main_plane, 0.1, p1)) return false;\n    if (!plane_plane_plane_check(planes[2], planes[3], main_plane, 0.1, p2)) return false;\n    if (!plane_plane_plane_check(planes[3], planes[0], main_plane, 0.1, p3)) return false;\n    output = Polyline(std::vector<Point>{\n        p0, p1, p2, p3,\n    }",
+          "code": "bool Intersection::plane_4planes_open(const Plane& main_plane, const std::array<Plane, 4>& planes, Polyline& output) {\n    // Two-step formulation with a stable closed-form plane-plane \u00e2\u2020\u2019 line\n    // step, then line-plane \u00e2\u2020\u2019 point. Each corner pair (A,B):\n    //   1. line direction  = nA \u00c3\u2014 nB\n    //   2. line anchor     = (dA (nB \u00c3\u2014 v) + dB (v \u00c3\u2014 nA)) / |v|\u00c2\u00b2  (closest to origin)\n    //   3. corner          = intersect(line, main_plane)\n    // This replaces the 3-plane determinant (plane_plane_plane_check)\n    // which loses precision under steep fold angles \u00e2\u20ac\u201d source of\n    // vidy_folding's 2-40 mm jv[0] deviations when two side planes are\n    // close to parallel or meet at a grazing angle. `plane_plane` itself\n    // is kept on the original midpoint-bisector formulation to preserve\n    // its published `start`/`end` anchor for existing callers.\n    auto corner = [&](const Plane& a, const Plane& b, Point& out) -> bool {\n        Vector nA = a.z_axis();\n        nA.normalize_self();\n        Vector nB = b.z_axis();\n        nB.normalize_self();\n        Vector v = nA.cross(nB);\n        double v_sq = v.magnitude_squared();\n        if (v_sq < 1e-24) return false;\n        double dA = nA[0]*a.origin()[0] + nA[1]*a.origin()[1] + nA[2]*a.origin()[2];\n        double dB = nB[0]*b.origin()[0] + nB[1]*b.origin()[1] + nB[2]*b.origin()[2];\n        Vector nB_x_v = nB.cross(v);\n        Vector v_x_nA = v.cross(nA);\n        double inv = 1.0 / v_sq;\n        Point anchor(\n            (dA * nB_x_v[0] + dB * v_x_nA[0]) * inv,\n            (dA * nB_x_v[1] + dB * v_x_nA[1]) * inv,\n            (dA * nB_x_v[2] + dB * v_x_nA[2]) * inv\n        );\n        Line l = Line::from_points(anchor, Point(anchor[0]+v[0], anchor[1]+v[1], anchor[2]+v[2]));\n        return line_plane(l, main_plane, out, false);\n    }",
           "file": "intersection.cpp"
         }
       },
       "related": [
+        "Intersection.line_plane",
         "Intersection.plane_4planes",
         "Intersection.plane_plane",
         "Intersection.plane_plane_plane",
-        "Intersection.plane_plane_plane_check"
+        "Intersection.plane_plane_plane_check",
+        "Intersection.quad_from_line_top_bottom_planes"
       ]
     },
     {
@@ -71137,13 +71223,15 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "bool quad_from_line_top_bottom_planes(const Plane& face_plane,\n                                                      const Line& line,\n                                                      const Plane& plane0,\n                                                      const Plane& plane1,\n                                                      Polyline& out)",
-          "code": "bool Intersection::quad_from_line_top_bottom_planes(const Plane& face_plane,\n                                                      const Line& line,\n                                                      const Plane& plane0,\n                                                      const Plane& plane1,\n                                                      Polyline& out) {\n    // End-cap planes perpendicular to the joint line at each endpoint.\n    Vector dir = line.to_vector();\n    Point s = line.start();\n    Plane lp0 = Plane::from_point_normal(s, dir);\n    Vector dir2 = line.to_vector();\n    Point e = line.end();\n    Plane lp1 = Plane::from_point_normal(e, dir2);\n\n    // 4 corners as 3-plane intersections.\n    Point p0, p1, p2, p3;\n    if (!plane_plane_plane(lp0, plane0, face_plane, p0)) return false;\n    if (!plane_plane_plane(lp0, plane1, face_plane, p1)) return false;\n    if (!plane_plane_plane(lp1, plane1, face_plane, p2)) return false;\n    if (!plane_plane_plane(lp1, plane0, face_plane, p3)) return false;\n    out = Polyline(std::vector<Point>{p0, p1, p2, p3, p0}",
+          "code": "bool Intersection::quad_from_line_top_bottom_planes(const Plane& face_plane,\n                                                      const Line& line,\n                                                      const Plane& plane0,\n                                                      const Plane& plane1,\n                                                      Polyline& out) {\n    // End-cap planes perpendicular to the joint line at each endpoint.\n    Vector dir = line.to_vector();\n    Point s = line.start();\n    Plane lp0 = Plane::from_point_normal(s, dir);\n    Vector dir2 = line.to_vector();\n    Point e = line.end();\n    Plane lp1 = Plane::from_point_normal(e, dir2);\n\n    // Two-step formulation: corner = line(topOrBot \u00e2\u02c6\u00a9 face) \u00e2\u02c6\u00a9 endcap. More\n    // numerically stable than the single 3-plane determinant \u00e2\u20ac\u201d source of the\n    // top_to_side_box 0.5 mm x-shift when face_plane and topOrBot meet at\n    // close-to-right-angle. Mirrors the `plane_4planes_open` refactor landed\n    // in Phase 6.2 for vidy_folding.\n    auto corner = [&](const Plane& endcap, const Plane& topOrBot, Point& outp) -> bool {\n        Line l;\n        if (!plane_plane(topOrBot, face_plane, l)) return false;\n        return line_plane(l, endcap, outp, false);\n    }",
           "file": "intersection.cpp"
         }
       },
       "related": [
-        "Intersection.plane_plane",
-        "Intersection.plane_plane_plane"
+        "Intersection.line_plane",
+        "Intersection.plane_4planes",
+        "Intersection.plane_4planes_open",
+        "Intersection.plane_plane"
       ]
     },
     {
@@ -71151,12 +71239,13 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "bool orthogonal_vector_between_two_plane_pairs(const Plane& pp00,\n                                                               const Plane& pp10,\n                                                               const Plane& pp11,\n                                                               Vector& out)",
-          "code": "bool Intersection::orthogonal_vector_between_two_plane_pairs(const Plane& pp00,\n                                                               const Plane& pp10,\n                                                               const Plane& pp11,\n                                                               Vector& out) {\n    // Verbatim port of wood `cgal_intersection_util.cpp:619-628`:\n    //   plane_plane(pp00, pp10, l0);\n    //   plane_plane(pp00, pp11, l1);\n    //   output = l1.point() - l0.projection(l1.point());\n    Line l0, l1;\n    if (!plane_plane(pp00, pp10, l0)) return false;\n    if (!plane_plane(pp00, pp11, l1)) return false;\n    Point p1 = l1.start();\n    Vector ldir = l0.to_vector();\n    double len_sq = ldir[0]*ldir[0] + ldir[1]*ldir[1] + ldir[2]*ldir[2];\n    if (len_sq < 1e-20) return false;\n    Point l0s = l0.start();\n    Vector v(p1[0]-l0s[0], p1[1]-l0s[1], p1[2]-l0s[2]);\n    double t = (v[0]*ldir[0] + v[1]*ldir[1] + v[2]*ldir[2]) / len_sq;\n    Point p1_proj_on_l0(l0s[0]+ldir[0]*t, l0s[1]+ldir[1]*t, l0s[2]+ldir[2]*t);\n    out = Vector(p1[0]-p1_proj_on_l0[0],\n                 p1[1]-p1_proj_on_l0[1],\n                 p1[2]-p1_proj_on_l0[2]);\n    return true;\n}",
+          "code": "bool Intersection::orthogonal_vector_between_two_plane_pairs(const Plane& pp00,\n                                                               const Plane& pp10,\n                                                               const Plane& pp11,\n                                                               Vector& out) {\n    // Verbatim port of wood `cgal_intersection_util.cpp:619-628`:\n    //   plane_plane(pp00, pp10, l0);\n    //   plane_plane(pp00, pp11, l1);\n    //   output = l1.point() - l0.projection(l1.point());\n    // Use the CGAL-canonical anchor variant so `l1.start()` matches\n    // wood's `l1.point()` (foot of perpendicular from world origin);\n    // the downstream perpendicular-projection formula relies on this\n    // anchor choice for parallel-line cases (plate top/bottom face\n    // pairs in ts_e_p_5 \u00e2\u2020\u2019 0.5 mm drift on top_to_side_box).\n    Line l0, l1;\n    if (!plane_plane_to_line_canonical(pp00, pp10, l0)) return false;\n    if (!plane_plane_to_line_canonical(pp00, pp11, l1)) return false;\n    Point p1 = l1.start();\n    Vector ldir = l0.to_vector();\n    double len_sq = ldir[0]*ldir[0] + ldir[1]*ldir[1] + ldir[2]*ldir[2];\n    if (len_sq < 1e-20) return false;\n    Point l0s = l0.start();\n    Vector v(p1[0]-l0s[0], p1[1]-l0s[1], p1[2]-l0s[2]);\n    double t = (v[0]*ldir[0] + v[1]*ldir[1] + v[2]*ldir[2]) / len_sq;\n    Point p1_proj_on_l0(l0s[0]+ldir[0]*t, l0s[1]+ldir[1]*t, l0s[2]+ldir[2]*t);\n    out = Vector(p1[0]-p1_proj_on_l0[0],\n                 p1[1]-p1_proj_on_l0[1],\n                 p1[2]-p1_proj_on_l0[2]);\n    return true;\n}",
           "file": "intersection.cpp"
         }
       },
       "related": [
-        "Intersection.plane_plane"
+        "Intersection.plane_plane",
+        "Intersection.plane_plane_to_line_canonical"
       ]
     },
     {
@@ -71177,7 +71266,33 @@ window.API_INDEX = {
           "code": "std::vector<Polyline> Intersection::polyline_boolean(const Polyline& a, const Polyline& b, int clip_type) {\n    return BooleanPolyline::compute(a, b, clip_type);\n}",
           "file": "intersection.cpp"
         }
+      },
+      "related": [
+        "Intersection.polyline_boolean_2d_in_plane"
+      ]
+    },
+    {
+      "name": "Intersection.offset_in_3d",
+      "implementations": {
+        "cpp": {
+          "sig": "bool offset_in_3d(Polyline& polyline, const Plane& plane, double offset)",
+          "code": "bool Intersection::offset_in_3d(Polyline& polyline, const Plane& plane, double offset) {\n    size_t n_raw = polyline.point_count();\n    if (n_raw < 3) return false;\n\n    Point origin = polyline.get_point(0);\n    // Use plane's canonical in-plane axes (smallest-|coef| pivot rule) so\n    // the 2D projection depends only on the normal, not on how the plane\n    // was constructed. Keeps offset output deterministic across call sites.\n    Vector xax = plane.base1();\n    Vector yax = plane.base2();\n\n    // Project to 2D + strip closing duplicate.\n    struct P2 { double x, y; }",
+          "file": "intersection.cpp"
+        }
       }
+    },
+    {
+      "name": "Intersection.polyline_boolean_2d_in_plane",
+      "implementations": {
+        "cpp": {
+          "sig": "bool polyline_boolean_2d_in_plane(\n    const Polyline& polyline0,\n    const Polyline& polyline1,\n    const Plane& plane,\n    Polyline& intersection_result,\n    int intersection_type,\n    bool include_triangles,\n    double min_area)",
+          "code": "bool Intersection::polyline_boolean_2d_in_plane(\n    const Polyline& polyline0,\n    const Polyline& polyline1,\n    const Plane& plane,\n    Polyline& intersection_result,\n    int intersection_type,\n    bool include_triangles,\n    double min_area)\n{\n    size_t n0 = polyline0.point_count();\n    size_t n1 = polyline1.point_count();\n    if (n0 < 3 || n1 < 3) return false;\n\n    // Project both polylines to the plane's 2D frame (origin = polyline0[0]).\n    // Use base1/base2 (smallest-|coef| pivot rule) for a deterministic frame\n    // that depends only on the plane normal \u00e2\u20ac\u201d avoids frame-rotation bias in\n    // Vatti output vertex ordering.\n    Point origin = polyline0.get_point(0);\n    Vector xax = plane.base1();\n    Vector yax = plane.base2();\n\n    auto to_2d_polyline = [&](const Polyline& pl) -> Polyline {\n        size_t n = pl.point_count();\n        std::vector<Point> pts2d;\n        pts2d.reserve(n + 1);\n        for (size_t i = 0; i < n; ++i) {\n            Point p = pl.get_point(i);\n            double dx = p[0]-origin[0], dy = p[1]-origin[1], dz = p[2]-origin[2];\n            double u = dx*xax[0] + dy*xax[1] + dz*xax[2];\n            double v = dx*yax[0] + dy*yax[1] + dz*yax[2];\n            pts2d.emplace_back(u, v, 0.0);\n        }",
+          "file": "intersection.cpp"
+        }
+      },
+      "related": [
+        "Intersection.polyline_boolean"
+      ]
     },
     {
       "name": "Intersection.face_to_face",
@@ -71205,6 +71320,16 @@ window.API_INDEX = {
         "cpp": {
           "sig": "bool plane_to_face(\n    ElementPlate* a,\n    ElementPlate* b,\n    CrossJoint& result,\n    double angle_tol,\n    const std::array<double,3>& extension)",
           "code": "bool Intersection::plane_to_face(\n    ElementPlate* a,\n    ElementPlate* b,\n    CrossJoint& result,\n    double angle_tol,\n    const std::array<double,3>& extension) {\n\n    if (!a || !b) return false;\n    auto polys_a = a->polylines();\n    auto polys_b = b->polylines();\n    auto planes_a = a->planes();\n    auto planes_b = b->planes();\n    if (polys_a.size() < 2 || polys_b.size() < 2) return false;\n    if (planes_a.size() < 2 || planes_b.size() < 2) return false;\n\n    std::array<Polyline,2> pa{ polys_a[0], polys_a[1] }",
+          "file": "intersection.cpp"
+        }
+      }
+    },
+    {
+      "name": "Intersection.set_cross_joint_distance_squared",
+      "implementations": {
+        "cpp": {
+          "sig": "void set_cross_joint_distance_squared(double dist_sq)",
+          "code": "void Intersection::set_cross_joint_distance_squared(double dist_sq) {\n    g_cross_distance_squared = dist_sq;\n}",
           "file": "intersection.cpp"
         }
       }
@@ -71238,7 +71363,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "int are_points_inside(\n    const Polyline& polygon,\n    const Plane& plane,\n    const std::vector<Point>& test_points,\n    std::vector<int>& inside_indices_out)",
-          "code": "int Intersection::are_points_inside(\n    const Polyline& polygon,\n    const Plane& plane,\n    const std::vector<Point>& test_points,\n    std::vector<int>& inside_indices_out) {\n\n    // Project polygon + test points to plane local 2D (z=0) using x_axis/y_axis dot products.\n    const Point& o = plane.origin();\n    const Vector& xa = plane.x_axis();\n    const Vector& ya = plane.y_axis();\n\n    auto poly_pts = polygon.get_points();\n    Polyline poly2d;\n    {\n        std::vector<Point> projected;\n        projected.reserve(poly_pts.size());\n        for (const auto& p : poly_pts) {\n            double dx = p[0] - o[0], dy = p[1] - o[1], dz = p[2] - o[2];\n            projected.emplace_back(dx*xa[0]+dy*xa[1]+dz*xa[2],\n                                   dx*ya[0]+dy*ya[1]+dz*ya[2],\n                                   0.0);\n        }",
+          "code": "int Intersection::are_points_inside(\n    const Polyline& polygon,\n    const Plane& plane,\n    const std::vector<Point>& test_points,\n    std::vector<int>& inside_indices_out) {\n\n    // Project polygon + test points to 2D in the plane's canonical\n    // (base1/base2) frame so the classification depends only on the normal.\n    const Point& o = plane.origin();\n    Vector xa = plane.base1();\n    Vector ya = plane.base2();\n\n    auto poly_pts = polygon.get_points();\n    size_t np_raw = poly_pts.size();\n    // Strip closing duplicate if present.\n    if (np_raw > 1) {\n        const Point& f = poly_pts.front();\n        const Point& l = poly_pts.back();\n        if (std::fabs(f[0]-l[0])<1e-12 && std::fabs(f[1]-l[1])<1e-12 && std::fabs(f[2]-l[2])<1e-12)\n            np_raw--;\n    }",
           "file": "intersection.cpp"
         }
       },
@@ -71251,7 +71376,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "bool polyline_plane_cross_joint(\n    const Polyline& c0,\n    const Polyline& c1,\n    const Plane& p0,\n    const Plane& p1,\n    Line& contact_out,\n    std::pair<int,int>& edge_pair_out)",
-          "code": "bool Intersection::polyline_plane_cross_joint(\n    const Polyline& c0,\n    const Polyline& c1,\n    const Plane& p0,\n    const Plane& p1,\n    Line& contact_out,\n    std::pair<int,int>& edge_pair_out) {\n\n    // c0 vs p1\n    std::vector<Point> pts0;\n    std::vector<int> edge_ids_0;\n    if (!polyline_plane(c0, p1, pts0, edge_ids_0)) return false;\n\n    // c1 vs p0\n    std::vector<Point> pts1;\n    std::vector<int> edge_ids_1;\n    if (!polyline_plane(c1, p0, pts1, edge_ids_1)) return false;\n\n    if (pts0.size() < 2 || pts1.size() < 2) return false;\n\n    // Filter to points actually inside the other polygon (using its plane).\n    std::vector<int> ID1;\n    int count0 = are_points_inside(c0, p0, pts1, ID1);\n\n    std::vector<int> ID0;\n    int count1 = are_points_inside(c1, p1, pts0, ID0);\n\n    if (count0 == 0 && count1 == 0) return false;\n\n    if (std::abs(count0 - count1) == 2) {\n        // Rectangle curve fully inside the other rectangle curve.\n        if (count0 == 2) {\n            contact_out = Line::from_points(pts0[0], pts0[1]);\n            edge_pair_out = std::pair<int,int>(edge_ids_0[0], edge_ids_0[1]);\n        }",
+          "code": "bool Intersection::polyline_plane_cross_joint(\n    const Polyline& c0,\n    const Polyline& c1,\n    const Plane& p0,\n    const Plane& p1,\n    Line& contact_out,\n    std::pair<int,int>& edge_pair_out) {\n\n    // c0 vs p1 \u00e2\u20ac\u201d uses wood's near-coplanar rejection (DISTANCE_SQUARED=0.01).\n    std::vector<Point> pts0;\n    std::vector<int> edge_ids_0;\n    if (!polyline_plane_cross(c0, p1, pts0, edge_ids_0)) return false;\n\n    // c1 vs p0\n    std::vector<Point> pts1;\n    std::vector<int> edge_ids_1;\n    if (!polyline_plane_cross(c1, p0, pts1, edge_ids_1)) return false;\n\n    if (pts0.size() < 2 || pts1.size() < 2) return false;\n\n    // Filter to points actually inside the other polygon (using its plane).\n    std::vector<int> ID1;\n    int count0 = are_points_inside(c0, p0, pts1, ID1);\n\n    std::vector<int> ID0;\n    int count1 = are_points_inside(c1, p1, pts0, ID0);\n\n    if (count0 == 0 && count1 == 0) return false;\n\n    if (std::abs(count0 - count1) == 2) {\n        // Rectangle curve fully inside the other rectangle curve.\n        if (count0 == 2) {\n            contact_out = Line::from_points(pts0[0], pts0[1]);\n            edge_pair_out = std::pair<int,int>(edge_ids_0[0], edge_ids_0[1]);\n        }",
           "file": "intersection.cpp"
         }
       },
@@ -71280,19 +71405,6 @@ window.API_INDEX = {
           "file": "intersection.cpp"
         }
       }
-    },
-    {
-      "name": "std.abs",
-      "implementations": {
-        "cpp": {
-          "sig": "return abs(a - b)",
-          "code": "return std::abs(a - b) <= angular();\n}",
-          "file": "tolerance.cpp"
-        }
-      },
-      "related": [
-        "std.fabs"
-      ]
     },
     {
       "name": "std.hypot",
@@ -74773,7 +74885,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "Objects(std::string name = \"my_objects\")",
-          "code": "Objects(std::string name = \"my_objects\") : name(std::move(name)) {\n    // Initialize all geometry collections\n    this->points = std::make_shared<std::vector<std::shared_ptr<Point>>>();\n    this->lines = std::make_shared<std::vector<std::shared_ptr<Line>>>();\n    this->planes = std::make_shared<std::vector<std::shared_ptr<Plane>>>();\n    this->bboxes = std::make_shared<std::vector<std::shared_ptr<OBB>>>();\n    this->polylines = std::make_shared<std::vector<std::shared_ptr<Polyline>>>();\n    this->pointclouds = std::make_shared<std::vector<std::shared_ptr<PointCloud>>>();\n    this->meshes = std::make_shared<std::vector<std::shared_ptr<Mesh>>>();\n    this->nurbscurves = std::make_shared<std::vector<std::shared_ptr<NurbsCurve>>>();\n    this->nurbssurfaces = std::make_shared<std::vector<std::shared_ptr<NurbsSurface>>>();\n    this->breps = std::make_shared<std::vector<std::shared_ptr<BRep>>>();\n    this->elements = std::make_shared<std::vector<std::shared_ptr<Element>>>();\n  }",
+          "code": "Objects(std::string name = \"my_objects\") : name(std::move(name)) {\n    // Initialize all geometry collections\n    this->points = std::make_shared<std::vector<std::shared_ptr<Point>>>();\n    this->lines = std::make_shared<std::vector<std::shared_ptr<Line>>>();\n    this->planes = std::make_shared<std::vector<std::shared_ptr<Plane>>>();\n    this->bboxes = std::make_shared<std::vector<std::shared_ptr<OBB>>>();\n    this->polylines = std::make_shared<std::vector<std::shared_ptr<Polyline>>>();\n    this->pointclouds = std::make_shared<std::vector<std::shared_ptr<PointCloud>>>();\n    this->meshes = std::make_shared<std::vector<std::shared_ptr<Mesh>>>();\n    this->nurbscurves = std::make_shared<std::vector<std::shared_ptr<NurbsCurve>>>();\n    this->nurbssurfaces = std::make_shared<std::vector<std::shared_ptr<NurbsSurface>>>();\n    this->breps = std::make_shared<std::vector<std::shared_ptr<BRep>>>();\n    this->elements   = std::make_shared<std::vector<std::shared_ptr<Element>>>();\n    this->components = std::make_shared<std::vector<Component>>();\n  }",
           "file": "objects.h"
         }
       },
@@ -74880,7 +74992,8 @@ window.API_INDEX = {
         "Objects.format",
         "Objects.json_load",
         "Objects.json_loads",
-        "Objects.pb_load"
+        "Objects.pb_load",
+        "Objects.pb_loads"
       ]
     },
     {
@@ -75003,6 +75116,41 @@ window.API_INDEX = {
         "Plane.d",
         "Plane.origin",
         "Plane.projection",
+        "Plane.z_axis"
+      ]
+    },
+    {
+      "name": "Plane.base1",
+      "implementations": {
+        "cpp": {
+          "sig": "Vector base1()",
+          "code": "Vector Plane::base1() const {\n    const Vector& n = z_axis();\n    double nx = n[0], ny = n[1], nz = n[2];\n    double ax = std::fabs(nx), ay = std::fabs(ny), az = std::fabs(nz);\n    Vector b;\n    if (ax <= ay && ax <= az)      b = Vector(0.0, -nz, ny);\n    else if (ay <= ax && ay <= az) b = Vector(-nz, 0.0, nx);\n    else                            b = Vector(-ny, nx, 0.0);\n    b.normalize_self();\n    return b;\n}",
+          "file": "plane.cpp"
+        }
+      },
+      "related": [
+        "Plane.a",
+        "Plane.b",
+        "Plane.base2",
+        "Plane.c",
+        "Plane.d",
+        "Plane.z_axis"
+      ]
+    },
+    {
+      "name": "Plane.base2",
+      "implementations": {
+        "cpp": {
+          "sig": "Vector base2()",
+          "code": "Vector Plane::base2() const {\n    Vector b1 = base1();\n    const Vector& n = z_axis();\n    Vector b2(\n        n[1]*b1[2] - n[2]*b1[1],\n        n[2]*b1[0] - n[0]*b1[2],\n        n[0]*b1[1] - n[1]*b1[0]\n    );\n    b2.normalize_self();\n    return b2;\n}",
+          "file": "plane.cpp"
+        }
+      },
+      "related": [
+        "Plane.a",
+        "Plane.b",
+        "Plane.base1",
+        "Plane.c",
         "Plane.z_axis"
       ]
     },
@@ -75906,6 +76054,7 @@ window.API_INDEX = {
       "related": [
         "Polyline.__setitem__",
         "Polyline.add_point",
+        "Polyline.extend_segment",
         "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.insert_point",
@@ -77944,9 +78093,9 @@ window.API_INDEX = {
         "Session.__str__",
         "Session._add_object",
         "Session._compute_bounding_box",
-        "Session._tag_layer",
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
         "Session.add_feature",
@@ -77965,6 +78114,7 @@ window.API_INDEX = {
         "Session.cache_geometry_aabb",
         "Session.compute_face_to_face",
         "Session.constructor",
+        "Session.find_group",
         "Session.get_children",
         "Session.get_collisions",
         "Session.get_geometry",
@@ -77984,8 +78134,7 @@ window.API_INDEX = {
         "Session.pb_loads",
         "Session.ray_cast",
         "Session.rebuild_ray_bvh_cache",
-        "Session.remove_object",
-        "Session.set_layer"
+        "Session.remove_object"
       ]
     },
     {
@@ -78070,11 +78219,26 @@ window.API_INDEX = {
         "Session.__jsonload__",
         "Session.__repr__",
         "Session.__str__",
+        "Session._add_object",
+        "Session.add_brep",
+        "Session.add_component",
+        "Session.add_element",
+        "Session.add_line",
+        "Session.add_mesh",
+        "Session.add_nurbscurve",
+        "Session.add_nurbssurface",
+        "Session.add_obb",
+        "Session.add_plane",
+        "Session.add_point",
+        "Session.add_pointcloud",
+        "Session.add_polyline",
         "Session.guid",
         "Session.json_dump",
         "Session.json_dumps",
         "Session.json_loads",
         "Session.new",
+        "Session.pb_dump",
+        "Session.pb_load",
         "Session.str"
       ]
     },
@@ -78098,12 +78262,27 @@ window.API_INDEX = {
         "Session.__jsonload__",
         "Session.__repr__",
         "Session.__str__",
+        "Session._add_object",
+        "Session.add_brep",
+        "Session.add_component",
+        "Session.add_element",
+        "Session.add_line",
+        "Session.add_mesh",
+        "Session.add_nurbscurve",
+        "Session.add_nurbssurface",
+        "Session.add_obb",
+        "Session.add_plane",
+        "Session.add_point",
+        "Session.add_pointcloud",
+        "Session.add_polyline",
         "Session.guid",
         "Session.json_dump",
         "Session.json_dumps",
         "Session.json_load",
         "Session.json_loads",
         "Session.new",
+        "Session.pb_dump",
+        "Session.pb_load",
         "Session.str"
       ]
     },
@@ -80058,7 +80237,7 @@ window.API_INDEX = {
       "implementations": {
         "rust": {
           "sig": "new(name: &str) -> Self",
-          "code": "pub fn new(name: &str) -> Self {\n        Self {\n            guid: std::sync::OnceLock::new(),\n            name: name.to_string(),\n            kind: ElementKind::Generic,\n            session_transformation: Xform::identity(),\n            geometry: ElementGeometry::None,\n            features: Vec::new(),\n            is_dirty: true,\n            cached_aabb: None,\n            cached_obb: None,\n            cached_collision_mesh: None,\n            cached_point: None,\n            cached_polylines: None,\n            cached_planes: None,\n            cached_edge_vectors: None,\n            cached_axis: None,\n        }\n    }",
+          "code": "pub fn new(name: &str) -> Self {\n        Self::with_transformation(name, Xform::identity())\n    }",
           "file": "element.rs"
         }
       },
@@ -80066,20 +80245,15 @@ window.API_INDEX = {
         "Element.__deepcopy__",
         "Element.aabb",
         "Element.axis",
-        "Element.beam",
-        "Element.cached_aabb",
-        "Element.cached_collision_mesh",
-        "Element.cached_obb",
-        "Element.cached_point",
+        "Element.beam_with_transformation",
         "Element.center_line",
         "Element.collision_mesh",
-        "Element.column",
+        "Element.column_with_transformation",
         "Element.compute_aabb_fast",
         "Element.duplicate",
         "Element.edge_vectors",
-        "Element.from_brep",
-        "Element.from_mesh",
-        "Element.geometry",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
         "Element.guid",
         "Element.is_dirty",
         "Element.json_loads",
@@ -80088,15 +80262,58 @@ window.API_INDEX = {
         "Element.pb_dumps",
         "Element.pb_loads",
         "Element.planes",
-        "Element.plate",
         "Element.plate_default",
-        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
         "Element.point",
         "Element.polygon_normal",
         "Element.polylines",
         "Element.session_geometry",
         "Element.session_transformation",
         "Element.set_polygon",
+        "Element.str",
+        "Element.with_transformation"
+      ]
+    },
+    {
+      "name": "Element.with_transformation",
+      "implementations": {
+        "rust": {
+          "sig": "with_transformation(name: &str, transformation: Xform) -> Self",
+          "code": "pub fn with_transformation(name: &str, transformation: Xform) -> Self {\n        Self {\n            guid: std::sync::OnceLock::new(),\n            name: name.to_string(),\n            kind: ElementKind::Generic,\n            session_transformation: transformation,\n            geometry: ElementGeometry::None,\n            features: Vec::new(),\n            is_dirty: true,\n            cached_aabb: None,\n            cached_obb: None,\n            cached_collision_mesh: None,\n            cached_point: None,\n            cached_polylines: None,\n            cached_planes: None,\n            cached_edge_vectors: None,\n            cached_axis: None,\n        }\n    }",
+          "file": "element.rs"
+        }
+      },
+      "related": [
+        "Element.aabb",
+        "Element.axis",
+        "Element.beam",
+        "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
+        "Element.collision_mesh",
+        "Element.column",
+        "Element.column_with_transformation",
+        "Element.edge_vectors",
+        "Element.from_brep",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh",
+        "Element.from_mesh_with_transformation",
+        "Element.geometry",
+        "Element.guid",
+        "Element.is_dirty",
+        "Element.new",
+        "Element.obb",
+        "Element.planes",
+        "Element.plate",
+        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
+        "Element.point",
+        "Element.polylines",
+        "Element.session_transformation",
         "Element.str"
       ]
     },
@@ -80105,7 +80322,23 @@ window.API_INDEX = {
       "implementations": {
         "rust": {
           "sig": "from_mesh(geometry: Mesh, name: &str) -> Self",
-          "code": "pub fn from_mesh(geometry: Mesh, name: &str) -> Self {\n        Self {\n            guid: std::sync::OnceLock::new(),\n            name: name.to_string(),\n            kind: ElementKind::Generic,\n            session_transformation: Xform::identity(),\n            geometry: ElementGeometry::Mesh(geometry),\n            features: Vec::new(),\n            is_dirty: true,\n            cached_aabb: None,\n            cached_obb: None,\n            cached_collision_mesh: None,\n            cached_point: None,\n            cached_polylines: None,\n            cached_planes: None,\n            cached_edge_vectors: None,\n            cached_axis: None,\n        }\n    }",
+          "code": "pub fn from_mesh(geometry: Mesh, name: &str) -> Self {\n        Self::from_mesh_with_transformation(geometry, name, Xform::identity())\n    }",
+          "file": "element.rs"
+        }
+      },
+      "related": [
+        "Element.from_mesh_with_transformation",
+        "Element.geometry",
+        "Element.str",
+        "Element.with_transformation"
+      ]
+    },
+    {
+      "name": "Element.from_mesh_with_transformation",
+      "implementations": {
+        "rust": {
+          "sig": "from_mesh_with_transformation(geometry: Mesh, name: &str, transformation: Xform) -> Self",
+          "code": "pub fn from_mesh_with_transformation(geometry: Mesh, name: &str, transformation: Xform) -> Self {\n        Self {\n            guid: std::sync::OnceLock::new(),\n            name: name.to_string(),\n            kind: ElementKind::Generic,\n            session_transformation: transformation,\n            geometry: ElementGeometry::Mesh(geometry),\n            features: Vec::new(),\n            is_dirty: true,\n            cached_aabb: None,\n            cached_obb: None,\n            cached_collision_mesh: None,\n            cached_point: None,\n            cached_polylines: None,\n            cached_planes: None,\n            cached_edge_vectors: None,\n            cached_axis: None,\n        }\n    }",
           "file": "element.rs"
         }
       },
@@ -80118,6 +80351,7 @@ window.API_INDEX = {
         "Element.cached_point",
         "Element.collision_mesh",
         "Element.edge_vectors",
+        "Element.from_mesh",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
@@ -80127,7 +80361,8 @@ window.API_INDEX = {
         "Element.point",
         "Element.polylines",
         "Element.session_transformation",
-        "Element.str"
+        "Element.str",
+        "Element.with_transformation"
       ]
     },
     {
@@ -80135,7 +80370,23 @@ window.API_INDEX = {
       "implementations": {
         "rust": {
           "sig": "from_brep(geometry: BRep, name: &str) -> Self",
-          "code": "pub fn from_brep(geometry: BRep, name: &str) -> Self {\n        Self {\n            guid: std::sync::OnceLock::new(),\n            name: name.to_string(),\n            kind: ElementKind::Generic,\n            session_transformation: Xform::identity(),\n            geometry: ElementGeometry::BRep(geometry),\n            features: Vec::new(),\n            is_dirty: true,\n            cached_aabb: None,\n            cached_obb: None,\n            cached_collision_mesh: None,\n            cached_point: None,\n            cached_polylines: None,\n            cached_planes: None,\n            cached_edge_vectors: None,\n            cached_axis: None,\n        }\n    }",
+          "code": "pub fn from_brep(geometry: BRep, name: &str) -> Self {\n        Self::from_brep_with_transformation(geometry, name, Xform::identity())\n    }",
+          "file": "element.rs"
+        }
+      },
+      "related": [
+        "Element.from_brep_with_transformation",
+        "Element.geometry",
+        "Element.str",
+        "Element.with_transformation"
+      ]
+    },
+    {
+      "name": "Element.from_brep_with_transformation",
+      "implementations": {
+        "rust": {
+          "sig": "from_brep_with_transformation(geometry: BRep, name: &str, transformation: Xform) -> Self",
+          "code": "pub fn from_brep_with_transformation(geometry: BRep, name: &str, transformation: Xform) -> Self {\n        Self {\n            guid: std::sync::OnceLock::new(),\n            name: name.to_string(),\n            kind: ElementKind::Generic,\n            session_transformation: transformation,\n            geometry: ElementGeometry::BRep(geometry),\n            features: Vec::new(),\n            is_dirty: true,\n            cached_aabb: None,\n            cached_obb: None,\n            cached_collision_mesh: None,\n            cached_point: None,\n            cached_polylines: None,\n            cached_planes: None,\n            cached_edge_vectors: None,\n            cached_axis: None,\n        }\n    }",
           "file": "element.rs"
         }
       },
@@ -80148,6 +80399,7 @@ window.API_INDEX = {
         "Element.cached_point",
         "Element.collision_mesh",
         "Element.edge_vectors",
+        "Element.from_brep",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
@@ -80157,7 +80409,8 @@ window.API_INDEX = {
         "Element.point",
         "Element.polylines",
         "Element.session_transformation",
-        "Element.str"
+        "Element.str",
+        "Element.with_transformation"
       ]
     },
     {
@@ -80165,12 +80418,31 @@ window.API_INDEX = {
       "implementations": {
         "rust": {
           "sig": "column(width: f64, depth: f64, height: f64, name: &str) -> Self",
-          "code": "pub fn column(width: f64, depth: f64, height: f64, name: &str) -> Self {\n        let kind = ElementKind::Column { width, depth, height };\n        let geometry = ElementGeometry::Mesh(Self::compute_box_geometry(width, depth, height));\n        Self {\n            guid: std::sync::OnceLock::new(),\n            name: name.to_string(),\n            kind,\n            session_transformation: Xform::identity(),\n            geometry,\n            features: Vec::new(),\n            is_dirty: true,\n            cached_aabb: None,\n            cached_obb: None,\n            cached_collision_mesh: None,\n            cached_point: None,\n            cached_polylines: None,\n            cached_planes: None,\n            cached_edge_vectors: None,\n            cached_axis: None,\n        }\n    }",
+          "code": "pub fn column(width: f64, depth: f64, height: f64, name: &str) -> Self {\n        Self::column_with_transformation(width, depth, height, name, Xform::identity())\n    }",
           "file": "element.rs"
         }
       },
       "related": [
-        "Element.ElementColumn",
+        "Element.column_with_transformation",
+        "Element.depth",
+        "Element.height",
+        "Element.jsonload_value",
+        "Element.pb_loads",
+        "Element.str",
+        "Element.width",
+        "Element.with_transformation"
+      ]
+    },
+    {
+      "name": "Element.column_with_transformation",
+      "implementations": {
+        "rust": {
+          "sig": "column_with_transformation(width: f64, depth: f64, height: f64, name: &str, transformation: Xform) -> Self",
+          "code": "pub fn column_with_transformation(width: f64, depth: f64, height: f64, name: &str, transformation: Xform) -> Self {\n        let kind = ElementKind::Column { width, depth, height };\n        let geometry = ElementGeometry::Mesh(Self::compute_box_geometry(width, depth, height));\n        Self {\n            guid: std::sync::OnceLock::new(),\n            name: name.to_string(),\n            kind,\n            session_transformation: transformation,\n            geometry,\n            features: Vec::new(),\n            is_dirty: true,\n            cached_aabb: None,\n            cached_obb: None,\n            cached_collision_mesh: None,\n            cached_point: None,\n            cached_polylines: None,\n            cached_planes: None,\n            cached_edge_vectors: None,\n            cached_axis: None,\n        }\n    }",
+          "file": "element.rs"
+        }
+      },
+      "related": [
         "Element.aabb",
         "Element.axis",
         "Element.cached_aabb",
@@ -80178,22 +80450,22 @@ window.API_INDEX = {
         "Element.cached_obb",
         "Element.cached_point",
         "Element.collision_mesh",
+        "Element.column",
         "Element.depth",
         "Element.edge_vectors",
         "Element.geometry",
         "Element.guid",
         "Element.height",
         "Element.is_dirty",
-        "Element.jsonload_value",
         "Element.new",
         "Element.obb",
-        "Element.pb_loads",
         "Element.planes",
         "Element.point",
         "Element.polylines",
         "Element.session_transformation",
         "Element.str",
-        "Element.width"
+        "Element.width",
+        "Element.with_transformation"
       ]
     },
     {
@@ -80201,14 +80473,34 @@ window.API_INDEX = {
       "implementations": {
         "rust": {
           "sig": "beam(width: f64, depth: f64, length: f64, name: &str) -> Self",
-          "code": "pub fn beam(width: f64, depth: f64, length: f64, name: &str) -> Self {\n        let kind = ElementKind::Beam { width, depth, length };\n        let geometry = ElementGeometry::Mesh(Self::compute_box_geometry(width, depth, length));\n        Self {\n            guid: std::sync::OnceLock::new(),\n            name: name.to_string(),\n            kind,\n            session_transformation: Xform::identity(),\n            geometry,\n            features: Vec::new(),\n            is_dirty: true,\n            cached_aabb: None,\n            cached_obb: None,\n            cached_collision_mesh: None,\n            cached_point: None,\n            cached_polylines: None,\n            cached_planes: None,\n            cached_edge_vectors: None,\n            cached_axis: None,\n        }\n    }",
+          "code": "pub fn beam(width: f64, depth: f64, length: f64, name: &str) -> Self {\n        Self::beam_with_transformation(width, depth, length, name, Xform::identity())\n    }",
           "file": "element.rs"
         }
       },
       "related": [
-        "Element.ElementBeam",
+        "Element.beam_with_transformation",
+        "Element.depth",
+        "Element.jsonload_value",
+        "Element.length",
+        "Element.pb_loads",
+        "Element.str",
+        "Element.width",
+        "Element.with_transformation"
+      ]
+    },
+    {
+      "name": "Element.beam_with_transformation",
+      "implementations": {
+        "rust": {
+          "sig": "beam_with_transformation(width: f64, depth: f64, length: f64, name: &str, transformation: Xform) -> Self",
+          "code": "pub fn beam_with_transformation(width: f64, depth: f64, length: f64, name: &str, transformation: Xform) -> Self {\n        let kind = ElementKind::Beam { width, depth, length };\n        let geometry = ElementGeometry::Mesh(Self::compute_box_geometry(width, depth, length));\n        Self {\n            guid: std::sync::OnceLock::new(),\n            name: name.to_string(),\n            kind,\n            session_transformation: transformation,\n            geometry,\n            features: Vec::new(),\n            is_dirty: true,\n            cached_aabb: None,\n            cached_obb: None,\n            cached_collision_mesh: None,\n            cached_point: None,\n            cached_polylines: None,\n            cached_planes: None,\n            cached_edge_vectors: None,\n            cached_axis: None,\n        }\n    }",
+          "file": "element.rs"
+        }
+      },
+      "related": [
         "Element.aabb",
         "Element.axis",
+        "Element.beam",
         "Element.cached_aabb",
         "Element.cached_collision_mesh",
         "Element.cached_obb",
@@ -80219,17 +80511,16 @@ window.API_INDEX = {
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
-        "Element.jsonload_value",
         "Element.length",
         "Element.new",
         "Element.obb",
-        "Element.pb_loads",
         "Element.planes",
         "Element.point",
         "Element.polylines",
         "Element.session_transformation",
         "Element.str",
-        "Element.width"
+        "Element.width",
+        "Element.with_transformation"
       ]
     },
     {
@@ -80237,12 +80528,35 @@ window.API_INDEX = {
       "implementations": {
         "rust": {
           "sig": "plate(polygon: Vec<Point>, thickness: f64, name: &str) -> Self",
-          "code": "pub fn plate(polygon: Vec<Point>, thickness: f64, name: &str) -> Self {\n        let pts: Vec<Point> = polygon.iter().map(|p| Point::new(p[0], p[1], p[2])).collect();\n        let polygon_top = Self::offset_polygon_top(&pts, thickness);\n        let geometry = ElementGeometry::Mesh(Self::compute_plate_geometry(&pts, thickness));\n        Self {\n            guid: std::sync::OnceLock::new(),\n            name: name.to_string(),\n            kind: ElementKind::Plate { polygon: pts, polygon_top, thickness, joint_types: Vec::new(), j_mf: Vec::new(), key: String::new(), component_plane: None },\n            session_transformation: Xform::identity(),\n            geometry,\n            features: Vec::new(),\n            is_dirty: true,\n            cached_aabb: None,\n            cached_obb: None,\n            cached_collision_mesh: None,\n            cached_point: None,\n            cached_polylines: None,\n            cached_planes: None,\n            cached_edge_vectors: None,\n            cached_axis: None,\n        }\n    }",
+          "code": "pub fn plate(polygon: Vec<Point>, thickness: f64, name: &str) -> Self {\n        Self::plate_with_transformation(polygon, thickness, name, Xform::identity())\n    }",
           "file": "element.rs"
         }
       },
       "related": [
-        "Element.ElementPlate",
+        "Element.jsonload_value",
+        "Element.pb_loads",
+        "Element.plate_default",
+        "Element.plate_from_top_bottom",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
+        "Element.polygon",
+        "Element.set_polygon",
+        "Element.set_thickness",
+        "Element.str",
+        "Element.thickness",
+        "Element.with_transformation"
+      ]
+    },
+    {
+      "name": "Element.plate_with_transformation",
+      "implementations": {
+        "rust": {
+          "sig": "plate_with_transformation(polygon: Vec<Point>, thickness: f64, name: &str, transformation: Xform) -> Self",
+          "code": "pub fn plate_with_transformation(polygon: Vec<Point>, thickness: f64, name: &str, transformation: Xform) -> Self {\n        let pts: Vec<Point> = polygon.iter().map(|p| Point::new(p[0], p[1], p[2])).collect();\n        let polygon_top = Self::offset_polygon_top(&pts, thickness);\n        let geometry = ElementGeometry::Mesh(Self::compute_plate_geometry(&pts, thickness));\n        Self {\n            guid: std::sync::OnceLock::new(),\n            name: name.to_string(),\n            kind: ElementKind::Plate { polygon: pts, polygon_top, thickness, joint_types: Vec::new(), j_mf: Vec::new(), key: String::new(), component_plane: None },\n            session_transformation: transformation,\n            geometry,\n            features: Vec::new(),\n            is_dirty: true,\n            cached_aabb: None,\n            cached_obb: None,\n            cached_collision_mesh: None,\n            cached_point: None,\n            cached_polylines: None,\n            cached_planes: None,\n            cached_edge_vectors: None,\n            cached_axis: None,\n        }\n    }",
+          "file": "element.rs"
+        }
+      },
+      "related": [
         "Element.aabb",
         "Element.axis",
         "Element.cached_aabb",
@@ -80257,14 +80571,11 @@ window.API_INDEX = {
         "Element.is_dirty",
         "Element.j_mf",
         "Element.joint_types",
-        "Element.jsonload_value",
         "Element.key",
         "Element.new",
         "Element.obb",
-        "Element.pb_loads",
         "Element.planes",
-        "Element.plate_default",
-        "Element.plate_from_top_bottom",
+        "Element.plate",
         "Element.point",
         "Element.polygon",
         "Element.polygon_top",
@@ -80272,9 +80583,9 @@ window.API_INDEX = {
         "Element.session_transformation",
         "Element.set_polygon",
         "Element.set_polygon_top",
-        "Element.set_thickness",
         "Element.str",
-        "Element.thickness"
+        "Element.thickness",
+        "Element.with_transformation"
       ]
     },
     {
@@ -80282,7 +80593,25 @@ window.API_INDEX = {
       "implementations": {
         "rust": {
           "sig": "plate_from_top_bottom(bottom: Vec<Point>, top: Vec<Point>, name: &str) -> Self",
-          "code": "pub fn plate_from_top_bottom(bottom: Vec<Point>, top: Vec<Point>, name: &str) -> Self {\n        let mut bot = strip_closing(&bottom);\n        let mut tp = strip_closing(&top);\n        // Ensure bottom normal points toward top\n        let norm = Self::polygon_normal(&bot);\n        let np = bot.len().min(tp.len());\n        let mut d = 0.0;\n        for k in 0..np {\n            d += (tp[k][0] - bot[k][0]) * norm[0]\n               + (tp[k][1] - bot[k][1]) * norm[1]\n               + (tp[k][2] - bot[k][2]) * norm[2];\n        }\n        if d < 0.0 { std::mem::swap(&mut bot, &mut tp); }\n        // Compute thickness from average distance\n        let mut thickness = 0.0;\n        for k in 0..np {\n            let dx = tp[k][0] - bot[k][0];\n            let dy = tp[k][1] - bot[k][1];\n            let dz = tp[k][2] - bot[k][2];\n            thickness += (dx * dx + dy * dy + dz * dz).sqrt();\n        }\n        thickness /= np as f64;\n        let geometry = ElementGeometry::Mesh(Self::compute_plate_geometry_explicit(&bot, &tp));\n        Self {\n            guid: std::sync::OnceLock::new(),\n            name: name.to_string(),\n            kind: ElementKind::Plate { polygon: bot, polygon_top: tp, thickness, joint_types: Vec::new(), j_mf: Vec::new(), key: String::new(), component_plane: None },\n            session_transformation: Xform::identity(),\n            geometry,\n            features: Vec::new(),\n            is_dirty: true,\n            cached_aabb: None,\n            cached_obb: None,\n            cached_collision_mesh: None,\n            cached_point: None,\n            cached_polylines: None,\n            cached_planes: None,\n            cached_edge_vectors: None,\n            cached_axis: None,\n        }\n    }",
+          "code": "pub fn plate_from_top_bottom(bottom: Vec<Point>, top: Vec<Point>, name: &str) -> Self {\n        Self::plate_from_top_bottom_with_transformation(bottom, top, name, Xform::identity())\n    }",
+          "file": "element.rs"
+        }
+      },
+      "related": [
+        "Element.jsonload_value",
+        "Element.pb_loads",
+        "Element.plate",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.str",
+        "Element.with_transformation"
+      ]
+    },
+    {
+      "name": "Element.plate_from_top_bottom_with_transformation",
+      "implementations": {
+        "rust": {
+          "sig": "plate_from_top_bottom_with_transformation(bottom: Vec<Point>, top: Vec<Point>, name: &str, transformation: Xform) -> Self",
+          "code": "pub fn plate_from_top_bottom_with_transformation(bottom: Vec<Point>, top: Vec<Point>, name: &str, transformation: Xform) -> Self {\n        let mut bot = strip_closing(&bottom);\n        let mut tp = strip_closing(&top);\n        // Ensure bottom normal points toward top\n        let norm = Self::polygon_normal(&bot);\n        let np = bot.len().min(tp.len());\n        let mut d = 0.0;\n        for k in 0..np {\n            d += (tp[k][0] - bot[k][0]) * norm[0]\n               + (tp[k][1] - bot[k][1]) * norm[1]\n               + (tp[k][2] - bot[k][2]) * norm[2];\n        }\n        if d < 0.0 { std::mem::swap(&mut bot, &mut tp); }\n        // Compute thickness from average distance\n        let mut thickness = 0.0;\n        for k in 0..np {\n            let dx = tp[k][0] - bot[k][0];\n            let dy = tp[k][1] - bot[k][1];\n            let dz = tp[k][2] - bot[k][2];\n            thickness += (dx * dx + dy * dy + dz * dz).sqrt();\n        }\n        thickness /= np as f64;\n        let geometry = ElementGeometry::Mesh(Self::compute_plate_geometry_explicit(&bot, &tp));\n        Self {\n            guid: std::sync::OnceLock::new(),\n            name: name.to_string(),\n            kind: ElementKind::Plate { polygon: bot, polygon_top: tp, thickness, joint_types: Vec::new(), j_mf: Vec::new(), key: String::new(), component_plane: None },\n            session_transformation: transformation,\n            geometry,\n            features: Vec::new(),\n            is_dirty: true,\n            cached_aabb: None,\n            cached_obb: None,\n            cached_collision_mesh: None,\n            cached_point: None,\n            cached_polylines: None,\n            cached_planes: None,\n            cached_edge_vectors: None,\n            cached_axis: None,\n        }\n    }",
           "file": "element.rs"
         }
       },
@@ -80301,13 +80630,12 @@ window.API_INDEX = {
         "Element.is_dirty",
         "Element.j_mf",
         "Element.joint_types",
-        "Element.jsonload_value",
         "Element.key",
         "Element.new",
         "Element.obb",
-        "Element.pb_loads",
         "Element.planes",
         "Element.plate",
+        "Element.plate_from_top_bottom",
         "Element.point",
         "Element.polygon",
         "Element.polygon_normal",
@@ -80315,7 +80643,8 @@ window.API_INDEX = {
         "Element.polylines",
         "Element.session_transformation",
         "Element.str",
-        "Element.thickness"
+        "Element.thickness",
+        "Element.with_transformation"
       ]
     },
     {
@@ -80430,9 +80759,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementBeam",
-        "Element.ElementColumn",
-        "Element.ElementPlate",
         "Element.geometry_type_name",
         "Element.jsonload_value",
         "Element.repr",
@@ -80449,9 +80775,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Element.ElementBeam",
-        "Element.ElementColumn",
-        "Element.ElementPlate",
         "Element.beam",
         "Element.column",
         "Element.component_plane",
@@ -81476,6 +81799,46 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Component.guid",
+      "implementations": {
+        "rust": {
+          "sig": "guid() -> &str",
+          "code": "pub fn guid(&self) -> &str { &self.guid }",
+          "file": "objects.rs"
+        }
+      },
+      "related": [
+        "Component.pb_dumps",
+        "Component.pb_loads"
+      ]
+    },
+    {
+      "name": "Component.pb_dumps",
+      "implementations": {
+        "rust": {
+          "sig": "pb_dumps() -> Vec<u8>",
+          "code": "pub fn pb_dumps(&self) -> Vec<u8> {\n        use prost::Message;\n        let proto = crate::proto::Component {\n            type_name: self.type_name.clone(),\n            guid: self.guid.clone(),\n            name: self.name.clone(),\n            json_data: serde_json::to_string(&self.extra).unwrap_or_default(),\n        };\n        proto.encode_to_vec()\n    }",
+          "file": "objects.rs"
+        }
+      },
+      "related": [
+        "Component.guid"
+      ]
+    },
+    {
+      "name": "Component.pb_loads",
+      "implementations": {
+        "rust": {
+          "sig": "pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>>",
+          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n        let proto = crate::proto::Component::decode(data)?;\n        let extra: std::collections::HashMap<String, serde_json::Value> =\n            serde_json::from_str(&proto.json_data).unwrap_or_default();\n        Ok(Component {\n            type_name: proto.type_name,\n            guid: proto.guid,\n            name: proto.name,\n            extra,\n        })\n    }",
+          "file": "objects.rs"
+        }
+      },
+      "related": [
+        "Component.guid"
+      ]
+    },
+    {
       "name": "Objects.set_guid",
       "implementations": {
         "rust": {
@@ -82129,6 +82492,7 @@ window.API_INDEX = {
       "related": [
         "Session.add",
         "Session.add_brep",
+        "Session.add_component",
         "Session.add_element",
         "Session.add_group",
         "Session.add_line",
@@ -90151,7 +90515,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Objects\", \"Constructor\")",
-          "code": "MINI_TEST!(\"Objects\", \"Constructor\", crate::objects_test::run_objects_constructor);\nREGISTER_MINI_TEST!(\"Objects\", \"Json Roundtrip\", crate::objects_test::run_objects_json_roundtrip);\nREGISTER_MINI_TEST!(\"Objects\", \"Protobuf Roundtrip\", crate::objects_test::run_objects_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"Objects\", \"Constructor\",                crate::objects_test::run_objects_constructor);\nREGISTER_MINI_TEST!(\"Objects\", \"Json Roundtrip\",             crate::objects_test::run_objects_json_roundtrip);\nREGISTER_MINI_TEST!(\"Objects\", \"Protobuf Roundtrip\",         crate::objects_test::run_objects_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Objects\", \"Component Constructor\",      crate::objects_test::run_objects_component_constructor);\nREGISTER_MINI_TEST!(\"Objects\", \"Component Json Roundtrip\",   crate::objects_test::run_objects_component_json_roundtrip);\nREGISTER_MINI_TEST!(\"Objects\", \"Component Protobuf Roundtrip\", crate::objects_test::run_objects_component_protobuf_roundtrip);",
           "file": "objects_test.rs"
         }
       }
@@ -90171,7 +90535,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Objects\", \"Json Roundtrip\")",
-          "code": "MINI_TEST!(\"Objects\", \"Json Roundtrip\", crate::objects_test::run_objects_json_roundtrip);\nREGISTER_MINI_TEST!(\"Objects\", \"Protobuf Roundtrip\", crate::objects_test::run_objects_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"Objects\", \"Json Roundtrip\",             crate::objects_test::run_objects_json_roundtrip);\nREGISTER_MINI_TEST!(\"Objects\", \"Protobuf Roundtrip\",         crate::objects_test::run_objects_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Objects\", \"Component Constructor\",      crate::objects_test::run_objects_component_constructor);\nREGISTER_MINI_TEST!(\"Objects\", \"Component Json Roundtrip\",   crate::objects_test::run_objects_component_json_roundtrip);\nREGISTER_MINI_TEST!(\"Objects\", \"Component Protobuf Roundtrip\", crate::objects_test::run_objects_component_protobuf_roundtrip);",
           "file": "objects_test.rs"
         }
       }
@@ -90186,13 +90550,63 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Objects\", \"Protobuf Roundtrip\")",
-          "code": "@MINI_TEST(\"Objects\", \"Protobuf Roundtrip\")\ndef test_objects_protobuf_roundtrip():\n    from session_py import Objects\n    from session_py import Point\n    from pathlib import Path\n\n    original = Objects()\n    original.points.append(Point(1.0, 2.0, 3.0))\n    original.points.append(Point(4.0, 5.0, 6.0))\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_objects.bin\"\n    original.pb_dump(fname)\n    loaded = Objects.pb_load(fname)\n\n    MINI_CHECK(len(loaded.points) == len(original.points))\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "code": "@MINI_TEST(\"Objects\", \"Protobuf Roundtrip\")\ndef test_objects_protobuf_roundtrip():\n    from session_py import Objects\n    from session_py import Point\n    from pathlib import Path\n\n    original = Objects()\n    original.points.append(Point(1.0, 2.0, 3.0))\n    original.points.append(Point(4.0, 5.0, 6.0))\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_objects.bin\"\n    original.pb_dump(fname)\n    loaded = Objects.pb_load(fname)\n\n    MINI_CHECK(len(loaded.points) == len(original.points))",
           "file": "objects_test.py"
         },
         "rust": {
           "sig": "MINI_TEST!(\"Objects\", \"Protobuf Roundtrip\")",
-          "code": "MINI_TEST!(\"Objects\", \"Protobuf Roundtrip\", crate::objects_test::run_objects_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"Objects\", \"Protobuf Roundtrip\",         crate::objects_test::run_objects_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Objects\", \"Component Constructor\",      crate::objects_test::run_objects_component_constructor);\nREGISTER_MINI_TEST!(\"Objects\", \"Component Json Roundtrip\",   crate::objects_test::run_objects_component_json_roundtrip);\nREGISTER_MINI_TEST!(\"Objects\", \"Component Protobuf Roundtrip\", crate::objects_test::run_objects_component_protobuf_roundtrip);",
           "file": "objects_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Objects.test_Component Constructor",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Objects\", \"Component Constructor\")",
+          "code": "MINI_TEST(\"Objects\", \"Component Constructor\") {\n    // Component is a generic envelope for custom domain objects.\n    // type_name identifies the class; extra holds all custom fields as JSON.\n    Component c;\n    c.type_name = \"FloorBuilder\";\n    c.name      = \"floor_builder\";\n    c.extra     = {{\"size\", 3000}, {\"height\", 650}};\n\n    MINI_CHECK(c.type_name == \"FloorBuilder\");\n    MINI_CHECK(c.name == \"floor_builder\");\n    MINI_CHECK(!c.guid().empty());\n    MINI_CHECK(c.extra[\"size\"] == 3000);\n}",
+          "file": "objects_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Objects\", \"Component Constructor\")",
+          "code": "@MINI_TEST(\"Objects\", \"Component Constructor\")\ndef test_objects_component_constructor():\n    # A Component is any object with guid + name + __jsondump__/__jsonload__.\n    # Here we use a minimal inline class to keep the test self-contained.\n    import uuid\n    from session_py.encoders import register_class\n\n    class Box:\n        def __init__(self, width=1.0, height=2.0):\n            self._guid = str(uuid.uuid4())\n            self.name = \"my_box\"\n            self.width = width\n            self.height = height\n        @property\n        def guid(self): return self._guid\n        def __jsondump__(self):\n            return {\"type\": \"Box\", \"guid\": self.guid, \"name\": self.name,\n                    \"width\": self.width, \"height\": self.height}\n        @classmethod\n        def __jsonload__(cls, data, guid=None, name=None):\n            obj = cls(data[\"width\"], data[\"height\"])\n            obj._guid = guid or data.get(\"guid\", obj._guid)\n            obj.name  = name or data.get(\"name\", obj.name)\n            return obj\n\n    register_class(\"Box\", Box)\n\n    box = Box(width=3.0, height=5.0)\n    MINI_CHECK(len(box.guid) > 0)\n    MINI_CHECK(box.name == \"my_box\")\n    MINI_CHECK(box.width == 3.0)",
+          "file": "objects_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Objects\", \"Component Constructor\")",
+          "code": "MINI_TEST!(\"Objects\", \"Component Constructor\",      crate::objects_test::run_objects_component_constructor);\nREGISTER_MINI_TEST!(\"Objects\", \"Component Json Roundtrip\",   crate::objects_test::run_objects_component_json_roundtrip);\nREGISTER_MINI_TEST!(\"Objects\", \"Component Protobuf Roundtrip\", crate::objects_test::run_objects_component_protobuf_roundtrip);",
+          "file": "objects_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Objects.test_Component Json Roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Objects\", \"Component Json Roundtrip\")",
+          "code": "MINI_TEST(\"Objects\", \"Component Json Roundtrip\") {\n    // Round-trip a Component through JSON: all custom fields must survive.\n    Component original;\n    original.type_name = \"FloorBuilder\";\n    original.name      = \"floor_builder\";\n    original.extra     = {{\"size\", 3000}, {\"height\", 650}, {\"rise\", 453}};\n    std::string original_guid = original.guid();\n\n    // jsondump produces a flat dict: type/guid/name + all extra fields\n    auto j = original.jsondump();\n    MINI_CHECK(j[\"type\"]   == \"FloorBuilder\");\n    MINI_CHECK(j[\"guid\"]   == original_guid);\n    MINI_CHECK(j[\"size\"]   == 3000);\n    MINI_CHECK(j[\"height\"] == 650);\n\n    // jsonload reconstructs the Component from that dict\n    Component loaded = Component::jsonload(j);\n    MINI_CHECK(loaded.type_name        == \"FloorBuilder\");\n    MINI_CHECK(loaded.guid()           == original_guid);\n    MINI_CHECK(loaded.extra[\"size\"]    == 3000);\n    MINI_CHECK(loaded.extra[\"rise\"]    == 453);\n}",
+          "file": "objects_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Objects\", \"Component Json Roundtrip\")",
+          "code": "@MINI_TEST(\"Objects\", \"Component Json Roundtrip\")\ndef test_objects_component_json_roundtrip():\n    import uuid\n    from session_py import Objects\n    from session_py.encoders import register_class\n    from pathlib import Path\n\n    class Box:\n        def __init__(self, width=1.0, height=2.0):\n            self._guid = str(uuid.uuid4())\n            self.name = \"my_box\"\n            self.width = width\n            self.height = height\n        @property\n        def guid(self): return self._guid\n        def __jsondump__(self):\n            return {\"type\": \"Box\", \"guid\": self.guid, \"name\": self.name,\n                    \"width\": self.width, \"height\": self.height}\n        @classmethod\n        def __jsonload__(cls, data, guid=None, name=None):\n            obj = cls(data[\"width\"], data[\"height\"])\n            obj._guid = guid or data.get(\"guid\", obj._guid)\n            obj.name  = name or data.get(\"name\", obj.name)\n            return obj\n\n    register_class(\"Box\", Box)\n\n    original = Objects()\n    box = Box(width=3.0, height=5.0)\n    original.components.append(box)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_objects_component.json\"\n    original.json_dump(str(fname))\n    loaded = Objects.json_load(str(fname))\n\n    MINI_CHECK(len(loaded.components) == 1)\n    MINI_CHECK(isinstance(loaded.components[0], Box))\n    MINI_CHECK(loaded.components[0].width == 3.0)\n    MINI_CHECK(loaded.components[0].height == 5.0)\n    MINI_CHECK(loaded.components[0].guid == box.guid)",
+          "file": "objects_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Objects\", \"Component Json Roundtrip\")",
+          "code": "MINI_TEST!(\"Objects\", \"Component Json Roundtrip\",   crate::objects_test::run_objects_component_json_roundtrip);\nREGISTER_MINI_TEST!(\"Objects\", \"Component Protobuf Roundtrip\", crate::objects_test::run_objects_component_protobuf_roundtrip);",
+          "file": "objects_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Objects.test_Objects Component Json Roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Objects\", \"Objects Component Json Roundtrip\")",
+          "code": "MINI_TEST(\"Objects\", \"Objects Component Json Roundtrip\") {\n    // An Objects collection serializes components alongside geometry.\n    Objects original;\n    Component c;\n    c.type_name = \"FloorBuilder\";\n    c.name      = \"floor_builder\";\n    c.extra     = {{\"size\", 3000}, {\"height\", 650}};\n    // Pin the guid before push_back so both sides of the later equality have\n    // the same value. Otherwise `c.guid()` after the push copy lazily\n    // generates a fresh random guid on `c` that differs from the one cached\n    // on original.components->at(0) during dump.\n    std::string expected_guid = c.guid();\n    original.components->push_back(c);\n\n    std::string filename = \"serialization/test_objects_component.json\";\n    encoders::json_dump(original, filename);\n    Objects loaded = encoders::json_load<Objects>(filename);\n\n    MINI_CHECK(loaded.components->size() == 1);\n    MINI_CHECK(loaded.components->at(0).type_name        == \"FloorBuilder\");\n    MINI_CHECK(loaded.components->at(0).extra[\"size\"]    == 3000);\n    MINI_CHECK(loaded.components->at(0).guid()           == expected_guid);\n}",
+          "file": "objects_test.cpp"
         }
       }
     },
@@ -93991,7 +94405,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Constructor\")",
-          "code": "MINI_TEST!(\"Session\", \"Constructor\", crate::session_test::run_session_constructor);\nREGISTER_MINI_TEST!(\"Session\", \"Add Point\", crate::session_test::run_session_add_point);\nREGISTER_MINI_TEST!(\"Session\", \"Add Line\", crate::session_test::run_session_add_line);\nREGISTER_MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Constructor\", crate::session_test::run_session_constructor);\nREGISTER_MINI_TEST!(\"Session\", \"Add Point\", crate::session_test::run_session_add_point);\nREGISTER_MINI_TEST!(\"Session\", \"Add Line\", crate::session_test::run_session_add_line);\nREGISTER_MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94011,7 +94425,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Point\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Point\", crate::session_test::run_session_add_point);\nREGISTER_MINI_TEST!(\"Session\", \"Add Line\", crate::session_test::run_session_add_line);\nREGISTER_MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Add Point\", crate::session_test::run_session_add_point);\nREGISTER_MINI_TEST!(\"Session\", \"Add Line\", crate::session_test::run_session_add_line);\nREGISTER_MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94031,7 +94445,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Line\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Line\", crate::session_test::run_session_add_line);\nREGISTER_MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Add Line\", crate::session_test::run_session_add_line);\nREGISTER_MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94051,7 +94465,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Plane\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94071,7 +94485,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add OBB\")",
-          "code": "MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94091,7 +94505,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Polyline\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94111,7 +94525,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Pointcloud\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94131,7 +94545,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Mesh\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94181,7 +94595,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Brep\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94201,7 +94615,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Element\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94221,7 +94635,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Group\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94241,7 +94655,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Edge\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94271,7 +94685,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Hierarchy\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94291,7 +94705,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Get Children\")",
-          "code": "MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94311,7 +94725,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Relationship\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94331,7 +94745,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Get Neighbours\")",
-          "code": "MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94351,7 +94765,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Get Collisions\")",
-          "code": "MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94371,7 +94785,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Ray Cast\")",
-          "code": "MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94391,7 +94805,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Get Object\")",
-          "code": "MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94411,7 +94825,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Remove Object\")",
-          "code": "MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94431,7 +94845,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Get Geometry\")",
-          "code": "MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94451,7 +94865,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Compute Face To Face\")",
-          "code": "MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94471,7 +94885,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Json Roundtrip\")",
-          "code": "MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94491,7 +94905,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Protobuf Roundtrip\")",
-          "code": "MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -94511,7 +94925,42 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\")",
-          "code": "MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);",
+          "code": "MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
+          "file": "session_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Session.test_Add Component",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Session\", \"Add Component\")",
+          "code": "MINI_TEST(\"Session\", \"Add Component\") {\n    // add_component stores a custom domain object in the session.\n    // It is indexed by guid in component_lookup and registered in the graph.\n    // uncomment #include \"session.h\"\n\n    Session session;\n\n    Component c;\n    c.type_name = \"FloorBuilder\";\n    c.name      = \"floor_builder\";\n    c.extra     = {{\"size\", 3000}, {\"height\", 650}};\n    std::string guid = c.guid();\n\n    session.add_component(c);\n\n    MINI_CHECK(session.objects.components->size() == 1);\n    MINI_CHECK(session.component_lookup.count(guid) == 1);\n    MINI_CHECK(session.graph.has_node(guid));\n}",
+          "file": "session_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Session\", \"Add Component\")",
+          "code": "@MINI_TEST(\"Session\", \"Add Component\")\ndef test_session_add_component():\n    import uuid\n    from session_py.session import Session\n    from session_py.encoders import register_class\n\n    class Box:\n        def __init__(self, width=1.0, height=2.0):\n            self._guid = str(uuid.uuid4())\n            self.name = \"my_box\"\n            self.width = width\n            self.height = height\n        @property\n        def guid(self): return self._guid\n        def __jsondump__(self):\n            return {\"type\": \"Box\", \"guid\": self.guid, \"name\": self.name,\n                    \"width\": self.width, \"height\": self.height}\n        @classmethod\n        def __jsonload__(cls, data, guid=None, name=None):\n            obj = cls(data[\"width\"], data[\"height\"])\n            obj._guid = guid or data.get(\"guid\", obj._guid)\n            obj.name  = name or data.get(\"name\", obj.name)\n            return obj\n\n    register_class(\"Box\", Box)\n\n    session = Session()\n    box = Box(width=3.0, height=5.0)\n    guid = box.guid\n\n    session.add_component(box)\n\n    MINI_CHECK(len(session.objects.components) == 1)\n    MINI_CHECK(session.lookup[guid] is box)\n    MINI_CHECK(session.graph.has_node(guid))\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "file": "objects_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Session\", \"Add Component\")",
+          "code": "MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
+          "file": "session_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Session.test_Component Json Roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Session\", \"Component Json Roundtrip\")",
+          "code": "MINI_TEST(\"Session\", \"Component Json Roundtrip\") {\n    // A session with a component round-trips through JSON:\n    // the component survives with all custom fields intact.\n    // uncomment #include \"session.h\"\n    // uncomment #include \"encoders.h\"\n\n    Session original;\n    Component c;\n    c.type_name = \"FloorBuilder\";\n    c.name      = \"floor_builder\";\n    c.extra     = {{\"size\", 3000}, {\"height\", 650}, {\"rise\", 453}};\n    std::string guid = c.guid();\n    original.add_component(c);\n\n    std::string filename = \"serialization/test_session_component.json\";\n    encoders::json_dump(original, filename);\n    Session loaded = encoders::json_load<Session>(filename);\n\n    MINI_CHECK(loaded.objects.components->size() == 1);\n    MINI_CHECK(loaded.objects.components->at(0).type_name     == \"FloorBuilder\");\n    MINI_CHECK(loaded.objects.components->at(0).extra[\"size\"] == 3000);\n    MINI_CHECK(loaded.objects.components->at(0).guid()        == guid);\n}",
+          "file": "session_test.cpp"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Session\", \"Component Json Roundtrip\")",
+          "code": "MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -96695,14 +97144,24 @@ window.API_INDEX = {
           "file": "xform_test.rs"
         }
       }
+    },
+    {
+      "name": "Objects.test_Component Protobuf Roundtrip",
+      "implementations": {
+        "rust": {
+          "sig": "MINI_TEST!(\"Objects\", \"Component Protobuf Roundtrip\")",
+          "code": "MINI_TEST!(\"Objects\", \"Component Protobuf Roundtrip\", crate::objects_test::run_objects_component_protobuf_roundtrip);",
+          "file": "objects_test.rs"
+        }
+      }
     }
   ],
   "recipes": [
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "points",
         "into",
+        "points",
         "circle",
         "n",
         "subdivide",
@@ -96719,11 +97178,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "arc",
-        "by",
         "length",
-        "ellipse",
+        "arc",
         "subdivide",
+        "ellipse",
+        "by",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -96737,9 +97196,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "points",
         "through",
         "arc",
+        "points",
         "nurbscurve",
         "primitives",
         "point"
@@ -96753,12 +97212,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "points",
-        "open",
-        "curve",
         "adaptive",
-        "from",
+        "points",
+        "curve",
         "polyline",
+        "from",
+        "open",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -96774,8 +97233,8 @@ window.API_INDEX = {
       "title": "Curve Evaluation at Parameter",
       "tags": [
         "parameter",
-        "curve",
         "evaluation",
+        "curve",
         "at",
         "set_domain",
         "point_at",
@@ -96797,8 +97256,8 @@ window.API_INDEX = {
       "tags": [
         "length",
         "curve",
-        "along",
         "frames",
+        "along",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -96821,8 +97280,8 @@ window.API_INDEX = {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
         "perpendicular",
-        "ellipse",
         "frames",
+        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -96843,10 +97302,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "point",
-        "evaluate",
-        "surface",
         "cylinder",
+        "surface",
+        "evaluate",
+        "point",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -96861,11 +97320,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "mesh",
         "vertices",
-        "from",
         "and",
+        "from",
         "faces",
+        "mesh",
         "add_vertex",
         "add_face",
         "vertex"
@@ -96957,8 +97416,8 @@ window.API_INDEX = {
     "Vector": "A 3D vector with visual properties.",
     "Xform": "Xform geometry class",
     "AABBTree": "AABBTree geometry class",
-    "fmt": "fmt geometry class",
     "std": "std geometry class",
+    "fmt": "fmt geometry class",
     "T": "T geometry class",
     "Intersection": "Intersection geometry class",
     "ColorMode": "ColorMode geometry class",
@@ -96971,6 +97430,7 @@ window.API_INDEX = {
     "FlatMap64": "FlatMap64 geometry class",
     "Sc": "Sc geometry class",
     "Default": "Default geometry class",
+    "Component": "Component geometry class",
     "Geometry": "Geometry geometry class",
     "RayHit": "RayHit geometry class",
     "GlobalSessionConfig": "GlobalSessionConfig geometry class",
@@ -97021,6 +97481,12 @@ window.API_INDEX = {
       ],
       "summary": "Marching squares iso-contour extraction."
     },
+    "GeometryDecoder": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
+    },
     "BooleanPolyline": {
       "composition": [],
       "factories": [],
@@ -97028,12 +97494,6 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "BooleanPolyline geometry class"
-    },
-    "GeometryEncoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
     },
     "GlobalTolerance": {
       "composition": [],
@@ -97045,11 +97505,17 @@ window.API_INDEX = {
       ],
       "summary": "GlobalTolerance geometry class"
     },
-    "GeometryDecoder": {
+    "GeometryEncoder": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
+      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
+    },
+    "_PartitionVars": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_PartitionVars geometry class"
     },
     "TrimmedSurface": {
       "composition": [
@@ -97064,17 +97530,11 @@ window.API_INDEX = {
       ],
       "summary": "TrimmedSurface geometry class"
     },
-    "_PartitionVars": {
+    "CurveKnotStyle": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_PartitionVars geometry class"
-    },
-    "VIntersectNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VIntersectNode geometry class"
+      "summary": "Knot spacing style for interpolated curves (matches Rhino's CurveKnotStyle)."
     },
     "ToleranceGuard": {
       "composition": [],
@@ -97084,17 +97544,11 @@ window.API_INDEX = {
       ],
       "summary": "ToleranceGuard geometry class"
     },
-    "CurveKnotStyle": {
+    "VIntersectNode": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Knot spacing style for interpolated curves (matches Rhino's CurveKnotStyle)."
-    },
-    "SessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SessionConfig geometry class"
+      "summary": "VIntersectNode geometry class"
     },
     "ElementColumn": {
       "composition": [],
@@ -97104,50 +97558,22 @@ window.API_INDEX = {
         "Mesh",
         "Plane",
         "Polyline",
-        "Vector"
+        "Vector",
+        "Xform"
       ],
       "summary": "ElementColumn geometry class"
     },
-    "VLocalMinima": {
+    "SessionConfig": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VLocalMinima geometry class"
+      "summary": "SessionConfig geometry class"
     },
     "BRepLoopType": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepLoopType geometry class"
-    },
-    "ElementPlate": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "ElementPlate geometry class"
-    },
-    "BRepTrimType": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "BRep",
-        "BRepLoopType",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRepTrimType geometry class"
     },
     "Intersection": {
       "composition": [
@@ -97175,17 +97601,47 @@ window.API_INDEX = {
       "uses": [],
       "summary": "VattiScratch geometry class"
     },
+    "BRepTrimType": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "BRep",
+        "BRepLoopType",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRepTrimType geometry class"
+    },
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
+    },
+    "ElementPlate": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "ElementPlate geometry class"
+    },
     "LoftWallFace": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "LoftWallFace geometry class"
-    },
-    "ScanlineHeap": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "ScanlineHeap geometry class"
     },
     "NurbsSurface": {
       "composition": [
@@ -97207,6 +97663,12 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
+    "ScanlineHeap": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "ScanlineHeap geometry class"
+    },
     "ElementBeam": {
       "composition": [],
       "factories": [],
@@ -97215,7 +97677,8 @@ window.API_INDEX = {
         "Mesh",
         "Plane",
         "Polyline",
-        "Vector"
+        "Vector",
+        "Xform"
       ],
       "summary": "ElementBeam geometry class"
     },
@@ -97225,14 +97688,58 @@ window.API_INDEX = {
       "uses": [],
       "summary": "LoftAdjPair geometry class"
     },
-    "ConvexHull": {
+    "Quaternion": {
+      "composition": [
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Plane"
+      ],
+      "summary": "A quaternion for 3D rotations (scalar + vector)."
+    },
+    "NurbsCurve": {
+      "composition": [
+        "Color",
+        "CurveKnotStyle",
+        "Point",
+        "Tolerance"
+      ],
+      "factories": [
+        "AABB",
+        "BRep",
+        "BRepTrimType",
+        "OBB"
+      ],
+      "uses": [
+        "Plane",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
+    },
+    "PointCloud": {
+      "composition": [
+        "Color",
+        "Xform"
+      ],
+      "factories": [
+        "AABB",
+        "OBB"
+      ],
+      "uses": [
+        "Point",
+        "Vector"
+      ],
+      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
+    },
+    "VertexData": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Mesh",
         "Point"
       ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+      "summary": "Vertex data containing position and attributes."
     },
     "Primitives": {
       "composition": [
@@ -97256,86 +97763,20 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Delaunay2D geometry class"
     },
-    "NurbsCurve": {
-      "composition": [
-        "Color",
-        "CurveKnotStyle",
-        "Point",
-        "Tolerance"
-      ],
-      "factories": [
-        "AABB",
-        "BRep",
-        "BRepTrimType",
-        "OBB"
-      ],
-      "uses": [
-        "Plane",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
-    },
     "BRepVertex": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepVertex geometry class"
     },
-    "PointCloud": {
-      "composition": [
-        "Color",
-        "Xform"
-      ],
-      "factories": [
-        "AABB",
-        "OBB"
-      ],
-      "uses": [
-        "Point",
-        "Vector"
-      ],
-      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
-    },
-    "Quaternion": {
-      "composition": [
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Plane"
-      ],
-      "summary": "A quaternion for 3D rotations (scalar + vector)."
-    },
-    "VertexData": {
+    "ConvexHull": {
       "composition": [],
       "factories": [],
       "uses": [
+        "Mesh",
         "Point"
       ],
-      "summary": "Vertex data containing position and attributes."
-    },
-    "_Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay geometry class"
-    },
-    "FlatMap64": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Delaunay2D",
-        "Point",
-        "Vector"
-      ],
-      "summary": "FlatMap64 geometry class"
-    },
-    "VHorzJoin": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzJoin geometry class"
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
     },
     "ColorMode": {
       "composition": [],
@@ -97353,6 +97794,22 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
+    "FlatMap64": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Delaunay2D",
+        "Point",
+        "Vector"
+      ],
+      "summary": "FlatMap64 geometry class"
+    },
+    "VHorzJoin": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzJoin geometry class"
+    },
     "RemeshCDT": {
       "composition": [],
       "factories": [],
@@ -97361,6 +97818,12 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "RemeshCDT geometry class"
+    },
+    "_Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay geometry class"
     },
     "Tolerance": {
       "composition": [],
@@ -97372,26 +97835,38 @@ window.API_INDEX = {
       ],
       "summary": "Tolerance settings for geometric operations."
     },
+    "Component": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Component geometry class"
+    },
     "LoftPanel": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "LoftPanel geometry class"
     },
-    "VHorzSeg": {
-      "composition": [],
+    "TreeNode": {
+      "composition": [
+        "Color"
+      ],
       "factories": [],
       "uses": [],
-      "summary": "VHorzSeg geometry class"
+      "summary": "A node of a tree data structure."
     },
-    "TpmsMode": {
+    "TpmsType": {
       "composition": [],
       "factories": [
-        "MeshIso",
-        "TpmsType"
+        "MeshIso"
       ],
-      "uses": [],
-      "summary": "TpmsMode geometry class"
+      "uses": [
+        "Mesh",
+        "OBB",
+        "Point",
+        "TpmsMode"
+      ],
+      "summary": "TpmsType geometry class"
     },
     "BRepFace": {
       "composition": [],
@@ -97399,17 +97874,31 @@ window.API_INDEX = {
       "uses": [],
       "summary": "BRepFace geometry class"
     },
+    "AABBTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB"
+      ],
+      "summary": "AABBTree geometry class"
+    },
+    "BRepTrim": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepTrim geometry class"
+    },
+    "Geometry": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Geometry geometry class"
+    },
     "BRepLoop": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepLoop geometry class"
-    },
-    "BRepEdge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
     },
     "Polyline": {
       "composition": [
@@ -97443,46 +97932,26 @@ window.API_INDEX = {
       ],
       "summary": "Delaunay geometry class"
     },
-    "TpmsType": {
+    "VHorzSeg": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzSeg geometry class"
+    },
+    "TpmsMode": {
       "composition": [],
       "factories": [
-        "MeshIso"
+        "MeshIso",
+        "TpmsType"
       ],
-      "uses": [
-        "Mesh",
-        "OBB",
-        "Point",
-        "TpmsMode"
-      ],
-      "summary": "TpmsType geometry class"
+      "uses": [],
+      "summary": "TpmsMode geometry class"
     },
-    "BRepTrim": {
+    "BRepEdge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepTrim geometry class"
-    },
-    "AABBTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB"
-      ],
-      "summary": "AABBTree geometry class"
-    },
-    "Geometry": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Geometry geometry class"
-    },
-    "TreeNode": {
-      "composition": [
-        "Color"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A node of a tree data structure."
+      "summary": "BRepEdge geometry class"
     },
     "VVertex": {
       "composition": [],
@@ -97490,15 +97959,61 @@ window.API_INDEX = {
       "uses": [],
       "summary": "VVertex geometry class"
     },
-    "VOutRec": {
+    "VActive": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VOutRec geometry class"
+      "summary": "VActive geometry class"
+    },
+    "BVHNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "BVH",
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "A node in the BVH tree."
+    },
+    "MeshIso": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "OBB",
+        "Point",
+        "TpmsMode",
+        "TpmsType"
+      ],
+      "summary": "MeshIso geometry class"
+    },
+    "_Branch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Branch geometry class"
+    },
+    "Closest": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Static methods for finding closest points between geometry objects."
     },
     "Objects": {
       "composition": [
         "BRep",
+        "Component",
         "Element",
         "Line",
         "Mesh",
@@ -97514,6 +98029,17 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A collection of all geometry objects."
     },
+    "Default": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "Default geometry class"
+    },
     "Element": {
       "composition": [
         "Line",
@@ -97528,17 +98054,9 @@ window.API_INDEX = {
       "uses": [
         "AABB",
         "BRep",
-        "ElementBeam",
-        "ElementColumn",
-        "ElementPlate"
+        "Xform"
       ],
       "summary": "Element geometry class"
-    },
-    "VActive": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VActive geometry class"
     },
     "Session": {
       "composition": [
@@ -97548,6 +98066,7 @@ window.API_INDEX = {
       "factories": [],
       "uses": [
         "BRep",
+        "Component",
         "Element",
         "Geometry",
         "Line",
@@ -97567,67 +98086,11 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "Default": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "Default geometry class"
-    },
-    "MeshIso": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "OBB",
-        "Point",
-        "TpmsMode",
-        "TpmsType"
-      ],
-      "summary": "MeshIso geometry class"
-    },
-    "BVHNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "BVH",
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "A node in the BVH tree."
-    },
-    "Closest": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Static methods for finding closest points between geometry objects."
-    },
-    "_Branch": {
+    "VOutRec": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Branch geometry class"
-    },
-    "VOutPt": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutPt geometry class"
+      "summary": "VOutRec geometry class"
     },
     "Vertex": {
       "composition": [],
@@ -97637,33 +98100,23 @@ window.API_INDEX = {
       ],
       "summary": "A graph vertex with a unique identifier and attribute string."
     },
-    "Matrix": {
+    "RayHit": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Matrix geometry class"
+      "summary": "RayHit geometry class"
+    },
+    "VOutPt": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutPt geometry class"
     },
     "BIVec2": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BIVec2 geometry class"
-    },
-    "KDTree": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [],
-      "uses": [
-        "_Node"
-      ],
-      "summary": "KD-tree for point-to-point nearest-neighbor queries."
-    },
-    "RayHit": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RayHit geometry class"
     },
     "Vector": {
       "composition": [
@@ -97678,17 +98131,53 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A 3D vector with visual properties."
     },
+    "KDTree": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [],
+      "uses": [
+        "_Node"
+      ],
+      "summary": "KD-tree for point-to-point nearest-neighbor queries."
+    },
+    "Matrix": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Matrix geometry class"
+    },
+    "RTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "RTree geometry class"
+    },
+    "_Rect": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Rect geometry class"
+    },
+    "Point": {
+      "composition": [],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Vector"
+      ],
+      "uses": [],
+      "summary": "A 3D point with visual properties."
+    },
     "_Node": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Node geometry class"
-    },
-    "_Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Edge geometry class"
     },
     "Graph": {
       "composition": [
@@ -97699,12 +98188,6 @@ window.API_INDEX = {
         "Vertex"
       ],
       "summary": "A graph data structure with string-only vertices and attributes."
-    },
-    "_Rect": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Rect geometry class"
     },
     "Plane": {
       "composition": [],
@@ -97724,7 +98207,9 @@ window.API_INDEX = {
         "Point",
         "Vector"
       ],
-      "factories": [],
+      "factories": [
+        "Element"
+      ],
       "uses": [
         "Line",
         "Plane",
@@ -97732,55 +98217,17 @@ window.API_INDEX = {
       ],
       "summary": "Xform geometry class"
     },
+    "_Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Edge geometry class"
+    },
     "Color": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "An index-based 0-255 color with RGBA values."
-    },
-    "Point": {
-      "composition": [],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Vector"
-      ],
-      "uses": [],
-      "summary": "A 3D point with visual properties."
-    },
-    "RTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RTree geometry class"
-    },
-    "BRep": {
-      "composition": [
-        "BRepEdge",
-        "BRepFace",
-        "BRepLoop",
-        "BRepLoopType",
-        "BRepTrim",
-        "BRepTrimType",
-        "BRepVertex",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point"
-      ],
-      "factories": [
-        "BRepTrimType",
-        "Element"
-      ],
-      "uses": [
-        "Mesh",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRep geometry class"
     },
     "Edge": {
       "composition": [],
@@ -97816,19 +98263,35 @@ window.API_INDEX = {
       ],
       "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
-    "Tree": {
-      "composition": [
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
-    },
     "_Tri": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Tri geometry class"
+    },
+    "BRep": {
+      "composition": [
+        "BRepEdge",
+        "BRepFace",
+        "BRepLoop",
+        "BRepLoopType",
+        "BRepTrim",
+        "BRepTrimType",
+        "BRepVertex",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point"
+      ],
+      "factories": [
+        "BRepTrimType",
+        "Element"
+      ],
+      "uses": [
+        "Mesh",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRep geometry class"
     },
     "AABB": {
       "composition": [],
@@ -97846,6 +98309,12 @@ window.API_INDEX = {
       ],
       "summary": "Axis-aligned bounding box (center + half-size)."
     },
+    "_P64": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_P64 geometry class"
+    },
     "Line": {
       "composition": [
         "Point"
@@ -97861,17 +98330,28 @@ window.API_INDEX = {
       ],
       "summary": "A 3D line segment with visual properties."
     },
-    "_P64": {
-      "composition": [],
+    "Tree": {
+      "composition": [
+        "TreeNode"
+      ],
       "factories": [],
       "uses": [],
-      "summary": "_P64 geometry class"
+      "summary": "A hierarchical data structure with parent-child relationships."
     },
-    "_V2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_V2 geometry class"
+    "BVH": {
+      "composition": [
+        "AABB",
+        "BVHNode"
+      ],
+      "factories": [
+        "BVHNode"
+      ],
+      "uses": [
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
     },
     "OBB": {
       "composition": [
@@ -97897,20 +98377,11 @@ window.API_INDEX = {
       ],
       "summary": "OBB geometry class"
     },
-    "BVH": {
-      "composition": [
-        "AABB",
-        "BVHNode"
-      ],
-      "factories": [
-        "BVHNode"
-      ],
-      "uses": [
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
+    "_V2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],
@@ -98487,6 +98958,7 @@ window.API_INDEX = {
       "BRepTrimType.guid",
       "BVHNode.guid",
       "ColorMode.guid",
+      "Component.guid",
       "Geometry.guid",
       "RayHit.guid"
     ],
@@ -98935,7 +99407,8 @@ window.API_INDEX = {
       "Xform.pb_dumps",
       "BRepTrimType.pb_dumps",
       "Vertex.pb_dumps",
-      "ColorMode.pb_dumps"
+      "ColorMode.pb_dumps",
+      "Component.pb_dumps"
     ],
     "pb_loads": [
       "BRep.pb_loads",
@@ -98965,7 +99438,8 @@ window.API_INDEX = {
       "BRepTrimType.pb_loads",
       "Vertex.pb_loads",
       "ColorMode.pb_loads",
-      "FlatMap64.pb_loads"
+      "FlatMap64.pb_loads",
+      "Component.pb_loads"
     ],
     "pb_dump": [
       "BRep.pb_dump",
@@ -101763,12 +102237,6 @@ window.API_INDEX = {
     "count": [
       "RTree.count"
     ],
-    "set_layer": [
-      "Session.set_layer"
-    ],
-    "_tag_layer": [
-      "Session._tag_layer"
-    ],
     "_add_object": [
       "Session._add_object"
     ],
@@ -101802,8 +102270,14 @@ window.API_INDEX = {
     "add_element": [
       "Session.add_element"
     ],
+    "add_component": [
+      "Session.add_component"
+    ],
     "add_group": [
       "Session.add_group"
+    ],
+    "find_group": [
+      "Session.find_group"
     ],
     "compute_face_to_face": [
       "Session.compute_face_to_face"
@@ -102256,6 +102730,12 @@ window.API_INDEX = {
     "compute_raw": [
       "BooleanPolyline.compute_raw"
     ],
+    "clip_open_against_closed": [
+      "BooleanPolyline.clip_open_against_closed"
+    ],
+    "abs": [
+      "std.abs"
+    ],
     "deep_copy_from": [
       "BRepTrimType.deep_copy_from",
       "BRep.deep_copy_from",
@@ -102390,9 +102870,6 @@ window.API_INDEX = {
     "obb_from_geometry": [
       "Element.obb_from_geometry"
     ],
-    "ElementColumn": [
-      "Element.ElementColumn"
-    ],
     "set_width": [
       "Element.set_width",
       "ElementColumn.set_width",
@@ -102407,15 +102884,9 @@ window.API_INDEX = {
       "Element.set_height",
       "ElementColumn.set_height"
     ],
-    "ElementBeam": [
-      "Element.ElementBeam"
-    ],
     "set_length": [
       "Element.set_length",
       "ElementBeam.set_length"
-    ],
-    "ElementPlate": [
-      "Element.ElementPlate"
     ],
     "set_polygon": [
       "Element.set_polygon",
@@ -102460,6 +102931,9 @@ window.API_INDEX = {
     ],
     "plane_plane": [
       "Intersection.plane_plane"
+    ],
+    "plane_plane_to_line_canonical": [
+      "Intersection.plane_plane_to_line_canonical"
     ],
     "line_plane": [
       "Intersection.line_plane"
@@ -102548,6 +103022,12 @@ window.API_INDEX = {
     "polyline_boolean": [
       "Intersection.polyline_boolean"
     ],
+    "offset_in_3d": [
+      "Intersection.offset_in_3d"
+    ],
+    "polyline_boolean_2d_in_plane": [
+      "Intersection.polyline_boolean_2d_in_plane"
+    ],
     "face_to_face": [
       "Intersection.face_to_face"
     ],
@@ -102557,6 +103037,9 @@ window.API_INDEX = {
     ],
     "plane_to_face": [
       "Intersection.plane_to_face"
+    ],
+    "set_cross_joint_distance_squared": [
+      "Intersection.set_cross_joint_distance_squared"
     ],
     "solve_3x3": [
       "Intersection.solve_3x3"
@@ -102575,9 +103058,6 @@ window.API_INDEX = {
     ],
     "swap": [
       "std.swap"
-    ],
-    "abs": [
-      "std.abs"
     ],
     "hypot": [
       "std.hypot"
@@ -102748,6 +103228,12 @@ window.API_INDEX = {
     ],
     "assign": [
       "OBB.assign"
+    ],
+    "base1": [
+      "Plane.base1"
+    ],
+    "base2": [
+      "Plane.base2"
     ],
     "ccw": [
       "Point.ccw"
@@ -103272,20 +103758,41 @@ window.API_INDEX = {
     "from_float": [
       "Color.from_float"
     ],
+    "with_transformation": [
+      "Element.with_transformation"
+    ],
+    "from_mesh_with_transformation": [
+      "Element.from_mesh_with_transformation"
+    ],
     "from_brep": [
       "Element.from_brep"
+    ],
+    "from_brep_with_transformation": [
+      "Element.from_brep_with_transformation"
     ],
     "column": [
       "Element.column"
     ],
+    "column_with_transformation": [
+      "Element.column_with_transformation"
+    ],
     "beam": [
       "Element.beam"
+    ],
+    "beam_with_transformation": [
+      "Element.beam_with_transformation"
     ],
     "plate": [
       "Element.plate"
     ],
+    "plate_with_transformation": [
+      "Element.plate_with_transformation"
+    ],
     "plate_from_top_bottom": [
       "Element.plate_from_top_bottom"
+    ],
+    "plate_from_top_bottom_with_transformation": [
+      "Element.plate_from_top_bottom_with_transformation"
     ],
     "plate_default": [
       "Element.plate_default"
@@ -103554,10 +104061,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "BooleanPolyline": {
-      "cpp": 3,
+      "cpp": 4,
       "python": 1,
       "rust": 0,
-      "gaps": 3,
+      "gaps": 4,
       "present_in": [
         "cpp",
         "python"
@@ -103708,10 +104215,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Element": {
-      "cpp": 78,
+      "cpp": 75,
       "python": 46,
-      "rust": 74,
-      "gaps": 79,
+      "rust": 81,
+      "gaps": 83,
       "present_in": [
         "cpp",
         "python",
@@ -103991,10 +104498,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Plane": {
-      "cpp": 45,
+      "cpp": 47,
       "python": 57,
       "rust": 54,
-      "gaps": 34,
+      "gaps": 36,
       "present_in": [
         "cpp",
         "python",
@@ -104201,10 +104708,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Session": {
-      "cpp": 45,
+      "cpp": 47,
       "python": 44,
-      "rust": 35,
-      "gaps": 27,
+      "rust": 37,
+      "gaps": 25,
       "present_in": [
         "cpp",
         "python",
@@ -104306,6 +104813,16 @@ window.API_INDEX = {
       ],
       "status": "TODO"
     },
+    "std": {
+      "cpp": 22,
+      "python": 0,
+      "rust": 0,
+      "gaps": 22,
+      "present_in": [
+        "cpp"
+      ],
+      "status": "TODO"
+    },
     "fmt": {
       "cpp": 2,
       "python": 0,
@@ -104314,16 +104831,6 @@ window.API_INDEX = {
       "present_in": [
         "cpp",
         "rust"
-      ],
-      "status": "TODO"
-    },
-    "std": {
-      "cpp": 22,
-      "python": 0,
-      "rust": 0,
-      "gaps": 22,
-      "present_in": [
-        "cpp"
       ],
       "status": "TODO"
     },
@@ -104338,10 +104845,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Intersection": {
-      "cpp": 39,
+      "cpp": 43,
       "python": 0,
       "rust": 0,
-      "gaps": 39,
+      "gaps": 43,
       "present_in": [
         "cpp"
       ],
@@ -104442,6 +104949,16 @@ window.API_INDEX = {
       "python": 0,
       "rust": 2,
       "gaps": 2,
+      "present_in": [
+        "rust"
+      ],
+      "status": "TODO"
+    },
+    "Component": {
+      "cpp": 0,
+      "python": 0,
+      "rust": 3,
+      "gaps": 3,
       "present_in": [
         "rust"
       ],

@@ -1,57 +1,25 @@
 [
   {
-    "group": "Objects",
-    "test_name": "Constructor",
+    "group": "Session",
+    "test_name": "Add Component",
     "passed": true,
-    "time_ms": 0.033,
-    "line": 7,
-    "code": "    from session_py import Objects\n\n    obj = Objects()",
+    "time_ms": 0.073,
+    "line": 129,
+    "code": "    import uuid\n    from session_py.session import Session\n    from session_py.encoders import register_class\n\n    class Box:\n        def __init__(self, width=1.0, height=2.0):\n            self._guid = str(uuid.uuid4())\n            self.name = \"my_box\"\n            self.width = width\n            self.height = height\n        @property\n        def guid(self): return self._guid\n        def __jsondump__(self):\n            return {\"type\": \"Box\", \"guid\": self.guid, \"name\": self.name,\n                    \"width\": self.width, \"height\": self.height}\n        @classmethod\n        def __jsonload__(cls, data, guid=None, name=None):\n            obj = cls(data[\"width\"], data[\"height\"])\n            obj._guid = guid or data.get(\"guid\", obj._guid)\n            obj.name  = name or data.get(\"name\", obj.name)\n            return obj\n\n    register_class(\"Box\", Box)\n\n    session = Session()\n    box = Box(width=3.0, height=5.0)\n    guid = box.guid\n\n    session.add_component(box)",
     "checks": [
       {
-        "line": 13,
-        "code_line": "obj.name == \"my_objects\"",
+        "line": 161,
+        "code_line": "len(session.objects.components) == 1",
         "passed": true
       },
       {
-        "line": 14,
-        "code_line": "len(obj.guid) > 0",
+        "line": 162,
+        "code_line": "session.lookup[guid] is box",
         "passed": true
       },
       {
-        "line": 15,
-        "code_line": "len(str(obj)) > 0",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "Objects",
-    "test_name": "Json Roundtrip",
-    "passed": true,
-    "time_ms": 6.839,
-    "line": 18,
-    "code": "    from session_py import Objects\n    from session_py import Point\n    from session_py.encoders import json_dump\n    from session_py.encoders import json_load\n    from pathlib import Path\n\n    original = Objects()\n    original.points.append(Point(1.0, 2.0, 3.0))\n    original.points.append(Point(4.0, 5.0, 6.0))\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_objects.json\"\n    json_dump(original, fname)\n    loaded = json_load(fname)",
-    "checks": [
-      {
-        "line": 34,
-        "code_line": "len(loaded.points) == len(original.points)",
-        "passed": true
-      }
-    ],
-    "failures": []
-  },
-  {
-    "group": "Objects",
-    "test_name": "Protobuf Roundtrip",
-    "passed": true,
-    "time_ms": 9.646,
-    "line": 37,
-    "code": "    from session_py import Objects\n    from session_py import Point\n    from pathlib import Path\n\n    original = Objects()\n    original.points.append(Point(1.0, 2.0, 3.0))\n    original.points.append(Point(4.0, 5.0, 6.0))\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_objects.bin\"\n    original.pb_dump(fname)\n    loaded = Objects.pb_load(fname)",
-    "checks": [
-      {
-        "line": 51,
-        "code_line": "len(loaded.points) == len(original.points)",
+        "line": 163,
+        "code_line": "session.graph.has_node(guid)",
         "passed": true
       }
     ],
