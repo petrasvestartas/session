@@ -65495,6 +65495,7 @@ window.API_INDEX = {
         "Xform.change_basis",
         "Xform.duplicate",
         "Xform.elim",
+        "Xform.frame_to_world",
         "Xform.from_axes",
         "Xform.from_matrix",
         "Xform.guid",
@@ -65511,6 +65512,7 @@ window.API_INDEX = {
         "Xform.scale_uniform",
         "Xform.scale_xyz",
         "Xform.to_frame",
+        "Xform.world_to_frame",
         "Xform.x",
         "Xform.xy_to_plane",
         "Xform.y",
@@ -65984,6 +65986,7 @@ window.API_INDEX = {
         "Xform.scale_uniform",
         "Xform.scale_xyz",
         "Xform.translation",
+        "Xform.world_to_frame",
         "Xform.x",
         "Xform.xy_to_plane",
         "Xform.y",
@@ -79755,6 +79758,39 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Xform.world_to_frame",
+      "implementations": {
+        "cpp": {
+          "sig": "Xform world_to_frame(const Point& origin, Vector x_axis, Vector y_axis, Vector z_axis)",
+          "code": "Xform Xform::world_to_frame(const Point& origin, Vector x_axis, Vector y_axis, Vector z_axis) {\n    x_axis.normalize_self();\n    y_axis.normalize_self();\n    z_axis.normalize_self();\n\n    Xform f;\n    // Row 0 = x_axis\n    f.m[0]  = x_axis[0]; f.m[4]  = x_axis[1]; f.m[8]  = x_axis[2];\n    // Row 1 = y_axis\n    f.m[1]  = y_axis[0]; f.m[5]  = y_axis[1]; f.m[9]  = y_axis[2];\n    // Row 2 = z_axis\n    f.m[2]  = z_axis[0]; f.m[6]  = z_axis[1]; f.m[10] = z_axis[2];\n\n    Xform t = translation(-origin[0], -origin[1], -origin[2]);\n    return f * t;\n}",
+          "file": "xform.cpp"
+        }
+      },
+      "related": [
+        "Xform.to_frame",
+        "Xform.translation",
+        "Xform.x",
+        "Xform.y",
+        "Xform.z"
+      ]
+    },
+    {
+      "name": "Xform.frame_to_world",
+      "implementations": {
+        "cpp": {
+          "sig": "Xform frame_to_world(const Point& origin, Vector x_axis, Vector y_axis, Vector z_axis)",
+          "code": "Xform Xform::frame_to_world(const Point& origin, Vector x_axis, Vector y_axis, Vector z_axis) {\n    x_axis.normalize_self();\n    y_axis.normalize_self();\n    z_axis.normalize_self();\n\n    Xform f;\n    // Column 0 = x_axis\n    f.m[0]  = x_axis[0]; f.m[1]  = x_axis[1]; f.m[2]  = x_axis[2];\n    // Column 1 = y_axis\n    f.m[4]  = y_axis[0]; f.m[5]  = y_axis[1]; f.m[6]  = y_axis[2];\n    // Column 2 = z_axis\n    f.m[8]  = z_axis[0]; f.m[9]  = z_axis[1]; f.m[10] = z_axis[2];\n\n    Xform t = translation(origin[0], origin[1], origin[2]);\n    return t * f;\n}",
+          "file": "xform.cpp"
+        }
+      },
+      "related": [
+        "Xform.translation",
+        "Xform.x",
+        "Xform.y",
+        "Xform.z"
+      ]
+    },
+    {
       "name": "Xform.jsondump",
       "implementations": {
         "cpp": {
@@ -83507,6 +83543,7 @@ window.API_INDEX = {
         "Xform.constructor",
         "Xform.duplicate",
         "Xform.elim",
+        "Xform.frame_to_world",
         "Xform.from_axes",
         "Xform.from_change_of_basis",
         "Xform.from_cols",
@@ -83546,6 +83583,7 @@ window.API_INDEX = {
         "Xform.scale_xyz",
         "Xform.to_frame",
         "Xform.translation",
+        "Xform.world_to_frame",
         "Xform.xy_to_plane"
       ]
     },
@@ -83575,6 +83613,7 @@ window.API_INDEX = {
         "Xform.constructor",
         "Xform.duplicate",
         "Xform.elim",
+        "Xform.frame_to_world",
         "Xform.from_axes",
         "Xform.from_change_of_basis",
         "Xform.from_cols",
@@ -83613,6 +83652,7 @@ window.API_INDEX = {
         "Xform.scale_xyz",
         "Xform.to_frame",
         "Xform.translation",
+        "Xform.world_to_frame",
         "Xform.xy_to_plane"
       ]
     },
@@ -83641,6 +83681,7 @@ window.API_INDEX = {
         "Xform.change_basis",
         "Xform.duplicate",
         "Xform.elim",
+        "Xform.frame_to_world",
         "Xform.from_axes",
         "Xform.from_change_of_basis",
         "Xform.from_cols",
@@ -83677,6 +83718,7 @@ window.API_INDEX = {
         "Xform.scale_xyz",
         "Xform.to_frame",
         "Xform.translation",
+        "Xform.world_to_frame",
         "Xform.xy_to_plane"
       ]
     },
@@ -97160,10 +97202,10 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
-        "points",
-        "circle",
         "n",
+        "circle",
+        "points",
+        "into",
         "subdivide",
         "divide_by_count",
         "nurbscurve",
@@ -97178,11 +97220,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "length",
-        "arc",
-        "subdivide",
         "ellipse",
+        "arc",
         "by",
+        "length",
+        "subdivide",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -97196,8 +97238,8 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "through",
         "arc",
+        "through",
         "points",
         "nurbscurve",
         "primitives",
@@ -97212,11 +97254,11 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "adaptive",
-        "points",
-        "curve",
-        "polyline",
         "from",
+        "adaptive",
+        "polyline",
+        "curve",
+        "points",
         "open",
         "to_polyline_adaptive",
         "create",
@@ -97232,10 +97274,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "parameter",
-        "evaluation",
         "curve",
         "at",
+        "evaluation",
+        "parameter",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -97254,10 +97296,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "length",
         "curve",
-        "frames",
         "along",
+        "frames",
+        "length",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -97279,9 +97321,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "ellipse",
         "perpendicular",
         "frames",
-        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -97320,11 +97362,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "vertices",
-        "and",
         "from",
-        "faces",
+        "and",
         "mesh",
+        "vertices",
+        "faces",
         "add_vertex",
         "add_face",
         "vertex"
@@ -97481,6 +97523,12 @@ window.API_INDEX = {
       ],
       "summary": "Marching squares iso-contour extraction."
     },
+    "GeometryEncoder": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
+    },
     "GeometryDecoder": {
       "composition": [],
       "factories": [],
@@ -97505,12 +97553,6 @@ window.API_INDEX = {
       ],
       "summary": "GlobalTolerance geometry class"
     },
-    "GeometryEncoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
-    },
     "_PartitionVars": {
       "composition": [],
       "factories": [],
@@ -97530,12 +97572,6 @@ window.API_INDEX = {
       ],
       "summary": "TrimmedSurface geometry class"
     },
-    "CurveKnotStyle": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Knot spacing style for interpolated curves (matches Rhino's CurveKnotStyle)."
-    },
     "ToleranceGuard": {
       "composition": [],
       "factories": [],
@@ -97544,11 +97580,23 @@ window.API_INDEX = {
       ],
       "summary": "ToleranceGuard geometry class"
     },
+    "CurveKnotStyle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Knot spacing style for interpolated curves (matches Rhino's CurveKnotStyle)."
+    },
     "VIntersectNode": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VIntersectNode geometry class"
+    },
+    "SessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SessionConfig geometry class"
     },
     "ElementColumn": {
       "composition": [],
@@ -97562,18 +97610,6 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "ElementColumn geometry class"
-    },
-    "SessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SessionConfig geometry class"
-    },
-    "BRepLoopType": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoopType geometry class"
     },
     "Intersection": {
       "composition": [
@@ -97601,6 +97637,18 @@ window.API_INDEX = {
       "uses": [],
       "summary": "VattiScratch geometry class"
     },
+    "LoftWallFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftWallFace geometry class"
+    },
+    "ScanlineHeap": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "ScanlineHeap geometry class"
+    },
     "BRepTrimType": {
       "composition": [],
       "factories": [],
@@ -97615,33 +97663,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "BRepTrimType geometry class"
-    },
-    "VLocalMinima": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VLocalMinima geometry class"
-    },
-    "ElementPlate": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "ElementPlate geometry class"
-    },
-    "LoftWallFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftWallFace geometry class"
     },
     "NurbsSurface": {
       "composition": [
@@ -97663,11 +97684,32 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
-    "ScanlineHeap": {
+    "VLocalMinima": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "ScanlineHeap geometry class"
+      "summary": "VLocalMinima geometry class"
+    },
+    "BRepLoopType": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoopType geometry class"
+    },
+    "ElementPlate": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "ElementPlate geometry class"
     },
     "ElementBeam": {
       "composition": [],
@@ -97688,16 +97730,6 @@ window.API_INDEX = {
       "uses": [],
       "summary": "LoftAdjPair geometry class"
     },
-    "Quaternion": {
-      "composition": [
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Plane"
-      ],
-      "summary": "A quaternion for 3D rotations (scalar + vector)."
-    },
     "NurbsCurve": {
       "composition": [
         "Color",
@@ -97717,6 +97749,53 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
+    },
+    "ConvexHull": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Point"
+      ],
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+    },
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
+    },
+    "Primitives": {
+      "composition": [
+        "CurveKnotStyle",
+        "NurbsCurve",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsSurface",
+        "Point",
+        "Xform"
+      ],
+      "summary": "Static factory methods for creating NURBS curve primitives."
+    },
+    "Quaternion": {
+      "composition": [
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Plane"
+      ],
+      "summary": "A quaternion for 3D rotations (scalar + vector)."
+    },
+    "BRepVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepVertex geometry class"
     },
     "PointCloud": {
       "composition": [
@@ -97741,69 +97820,6 @@ window.API_INDEX = {
       ],
       "summary": "Vertex data containing position and attributes."
     },
-    "Primitives": {
-      "composition": [
-        "CurveKnotStyle",
-        "NurbsCurve",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsSurface",
-        "Point",
-        "Xform"
-      ],
-      "summary": "Static factory methods for creating NURBS curve primitives."
-    },
-    "Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Delaunay2D geometry class"
-    },
-    "BRepVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepVertex geometry class"
-    },
-    "ConvexHull": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Point"
-      ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
-    },
-    "ColorMode": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABBTree",
-        "BVH",
-        "Color",
-        "Line",
-        "Mesh",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "ColorMode geometry class"
-    },
-    "FlatMap64": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Delaunay2D",
-        "Point",
-        "Vector"
-      ],
-      "summary": "FlatMap64 geometry class"
-    },
     "VHorzJoin": {
       "composition": [],
       "factories": [],
@@ -97825,6 +97841,38 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_Delaunay geometry class"
     },
+    "ColorMode": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABBTree",
+        "BVH",
+        "Color",
+        "Line",
+        "Mesh",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "ColorMode geometry class"
+    },
+    "Component": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Component geometry class"
+    },
+    "FlatMap64": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Delaunay2D",
+        "Point",
+        "Vector"
+      ],
+      "summary": "FlatMap64 geometry class"
+    },
     "Tolerance": {
       "composition": [],
       "factories": [],
@@ -97835,17 +97883,52 @@ window.API_INDEX = {
       ],
       "summary": "Tolerance settings for geometric operations."
     },
-    "Component": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Component geometry class"
-    },
     "LoftPanel": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "LoftPanel geometry class"
+    },
+    "Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Edge",
+        "TriangulateResult"
+      ],
+      "summary": "Delaunay geometry class"
+    },
+    "AABBTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB"
+      ],
+      "summary": "AABBTree geometry class"
+    },
+    "BRepFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepFace geometry class"
+    },
+    "BRepEdge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepEdge geometry class"
+    },
+    "VHorzSeg": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzSeg geometry class"
+    },
+    "Geometry": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Geometry geometry class"
     },
     "TreeNode": {
       "composition": [
@@ -97854,6 +97937,21 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "A node of a tree data structure."
+    },
+    "TpmsMode": {
+      "composition": [],
+      "factories": [
+        "MeshIso",
+        "TpmsType"
+      ],
+      "uses": [],
+      "summary": "TpmsMode geometry class"
+    },
+    "BRepTrim": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepTrim geometry class"
     },
     "TpmsType": {
       "composition": [],
@@ -97867,32 +97965,6 @@ window.API_INDEX = {
         "TpmsMode"
       ],
       "summary": "TpmsType geometry class"
-    },
-    "BRepFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepFace geometry class"
-    },
-    "AABBTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB"
-      ],
-      "summary": "AABBTree geometry class"
-    },
-    "BRepTrim": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepTrim geometry class"
-    },
-    "Geometry": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Geometry geometry class"
     },
     "BRepLoop": {
       "composition": [],
@@ -97923,59 +97995,11 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Edge",
-        "TriangulateResult"
-      ],
-      "summary": "Delaunay geometry class"
-    },
-    "VHorzSeg": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzSeg geometry class"
-    },
-    "TpmsMode": {
-      "composition": [],
-      "factories": [
-        "MeshIso",
-        "TpmsType"
-      ],
-      "uses": [],
-      "summary": "TpmsMode geometry class"
-    },
-    "BRepEdge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
-    },
-    "VVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VVertex geometry class"
-    },
     "VActive": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VActive geometry class"
-    },
-    "BVHNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "BVH",
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "A node in the BVH tree."
     },
     "MeshIso": {
       "composition": [],
@@ -97988,75 +98012,6 @@ window.API_INDEX = {
         "TpmsType"
       ],
       "summary": "MeshIso geometry class"
-    },
-    "_Branch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Branch geometry class"
-    },
-    "Closest": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Static methods for finding closest points between geometry objects."
-    },
-    "Objects": {
-      "composition": [
-        "BRep",
-        "Component",
-        "Element",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A collection of all geometry objects."
-    },
-    "Default": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "Default geometry class"
-    },
-    "Element": {
-      "composition": [
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "BRep",
-        "Xform"
-      ],
-      "summary": "Element geometry class"
     },
     "Session": {
       "composition": [
@@ -98086,11 +98041,126 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
+    "BVHNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "BVH",
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "A node in the BVH tree."
+    },
     "VOutRec": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VOutRec geometry class"
+    },
+    "Closest": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Static methods for finding closest points between geometry objects."
+    },
+    "Element": {
+      "composition": [
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "BRep",
+        "Xform"
+      ],
+      "summary": "Element geometry class"
+    },
+    "VVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VVertex geometry class"
+    },
+    "Default": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "Default geometry class"
+    },
+    "_Branch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Branch geometry class"
+    },
+    "Objects": {
+      "composition": [
+        "BRep",
+        "Component",
+        "Element",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A collection of all geometry objects."
+    },
+    "BIVec2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BIVec2 geometry class"
+    },
+    "KDTree": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [],
+      "uses": [
+        "_Node"
+      ],
+      "summary": "KD-tree for point-to-point nearest-neighbor queries."
+    },
+    "VOutPt": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutPt geometry class"
+    },
+    "RayHit": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "RayHit geometry class"
     },
     "Vertex": {
       "composition": [],
@@ -98099,24 +98169,6 @@ window.API_INDEX = {
         "Graph"
       ],
       "summary": "A graph vertex with a unique identifier and attribute string."
-    },
-    "RayHit": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RayHit geometry class"
-    },
-    "VOutPt": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutPt geometry class"
-    },
-    "BIVec2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BIVec2 geometry class"
     },
     "Vector": {
       "composition": [
@@ -98131,27 +98183,54 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A 3D vector with visual properties."
     },
-    "KDTree": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [],
-      "uses": [
-        "_Node"
-      ],
-      "summary": "KD-tree for point-to-point nearest-neighbor queries."
-    },
     "Matrix": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Matrix geometry class"
     },
-    "RTree": {
+    "Color": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "RTree geometry class"
+      "summary": "An index-based 0-255 color with RGBA values."
+    },
+    "_Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Edge geometry class"
+    },
+    "Xform": {
+      "composition": [
+        "Point",
+        "Vector"
+      ],
+      "factories": [
+        "Element"
+      ],
+      "uses": [
+        "Line",
+        "Plane",
+        "Polyline"
+      ],
+      "summary": "Xform geometry class"
+    },
+    "Graph": {
+      "composition": [
+        "Edge"
+      ],
+      "factories": [],
+      "uses": [
+        "Vertex"
+      ],
+      "summary": "A graph data structure with string-only vertices and attributes."
+    },
+    "_Node": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Node geometry class"
     },
     "_Rect": {
       "composition": [],
@@ -98173,22 +98252,6 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A 3D point with visual properties."
     },
-    "_Node": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Node geometry class"
-    },
-    "Graph": {
-      "composition": [
-        "Edge"
-      ],
-      "factories": [],
-      "uses": [
-        "Vertex"
-      ],
-      "summary": "A graph data structure with string-only vertices and attributes."
-    },
     "Plane": {
       "composition": [],
       "factories": [
@@ -98202,38 +98265,35 @@ window.API_INDEX = {
       ],
       "summary": "A 3D plane defined by origin and coordinate axes."
     },
-    "Xform": {
+    "RTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "RTree geometry class"
+    },
+    "BRep": {
       "composition": [
-        "Point",
-        "Vector"
+        "BRepEdge",
+        "BRepFace",
+        "BRepLoop",
+        "BRepLoopType",
+        "BRepTrim",
+        "BRepTrimType",
+        "BRepVertex",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point"
       ],
       "factories": [
+        "BRepTrimType",
         "Element"
       ],
       "uses": [
-        "Line",
-        "Plane",
-        "Polyline"
+        "Mesh",
+        "Polyline",
+        "Vector"
       ],
-      "summary": "Xform geometry class"
-    },
-    "_Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Edge geometry class"
-    },
-    "Color": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "An index-based 0-255 color with RGBA values."
-    },
-    "Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
+      "summary": "BRep geometry class"
     },
     "Mesh": {
       "composition": [
@@ -98269,29 +98329,34 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_Tri geometry class"
     },
-    "BRep": {
+    "Tree": {
       "composition": [
-        "BRepEdge",
-        "BRepFace",
-        "BRepLoop",
-        "BRepLoopType",
-        "BRepTrim",
-        "BRepTrimType",
-        "BRepVertex",
-        "NurbsCurve",
-        "NurbsSurface",
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A hierarchical data structure with parent-child relationships."
+    },
+    "Line": {
+      "composition": [
         "Point"
       ],
       "factories": [
-        "BRepTrimType",
-        "Element"
+        "AABB",
+        "ColorMode",
+        "Mesh",
+        "OBB"
       ],
       "uses": [
-        "Mesh",
-        "Polyline",
         "Vector"
       ],
-      "summary": "BRep geometry class"
+      "summary": "A 3D line segment with visual properties."
+    },
+    "_P64": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_P64 geometry class"
     },
     "AABB": {
       "composition": [],
@@ -98309,49 +98374,11 @@ window.API_INDEX = {
       ],
       "summary": "Axis-aligned bounding box (center + half-size)."
     },
-    "_P64": {
+    "Edge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_P64 geometry class"
-    },
-    "Line": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Mesh",
-        "OBB"
-      ],
-      "uses": [
-        "Vector"
-      ],
-      "summary": "A 3D line segment with visual properties."
-    },
-    "Tree": {
-      "composition": [
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
-    },
-    "BVH": {
-      "composition": [
-        "AABB",
-        "BVHNode"
-      ],
-      "factories": [
-        "BVHNode"
-      ],
-      "uses": [
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
+      "summary": "A graph edge connecting two vertices with an attribute string."
     },
     "OBB": {
       "composition": [
@@ -98382,6 +98409,21 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "_V2 geometry class"
+    },
+    "BVH": {
+      "composition": [
+        "AABB",
+        "BVHNode"
+      ],
+      "factories": [
+        "BVHNode"
+      ],
+      "uses": [
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
     },
     "Sc": {
       "composition": [],
@@ -103682,6 +103724,12 @@ window.API_INDEX = {
     "fabs": [
       "std.fabs"
     ],
+    "world_to_frame": [
+      "Xform.world_to_frame"
+    ],
+    "frame_to_world": [
+      "Xform.frame_to_world"
+    ],
     "new": [
       "AABB.new",
       "BRep.new",
@@ -104792,10 +104840,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Xform": {
-      "cpp": 42,
+      "cpp": 44,
       "python": 50,
       "rust": 47,
-      "gaps": 26,
+      "gaps": 28,
       "present_in": [
         "cpp",
         "python",

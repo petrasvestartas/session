@@ -23,7 +23,7 @@
     "line": 32,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 4.579
+    "time_ms": 6.533
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 181,
     "passed": true,
     "test_name": "Traverse",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -148,7 +148,7 @@
     "line": 114,
     "passed": true,
     "test_name": "Parent",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -174,7 +174,7 @@
     "line": 99,
     "passed": true,
     "test_name": "Remove",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -253,7 +253,7 @@
     "line": 50,
     "passed": true,
     "test_name": "Is Root",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -299,6 +299,6 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.005
+    "time_ms": 0.003
   }
 ]

@@ -103,7 +103,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.018
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -124,7 +124,7 @@
     "line": 108,
     "passed": true,
     "test_name": "Magnitude",
-    "time_ms": 0.002
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -213,7 +213,7 @@
     "line": 178,
     "passed": true,
     "test_name": "Cross Product",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -300,7 +300,7 @@
     "line": 241,
     "passed": true,
     "test_name": "Projection",
-    "time_ms": 0.004
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -362,7 +362,7 @@
     "line": 277,
     "passed": true,
     "test_name": "Is Perpendicular To",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -500,7 +500,7 @@
     "line": 368,
     "passed": true,
     "test_name": "Sum Of Vectors",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -526,7 +526,7 @@
     "line": 393,
     "passed": true,
     "test_name": "Average",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -552,7 +552,7 @@
     "line": 411,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -583,7 +583,7 @@
     "line": 496,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 6.246
+    "time_ms": 6.845
   },
   {
     "checks": [
@@ -614,7 +614,7 @@
     "line": 519,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 4.718
+    "time_ms": 5.716
   },
   {
     "checks": [
@@ -764,6 +764,6 @@
     "line": 86,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.002
+    "time_ms": 0.004
   }
 ]

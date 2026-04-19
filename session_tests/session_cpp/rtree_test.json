@@ -19,7 +19,7 @@
     "group": "RTree",
     "test_name": "Creation",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 23,
     "code": "    // uncomment #include \"rtree.h\"\n    RTree3 t;",
     "checks": [
@@ -104,7 +104,7 @@
     "group": "RTree",
     "test_name": "Remove",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 79,
     "code": "    // uncomment #include \"rtree.h\"\n    RTree3 t;\n    double a_min[3] = {0, 0, 0}, a_max[3] = {1, 1, 1};\n    t.insert(a_min, a_max, 5);\n    t.remove(a_min, a_max, 5);",
     "checks": [
@@ -152,7 +152,7 @@
     "group": "RTree",
     "test_name": "Search Stop",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 122,
     "code": "    // uncomment #include \"rtree.h\"\n    RTree3 t;\n    double a_min[3] = {0, 0, 0}, a_max[3] = {1, 1, 1};\n    t.insert(a_min, a_max, 0);\n    t.insert(a_min, a_max, 1);\n    t.insert(a_min, a_max, 2);\n    double q_min[3] = {0, 0, 0}, q_max[3] = {1, 1, 1};\n    int hits = t.search(q_min, q_max, [](int) -> bool { return false; });",
     "checks": [

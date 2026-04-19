@@ -93,7 +93,7 @@
     "line": 51,
     "passed": true,
     "test_name": "Format Number",
-    "time_ms": 0.003
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -160,7 +160,7 @@
     "line": 69,
     "passed": true,
     "test_name": "Runtime Modification",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -181,7 +181,7 @@
     "line": 323,
     "passed": true,
     "test_name": "Temporary",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -244,7 +244,7 @@
     "line": 288,
     "passed": true,
     "test_name": "Compare",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -276,7 +276,7 @@
     "line": 268,
     "passed": true,
     "test_name": "Precision From Tolerance",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -313,7 +313,7 @@
     "line": 248,
     "passed": true,
     "test_name": "Key Xy",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -334,7 +334,7 @@
     "line": 236,
     "passed": true,
     "test_name": "Is Allclose",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -355,7 +355,7 @@
     "line": 222,
     "passed": true,
     "test_name": "Is Point Close",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -594,6 +594,6 @@
     "line": 154,
     "passed": true,
     "test_name": "To Radians",
-    "time_ms": 0.0
+    "time_ms": 0.001
   }
 ]

@@ -19,7 +19,7 @@
     "group": "Tolerance",
     "test_name": "Is Close",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.005,
     "line": 19,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
     "checks": [
@@ -115,7 +115,7 @@
     "group": "Tolerance",
     "test_name": "To Radians",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 61,
     "code": "        // uncomment #include \"tolerance.h\"\n        double r0 = Tolerance::to_radians(180.0);\n        double r1 = Tolerance::to_radians(90.0);\n        double r2 = Tolerance::to_radians(0.0);",
     "checks": [
@@ -218,7 +218,7 @@
     "group": "Tolerance",
     "test_name": "Unique From Two Int",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 112,
     "code": "        // uncomment #include \"tolerance.h\"\n        uint64_t r0 = unique_from_two_int(3, 7);\n        uint64_t r1 = unique_from_two_int(7, 3);",
     "checks": [
@@ -296,7 +296,7 @@
     "group": "Tolerance",
     "test_name": "Rad Deg Conversion",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 145,
     "code": "        // uncomment #include \"tolerance.h\"\n        double r0 = rad_to_deg(Tolerance::PI);\n        double r1 = deg_to_rad(180.0);\n        double r2 = deg_to_rad(rad_to_deg(1.234));",
     "checks": [
@@ -426,7 +426,7 @@
     "group": "Tolerance",
     "test_name": "Is Allclose",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 202,
     "code": "        // uncomment #include \"tolerance.h\"\n        std::vector<double> a = {1.0, 2.0, 3.0};\n        std::vector<double> b = {1.0, 2.0, 3.0 + 1e-12};\n        std::vector<double> c = {1.0, 2.0, 4.0};",
     "checks": [
@@ -500,7 +500,7 @@
     "group": "Tolerance",
     "test_name": "Tolerance",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 236,
     "code": "        // uncomment #include \"tolerance.h\"\n        // rtol * abs(truevalue) + atol\n        double result = TOLERANCE.tolerance(1.0, 1e-6, 1e-9);",
     "checks": [
@@ -558,7 +558,7 @@
     "group": "Tolerance",
     "test_name": "Is Vector Close",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 262,
     "code": "        // uncomment #include \"tolerance.h\"\n        Vector a(1.0, 2.0, 3.0);\n        Vector b(1.0, 2.0, 3.0 + 1e-12);\n        Vector c(1.0, 2.0, 4.0);",
     "checks": [
