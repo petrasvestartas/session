@@ -23,7 +23,7 @@
     "line": 32,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 6.533
+    "time_ms": 4.912
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 181,
     "passed": true,
     "test_name": "Traverse",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -253,7 +253,7 @@
     "line": 50,
     "passed": true,
     "test_name": "Is Root",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [

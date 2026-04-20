@@ -88,7 +88,7 @@
     "line": 8,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.044
+    "time_ms": 0.043
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 131,
     "passed": true,
     "test_name": "Is Right Hand",
-    "time_ms": 0.004
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -187,127 +187,163 @@
     "line": 174,
     "passed": true,
     "test_name": "Is Coplanar",
-    "time_ms": 0.004
+    "time_ms": 0.003
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(pl.origin()[0], 1.0)",
-        "line": 209,
+        "line": 224,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pl.origin()[1], 2.0)",
-        "line": 210,
+        "line": 225,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pl.origin()[2], 3.0)",
-        "line": 211,
+        "line": 226,
         "passed": true
       }
     ],
     "code": "        use crate::Plane;\n        use crate::Xform;\n\n        let mut pl = Plane::xy_plane();\n        pl.xform = Xform::translation(1.0, 2.0, 3.0);\n        pl.transform();\n",
     "failures": [],
     "group": "Plane",
-    "line": 201,
+    "line": 216,
     "passed": true,
     "test_name": "Transform",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"test_plane\"",
-        "line": 247,
+        "line": 262,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.c(), 1.0)",
-        "line": 248,
+        "line": 263,
         "passed": true
       }
     ],
     "code": "        use crate::Plane;\n\n        let mut pl = Plane::xy_plane();\n        pl.name = \"test_plane\".to_string();\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let fname = \"serialization/test_plane.json\";\n        pl.json_dump(fname).unwrap();\n        let loaded = Plane::json_load(fname).unwrap();\n",
     "failures": [],
     "group": "Plane",
-    "line": 232,
+    "line": 247,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.733
+    "time_ms": 5.681
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"test_plane\"",
-        "line": 263,
+        "line": 278,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.c(), 1.0)",
-        "line": 264,
+        "line": 279,
         "passed": true
       }
     ],
     "code": "        use crate::Plane;\n\n        let mut pl = Plane::xy_plane();\n        pl.name = \"test_plane\".to_string();\n\n        let fname = \"serialization/test_plane.bin\";\n        pl.pb_dump(fname);\n        let loaded = Plane::pb_load(fname);\n",
     "failures": [],
     "group": "Plane",
-    "line": 253,
+    "line": 268,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 6.508
+    "time_ms": 5.521
   },
   {
     "checks": [
       {
         "code_line": "pl.has_on_negative_side(&below)",
-        "line": 288,
+        "line": 304,
         "passed": true
       },
       {
         "code_line": "!pl.has_on_negative_side(&above)",
-        "line": 289,
+        "line": 305,
         "passed": true
       }
     ],
     "code": "        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);",
     "failures": [],
     "group": "Plane",
-    "line": 283,
+    "line": 299,
     "passed": true,
     "test_name": "Has On Negative Side",
-    "time_ms": 0.004
+    "time_ms": 0.001
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(pl2.origin()[0], 1.0)",
-        "line": 224,
+        "line": 239,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pl2.origin()[1], 2.0)",
-        "line": 225,
+        "line": 240,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pl2.origin()[2], 3.0)",
-        "line": 226,
+        "line": 241,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pl.origin()[0], 0.0)",
-        "line": 227,
+        "line": 242,
         "passed": true
       }
     ],
     "code": "        use crate::Plane;\n        use crate::Xform;\n\n        let mut pl = Plane::xy_plane();\n        pl.xform = Xform::translation(1.0, 2.0, 3.0);\n        let pl2 = pl.transformed();\n",
     "failures": [],
     "group": "Plane",
-    "line": 216,
+    "line": 231,
     "passed": true,
     "test_name": "Transformed",
-    "time_ms": 0.009
+    "time_ms": 0.004
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(b1.dot(&xy.z_axis()).abs(), 0.0)",
+        "line": 207,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(b2.dot(&xy.z_axis()).abs(), 0.0)",
+        "line": 208,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(b1.dot(&b2), 0.0)",
+        "line": 209,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(b1.magnitude(), 1.0)",
+        "line": 210,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(b2.magnitude(), 1.0)",
+        "line": 211,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Plane;\n\n        let xy = Plane::xy_plane();\n        let b1 = xy.base1();\n        let b2 = xy.base2();",
+    "failures": [],
+    "group": "Plane",
+    "line": 201,
+    "passed": true,
+    "test_name": "Base1 Base2",
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -328,7 +364,7 @@
     "line": 189,
     "passed": true,
     "test_name": "Translate By Normal",
-    "time_ms": 0.005
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -349,7 +385,7 @@
     "line": 160,
     "passed": true,
     "test_name": "Is Same Position",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -375,7 +411,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Is Same Direction",
-    "time_ms": 0.004
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -396,6 +432,6 @@
     "line": 93,
     "passed": true,
     "test_name": "Is Valid",
-    "time_ms": 0.003
+    "time_ms": 0.002
   }
 ]

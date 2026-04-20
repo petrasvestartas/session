@@ -17561,6 +17561,7 @@ window.API_INDEX = {
         "Line.duplicate",
         "Line.extend",
         "Line.extend_equally",
+        "Line.extend_line",
         "Line.fit_points",
         "Line.from_point_direction_length",
         "Line.get_middle_line",
@@ -17912,6 +17913,7 @@ window.API_INDEX = {
         "Line.end",
         "Line.format",
         "Line.from_points",
+        "Line.line_line_overlap",
         "Line.new",
         "Line.overlap",
         "Line.overlap_average",
@@ -17942,6 +17944,8 @@ window.API_INDEX = {
         "Line.end",
         "Line.format",
         "Line.from_points",
+        "Line.line_line_overlap",
+        "Line.line_line_overlap_average",
         "Line.new",
         "Line.overlap",
         "Line.overlap_average",
@@ -17973,6 +17977,8 @@ window.API_INDEX = {
         "Line.format",
         "Line.from_points",
         "Line.length",
+        "Line.line_line_overlap",
+        "Line.line_line_overlap_average",
         "Line.new",
         "Line.overlap",
         "Line.overlap_average",
@@ -18015,6 +18021,8 @@ window.API_INDEX = {
         "Line.format",
         "Line.from_points",
         "Line.length",
+        "Line.line_line_overlap",
+        "Line.line_line_overlap_average",
         "Line.new",
         "Line.overlap",
         "Line.overlap_average",
@@ -18057,6 +18065,8 @@ window.API_INDEX = {
         "Line.guid",
         "Line.jsondump",
         "Line.length",
+        "Line.line_line_overlap",
+        "Line.line_line_overlap_average",
         "Line.new",
         "Line.overlap",
         "Line.overlap_average",
@@ -18099,6 +18109,8 @@ window.API_INDEX = {
         "Line.json_dump",
         "Line.jsondump",
         "Line.length",
+        "Line.line_line_overlap",
+        "Line.line_line_overlap_average",
         "Line.linecolor",
         "Line.new",
         "Line.overlap_average",
@@ -18142,6 +18154,8 @@ window.API_INDEX = {
         "Line.json_load",
         "Line.jsondump",
         "Line.length",
+        "Line.line_line_overlap",
+        "Line.line_line_overlap_average",
         "Line.linecolor",
         "Line.new",
         "Line.overlap",
@@ -18178,6 +18192,7 @@ window.API_INDEX = {
         "Line.__neg__",
         "Line.end",
         "Line.extend_equally",
+        "Line.extend_line",
         "Line.format",
         "Line.guid",
         "Line.json_dump",
@@ -18582,180 +18597,6 @@ window.API_INDEX = {
         "Line.pb_load",
         "Line.pb_loads",
         "Line.repr"
-      ]
-    },
-    {
-      "name": "MarchingSquares._interp",
-      "implementations": {
-        "python": {
-          "sig": "_interp(a: float, b: float, va: float, vb: float, iso: float) -> float",
-          "code": "def _interp(a: float, b: float, va: float, vb: float, iso: float) -> float:\n\n        if abs(vb - va) < 1e-12:\n            return (a + b) * 0.5\n        t = (iso - va) / (vb - va)\n        return a + t * (b - a)\n\n    @staticmethod\n    def extract(grid: List[List[float]], iso_value: float, cell_size: float = 1.0) -> List[Polyline]:\n        rows = len(grid)\n        if rows == 0:\n            return []\n        cols = len(grid[0])\n        if cols == 0:\n            return []\n\n        segments: List[Tuple[Point, Point]] = []\n\n        for r in range(rows - 1):\n            for c in range(cols - 1):\n                v0 = grid[r][c]\n                v1 = grid[r][c + 1]\n                v2 = grid[r + 1][c + 1]\n                v3 = grid[r + 1][c]\n\n                x0 = c * cell_size\n                y0 = r * cell_size\n                x1 = (c + 1) * cell_size\n                y1 = (r + 1) * cell_size\n\n                case = (\n                    (1 if v3 >= iso_value else 0) << 3 |\n                    (1 if v2 >= iso_value else 0) << 2 |\n                    (1 if v1 >= iso_value else 0) << 1 |\n                    (1 if v0 >= iso_value else 0)\n                )\n\n                # Edge midpoints (with interpolation)\n                def edge_pt(e: int) -> Point:\n                    if e == 0:  # bottom: v0-v1\n                        x = MarchingSquares._interp(x0, x1, v0, v1, iso_value)\n                        return Point(x, y0, 0.0)\n                    elif e == 1:  # right: v1-v2\n                        y = MarchingSquares._interp(y0, y1, v1, v2, iso_value)\n                        return Point(x1, y, 0.0)\n                    elif e == 2:  # top: v3-v2\n                        x = MarchingSquares._interp(x0, x1, v3, v2, iso_value)\n                        return Point(x, y1, 0.0)\n                    else:  # left: v0-v3\n                        y = MarchingSquares._interp(y0, y1, v0, v3, iso_value)\n                        return Point(x0, y, 0.0)\n\n                for ea, eb in MarchingSquares._EDGE_TABLE[case]:\n                    segments.append((edge_pt(ea), edge_pt(eb)))\n\n        return MarchingSquares._connect_segments(segments)\n\n    @staticmethod\n    def extract_from_func(\n        func: Callable[[float, float], float],\n        x_range: Tuple[float, float],\n        y_range: Tuple[float, float],\n        nx: int,\n        ny: int,\n        iso_value: float,\n    ) -> List[Polyline]:\n        x0, x1 = x_range\n        y0, y1 = y_range\n        dx = (x1 - x0) / (nx - 1) if nx > 1 else 0.0\n        dy = (y1 - y0) / (ny - 1) if ny > 1 else 0.0\n        grid = []\n        for r in range(ny):\n            row = []\n            for c in range(nx):\n                x = x0 + c * dx\n                y = y0 + r * dy\n                row.append(func(x, y))\n            grid.append(row)\n        segments: List[Tuple[Point, Point]] = []\n        for r in range(ny - 1):\n            for c in range(nx - 1):",
-          "file": "marching_squares.py"
-        }
-      },
-      "related": [
-        "MarchingSquares._connect_segments",
-        "MarchingSquares.connect_segments",
-        "MarchingSquares.edge_pt",
-        "MarchingSquares.edge_pt_f",
-        "MarchingSquares.extract",
-        "MarchingSquares.extract_from_func",
-        "MarchingSquares.interp"
-      ]
-    },
-    {
-      "name": "MarchingSquares.extract",
-      "implementations": {
-        "python": {
-          "sig": "extract(grid: List[List[float]], iso_value: float, cell_size: float = 1.0) -> List[Polyline]",
-          "code": "def extract(grid: List[List[float]], iso_value: float, cell_size: float = 1.0) -> List[Polyline]:\n\n        rows = len(grid)\n        if rows == 0:\n            return []\n        cols = len(grid[0])\n        if cols == 0:\n            return []\n\n        segments: List[Tuple[Point, Point]] = []\n\n        for r in range(rows - 1):\n            for c in range(cols - 1):\n                v0 = grid[r][c]\n                v1 = grid[r][c + 1]\n                v2 = grid[r + 1][c + 1]\n                v3 = grid[r + 1][c]\n\n                x0 = c * cell_size\n                y0 = r * cell_size\n                x1 = (c + 1) * cell_size\n                y1 = (r + 1) * cell_size\n\n                case = (\n                    (1 if v3 >= iso_value else 0) << 3 |\n                    (1 if v2 >= iso_value else 0) << 2 |\n                    (1 if v1 >= iso_value else 0) << 1 |\n                    (1 if v0 >= iso_value else 0)\n                )\n\n                # Edge midpoints (with interpolation)\n                def edge_pt(e: int) -> Point:\n                    if e == 0:  # bottom: v0-v1\n                        x = MarchingSquares._interp(x0, x1, v0, v1, iso_value)\n                        return Point(x, y0, 0.0)\n                    elif e == 1:  # right: v1-v2\n                        y = MarchingSquares._interp(y0, y1, v1, v2, iso_value)\n                        return Point(x1, y, 0.0)\n                    elif e == 2:  # top: v3-v2\n                        x = MarchingSquares._interp(x0, x1, v3, v2, iso_value)\n                        return Point(x, y1, 0.0)\n                    else:  # left: v0-v3\n                        y = MarchingSquares._interp(y0, y1, v0, v3, iso_value)\n                        return Point(x0, y, 0.0)\n\n                for ea, eb in MarchingSquares._EDGE_TABLE[case]:\n                    segments.append((edge_pt(ea), edge_pt(eb)))\n\n        return MarchingSquares._connect_segments(segments)\n\n    @staticmethod\n    def extract_from_func(\n        func: Callable[[float, float], float],\n        x_range: Tuple[float, float],\n        y_range: Tuple[float, float],\n        nx: int,\n        ny: int,\n        iso_value: float,\n    ) -> List[Polyline]:\n        x0, x1 = x_range\n        y0, y1 = y_range\n        dx = (x1 - x0) / (nx - 1) if nx > 1 else 0.0\n        dy = (y1 - y0) / (ny - 1) if ny > 1 else 0.0\n        grid = []\n        for r in range(ny):\n            row = []\n            for c in range(nx):\n                x = x0 + c * dx\n                y = y0 + r * dy\n                row.append(func(x, y))\n            grid.append(row)\n        segments: List[Tuple[Point, Point]] = []\n        for r in range(ny - 1):\n            for c in range(nx - 1):\n                v0 = grid[r][c]\n                v1 = grid[r][c + 1]\n                v2 = grid[r + 1][c + 1]\n                v3 = grid[r + 1][c]\n                px0 = x0 + c * dx\n                py0 = y0 + r * dy\n                px1 = x0 + (c + 1) * dx",
-          "file": "marching_squares.py"
-        },
-        "cpp": {
-          "sig": "std::vector<Polyline> extract(const std::vector<std::vector<double>>& grid, double iso_value, double cell_size)",
-          "code": "std::vector<Polyline> MarchingSquares::extract(const std::vector<std::vector<double>>& grid, double iso_value, double cell_size) {\n    int rows = static_cast<int>(grid.size());\n    if (rows == 0) return {}",
-          "file": "marching_squares.cpp"
-        },
-        "rust": {
-          "sig": "extract(grid: &[Vec<f64>], iso_value: f64, cell_size: f64) -> Vec<Polyline>",
-          "code": "pub fn extract(grid: &[Vec<f64>], iso_value: f64, cell_size: f64) -> Vec<Polyline> {\n        let rows = grid.len();\n        if rows == 0 { return vec![]; }\n        let cols = grid[0].len();\n        if cols == 0 { return vec![]; }\n        let mut segs = Vec::new();\n        for r in 0..rows - 1 {\n            for c in 0..cols - 1 {\n                let v0 = grid[r][c];\n                let v1 = grid[r][c + 1];\n                let v2 = grid[r + 1][c + 1];\n                let v3 = grid[r + 1][c];\n                let x0 = c as f64 * cell_size;\n                let y0 = r as f64 * cell_size;\n                let x1 = (c + 1) as f64 * cell_size;\n                let y1 = (r + 1) as f64 * cell_size;\n                let case =\n                    ((v3 >= iso_value) as usize) << 3 |\n                    ((v2 >= iso_value) as usize) << 2 |\n                    ((v1 >= iso_value) as usize) << 1 |\n                    ((v0 >= iso_value) as usize);\n                for &(ea, eb) in EDGE_TABLE[case] {\n                    segs.push((Self::edge_pt(ea, x0, y0, x1, y1, v0, v1, v2, v3, iso_value),\n                                Self::edge_pt(eb, x0, y0, x1, y1, v0, v1, v2, v3, iso_value)));\n                }\n            }\n        }\n        Self::connect_segments(segs)\n    }",
-          "file": "marching_squares.rs"
-        }
-      },
-      "related": [
-        "MarchingSquares._connect_segments",
-        "MarchingSquares._interp",
-        "MarchingSquares.connect_segments",
-        "MarchingSquares.edge_pt",
-        "MarchingSquares.extract_from_func",
-        "MarchingSquares.interp"
-      ]
-    },
-    {
-      "name": "MarchingSquares.edge_pt",
-      "implementations": {
-        "python": {
-          "sig": "edge_pt(e: int) -> Point",
-          "code": "def edge_pt(e: int) -> Point:\n\n                    if e == 0:  # bottom: v0-v1\n                        x = MarchingSquares._interp(x0, x1, v0, v1, iso_value)\n                        return Point(x, y0, 0.0)\n                    elif e == 1:  # right: v1-v2\n                        y = MarchingSquares._interp(y0, y1, v1, v2, iso_value)\n                        return Point(x1, y, 0.0)\n                    elif e == 2:  # top: v3-v2\n                        x = MarchingSquares._interp(x0, x1, v3, v2, iso_value)\n                        return Point(x, y1, 0.0)\n                    else:  # left: v0-v3\n                        y = MarchingSquares._interp(y0, y1, v0, v3, iso_value)\n                        return Point(x0, y, 0.0)\n\n                for ea, eb in MarchingSquares._EDGE_TABLE[case]:\n                    segments.append((edge_pt(ea), edge_pt(eb)))\n\n        return MarchingSquares._connect_segments(segments)\n\n    @staticmethod\n    def extract_from_func(\n        func: Callable[[float, float], float],\n        x_range: Tuple[float, float],\n        y_range: Tuple[float, float],\n        nx: int,\n        ny: int,\n        iso_value: float,\n    ) -> List[Polyline]:\n        x0, x1 = x_range\n        y0, y1 = y_range\n        dx = (x1 - x0) / (nx - 1) if nx > 1 else 0.0\n        dy = (y1 - y0) / (ny - 1) if ny > 1 else 0.0\n        grid = []\n        for r in range(ny):\n            row = []\n            for c in range(nx):\n                x = x0 + c * dx\n                y = y0 + r * dy\n                row.append(func(x, y))\n            grid.append(row)\n        segments: List[Tuple[Point, Point]] = []\n        for r in range(ny - 1):\n            for c in range(nx - 1):\n                v0 = grid[r][c]\n                v1 = grid[r][c + 1]\n                v2 = grid[r + 1][c + 1]\n                v3 = grid[r + 1][c]\n                px0 = x0 + c * dx\n                py0 = y0 + r * dy\n                px1 = x0 + (c + 1) * dx\n                py1 = y0 + (r + 1) * dy\n\n                case = (\n                    (1 if v3 >= iso_value else 0) << 3 |\n                    (1 if v2 >= iso_value else 0) << 2 |\n                    (1 if v1 >= iso_value else 0) << 1 |\n                    (1 if v0 >= iso_value else 0)\n                )\n\n                def edge_pt_f(e: int) -> Point:\n                    if e == 0:\n                        x = MarchingSquares._interp(px0, px1, v0, v1, iso_value)\n                        return Point(x, py0, 0.0)\n                    elif e == 1:\n                        y = MarchingSquares._interp(py0, py1, v1, v2, iso_value)\n                        return Point(px1, y, 0.0)\n                    elif e == 2:\n                        x = MarchingSquares._interp(px0, px1, v3, v2, iso_value)\n                        return Point(x, py1, 0.0)\n                    else:\n                        y = MarchingSquares._interp(py0, py1, v0, v3, iso_value)\n                        return Point(px0, y, 0.0)\n\n                for ea, eb in MarchingSquares._EDGE_TABLE[case]:\n                    segments.append((edge_pt_f(ea), edge_pt_f(eb)))\n\n        return MarchingSquares._connect_segments(segments)\n\n    @staticmethod\n    def _connect_segments(segments: List[Tuple[Point, Point]]) -> List[Polyline]:",
-          "file": "marching_squares.py"
-        },
-        "cpp": {
-          "sig": "Point edge_pt(int e, double x0, double y0, double x1, double y1, double v0, double v1, double v2, double v3, double iso)",
-          "code": "Point MarchingSquares::edge_pt(int e, double x0, double y0, double x1, double y1, double v0, double v1, double v2, double v3, double iso) {\n    switch (e) {\n        case 0: return Point(interp(x0, x1, v0, v1, iso), y0, 0.0);\n        case 1: return Point(x1, interp(y0, y1, v1, v2, iso), 0.0);\n        case 2: return Point(interp(x0, x1, v3, v2, iso), y1, 0.0);\n        default: return Point(x0, interp(y0, y1, v0, v3, iso), 0.0);\n    }",
-          "file": "marching_squares.cpp"
-        }
-      },
-      "related": [
-        "MarchingSquares._connect_segments",
-        "MarchingSquares._interp",
-        "MarchingSquares.connect_segments",
-        "MarchingSquares.edge_pt_f",
-        "MarchingSquares.extract",
-        "MarchingSquares.extract_from_func",
-        "MarchingSquares.interp"
-      ]
-    },
-    {
-      "name": "MarchingSquares.extract_from_func",
-      "implementations": {
-        "python": {
-          "sig": "extract_from_func(\n        func: Callable[[float, float], float],\n        x_range: Tuple[float, float],\n        y_range: Tuple[float, float],\n        nx: int,\n        ny: int,\n        iso_value: float,\n    ) -> List[Polyline]",
-          "code": "def extract_from_func(\n        func: Callable[[float, float], float],\n        x_range: Tuple[float, float],\n        y_range: Tuple[float, float],\n        nx: int,\n        ny: int,\n        iso_value: float,\n    ) -> List[Polyline]:\n\n        x0, x1 = x_range\n        y0, y1 = y_range\n        dx = (x1 - x0) / (nx - 1) if nx > 1 else 0.0\n        dy = (y1 - y0) / (ny - 1) if ny > 1 else 0.0\n        grid = []\n        for r in range(ny):\n            row = []\n            for c in range(nx):\n                x = x0 + c * dx\n                y = y0 + r * dy\n                row.append(func(x, y))\n            grid.append(row)\n        segments: List[Tuple[Point, Point]] = []\n        for r in range(ny - 1):\n            for c in range(nx - 1):\n                v0 = grid[r][c]\n                v1 = grid[r][c + 1]\n                v2 = grid[r + 1][c + 1]\n                v3 = grid[r + 1][c]\n                px0 = x0 + c * dx\n                py0 = y0 + r * dy\n                px1 = x0 + (c + 1) * dx\n                py1 = y0 + (r + 1) * dy\n\n                case = (\n                    (1 if v3 >= iso_value else 0) << 3 |\n                    (1 if v2 >= iso_value else 0) << 2 |\n                    (1 if v1 >= iso_value else 0) << 1 |\n                    (1 if v0 >= iso_value else 0)\n                )\n\n                def edge_pt_f(e: int) -> Point:\n                    if e == 0:\n                        x = MarchingSquares._interp(px0, px1, v0, v1, iso_value)\n                        return Point(x, py0, 0.0)\n                    elif e == 1:\n                        y = MarchingSquares._interp(py0, py1, v1, v2, iso_value)\n                        return Point(px1, y, 0.0)\n                    elif e == 2:\n                        x = MarchingSquares._interp(px0, px1, v3, v2, iso_value)\n                        return Point(x, py1, 0.0)\n                    else:\n                        y = MarchingSquares._interp(py0, py1, v0, v3, iso_value)\n                        return Point(px0, y, 0.0)\n\n                for ea, eb in MarchingSquares._EDGE_TABLE[case]:\n                    segments.append((edge_pt_f(ea), edge_pt_f(eb)))\n\n        return MarchingSquares._connect_segments(segments)\n\n    @staticmethod\n    def _connect_segments(segments: List[Tuple[Point, Point]]) -> List[Polyline]:\n        if not segments:\n            return []\n\n        def key(p: Point):\n            return (round(p[0], 8), round(p[1], 8))\n\n        ep: dict = {}\n        for i, (a, b) in enumerate(segments):\n            ep.setdefault(key(a), []).append((i, 0))\n            ep.setdefault(key(b), []).append((i, 1))\n\n        used = [False] * len(segments)\n\n        def pop_next(pt):\n            for entry in ep.get(key(pt), []):\n                i, end = entry\n                if not used[i]:\n                    used[i] = True\n                    sa, sb = segments[i]\n                    return sb if end == 0 else sa\n            return None\n\n        result = []\n        for start in range(len(segments)):\n            if used[start]:\n                continue\n            used[start] = True",
-          "file": "marching_squares.py"
-        },
-        "cpp": {
-          "sig": "std::vector<Polyline> extract_from_func(\n    const std::function<double(double, double)",
-          "code": "std::vector<Polyline> MarchingSquares::extract_from_func(\n    const std::function<double(double, double)>& func,\n    std::pair<double, double> x_range,\n    std::pair<double, double> y_range,\n    int nx, int ny,\n    double iso_value\n) {\n    auto [x0, x1] = x_range;\n    auto [y0, y1] = y_range;\n    double dx = (nx > 1) ? (x1 - x0) / (nx - 1) : 0.0;\n    double dy = (ny > 1) ? (y1 - y0) / (ny - 1) : 0.0;\n    std::vector<std::vector<double>> grid(ny, std::vector<double>(nx));\n    for (int r = 0; r < ny; ++r)\n        for (int c = 0; c < nx; ++c)\n            grid[r][c] = func(x0 + c * dx, y0 + r * dy);\n    std::vector<std::pair<Point, Point>> segs;\n    for (int r = 0; r < ny - 1; ++r) {\n        for (int c = 0; c < nx - 1; ++c) {\n            double v0 = grid[r][c], v1 = grid[r][c+1], v2 = grid[r+1][c+1], v3 = grid[r+1][c];\n            double px0 = x0 + c * dx, py0 = y0 + r * dy;\n            double px1 = x0 + (c+1) * dx, py1 = y0 + (r+1) * dy;\n            int ca = ((v3>=iso_value)?8:0)|((v2>=iso_value)?4:0)|((v1>=iso_value)?2:0)|((v0>=iso_value)?1:0);\n            for (int i = 0; i < 5 && EDGE_TABLE_RAW[ca][i] != -1; i += 2) {\n                int ea = EDGE_TABLE_RAW[ca][i], eb = EDGE_TABLE_RAW[ca][i+1];\n                segs.push_back({edge_pt(ea, px0, py0, px1, py1, v0, v1, v2, v3, iso_value),\n                                 edge_pt(eb, px0, py0, px1, py1, v0, v1, v2, v3, iso_value)}",
-          "file": "marching_squares.cpp"
-        },
-        "rust": {
-          "sig": "extract_from_func(func: F, x_range: (f64, f64)",
-          "code": "pub fn extract_from_func<F>(func: F, x_range: (f64, f64), y_range: (f64, f64), nx: usize, ny: usize, iso_value: f64) -> Vec<Polyline>\n    where F: Fn(f64, f64) -> f64 {\n        let (x0, x1) = x_range;\n        let (y0, y1) = y_range;\n        let dx = if nx > 1 { (x1 - x0) / (nx - 1) as f64 } else { 0.0 };\n        let dy = if ny > 1 { (y1 - y0) / (ny - 1) as f64 } else { 0.0 };\n        let mut grid: Vec<Vec<f64>> = Vec::new();\n        for r in 0..ny {\n            let mut row = Vec::new();\n            for c in 0..nx { row.push(func(x0 + c as f64 * dx, y0 + r as f64 * dy)); }\n            grid.push(row);\n        }\n        let mut segs = Vec::new();\n        for r in 0..ny - 1 {\n            for c in 0..nx - 1 {\n                let v0 = grid[r][c];\n                let v1 = grid[r][c + 1];\n                let v2 = grid[r + 1][c + 1];\n                let v3 = grid[r + 1][c];\n                let px0 = x0 + c as f64 * dx;\n                let py0 = y0 + r as f64 * dy;\n                let px1 = x0 + (c + 1) as f64 * dx;\n                let py1 = y0 + (r + 1) as f64 * dy;\n                let case =\n                    ((v3 >= iso_value) as usize) << 3 |\n                    ((v2 >= iso_value) as usize) << 2 |\n                    ((v1 >= iso_value) as usize) << 1 |\n                    ((v0 >= iso_value) as usize);\n                for &(ea, eb) in EDGE_TABLE[case] {\n                    segs.push((Self::edge_pt(ea, px0, py0, px1, py1, v0, v1, v2, v3, iso_value),\n                                Self::edge_pt(eb, px0, py0, px1, py1, v0, v1, v2, v3, iso_value)));\n                }\n            }\n        }\n        Self::connect_segments(segs)\n    }",
-          "file": "marching_squares.rs"
-        }
-      },
-      "related": [
-        "MarchingSquares._connect_segments",
-        "MarchingSquares._interp",
-        "MarchingSquares.connect_segments",
-        "MarchingSquares.edge_pt",
-        "MarchingSquares.edge_pt_f",
-        "MarchingSquares.extract",
-        "MarchingSquares.interp",
-        "MarchingSquares.key",
-        "MarchingSquares.pop_next"
-      ]
-    },
-    {
-      "name": "MarchingSquares.edge_pt_f",
-      "implementations": {
-        "python": {
-          "sig": "edge_pt_f(e: int) -> Point",
-          "code": "def edge_pt_f(e: int) -> Point:\n\n                    if e == 0:\n                        x = MarchingSquares._interp(px0, px1, v0, v1, iso_value)\n                        return Point(x, py0, 0.0)\n                    elif e == 1:\n                        y = MarchingSquares._interp(py0, py1, v1, v2, iso_value)\n                        return Point(px1, y, 0.0)\n                    elif e == 2:\n                        x = MarchingSquares._interp(px0, px1, v3, v2, iso_value)\n                        return Point(x, py1, 0.0)\n                    else:\n                        y = MarchingSquares._interp(py0, py1, v0, v3, iso_value)\n                        return Point(px0, y, 0.0)\n\n                for ea, eb in MarchingSquares._EDGE_TABLE[case]:\n                    segments.append((edge_pt_f(ea), edge_pt_f(eb)))\n\n        return MarchingSquares._connect_segments(segments)\n\n    @staticmethod\n    def _connect_segments(segments: List[Tuple[Point, Point]]) -> List[Polyline]:\n        if not segments:\n            return []\n\n        def key(p: Point):\n            return (round(p[0], 8), round(p[1], 8))\n\n        ep: dict = {}\n        for i, (a, b) in enumerate(segments):\n            ep.setdefault(key(a), []).append((i, 0))\n            ep.setdefault(key(b), []).append((i, 1))\n\n        used = [False] * len(segments)\n\n        def pop_next(pt):\n            for entry in ep.get(key(pt), []):\n                i, end = entry\n                if not used[i]:\n                    used[i] = True\n                    sa, sb = segments[i]\n                    return sb if end == 0 else sa\n            return None\n\n        result = []\n        for start in range(len(segments)):\n            if used[start]:\n                continue\n            used[start] = True\n            a, b = segments[start]\n            forward: List[Point] = [b]\n            while True:\n                nxt = pop_next(forward[-1])\n                if nxt is None:\n                    break\n                forward.append(nxt)\n            backward: List[Point] = [a]\n            while True:\n                nxt = pop_next(backward[-1])\n                if nxt is None:\n                    break\n                backward.append(nxt)\n            pts = list(reversed(backward)) + forward\n            result.append(Polyline(pts))\n\n        return result",
-          "file": "marching_squares.py"
-        }
-      },
-      "related": [
-        "MarchingSquares._connect_segments",
-        "MarchingSquares._interp",
-        "MarchingSquares.connect_segments",
-        "MarchingSquares.edge_pt",
-        "MarchingSquares.extract_from_func",
-        "MarchingSquares.interp",
-        "MarchingSquares.key",
-        "MarchingSquares.pop_next"
-      ]
-    },
-    {
-      "name": "MarchingSquares._connect_segments",
-      "implementations": {
-        "python": {
-          "sig": "_connect_segments(segments: List[Tuple[Point, Point]]) -> List[Polyline]",
-          "code": "def _connect_segments(segments: List[Tuple[Point, Point]]) -> List[Polyline]:\n\n        if not segments:\n            return []\n\n        def key(p: Point):\n            return (round(p[0], 8), round(p[1], 8))\n\n        ep: dict = {}\n        for i, (a, b) in enumerate(segments):\n            ep.setdefault(key(a), []).append((i, 0))\n            ep.setdefault(key(b), []).append((i, 1))\n\n        used = [False] * len(segments)\n\n        def pop_next(pt):\n            for entry in ep.get(key(pt), []):\n                i, end = entry\n                if not used[i]:\n                    used[i] = True\n                    sa, sb = segments[i]\n                    return sb if end == 0 else sa\n            return None\n\n        result = []\n        for start in range(len(segments)):\n            if used[start]:\n                continue\n            used[start] = True\n            a, b = segments[start]\n            forward: List[Point] = [b]\n            while True:\n                nxt = pop_next(forward[-1])\n                if nxt is None:\n                    break\n                forward.append(nxt)\n            backward: List[Point] = [a]\n            while True:\n                nxt = pop_next(backward[-1])\n                if nxt is None:\n                    break\n                backward.append(nxt)\n            pts = list(reversed(backward)) + forward\n            result.append(Polyline(pts))\n\n        return result",
-          "file": "marching_squares.py"
-        }
-      },
-      "related": [
-        "MarchingSquares._interp",
-        "MarchingSquares.connect_segments",
-        "MarchingSquares.edge_pt",
-        "MarchingSquares.edge_pt_f",
-        "MarchingSquares.extract",
-        "MarchingSquares.extract_from_func",
-        "MarchingSquares.key",
-        "MarchingSquares.pop_next"
-      ]
-    },
-    {
-      "name": "MarchingSquares.key",
-      "implementations": {
-        "python": {
-          "sig": "key(p: Point)",
-          "code": "def key(p: Point):\n\n            return (round(p[0], 8), round(p[1], 8))\n\n        ep: dict = {}\n        for i, (a, b) in enumerate(segments):\n            ep.setdefault(key(a), []).append((i, 0))\n            ep.setdefault(key(b), []).append((i, 1))\n\n        used = [False] * len(segments)\n\n        def pop_next(pt):\n            for entry in ep.get(key(pt), []):\n                i, end = entry\n                if not used[i]:\n                    used[i] = True\n                    sa, sb = segments[i]\n                    return sb if end == 0 else sa\n            return None\n\n        result = []\n        for start in range(len(segments)):\n            if used[start]:\n                continue\n            used[start] = True\n            a, b = segments[start]\n            forward: List[Point] = [b]\n            while True:\n                nxt = pop_next(forward[-1])\n                if nxt is None:\n                    break\n                forward.append(nxt)\n            backward: List[Point] = [a]\n            while True:\n                nxt = pop_next(backward[-1])\n                if nxt is None:\n                    break\n                backward.append(nxt)\n            pts = list(reversed(backward)) + forward\n            result.append(Polyline(pts))\n\n        return result",
-          "file": "marching_squares.py"
-        }
-      },
-      "related": [
-        "MarchingSquares._connect_segments",
-        "MarchingSquares.edge_pt_f",
-        "MarchingSquares.extract_from_func",
-        "MarchingSquares.pop_next"
-      ]
-    },
-    {
-      "name": "MarchingSquares.pop_next",
-      "implementations": {
-        "python": {
-          "sig": "pop_next(pt)",
-          "code": "def pop_next(pt):\n\n            for entry in ep.get(key(pt), []):\n                i, end = entry\n                if not used[i]:\n                    used[i] = True\n                    sa, sb = segments[i]\n                    return sb if end == 0 else sa\n            return None\n\n        result = []\n        for start in range(len(segments)):\n            if used[start]:\n                continue\n            used[start] = True\n            a, b = segments[start]\n            forward: List[Point] = [b]\n            while True:\n                nxt = pop_next(forward[-1])\n                if nxt is None:\n                    break\n                forward.append(nxt)\n            backward: List[Point] = [a]\n            while True:\n                nxt = pop_next(backward[-1])\n                if nxt is None:\n                    break\n                backward.append(nxt)\n            pts = list(reversed(backward)) + forward\n            result.append(Polyline(pts))\n\n        return result",
-          "file": "marching_squares.py"
-        }
-      },
-      "related": [
-        "MarchingSquares._connect_segments",
-        "MarchingSquares.edge_pt_f",
-        "MarchingSquares.extract_from_func",
-        "MarchingSquares.key"
       ]
     },
     {
@@ -26339,455 +26180,6 @@ window.API_INDEX = {
         "Mesh.set_face_color",
         "Mesh.set_vertex_color",
         "Mesh.widths"
-      ]
-    },
-    {
-      "name": "TpmsMode._marching_cubes",
-      "implementations": {
-        "python": {
-          "sig": "_marching_cubes(fn, box, nx, ny, nz, isovalue)",
-          "code": "def _marching_cubes(fn, box, nx, ny, nz, isovalue):\n\n    from session_py import Mesh\n    from session_py import Point\n    mn = box.min_point()\n    mx = box.max_point()\n    min_x, min_y, min_z = mn[0], mn[1], mn[2]\n    dx = (mx[0] - min_x) / nx\n    dy = (mx[1] - min_y) / ny\n    dz = (mx[2] - min_z) / nz\n    h = min(dx, dy, dz) * 0.5\n    nxg, nyg, nzg = nx + 1, ny + 1, nz + 1\n    field = [0.0] * (nxg * nyg * nzg)\n    for i in range(nxg):\n        for j in range(nyg):\n            for k in range(nzg):\n                field[i * nyg * nzg + j * nzg + k] = fn(\n                    min_x + i * dx, min_y + j * dy, min_z + k * dz)\n    edge_x = [-1] * (nx * nyg * nzg)\n    edge_y = [-1] * (nxg * ny * nzg)\n    edge_z = [-1] * (nxg * nyg * nz)\n    mesh = Mesh()\n\n    def get_slot(ei, ej, ek, arr, stride0, stride1):\n        return ei * stride0 + ej * stride1 + ek\n\n    def make_vertex(e, i, j, k, pt, val):\n        if e == 0:\n            idx = i * nyg * nzg + j * nzg + k\n            arr = edge_x\n        elif e == 1:\n            idx = (i + 1) * ny * nzg + j * nzg + k\n            arr = edge_y\n        elif e == 2:\n            idx = i * nyg * nzg + (j + 1) * nzg + k\n            arr = edge_x\n        elif e == 3:\n            idx = i * ny * nzg + j * nzg + k\n            arr = edge_y\n        elif e == 4:\n            idx = i * nyg * nzg + j * nzg + (k + 1)\n            arr = edge_x\n        elif e == 5:\n            idx = (i + 1) * ny * nzg + j * nzg + (k + 1)\n            arr = edge_y\n        elif e == 6:\n            idx = i * nyg * nzg + (j + 1) * nzg + (k + 1)\n            arr = edge_x\n        elif e == 7:\n            idx = i * ny * nzg + j * nzg + (k + 1)\n            arr = edge_y\n        elif e == 8:\n            idx = i * nyg * nz + j * nz + k\n            arr = edge_z\n        elif e == 9:\n            idx = (i + 1) * nyg * nz + j * nz + k\n            arr = edge_z\n        elif e == 10:\n            idx = (i + 1) * nyg * nz + (j + 1) * nz + k\n            arr = edge_z\n        else:\n            idx = i * nyg * nz + (j + 1) * nz + k\n            arr = edge_z\n        if arr[idx] >= 0:\n            return arr[idx]\n        ca, cb = _EDGE_VERTICES[e]\n        va, vb = val[ca], val[cb]\n        t = 0.5 if abs(vb - va) < 1e-12 else (isovalue - va) / (vb - va)\n        px = pt[ca][0] + t * (pt[cb][0] - pt[ca][0])\n        py = pt[ca][1] + t * (pt[cb][1] - pt[ca][1])\n        pz = pt[ca][2] + t * (pt[cb][2] - pt[ca][2])\n        gnx = fn(px + h, py, pz) - fn(px - h, py, pz)\n        gny = fn(px, py + h, pz) - fn(px, py - h, pz)\n        gnz = fn(px, py, pz + h) - fn(px, py, pz - h)\n        gl = math.sqrt(gnx*gnx + gny*gny + gnz*gnz)\n        if gl > 1e-12:\n            gnx /= gl; gny /= gl; gnz /= gl\n        vk = mesh.add_vertex(Point(px, py, pz))\n        mesh.vertex[vk].set_normal(gnx, gny, gnz)\n        arr[idx] = vk\n        return vk",
-          "file": "mesh_iso.py"
-        }
-      },
-      "related": [
-        "TpmsMode.get_slot",
-        "TpmsMode.make_vertex"
-      ]
-    },
-    {
-      "name": "TpmsMode.get_slot",
-      "implementations": {
-        "python": {
-          "sig": "get_slot(ei, ej, ek, arr, stride0, stride1)",
-          "code": "def get_slot(ei, ej, ek, arr, stride0, stride1):\n\n        return ei * stride0 + ej * stride1 + ek\n\n    def make_vertex(e, i, j, k, pt, val):\n        if e == 0:\n            idx = i * nyg * nzg + j * nzg + k\n            arr = edge_x\n        elif e == 1:\n            idx = (i + 1) * ny * nzg + j * nzg + k\n            arr = edge_y\n        elif e == 2:\n            idx = i * nyg * nzg + (j + 1) * nzg + k\n            arr = edge_x\n        elif e == 3:\n            idx = i * ny * nzg + j * nzg + k\n            arr = edge_y\n        elif e == 4:\n            idx = i * nyg * nzg + j * nzg + (k + 1)\n            arr = edge_x\n        elif e == 5:\n            idx = (i + 1) * ny * nzg + j * nzg + (k + 1)\n            arr = edge_y\n        elif e == 6:\n            idx = i * nyg * nzg + (j + 1) * nzg + (k + 1)\n            arr = edge_x\n        elif e == 7:\n            idx = i * ny * nzg + j * nzg + (k + 1)\n            arr = edge_y\n        elif e == 8:\n            idx = i * nyg * nz + j * nz + k\n            arr = edge_z\n        elif e == 9:\n            idx = (i + 1) * nyg * nz + j * nz + k\n            arr = edge_z\n        elif e == 10:\n            idx = (i + 1) * nyg * nz + (j + 1) * nz + k\n            arr = edge_z\n        else:\n            idx = i * nyg * nz + (j + 1) * nz + k\n            arr = edge_z\n        if arr[idx] >= 0:\n            return arr[idx]\n        ca, cb = _EDGE_VERTICES[e]\n        va, vb = val[ca], val[cb]\n        t = 0.5 if abs(vb - va) < 1e-12 else (isovalue - va) / (vb - va)\n        px = pt[ca][0] + t * (pt[cb][0] - pt[ca][0])\n        py = pt[ca][1] + t * (pt[cb][1] - pt[ca][1])\n        pz = pt[ca][2] + t * (pt[cb][2] - pt[ca][2])\n        gnx = fn(px + h, py, pz) - fn(px - h, py, pz)\n        gny = fn(px, py + h, pz) - fn(px, py - h, pz)\n        gnz = fn(px, py, pz + h) - fn(px, py, pz - h)\n        gl = math.sqrt(gnx*gnx + gny*gny + gnz*gnz)\n        if gl > 1e-12:\n            gnx /= gl; gny /= gl; gnz /= gl\n        vk = mesh.add_vertex(Point(px, py, pz))\n        mesh.vertex[vk].set_normal(gnx, gny, gnz)\n        arr[idx] = vk\n        return vk\n\n    for i in range(nx):\n        for j in range(ny):\n            for k in range(nz):\n                pt = [\n                    (min_x + i * dx,       min_y + j * dy,       min_z + k * dz),\n                    (min_x + (i+1) * dx,   min_y + j * dy,       min_z + k * dz),\n                    (min_x + (i+1) * dx,   min_y + (j+1) * dy,   min_z + k * dz),\n                    (min_x + i * dx,       min_y + (j+1) * dy,   min_z + k * dz),\n                    (min_x + i * dx,       min_y + j * dy,       min_z + (k+1) * dz),\n                    (min_x + (i+1) * dx,   min_y + j * dy,       min_z + (k+1) * dz),\n                    (min_x + (i+1) * dx,   min_y + (j+1) * dy,   min_z + (k+1) * dz),\n                    (min_x + i * dx,       min_y + (j+1) * dy,   min_z + (k+1) * dz),\n                ]\n                val = [\n                    field[i * nyg * nzg + j * nzg + k],\n                    field[(i+1) * nyg * nzg + j * nzg + k],\n                    field[(i+1) * nyg * nzg + (j+1) * nzg + k],\n                    field[i * nyg * nzg + (j+1) * nzg + k],\n                    field[i * nyg * nzg + j * nzg + (k+1)],\n                    field[(i+1) * nyg * nzg + j * nzg + (k+1)],\n                    field[(i+1) * nyg * nzg + (j+1) * nzg + (k+1)],",
-          "file": "mesh_iso.py"
-        }
-      },
-      "related": [
-        "TpmsMode._marching_cubes",
-        "TpmsMode.make_vertex"
-      ]
-    },
-    {
-      "name": "TpmsMode.make_vertex",
-      "implementations": {
-        "python": {
-          "sig": "make_vertex(e, i, j, k, pt, val)",
-          "code": "def make_vertex(e, i, j, k, pt, val):\n\n        if e == 0:\n            idx = i * nyg * nzg + j * nzg + k\n            arr = edge_x\n        elif e == 1:\n            idx = (i + 1) * ny * nzg + j * nzg + k\n            arr = edge_y\n        elif e == 2:\n            idx = i * nyg * nzg + (j + 1) * nzg + k\n            arr = edge_x\n        elif e == 3:\n            idx = i * ny * nzg + j * nzg + k\n            arr = edge_y\n        elif e == 4:\n            idx = i * nyg * nzg + j * nzg + (k + 1)\n            arr = edge_x\n        elif e == 5:\n            idx = (i + 1) * ny * nzg + j * nzg + (k + 1)\n            arr = edge_y\n        elif e == 6:\n            idx = i * nyg * nzg + (j + 1) * nzg + (k + 1)\n            arr = edge_x\n        elif e == 7:\n            idx = i * ny * nzg + j * nzg + (k + 1)\n            arr = edge_y\n        elif e == 8:\n            idx = i * nyg * nz + j * nz + k\n            arr = edge_z\n        elif e == 9:\n            idx = (i + 1) * nyg * nz + j * nz + k\n            arr = edge_z\n        elif e == 10:\n            idx = (i + 1) * nyg * nz + (j + 1) * nz + k\n            arr = edge_z\n        else:\n            idx = i * nyg * nz + (j + 1) * nz + k\n            arr = edge_z\n        if arr[idx] >= 0:\n            return arr[idx]\n        ca, cb = _EDGE_VERTICES[e]\n        va, vb = val[ca], val[cb]\n        t = 0.5 if abs(vb - va) < 1e-12 else (isovalue - va) / (vb - va)\n        px = pt[ca][0] + t * (pt[cb][0] - pt[ca][0])\n        py = pt[ca][1] + t * (pt[cb][1] - pt[ca][1])\n        pz = pt[ca][2] + t * (pt[cb][2] - pt[ca][2])\n        gnx = fn(px + h, py, pz) - fn(px - h, py, pz)\n        gny = fn(px, py + h, pz) - fn(px, py - h, pz)\n        gnz = fn(px, py, pz + h) - fn(px, py, pz - h)\n        gl = math.sqrt(gnx*gnx + gny*gny + gnz*gnz)\n        if gl > 1e-12:\n            gnx /= gl; gny /= gl; gnz /= gl\n        vk = mesh.add_vertex(Point(px, py, pz))\n        mesh.vertex[vk].set_normal(gnx, gny, gnz)\n        arr[idx] = vk\n        return vk\n\n    for i in range(nx):\n        for j in range(ny):\n            for k in range(nz):\n                pt = [\n                    (min_x + i * dx,       min_y + j * dy,       min_z + k * dz),\n                    (min_x + (i+1) * dx,   min_y + j * dy,       min_z + k * dz),\n                    (min_x + (i+1) * dx,   min_y + (j+1) * dy,   min_z + k * dz),\n                    (min_x + i * dx,       min_y + (j+1) * dy,   min_z + k * dz),\n                    (min_x + i * dx,       min_y + j * dy,       min_z + (k+1) * dz),\n                    (min_x + (i+1) * dx,   min_y + j * dy,       min_z + (k+1) * dz),\n                    (min_x + (i+1) * dx,   min_y + (j+1) * dy,   min_z + (k+1) * dz),\n                    (min_x + i * dx,       min_y + (j+1) * dy,   min_z + (k+1) * dz),\n                ]\n                val = [\n                    field[i * nyg * nzg + j * nzg + k],\n                    field[(i+1) * nyg * nzg + j * nzg + k],\n                    field[(i+1) * nyg * nzg + (j+1) * nzg + k],\n                    field[i * nyg * nzg + (j+1) * nzg + k],\n                    field[i * nyg * nzg + j * nzg + (k+1)],\n                    field[(i+1) * nyg * nzg + j * nzg + (k+1)],\n                    field[(i+1) * nyg * nzg + (j+1) * nzg + (k+1)],\n                    field[i * nyg * nzg + (j+1) * nzg + (k+1)],\n                ]\n                cube_idx = 0",
-          "file": "mesh_iso.py"
-        }
-      },
-      "related": [
-        "TpmsMode._marching_cubes",
-        "TpmsMode.get_slot"
-      ]
-    },
-    {
-      "name": "MeshIso.eval",
-      "implementations": {
-        "python": {
-          "sig": "eval(tpms_type, x, y, z, period=1.0)",
-          "code": "def eval(tpms_type, x, y, z, period=1.0):\n\n        X = x / period\n        Y = y / period\n        Z = z / period\n        t = tpms_type\n        if t == TpmsType.GYROID:\n            return math.sin(X)*math.cos(Y) + math.sin(Y)*math.cos(Z) + math.sin(Z)*math.cos(X)\n        elif t == TpmsType.SCHWARZ_P:\n            return math.cos(X) + math.cos(Y) + math.cos(Z)\n        elif t == TpmsType.DIAMOND:\n            return (math.sin(X)*math.sin(Y)*math.sin(Z)\n                  + math.sin(X)*math.cos(Y)*math.cos(Z)\n                  + math.cos(X)*math.sin(Y)*math.cos(Z)\n                  + math.cos(X)*math.cos(Y)*math.sin(Z))\n        elif t == TpmsType.NEOVIUS:\n            return 3.0*(math.cos(X)+math.cos(Y)+math.cos(Z)) + 4.0*math.cos(X)*math.cos(Y)*math.cos(Z)\n        elif t == TpmsType.IWP:\n            return (2.0*(math.cos(X)*math.cos(Y)+math.cos(Y)*math.cos(Z)+math.cos(Z)*math.cos(X))\n                  - (math.cos(2.0*X)+math.cos(2.0*Y)+math.cos(2.0*Z)))\n        elif t == TpmsType.LIDINOID:\n            return (math.sin(2.0*X)*math.cos(Y)*math.sin(Z)\n                  + math.sin(2.0*Y)*math.cos(Z)*math.sin(X)\n                  + math.sin(2.0*Z)*math.cos(X)*math.sin(Y)\n                  + math.cos(2.0*X)*math.cos(2.0*Y)\n                  + math.cos(2.0*Y)*math.cos(2.0*Z)\n                  + math.cos(2.0*Z)*math.cos(2.0*X))\n        elif t == TpmsType.FISCHER_KOCH_S:\n            return (math.cos(2.0*X)*math.sin(Y)*math.cos(Z)\n                  + math.cos(2.0*Y)*math.sin(Z)*math.cos(X)\n                  + math.cos(2.0*Z)*math.sin(X)*math.cos(Y))\n        elif t == TpmsType.FRD:\n            return (4.0*math.cos(X)*math.cos(Y)*math.cos(Z)\n                  - (math.cos(2.0*X)*math.cos(2.0*Y)\n                   + math.cos(2.0*Y)*math.cos(2.0*Z)\n                   + math.cos(2.0*Z)*math.cos(2.0*X)))\n        elif t == TpmsType.PMY:\n            return (2.0*math.cos(X)*math.cos(Y)*math.cos(Z)\n                  + math.sin(2.0*X)*math.sin(Y)\n                  + math.sin(X)*math.sin(2.0*Z)\n                  + math.sin(2.0*Y)*math.sin(Z))\n        return 0.0\n\n    @staticmethod\n    def from_tpms(tpms_type, box, nx, ny, nz, isovalue=0.0, period=1.0,\n                  mode=None, thickness=0.2):\n        if mode is None:\n            mode = TpmsMode.SOLID\n        def fn(x, y, z):\n            return MeshIso.eval(tpms_type, x, y, z, period / (2.0 * PI))\n        if mode == TpmsMode.SOLID:\n            return _marching_cubes(fn, box, nx, ny, nz, isovalue)\n        m1 = _marching_cubes(fn, box, nx, ny, nz, isovalue - thickness)\n        m2 = _marching_cubes(fn, box, nx, ny, nz, isovalue + thickness)\n        return _merge_meshes(m1, m2)\n\n    @staticmethod\n    def from_function(fn, box, nx, ny, nz, isovalue=0.0):\n        return _marching_cubes(fn, box, nx, ny, nz, isovalue)\n\n    @staticmethod\n    def sdf_sphere(cx, cy, cz, r, x, y, z):\n        dx, dy, dz = x - cx, y - cy, z - cz\n        return math.sqrt(dx*dx + dy*dy + dz*dz) - r\n\n    @staticmethod\n    def sdf_box(cx, cy, cz, hx, hy, hz, x, y, z):\n        qx = abs(x - cx) - hx\n        qy = abs(y - cy) - hy\n        qz = abs(z - cz) - hz\n        mx = max(qx, 0.0)\n        my = max(qy, 0.0)\n        mz = max(qz, 0.0)\n        return math.sqrt(mx*mx + my*my + mz*mz) + min(max(qx, qy, qz), 0.0)\n\n    @staticmethod\n    def sdf_capsule(p0, p1, r, x, y, z):\n        pax, pay, paz = x - p0[0], y - p0[1], z - p0[2]\n        bax, bay, baz = p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]\n        h = max(0.0, min(1.0, (pax*bax + pay*bay + paz*baz) / (bax*bax + bay*bay + baz*baz)))\n        dx, dy, dz = pax - h * bax, pay - h * bay, paz - h * baz",
-          "file": "mesh_iso.py"
-        },
-        "cpp": {
-          "sig": "double eval(TpmsType type, double x, double y, double z, double period)",
-          "code": "double MeshIso::eval(TpmsType type, double x, double y, double z, double period) {\n    double X = x / period;\n    double Y = y / period;\n    double Z = z / period;\n    switch (type) {\n        case TpmsType::GYROID:\n            return std::sin(X)*std::cos(Y) + std::sin(Y)*std::cos(Z) + std::sin(Z)*std::cos(X);\n        case TpmsType::SCHWARZ_P:\n            return std::cos(X) + std::cos(Y) + std::cos(Z);\n        case TpmsType::DIAMOND:\n            return std::sin(X)*std::sin(Y)*std::sin(Z)\n                 + std::sin(X)*std::cos(Y)*std::cos(Z)\n                 + std::cos(X)*std::sin(Y)*std::cos(Z)\n                 + std::cos(X)*std::cos(Y)*std::sin(Z);\n        case TpmsType::NEOVIUS:\n            return 3.0*(std::cos(X)+std::cos(Y)+std::cos(Z))\n                 + 4.0*std::cos(X)*std::cos(Y)*std::cos(Z);\n        case TpmsType::IWP:\n            return 2.0*(std::cos(X)*std::cos(Y)+std::cos(Y)*std::cos(Z)+std::cos(Z)*std::cos(X))\n                 - (std::cos(2.0*X)+std::cos(2.0*Y)+std::cos(2.0*Z));\n        case TpmsType::LIDINOID:\n            return std::sin(2.0*X)*std::cos(Y)*std::sin(Z)\n                 + std::sin(2.0*Y)*std::cos(Z)*std::sin(X)\n                 + std::sin(2.0*Z)*std::cos(X)*std::sin(Y)\n                 + std::cos(2.0*X)*std::cos(2.0*Y)\n                 + std::cos(2.0*Y)*std::cos(2.0*Z)\n                 + std::cos(2.0*Z)*std::cos(2.0*X);\n        case TpmsType::FISCHER_KOCH_S:\n            return std::cos(2.0*X)*std::sin(Y)*std::cos(Z)\n                 + std::cos(2.0*Y)*std::sin(Z)*std::cos(X)\n                 + std::cos(2.0*Z)*std::sin(X)*std::cos(Y);\n        case TpmsType::FRD:\n            return 4.0*std::cos(X)*std::cos(Y)*std::cos(Z)\n                 - (std::cos(2.0*X)*std::cos(2.0*Y)\n                  + std::cos(2.0*Y)*std::cos(2.0*Z)\n                  + std::cos(2.0*Z)*std::cos(2.0*X));\n        case TpmsType::PMY:\n            return 2.0*std::cos(X)*std::cos(Y)*std::cos(Z)\n                 + std::sin(2.0*X)*std::sin(Y)\n                 + std::sin(X)*std::sin(2.0*Z)\n                 + std::sin(2.0*Y)*std::sin(Z);\n        default:\n            return 0.0;\n    }",
-          "file": "mesh_iso.cpp"
-        },
-        "rust": {
-          "sig": "eval(tpms_type: TpmsType, x: f64, y: f64, z: f64, period: f64) -> f64",
-          "code": "pub fn eval(tpms_type: TpmsType, x: f64, y: f64, z: f64, period: f64) -> f64 {\n        let bx = x / period;\n        let by = y / period;\n        let bz = z / period;\n        match tpms_type {\n            TpmsType::GYROID =>\n                bx.sin()*by.cos() + by.sin()*bz.cos() + bz.sin()*bx.cos(),\n            TpmsType::SCHWARZ_P =>\n                bx.cos() + by.cos() + bz.cos(),\n            TpmsType::DIAMOND =>\n                bx.sin()*by.sin()*bz.sin()\n                + bx.sin()*by.cos()*bz.cos()\n                + bx.cos()*by.sin()*bz.cos()\n                + bx.cos()*by.cos()*bz.sin(),\n            TpmsType::NEOVIUS =>\n                3.0*(bx.cos()+by.cos()+bz.cos()) + 4.0*bx.cos()*by.cos()*bz.cos(),\n            TpmsType::IWP =>\n                2.0*(bx.cos()*by.cos()+by.cos()*bz.cos()+bz.cos()*bx.cos())\n                - ((2.0*bx).cos()+(2.0*by).cos()+(2.0*bz).cos()),\n            TpmsType::LIDINOID =>\n                (2.0*bx).sin()*by.cos()*bz.sin()\n                + (2.0*by).sin()*bz.cos()*bx.sin()\n                + (2.0*bz).sin()*bx.cos()*by.sin()\n                + (2.0*bx).cos()*(2.0*by).cos()\n                + (2.0*by).cos()*(2.0*bz).cos()\n                + (2.0*bz).cos()*(2.0*bx).cos(),\n            TpmsType::FISCHER_KOCH_S =>\n                (2.0*bx).cos()*by.sin()*bz.cos()\n                + (2.0*by).cos()*bz.sin()*bx.cos()\n                + (2.0*bz).cos()*bx.sin()*by.cos(),\n            TpmsType::FRD =>\n                4.0*bx.cos()*by.cos()*bz.cos()\n                - ((2.0*bx).cos()*(2.0*by).cos()\n                 + (2.0*by).cos()*(2.0*bz).cos()\n                 + (2.0*bz).cos()*(2.0*bx).cos()),\n            TpmsType::PMY =>\n                2.0*bx.cos()*by.cos()*bz.cos()\n                + (2.0*bx).sin()*by.sin()\n                + bx.sin()*(2.0*bz).sin()\n                + (2.0*by).sin()*bz.sin(),\n        }\n    }",
-          "file": "mesh_iso.rs"
-        }
-      },
-      "related": [
-        "MeshIso._merge_meshes",
-        "MeshIso.fn",
-        "MeshIso.from_function",
-        "MeshIso.from_tpms",
-        "MeshIso.sdf_box",
-        "MeshIso.sdf_capsule",
-        "MeshIso.sdf_sphere"
-      ]
-    },
-    {
-      "name": "MeshIso.from_tpms",
-      "implementations": {
-        "python": {
-          "sig": "from_tpms(tpms_type, box, nx, ny, nz, isovalue=0.0, period=1.0,\n                  mode=None, thickness=0.2)",
-          "code": "def from_tpms(tpms_type, box, nx, ny, nz, isovalue=0.0, period=1.0,\n                  mode=None, thickness=0.2):\n\n        if mode is None:\n            mode = TpmsMode.SOLID\n        def fn(x, y, z):\n            return MeshIso.eval(tpms_type, x, y, z, period / (2.0 * PI))\n        if mode == TpmsMode.SOLID:\n            return _marching_cubes(fn, box, nx, ny, nz, isovalue)\n        m1 = _marching_cubes(fn, box, nx, ny, nz, isovalue - thickness)\n        m2 = _marching_cubes(fn, box, nx, ny, nz, isovalue + thickness)\n        return _merge_meshes(m1, m2)\n\n    @staticmethod\n    def from_function(fn, box, nx, ny, nz, isovalue=0.0):\n        return _marching_cubes(fn, box, nx, ny, nz, isovalue)\n\n    @staticmethod\n    def sdf_sphere(cx, cy, cz, r, x, y, z):\n        dx, dy, dz = x - cx, y - cy, z - cz\n        return math.sqrt(dx*dx + dy*dy + dz*dz) - r\n\n    @staticmethod\n    def sdf_box(cx, cy, cz, hx, hy, hz, x, y, z):\n        qx = abs(x - cx) - hx\n        qy = abs(y - cy) - hy\n        qz = abs(z - cz) - hz\n        mx = max(qx, 0.0)\n        my = max(qy, 0.0)\n        mz = max(qz, 0.0)\n        return math.sqrt(mx*mx + my*my + mz*mz) + min(max(qx, qy, qz), 0.0)\n\n    @staticmethod\n    def sdf_capsule(p0, p1, r, x, y, z):\n        pax, pay, paz = x - p0[0], y - p0[1], z - p0[2]\n        bax, bay, baz = p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]\n        h = max(0.0, min(1.0, (pax*bax + pay*bay + paz*baz) / (bax*bax + bay*bay + baz*baz)))\n        dx, dy, dz = pax - h * bax, pay - h * bay, paz - h * baz\n        return math.sqrt(dx*dx + dy*dy + dz*dz) - r\n\n    @staticmethod\n    def sdf_torus(cx, cy, cz, major_r, minor_r, x, y, z):\n        lx, ly, lz = x - cx, y - cy, z - cz\n        q = math.sqrt(lx*lx + ly*ly) - major_r\n        return math.sqrt(q*q + lz*lz) - minor_r\n\n    @staticmethod\n    def sdf_plane(nx, ny, nz, d, x, y, z):\n        return nx*x + ny*y + nz*z - d\n\n    @staticmethod\n    def smooth_union(a, b, k=8.0):\n        return -math.log(math.exp(-k * a) + math.exp(-k * b)) / k\n\n    @staticmethod\n    def smooth_subtract(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, b, k)\n\n    @staticmethod\n    def smooth_intersect(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, -b, k)\n\n\ndef _merge_meshes(m1, m2):\n    from session_py import Mesh\n    v1, f1 = m1.to_vertices_and_faces()\n    v2, f2 = m2.to_vertices_and_faces()\n    offset = len(v1)\n    verts = v1 + v2\n    faces = list(f1) + [[idx + offset for idx in f] for f in f2]\n    result = Mesh.from_vertices_and_faces(verts, faces)\n    result.halfedge.clear()\n    result.clear_pointcolors()\n    result.clear_facecolors()\n    result.clear_linecolors()\n    return result",
-          "file": "mesh_iso.py"
-        },
-        "cpp": {
-          "sig": "Mesh from_tpms(TpmsType type, const OBB& box,\n                         int nx, int ny, int nz,\n                         double isovalue, double period,\n                         TpmsMode mode, double thickness)",
-          "code": "Mesh MeshIso::from_tpms(TpmsType type, const OBB& box,\n                         int nx, int ny, int nz,\n                         double isovalue, double period,\n                         TpmsMode mode, double thickness) {\n    auto fn = [type, period](double x, double y, double z) {\n        return eval(type, x, y, z, period / (2.0 * Tolerance::PI));\n    }",
-          "file": "mesh_iso.cpp"
-        },
-        "rust": {
-          "sig": "from_tpms(tpms_type: TpmsType, box_: &OBB,\n                     nx: usize, ny: usize, nz: usize,\n                     isovalue: f64, period: f64,\n                     mode: TpmsMode, thickness: f64) -> Mesh",
-          "code": "pub fn from_tpms(tpms_type: TpmsType, box_: &OBB,\n                     nx: usize, ny: usize, nz: usize,\n                     isovalue: f64, period: f64,\n                     mode: TpmsMode, thickness: f64) -> Mesh {\n        let fn_tpms = move |x: f64, y: f64, z: f64| -> f64 {\n            MeshIso::eval(tpms_type, x, y, z, period / (2.0 * PI))\n        };\n        if mode == TpmsMode::SOLID {\n            return marching_cubes(&fn_tpms, box_, nx, ny, nz, isovalue);\n        }\n        let m1 = marching_cubes(&fn_tpms, box_, nx, ny, nz, isovalue - thickness);\n        let m2 = marching_cubes(&fn_tpms, box_, nx, ny, nz, isovalue + thickness);\n        merge_meshes(m1, m2)\n    }",
-          "file": "mesh_iso.rs"
-        }
-      },
-      "related": [
-        "MeshIso._merge_meshes",
-        "MeshIso.eval",
-        "MeshIso.fn",
-        "MeshIso.from_function",
-        "MeshIso.sdf_box",
-        "MeshIso.sdf_capsule",
-        "MeshIso.sdf_plane",
-        "MeshIso.sdf_sphere",
-        "MeshIso.sdf_torus",
-        "MeshIso.smooth_intersect",
-        "MeshIso.smooth_subtract",
-        "MeshIso.smooth_union"
-      ]
-    },
-    {
-      "name": "MeshIso.fn",
-      "implementations": {
-        "python": {
-          "sig": "fn(x, y, z)",
-          "code": "def fn(x, y, z):\n\n            return MeshIso.eval(tpms_type, x, y, z, period / (2.0 * PI))\n        if mode == TpmsMode.SOLID:\n            return _marching_cubes(fn, box, nx, ny, nz, isovalue)\n        m1 = _marching_cubes(fn, box, nx, ny, nz, isovalue - thickness)\n        m2 = _marching_cubes(fn, box, nx, ny, nz, isovalue + thickness)\n        return _merge_meshes(m1, m2)\n\n    @staticmethod\n    def from_function(fn, box, nx, ny, nz, isovalue=0.0):\n        return _marching_cubes(fn, box, nx, ny, nz, isovalue)\n\n    @staticmethod\n    def sdf_sphere(cx, cy, cz, r, x, y, z):\n        dx, dy, dz = x - cx, y - cy, z - cz\n        return math.sqrt(dx*dx + dy*dy + dz*dz) - r\n\n    @staticmethod\n    def sdf_box(cx, cy, cz, hx, hy, hz, x, y, z):\n        qx = abs(x - cx) - hx\n        qy = abs(y - cy) - hy\n        qz = abs(z - cz) - hz\n        mx = max(qx, 0.0)\n        my = max(qy, 0.0)\n        mz = max(qz, 0.0)\n        return math.sqrt(mx*mx + my*my + mz*mz) + min(max(qx, qy, qz), 0.0)\n\n    @staticmethod\n    def sdf_capsule(p0, p1, r, x, y, z):\n        pax, pay, paz = x - p0[0], y - p0[1], z - p0[2]\n        bax, bay, baz = p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]\n        h = max(0.0, min(1.0, (pax*bax + pay*bay + paz*baz) / (bax*bax + bay*bay + baz*baz)))\n        dx, dy, dz = pax - h * bax, pay - h * bay, paz - h * baz\n        return math.sqrt(dx*dx + dy*dy + dz*dz) - r\n\n    @staticmethod\n    def sdf_torus(cx, cy, cz, major_r, minor_r, x, y, z):\n        lx, ly, lz = x - cx, y - cy, z - cz\n        q = math.sqrt(lx*lx + ly*ly) - major_r\n        return math.sqrt(q*q + lz*lz) - minor_r\n\n    @staticmethod\n    def sdf_plane(nx, ny, nz, d, x, y, z):\n        return nx*x + ny*y + nz*z - d\n\n    @staticmethod\n    def smooth_union(a, b, k=8.0):\n        return -math.log(math.exp(-k * a) + math.exp(-k * b)) / k\n\n    @staticmethod\n    def smooth_subtract(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, b, k)\n\n    @staticmethod\n    def smooth_intersect(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, -b, k)\n\n\ndef _merge_meshes(m1, m2):\n    from session_py import Mesh\n    v1, f1 = m1.to_vertices_and_faces()\n    v2, f2 = m2.to_vertices_and_faces()\n    offset = len(v1)\n    verts = v1 + v2\n    faces = list(f1) + [[idx + offset for idx in f] for f in f2]\n    result = Mesh.from_vertices_and_faces(verts, faces)\n    result.halfedge.clear()\n    result.clear_pointcolors()\n    result.clear_facecolors()\n    result.clear_linecolors()\n    return result",
-          "file": "mesh_iso.py"
-        }
-      },
-      "related": [
-        "MeshIso._merge_meshes",
-        "MeshIso.eval",
-        "MeshIso.from_function",
-        "MeshIso.from_tpms",
-        "MeshIso.sdf_box",
-        "MeshIso.sdf_capsule",
-        "MeshIso.sdf_plane",
-        "MeshIso.sdf_sphere",
-        "MeshIso.sdf_torus",
-        "MeshIso.smooth_intersect",
-        "MeshIso.smooth_subtract",
-        "MeshIso.smooth_union"
-      ]
-    },
-    {
-      "name": "MeshIso.from_function",
-      "implementations": {
-        "python": {
-          "sig": "from_function(fn, box, nx, ny, nz, isovalue=0.0)",
-          "code": "def from_function(fn, box, nx, ny, nz, isovalue=0.0):\n\n        return _marching_cubes(fn, box, nx, ny, nz, isovalue)\n\n    @staticmethod\n    def sdf_sphere(cx, cy, cz, r, x, y, z):\n        dx, dy, dz = x - cx, y - cy, z - cz\n        return math.sqrt(dx*dx + dy*dy + dz*dz) - r\n\n    @staticmethod\n    def sdf_box(cx, cy, cz, hx, hy, hz, x, y, z):\n        qx = abs(x - cx) - hx\n        qy = abs(y - cy) - hy\n        qz = abs(z - cz) - hz\n        mx = max(qx, 0.0)\n        my = max(qy, 0.0)\n        mz = max(qz, 0.0)\n        return math.sqrt(mx*mx + my*my + mz*mz) + min(max(qx, qy, qz), 0.0)\n\n    @staticmethod\n    def sdf_capsule(p0, p1, r, x, y, z):\n        pax, pay, paz = x - p0[0], y - p0[1], z - p0[2]\n        bax, bay, baz = p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]\n        h = max(0.0, min(1.0, (pax*bax + pay*bay + paz*baz) / (bax*bax + bay*bay + baz*baz)))\n        dx, dy, dz = pax - h * bax, pay - h * bay, paz - h * baz\n        return math.sqrt(dx*dx + dy*dy + dz*dz) - r\n\n    @staticmethod\n    def sdf_torus(cx, cy, cz, major_r, minor_r, x, y, z):\n        lx, ly, lz = x - cx, y - cy, z - cz\n        q = math.sqrt(lx*lx + ly*ly) - major_r\n        return math.sqrt(q*q + lz*lz) - minor_r\n\n    @staticmethod\n    def sdf_plane(nx, ny, nz, d, x, y, z):\n        return nx*x + ny*y + nz*z - d\n\n    @staticmethod\n    def smooth_union(a, b, k=8.0):\n        return -math.log(math.exp(-k * a) + math.exp(-k * b)) / k\n\n    @staticmethod\n    def smooth_subtract(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, b, k)\n\n    @staticmethod\n    def smooth_intersect(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, -b, k)\n\n\ndef _merge_meshes(m1, m2):\n    from session_py import Mesh\n    v1, f1 = m1.to_vertices_and_faces()\n    v2, f2 = m2.to_vertices_and_faces()\n    offset = len(v1)\n    verts = v1 + v2\n    faces = list(f1) + [[idx + offset for idx in f] for f in f2]\n    result = Mesh.from_vertices_and_faces(verts, faces)\n    result.halfedge.clear()\n    result.clear_pointcolors()\n    result.clear_facecolors()\n    result.clear_linecolors()\n    return result",
-          "file": "mesh_iso.py"
-        },
-        "cpp": {
-          "sig": "Mesh from_function(std::function<double(double,double,double)",
-          "code": "Mesh MeshIso::from_function(std::function<double(double,double,double)> fn,\n                             const OBB& box, int nx, int ny, int nz,\n                             double isovalue) {\n    return marching_cubes(fn, box, nx, ny, nz, isovalue);\n}",
-          "file": "mesh_iso.cpp"
-        }
-      },
-      "related": [
-        "MeshIso._merge_meshes",
-        "MeshIso.eval",
-        "MeshIso.fn",
-        "MeshIso.from_tpms",
-        "MeshIso.sdf_box",
-        "MeshIso.sdf_capsule",
-        "MeshIso.sdf_plane",
-        "MeshIso.sdf_sphere",
-        "MeshIso.sdf_torus",
-        "MeshIso.smooth_intersect",
-        "MeshIso.smooth_subtract",
-        "MeshIso.smooth_union"
-      ]
-    },
-    {
-      "name": "MeshIso.sdf_sphere",
-      "implementations": {
-        "python": {
-          "sig": "sdf_sphere(cx, cy, cz, r, x, y, z)",
-          "code": "def sdf_sphere(cx, cy, cz, r, x, y, z):\n\n        dx, dy, dz = x - cx, y - cy, z - cz\n        return math.sqrt(dx*dx + dy*dy + dz*dz) - r\n\n    @staticmethod\n    def sdf_box(cx, cy, cz, hx, hy, hz, x, y, z):\n        qx = abs(x - cx) - hx\n        qy = abs(y - cy) - hy\n        qz = abs(z - cz) - hz\n        mx = max(qx, 0.0)\n        my = max(qy, 0.0)\n        mz = max(qz, 0.0)\n        return math.sqrt(mx*mx + my*my + mz*mz) + min(max(qx, qy, qz), 0.0)\n\n    @staticmethod\n    def sdf_capsule(p0, p1, r, x, y, z):\n        pax, pay, paz = x - p0[0], y - p0[1], z - p0[2]\n        bax, bay, baz = p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]\n        h = max(0.0, min(1.0, (pax*bax + pay*bay + paz*baz) / (bax*bax + bay*bay + baz*baz)))\n        dx, dy, dz = pax - h * bax, pay - h * bay, paz - h * baz\n        return math.sqrt(dx*dx + dy*dy + dz*dz) - r\n\n    @staticmethod\n    def sdf_torus(cx, cy, cz, major_r, minor_r, x, y, z):\n        lx, ly, lz = x - cx, y - cy, z - cz\n        q = math.sqrt(lx*lx + ly*ly) - major_r\n        return math.sqrt(q*q + lz*lz) - minor_r\n\n    @staticmethod\n    def sdf_plane(nx, ny, nz, d, x, y, z):\n        return nx*x + ny*y + nz*z - d\n\n    @staticmethod\n    def smooth_union(a, b, k=8.0):\n        return -math.log(math.exp(-k * a) + math.exp(-k * b)) / k\n\n    @staticmethod\n    def smooth_subtract(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, b, k)\n\n    @staticmethod\n    def smooth_intersect(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, -b, k)\n\n\ndef _merge_meshes(m1, m2):\n    from session_py import Mesh\n    v1, f1 = m1.to_vertices_and_faces()\n    v2, f2 = m2.to_vertices_and_faces()\n    offset = len(v1)\n    verts = v1 + v2\n    faces = list(f1) + [[idx + offset for idx in f] for f in f2]\n    result = Mesh.from_vertices_and_faces(verts, faces)\n    result.halfedge.clear()\n    result.clear_pointcolors()\n    result.clear_facecolors()\n    result.clear_linecolors()\n    return result",
-          "file": "mesh_iso.py"
-        },
-        "cpp": {
-          "sig": "double sdf_sphere(double cx, double cy, double cz, double r,\n                            double x, double y, double z)",
-          "code": "double MeshIso::sdf_sphere(double cx, double cy, double cz, double r,\n                            double x, double y, double z) {\n    double dx = x - cx, dy = y - cy, dz = z - cz;\n    return std::sqrt(dx*dx + dy*dy + dz*dz) - r;\n}",
-          "file": "mesh_iso.cpp"
-        },
-        "rust": {
-          "sig": "sdf_sphere(cx: f64, cy: f64, cz: f64, r: f64, x: f64, y: f64, z: f64) -> f64",
-          "code": "pub fn sdf_sphere(cx: f64, cy: f64, cz: f64, r: f64, x: f64, y: f64, z: f64) -> f64 {\n        let dx = x - cx;\n        let dy = y - cy;\n        let dz = z - cz;\n        (dx*dx + dy*dy + dz*dz).sqrt() - r\n    }",
-          "file": "mesh_iso.rs"
-        }
-      },
-      "related": [
-        "MeshIso._merge_meshes",
-        "MeshIso.eval",
-        "MeshIso.fn",
-        "MeshIso.from_function",
-        "MeshIso.from_tpms",
-        "MeshIso.sdf_box",
-        "MeshIso.sdf_capsule",
-        "MeshIso.sdf_plane",
-        "MeshIso.sdf_torus",
-        "MeshIso.smooth_intersect",
-        "MeshIso.smooth_subtract",
-        "MeshIso.smooth_union"
-      ]
-    },
-    {
-      "name": "MeshIso.sdf_box",
-      "implementations": {
-        "python": {
-          "sig": "sdf_box(cx, cy, cz, hx, hy, hz, x, y, z)",
-          "code": "def sdf_box(cx, cy, cz, hx, hy, hz, x, y, z):\n\n        qx = abs(x - cx) - hx\n        qy = abs(y - cy) - hy\n        qz = abs(z - cz) - hz\n        mx = max(qx, 0.0)\n        my = max(qy, 0.0)\n        mz = max(qz, 0.0)\n        return math.sqrt(mx*mx + my*my + mz*mz) + min(max(qx, qy, qz), 0.0)\n\n    @staticmethod\n    def sdf_capsule(p0, p1, r, x, y, z):\n        pax, pay, paz = x - p0[0], y - p0[1], z - p0[2]\n        bax, bay, baz = p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]\n        h = max(0.0, min(1.0, (pax*bax + pay*bay + paz*baz) / (bax*bax + bay*bay + baz*baz)))\n        dx, dy, dz = pax - h * bax, pay - h * bay, paz - h * baz\n        return math.sqrt(dx*dx + dy*dy + dz*dz) - r\n\n    @staticmethod\n    def sdf_torus(cx, cy, cz, major_r, minor_r, x, y, z):\n        lx, ly, lz = x - cx, y - cy, z - cz\n        q = math.sqrt(lx*lx + ly*ly) - major_r\n        return math.sqrt(q*q + lz*lz) - minor_r\n\n    @staticmethod\n    def sdf_plane(nx, ny, nz, d, x, y, z):\n        return nx*x + ny*y + nz*z - d\n\n    @staticmethod\n    def smooth_union(a, b, k=8.0):\n        return -math.log(math.exp(-k * a) + math.exp(-k * b)) / k\n\n    @staticmethod\n    def smooth_subtract(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, b, k)\n\n    @staticmethod\n    def smooth_intersect(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, -b, k)\n\n\ndef _merge_meshes(m1, m2):\n    from session_py import Mesh\n    v1, f1 = m1.to_vertices_and_faces()\n    v2, f2 = m2.to_vertices_and_faces()\n    offset = len(v1)\n    verts = v1 + v2\n    faces = list(f1) + [[idx + offset for idx in f] for f in f2]\n    result = Mesh.from_vertices_and_faces(verts, faces)\n    result.halfedge.clear()\n    result.clear_pointcolors()\n    result.clear_facecolors()\n    result.clear_linecolors()\n    return result",
-          "file": "mesh_iso.py"
-        },
-        "cpp": {
-          "sig": "double sdf_box(double cx, double cy, double cz,\n                         double hx, double hy, double hz,\n                         double x, double y, double z)",
-          "code": "double MeshIso::sdf_box(double cx, double cy, double cz,\n                         double hx, double hy, double hz,\n                         double x, double y, double z) {\n    double qx = std::abs(x - cx) - hx;\n    double qy = std::abs(y - cy) - hy;\n    double qz = std::abs(z - cz) - hz;\n    double mx = std::max(qx, 0.0);\n    double my = std::max(qy, 0.0);\n    double mz = std::max(qz, 0.0);\n    return std::sqrt(mx*mx + my*my + mz*mz) + std::min(std::max({qx, qy, qz}",
-          "file": "mesh_iso.cpp"
-        },
-        "rust": {
-          "sig": "sdf_box(cx: f64, cy: f64, cz: f64, hx: f64, hy: f64, hz: f64,\n                   x: f64, y: f64, z: f64) -> f64",
-          "code": "pub fn sdf_box(cx: f64, cy: f64, cz: f64, hx: f64, hy: f64, hz: f64,\n                   x: f64, y: f64, z: f64) -> f64 {\n        let qx = (x - cx).abs() - hx;\n        let qy = (y - cy).abs() - hy;\n        let qz = (z - cz).abs() - hz;\n        let mx = qx.max(0.0);\n        let my = qy.max(0.0);\n        let mz = qz.max(0.0);\n        (mx*mx + my*my + mz*mz).sqrt() + qx.max(qy).max(qz).min(0.0)\n    }",
-          "file": "mesh_iso.rs"
-        }
-      },
-      "related": [
-        "MeshIso._merge_meshes",
-        "MeshIso.eval",
-        "MeshIso.fn",
-        "MeshIso.from_function",
-        "MeshIso.from_tpms",
-        "MeshIso.sdf_capsule",
-        "MeshIso.sdf_plane",
-        "MeshIso.sdf_sphere",
-        "MeshIso.sdf_torus",
-        "MeshIso.smooth_intersect",
-        "MeshIso.smooth_subtract",
-        "MeshIso.smooth_union"
-      ]
-    },
-    {
-      "name": "MeshIso.sdf_capsule",
-      "implementations": {
-        "python": {
-          "sig": "sdf_capsule(p0, p1, r, x, y, z)",
-          "code": "def sdf_capsule(p0, p1, r, x, y, z):\n\n        pax, pay, paz = x - p0[0], y - p0[1], z - p0[2]\n        bax, bay, baz = p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]\n        h = max(0.0, min(1.0, (pax*bax + pay*bay + paz*baz) / (bax*bax + bay*bay + baz*baz)))\n        dx, dy, dz = pax - h * bax, pay - h * bay, paz - h * baz\n        return math.sqrt(dx*dx + dy*dy + dz*dz) - r\n\n    @staticmethod\n    def sdf_torus(cx, cy, cz, major_r, minor_r, x, y, z):\n        lx, ly, lz = x - cx, y - cy, z - cz\n        q = math.sqrt(lx*lx + ly*ly) - major_r\n        return math.sqrt(q*q + lz*lz) - minor_r\n\n    @staticmethod\n    def sdf_plane(nx, ny, nz, d, x, y, z):\n        return nx*x + ny*y + nz*z - d\n\n    @staticmethod\n    def smooth_union(a, b, k=8.0):\n        return -math.log(math.exp(-k * a) + math.exp(-k * b)) / k\n\n    @staticmethod\n    def smooth_subtract(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, b, k)\n\n    @staticmethod\n    def smooth_intersect(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, -b, k)\n\n\ndef _merge_meshes(m1, m2):\n    from session_py import Mesh\n    v1, f1 = m1.to_vertices_and_faces()\n    v2, f2 = m2.to_vertices_and_faces()\n    offset = len(v1)\n    verts = v1 + v2\n    faces = list(f1) + [[idx + offset for idx in f] for f in f2]\n    result = Mesh.from_vertices_and_faces(verts, faces)\n    result.halfedge.clear()\n    result.clear_pointcolors()\n    result.clear_facecolors()\n    result.clear_linecolors()\n    return result",
-          "file": "mesh_iso.py"
-        },
-        "cpp": {
-          "sig": "double sdf_capsule(const Point& p0, const Point& p1, double r,\n                             double x, double y, double z)",
-          "code": "double MeshIso::sdf_capsule(const Point& p0, const Point& p1, double r,\n                             double x, double y, double z) {\n    double pax = x - p0[0], pay = y - p0[1], paz = z - p0[2];\n    double bax = p1[0] - p0[0], bay = p1[1] - p0[1], baz = p1[2] - p0[2];\n    double h = std::max(0.0, std::min(1.0, (pax*bax + pay*bay + paz*baz) / (bax*bax + bay*bay + baz*baz)));\n    double dx = pax - h * bax, dy = pay - h * bay, dz = paz - h * baz;\n    return std::sqrt(dx*dx + dy*dy + dz*dz) - r;\n}",
-          "file": "mesh_iso.cpp"
-        },
-        "rust": {
-          "sig": "sdf_capsule(p0: &Point, p1: &Point, r: f64, x: f64, y: f64, z: f64) -> f64",
-          "code": "pub fn sdf_capsule(p0: &Point, p1: &Point, r: f64, x: f64, y: f64, z: f64) -> f64 {\n        let pax = x - p0[0];\n        let pay = y - p0[1];\n        let paz = z - p0[2];\n        let bax = p1[0] - p0[0];\n        let bay = p1[1] - p0[1];\n        let baz = p1[2] - p0[2];\n        let h = ((pax*bax + pay*bay + paz*baz) / (bax*bax + bay*bay + baz*baz)).max(0.0).min(1.0);\n        let dx = pax - h * bax;\n        let dy = pay - h * bay;\n        let dz = paz - h * baz;\n        (dx*dx + dy*dy + dz*dz).sqrt() - r\n    }",
-          "file": "mesh_iso.rs"
-        }
-      },
-      "related": [
-        "MeshIso._merge_meshes",
-        "MeshIso.eval",
-        "MeshIso.fn",
-        "MeshIso.from_function",
-        "MeshIso.from_tpms",
-        "MeshIso.sdf_box",
-        "MeshIso.sdf_plane",
-        "MeshIso.sdf_sphere",
-        "MeshIso.sdf_torus",
-        "MeshIso.smooth_intersect",
-        "MeshIso.smooth_subtract",
-        "MeshIso.smooth_union"
-      ]
-    },
-    {
-      "name": "MeshIso.sdf_torus",
-      "implementations": {
-        "python": {
-          "sig": "sdf_torus(cx, cy, cz, major_r, minor_r, x, y, z)",
-          "code": "def sdf_torus(cx, cy, cz, major_r, minor_r, x, y, z):\n\n        lx, ly, lz = x - cx, y - cy, z - cz\n        q = math.sqrt(lx*lx + ly*ly) - major_r\n        return math.sqrt(q*q + lz*lz) - minor_r\n\n    @staticmethod\n    def sdf_plane(nx, ny, nz, d, x, y, z):\n        return nx*x + ny*y + nz*z - d\n\n    @staticmethod\n    def smooth_union(a, b, k=8.0):\n        return -math.log(math.exp(-k * a) + math.exp(-k * b)) / k\n\n    @staticmethod\n    def smooth_subtract(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, b, k)\n\n    @staticmethod\n    def smooth_intersect(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, -b, k)\n\n\ndef _merge_meshes(m1, m2):\n    from session_py import Mesh\n    v1, f1 = m1.to_vertices_and_faces()\n    v2, f2 = m2.to_vertices_and_faces()\n    offset = len(v1)\n    verts = v1 + v2\n    faces = list(f1) + [[idx + offset for idx in f] for f in f2]\n    result = Mesh.from_vertices_and_faces(verts, faces)\n    result.halfedge.clear()\n    result.clear_pointcolors()\n    result.clear_facecolors()\n    result.clear_linecolors()\n    return result",
-          "file": "mesh_iso.py"
-        },
-        "cpp": {
-          "sig": "double sdf_torus(double cx, double cy, double cz,\n                           double major_r, double minor_r,\n                           double x, double y, double z)",
-          "code": "double MeshIso::sdf_torus(double cx, double cy, double cz,\n                           double major_r, double minor_r,\n                           double x, double y, double z) {\n    double lx = x - cx, ly = y - cy, lz = z - cz;\n    double q = std::sqrt(lx*lx + ly*ly) - major_r;\n    return std::sqrt(q*q + lz*lz) - minor_r;\n}",
-          "file": "mesh_iso.cpp"
-        },
-        "rust": {
-          "sig": "sdf_torus(cx: f64, cy: f64, cz: f64, major_r: f64, minor_r: f64,\n                     x: f64, y: f64, z: f64) -> f64",
-          "code": "pub fn sdf_torus(cx: f64, cy: f64, cz: f64, major_r: f64, minor_r: f64,\n                     x: f64, y: f64, z: f64) -> f64 {\n        let lx = x - cx;\n        let ly = y - cy;\n        let lz = z - cz;\n        let q = (lx*lx + ly*ly).sqrt() - major_r;\n        (q*q + lz*lz).sqrt() - minor_r\n    }",
-          "file": "mesh_iso.rs"
-        }
-      },
-      "related": [
-        "MeshIso._merge_meshes",
-        "MeshIso.fn",
-        "MeshIso.from_function",
-        "MeshIso.from_tpms",
-        "MeshIso.sdf_box",
-        "MeshIso.sdf_capsule",
-        "MeshIso.sdf_plane",
-        "MeshIso.sdf_sphere",
-        "MeshIso.smooth_intersect",
-        "MeshIso.smooth_subtract",
-        "MeshIso.smooth_union"
-      ]
-    },
-    {
-      "name": "MeshIso.sdf_plane",
-      "implementations": {
-        "python": {
-          "sig": "sdf_plane(nx, ny, nz, d, x, y, z)",
-          "code": "def sdf_plane(nx, ny, nz, d, x, y, z):\n\n        return nx*x + ny*y + nz*z - d\n\n    @staticmethod\n    def smooth_union(a, b, k=8.0):\n        return -math.log(math.exp(-k * a) + math.exp(-k * b)) / k\n\n    @staticmethod\n    def smooth_subtract(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, b, k)\n\n    @staticmethod\n    def smooth_intersect(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, -b, k)\n\n\ndef _merge_meshes(m1, m2):\n    from session_py import Mesh\n    v1, f1 = m1.to_vertices_and_faces()\n    v2, f2 = m2.to_vertices_and_faces()\n    offset = len(v1)\n    verts = v1 + v2\n    faces = list(f1) + [[idx + offset for idx in f] for f in f2]\n    result = Mesh.from_vertices_and_faces(verts, faces)\n    result.halfedge.clear()\n    result.clear_pointcolors()\n    result.clear_facecolors()\n    result.clear_linecolors()\n    return result",
-          "file": "mesh_iso.py"
-        },
-        "cpp": {
-          "sig": "double sdf_plane(double nx, double ny, double nz, double d,\n                           double x, double y, double z)",
-          "code": "double MeshIso::sdf_plane(double nx, double ny, double nz, double d,\n                           double x, double y, double z) {\n    return nx*x + ny*y + nz*z - d;\n}",
-          "file": "mesh_iso.cpp"
-        },
-        "rust": {
-          "sig": "sdf_plane(nx: f64, ny: f64, nz: f64, d: f64, x: f64, y: f64, z: f64) -> f64",
-          "code": "pub fn sdf_plane(nx: f64, ny: f64, nz: f64, d: f64, x: f64, y: f64, z: f64) -> f64 {\n        nx*x + ny*y + nz*z - d\n    }",
-          "file": "mesh_iso.rs"
-        }
-      },
-      "related": [
-        "MeshIso._merge_meshes",
-        "MeshIso.fn",
-        "MeshIso.from_function",
-        "MeshIso.from_tpms",
-        "MeshIso.sdf_box",
-        "MeshIso.sdf_capsule",
-        "MeshIso.sdf_sphere",
-        "MeshIso.sdf_torus",
-        "MeshIso.smooth_intersect",
-        "MeshIso.smooth_subtract",
-        "MeshIso.smooth_union"
-      ]
-    },
-    {
-      "name": "MeshIso.smooth_union",
-      "implementations": {
-        "python": {
-          "sig": "smooth_union(a, b, k=8.0)",
-          "code": "def smooth_union(a, b, k=8.0):\n\n        return -math.log(math.exp(-k * a) + math.exp(-k * b)) / k\n\n    @staticmethod\n    def smooth_subtract(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, b, k)\n\n    @staticmethod\n    def smooth_intersect(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, -b, k)\n\n\ndef _merge_meshes(m1, m2):\n    from session_py import Mesh\n    v1, f1 = m1.to_vertices_and_faces()\n    v2, f2 = m2.to_vertices_and_faces()\n    offset = len(v1)\n    verts = v1 + v2\n    faces = list(f1) + [[idx + offset for idx in f] for f in f2]\n    result = Mesh.from_vertices_and_faces(verts, faces)\n    result.halfedge.clear()\n    result.clear_pointcolors()\n    result.clear_facecolors()\n    result.clear_linecolors()\n    return result",
-          "file": "mesh_iso.py"
-        },
-        "cpp": {
-          "sig": "double smooth_union(double a, double b, double k)",
-          "code": "double MeshIso::smooth_union(double a, double b, double k) {\n    return -std::log(std::exp(-k * a) + std::exp(-k * b)) / k;\n}",
-          "file": "mesh_iso.cpp"
-        },
-        "rust": {
-          "sig": "smooth_union(a: f64, b: f64, k: f64) -> f64",
-          "code": "pub fn smooth_union(a: f64, b: f64, k: f64) -> f64 {\n        -((-k * a).exp() + (-k * b).exp()).ln() / k\n    }",
-          "file": "mesh_iso.rs"
-        }
-      },
-      "related": [
-        "MeshIso._merge_meshes",
-        "MeshIso.fn",
-        "MeshIso.from_function",
-        "MeshIso.from_tpms",
-        "MeshIso.sdf_box",
-        "MeshIso.sdf_capsule",
-        "MeshIso.sdf_plane",
-        "MeshIso.sdf_sphere",
-        "MeshIso.sdf_torus",
-        "MeshIso.smooth_intersect",
-        "MeshIso.smooth_subtract"
-      ]
-    },
-    {
-      "name": "MeshIso.smooth_subtract",
-      "implementations": {
-        "python": {
-          "sig": "smooth_subtract(a, b, k=8.0)",
-          "code": "def smooth_subtract(a, b, k=8.0):\n\n        return -MeshIso.smooth_union(-a, b, k)\n\n    @staticmethod\n    def smooth_intersect(a, b, k=8.0):\n        return -MeshIso.smooth_union(-a, -b, k)\n\n\ndef _merge_meshes(m1, m2):\n    from session_py import Mesh\n    v1, f1 = m1.to_vertices_and_faces()\n    v2, f2 = m2.to_vertices_and_faces()\n    offset = len(v1)\n    verts = v1 + v2\n    faces = list(f1) + [[idx + offset for idx in f] for f in f2]\n    result = Mesh.from_vertices_and_faces(verts, faces)\n    result.halfedge.clear()\n    result.clear_pointcolors()\n    result.clear_facecolors()\n    result.clear_linecolors()\n    return result",
-          "file": "mesh_iso.py"
-        },
-        "cpp": {
-          "sig": "double smooth_subtract(double a, double b, double k)",
-          "code": "double MeshIso::smooth_subtract(double a, double b, double k) {\n    return -smooth_union(-a, b, k);\n}",
-          "file": "mesh_iso.cpp"
-        },
-        "rust": {
-          "sig": "smooth_subtract(a: f64, b: f64, k: f64) -> f64",
-          "code": "pub fn smooth_subtract(a: f64, b: f64, k: f64) -> f64 {\n        -MeshIso::smooth_union(-a, b, k)\n    }",
-          "file": "mesh_iso.rs"
-        }
-      },
-      "related": [
-        "MeshIso._merge_meshes",
-        "MeshIso.fn",
-        "MeshIso.from_function",
-        "MeshIso.from_tpms",
-        "MeshIso.sdf_box",
-        "MeshIso.sdf_capsule",
-        "MeshIso.sdf_plane",
-        "MeshIso.sdf_sphere",
-        "MeshIso.sdf_torus",
-        "MeshIso.smooth_intersect",
-        "MeshIso.smooth_union"
-      ]
-    },
-    {
-      "name": "MeshIso.smooth_intersect",
-      "implementations": {
-        "python": {
-          "sig": "smooth_intersect(a, b, k=8.0)",
-          "code": "def smooth_intersect(a, b, k=8.0):\n\n        return -MeshIso.smooth_union(-a, -b, k)\n\n\ndef _merge_meshes(m1, m2):\n    from session_py import Mesh\n    v1, f1 = m1.to_vertices_and_faces()\n    v2, f2 = m2.to_vertices_and_faces()\n    offset = len(v1)\n    verts = v1 + v2\n    faces = list(f1) + [[idx + offset for idx in f] for f in f2]\n    result = Mesh.from_vertices_and_faces(verts, faces)\n    result.halfedge.clear()\n    result.clear_pointcolors()\n    result.clear_facecolors()\n    result.clear_linecolors()\n    return result",
-          "file": "mesh_iso.py"
-        },
-        "cpp": {
-          "sig": "double smooth_intersect(double a, double b, double k)",
-          "code": "double MeshIso::smooth_intersect(double a, double b, double k) {\n    return -smooth_union(-a, -b, k);\n}",
-          "file": "mesh_iso.cpp"
-        },
-        "rust": {
-          "sig": "smooth_intersect(a: f64, b: f64, k: f64) -> f64",
-          "code": "pub fn smooth_intersect(a: f64, b: f64, k: f64) -> f64 {\n        -MeshIso::smooth_union(-a, -b, k)\n    }",
-          "file": "mesh_iso.rs"
-        }
-      },
-      "related": [
-        "MeshIso._merge_meshes",
-        "MeshIso.fn",
-        "MeshIso.from_function",
-        "MeshIso.from_tpms",
-        "MeshIso.sdf_box",
-        "MeshIso.sdf_capsule",
-        "MeshIso.sdf_plane",
-        "MeshIso.sdf_sphere",
-        "MeshIso.sdf_torus",
-        "MeshIso.smooth_subtract",
-        "MeshIso.smooth_union"
-      ]
-    },
-    {
-      "name": "MeshIso._merge_meshes",
-      "implementations": {
-        "python": {
-          "sig": "_merge_meshes(m1, m2)",
-          "code": "def _merge_meshes(m1, m2):\n\n    from session_py import Mesh\n    v1, f1 = m1.to_vertices_and_faces()\n    v2, f2 = m2.to_vertices_and_faces()\n    offset = len(v1)\n    verts = v1 + v2\n    faces = list(f1) + [[idx + offset for idx in f] for f in f2]\n    result = Mesh.from_vertices_and_faces(verts, faces)\n    result.halfedge.clear()\n    result.clear_pointcolors()\n    result.clear_facecolors()\n    result.clear_linecolors()\n    return result",
-          "file": "mesh_iso.py"
-        }
-      },
-      "related": [
-        "MeshIso.eval",
-        "MeshIso.fn",
-        "MeshIso.from_function",
-        "MeshIso.from_tpms",
-        "MeshIso.sdf_box",
-        "MeshIso.sdf_capsule",
-        "MeshIso.sdf_plane",
-        "MeshIso.sdf_sphere",
-        "MeshIso.sdf_torus",
-        "MeshIso.smooth_intersect",
-        "MeshIso.smooth_subtract",
-        "MeshIso.smooth_union"
       ]
     },
     {
@@ -38786,6 +38178,8 @@ window.API_INDEX = {
         "Plane._update_equation",
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.d",
         "Plane.duplicate",
@@ -38796,7 +38190,6 @@ window.API_INDEX = {
         "Plane.from_points",
         "Plane.from_points_pca",
         "Plane.from_two_points",
-        "Plane.has_on_negative_side",
         "Plane.invalid",
         "Plane.is_valid",
         "Plane.json_dump",
@@ -38815,7 +38208,6 @@ window.API_INDEX = {
         "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
-        "Plane.translate_by_normal",
         "Plane.with_name",
         "Plane.x_axis",
         "Plane.xform",
@@ -38851,6 +38243,7 @@ window.API_INDEX = {
         "Plane._update_equation",
         "Plane.a",
         "Plane.b",
+        "Plane.base2",
         "Plane.c",
         "Plane.d",
         "Plane.from_axes",
@@ -38875,7 +38268,6 @@ window.API_INDEX = {
         "Plane.str",
         "Plane.to_polylines",
         "Plane.transform",
-        "Plane.translate_by_normal",
         "Plane.with_name",
         "Plane.x_axis",
         "Plane.xy_plane",
@@ -38909,6 +38301,8 @@ window.API_INDEX = {
         "Plane._update_equation",
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.d",
         "Plane.duplicate",
@@ -38920,9 +38314,7 @@ window.API_INDEX = {
         "Plane.from_points_pca",
         "Plane.from_two_points",
         "Plane.guid",
-        "Plane.has_on_negative_side",
         "Plane.invalid",
-        "Plane.is_coplanar_from_normals",
         "Plane.is_valid",
         "Plane.json_dump",
         "Plane.json_dumps",
@@ -39028,6 +38420,8 @@ window.API_INDEX = {
         "Plane._update_equation",
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.d",
         "Plane.duplicate",
@@ -39111,6 +38505,8 @@ window.API_INDEX = {
         "Plane._update_equation",
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.constructor",
         "Plane.d",
@@ -39192,6 +38588,8 @@ window.API_INDEX = {
         "Plane._update_equation",
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.constructor",
         "Plane.d",
@@ -39639,6 +39037,7 @@ window.API_INDEX = {
         "Plane.a",
         "Plane.b",
         "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.constructor",
         "Plane.duplicate",
@@ -40274,6 +39673,8 @@ window.API_INDEX = {
         "Plane._update_equation",
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.constructor",
         "Plane.d",
@@ -40287,6 +39688,7 @@ window.API_INDEX = {
         "Plane.from_points_pca",
         "Plane.from_two_points",
         "Plane.guid",
+        "Plane.has_on_negative_side",
         "Plane.invalid",
         "Plane.is_coplanar",
         "Plane.is_coplanar_from_normals",
@@ -40309,6 +39711,7 @@ window.API_INDEX = {
         "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
+        "Plane.translate_by_normal",
         "Plane.x_axis",
         "Plane.xform",
         "Plane.xy_plane",
@@ -40956,7 +40359,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_coplanar_from_normals(origin0, normal0, origin1, normal1, can_be_flipped=True, tolerance=-1.0)",
-          "code": "def is_coplanar_from_normals(origin0, normal0, origin1, normal1, can_be_flipped=True, tolerance=-1.0):\n\n        \"\"\"Check coplanarity from origin+normal without constructing Plane objects.\"\"\"\n        from .vector import Vector\n        n0 = Vector(normal0[0], normal0[1], normal0[2])\n        n1 = Vector(normal1[0], normal1[1], normal1[2])\n        parallel = n0.is_parallel_to(n1)\n        if can_be_flipped:\n            if parallel == 0:\n                return False\n        else:\n            if parallel != -1:\n                return False\n        a0, b0, c0 = n0[0], n0[1], n0[2]\n        d0 = -(a0 * origin0[0] + b0 * origin0[1] + c0 * origin0[2])\n        a1, b1, c1 = n1[0], n1[1], n1[2]\n        d1 = -(a1 * origin1[0] + b1 * origin1[1] + c1 * origin1[2])\n        from .tolerance import TOLERANCE\n        tol = TOLERANCE.approximation if tolerance < 0 else tolerance\n        dist0 = abs(a0 * origin1[0] + b0 * origin1[1] + c0 * origin1[2] + d0)\n        dist1 = abs(a1 * origin0[0] + b1 * origin0[1] + c1 * origin0[2] + d1)\n        return dist0 < tol and dist1 < tol\n\n    def has_on_negative_side(self, p):\n        \"\"\"Sign test using the cached plane equation ``ax + by + cz + d``.\n\n        Returns ``True`` if ``p`` lies on the negative side\n        (``a*p[0] + b*p[1] + c*p[2] + d < 0``). Mirrors CGAL's\n        ``Plane_3::has_on_negative_side``.\n\n        Parameters\n        ----------\n        p : :class:`Point`\n\n        Returns\n        -------\n        bool\n        \"\"\"\n        return (self.a * p[0] + self.b * p[1] + self.c * p[2] + self.d) < 0.0\n\n    def translate_by_normal(self, distance):\n        \"\"\"Translate (move) a plane along its normal direction by a specified distance.\n\n        Parameters\n        ----------\n        distance : float\n            Distance to move the plane along its normal (positive = normal direction, negative = opposite).\n\n        Returns\n        -------\n        Plane\n            New plane translated by the specified distance.\n        \"\"\"\n        normal = Vector(self._z_axis[0], self._z_axis[1], self._z_axis[2])\n        normal.normalize_self()\n\n        new_origin = self._origin + (normal * distance)\n\n        return Plane(new_origin, self._x_axis, self._y_axis)\n\n    def to_polylines(self, scale=1.0):\n        from .polyline import Polyline\n        s = scale * 0.5\n        o = self._origin\n        x = self._x_axis\n        y = self._y_axis\n        z = self._z_axis\n        c0 = Point(o[0] - x[0]*s - y[0]*s, o[1] - x[1]*s - y[1]*s, o[2] - x[2]*s - y[2]*s)\n        c1 = Point(o[0] + x[0]*s - y[0]*s, o[1] + x[1]*s - y[1]*s, o[2] + x[2]*s - y[2]*s)\n        c2 = Point(o[0] + x[0]*s + y[0]*s, o[1] + x[1]*s + y[1]*s, o[2] + x[2]*s + y[2]*s)\n        c3 = Point(o[0] - x[0]*s + y[0]*s, o[1] - x[1]*s + y[1]*s, o[2] - x[2]*s + y[2]*s)\n        rect = Polyline([c0, c1, c2, c3, c0])\n        rect.linecolor = Color(self.linecolor[0], self.linecolor[1], self.linecolor[2], self.linecolor[3])\n        origin_pt = Point(o[0], o[1], o[2])\n        x_line = Polyline([origin_pt, Point(o[0] + x[0]*s, o[1] + x[1]*s, o[2] + x[2]*s)])\n        x_line.linecolor = Color.red()\n        y_line = Polyline([origin_pt, Point(o[0] + y[0]*s, o[1] + y[1]*s, o[2] + y[2]*s)])\n        y_line.linecolor = Color.green()\n        z_line = Polyline([origin_pt, Point(o[0] + z[0]*s, o[1] + z[1]*s, o[2] + z[2]*s)])\n        z_line.linecolor = Color.blue()\n        return [rect, x_line, y_line, z_line]",
+          "code": "def is_coplanar_from_normals(origin0, normal0, origin1, normal1, can_be_flipped=True, tolerance=-1.0):\n\n        \"\"\"Check coplanarity from origin+normal without constructing Plane objects.\"\"\"\n        from .vector import Vector\n        n0 = Vector(normal0[0], normal0[1], normal0[2])\n        n1 = Vector(normal1[0], normal1[1], normal1[2])\n        parallel = n0.is_parallel_to(n1)\n        if can_be_flipped:\n            if parallel == 0:\n                return False\n        else:\n            if parallel != -1:\n                return False\n        a0, b0, c0 = n0[0], n0[1], n0[2]\n        d0 = -(a0 * origin0[0] + b0 * origin0[1] + c0 * origin0[2])\n        a1, b1, c1 = n1[0], n1[1], n1[2]\n        d1 = -(a1 * origin1[0] + b1 * origin1[1] + c1 * origin1[2])\n        from .tolerance import TOLERANCE\n        tol = TOLERANCE.approximation if tolerance < 0 else tolerance\n        dist0 = abs(a0 * origin1[0] + b0 * origin1[1] + c0 * origin1[2] + d0)\n        dist1 = abs(a1 * origin0[0] + b1 * origin0[1] + c1 * origin0[2] + d1)\n        return dist0 < tol and dist1 < tol\n\n    def has_on_negative_side(self, p):\n        \"\"\"Sign test using the cached plane equation ``ax + by + cz + d``.\n\n        Returns ``True`` if ``p`` lies on the negative side\n        (``a*p[0] + b*p[1] + c*p[2] + d < 0``). Mirrors CGAL's\n        ``Plane_3::has_on_negative_side``.\n\n        Parameters\n        ----------\n        p : :class:`Point`\n\n        Returns\n        -------\n        bool\n        \"\"\"\n        return (self.a * p[0] + self.b * p[1] + self.c * p[2] + self.d) < 0.0\n\n    def translate_by_normal(self, distance):\n        \"\"\"Translate (move) a plane along its normal direction by a specified distance.\n\n        Parameters\n        ----------\n        distance : float\n            Distance to move the plane along its normal (positive = normal direction, negative = opposite).\n\n        Returns\n        -------\n        Plane\n            New plane translated by the specified distance.\n        \"\"\"\n        normal = Vector(self._z_axis[0], self._z_axis[1], self._z_axis[2])\n        normal.normalize_self()\n\n        new_origin = self._origin + (normal * distance)\n\n        return Plane(new_origin, self._x_axis, self._y_axis)\n\n    def base1(self):\n        \"\"\"Canonical in-plane x-axis from the normal (smallest-|coef| pivot rule).\n\n        Deterministic frame that depends only on the normal; used for 2D\n        projections that must be stable across different construction hints.\n        \"\"\"\n        n = self._z_axis\n        nx = n[0]\n        ny = n[1]\n        nz = n[2]\n        ax = abs(nx)\n        ay = abs(ny)\n        az = abs(nz)\n        if ax <= ay and ax <= az:\n            b = Vector(0.0, -nz, ny)\n        elif ay <= ax and ay <= az:\n            b = Vector(-nz, 0.0, nx)\n        else:\n            b = Vector(-ny, nx, 0.0)\n        b.normalize_self()\n        return b",
           "file": "plane.py"
         },
         "rust": {
@@ -40968,16 +40371,17 @@ window.API_INDEX = {
       "related": [
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
         "Plane.c",
         "Plane.d",
         "Plane.has_on_negative_side",
         "Plane.is_coplanar",
         "Plane.is_same_position",
-        "Plane.linecolor",
         "Plane.new",
         "Plane.origin",
+        "Plane.project",
+        "Plane.projection",
         "Plane.str",
-        "Plane.to_polylines",
         "Plane.translate_by_normal",
         "Plane.x_axis",
         "Plane.y_axis",
@@ -40989,7 +40393,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "has_on_negative_side(p)",
-          "code": "def has_on_negative_side(self, p):\n\n        \"\"\"Sign test using the cached plane equation ``ax + by + cz + d``.\n\n        Returns ``True`` if ``p`` lies on the negative side\n        (``a*p[0] + b*p[1] + c*p[2] + d < 0``). Mirrors CGAL's\n        ``Plane_3::has_on_negative_side``.\n\n        Parameters\n        ----------\n        p : :class:`Point`\n\n        Returns\n        -------\n        bool\n        \"\"\"\n        return (self.a * p[0] + self.b * p[1] + self.c * p[2] + self.d) < 0.0\n\n    def translate_by_normal(self, distance):\n        \"\"\"Translate (move) a plane along its normal direction by a specified distance.\n\n        Parameters\n        ----------\n        distance : float\n            Distance to move the plane along its normal (positive = normal direction, negative = opposite).\n\n        Returns\n        -------\n        Plane\n            New plane translated by the specified distance.\n        \"\"\"\n        normal = Vector(self._z_axis[0], self._z_axis[1], self._z_axis[2])\n        normal.normalize_self()\n\n        new_origin = self._origin + (normal * distance)\n\n        return Plane(new_origin, self._x_axis, self._y_axis)\n\n    def to_polylines(self, scale=1.0):\n        from .polyline import Polyline\n        s = scale * 0.5\n        o = self._origin\n        x = self._x_axis\n        y = self._y_axis\n        z = self._z_axis\n        c0 = Point(o[0] - x[0]*s - y[0]*s, o[1] - x[1]*s - y[1]*s, o[2] - x[2]*s - y[2]*s)\n        c1 = Point(o[0] + x[0]*s - y[0]*s, o[1] + x[1]*s - y[1]*s, o[2] + x[2]*s - y[2]*s)\n        c2 = Point(o[0] + x[0]*s + y[0]*s, o[1] + x[1]*s + y[1]*s, o[2] + x[2]*s + y[2]*s)\n        c3 = Point(o[0] - x[0]*s + y[0]*s, o[1] - x[1]*s + y[1]*s, o[2] - x[2]*s + y[2]*s)\n        rect = Polyline([c0, c1, c2, c3, c0])\n        rect.linecolor = Color(self.linecolor[0], self.linecolor[1], self.linecolor[2], self.linecolor[3])\n        origin_pt = Point(o[0], o[1], o[2])\n        x_line = Polyline([origin_pt, Point(o[0] + x[0]*s, o[1] + x[1]*s, o[2] + x[2]*s)])\n        x_line.linecolor = Color.red()\n        y_line = Polyline([origin_pt, Point(o[0] + y[0]*s, o[1] + y[1]*s, o[2] + y[2]*s)])\n        y_line.linecolor = Color.green()\n        z_line = Polyline([origin_pt, Point(o[0] + z[0]*s, o[1] + z[1]*s, o[2] + z[2]*s)])\n        z_line.linecolor = Color.blue()\n        return [rect, x_line, y_line, z_line]\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n            Uses single flat array of 12 numbers for frame:\n            [ox, oy, oz, xx, xy, xz, yx, yy, yz, zx, zy, zz]\n            Plane equation coefficients (a, b, c, d) are computed on load.\n\n        \"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"linecolor\": self.linecolor.__jsondump__(),\n            \"frame\": [\n                self._origin[0], self._origin[1], self._origin[2],",
+          "code": "def has_on_negative_side(self, p):\n\n        \"\"\"Sign test using the cached plane equation ``ax + by + cz + d``.\n\n        Returns ``True`` if ``p`` lies on the negative side\n        (``a*p[0] + b*p[1] + c*p[2] + d < 0``). Mirrors CGAL's\n        ``Plane_3::has_on_negative_side``.\n\n        Parameters\n        ----------\n        p : :class:`Point`\n\n        Returns\n        -------\n        bool\n        \"\"\"\n        return (self.a * p[0] + self.b * p[1] + self.c * p[2] + self.d) < 0.0\n\n    def translate_by_normal(self, distance):\n        \"\"\"Translate (move) a plane along its normal direction by a specified distance.\n\n        Parameters\n        ----------\n        distance : float\n            Distance to move the plane along its normal (positive = normal direction, negative = opposite).\n\n        Returns\n        -------\n        Plane\n            New plane translated by the specified distance.\n        \"\"\"\n        normal = Vector(self._z_axis[0], self._z_axis[1], self._z_axis[2])\n        normal.normalize_self()\n\n        new_origin = self._origin + (normal * distance)\n\n        return Plane(new_origin, self._x_axis, self._y_axis)\n\n    def base1(self):\n        \"\"\"Canonical in-plane x-axis from the normal (smallest-|coef| pivot rule).\n\n        Deterministic frame that depends only on the normal; used for 2D\n        projections that must be stable across different construction hints.\n        \"\"\"\n        n = self._z_axis\n        nx = n[0]\n        ny = n[1]\n        nz = n[2]\n        ax = abs(nx)\n        ay = abs(ny)\n        az = abs(nz)\n        if ax <= ay and ax <= az:\n            b = Vector(0.0, -nz, ny)\n        elif ay <= ax and ay <= az:\n            b = Vector(-nz, 0.0, nx)\n        else:\n            b = Vector(-ny, nx, 0.0)\n        b.normalize_self()\n        return b\n\n    def base2(self):\n        \"\"\"Canonical in-plane y-axis = normal \u00c3\u2014 base1 (right-handed).\"\"\"\n        b1 = self.base1()\n        n = self._z_axis\n        b2 = Vector(\n            n[1]*b1[2] - n[2]*b1[1],\n            n[2]*b1[0] - n[0]*b1[2],\n            n[0]*b1[1] - n[1]*b1[0],\n        )\n        b2.normalize_self()\n        return b2\n\n    def to_polylines(self, scale=1.0):\n        from .polyline import Polyline\n        s = scale * 0.5\n        o = self._origin\n        x = self._x_axis\n        y = self._y_axis\n        z = self._z_axis\n        c0 = Point(o[0] - x[0]*s - y[0]*s, o[1] - x[1]*s - y[1]*s, o[2] - x[2]*s - y[2]*s)\n        c1 = Point(o[0] + x[0]*s - y[0]*s, o[1] + x[1]*s - y[1]*s, o[2] + x[2]*s - y[2]*s)",
           "file": "plane.py"
         },
         "cpp": {
@@ -41004,20 +40408,20 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Plane.__jsondump__",
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.d",
-        "Plane.format",
-        "Plane.guid",
         "Plane.is_coplanar",
         "Plane.is_coplanar_from_normals",
         "Plane.is_same_position",
-        "Plane.jsondump",
-        "Plane.linecolor",
         "Plane.new",
         "Plane.origin",
+        "Plane.project",
+        "Plane.projection",
+        "Plane.str",
         "Plane.to_polylines",
         "Plane.translate_by_normal",
         "Plane.x_axis",
@@ -41030,7 +40434,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "translate_by_normal(distance)",
-          "code": "def translate_by_normal(self, distance):\n\n        \"\"\"Translate (move) a plane along its normal direction by a specified distance.\n\n        Parameters\n        ----------\n        distance : float\n            Distance to move the plane along its normal (positive = normal direction, negative = opposite).\n\n        Returns\n        -------\n        Plane\n            New plane translated by the specified distance.\n        \"\"\"\n        normal = Vector(self._z_axis[0], self._z_axis[1], self._z_axis[2])\n        normal.normalize_self()\n\n        new_origin = self._origin + (normal * distance)\n\n        return Plane(new_origin, self._x_axis, self._y_axis)\n\n    def to_polylines(self, scale=1.0):\n        from .polyline import Polyline\n        s = scale * 0.5\n        o = self._origin\n        x = self._x_axis\n        y = self._y_axis\n        z = self._z_axis\n        c0 = Point(o[0] - x[0]*s - y[0]*s, o[1] - x[1]*s - y[1]*s, o[2] - x[2]*s - y[2]*s)\n        c1 = Point(o[0] + x[0]*s - y[0]*s, o[1] + x[1]*s - y[1]*s, o[2] + x[2]*s - y[2]*s)\n        c2 = Point(o[0] + x[0]*s + y[0]*s, o[1] + x[1]*s + y[1]*s, o[2] + x[2]*s + y[2]*s)\n        c3 = Point(o[0] - x[0]*s + y[0]*s, o[1] - x[1]*s + y[1]*s, o[2] - x[2]*s + y[2]*s)\n        rect = Polyline([c0, c1, c2, c3, c0])\n        rect.linecolor = Color(self.linecolor[0], self.linecolor[1], self.linecolor[2], self.linecolor[3])\n        origin_pt = Point(o[0], o[1], o[2])\n        x_line = Polyline([origin_pt, Point(o[0] + x[0]*s, o[1] + x[1]*s, o[2] + x[2]*s)])\n        x_line.linecolor = Color.red()\n        y_line = Polyline([origin_pt, Point(o[0] + y[0]*s, o[1] + y[1]*s, o[2] + y[2]*s)])\n        y_line.linecolor = Color.green()\n        z_line = Polyline([origin_pt, Point(o[0] + z[0]*s, o[1] + z[1]*s, o[2] + z[2]*s)])\n        z_line.linecolor = Color.blue()\n        return [rect, x_line, y_line, z_line]\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n            Uses single flat array of 12 numbers for frame:\n            [ox, oy, oz, xx, xy, xz, yx, yy, yz, zx, zy, zz]\n            Plane equation coefficients (a, b, c, d) are computed on load.\n\n        \"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"linecolor\": self.linecolor.__jsondump__(),\n            \"frame\": [\n                self._origin[0], self._origin[1], self._origin[2],\n                self._x_axis[0], self._x_axis[1], self._x_axis[2],\n                self._y_axis[0], self._y_axis[1], self._y_axis[2],\n                self._z_axis[0], self._z_axis[1], self._z_axis[2],\n            ],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"width\": self.width,\n            \"xform\": self.xform.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------",
+          "code": "def translate_by_normal(self, distance):\n\n        \"\"\"Translate (move) a plane along its normal direction by a specified distance.\n\n        Parameters\n        ----------\n        distance : float\n            Distance to move the plane along its normal (positive = normal direction, negative = opposite).\n\n        Returns\n        -------\n        Plane\n            New plane translated by the specified distance.\n        \"\"\"\n        normal = Vector(self._z_axis[0], self._z_axis[1], self._z_axis[2])\n        normal.normalize_self()\n\n        new_origin = self._origin + (normal * distance)\n\n        return Plane(new_origin, self._x_axis, self._y_axis)\n\n    def base1(self):\n        \"\"\"Canonical in-plane x-axis from the normal (smallest-|coef| pivot rule).\n\n        Deterministic frame that depends only on the normal; used for 2D\n        projections that must be stable across different construction hints.\n        \"\"\"\n        n = self._z_axis\n        nx = n[0]\n        ny = n[1]\n        nz = n[2]\n        ax = abs(nx)\n        ay = abs(ny)\n        az = abs(nz)\n        if ax <= ay and ax <= az:\n            b = Vector(0.0, -nz, ny)\n        elif ay <= ax and ay <= az:\n            b = Vector(-nz, 0.0, nx)\n        else:\n            b = Vector(-ny, nx, 0.0)\n        b.normalize_self()\n        return b\n\n    def base2(self):\n        \"\"\"Canonical in-plane y-axis = normal \u00c3\u2014 base1 (right-handed).\"\"\"\n        b1 = self.base1()\n        n = self._z_axis\n        b2 = Vector(\n            n[1]*b1[2] - n[2]*b1[1],\n            n[2]*b1[0] - n[0]*b1[2],\n            n[0]*b1[1] - n[1]*b1[0],\n        )\n        b2.normalize_self()\n        return b2\n\n    def to_polylines(self, scale=1.0):\n        from .polyline import Polyline\n        s = scale * 0.5\n        o = self._origin\n        x = self._x_axis\n        y = self._y_axis\n        z = self._z_axis\n        c0 = Point(o[0] - x[0]*s - y[0]*s, o[1] - x[1]*s - y[1]*s, o[2] - x[2]*s - y[2]*s)\n        c1 = Point(o[0] + x[0]*s - y[0]*s, o[1] + x[1]*s - y[1]*s, o[2] + x[2]*s - y[2]*s)\n        c2 = Point(o[0] + x[0]*s + y[0]*s, o[1] + x[1]*s + y[1]*s, o[2] + x[2]*s + y[2]*s)\n        c3 = Point(o[0] - x[0]*s + y[0]*s, o[1] - x[1]*s + y[1]*s, o[2] - x[2]*s + y[2]*s)\n        rect = Polyline([c0, c1, c2, c3, c0])\n        rect.linecolor = Color(self.linecolor[0], self.linecolor[1], self.linecolor[2], self.linecolor[3])\n        origin_pt = Point(o[0], o[1], o[2])\n        x_line = Polyline([origin_pt, Point(o[0] + x[0]*s, o[1] + x[1]*s, o[2] + x[2]*s)])\n        x_line.linecolor = Color.red()\n        y_line = Polyline([origin_pt, Point(o[0] + y[0]*s, o[1] + y[1]*s, o[2] + y[2]*s)])\n        y_line.linecolor = Color.green()\n        z_line = Polyline([origin_pt, Point(o[0] + z[0]*s, o[1] + z[1]*s, o[2] + z[2]*s)])\n        z_line.linecolor = Color.blue()\n        return [rect, x_line, y_line, z_line]\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################",
           "file": "plane.py"
         },
         "cpp": {
@@ -41045,23 +40449,109 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Plane.__jsondump__",
-        "Plane.__jsonload__",
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
+        "Plane.base2",
+        "Plane.c",
+        "Plane.d",
+        "Plane.has_on_negative_side",
+        "Plane.is_coplanar",
+        "Plane.is_coplanar_from_normals",
+        "Plane.linecolor",
+        "Plane.new",
+        "Plane.origin",
+        "Plane.project",
+        "Plane.projection",
+        "Plane.str",
+        "Plane.to_polylines",
+        "Plane.x_axis",
+        "Plane.y_axis",
+        "Plane.z_axis"
+      ]
+    },
+    {
+      "name": "Plane.base1",
+      "implementations": {
+        "python": {
+          "sig": "base1()",
+          "code": "def base1(self):\n\n        \"\"\"Canonical in-plane x-axis from the normal (smallest-|coef| pivot rule).\n\n        Deterministic frame that depends only on the normal; used for 2D\n        projections that must be stable across different construction hints.\n        \"\"\"\n        n = self._z_axis\n        nx = n[0]\n        ny = n[1]\n        nz = n[2]\n        ax = abs(nx)\n        ay = abs(ny)\n        az = abs(nz)\n        if ax <= ay and ax <= az:\n            b = Vector(0.0, -nz, ny)\n        elif ay <= ax and ay <= az:\n            b = Vector(-nz, 0.0, nx)\n        else:\n            b = Vector(-ny, nx, 0.0)\n        b.normalize_self()\n        return b\n\n    def base2(self):\n        \"\"\"Canonical in-plane y-axis = normal \u00c3\u2014 base1 (right-handed).\"\"\"\n        b1 = self.base1()\n        n = self._z_axis\n        b2 = Vector(\n            n[1]*b1[2] - n[2]*b1[1],\n            n[2]*b1[0] - n[0]*b1[2],\n            n[0]*b1[1] - n[1]*b1[0],\n        )\n        b2.normalize_self()\n        return b2\n\n    def to_polylines(self, scale=1.0):\n        from .polyline import Polyline\n        s = scale * 0.5\n        o = self._origin\n        x = self._x_axis\n        y = self._y_axis\n        z = self._z_axis\n        c0 = Point(o[0] - x[0]*s - y[0]*s, o[1] - x[1]*s - y[1]*s, o[2] - x[2]*s - y[2]*s)\n        c1 = Point(o[0] + x[0]*s - y[0]*s, o[1] + x[1]*s - y[1]*s, o[2] + x[2]*s - y[2]*s)\n        c2 = Point(o[0] + x[0]*s + y[0]*s, o[1] + x[1]*s + y[1]*s, o[2] + x[2]*s + y[2]*s)\n        c3 = Point(o[0] - x[0]*s + y[0]*s, o[1] - x[1]*s + y[1]*s, o[2] - x[2]*s + y[2]*s)\n        rect = Polyline([c0, c1, c2, c3, c0])\n        rect.linecolor = Color(self.linecolor[0], self.linecolor[1], self.linecolor[2], self.linecolor[3])\n        origin_pt = Point(o[0], o[1], o[2])\n        x_line = Polyline([origin_pt, Point(o[0] + x[0]*s, o[1] + x[1]*s, o[2] + x[2]*s)])\n        x_line.linecolor = Color.red()\n        y_line = Polyline([origin_pt, Point(o[0] + y[0]*s, o[1] + y[1]*s, o[2] + y[2]*s)])\n        y_line.linecolor = Color.green()\n        z_line = Polyline([origin_pt, Point(o[0] + z[0]*s, o[1] + z[1]*s, o[2] + z[2]*s)])\n        z_line.linecolor = Color.blue()\n        return [rect, x_line, y_line, z_line]\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n            Uses single flat array of 12 numbers for frame:\n            [ox, oy, oz, xx, xy, xz, yx, yy, yz, zx, zy, zz]\n            Plane equation coefficients (a, b, c, d) are computed on load.\n\n        \"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"linecolor\": self.linecolor.__jsondump__(),\n            \"frame\": [\n                self._origin[0], self._origin[1], self._origin[2],\n                self._x_axis[0], self._x_axis[1], self._x_axis[2],\n                self._y_axis[0], self._y_axis[1], self._y_axis[2],\n                self._z_axis[0], self._z_axis[1], self._z_axis[2],",
+          "file": "plane.py"
+        },
+        "cpp": {
+          "sig": "Vector base1()",
+          "code": "Vector Plane::base1() const {\n    const Vector& n = z_axis();\n    double nx = n[0], ny = n[1], nz = n[2];\n    double ax = std::fabs(nx), ay = std::fabs(ny), az = std::fabs(nz);\n    Vector b;\n    if (ax <= ay && ax <= az)      b = Vector(0.0, -nz, ny);\n    else if (ay <= ax && ay <= az) b = Vector(-nz, 0.0, nx);\n    else                            b = Vector(-ny, nx, 0.0);\n    b.normalize_self();\n    return b;\n}",
+          "file": "plane.cpp"
+        },
+        "rust": {
+          "sig": "base1() -> Vector",
+          "code": "pub fn base1(&self) -> Vector {\n        let n = &self._z_axis;\n        let nx = n[0];\n        let ny = n[1];\n        let nz = n[2];\n        let ax = nx.abs();\n        let ay = ny.abs();\n        let az = nz.abs();\n        let mut b = if ax <= ay && ax <= az {\n            Vector::new(0.0, -nz, ny)\n        } else if ay <= ax && ay <= az {\n            Vector::new(-nz, 0.0, nx)\n        } else {\n            Vector::new(-ny, nx, 0.0)\n        };\n        b.normalize_self();\n        b\n    }",
+          "file": "plane.rs"
+        }
+      },
+      "related": [
+        "Plane.__jsondump__",
+        "Plane.a",
+        "Plane.b",
+        "Plane.base2",
         "Plane.c",
         "Plane.d",
         "Plane.format",
         "Plane.guid",
         "Plane.has_on_negative_side",
-        "Plane.is_coplanar",
         "Plane.is_coplanar_from_normals",
+        "Plane.jsondump",
+        "Plane.linecolor",
+        "Plane.new",
+        "Plane.origin",
+        "Plane.project",
+        "Plane.projection",
+        "Plane.str",
+        "Plane.to_polylines",
+        "Plane.translate_by_normal",
+        "Plane.x_axis",
+        "Plane.y_axis",
+        "Plane.z_axis"
+      ]
+    },
+    {
+      "name": "Plane.base2",
+      "implementations": {
+        "python": {
+          "sig": "base2()",
+          "code": "def base2(self):\n\n        \"\"\"Canonical in-plane y-axis = normal \u00c3\u2014 base1 (right-handed).\"\"\"\n        b1 = self.base1()\n        n = self._z_axis\n        b2 = Vector(\n            n[1]*b1[2] - n[2]*b1[1],\n            n[2]*b1[0] - n[0]*b1[2],\n            n[0]*b1[1] - n[1]*b1[0],\n        )\n        b2.normalize_self()\n        return b2\n\n    def to_polylines(self, scale=1.0):\n        from .polyline import Polyline\n        s = scale * 0.5\n        o = self._origin\n        x = self._x_axis\n        y = self._y_axis\n        z = self._z_axis\n        c0 = Point(o[0] - x[0]*s - y[0]*s, o[1] - x[1]*s - y[1]*s, o[2] - x[2]*s - y[2]*s)\n        c1 = Point(o[0] + x[0]*s - y[0]*s, o[1] + x[1]*s - y[1]*s, o[2] + x[2]*s - y[2]*s)\n        c2 = Point(o[0] + x[0]*s + y[0]*s, o[1] + x[1]*s + y[1]*s, o[2] + x[2]*s + y[2]*s)\n        c3 = Point(o[0] - x[0]*s + y[0]*s, o[1] - x[1]*s + y[1]*s, o[2] - x[2]*s + y[2]*s)\n        rect = Polyline([c0, c1, c2, c3, c0])\n        rect.linecolor = Color(self.linecolor[0], self.linecolor[1], self.linecolor[2], self.linecolor[3])\n        origin_pt = Point(o[0], o[1], o[2])\n        x_line = Polyline([origin_pt, Point(o[0] + x[0]*s, o[1] + x[1]*s, o[2] + x[2]*s)])\n        x_line.linecolor = Color.red()\n        y_line = Polyline([origin_pt, Point(o[0] + y[0]*s, o[1] + y[1]*s, o[2] + y[2]*s)])\n        y_line.linecolor = Color.green()\n        z_line = Polyline([origin_pt, Point(o[0] + z[0]*s, o[1] + z[1]*s, o[2] + z[2]*s)])\n        z_line.linecolor = Color.blue()\n        return [rect, x_line, y_line, z_line]\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n            Uses single flat array of 12 numbers for frame:\n            [ox, oy, oz, xx, xy, xz, yx, yy, yz, zx, zy, zz]\n            Plane equation coefficients (a, b, c, d) are computed on load.\n\n        \"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"linecolor\": self.linecolor.__jsondump__(),\n            \"frame\": [\n                self._origin[0], self._origin[1], self._origin[2],\n                self._x_axis[0], self._x_axis[1], self._x_axis[2],\n                self._y_axis[0], self._y_axis[1], self._y_axis[2],\n                self._z_axis[0], self._z_axis[1], self._z_axis[2],\n            ],\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"width\": self.width,\n            \"xform\": self.xform.__jsondump__(),\n        }\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing plane data.\n        guid : str, optional\n            GUID for the plane.\n        name : str, optional\n            Name for the plane.\n\n        Returns",
+          "file": "plane.py"
+        },
+        "cpp": {
+          "sig": "Vector base2()",
+          "code": "Vector Plane::base2() const {\n    Vector b1 = base1();\n    const Vector& n = z_axis();\n    Vector b2(\n        n[1]*b1[2] - n[2]*b1[1],\n        n[2]*b1[0] - n[0]*b1[2],\n        n[0]*b1[1] - n[1]*b1[0]\n    );\n    b2.normalize_self();\n    return b2;\n}",
+          "file": "plane.cpp"
+        },
+        "rust": {
+          "sig": "base2() -> Vector",
+          "code": "pub fn base2(&self) -> Vector {\n        let b1 = self.base1();\n        let n = &self._z_axis;\n        let mut b2 = Vector::new(\n            n[1]*b1[2] - n[2]*b1[1],\n            n[2]*b1[0] - n[0]*b1[2],\n            n[0]*b1[1] - n[1]*b1[0],\n        );\n        b2.normalize_self();\n        b2\n    }",
+          "file": "plane.rs"
+        }
+      },
+      "related": [
+        "Plane.__jsondump__",
+        "Plane.__jsonload__",
+        "Plane.a",
+        "Plane.b",
+        "Plane.base1",
+        "Plane.c",
+        "Plane.d",
+        "Plane.format",
+        "Plane.guid",
+        "Plane.has_on_negative_side",
         "Plane.jsondump",
         "Plane.jsonload",
         "Plane.linecolor",
         "Plane.new",
         "Plane.origin",
+        "Plane.str",
         "Plane.to_polylines",
+        "Plane.translate_by_normal",
         "Plane.x_axis",
         "Plane.xform",
         "Plane.y_axis",
@@ -41092,12 +40582,13 @@ window.API_INDEX = {
         "Plane.__jsonload__",
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.d",
         "Plane.format",
         "Plane.guid",
         "Plane.has_on_negative_side",
-        "Plane.is_coplanar_from_normals",
         "Plane.jsondump",
         "Plane.jsonload",
         "Plane.linecolor",
@@ -41124,11 +40615,12 @@ window.API_INDEX = {
         "Plane.__jsonload__",
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.d",
         "Plane.format",
         "Plane.guid",
-        "Plane.has_on_negative_side",
         "Plane.json_dump",
         "Plane.json_dumps",
         "Plane.json_load",
@@ -41138,7 +40630,6 @@ window.API_INDEX = {
         "Plane.origin",
         "Plane.str",
         "Plane.to_polylines",
-        "Plane.translate_by_normal",
         "Plane.x_axis",
         "Plane.xform",
         "Plane.y_axis",
@@ -41158,6 +40649,7 @@ window.API_INDEX = {
         "Plane.__jsondump__",
         "Plane.a",
         "Plane.b",
+        "Plane.base2",
         "Plane.c",
         "Plane.d",
         "Plane.format",
@@ -41172,7 +40664,6 @@ window.API_INDEX = {
         "Plane.origin",
         "Plane.str",
         "Plane.to_polylines",
-        "Plane.translate_by_normal",
         "Plane.x_axis",
         "Plane.xform",
         "Plane.y_axis"
@@ -45064,7 +44555,6 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.Polyline",
-        "Polyline.extend",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.guid",
@@ -45134,7 +44624,6 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
-        "Polyline.proj2d",
         "Polyline.project",
         "Polyline.pt_in_poly",
         "Polyline.remove_point",
@@ -45145,7 +44634,6 @@ window.API_INDEX = {
         "Polyline.simplify",
         "Polyline.simplify_points",
         "Polyline.str",
-        "Polyline.unproj",
         "Polyline.xform"
       ]
     },
@@ -45187,7 +44675,6 @@ window.API_INDEX = {
         "Polyline.closest_distance_and_point",
         "Polyline.cross2d",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.extend_line_segment",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
@@ -45217,6 +44704,8 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
+        "Polyline.polylabel",
+        "Polyline.polylabel_circle_division_points",
         "Polyline.project",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
@@ -45269,7 +44758,6 @@ window.API_INDEX = {
         "Polyline.add_point",
         "Polyline.boolean_op",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.from_sides",
         "Polyline.get_point",
@@ -45338,7 +44826,6 @@ window.API_INDEX = {
         "Polyline.add_point",
         "Polyline.boolean_op",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.from_sides",
         "Polyline.get_point",
@@ -45415,7 +44902,6 @@ window.API_INDEX = {
         "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.from_sides",
         "Polyline.get_point",
         "Polyline.get_points",
@@ -45497,7 +44983,6 @@ window.API_INDEX = {
         "Polyline.closest_distance_and_point",
         "Polyline.duplicate",
         "Polyline.ensure_ccw",
-        "Polyline.extend",
         "Polyline.extend_edge_equally",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
@@ -45571,7 +45056,6 @@ window.API_INDEX = {
         "Polyline.__getitem__",
         "Polyline.__len__",
         "Polyline.__setitem__",
-        "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.get_lines",
         "Polyline.get_point",
@@ -45617,7 +45101,6 @@ window.API_INDEX = {
         "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.cross2d",
-        "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.from_sides",
         "Polyline.get_average_plane",
@@ -45640,6 +45123,8 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
+        "Polyline.polylabel",
+        "Polyline.polylabel_circle_division_points",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
         "Polyline.segment_count",
@@ -45688,7 +45173,6 @@ window.API_INDEX = {
         "Polyline.closest_distance_and_point",
         "Polyline.cross2d",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.extend_edge_equally",
         "Polyline.extend_line_segment",
         "Polyline.extend_segment_equally",
@@ -45725,7 +45209,8 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
-        "Polyline.proj2d",
+        "Polyline.polylabel",
+        "Polyline.polylabel_circle_division_points",
         "Polyline.pt_in_poly",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
@@ -45745,7 +45230,6 @@ window.API_INDEX = {
         "Polyline.transformed_xform",
         "Polyline.translate",
         "Polyline.tween_two_polylines",
-        "Polyline.unproj",
         "Polyline.xform"
       ]
     },
@@ -45763,7 +45247,6 @@ window.API_INDEX = {
         "Polyline.__setitem__",
         "Polyline._recompute_plane",
         "Polyline.add_point",
-        "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.from_sides",
         "Polyline.get_lines",
@@ -45797,7 +45280,6 @@ window.API_INDEX = {
         "Polyline.__setitem__",
         "Polyline._recompute_plane",
         "Polyline.add_point",
-        "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.from_sides",
         "Polyline.get_lines",
@@ -45831,7 +45313,6 @@ window.API_INDEX = {
         "Polyline.__len__",
         "Polyline._recompute_plane",
         "Polyline.add_point",
-        "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.from_sides",
         "Polyline.get_lines",
@@ -45843,7 +45324,6 @@ window.API_INDEX = {
         "Polyline.length",
         "Polyline.linecolor",
         "Polyline.lines",
-        "Polyline.move",
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
@@ -45880,7 +45360,6 @@ window.API_INDEX = {
         "Polyline._recompute_plane",
         "Polyline.add_point",
         "Polyline.center",
-        "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.from_sides",
         "Polyline.get_fast_plane",
@@ -45894,10 +45373,10 @@ window.API_INDEX = {
         "Polyline.line_from_projected_points",
         "Polyline.lines",
         "Polyline.merge_collinear",
-        "Polyline.move",
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.polylabel",
         "Polyline.quick_hull",
         "Polyline.remove_point",
         "Polyline.reverse",
@@ -45935,7 +45414,6 @@ window.API_INDEX = {
         "Polyline.add_point",
         "Polyline.center",
         "Polyline.closest_distance_and_point",
-        "Polyline.extend",
         "Polyline.extend_edge_equally",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
@@ -45956,7 +45434,6 @@ window.API_INDEX = {
         "Polyline.line_line_overlap_average",
         "Polyline.lines",
         "Polyline.magnitude_squared",
-        "Polyline.move",
         "Polyline.new",
         "Polyline.plane",
         "Polyline.point_count",
@@ -45995,7 +45472,6 @@ window.API_INDEX = {
         "Polyline.__setitem__",
         "Polyline._recompute_plane",
         "Polyline.add_point",
-        "Polyline.extend",
         "Polyline.from_sides",
         "Polyline.get_point",
         "Polyline.get_points",
@@ -46004,7 +45480,6 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.length",
         "Polyline.lines",
-        "Polyline.move",
         "Polyline.new",
         "Polyline.plane",
         "Polyline.point_count",
@@ -46036,7 +45511,6 @@ window.API_INDEX = {
         "Polyline.__truediv__",
         "Polyline._recompute_plane",
         "Polyline.add_point",
-        "Polyline.extend",
         "Polyline.extend_edge_equally",
         "Polyline.extend_line_segment",
         "Polyline.extend_segment_equally",
@@ -46054,13 +45528,14 @@ window.API_INDEX = {
         "Polyline.length",
         "Polyline.line_line_overlap_average",
         "Polyline.linecolor",
-        "Polyline.move",
         "Polyline.new",
         "Polyline.pb_dump",
         "Polyline.pb_load",
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.polylabel",
+        "Polyline.polylabel_circle_division_points",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
@@ -46103,7 +45578,6 @@ window.API_INDEX = {
         "Polyline.add_point",
         "Polyline.bounding_rectangle",
         "Polyline.cross2d",
-        "Polyline.extend",
         "Polyline.extend_edge_equally",
         "Polyline.extend_line_segment",
         "Polyline.extend_segment",
@@ -46114,6 +45588,7 @@ window.API_INDEX = {
         "Polyline.get_lines",
         "Polyline.get_point",
         "Polyline.get_points",
+        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.insert_point",
         "Polyline.is_empty",
@@ -46122,13 +45597,11 @@ window.API_INDEX = {
         "Polyline.linecolor",
         "Polyline.lines",
         "Polyline.magnitude_squared",
-        "Polyline.move",
         "Polyline.new",
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
-        "Polyline.polyline_length",
-        "Polyline.polyline_length_squared",
+        "Polyline.proj2d",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
         "Polyline.remove_point",
@@ -46140,6 +45613,7 @@ window.API_INDEX = {
         "Polyline.transformed",
         "Polyline.transformed_xform",
         "Polyline.translate",
+        "Polyline.unproj",
         "Polyline.xform"
       ]
     },
@@ -46182,7 +45656,6 @@ window.API_INDEX = {
         "Polyline.closest_distance_and_point",
         "Polyline.cross2d",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.extend_edge_equally",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
@@ -46206,12 +45679,13 @@ window.API_INDEX = {
         "Polyline.linecolor",
         "Polyline.lines",
         "Polyline.merge_collinear",
-        "Polyline.move",
         "Polyline.new",
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
+        "Polyline.polylabel",
+        "Polyline.polylabel_circle_division_points",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
         "Polyline.remove_point",
@@ -46257,7 +45731,6 @@ window.API_INDEX = {
         "Polyline._recompute_plane",
         "Polyline.add_point",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.extend_edge_equally",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
@@ -46273,7 +45746,6 @@ window.API_INDEX = {
         "Polyline.length",
         "Polyline.linecolor",
         "Polyline.lines",
-        "Polyline.move",
         "Polyline.new",
         "Polyline.plane",
         "Polyline.point_count",
@@ -46318,7 +45790,6 @@ window.API_INDEX = {
         "Polyline.__setitem__",
         "Polyline._recompute_plane",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.get_lines",
         "Polyline.get_point",
@@ -46328,7 +45799,6 @@ window.API_INDEX = {
         "Polyline.length",
         "Polyline.linecolor",
         "Polyline.lines",
-        "Polyline.move",
         "Polyline.new",
         "Polyline.plane",
         "Polyline.point_count",
@@ -46372,7 +45842,6 @@ window.API_INDEX = {
         "Polyline._recompute_plane",
         "Polyline.add_point",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.get_lines",
         "Polyline.get_point",
@@ -46382,7 +45851,6 @@ window.API_INDEX = {
         "Polyline.length",
         "Polyline.linecolor",
         "Polyline.lines",
-        "Polyline.move",
         "Polyline.new",
         "Polyline.plane",
         "Polyline.point_count",
@@ -46425,7 +45893,6 @@ window.API_INDEX = {
         "Polyline._recompute_plane",
         "Polyline.add_point",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.get_lines",
         "Polyline.get_point",
@@ -46435,7 +45902,6 @@ window.API_INDEX = {
         "Polyline.length",
         "Polyline.linecolor",
         "Polyline.lines",
-        "Polyline.move",
         "Polyline.new",
         "Polyline.plane",
         "Polyline.point_count",
@@ -46482,7 +45948,6 @@ window.API_INDEX = {
         "Polyline._recompute_plane",
         "Polyline.add_point",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.flip",
         "Polyline.from_coords",
         "Polyline.get_lines",
@@ -46945,7 +46410,6 @@ window.API_INDEX = {
         "Polyline.__sub__",
         "Polyline.closed",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.extend_edge_equally",
         "Polyline.format",
         "Polyline.from_coords",
@@ -46985,7 +46449,6 @@ window.API_INDEX = {
         "Polyline.__truediv__",
         "Polyline.closed",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.extend_edge_equally",
         "Polyline.format",
         "Polyline.get_point",
@@ -47034,7 +46497,6 @@ window.API_INDEX = {
         "Polyline.boolean_op_plane",
         "Polyline.closed",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.extend_edge_equally",
         "Polyline.format",
         "Polyline.get_point",
@@ -47078,7 +46540,6 @@ window.API_INDEX = {
         "Polyline.__truediv__",
         "Polyline.closed",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.extend_edge_equally",
         "Polyline.format",
         "Polyline.get_point",
@@ -47124,7 +46585,6 @@ window.API_INDEX = {
         "Polyline.__truediv__",
         "Polyline.closed",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.extend_edge_equally",
         "Polyline.format",
         "Polyline.get_point",
@@ -47168,14 +46628,12 @@ window.API_INDEX = {
         "Polyline.__truediv__",
         "Polyline.closed",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.extend_edge_equally",
         "Polyline.get_point",
         "Polyline.len",
         "Polyline.length",
         "Polyline.lines",
         "Polyline.magnitude_squared",
-        "Polyline.move",
         "Polyline.new",
         "Polyline.point_at",
         "Polyline.point_count",
@@ -47214,7 +46672,6 @@ window.API_INDEX = {
         "Polyline.closed",
         "Polyline.closest_point_to_line",
         "Polyline.duplicate",
-        "Polyline.extend",
         "Polyline.get_point",
         "Polyline.len",
         "Polyline.length",
@@ -47263,7 +46720,6 @@ window.API_INDEX = {
         "Polyline.line_line_average",
         "Polyline.line_line_overlap",
         "Polyline.magnitude_squared",
-        "Polyline.move",
         "Polyline.new",
         "Polyline.point_at",
         "Polyline.point_count",
@@ -47493,7 +46949,6 @@ window.API_INDEX = {
         "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.closest_point_to_line",
-        "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.get_point",
         "Polyline.get_points",
@@ -47534,7 +46989,6 @@ window.API_INDEX = {
         "Polyline.center",
         "Polyline.closed",
         "Polyline.closest_point_to_line",
-        "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.get_point",
         "Polyline.get_points",
@@ -47576,7 +47030,6 @@ window.API_INDEX = {
         "Polyline.center",
         "Polyline.closed",
         "Polyline.closest_distance_and_point",
-        "Polyline.extend",
         "Polyline.extend_line_segment",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
@@ -47587,7 +47040,6 @@ window.API_INDEX = {
         "Polyline.get_fast_plane",
         "Polyline.get_point",
         "Polyline.get_points",
-        "Polyline.grid_of_points_in_polygon",
         "Polyline.is_clockwise",
         "Polyline.len",
         "Polyline.line_from_projected_points",
@@ -47597,11 +47049,9 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
-        "Polyline.proj2d",
         "Polyline.pt_in_poly",
         "Polyline.shift",
-        "Polyline.shrink_line_segment",
-        "Polyline.unproj"
+        "Polyline.shrink_line_segment"
       ]
     },
     {
@@ -47633,7 +47083,6 @@ window.API_INDEX = {
         "Polyline.center",
         "Polyline.closest_distance_and_point",
         "Polyline.cross2d",
-        "Polyline.extend",
         "Polyline.extend_edge_equally",
         "Polyline.extend_line_segment",
         "Polyline.extend_segment",
@@ -47657,7 +47106,6 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
-        "Polyline.proj2d",
         "Polyline.pt_in_poly",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
@@ -47666,8 +47114,7 @@ window.API_INDEX = {
         "Polyline.transform",
         "Polyline.transformed",
         "Polyline.transformed_xform",
-        "Polyline.translate",
-        "Polyline.unproj"
+        "Polyline.translate"
       ]
     },
     {
@@ -47694,7 +47141,6 @@ window.API_INDEX = {
         "Polyline.center",
         "Polyline.closed",
         "Polyline.closest_distance_and_point",
-        "Polyline.extend",
         "Polyline.get_average_plane",
         "Polyline.get_point",
         "Polyline.get_points",
@@ -47735,7 +47181,6 @@ window.API_INDEX = {
         "Polyline.center_vec",
         "Polyline.closed",
         "Polyline.closest_distance_and_point",
-        "Polyline.extend",
         "Polyline.extend_segment",
         "Polyline.get_average_plane",
         "Polyline.get_fast_plane",
@@ -47749,6 +47194,8 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
+        "Polyline.polylabel",
+        "Polyline.polylabel_circle_division_points",
         "Polyline.segment_count"
       ]
     },
@@ -47777,7 +47224,6 @@ window.API_INDEX = {
         "Polyline.average_normal",
         "Polyline.center",
         "Polyline.closed",
-        "Polyline.extend",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
@@ -47822,7 +47268,6 @@ window.API_INDEX = {
         "Polyline.center",
         "Polyline.closed",
         "Polyline.cross2d",
-        "Polyline.extend",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
@@ -47840,6 +47285,7 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
+        "Polyline.polylabel",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
         "Polyline.segment_count",
@@ -47872,8 +47318,6 @@ window.API_INDEX = {
         "Polyline.average_normal",
         "Polyline.center",
         "Polyline.closed",
-        "Polyline.extend",
-        "Polyline.extend_line",
         "Polyline.extend_line_segment",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
@@ -47915,8 +47359,6 @@ window.API_INDEX = {
         "Polyline.center",
         "Polyline.closed",
         "Polyline.duplicate",
-        "Polyline.extend",
-        "Polyline.extend_line",
         "Polyline.extend_line_segment",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
@@ -47927,7 +47369,6 @@ window.API_INDEX = {
         "Polyline.is_closed",
         "Polyline.len",
         "Polyline.length",
-        "Polyline.move",
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
@@ -47954,8 +47395,6 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.average_normal",
         "Polyline.closed",
-        "Polyline.extend",
-        "Polyline.extend_line",
         "Polyline.extend_line_segment",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
@@ -48000,8 +47439,6 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.average_normal",
         "Polyline.closed",
-        "Polyline.extend",
-        "Polyline.extend_line",
         "Polyline.extend_line_segment",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally_static",
@@ -48048,8 +47485,6 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.average_normal",
         "Polyline.closed",
-        "Polyline.extend",
-        "Polyline.extend_line",
         "Polyline.extend_segment",
         "Polyline.extend_segment_equally",
         "Polyline.extend_segment_equally_static",
@@ -48328,26 +47763,18 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "proj2d(p)",
-          "code": "def proj2d(p):\n\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        poly2d = [proj2d(p) for p in pts]\n        nv = len(poly2d)\n\n        def pt_in_poly(pu, pv):\n            inside = False\n            j = nv - 1\n            for i in range(nv):\n                xi, yi = poly2d[i]\n                xj, yj = poly2d[j]\n                if (yi > pv) != (yj > pv):\n                    t = (xj - xi) * (pv - yi) / (yj - yi + 1e-300) + xi\n                    if pu < t:\n                        inside = not inside\n                j = i\n            return inside\n\n        min_u = min(p[0] for p in poly2d)\n        max_u = max(p[0] for p in poly2d)\n        min_v = min(p[1] for p in poly2d)\n        max_v = max(p[1] for p in poly2d)\n\n        result = []\n        u = min_u + div_dist * 0.5\n        while u <= max_u and len(result) < max_pts:\n            v = min_v + div_dist * 0.5\n            while v <= max_v and len(result) < max_pts:\n                if pt_in_poly(u, v):\n                    result.append(unproj(u, v))\n                v += div_dist\n            u += div_dist\n\n        return result\n\n    def _average_normal(self) -> Vector:\n        \"\"\"Calculate average normal from polyline points.\"\"\"\n        if len(self.points) < 3:\n            return Vector(0.0, 0.0, 1.0)\n\n        closed = self.is_closed()\n        n = (\n            len(self.points) - 1\n            if closed and len(self.points) > 1\n            else len(self.points)\n        )\n\n        average_normal = Vector(0.0, 0.0, 0.0)\n\n        for i in range(n):\n            prev = n - 1 if i == 0 else i - 1\n            next_pt = (i + 1) % n\n\n            v1 = self.points[prev] - self.points[i]\n            v2 = self.points[i] - self.points[next_pt]\n            cross = v1.cross(v2)\n            average_normal += cross\n\n        return average_normal.normalized()\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Uses compact coords array format: [x0, y0, z0, x1, y1, z1, ...]\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"",
+          "code": "def proj2d(p):\n\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        poly2d = [proj2d(p) for p in pts]\n\n        # Miter offset in 2D (negative = inward, positive = outward). Reuses\n        # the same algorithm as Intersection::offset_in_3d. Falls back to the\n        # un-offset polygon if the result degenerates.\n        if offset_dist != 0.0 and len(poly2d) >= 3:\n            n = len(poly2d)\n            signed_area = 0.0\n            for i in range(n):\n                a = poly2d[i]\n                b = poly2d[(i + 1) % n]\n                signed_area += a[0] * b[1] - b[0] * a[1]\n            delta = -offset_dist if signed_area < 0.0 else offset_dist\n\n            normals = []\n            for i in range(n):\n                a = poly2d[i]\n                b = poly2d[(i + 1) % n]\n                ex = b[0] - a[0]\n                ey = b[1] - a[1]\n                length = (ex * ex + ey * ey) ** 0.5\n                if length < 1e-12:\n                    normals.append((0.0, 0.0))\n                else:\n                    normals.append((ey / length, -ex / length))\n\n            out = []\n            for i in range(n):\n                np_ = normals[(i + n - 1) % n]\n                nn = normals[i]\n                cos_a = np_[0] * nn[0] + np_[1] * nn[1]\n                sin_a = np_[0] * nn[1] - np_[1] * nn[0]\n                denom = 1.0 + cos_a\n                concave = (cos_a > -0.999) and (sin_a * delta < 0.0) and (offset_dist > 0.0)\n                if concave:\n                    out.append((poly2d[i][0] + np_[0] * delta, poly2d[i][1] + np_[1] * delta))\n                    out.append((poly2d[i][0], poly2d[i][1]))\n                    out.append((poly2d[i][0] + nn[0] * delta, poly2d[i][1] + nn[1] * delta))\n                elif abs(denom) < 1e-9:\n                    mx = (np_[0] + nn[0]) * 0.5\n                    my = (np_[1] + nn[1]) * 0.5\n                    out.append((poly2d[i][0] + mx * delta, poly2d[i][1] + my * delta))\n                else:\n                    bx = (np_[0] + nn[0]) / denom\n                    by = (np_[1] + nn[1]) / denom\n                    out.append((poly2d[i][0] + bx * delta, poly2d[i][1] + by * delta))\n\n            out_area = 0.0\n            for i in range(len(out)):\n                a = out[i]\n                b = out[(i + 1) % len(out)]\n                out_area += a[0] * b[1] - b[0] * a[1]\n            if len(out) >= 3 and abs(out_area) > 1e-4:\n                poly2d = out\n\n        nv = len(poly2d)\n\n        def pt_in_poly(pu, pv):\n            inside = False\n            j = nv - 1\n            for i in range(nv):\n                xi, yi = poly2d[i]\n                xj, yj = poly2d[j]\n                if (yi > pv) != (yj > pv):\n                    t = (xj - xi) * (pv - yi) / (yj - yi + 1e-300) + xi\n                    if pu < t:\n                        inside = not inside\n                j = i\n            return inside\n\n        min_u = min(p[0] for p in poly2d)\n        max_u = max(p[0] for p in poly2d)\n        min_v = min(p[1] for p in poly2d)",
           "file": "polyline.py"
         }
       },
       "related": [
-        "Polyline.__jsondump__",
-        "Polyline._average_normal",
-        "Polyline.average_normal",
         "Polyline.bounding_rectangle",
-        "Polyline.closed",
         "Polyline.cross2d",
-        "Polyline.format",
         "Polyline.get_convex_corners",
         "Polyline.grid_of_points_in_polygon",
-        "Polyline.guid",
         "Polyline.interpolate_points",
-        "Polyline.is_closed",
-        "Polyline.jsondump",
         "Polyline.len",
-        "Polyline.points",
+        "Polyline.length",
         "Polyline.pt_in_poly",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
@@ -48360,26 +47787,18 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "unproj(u, v)",
-          "code": "def unproj(u, v):\n\n            return origin + x_axis * u + y_axis * v\n\n        poly2d = [proj2d(p) for p in pts]\n        nv = len(poly2d)\n\n        def pt_in_poly(pu, pv):\n            inside = False\n            j = nv - 1\n            for i in range(nv):\n                xi, yi = poly2d[i]\n                xj, yj = poly2d[j]\n                if (yi > pv) != (yj > pv):\n                    t = (xj - xi) * (pv - yi) / (yj - yi + 1e-300) + xi\n                    if pu < t:\n                        inside = not inside\n                j = i\n            return inside\n\n        min_u = min(p[0] for p in poly2d)\n        max_u = max(p[0] for p in poly2d)\n        min_v = min(p[1] for p in poly2d)\n        max_v = max(p[1] for p in poly2d)\n\n        result = []\n        u = min_u + div_dist * 0.5\n        while u <= max_u and len(result) < max_pts:\n            v = min_v + div_dist * 0.5\n            while v <= max_v and len(result) < max_pts:\n                if pt_in_poly(u, v):\n                    result.append(unproj(u, v))\n                v += div_dist\n            u += div_dist\n\n        return result\n\n    def _average_normal(self) -> Vector:\n        \"\"\"Calculate average normal from polyline points.\"\"\"\n        if len(self.points) < 3:\n            return Vector(0.0, 0.0, 1.0)\n\n        closed = self.is_closed()\n        n = (\n            len(self.points) - 1\n            if closed and len(self.points) > 1\n            else len(self.points)\n        )\n\n        average_normal = Vector(0.0, 0.0, 0.0)\n\n        for i in range(n):\n            prev = n - 1 if i == 0 else i - 1\n            next_pt = (i + 1) % n\n\n            v1 = self.points[prev] - self.points[i]\n            v2 = self.points[i] - self.points[next_pt]\n            cross = v1.cross(v2)\n            average_normal += cross\n\n        return average_normal.normalized()\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Uses compact coords array format: [x0, y0, z0, x1, y1, z1, ...]\n\n        Returns\n        -------\n        dict\n            Dictionary with 'type', 'guid', 'name', and object fields.\n\n        \"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"coords\": self.coords,\n            \"guid\": self.guid,",
+          "code": "def unproj(u, v):\n\n            return origin + x_axis * u + y_axis * v\n\n        poly2d = [proj2d(p) for p in pts]\n\n        # Miter offset in 2D (negative = inward, positive = outward). Reuses\n        # the same algorithm as Intersection::offset_in_3d. Falls back to the\n        # un-offset polygon if the result degenerates.\n        if offset_dist != 0.0 and len(poly2d) >= 3:\n            n = len(poly2d)\n            signed_area = 0.0\n            for i in range(n):\n                a = poly2d[i]\n                b = poly2d[(i + 1) % n]\n                signed_area += a[0] * b[1] - b[0] * a[1]\n            delta = -offset_dist if signed_area < 0.0 else offset_dist\n\n            normals = []\n            for i in range(n):\n                a = poly2d[i]\n                b = poly2d[(i + 1) % n]\n                ex = b[0] - a[0]\n                ey = b[1] - a[1]\n                length = (ex * ex + ey * ey) ** 0.5\n                if length < 1e-12:\n                    normals.append((0.0, 0.0))\n                else:\n                    normals.append((ey / length, -ex / length))\n\n            out = []\n            for i in range(n):\n                np_ = normals[(i + n - 1) % n]\n                nn = normals[i]\n                cos_a = np_[0] * nn[0] + np_[1] * nn[1]\n                sin_a = np_[0] * nn[1] - np_[1] * nn[0]\n                denom = 1.0 + cos_a\n                concave = (cos_a > -0.999) and (sin_a * delta < 0.0) and (offset_dist > 0.0)\n                if concave:\n                    out.append((poly2d[i][0] + np_[0] * delta, poly2d[i][1] + np_[1] * delta))\n                    out.append((poly2d[i][0], poly2d[i][1]))\n                    out.append((poly2d[i][0] + nn[0] * delta, poly2d[i][1] + nn[1] * delta))\n                elif abs(denom) < 1e-9:\n                    mx = (np_[0] + nn[0]) * 0.5\n                    my = (np_[1] + nn[1]) * 0.5\n                    out.append((poly2d[i][0] + mx * delta, poly2d[i][1] + my * delta))\n                else:\n                    bx = (np_[0] + nn[0]) / denom\n                    by = (np_[1] + nn[1]) / denom\n                    out.append((poly2d[i][0] + bx * delta, poly2d[i][1] + by * delta))\n\n            out_area = 0.0\n            for i in range(len(out)):\n                a = out[i]\n                b = out[(i + 1) % len(out)]\n                out_area += a[0] * b[1] - b[0] * a[1]\n            if len(out) >= 3 and abs(out_area) > 1e-4:\n                poly2d = out\n\n        nv = len(poly2d)\n\n        def pt_in_poly(pu, pv):\n            inside = False\n            j = nv - 1\n            for i in range(nv):\n                xi, yi = poly2d[i]\n                xj, yj = poly2d[j]\n                if (yi > pv) != (yj > pv):\n                    t = (xj - xi) * (pv - yi) / (yj - yi + 1e-300) + xi\n                    if pu < t:\n                        inside = not inside\n                j = i\n            return inside\n\n        min_u = min(p[0] for p in poly2d)\n        max_u = max(p[0] for p in poly2d)\n        min_v = min(p[1] for p in poly2d)\n        max_v = max(p[1] for p in poly2d)\n\n        result = []\n        u = min_u + div_dist * 0.5",
           "file": "polyline.py"
         }
       },
       "related": [
-        "Polyline.__jsondump__",
-        "Polyline._average_normal",
-        "Polyline.average_normal",
         "Polyline.bounding_rectangle",
-        "Polyline.closed",
         "Polyline.cross2d",
-        "Polyline.format",
         "Polyline.get_convex_corners",
         "Polyline.grid_of_points_in_polygon",
-        "Polyline.guid",
         "Polyline.interpolate_points",
-        "Polyline.is_closed",
-        "Polyline.jsondump",
         "Polyline.len",
-        "Polyline.points",
+        "Polyline.length",
         "Polyline.proj2d",
         "Polyline.pt_in_poly",
         "Polyline.qh_upper",
@@ -48449,7 +47868,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "bounding_rectangle(polygon: \"Polyline\") -> Optional[\"Polyline\"]",
-          "code": "def bounding_rectangle(polygon: \"Polyline\") -> Optional[\"Polyline\"]:\n\n        \"\"\"Minimum area bounding rectangle via rotating calipers; returns closed 5-point Polyline.\"\"\"\n        import math\n\n        hull = Polyline.quick_hull(polygon)\n        hull_pts = hull.get_points()\n        n = len(hull_pts)\n        if n < 3:\n            return None\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        hull2d = [proj2d(p) for p in hull_pts]\n        best_area = float(\"inf\")\n        best_corners = None\n\n        for i in range(n):\n            ax, ay = hull2d[i]\n            bx, by = hull2d[(i + 1) % n]\n            ex, ey = bx - ax, by - ay\n            length = math.sqrt(ex * ex + ey * ey)\n            if length < 1e-12:\n                continue\n            ex /= length\n            ey /= length\n\n            min_u = min_v = float(\"inf\")\n            max_u = max_v = float(\"-inf\")\n            for px, py in hull2d:\n                u = px * ex + py * ey\n                v = -px * ey + py * ex\n                if u < min_u:\n                    min_u = u\n                if u > max_u:\n                    max_u = u\n                if v < min_v:\n                    min_v = v\n                if v > max_v:\n                    max_v = v\n\n            area = (max_u - min_u) * (max_v - min_v)\n            if area < best_area:\n                best_area = area\n                best_corners = [\n                    (min_u * ex - min_v * ey, min_u * ey + min_v * ex),\n                    (max_u * ex - min_v * ey, max_u * ey + min_v * ex),\n                    (max_u * ex - max_v * ey, max_u * ey + max_v * ex),\n                    (min_u * ex - max_v * ey, min_u * ey + max_v * ex),\n                ]\n\n        if best_corners is None:\n            return None\n\n        pts3d = [unproj(u, v) for u, v in best_corners]\n        pts3d.append(pts3d[0])\n        return Polyline(pts3d)\n\n    @staticmethod\n    def grid_of_points_in_polygon(\n        polygon: \"Polyline\",\n        offset_dist: float,\n        div_dist: float,\n        max_pts: int = 100,\n    ) -> List[Point]:\n        \"\"\"Grid of interior points; offset_dist is ignored (requires Clipper2).\"\"\"\n        pts = polygon.get_points()\n        if len(pts) < 3:\n            return []\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])",
+          "code": "def bounding_rectangle(polygon: \"Polyline\") -> Optional[\"Polyline\"]:\n\n        \"\"\"Minimum area bounding rectangle via rotating calipers; returns closed 5-point Polyline.\"\"\"\n        import math\n\n        hull = Polyline.quick_hull(polygon)\n        hull_pts = hull.get_points()\n        n = len(hull_pts)\n        if n < 3:\n            return None\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        hull2d = [proj2d(p) for p in hull_pts]\n        best_area = float(\"inf\")\n        best_corners = None\n\n        for i in range(n):\n            ax, ay = hull2d[i]\n            bx, by = hull2d[(i + 1) % n]\n            ex, ey = bx - ax, by - ay\n            length = math.sqrt(ex * ex + ey * ey)\n            if length < 1e-12:\n                continue\n            ex /= length\n            ey /= length\n\n            min_u = min_v = float(\"inf\")\n            max_u = max_v = float(\"-inf\")\n            for px, py in hull2d:\n                u = px * ex + py * ey\n                v = -px * ey + py * ex\n                if u < min_u:\n                    min_u = u\n                if u > max_u:\n                    max_u = u\n                if v < min_v:\n                    min_v = v\n                if v > max_v:\n                    max_v = v\n\n            area = (max_u - min_u) * (max_v - min_v)\n            if area < best_area:\n                best_area = area\n                best_corners = [\n                    (min_u * ex - min_v * ey, min_u * ey + min_v * ex),\n                    (max_u * ex - min_v * ey, max_u * ey + min_v * ex),\n                    (max_u * ex - max_v * ey, max_u * ey + max_v * ex),\n                    (min_u * ex - max_v * ey, min_u * ey + max_v * ex),\n                ]\n\n        if best_corners is None:\n            return None\n\n        pts3d = [unproj(u, v) for u, v in best_corners]\n        pts3d.append(pts3d[0])\n        return Polyline(pts3d)\n\n    @staticmethod\n    def grid_of_points_in_polygon(\n        polygon: \"Polyline\",\n        offset_dist: float,\n        div_dist: float,\n        max_pts: int = 100,\n    ) -> List[Point]:\n        \"\"\"Grid of interior points; offset_dist insets (-) or outsets (+) polygon via miter offset.\"\"\"\n        pts = polygon.get_points()\n        if len(pts) < 3:\n            return []\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])",
           "file": "polyline.py"
         },
         "cpp": {
@@ -48489,36 +47908,31 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "grid_of_points_in_polygon(\n        polygon: \"Polyline\",\n        offset_dist: float,\n        div_dist: float,\n        max_pts: int = 100,\n    ) -> List[Point]",
-          "code": "def grid_of_points_in_polygon(\n        polygon: \"Polyline\",\n        offset_dist: float,\n        div_dist: float,\n        max_pts: int = 100,\n    ) -> List[Point]:\n\n        \"\"\"Grid of interior points; offset_dist is ignored (requires Clipper2).\"\"\"\n        pts = polygon.get_points()\n        if len(pts) < 3:\n            return []\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        poly2d = [proj2d(p) for p in pts]\n        nv = len(poly2d)\n\n        def pt_in_poly(pu, pv):\n            inside = False\n            j = nv - 1\n            for i in range(nv):\n                xi, yi = poly2d[i]\n                xj, yj = poly2d[j]\n                if (yi > pv) != (yj > pv):\n                    t = (xj - xi) * (pv - yi) / (yj - yi + 1e-300) + xi\n                    if pu < t:\n                        inside = not inside\n                j = i\n            return inside\n\n        min_u = min(p[0] for p in poly2d)\n        max_u = max(p[0] for p in poly2d)\n        min_v = min(p[1] for p in poly2d)\n        max_v = max(p[1] for p in poly2d)\n\n        result = []\n        u = min_u + div_dist * 0.5\n        while u <= max_u and len(result) < max_pts:\n            v = min_v + div_dist * 0.5\n            while v <= max_v and len(result) < max_pts:\n                if pt_in_poly(u, v):\n                    result.append(unproj(u, v))\n                v += div_dist\n            u += div_dist\n\n        return result\n\n    def _average_normal(self) -> Vector:\n        \"\"\"Calculate average normal from polyline points.\"\"\"\n        if len(self.points) < 3:\n            return Vector(0.0, 0.0, 1.0)\n\n        closed = self.is_closed()\n        n = (\n            len(self.points) - 1\n            if closed and len(self.points) > 1\n            else len(self.points)\n        )\n\n        average_normal = Vector(0.0, 0.0, 0.0)\n\n        for i in range(n):\n            prev = n - 1 if i == 0 else i - 1\n            next_pt = (i + 1) % n\n\n            v1 = self.points[prev] - self.points[i]\n            v2 = self.points[i] - self.points[next_pt]\n            cross = v1.cross(v2)\n            average_normal += cross\n\n        return average_normal.normalized()\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.",
+          "code": "def grid_of_points_in_polygon(\n        polygon: \"Polyline\",\n        offset_dist: float,\n        div_dist: float,\n        max_pts: int = 100,\n    ) -> List[Point]:\n\n        \"\"\"Grid of interior points; offset_dist insets (-) or outsets (+) polygon via miter offset.\"\"\"\n        pts = polygon.get_points()\n        if len(pts) < 3:\n            return []\n\n        origin, x_axis, y_axis, _ = polygon.get_average_plane()\n\n        def proj2d(p):\n            d = Vector(p[0] - origin[0], p[1] - origin[1], p[2] - origin[2])\n            return (d.dot(x_axis), d.dot(y_axis))\n\n        def unproj(u, v):\n            return origin + x_axis * u + y_axis * v\n\n        poly2d = [proj2d(p) for p in pts]\n\n        # Miter offset in 2D (negative = inward, positive = outward). Reuses\n        # the same algorithm as Intersection::offset_in_3d. Falls back to the\n        # un-offset polygon if the result degenerates.\n        if offset_dist != 0.0 and len(poly2d) >= 3:\n            n = len(poly2d)\n            signed_area = 0.0\n            for i in range(n):\n                a = poly2d[i]\n                b = poly2d[(i + 1) % n]\n                signed_area += a[0] * b[1] - b[0] * a[1]\n            delta = -offset_dist if signed_area < 0.0 else offset_dist\n\n            normals = []\n            for i in range(n):\n                a = poly2d[i]\n                b = poly2d[(i + 1) % n]\n                ex = b[0] - a[0]\n                ey = b[1] - a[1]\n                length = (ex * ex + ey * ey) ** 0.5\n                if length < 1e-12:\n                    normals.append((0.0, 0.0))\n                else:\n                    normals.append((ey / length, -ex / length))\n\n            out = []\n            for i in range(n):\n                np_ = normals[(i + n - 1) % n]\n                nn = normals[i]\n                cos_a = np_[0] * nn[0] + np_[1] * nn[1]\n                sin_a = np_[0] * nn[1] - np_[1] * nn[0]\n                denom = 1.0 + cos_a\n                concave = (cos_a > -0.999) and (sin_a * delta < 0.0) and (offset_dist > 0.0)\n                if concave:\n                    out.append((poly2d[i][0] + np_[0] * delta, poly2d[i][1] + np_[1] * delta))\n                    out.append((poly2d[i][0], poly2d[i][1]))\n                    out.append((poly2d[i][0] + nn[0] * delta, poly2d[i][1] + nn[1] * delta))\n                elif abs(denom) < 1e-9:\n                    mx = (np_[0] + nn[0]) * 0.5\n                    my = (np_[1] + nn[1]) * 0.5\n                    out.append((poly2d[i][0] + mx * delta, poly2d[i][1] + my * delta))\n                else:\n                    bx = (np_[0] + nn[0]) / denom\n                    by = (np_[1] + nn[1]) / denom\n                    out.append((poly2d[i][0] + bx * delta, poly2d[i][1] + by * delta))\n\n            out_area = 0.0\n            for i in range(len(out)):\n                a = out[i]\n                b = out[(i + 1) % len(out)]\n                out_area += a[0] * b[1] - b[0] * a[1]\n            if len(out) >= 3 and abs(out_area) > 1e-4:\n                poly2d = out\n\n        nv = len(poly2d)\n\n        def pt_in_poly(pu, pv):\n            inside = False\n            j = nv - 1\n            for i in range(nv):\n                xi, yi = poly2d[i]\n                xj, yj = poly2d[j]\n                if (yi > pv) != (yj > pv):\n                    t = (xj - xi) * (pv - yi) / (yj - yi + 1e-300) + xi",
           "file": "polyline.py"
         },
         "cpp": {
           "sig": "std::vector<Point> grid_of_points_in_polygon(const Polyline& polygon,\n                                                       double offset_dist, double div_dist,\n                                                       size_t max_pts)",
-          "code": "std::vector<Point> Polyline::grid_of_points_in_polygon(const Polyline& polygon,\n                                                       double offset_dist, double div_dist,\n                                                       size_t max_pts) {\n    (void)offset_dist;\n    if (div_dist < 1e-12) return {}",
+          "code": "std::vector<Point> Polyline::grid_of_points_in_polygon(const Polyline& polygon,\n                                                       double offset_dist, double div_dist,\n                                                       size_t max_pts) {\n    if (div_dist < 1e-12) return {}",
           "file": "polyline.cpp"
         },
         "rust": {
-          "sig": "grid_of_points_in_polygon(polygon: &Polyline, _offset_dist: f64, div_dist: f64, max_pts: usize) -> Vec<Point>",
-          "code": "pub fn grid_of_points_in_polygon(polygon: &Polyline, _offset_dist: f64, div_dist: f64, max_pts: usize) -> Vec<Point> {\n        if div_dist < 1e-12 { return Vec::new(); }\n        let (orig, xa, ya, _za) = polygon.get_average_plane();\n        let pts = polygon.get_points();\n\n        // Build 2D polygon, skip duplicate last point if closed\n        let last = if pts.len() > 1 {\n            let a = &pts[0]; let b = &pts[pts.len()-1];\n            if (a[0]-b[0]).abs()<1e-10 && (a[1]-b[1]).abs()<1e-10 && (a[2]-b[2]).abs()<1e-10\n                { pts.len() - 1 } else { pts.len() }\n        } else { pts.len() };\n\n        let poly2d: Vec<[f64; 2]> = pts[..last].iter().map(|p| {\n            let dx = p[0]-orig[0]; let dy = p[1]-orig[1]; let dz = p[2]-orig[2];\n            [dx*xa[0]+dy*xa[1]+dz*xa[2], dx*ya[0]+dy*ya[1]+dz*ya[2]]\n        }).collect();\n\n        if poly2d.is_empty() { return Vec::new(); }\n\n        let (mut x_min, mut x_max) = (f64::MAX, f64::MIN);\n        let (mut y_min, mut y_max) = (f64::MAX, f64::MIN);\n        for p in &poly2d {\n            x_min = x_min.min(p[0]); x_max = x_max.max(p[0]);\n            y_min = y_min.min(p[1]); y_max = y_max.max(p[1]);\n        }\n\n        fn pt_in_poly(px: f64, py: f64, poly: &[[f64; 2]]) -> bool {\n            let n = poly.len();\n            let mut inside = false;\n            let mut j = n - 1;\n            for i in 0..n {\n                let xi = poly[i][0]; let yi = poly[i][1];\n                let xj = poly[j][0]; let yj = poly[j][1];\n                if ((yi > py) != (yj > py)) && (px < (xj-xi)*(py-yi)/(yj-yi)+xi) {\n                    inside = !inside;\n                }\n                j = i;\n            }\n            inside\n        }\n\n        let mut result = Vec::new();\n        let mut u = x_min;\n        while u <= x_max + 1e-10 && result.len() < max_pts {\n            let mut v = y_min;\n            while v <= y_max + 1e-10 && result.len() < max_pts {\n                if pt_in_poly(u, v, &poly2d) {\n                    result.push(Point::new(\n                        orig[0] + u*xa[0] + v*ya[0],\n                        orig[1] + u*xa[1] + v*ya[1],\n                        orig[2] + u*xa[2] + v*ya[2],\n                    ));\n                }\n                v += div_dist;\n            }\n            u += div_dist;\n        }\n        result\n    }",
+          "sig": "grid_of_points_in_polygon(polygon: &Polyline, offset_dist: f64, div_dist: f64, max_pts: usize) -> Vec<Point>",
+          "code": "pub fn grid_of_points_in_polygon(polygon: &Polyline, offset_dist: f64, div_dist: f64, max_pts: usize) -> Vec<Point> {\n        if div_dist < 1e-12 { return Vec::new(); }\n        let (orig, xa, ya, _za) = polygon.get_average_plane();\n        let pts = polygon.get_points();\n\n        // Build 2D polygon, skip duplicate last point if closed\n        let last = if pts.len() > 1 {\n            let a = &pts[0]; let b = &pts[pts.len()-1];\n            if (a[0]-b[0]).abs()<1e-10 && (a[1]-b[1]).abs()<1e-10 && (a[2]-b[2]).abs()<1e-10\n                { pts.len() - 1 } else { pts.len() }\n        } else { pts.len() };\n\n        let mut poly2d: Vec<[f64; 2]> = pts[..last].iter().map(|p| {\n            let dx = p[0]-orig[0]; let dy = p[1]-orig[1]; let dz = p[2]-orig[2];\n            [dx*xa[0]+dy*xa[1]+dz*xa[2], dx*ya[0]+dy*ya[1]+dz*ya[2]]\n        }).collect();\n\n        if poly2d.is_empty() { return Vec::new(); }\n\n        // Miter offset in 2D (negative = inward, positive = outward). Reuses\n        // the same algorithm as Intersection::offset_in_3d. Falls back to the\n        // un-offset polygon if the result degenerates.\n        if offset_dist != 0.0 && poly2d.len() >= 3 {\n            let n = poly2d.len();\n            let mut signed_area = 0.0;\n            for i in 0..n {\n                let a = poly2d[i];\n                let b = poly2d[(i+1) % n];\n                signed_area += a[0]*b[1] - b[0]*a[1];\n            }\n            let delta = if signed_area < 0.0 { -offset_dist } else { offset_dist };\n\n            let mut normals: Vec<[f64; 2]> = Vec::with_capacity(n);\n            for i in 0..n {\n                let a = poly2d[i];\n                let b = poly2d[(i+1) % n];\n                let ex = b[0]-a[0];\n                let ey = b[1]-a[1];\n                let len = (ex*ex + ey*ey).sqrt();\n                if len < 1e-12 { normals.push([0.0, 0.0]); }\n                else { normals.push([ey/len, -ex/len]); }\n            }\n\n            let mut out: Vec<[f64; 2]> = Vec::with_capacity(n * 3);\n            for i in 0..n {\n                let np = normals[(i + n - 1) % n];\n                let nn = normals[i];\n                let cos_a = np[0]*nn[0] + np[1]*nn[1];\n                let sin_a = np[0]*nn[1] - np[1]*nn[0];\n                let denom = 1.0 + cos_a;\n                let concave = (cos_a > -0.999) && (sin_a * delta < 0.0) && (offset_dist > 0.0);\n                if concave {\n                    out.push([poly2d[i][0] + np[0]*delta, poly2d[i][1] + np[1]*delta]);\n                    out.push([poly2d[i][0], poly2d[i][1]]);\n                    out.push([poly2d[i][0] + nn[0]*delta, poly2d[i][1] + nn[1]*delta]);\n                } else if denom.abs() < 1e-9 {\n                    let mx = (np[0]+nn[0])*0.5;\n                    let my = (np[1]+nn[1])*0.5;\n                    out.push([poly2d[i][0] + mx*delta, poly2d[i][1] + my*delta]);\n                } else {\n                    let bx = (np[0]+nn[0])/denom;\n                    let by = (np[1]+nn[1])/denom;\n                    out.push([poly2d[i][0] + bx*delta, poly2d[i][1] + by*delta]);\n                }\n            }\n\n            let mut out_area = 0.0;\n            for i in 0..out.len() {\n                let a = out[i];\n                let b = out[(i+1) % out.len()];\n                out_area += a[0]*b[1] - b[0]*a[1];\n            }\n            if out.len() >= 3 && out_area.abs() > 1e-4 { poly2d = out; }\n        }\n\n        let (mut x_min, mut x_max) = (f64::MAX, f64::MIN);\n        let (mut y_min, mut y_max) = (f64::MAX, f64::MIN);\n        for p in &poly2d {\n            x_min = x_min.min(p[0]); x_max = x_max.max(p[0]);\n            y_min = y_min.min(p[1]); y_max = y_max.max(p[1]);\n        }\n\n        fn pt_in_poly(px: f64, py: f64, poly: &[[f64; 2]]) -> bool {\n            let n = poly.len();\n            let mut inside = false;\n            let mut j = n - 1;\n            for i in 0..n {\n                let xi = poly[i][0]; let yi = poly[i][1];\n                let xj = poly[j][0]; let yj = poly[j][1];\n                if ((yi > py) != (yj > py)) && (px < (xj-xi)*(py-yi)/(yj-yi)+xi) {\n                    inside = !inside;\n                }\n                j = i;\n            }\n            inside\n        }\n\n        let mut result = Vec::new();\n        let mut u = x_min;\n        while u <= x_max + 1e-10 && result.len() < max_pts {\n            let mut v = y_min;\n            while v <= y_max + 1e-10 && result.len() < max_pts {\n                if pt_in_poly(u, v, &poly2d) {\n                    result.push(Point::new(\n                        orig[0] + u*xa[0] + v*ya[0],\n                        orig[1] + u*xa[1] + v*ya[1],\n                        orig[2] + u*xa[2] + v*ya[2],\n                    ));\n                }\n                v += div_dist;\n            }\n            u += div_dist;\n        }\n        result\n    }",
           "file": "polyline.rs"
         }
       },
       "related": [
         "Polyline.Polyline",
-        "Polyline.__jsondump__",
-        "Polyline._average_normal",
-        "Polyline.average_normal",
         "Polyline.bounding_rectangle",
         "Polyline.closed",
         "Polyline.duplicate",
-        "Polyline.format",
         "Polyline.get_average_plane",
         "Polyline.get_point",
         "Polyline.get_points",
-        "Polyline.is_closed",
         "Polyline.is_empty",
-        "Polyline.jsondump",
         "Polyline.len",
+        "Polyline.length",
         "Polyline.new",
         "Polyline.plane",
         "Polyline.points",
@@ -48578,7 +47992,6 @@ window.API_INDEX = {
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
-        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.is_clockwise",
         "Polyline.is_closed",
@@ -48589,11 +48002,9 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
-        "Polyline.proj2d",
         "Polyline.pt_in_poly",
         "Polyline.shrink_line_segment",
         "Polyline.str",
-        "Polyline.unproj",
         "Polyline.xform"
       ]
     },
@@ -48612,7 +48023,6 @@ window.API_INDEX = {
         "Polyline._average_normal",
         "Polyline.format",
         "Polyline.from_coords",
-        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.json_dump",
         "Polyline.json_dumps",
@@ -48622,10 +48032,8 @@ window.API_INDEX = {
         "Polyline.linecolor",
         "Polyline.new",
         "Polyline.points",
-        "Polyline.proj2d",
         "Polyline.pt_in_poly",
         "Polyline.str",
-        "Polyline.unproj",
         "Polyline.xform"
       ]
     },
@@ -48681,7 +48089,6 @@ window.API_INDEX = {
         "Polyline.Polyline",
         "Polyline.__jsondump__",
         "Polyline.__jsonload__",
-        "Polyline.extend",
         "Polyline.format",
         "Polyline.guid",
         "Polyline.json_dumps",
@@ -48721,7 +48128,6 @@ window.API_INDEX = {
         "Polyline.Polyline",
         "Polyline.__jsondump__",
         "Polyline.__jsonload__",
-        "Polyline.extend",
         "Polyline.format",
         "Polyline.guid",
         "Polyline.json_dump",
@@ -48763,7 +48169,6 @@ window.API_INDEX = {
         "Polyline.Polyline",
         "Polyline.__jsondump__",
         "Polyline.__jsonload__",
-        "Polyline.extend",
         "Polyline.format",
         "Polyline.from_coords",
         "Polyline.guid",
@@ -48804,7 +48209,6 @@ window.API_INDEX = {
       "related": [
         "Polyline.Polyline",
         "Polyline.__jsonload__",
-        "Polyline.extend",
         "Polyline.format",
         "Polyline.from_coords",
         "Polyline.guid",
@@ -48844,7 +48248,6 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.Polyline",
-        "Polyline.extend",
         "Polyline.format",
         "Polyline.from_coords",
         "Polyline.guid",
@@ -48873,7 +48276,6 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.Polyline",
-        "Polyline.extend",
         "Polyline.from_coords",
         "Polyline.guid",
         "Polyline.json_dump",
@@ -49134,7 +48536,6 @@ window.API_INDEX = {
         "Polyline._simplify_rdp",
         "Polyline.boolean_op",
         "Polyline.ensure_ccw",
-        "Polyline.extend",
         "Polyline.guid",
         "Polyline.len",
         "Polyline.linecolor",
@@ -49170,7 +48571,6 @@ window.API_INDEX = {
         "Polyline._simplify_rdp",
         "Polyline.boolean_op",
         "Polyline.ensure_ccw",
-        "Polyline.extend",
         "Polyline.guid",
         "Polyline.len",
         "Polyline.linecolor",
@@ -49206,7 +48606,6 @@ window.API_INDEX = {
         "Polyline._simplify_perp_dist",
         "Polyline.boolean_op",
         "Polyline.ensure_ccw",
-        "Polyline.extend",
         "Polyline.guid",
         "Polyline.len",
         "Polyline.linecolor",
@@ -49252,7 +48651,6 @@ window.API_INDEX = {
         "Polyline._simplify_rdp",
         "Polyline.boolean_op",
         "Polyline.ensure_ccw",
-        "Polyline.extend",
         "Polyline.guid",
         "Polyline.len",
         "Polyline.linecolor",
@@ -49295,7 +48693,6 @@ window.API_INDEX = {
         "Polyline._simplify_rdp",
         "Polyline.boolean_op",
         "Polyline.ensure_ccw",
-        "Polyline.extend",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.guid",
@@ -49342,7 +48739,6 @@ window.API_INDEX = {
         "Polyline._simplify_rdp",
         "Polyline.boolean_op_plane",
         "Polyline.ensure_ccw",
-        "Polyline.extend",
         "Polyline.guid",
         "Polyline.len",
         "Polyline.linecolor",
@@ -49373,7 +48769,6 @@ window.API_INDEX = {
         "Polyline.boolean_op",
         "Polyline.boolean_op_plane",
         "Polyline.ensure_ccw",
-        "Polyline.extend",
         "Polyline.guid",
         "Polyline.len",
         "Polyline.line_from_projected_points",
@@ -67870,9 +67265,9 @@ window.API_INDEX = {
       "name": "std.make_tuple",
       "implementations": {
         "cpp": {
-          "sig": "return make_tuple(u, v)",
-          "code": "return std::make_tuple(u, v);\n}",
-          "file": "graph.cpp"
+          "sig": "return make_tuple(center, plane, cr[2])",
+          "code": "return std::make_tuple(center, plane, cr[2]);\n}",
+          "file": "polyline.cpp"
         }
       }
     },
@@ -67884,10 +67279,7 @@ window.API_INDEX = {
           "code": "return std::sqrt(a * a + b * b - 2.0 * a * b * std::cos(ang_between * to_rad));\n}",
           "file": "vector.cpp"
         }
-      },
-      "related": [
-        "std.cos"
-      ]
+      }
     },
     {
       "name": "Color.constructor",
@@ -70006,10 +69398,7 @@ window.API_INDEX = {
           "code": "throw std::runtime_error(\"Tree already has a root node\");\n\n    _root = node;\n    // Set tree reference using raw pointer (since Tree is not shared_ptr\n    // managed)\n    node->_tree = std::weak_ptr<Tree>();\n  }",
           "file": "tree.cpp"
         }
-      },
-      "related": [
-        "std.sin"
-      ]
+      }
     },
     {
       "name": "T.jsonload",
@@ -71288,8 +70677,8 @@ window.API_INDEX = {
       "name": "Intersection.polyline_boolean_2d_in_plane",
       "implementations": {
         "cpp": {
-          "sig": "bool polyline_boolean_2d_in_plane(\n    const Polyline& polyline0,\n    const Polyline& polyline1,\n    const Plane& plane,\n    Polyline& intersection_result,\n    int intersection_type,\n    bool include_triangles,\n    double min_area)",
-          "code": "bool Intersection::polyline_boolean_2d_in_plane(\n    const Polyline& polyline0,\n    const Polyline& polyline1,\n    const Plane& plane,\n    Polyline& intersection_result,\n    int intersection_type,\n    bool include_triangles,\n    double min_area)\n{\n    size_t n0 = polyline0.point_count();\n    size_t n1 = polyline1.point_count();\n    if (n0 < 3 || n1 < 3) return false;\n\n    // Project both polylines to the plane's 2D frame (origin = polyline0[0]).\n    // Use base1/base2 (smallest-|coef| pivot rule) for a deterministic frame\n    // that depends only on the plane normal \u00e2\u20ac\u201d avoids frame-rotation bias in\n    // Vatti output vertex ordering.\n    Point origin = polyline0.get_point(0);\n    Vector xax = plane.base1();\n    Vector yax = plane.base2();\n\n    auto to_2d_polyline = [&](const Polyline& pl) -> Polyline {\n        size_t n = pl.point_count();\n        std::vector<Point> pts2d;\n        pts2d.reserve(n + 1);\n        for (size_t i = 0; i < n; ++i) {\n            Point p = pl.get_point(i);\n            double dx = p[0]-origin[0], dy = p[1]-origin[1], dz = p[2]-origin[2];\n            double u = dx*xax[0] + dy*xax[1] + dz*xax[2];\n            double v = dx*yax[0] + dy*yax[1] + dz*yax[2];\n            pts2d.emplace_back(u, v, 0.0);\n        }",
+          "sig": "bool polyline_boolean_2d_in_plane(\n    const Polyline& polyline0,\n    const Polyline& polyline1,\n    const Plane& plane,\n    Polyline& intersection_result,\n    int intersection_type,\n    bool include_triangles,\n    double min_area,\n    double collapse_eps)",
+          "code": "bool Intersection::polyline_boolean_2d_in_plane(\n    const Polyline& polyline0,\n    const Polyline& polyline1,\n    const Plane& plane,\n    Polyline& intersection_result,\n    int intersection_type,\n    bool include_triangles,\n    double min_area,\n    double collapse_eps)\n{\n    size_t n0 = polyline0.point_count();\n    size_t n1 = polyline1.point_count();\n    if (n0 < 3 || n1 < 3) return false;\n\n    // Project both polylines to the plane's 2D frame (origin = polyline0[0]).\n    // Use base1/base2 (smallest-|coef| pivot rule) for a deterministic frame\n    // that depends only on the plane normal \u00e2\u20ac\u201d avoids frame-rotation bias in\n    // Vatti output vertex ordering.\n    Point origin = polyline0.get_point(0);\n    Vector xax = plane.base1();\n    Vector yax = plane.base2();\n\n    auto to_2d_polyline = [&](const Polyline& pl) -> Polyline {\n        size_t n = pl.point_count();\n        std::vector<Point> pts2d;\n        pts2d.reserve(n + 1);\n        for (size_t i = 0; i < n; ++i) {\n            Point p = pl.get_point(i);\n            double dx = p[0]-origin[0], dy = p[1]-origin[1], dz = p[2]-origin[2];\n            double u = dx*xax[0] + dy*xax[1] + dz*xax[2];\n            double v = dx*yax[0] + dy*yax[1] + dz*yax[2];\n            pts2d.emplace_back(u, v, 0.0);\n        }",
           "file": "intersection.cpp"
         }
       },
@@ -71427,10 +70816,7 @@ window.API_INDEX = {
           "code": "return std::acos(cos_t) * (180.0 / 3.141592653589793);\n}",
           "file": "point.cpp"
         }
-      },
-      "related": [
-        "std.cos"
-      ]
+      }
     },
     {
       "name": "KDTree.KDTree",
@@ -71711,6 +71097,109 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Line.line_line_average",
+      "implementations": {
+        "cpp": {
+          "sig": "void line_line_average(const Line& l0, const Line& l1, Line& out)",
+          "code": "void line_line_average(const Line& l0, const Line& l1, Line& out);",
+          "file": "line.h"
+        }
+      }
+    },
+    {
+      "name": "Line.line_line_overlap",
+      "implementations": {
+        "cpp": {
+          "sig": "bool line_line_overlap(const Line& l0, const Line& l1, Line& out)",
+          "code": "bool line_line_overlap(const Line& l0, const Line& l1, Line& out);",
+          "file": "line.h"
+        }
+      },
+      "related": [
+        "Line.__mul__",
+        "Line.__neg__",
+        "Line.__truediv__",
+        "Line.line_line_overlap_average",
+        "Line.overlap",
+        "Line.overlap_average",
+        "Line.transform",
+        "Line.transformed"
+      ]
+    },
+    {
+      "name": "Line.line_line_overlap_average",
+      "implementations": {
+        "cpp": {
+          "sig": "void line_line_overlap_average(const Line& l0, const Line& l1, Line& out)",
+          "code": "void line_line_overlap_average(const Line& l0, const Line& l1, Line& out);",
+          "file": "line.h"
+        }
+      },
+      "related": [
+        "Line.__neg__",
+        "Line.__truediv__",
+        "Line.line_line_overlap",
+        "Line.overlap",
+        "Line.overlap_average",
+        "Line.transform",
+        "Line.transformed"
+      ]
+    },
+    {
+      "name": "Line.line_from_projected_points",
+      "implementations": {
+        "cpp": {
+          "sig": "bool line_from_projected_points(const Line& line, const std::vector<Point>& pts,\n                                Line& out)",
+          "code": "bool line_from_projected_points(const Line& line, const std::vector<Point>& pts,\n                                Line& out);",
+          "file": "line.h"
+        }
+      }
+    },
+    {
+      "name": "Line.extend_line",
+      "implementations": {
+        "cpp": {
+          "sig": "void extend_line(Line& line, double d0, double d1)",
+          "code": "void extend_line(Line& line, double d0, double d1);",
+          "file": "line.h"
+        }
+      },
+      "related": [
+        "Line.end",
+        "Line.extend"
+      ]
+    },
+    {
+      "name": "Line.extend_equally",
+      "implementations": {
+        "cpp": {
+          "sig": "void extend_equally(Line& line, double dist = 0, double proportion = 0)",
+          "code": "void extend_equally(Line& line, double dist = 0, double proportion = 0);",
+          "file": "line.h"
+        },
+        "rust": {
+          "sig": "extend_equally(distance: f64)",
+          "code": "pub fn extend_equally(&mut self, distance: f64) {\n        let len = self.length();\n        if len < crate::tolerance::Tolerance::ZERO_TOLERANCE {\n            return;\n        }\n        // Don't allow the line to collapse to zero or invert.\n        if distance < 0.0 && (-distance) * 2.0 >= len {\n            return;\n        }\n        let inv_len = 1.0 / len;\n        let dx = (self._x1 - self._x0) * inv_len * distance;\n        let dy = (self._y1 - self._y0) * inv_len * distance;\n        let dz = (self._z1 - self._z0) * inv_len * distance;\n        self._x0 -= dx;\n        self._y0 -= dy;\n        self._z0 -= dz;\n        self._x1 += dx;\n        self._y1 += dy;\n        self._z1 += dz;\n    }",
+          "file": "line.rs"
+        }
+      },
+      "related": [
+        "Line.end",
+        "Line.extend",
+        "Line.length"
+      ]
+    },
+    {
+      "name": "Line.scale_line",
+      "implementations": {
+        "cpp": {
+          "sig": "void scale_line(Line& line, double dist)",
+          "code": "void scale_line(Line& line, double dist);",
+          "file": "line.h"
+        }
+      }
+    },
+    {
       "name": "Line.parse",
       "implementations": {
         "cpp": {
@@ -71769,41 +71258,6 @@ window.API_INDEX = {
           "file": "treenode.cpp"
         }
       }
-    },
-    {
-      "name": "MarchingSquares.interp",
-      "implementations": {
-        "cpp": {
-          "sig": "double interp(double a, double b, double va, double vb, double iso)",
-          "code": "double MarchingSquares::interp(double a, double b, double va, double vb, double iso) {\n    if (std::abs(vb - va) < 1e-12) return (a + b) * 0.5;\n    double t = (iso - va) / (vb - va);\n    return a + t * (b - a);\n}",
-          "file": "marching_squares.cpp"
-        }
-      },
-      "related": [
-        "MarchingSquares._interp",
-        "MarchingSquares.edge_pt",
-        "MarchingSquares.edge_pt_f",
-        "MarchingSquares.extract",
-        "MarchingSquares.extract_from_func"
-      ]
-    },
-    {
-      "name": "MarchingSquares.connect_segments",
-      "implementations": {
-        "cpp": {
-          "sig": "std::vector<Polyline> connect_segments(std::vector<std::pair<Point, Point>>& segs)",
-          "code": "std::vector<Polyline> MarchingSquares::connect_segments(std::vector<std::pair<Point, Point>>& segs) {\n    using Key = std::pair<long long, long long>;\n    auto snap = [](double v) { return static_cast<long long>(std::round(v * 1e8)); }",
-          "file": "marching_squares.cpp"
-        }
-      },
-      "related": [
-        "MarchingSquares._connect_segments",
-        "MarchingSquares._interp",
-        "MarchingSquares.edge_pt",
-        "MarchingSquares.edge_pt_f",
-        "MarchingSquares.extract",
-        "MarchingSquares.extract_from_func"
-      ]
     },
     {
       "name": "Matrix.constructor",
@@ -73750,137 +73204,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "TpmsType.eval",
-      "implementations": {
-        "cpp": {
-          "sig": "public:\n    static double eval(TpmsType type, double x, double y, double z, double period = 1.0)",
-          "code": "public:\n    static double eval(TpmsType type, double x, double y, double z, double period = 1.0);",
-          "file": "mesh_iso.h"
-        }
-      }
-    },
-    {
-      "name": "TpmsType.from_tpms",
-      "implementations": {
-        "cpp": {
-          "sig": "Mesh from_tpms(TpmsType type, const OBB& box,\n                           int nx, int ny, int nz,\n                           double isovalue = 0.0, double period = 1.0,\n                           TpmsMode mode = TpmsMode::SOLID, double thickness = 0.2)",
-          "code": "static Mesh from_tpms(TpmsType type, const OBB& box,\n                           int nx, int ny, int nz,\n                           double isovalue = 0.0, double period = 1.0,\n                           TpmsMode mode = TpmsMode::SOLID, double thickness = 0.2);",
-          "file": "mesh_iso.h"
-        }
-      }
-    },
-    {
-      "name": "TpmsType.sdf_sphere",
-      "implementations": {
-        "cpp": {
-          "sig": "double sdf_sphere(double cx, double cy, double cz, double r,\n                              double x, double y, double z)",
-          "code": "static double sdf_sphere(double cx, double cy, double cz, double r,\n                              double x, double y, double z);",
-          "file": "mesh_iso.h"
-        }
-      }
-    },
-    {
-      "name": "TpmsType.sdf_box",
-      "implementations": {
-        "cpp": {
-          "sig": "double sdf_box(double cx, double cy, double cz,\n                           double hx, double hy, double hz,\n                           double x, double y, double z)",
-          "code": "static double sdf_box(double cx, double cy, double cz,\n                           double hx, double hy, double hz,\n                           double x, double y, double z);",
-          "file": "mesh_iso.h"
-        }
-      }
-    },
-    {
-      "name": "TpmsType.sdf_capsule",
-      "implementations": {
-        "cpp": {
-          "sig": "double sdf_capsule(const Point& p0, const Point& p1, double r,\n                               double x, double y, double z)",
-          "code": "static double sdf_capsule(const Point& p0, const Point& p1, double r,\n                               double x, double y, double z);",
-          "file": "mesh_iso.h"
-        }
-      }
-    },
-    {
-      "name": "TpmsType.sdf_torus",
-      "implementations": {
-        "cpp": {
-          "sig": "double sdf_torus(double cx, double cy, double cz,\n                             double major_r, double minor_r,\n                             double x, double y, double z)",
-          "code": "static double sdf_torus(double cx, double cy, double cz,\n                             double major_r, double minor_r,\n                             double x, double y, double z);",
-          "file": "mesh_iso.h"
-        }
-      }
-    },
-    {
-      "name": "TpmsType.sdf_plane",
-      "implementations": {
-        "cpp": {
-          "sig": "double sdf_plane(double nx, double ny, double nz, double d,\n                             double x, double y, double z)",
-          "code": "static double sdf_plane(double nx, double ny, double nz, double d,\n                             double x, double y, double z);",
-          "file": "mesh_iso.h"
-        }
-      }
-    },
-    {
-      "name": "TpmsType.smooth_union",
-      "implementations": {
-        "cpp": {
-          "sig": "double smooth_union(double a, double b, double k = 8.0)",
-          "code": "static double smooth_union(double a, double b, double k = 8.0);",
-          "file": "mesh_iso.h"
-        }
-      }
-    },
-    {
-      "name": "TpmsType.smooth_subtract",
-      "implementations": {
-        "cpp": {
-          "sig": "double smooth_subtract(double a, double b, double k = 8.0)",
-          "code": "static double smooth_subtract(double a, double b, double k = 8.0);",
-          "file": "mesh_iso.h"
-        }
-      }
-    },
-    {
-      "name": "TpmsType.smooth_intersect",
-      "implementations": {
-        "cpp": {
-          "sig": "double smooth_intersect(double a, double b, double k = 8.0)",
-          "code": "static double smooth_intersect(double a, double b, double k = 8.0);",
-          "file": "mesh_iso.h"
-        }
-      }
-    },
-    {
-      "name": "std.sin",
-      "implementations": {
-        "cpp": {
-          "sig": "case TpmsType::LIDINOID:\n            return sin(2.0*X)",
-          "code": "case TpmsType::LIDINOID:\n            return std::sin(2.0*X)*std::cos(Y)*std::sin(Z)\n                 + std::sin(2.0*Y)*std::cos(Z)*std::sin(X)\n                 + std::sin(2.0*Z)*std::cos(X)*std::sin(Y)\n                 + std::cos(2.0*X)*std::cos(2.0*Y)\n                 + std::cos(2.0*Y)*std::cos(2.0*Z)\n                 + std::cos(2.0*Z)*std::cos(2.0*X);\n        case TpmsType::FISCHER_KOCH_S:\n            return std::cos(2.0*X)*std::sin(Y)*std::cos(Z)\n                 + std::cos(2.0*Y)*std::sin(Z)*std::cos(X)\n                 + std::cos(2.0*Z)*std::sin(X)*std::cos(Y);\n        case TpmsType::FRD:\n            return 4.0*std::cos(X)*std::cos(Y)*std::cos(Z)\n                 - (std::cos(2.0*X)*std::cos(2.0*Y)\n                  + std::cos(2.0*Y)*std::cos(2.0*Z)\n                  + std::cos(2.0*Z)*std::cos(2.0*X));\n        case TpmsType::PMY:\n            return 2.0*std::cos(X)*std::cos(Y)*std::cos(Z)\n                 + std::sin(2.0*X)*std::sin(Y)\n                 + std::sin(X)*std::sin(2.0*Z)\n                 + std::sin(2.0*Y)*std::sin(Z);\n        default:\n            return 0.0;\n    }",
-          "file": "mesh_iso.cpp"
-        }
-      },
-      "related": [
-        "std.asin",
-        "std.cos",
-        "std.runtime_error",
-        "std.visit"
-      ]
-    },
-    {
-      "name": "std.cos",
-      "implementations": {
-        "cpp": {
-          "sig": "case TpmsType::FISCHER_KOCH_S:\n            return cos(2.0*X)",
-          "code": "case TpmsType::FISCHER_KOCH_S:\n            return std::cos(2.0*X)*std::sin(Y)*std::cos(Z)\n                 + std::cos(2.0*Y)*std::sin(Z)*std::cos(X)\n                 + std::cos(2.0*Z)*std::sin(X)*std::cos(Y);\n        case TpmsType::FRD:\n            return 4.0*std::cos(X)*std::cos(Y)*std::cos(Z)\n                 - (std::cos(2.0*X)*std::cos(2.0*Y)\n                  + std::cos(2.0*Y)*std::cos(2.0*Z)\n                  + std::cos(2.0*Z)*std::cos(2.0*X));\n        case TpmsType::PMY:\n            return 2.0*std::cos(X)*std::cos(Y)*std::cos(Z)\n                 + std::sin(2.0*X)*std::sin(Y)\n                 + std::sin(X)*std::sin(2.0*Z)\n                 + std::sin(2.0*Y)*std::sin(Z);\n        default:\n            return 0.0;\n    }",
-          "file": "mesh_iso.cpp"
-        }
-      },
-      "related": [
-        "std.acos",
-        "std.sin",
-        "std.sqrt"
-      ]
-    },
-    {
       "name": "NurbsCurve.constructor",
       "implementations": {
         "cpp": {
@@ -75056,15 +74379,15 @@ window.API_INDEX = {
         "Plane.__jsonload__",
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.d",
-        "Plane.has_on_negative_side",
         "Plane.json_dump",
         "Plane.json_dumps",
         "Plane.json_load",
         "Plane.str",
-        "Plane.to_polylines",
-        "Plane.translate_by_normal"
+        "Plane.to_polylines"
       ]
     },
     {
@@ -75086,6 +74409,7 @@ window.API_INDEX = {
         "Plane.__jsonload__",
         "Plane.a",
         "Plane.b",
+        "Plane.base2",
         "Plane.c",
         "Plane.d",
         "Plane.guid",
@@ -75097,7 +74421,6 @@ window.API_INDEX = {
         "Plane.origin",
         "Plane.str",
         "Plane.to_polylines",
-        "Plane.translate_by_normal",
         "Plane.x_axis",
         "Plane.y_axis",
         "Plane.z_axis"
@@ -75115,45 +74438,14 @@ window.API_INDEX = {
       "related": [
         "Plane.a",
         "Plane.b",
-        "Plane.c",
-        "Plane.d",
-        "Plane.origin",
-        "Plane.projection",
-        "Plane.z_axis"
-      ]
-    },
-    {
-      "name": "Plane.base1",
-      "implementations": {
-        "cpp": {
-          "sig": "Vector base1()",
-          "code": "Vector Plane::base1() const {\n    const Vector& n = z_axis();\n    double nx = n[0], ny = n[1], nz = n[2];\n    double ax = std::fabs(nx), ay = std::fabs(ny), az = std::fabs(nz);\n    Vector b;\n    if (ax <= ay && ax <= az)      b = Vector(0.0, -nz, ny);\n    else if (ay <= ax && ay <= az) b = Vector(-nz, 0.0, nx);\n    else                            b = Vector(-ny, nx, 0.0);\n    b.normalize_self();\n    return b;\n}",
-          "file": "plane.cpp"
-        }
-      },
-      "related": [
-        "Plane.a",
-        "Plane.b",
-        "Plane.base2",
-        "Plane.c",
-        "Plane.d",
-        "Plane.z_axis"
-      ]
-    },
-    {
-      "name": "Plane.base2",
-      "implementations": {
-        "cpp": {
-          "sig": "Vector base2()",
-          "code": "Vector Plane::base2() const {\n    Vector b1 = base1();\n    const Vector& n = z_axis();\n    Vector b2(\n        n[1]*b1[2] - n[2]*b1[1],\n        n[2]*b1[0] - n[0]*b1[2],\n        n[0]*b1[1] - n[1]*b1[0]\n    );\n    b2.normalize_self();\n    return b2;\n}",
-          "file": "plane.cpp"
-        }
-      },
-      "related": [
-        "Plane.a",
-        "Plane.b",
         "Plane.base1",
         "Plane.c",
+        "Plane.d",
+        "Plane.has_on_negative_side",
+        "Plane.is_coplanar_from_normals",
+        "Plane.origin",
+        "Plane.projection",
+        "Plane.translate_by_normal",
         "Plane.z_axis"
       ]
     },
@@ -75188,9 +74480,10 @@ window.API_INDEX = {
         "Plane.__jsondump__",
         "Plane.__jsonload__",
         "Plane.a",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.from_frame",
-        "Plane.has_on_negative_side",
         "Plane.invalid",
         "Plane.is_valid",
         "Plane.json_dump",
@@ -75203,7 +74496,6 @@ window.API_INDEX = {
         "Plane.str",
         "Plane.to_polylines",
         "Plane.transform",
-        "Plane.translate_by_normal",
         "Plane.xz_plane"
       ]
     },
@@ -75625,6 +74917,8 @@ window.API_INDEX = {
         "Polyline.point_at",
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
+        "Polyline.polylabel",
+        "Polyline.polylabel_circle_division_points",
         "Polyline.project",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
@@ -75798,8 +75092,8 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
-        "Polyline.polyline_length",
-        "Polyline.polyline_length_squared",
+        "Polyline.polylabel",
+        "Polyline.polylabel_circle_division_points",
         "Polyline.proj2d",
         "Polyline.project",
         "Polyline.pt_in_poly",
@@ -75840,16 +75134,13 @@ window.API_INDEX = {
         "Polyline.__jsondump__",
         "Polyline.__jsonload__",
         "Polyline._average_normal",
-        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.json_dump",
         "Polyline.json_dumps",
         "Polyline.json_load",
         "Polyline.linecolor",
-        "Polyline.proj2d",
         "Polyline.pt_in_poly",
         "Polyline.str",
-        "Polyline.unproj",
         "Polyline.xform"
       ]
     },
@@ -75896,8 +75187,63 @@ window.API_INDEX = {
         "Polyline.Polyline",
         "Polyline.len",
         "Polyline.length",
-        "Polyline.polyline_length_squared",
         "Polyline.segment_count"
+      ]
+    },
+    {
+      "name": "Polyline.polylabel",
+      "implementations": {
+        "cpp": {
+          "sig": "std::tuple<Point, Plane, double> polylabel(const std::vector<Polyline>& polylines,\n                                                     double precision)",
+          "code": "std::tuple<Point, Plane, double> Polyline::polylabel(const std::vector<Polyline>& polylines,\n                                                     double precision) {\n    if (polylines.empty()) return { Point(0,0,0), Plane(), 0.0 }",
+          "file": "polyline.cpp"
+        },
+        "rust": {
+          "sig": "polylabel(polylines: &[Polyline], precision: f64) -> (Point, crate::plane::Plane, f64)",
+          "code": "pub fn polylabel(polylines: &[Polyline], precision: f64) -> (Point, crate::plane::Plane, f64) {\n        if polylines.is_empty() {\n            return (Point::new(0.0, 0.0, 0.0), crate::plane::Plane::default(), 0.0);\n        }\n        let (orig, xa, ya, za) = polylines[0].get_average_plane();\n        let to2d = |p: &Point| -> [f64; 2] {\n            let dx = p[0]-orig[0]; let dy = p[1]-orig[1]; let dz = p[2]-orig[2];\n            [dx*xa[0]+dy*xa[1]+dz*xa[2], dx*ya[0]+dy*ya[1]+dz*ya[2]]\n        };\n\n        let mut rings2d: Vec<Vec<[f64; 2]>> = Vec::with_capacity(polylines.len());\n        let mut sizes: Vec<f64> = Vec::with_capacity(polylines.len());\n        for pl in polylines {\n            let pts = pl.get_points();\n            let last = if pts.len() > 1 {\n                let a = &pts[0]; let b = &pts[pts.len()-1];\n                if (a[0]-b[0]).abs()<1e-10 && (a[1]-b[1]).abs()<1e-10 && (a[2]-b[2]).abs()<1e-10\n                    { pts.len() - 1 } else { pts.len() }\n            } else { pts.len() };\n            let mut ring: Vec<[f64; 2]> = Vec::with_capacity(last);\n            let (mut mnx, mut mxx) = (f64::INFINITY, f64::NEG_INFINITY);\n            let (mut mny, mut mxy) = (f64::INFINITY, f64::NEG_INFINITY);\n            for p in &pts[..last] {\n                let uv = to2d(p);\n                mnx = mnx.min(uv[0]); mxx = mxx.max(uv[0]);\n                mny = mny.min(uv[1]); mxy = mxy.max(uv[1]);\n                ring.push(uv);\n            }\n            let dx = mxx - mnx; let dy = mxy - mny;\n            sizes.push(dx*dx + dy*dy);\n            rings2d.push(ring);\n        }\n        let mut ids: Vec<usize> = (0..rings2d.len()).collect();\n        ids.sort_by(|&a, &b| sizes[b].partial_cmp(&sizes[a]).unwrap_or(std::cmp::Ordering::Equal));\n        let polygon: Vec<Vec<[f64; 2]>> = ids.iter().map(|&i| rings2d[i].clone()).collect();\n\n        let cr = mapbox_polylabel(&polygon, precision);\n        let center = Point::new(orig[0] + cr[0]*xa[0] + cr[1]*ya[0],\n                                orig[1] + cr[0]*xa[1] + cr[1]*ya[1],\n                                orig[2] + cr[0]*xa[2] + cr[1]*ya[2]);\n        let plane = crate::plane::Plane::new(orig.clone(), xa.clone(), ya.clone());\n        let _ = za;\n        (center, plane, cr[2])\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.center",
+        "Polyline.get_average_plane",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.is_empty",
+        "Polyline.len",
+        "Polyline.lines",
+        "Polyline.new",
+        "Polyline.plane",
+        "Polyline.points",
+        "Polyline.polylabel_circle_division_points"
+      ]
+    },
+    {
+      "name": "Polyline.polylabel_circle_division_points",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<Point> polylabel_circle_division_points(\n    const Vector& division_direction_in_3d,\n    const std::vector<Polyline>& polylines,\n    int division, double scale, double precision, bool orient_to_closest_edge)",
+          "code": "std::vector<Point> Polyline::polylabel_circle_division_points(\n    const Vector& division_direction_in_3d,\n    const std::vector<Polyline>& polylines,\n    int division, double scale, double precision, bool orient_to_closest_edge) {\n\n    std::tuple<Point, Plane, double> circle = polylabel(polylines, precision);\n    const Point& center = std::get<0>(circle);\n    const Plane& plane  = std::get<1>(circle);\n    double radius       = std::get<2>(circle) * scale;\n\n    bool is_direction_valid =\n        division_direction_in_3d[0] != 0.0 ||\n        division_direction_in_3d[1] != 0.0 ||\n        division_direction_in_3d[2] != 0.0;\n\n    // closest edge search\n    size_t edge_i = 0;\n    size_t edge_j = 0;\n    double best_sq = std::numeric_limits<double>::infinity();\n    if (orient_to_closest_edge) {\n        for (size_t i = 0; i < polylines.size(); i++) {\n            const auto& pts = polylines[i].get_points();\n            if (pts.size() < 2) continue;\n            for (size_t j = 0; j + 1 < pts.size(); j++) {\n                const Point& a = pts[j];\n                const Point& b = pts[j+1];\n                double ex = b[0]-a[0], ey = b[1]-a[1], ez = b[2]-a[2];\n                double len2 = ex*ex + ey*ey + ez*ez;\n                if (len2 <= 0.0) continue;\n                double px = center[0]-a[0], py = center[1]-a[1], pz = center[2]-a[2];\n                double t = (px*ex + py*ey + pz*ez) / len2;\n                if (t < 0.0 || t > 1.0) continue;\n                double cx = a[0]+t*ex, cy = a[1]+t*ey, cz = a[2]+t*ez;\n                double dx = center[0]-cx, dy = center[1]-cy, dz = center[2]-cz;\n                double d2 = dx*dx + dy*dy + dz*dz;\n                if (d2 < best_sq) { best_sq = d2; edge_i = i; edge_j = j; }",
+          "file": "polyline.cpp"
+        },
+        "rust": {
+          "sig": "polylabel_circle_division_points(\n        division_direction_in_3d: &Vector,\n        polylines: &[Polyline],\n        division: usize,\n        scale: f64,\n        precision: f64,\n        orient_to_closest_edge: bool,\n    ) -> Vec<Point>",
+          "code": "pub fn polylabel_circle_division_points(\n        division_direction_in_3d: &Vector,\n        polylines: &[Polyline],\n        division: usize,\n        scale: f64,\n        precision: f64,\n        orient_to_closest_edge: bool,\n    ) -> Vec<Point> {\n        let (center, plane, r) = Self::polylabel(polylines, precision);\n        let radius = r * scale;\n\n        let is_direction_valid =\n            division_direction_in_3d[0] != 0.0 ||\n            division_direction_in_3d[1] != 0.0 ||\n            division_direction_in_3d[2] != 0.0;\n\n        let mut edge_i: usize = 0;\n        let mut edge_j: usize = 0;\n        let mut best_sq = f64::INFINITY;\n        if orient_to_closest_edge {\n            for (i, pl) in polylines.iter().enumerate() {\n                let pts = pl.get_points();\n                if pts.len() < 2 { continue; }\n                for j in 0..pts.len()-1 {\n                    let a = &pts[j]; let b = &pts[j+1];\n                    let ex = b[0]-a[0]; let ey = b[1]-a[1]; let ez = b[2]-a[2];\n                    let len2 = ex*ex + ey*ey + ez*ez;\n                    if len2 <= 0.0 { continue; }\n                    let px = center[0]-a[0]; let py = center[1]-a[1]; let pz = center[2]-a[2];\n                    let t = (px*ex + py*ey + pz*ez) / len2;\n                    if t < 0.0 || t > 1.0 { continue; }\n                    let cx = a[0]+t*ex; let cy = a[1]+t*ey; let cz = a[2]+t*ez;\n                    let dx = center[0]-cx; let dy = center[1]-cy; let dz = center[2]-cz;\n                    let d2 = dx*dx + dy*dy + dz*dz;\n                    if d2 < best_sq { best_sq = d2; edge_i = i; edge_j = j; }\n                }\n            }\n        }\n\n        let z_axis_ref = plane.z_axis().clone();\n        let (mut x_axis, mut y_axis);\n        if is_direction_valid || orient_to_closest_edge {\n            let dir = if orient_to_closest_edge && best_sq.is_finite() {\n                let pts = polylines[edge_i].get_points();\n                Vector::new(pts[edge_j+1][0]-pts[edge_j][0],\n                            pts[edge_j+1][1]-pts[edge_j][1],\n                            pts[edge_j+1][2]-pts[edge_j][2])\n            } else {\n                division_direction_in_3d.clone()\n            };\n            x_axis = dir.clone();\n            y_axis = Vector::new(dir[1]*z_axis_ref[2] - dir[2]*z_axis_ref[1],\n                                 dir[2]*z_axis_ref[0] - dir[0]*z_axis_ref[2],\n                                 dir[0]*z_axis_ref[1] - dir[1]*z_axis_ref[0]);\n        } else {\n            x_axis = plane.x_axis().clone();\n            y_axis = plane.y_axis().clone();\n        }\n        let mut z_axis = z_axis_ref;\n        let unit = |v: &mut Vector| {\n            let l = (v[0]*v[0]+v[1]*v[1]+v[2]*v[2]).sqrt();\n            if l > 0.0 { *v = Vector::new(v[0]/l, v[1]/l, v[2]/l); }\n        };\n        unit(&mut x_axis); unit(&mut y_axis); unit(&mut z_axis);\n\n        let mut points: Vec<Point> = Vec::with_capacity(division);\n        let pi_rad = std::f64::consts::PI / 180.0;\n        let chunk = 360.0 / (division as f64);\n        for i in 0..division {\n            let deg = (i as f64) * chunk;\n            let r = (45.0 + deg) * pi_rad;\n            let u = radius * r.cos();\n            let v = radius * r.sin();\n            points.push(Point::new(center[0] + u*x_axis[0] + v*y_axis[0],\n                                   center[1] + u*x_axis[1] + v*y_axis[1],\n                                   center[2] + u*x_axis[2] + v*y_axis[2]));\n        }\n        points\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.center",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.len",
+        "Polyline.lines",
+        "Polyline.new",
+        "Polyline.plane",
+        "Polyline.points",
+        "Polyline.polylabel"
       ]
     },
     {
@@ -75937,14 +75283,11 @@ window.API_INDEX = {
         "Polyline.get_average_plane",
         "Polyline.get_convex_corners",
         "Polyline.get_fast_plane",
-        "Polyline.grid_of_points_in_polygon",
         "Polyline.is_clockwise",
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
-        "Polyline.proj2d",
         "Polyline.pt_in_poly",
-        "Polyline.shrink_line_segment",
-        "Polyline.unproj"
+        "Polyline.shrink_line_segment"
       ]
     },
     {
@@ -75996,223 +75339,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Polyline.polyline_length",
-      "implementations": {
-        "cpp": {
-          "sig": "double polyline_length(const std::vector<Point>& pline)",
-          "code": "double polyline_length(const std::vector<Point>& pline);",
-          "file": "polyline.h"
-        }
-      },
-      "related": [
-        "Polyline.len",
-        "Polyline.length",
-        "Polyline.polyline_length_squared"
-      ]
-    },
-    {
-      "name": "Polyline.polyline_length_squared",
-      "implementations": {
-        "cpp": {
-          "sig": "double polyline_length_squared(const std::vector<Point>& pline)",
-          "code": "double polyline_length_squared(const std::vector<Point>& pline);",
-          "file": "polyline.h"
-        }
-      },
-      "related": [
-        "Polyline.len",
-        "Polyline.length",
-        "Polyline.length_squared",
-        "Polyline.polyline_length"
-      ]
-    },
-    {
-      "name": "Polyline.center_vec",
-      "implementations": {
-        "cpp": {
-          "sig": "Vector center_vec(const std::vector<Point>& pline)",
-          "code": "Vector center_vec(const std::vector<Point>& pline);",
-          "file": "polyline.h"
-        },
-        "rust": {
-          "sig": "center_vec() -> Vector",
-          "code": "pub fn center_vec(&self) -> Vector {\n        let center = self.center();\n        Vector::new(center[0], center[1], center[2])\n    }",
-          "file": "polyline.rs"
-        }
-      },
-      "related": [
-        "Polyline.center",
-        "Polyline.new"
-      ]
-    },
-    {
-      "name": "Polyline.move",
-      "implementations": {
-        "cpp": {
-          "sig": "void move(std::vector<Point>& pline, const Vector& dir)",
-          "code": "void move(std::vector<Point>& pline, const Vector& dir);",
-          "file": "polyline.h"
-        }
-      },
-      "related": [
-        "Polyline.__setitem__",
-        "Polyline.add_point",
-        "Polyline.extend_segment",
-        "Polyline.get_lines",
-        "Polyline.get_point",
-        "Polyline.insert_point",
-        "Polyline.is_empty",
-        "Polyline.length",
-        "Polyline.lines",
-        "Polyline.move_by",
-        "Polyline.remove_point",
-        "Polyline.segment_count",
-        "Polyline.set_point",
-        "Polyline.shift",
-        "Polyline.translate"
-      ]
-    },
-    {
-      "name": "Polyline.flip",
-      "implementations": {
-        "cpp": {
-          "sig": "void flip(std::vector<Point>& pline)",
-          "code": "void flip(std::vector<Point>& pline);",
-          "file": "polyline.h"
-        },
-        "rust": {
-          "sig": "flip()",
-          "code": "pub fn flip(&mut self) {\n        self.reverse();\n    }",
-          "file": "polyline.rs"
-        }
-      },
-      "related": [
-        "Polyline.line_line_overlap_average",
-        "Polyline.reverse"
-      ]
-    },
-    {
-      "name": "Polyline.extend_line",
-      "implementations": {
-        "cpp": {
-          "sig": "void extend_line(Line& line, double d0, double d1)",
-          "code": "void extend_line(Line& line, double d0, double d1);",
-          "file": "polyline.h"
-        }
-      },
-      "related": [
-        "Polyline.extend",
-        "Polyline.extend_line_segment",
-        "Polyline.extend_segment",
-        "Polyline.extend_segment_equally",
-        "Polyline.extend_segment_equally_static",
-        "Polyline.get_fast_plane"
-      ]
-    },
-    {
-      "name": "Polyline.extend_equally",
-      "implementations": {
-        "cpp": {
-          "sig": "void extend_equally(Line& line, double dist = 0, double proportion = 0)",
-          "code": "void extend_equally(Line& line, double dist = 0, double proportion = 0);",
-          "file": "polyline.h"
-        }
-      },
-      "related": [
-        "Polyline.extend"
-      ]
-    },
-    {
-      "name": "Polyline.scale_line",
-      "implementations": {
-        "cpp": {
-          "sig": "void scale_line(Line& line, double dist)",
-          "code": "void scale_line(Line& line, double dist);",
-          "file": "polyline.h"
-        }
-      }
-    },
-    {
-      "name": "Polyline.extend",
-      "implementations": {
-        "cpp": {
-          "sig": "void extend(std::vector<Point>& pline, int sID, double d0, double d1,\n            double proportion0 = 0, double proportion1 = 0)",
-          "code": "void extend(std::vector<Point>& pline, int sID, double d0, double d1,\n            double proportion0 = 0, double proportion1 = 0);",
-          "file": "polyline.h"
-        }
-      },
-      "related": [
-        "Polyline.__getitem__",
-        "Polyline.__init__",
-        "Polyline.__len__",
-        "Polyline.__ne__",
-        "Polyline.__neg__",
-        "Polyline.__setitem__",
-        "Polyline.__truediv__",
-        "Polyline._simplify_perp_dist",
-        "Polyline._simplify_rdp",
-        "Polyline.add_point",
-        "Polyline.boolean_op",
-        "Polyline.center",
-        "Polyline.closed",
-        "Polyline.closest_distance_and_point",
-        "Polyline.extend_edge_equally",
-        "Polyline.extend_equally",
-        "Polyline.extend_line",
-        "Polyline.extend_line_segment",
-        "Polyline.extend_segment",
-        "Polyline.extend_segment_equally",
-        "Polyline.extend_segment_equally_static",
-        "Polyline.from_coords",
-        "Polyline.from_sides",
-        "Polyline.get_average_plane",
-        "Polyline.get_fast_plane",
-        "Polyline.get_lines",
-        "Polyline.get_point",
-        "Polyline.get_points",
-        "Polyline.insert_point",
-        "Polyline.is_closed",
-        "Polyline.is_empty",
-        "Polyline.json_dump",
-        "Polyline.json_dumps",
-        "Polyline.json_load",
-        "Polyline.json_loads",
-        "Polyline.length",
-        "Polyline.line_from_projected_points",
-        "Polyline.linecolor",
-        "Polyline.lines",
-        "Polyline.merge_collinear",
-        "Polyline.pb_dumps",
-        "Polyline.pb_fill",
-        "Polyline.plane",
-        "Polyline.point_count",
-        "Polyline.point_in_polygon_2d",
-        "Polyline.points",
-        "Polyline.project",
-        "Polyline.remove_point",
-        "Polyline.reverse",
-        "Polyline.segment_count",
-        "Polyline.set_point",
-        "Polyline.simplify",
-        "Polyline.simplify_points",
-        "Polyline.transform",
-        "Polyline.transformed",
-        "Polyline.transformed_xform",
-        "Polyline.translate",
-        "Polyline.xform"
-      ]
-    },
-    {
-      "name": "Polyline.get_middle_line",
-      "implementations": {
-        "cpp": {
-          "sig": "void get_middle_line(const Line& l0, const Line& l1, Line& out)",
-          "code": "void get_middle_line(const Line& l0, const Line& l1, Line& out);",
-          "file": "polyline.h"
-        }
-      }
-    },
-    {
       "name": "Polyline.parse",
       "implementations": {
         "cpp": {
@@ -76249,7 +75375,6 @@ window.API_INDEX = {
         "Polyline.__sub__",
         "Polyline.__truediv__",
         "Polyline._average_normal",
-        "Polyline.grid_of_points_in_polygon",
         "Polyline.guid",
         "Polyline.json_dump",
         "Polyline.json_dumps",
@@ -76258,13 +75383,11 @@ window.API_INDEX = {
         "Polyline.jsonload",
         "Polyline.parse",
         "Polyline.pb_dumps",
-        "Polyline.proj2d",
         "Polyline.pt_in_poly",
         "Polyline.repr",
         "Polyline.transform",
         "Polyline.transformed",
-        "Polyline.transformed_xform",
-        "Polyline.unproj"
+        "Polyline.transformed_xform"
       ]
     },
     {
@@ -78363,7 +77486,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "std.sin",
         "std.tan"
       ]
     },
@@ -79712,10 +78834,7 @@ window.API_INDEX = {
           "code": "return std::asin((b * std::sin(A * to_rad)) / a) * to_deg;\n}",
           "file": "vector.cpp"
         }
-      },
-      "related": [
-        "std.sin"
-      ]
+      }
     },
     {
       "name": "std.atan2",
@@ -81041,21 +80160,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Line.extend_equally",
-      "implementations": {
-        "rust": {
-          "sig": "extend_equally(distance: f64)",
-          "code": "pub fn extend_equally(&mut self, distance: f64) {\n        let len = self.length();\n        if len < crate::tolerance::Tolerance::ZERO_TOLERANCE {\n            return;\n        }\n        // Don't allow the line to collapse to zero or invert.\n        if distance < 0.0 && (-distance) * 2.0 >= len {\n            return;\n        }\n        let inv_len = 1.0 / len;\n        let dx = (self._x1 - self._x0) * inv_len * distance;\n        let dy = (self._y1 - self._y0) * inv_len * distance;\n        let dz = (self._z1 - self._z0) * inv_len * distance;\n        self._x0 -= dx;\n        self._y0 -= dy;\n        self._z0 -= dz;\n        self._x1 += dx;\n        self._y1 += dy;\n        self._z1 += dz;\n    }",
-          "file": "line.rs"
-        }
-      },
-      "related": [
-        "Line.end",
-        "Line.extend",
-        "Line.length"
-      ]
-    },
-    {
       "name": "Matrix.set_guid",
       "implementations": {
         "rust": {
@@ -81926,6 +81030,8 @@ window.API_INDEX = {
         "Plane._update_equation",
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
+        "Plane.base2",
         "Plane.c",
         "Plane.d",
         "Plane.duplicate",
@@ -82130,10 +81236,14 @@ window.API_INDEX = {
       "related": [
         "Plane.a",
         "Plane.b",
+        "Plane.base1",
         "Plane.c",
         "Plane.d",
+        "Plane.has_on_negative_side",
+        "Plane.is_coplanar_from_normals",
         "Plane.new",
-        "Plane.project"
+        "Plane.project",
+        "Plane.translate_by_normal"
       ]
     },
     {
@@ -82316,6 +81426,8 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_at",
         "Polyline.points",
+        "Polyline.polylabel",
+        "Polyline.polylabel_circle_division_points",
         "Polyline.project",
         "Polyline.quick_hull",
         "Polyline.remove_point",
@@ -82350,6 +81462,20 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Polyline.center_vec",
+      "implementations": {
+        "rust": {
+          "sig": "center_vec() -> Vector",
+          "code": "pub fn center_vec(&self) -> Vector {\n        let center = self.center();\n        Vector::new(center[0], center[1], center[2])\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.center",
+        "Polyline.new"
+      ]
+    },
+    {
       "name": "Polyline.move_by",
       "implementations": {
         "rust": {
@@ -82359,8 +81485,21 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Polyline.move",
         "Polyline.point_count"
+      ]
+    },
+    {
+      "name": "Polyline.flip",
+      "implementations": {
+        "rust": {
+          "sig": "flip()",
+          "code": "pub fn flip(&mut self) {\n        self.reverse();\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.line_line_overlap_average",
+        "Polyline.reverse"
       ]
     },
     {
@@ -88663,126 +87802,6 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "MarchingSquares.test_Extract",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MarchingSquares\", \"Extract\")",
-          "code": "MINI_TEST(\"MarchingSquares\", \"Extract\") {\n    // uncomment #include \"marching_squares.h\"\n    std::vector<std::vector<double>> grid = {\n        {0.0, 0.0, 0.0},\n        {0.0, 1.0, 0.0},\n        {0.0, 0.0, 0.0},\n    };\n    auto result = MarchingSquares::extract(grid, 0.5, 1.0);\n\n    MINI_CHECK(result.size() == 1);\n    MINI_CHECK(result[0].point_count() == 5);\n    MINI_CHECK(result[0].is_closed());\n}",
-          "file": "marching_squares_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MarchingSquares\", \"Extract\")",
-          "code": "@MINI_TEST(\"MarchingSquares\", \"Extract\")\ndef test_marching_squares_extract():\n    from session_py import MarchingSquares\n    # 3x3 grid: center > 0, corners < 0 \u00e2\u2020\u2019 circle-like\n    grid = [\n        [0.0, 0.0, 0.0],\n        [0.0, 1.0, 0.0],\n        [0.0, 0.0, 0.0],\n    ]\n    result = MarchingSquares.extract(grid, 0.5)\n\n    MINI_CHECK(len(result) == 1)\n    MINI_CHECK(result[0].point_count() == 5)\n    MINI_CHECK(result[0].is_closed())",
-          "file": "marching_squares_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MarchingSquares\", \"Extract\")",
-          "code": "MINI_TEST!(\"MarchingSquares\", \"Extract\", crate::marching_squares_test::run_marching_squares_extract);\n\npub fn run_marching_squares_extract_from_func() -> TestResult {\n    MINI_TEST!(\"Extract From Func\", {\n        use crate::MarchingSquares;\n        let result = MarchingSquares::extract_from_func(\n            |x, y| 1.0 - (x * x + y * y),\n            (-2.0, 2.0), (-2.0, 2.0), 20, 20, 0.0\n        );\n\n        MINI_CHECK!(result.len() > 0);\n    })\n}",
-          "file": "marching_squares_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MarchingSquares.test_Extract From Func",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MarchingSquares\", \"Extract From Func\")",
-          "code": "MINI_TEST(\"MarchingSquares\", \"Extract From Func\") {\n    // uncomment #include \"marching_squares.h\"\n    auto result = MarchingSquares::extract_from_func(\n        [](double x, double y) { return 1.0 - (x * x + y * y); },\n        {-2.0, 2.0}, {-2.0, 2.0}, 20, 20, 0.0\n    );\n\n    MINI_CHECK(result.size() > 0);\n}",
-          "file": "marching_squares_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MarchingSquares\", \"Extract From Func\")",
-          "code": "@MINI_TEST(\"MarchingSquares\", \"Extract From Func\")\ndef test_marching_squares_extract_from_func():\n    from session_py import MarchingSquares\n    # Circle: x^2 + y^2 = 1\n    def circle(x, y):\n        return 1.0 - (x * x + y * y)\n    result = MarchingSquares.extract_from_func(circle, (-2.0, 2.0), (-2.0, 2.0), 20, 20, 0.0)\n\n    MINI_CHECK(len(result) > 0)",
-          "file": "marching_squares_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MarchingSquares\", \"Extract From Func\")",
-          "code": "MINI_TEST!(\"MarchingSquares\", \"Extract From Func\", crate::marching_squares_test::run_marching_squares_extract_from_func);\n\npub fn run_marching_squares_empty_grid() -> TestResult {\n    MINI_TEST!(\"Empty Grid\", {\n        use crate::MarchingSquares;\n        let grid: Vec<Vec<f64>> = vec![];\n        let result = MarchingSquares::extract(&grid, 0.5, 1.0);\n\n        MINI_CHECK!(result.len() == 0);\n    })\n}",
-          "file": "marching_squares_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MarchingSquares.test_Empty Grid",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MarchingSquares\", \"Empty Grid\")",
-          "code": "MINI_TEST(\"MarchingSquares\", \"Empty Grid\") {\n    // uncomment #include \"marching_squares.h\"\n    std::vector<std::vector<double>> grid;\n    auto result = MarchingSquares::extract(grid, 0.5, 1.0);\n\n    MINI_CHECK(result.size() == 0);\n}",
-          "file": "marching_squares_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MarchingSquares\", \"Empty Grid\")",
-          "code": "@MINI_TEST(\"MarchingSquares\", \"Empty Grid\")\ndef test_marching_squares_empty_grid():\n    from session_py import MarchingSquares\n    result = MarchingSquares.extract([], 0.5)\n\n    MINI_CHECK(len(result) == 0)",
-          "file": "marching_squares_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MarchingSquares\", \"Empty Grid\")",
-          "code": "MINI_TEST!(\"MarchingSquares\", \"Empty Grid\", crate::marching_squares_test::run_marching_squares_empty_grid);\n\npub fn run_marching_squares_all_above() -> TestResult {\n    MINI_TEST!(\"All Above\", {\n        use crate::MarchingSquares;\n        let grid = vec![\n            vec![2.0, 2.0, 2.0],\n            vec![2.0, 2.0, 2.0],\n            vec![2.0, 2.0, 2.0],\n        ];\n        let result = MarchingSquares::extract(&grid, 1.0, 1.0);\n\n        MINI_CHECK!(result.len() == 0);\n    })\n}",
-          "file": "marching_squares_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MarchingSquares.test_All Above",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MarchingSquares\", \"All Above\")",
-          "code": "MINI_TEST(\"MarchingSquares\", \"All Above\") {\n    // uncomment #include \"marching_squares.h\"\n    std::vector<std::vector<double>> grid = {\n        {2.0, 2.0, 2.0},\n        {2.0, 2.0, 2.0},\n        {2.0, 2.0, 2.0},\n    };\n    auto result = MarchingSquares::extract(grid, 1.0, 1.0);\n\n    MINI_CHECK(result.size() == 0);\n}",
-          "file": "marching_squares_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MarchingSquares\", \"All Above\")",
-          "code": "@MINI_TEST(\"MarchingSquares\", \"All Above\")\ndef test_marching_squares_all_above():\n    from session_py import MarchingSquares\n    grid = [\n        [2.0, 2.0, 2.0],\n        [2.0, 2.0, 2.0],\n        [2.0, 2.0, 2.0],\n    ]\n    result = MarchingSquares.extract(grid, 1.0)\n\n    MINI_CHECK(len(result) == 0)",
-          "file": "marching_squares_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MarchingSquares\", \"All Above\")",
-          "code": "MINI_TEST!(\"MarchingSquares\", \"All Above\", crate::marching_squares_test::run_marching_squares_all_above);\n\npub fn run_marching_squares_all_below() -> TestResult {\n    MINI_TEST!(\"All Below\", {\n        use crate::MarchingSquares;\n        let grid = vec![\n            vec![0.0, 0.0, 0.0],\n            vec![0.0, 0.0, 0.0],\n            vec![0.0, 0.0, 0.0],\n        ];\n        let result = MarchingSquares::extract(&grid, 1.0, 1.0);\n\n        MINI_CHECK!(result.len() == 0);\n    })\n}",
-          "file": "marching_squares_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MarchingSquares.test_All Below",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MarchingSquares\", \"All Below\")",
-          "code": "MINI_TEST(\"MarchingSquares\", \"All Below\") {\n    // uncomment #include \"marching_squares.h\"\n    std::vector<std::vector<double>> grid = {\n        {0.0, 0.0, 0.0},\n        {0.0, 0.0, 0.0},\n        {0.0, 0.0, 0.0},\n    };\n    auto result = MarchingSquares::extract(grid, 1.0, 1.0);\n\n    MINI_CHECK(result.size() == 0);\n}",
-          "file": "marching_squares_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MarchingSquares\", \"All Below\")",
-          "code": "@MINI_TEST(\"MarchingSquares\", \"All Below\")\ndef test_marching_squares_all_below():\n    from session_py import MarchingSquares\n    grid = [\n        [0.0, 0.0, 0.0],\n        [0.0, 0.0, 0.0],\n        [0.0, 0.0, 0.0],\n    ]\n    result = MarchingSquares.extract(grid, 1.0)\n\n    MINI_CHECK(len(result) == 0)",
-          "file": "marching_squares_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MarchingSquares\", \"All Below\")",
-          "code": "MINI_TEST!(\"MarchingSquares\", \"All Below\", crate::marching_squares_test::run_marching_squares_all_below);\n\npub fn run_marching_squares_interpolation() -> TestResult {\n    MINI_TEST!(\"Interpolation\", {\n        use crate::MarchingSquares;\n        let grid = vec![\n            vec![0.0, 2.0],\n            vec![0.0, 2.0],\n        ];\n        let result = MarchingSquares::extract(&grid, 1.0, 1.0);\n\n        MINI_CHECK!(result.len() == 1);\n        let seg = &result[0];\n        MINI_CHECK!(TOLERANCE.is_close(seg.get_point(0).unwrap()[0], 0.5));\n        MINI_CHECK!(TOLERANCE.is_close(seg.get_point(1).unwrap()[0], 0.5));\n    })\n}",
-          "file": "marching_squares_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MarchingSquares.test_Interpolation",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MarchingSquares\", \"Interpolation\")",
-          "code": "MINI_TEST(\"MarchingSquares\", \"Interpolation\") {\n    // uncomment #include \"marching_squares.h\"\n    std::vector<std::vector<double>> grid = {\n        {0.0, 2.0},\n        {0.0, 2.0},\n    };\n    auto result = MarchingSquares::extract(grid, 1.0, 1.0);\n\n    MINI_CHECK(result.size() == 1);\n    auto seg = result[0];\n    MINI_CHECK(TOLERANCE.is_close(seg.get_point(0)[0], 0.5));\n    MINI_CHECK(TOLERANCE.is_close(seg.get_point(1)[0], 0.5));\n}",
-          "file": "marching_squares_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MarchingSquares\", \"Interpolation\")",
-          "code": "@MINI_TEST(\"MarchingSquares\", \"Interpolation\")\ndef test_marching_squares_interpolation():\n    from session_py import MarchingSquares\n    # Single cell: v0=0, v1=2, v2=2, v3=0 \u00e2\u2020\u2019 iso=1 bisects left-right\n    grid = [\n        [0.0, 2.0],\n        [0.0, 2.0],\n    ]\n    result = MarchingSquares.extract(grid, 1.0)\n\n    MINI_CHECK(len(result) == 1)\n    seg = result[0]\n    MINI_CHECK(TOLERANCE.is_close(seg.get_point(0)[0], 0.5))\n    MINI_CHECK(TOLERANCE.is_close(seg.get_point(1)[0], 0.5))\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
-          "file": "marching_squares_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MarchingSquares\", \"Interpolation\")",
-          "code": "MINI_TEST!(\"MarchingSquares\", \"Interpolation\", crate::marching_squares_test::run_marching_squares_interpolation);",
-          "file": "marching_squares_test.rs"
-        }
-      }
-    },
-    {
       "name": "Matrix.test_Constructor",
       "implementations": {
         "cpp": {
@@ -89519,346 +88538,6 @@ window.API_INDEX = {
           "sig": "MINI_TEST!(\"Mesh\", \"Edges\")",
           "code": "MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);",
           "file": "mesh_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_Eval Gyroid",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"Eval Gyroid\")",
-          "code": "MINI_TEST(\"MeshIso\", \"Eval Gyroid\") {\n    MINI_CHECK(TOLERANCE.is_close(MeshIso::eval(TpmsType::GYROID, Tolerance::PI / 2.0, 0.0, 0.0, 1.0), 1.0));\n    MINI_CHECK(TOLERANCE.is_close(MeshIso::eval(TpmsType::SCHWARZ_P, 0.0, 0.0, 0.0, 1.0), 3.0));\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"Eval Gyroid\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"Eval Gyroid\")\ndef test_mesh_iso_eval_gyroid():\n    from session_py import MeshIso\n    from session_py import TpmsType\n\n    MINI_CHECK(TOLERANCE.is_close(MeshIso.eval(TpmsType.GYROID, PI / 2.0, 0.0, 0.0, 1.0), 1.0))\n    MINI_CHECK(TOLERANCE.is_close(MeshIso.eval(TpmsType.SCHWARZ_P, 0.0, 0.0, 0.0, 1.0), 3.0))",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"Eval Gyroid\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"Eval Gyroid\", crate::mesh_iso_test::run_mesh_iso_eval_gyroid);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Eval SchwarzP\", crate::mesh_iso_test::run_mesh_iso_eval_schwarz_p);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Eval Diamond\", crate::mesh_iso_test::run_mesh_iso_eval_diamond);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Tpms Gyroid Solid\", crate::mesh_iso_test::run_mesh_iso_from_tpms_gyroid_solid);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Tpms Diamond Sheet\", crate::mesh_iso_test::run_mesh_iso_from_tpms_diamond_sheet);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Tpms Neovius Shell\", crate::mesh_iso_test::run_mesh_iso_from_tpms_neovius_shell);\nREGISTER_MINI_TEST!(\"MeshIso\", \"All Tpms Shells\", crate::mesh_iso_test::run_mesh_iso_all_tpms_shells);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Function\", crate::mesh_iso_test::run_mesh_iso_from_function);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Sphere\", crate::mesh_iso_test::run_mesh_iso_sdf_sphere);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Box\", crate::mesh_iso_test::run_mesh_iso_sdf_box);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Capsule\", crate::mesh_iso_test::run_mesh_iso_sdf_capsule);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Torus\", crate::mesh_iso_test::run_mesh_iso_sdf_torus);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Plane\", crate::mesh_iso_test::run_mesh_iso_sdf_plane);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Union\", crate::mesh_iso_test::run_mesh_iso_smooth_union);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Subtract\", crate::mesh_iso_test::run_mesh_iso_smooth_subtract);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_Eval SchwarzP",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"Eval SchwarzP\")",
-          "code": "MINI_TEST(\"MeshIso\", \"Eval SchwarzP\") {\n    MINI_CHECK(TOLERANCE.is_close(MeshIso::eval(TpmsType::SCHWARZ_P, Tolerance::PI, Tolerance::PI, Tolerance::PI, 1.0), -3.0));\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"Eval SchwarzP\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"Eval SchwarzP\")\ndef test_mesh_iso_eval_schwarz_p():\n    from session_py import MeshIso\n    from session_py import TpmsType\n\n    MINI_CHECK(TOLERANCE.is_close(MeshIso.eval(TpmsType.SCHWARZ_P, PI, PI, PI, 1.0), -3.0))",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"Eval SchwarzP\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"Eval SchwarzP\", crate::mesh_iso_test::run_mesh_iso_eval_schwarz_p);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Eval Diamond\", crate::mesh_iso_test::run_mesh_iso_eval_diamond);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Tpms Gyroid Solid\", crate::mesh_iso_test::run_mesh_iso_from_tpms_gyroid_solid);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Tpms Diamond Sheet\", crate::mesh_iso_test::run_mesh_iso_from_tpms_diamond_sheet);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Tpms Neovius Shell\", crate::mesh_iso_test::run_mesh_iso_from_tpms_neovius_shell);\nREGISTER_MINI_TEST!(\"MeshIso\", \"All Tpms Shells\", crate::mesh_iso_test::run_mesh_iso_all_tpms_shells);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Function\", crate::mesh_iso_test::run_mesh_iso_from_function);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Sphere\", crate::mesh_iso_test::run_mesh_iso_sdf_sphere);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Box\", crate::mesh_iso_test::run_mesh_iso_sdf_box);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Capsule\", crate::mesh_iso_test::run_mesh_iso_sdf_capsule);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Torus\", crate::mesh_iso_test::run_mesh_iso_sdf_torus);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Plane\", crate::mesh_iso_test::run_mesh_iso_sdf_plane);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Union\", crate::mesh_iso_test::run_mesh_iso_smooth_union);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Subtract\", crate::mesh_iso_test::run_mesh_iso_smooth_subtract);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_Eval Diamond",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"Eval Diamond\")",
-          "code": "MINI_TEST(\"MeshIso\", \"Eval Diamond\") {\n    MINI_CHECK(TOLERANCE.is_close(MeshIso::eval(TpmsType::DIAMOND, 0.0, 0.0, 0.0, 1.0), 0.0));\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"Eval Diamond\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"Eval Diamond\")\ndef test_mesh_iso_eval_diamond():\n    from session_py import MeshIso\n    from session_py import TpmsType\n\n    MINI_CHECK(TOLERANCE.is_close(MeshIso.eval(TpmsType.DIAMOND, 0.0, 0.0, 0.0, 1.0), 0.0))",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"Eval Diamond\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"Eval Diamond\", crate::mesh_iso_test::run_mesh_iso_eval_diamond);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Tpms Gyroid Solid\", crate::mesh_iso_test::run_mesh_iso_from_tpms_gyroid_solid);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Tpms Diamond Sheet\", crate::mesh_iso_test::run_mesh_iso_from_tpms_diamond_sheet);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Tpms Neovius Shell\", crate::mesh_iso_test::run_mesh_iso_from_tpms_neovius_shell);\nREGISTER_MINI_TEST!(\"MeshIso\", \"All Tpms Shells\", crate::mesh_iso_test::run_mesh_iso_all_tpms_shells);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Function\", crate::mesh_iso_test::run_mesh_iso_from_function);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Sphere\", crate::mesh_iso_test::run_mesh_iso_sdf_sphere);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Box\", crate::mesh_iso_test::run_mesh_iso_sdf_box);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Capsule\", crate::mesh_iso_test::run_mesh_iso_sdf_capsule);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Torus\", crate::mesh_iso_test::run_mesh_iso_sdf_torus);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Plane\", crate::mesh_iso_test::run_mesh_iso_sdf_plane);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Union\", crate::mesh_iso_test::run_mesh_iso_smooth_union);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Subtract\", crate::mesh_iso_test::run_mesh_iso_smooth_subtract);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_From Tpms Gyroid Solid",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"From Tpms Gyroid Solid\")",
-          "code": "MINI_TEST(\"MeshIso\", \"From Tpms Gyroid Solid\") {\n    OBB box = OBB::from_points({Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)});\n    Mesh m = MeshIso::from_tpms(TpmsType::GYROID, box, 10, 10, 10, 0.0, 1.0, TpmsMode::SOLID);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() > 0);\n    MINI_CHECK(m.number_of_faces() > 0);\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"From Tpms Gyroid Solid\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"From Tpms Gyroid Solid\")\ndef test_mesh_iso_from_tpms_gyroid_solid():\n    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    m = MeshIso.from_tpms(TpmsType.GYROID, box, 10, 10, 10, 0.0, 1.0, TpmsMode.SOLID)\n\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() > 0)\n    MINI_CHECK(m.number_of_faces() > 0)",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"From Tpms Gyroid Solid\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"From Tpms Gyroid Solid\", crate::mesh_iso_test::run_mesh_iso_from_tpms_gyroid_solid);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Tpms Diamond Sheet\", crate::mesh_iso_test::run_mesh_iso_from_tpms_diamond_sheet);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Tpms Neovius Shell\", crate::mesh_iso_test::run_mesh_iso_from_tpms_neovius_shell);\nREGISTER_MINI_TEST!(\"MeshIso\", \"All Tpms Shells\", crate::mesh_iso_test::run_mesh_iso_all_tpms_shells);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Function\", crate::mesh_iso_test::run_mesh_iso_from_function);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Sphere\", crate::mesh_iso_test::run_mesh_iso_sdf_sphere);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Box\", crate::mesh_iso_test::run_mesh_iso_sdf_box);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Capsule\", crate::mesh_iso_test::run_mesh_iso_sdf_capsule);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Torus\", crate::mesh_iso_test::run_mesh_iso_sdf_torus);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Plane\", crate::mesh_iso_test::run_mesh_iso_sdf_plane);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Union\", crate::mesh_iso_test::run_mesh_iso_smooth_union);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Subtract\", crate::mesh_iso_test::run_mesh_iso_smooth_subtract);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_From Tpms Diamond Sheet",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"From Tpms Diamond Sheet\")",
-          "code": "MINI_TEST(\"MeshIso\", \"From Tpms Diamond Sheet\") {\n    OBB box = OBB::from_points({Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)});\n    Mesh m = MeshIso::from_tpms(TpmsType::DIAMOND, box, 10, 10, 10, 0.0, 1.0, TpmsMode::SHEET, 0.1);\n\n    MINI_CHECK(m.is_valid());\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"From Tpms Diamond Sheet\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"From Tpms Diamond Sheet\")\ndef test_mesh_iso_from_tpms_diamond_sheet():\n    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    m = MeshIso.from_tpms(TpmsType.DIAMOND, box, 10, 10, 10, 0.0, 1.0, TpmsMode.SHEET, 0.1)\n\n    MINI_CHECK(m.is_valid())",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"From Tpms Diamond Sheet\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"From Tpms Diamond Sheet\", crate::mesh_iso_test::run_mesh_iso_from_tpms_diamond_sheet);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Tpms Neovius Shell\", crate::mesh_iso_test::run_mesh_iso_from_tpms_neovius_shell);\nREGISTER_MINI_TEST!(\"MeshIso\", \"All Tpms Shells\", crate::mesh_iso_test::run_mesh_iso_all_tpms_shells);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Function\", crate::mesh_iso_test::run_mesh_iso_from_function);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Sphere\", crate::mesh_iso_test::run_mesh_iso_sdf_sphere);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Box\", crate::mesh_iso_test::run_mesh_iso_sdf_box);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Capsule\", crate::mesh_iso_test::run_mesh_iso_sdf_capsule);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Torus\", crate::mesh_iso_test::run_mesh_iso_sdf_torus);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Plane\", crate::mesh_iso_test::run_mesh_iso_sdf_plane);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Union\", crate::mesh_iso_test::run_mesh_iso_smooth_union);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Subtract\", crate::mesh_iso_test::run_mesh_iso_smooth_subtract);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_From Tpms Neovius Shell",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"From Tpms Neovius Shell\")",
-          "code": "MINI_TEST(\"MeshIso\", \"From Tpms Neovius Shell\") {\n    OBB box = OBB::from_points({Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)});\n    Mesh m = MeshIso::from_tpms(TpmsType::NEOVIUS, box, 10, 10, 10, 0.0, 1.0, TpmsMode::SHELL, 0.1);\n\n    MINI_CHECK(m.is_valid());\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"From Tpms Neovius Shell\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"From Tpms Neovius Shell\")\ndef test_mesh_iso_from_tpms_neovius_shell():\n    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    m = MeshIso.from_tpms(TpmsType.NEOVIUS, box, 10, 10, 10, 0.0, 1.0, TpmsMode.SHELL, 0.1)\n\n    MINI_CHECK(m.is_valid())",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"From Tpms Neovius Shell\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"From Tpms Neovius Shell\", crate::mesh_iso_test::run_mesh_iso_from_tpms_neovius_shell);\nREGISTER_MINI_TEST!(\"MeshIso\", \"All Tpms Shells\", crate::mesh_iso_test::run_mesh_iso_all_tpms_shells);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Function\", crate::mesh_iso_test::run_mesh_iso_from_function);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Sphere\", crate::mesh_iso_test::run_mesh_iso_sdf_sphere);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Box\", crate::mesh_iso_test::run_mesh_iso_sdf_box);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Capsule\", crate::mesh_iso_test::run_mesh_iso_sdf_capsule);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Torus\", crate::mesh_iso_test::run_mesh_iso_sdf_torus);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Plane\", crate::mesh_iso_test::run_mesh_iso_sdf_plane);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Union\", crate::mesh_iso_test::run_mesh_iso_smooth_union);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Subtract\", crate::mesh_iso_test::run_mesh_iso_smooth_subtract);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_All Tpms Shells",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"All Tpms Shells\")",
-          "code": "MINI_TEST(\"MeshIso\", \"All Tpms Shells\") {\n    OBB box = OBB::from_points({Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)});\n    TpmsType types[] = {\n        TpmsType::GYROID, TpmsType::SCHWARZ_P, TpmsType::DIAMOND,\n        TpmsType::NEOVIUS, TpmsType::IWP, TpmsType::LIDINOID,\n        TpmsType::FISCHER_KOCH_S, TpmsType::FRD, TpmsType::PMY,\n    };\n\n    for (int i = 0; i < 9; ++i) {\n        Mesh m = MeshIso::from_tpms(types[i], box, 10, 10, 10, 0.0, 1.0, TpmsMode::SHELL, 0.1);\n        MINI_CHECK(m.is_valid());\n        MINI_CHECK(m.number_of_vertices() > 0);\n    }\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"All Tpms Shells\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"All Tpms Shells\")\ndef test_mesh_iso_all_tpms_shells():\n    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import TpmsMode\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(0.0, 0.0, 0.0), Point(1.0, 1.0, 1.0)])\n    types = [\n        TpmsType.GYROID, TpmsType.SCHWARZ_P, TpmsType.DIAMOND,\n        TpmsType.NEOVIUS, TpmsType.IWP, TpmsType.LIDINOID,\n        TpmsType.FISCHER_KOCH_S, TpmsType.FRD, TpmsType.PMY,\n    ]\n    for i in range(9):\n        m = MeshIso.from_tpms(types[i], box, 10, 10, 10, 0.0, 1.0, TpmsMode.SHELL, 0.1)\n        MINI_CHECK(m.is_valid())\n        MINI_CHECK(m.number_of_vertices() > 0)",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"All Tpms Shells\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"All Tpms Shells\", crate::mesh_iso_test::run_mesh_iso_all_tpms_shells);\nREGISTER_MINI_TEST!(\"MeshIso\", \"From Function\", crate::mesh_iso_test::run_mesh_iso_from_function);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Sphere\", crate::mesh_iso_test::run_mesh_iso_sdf_sphere);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Box\", crate::mesh_iso_test::run_mesh_iso_sdf_box);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Capsule\", crate::mesh_iso_test::run_mesh_iso_sdf_capsule);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Torus\", crate::mesh_iso_test::run_mesh_iso_sdf_torus);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Plane\", crate::mesh_iso_test::run_mesh_iso_sdf_plane);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Union\", crate::mesh_iso_test::run_mesh_iso_smooth_union);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Subtract\", crate::mesh_iso_test::run_mesh_iso_smooth_subtract);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_From Function",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"From Function\")",
-          "code": "MINI_TEST(\"MeshIso\", \"From Function\") {\n    OBB box = OBB::from_points({Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)});\n    auto fn = [](double x, double y, double z) {\n        return MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.0, x, y, z);\n    };\n    Mesh m = MeshIso::from_function(fn, box, 10, 10, 10, 0.0);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() > 0);\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"From Function\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"From Function\")\ndef test_mesh_iso_from_function():\n    from session_py import MeshIso\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        return MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, x, y, z)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)\n\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() > 0)",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"From Function\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"From Function\", crate::mesh_iso_test::run_mesh_iso_from_function);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Sphere\", crate::mesh_iso_test::run_mesh_iso_sdf_sphere);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Box\", crate::mesh_iso_test::run_mesh_iso_sdf_box);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Capsule\", crate::mesh_iso_test::run_mesh_iso_sdf_capsule);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Torus\", crate::mesh_iso_test::run_mesh_iso_sdf_torus);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Plane\", crate::mesh_iso_test::run_mesh_iso_sdf_plane);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Union\", crate::mesh_iso_test::run_mesh_iso_smooth_union);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Subtract\", crate::mesh_iso_test::run_mesh_iso_smooth_subtract);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_SDF Sphere",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"SDF Sphere\")",
-          "code": "MINI_TEST(\"MeshIso\", \"SDF Sphere\") {\n    MINI_CHECK(TOLERANCE.is_close(MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0), 0.0));\n    MINI_CHECK(TOLERANCE.is_close(MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0), -1.0));\n    MINI_CHECK(TOLERANCE.is_close(MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 0.0), 1.0));\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"SDF Sphere\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"SDF Sphere\")\ndef test_mesh_iso_sdf_sphere():\n    from session_py import MeshIso\n\n    MINI_CHECK(TOLERANCE.is_close(MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0), 0.0))\n    MINI_CHECK(TOLERANCE.is_close(MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0), -1.0))\n    MINI_CHECK(TOLERANCE.is_close(MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.0, 2.0, 0.0, 0.0), 1.0))",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"SDF Sphere\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"SDF Sphere\", crate::mesh_iso_test::run_mesh_iso_sdf_sphere);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Box\", crate::mesh_iso_test::run_mesh_iso_sdf_box);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Capsule\", crate::mesh_iso_test::run_mesh_iso_sdf_capsule);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Torus\", crate::mesh_iso_test::run_mesh_iso_sdf_torus);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Plane\", crate::mesh_iso_test::run_mesh_iso_sdf_plane);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Union\", crate::mesh_iso_test::run_mesh_iso_smooth_union);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Subtract\", crate::mesh_iso_test::run_mesh_iso_smooth_subtract);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_SDF Box",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"SDF Box\")",
-          "code": "MINI_TEST(\"MeshIso\", \"SDF Box\") {\n    OBB box = OBB::from_points({Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)});\n    Mesh m = MeshIso::from_function([](double x, double y, double z) {\n        return MeshIso::sdf_box(0.0, 0.0, 0.0, 1.0, 0.7, 1.3, x, y, z);\n    }, box, 10, 10, 10);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() > 0);\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"SDF Box\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"SDF Box\")\ndef test_mesh_iso_sdf_box():\n    from session_py import MeshIso\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        return MeshIso.sdf_box(0.0, 0.0, 0.0, 1.0, 0.7, 1.3, x, y, z)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)\n\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() > 0)",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"SDF Box\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"SDF Box\", crate::mesh_iso_test::run_mesh_iso_sdf_box);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Capsule\", crate::mesh_iso_test::run_mesh_iso_sdf_capsule);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Torus\", crate::mesh_iso_test::run_mesh_iso_sdf_torus);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Plane\", crate::mesh_iso_test::run_mesh_iso_sdf_plane);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Union\", crate::mesh_iso_test::run_mesh_iso_smooth_union);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Subtract\", crate::mesh_iso_test::run_mesh_iso_smooth_subtract);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_SDF Capsule",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"SDF Capsule\")",
-          "code": "MINI_TEST(\"MeshIso\", \"SDF Capsule\") {\n    OBB box = OBB::from_points({Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)});\n    Mesh m = MeshIso::from_function([](double x, double y, double z) {\n        return MeshIso::sdf_capsule(Point(0.0, -1.0, 0.0), Point(0.0, 1.0, 0.0), 0.5, x, y, z);\n    }, box, 10, 10, 10);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() > 0);\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"SDF Capsule\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"SDF Capsule\")\ndef test_mesh_iso_sdf_capsule():\n    from session_py import MeshIso\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        return MeshIso.sdf_capsule(Point(0.0, -1.0, 0.0), Point(0.0, 1.0, 0.0), 0.5, x, y, z)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)\n\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() > 0)",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"SDF Capsule\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"SDF Capsule\", crate::mesh_iso_test::run_mesh_iso_sdf_capsule);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Torus\", crate::mesh_iso_test::run_mesh_iso_sdf_torus);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Plane\", crate::mesh_iso_test::run_mesh_iso_sdf_plane);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Union\", crate::mesh_iso_test::run_mesh_iso_smooth_union);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Subtract\", crate::mesh_iso_test::run_mesh_iso_smooth_subtract);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_SDF Torus",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"SDF Torus\")",
-          "code": "MINI_TEST(\"MeshIso\", \"SDF Torus\") {\n    OBB box = OBB::from_points({Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)});\n    Mesh m = MeshIso::from_function([](double x, double y, double z) {\n        return MeshIso::sdf_torus(0.0, 0.0, 0.0, 1.1, 0.4, x, y, z);\n    }, box, 10, 10, 10);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() > 0);\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"SDF Torus\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"SDF Torus\")\ndef test_mesh_iso_sdf_torus():\n    from session_py import MeshIso\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        return MeshIso.sdf_torus(0.0, 0.0, 0.0, 1.1, 0.4, x, y, z)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)\n\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() > 0)",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"SDF Torus\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"SDF Torus\", crate::mesh_iso_test::run_mesh_iso_sdf_torus);\nREGISTER_MINI_TEST!(\"MeshIso\", \"SDF Plane\", crate::mesh_iso_test::run_mesh_iso_sdf_plane);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Union\", crate::mesh_iso_test::run_mesh_iso_smooth_union);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Subtract\", crate::mesh_iso_test::run_mesh_iso_smooth_subtract);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_SDF Plane",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"SDF Plane\")",
-          "code": "MINI_TEST(\"MeshIso\", \"SDF Plane\") {\n    MINI_CHECK(TOLERANCE.is_close(MeshIso::sdf_plane(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0), 0.0));\n    MINI_CHECK(TOLERANCE.is_close(MeshIso::sdf_plane(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), 1.0));\n    MINI_CHECK(TOLERANCE.is_close(MeshIso::sdf_plane(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0), -1.0));\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"SDF Plane\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"SDF Plane\")\ndef test_mesh_iso_sdf_plane():\n    from session_py import MeshIso\n\n    MINI_CHECK(TOLERANCE.is_close(MeshIso.sdf_plane(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0), 0.0))\n    MINI_CHECK(TOLERANCE.is_close(MeshIso.sdf_plane(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0), 1.0))\n    MINI_CHECK(TOLERANCE.is_close(MeshIso.sdf_plane(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0), -1.0))",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"SDF Plane\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"SDF Plane\", crate::mesh_iso_test::run_mesh_iso_sdf_plane);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Union\", crate::mesh_iso_test::run_mesh_iso_smooth_union);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Subtract\", crate::mesh_iso_test::run_mesh_iso_smooth_subtract);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_Smooth Union",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"Smooth Union\")",
-          "code": "MINI_TEST(\"MeshIso\", \"Smooth Union\") {\n    MINI_CHECK(MeshIso::smooth_union(-1.0, 1.0, 8.0) < 0.0);\n    MINI_CHECK(MeshIso::smooth_union(1.0, 1.0, 8.0) < 1.0);\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"Smooth Union\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"Smooth Union\")\ndef test_mesh_iso_smooth_union():\n    from session_py import MeshIso\n\n    MINI_CHECK(MeshIso.smooth_union(-1.0, 1.0, 8.0) < 0.0)\n    MINI_CHECK(MeshIso.smooth_union(1.0, 1.0, 8.0) < 1.0)",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"Smooth Union\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"Smooth Union\", crate::mesh_iso_test::run_mesh_iso_smooth_union);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Subtract\", crate::mesh_iso_test::run_mesh_iso_smooth_subtract);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_Smooth Subtract",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"Smooth Subtract\")",
-          "code": "MINI_TEST(\"MeshIso\", \"Smooth Subtract\") {\n    OBB box = OBB::from_points({Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)});\n    Mesh m = MeshIso::from_function([](double x, double y, double z) {\n        double a = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.2, x, y, z);\n        double b = MeshIso::sdf_box(0.0, 0.0, 0.0, 0.8, 0.8, 0.8, x, y, z);\n        return MeshIso::smooth_subtract(a, b, 8.0);\n    }, box, 15, 15, 15);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() > 0);\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"Smooth Subtract\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"Smooth Subtract\")\ndef test_mesh_iso_smooth_subtract():\n    from session_py import MeshIso\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        a = MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.2, x, y, z)\n        b = MeshIso.sdf_box(0.0, 0.0, 0.0, 0.8, 0.8, 0.8, x, y, z)\n        return MeshIso.smooth_subtract(a, b, 8.0)\n    m = MeshIso.from_function(fn, box, 15, 15, 15, 0.0)\n\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() > 0)",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"Smooth Subtract\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"Smooth Subtract\", crate::mesh_iso_test::run_mesh_iso_smooth_subtract);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_Smooth Intersect",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"Smooth Intersect\")",
-          "code": "MINI_TEST(\"MeshIso\", \"Smooth Intersect\") {\n    OBB box = OBB::from_points({Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)});\n    Mesh m = MeshIso::from_function([](double x, double y, double z) {\n        double a = MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.4, x, y, z);\n        double b = MeshIso::sdf_box(0.0, 0.0, 0.0, 1.1, 1.1, 1.1, x, y, z);\n        return MeshIso::smooth_intersect(a, b, 8.0);\n    }, box, 15, 15, 15);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() > 0);\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"Smooth Intersect\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"Smooth Intersect\")\ndef test_mesh_iso_smooth_intersect():\n    from session_py import MeshIso\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(-2.0, -2.0, -2.0), Point(2.0, 2.0, 2.0)])\n    def fn(x, y, z):\n        a = MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.4, x, y, z)\n        b = MeshIso.sdf_box(0.0, 0.0, 0.0, 1.1, 1.1, 1.1, x, y, z)\n        return MeshIso.smooth_intersect(a, b, 8.0)\n    m = MeshIso.from_function(fn, box, 15, 15, 15, 0.0)\n\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() > 0)",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"Smooth Intersect\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"Smooth Intersect\", crate::mesh_iso_test::run_mesh_iso_smooth_intersect);\nREGISTER_MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
-        }
-      }
-    },
-    {
-      "name": "MeshIso.test_Gyroid Sphere Shell",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"MeshIso\", \"Gyroid Sphere Shell\")",
-          "code": "MINI_TEST(\"MeshIso\", \"Gyroid Sphere Shell\") {\n    OBB box = OBB::from_points({Point(-1.6, -1.6, -1.6), Point(1.6, 1.6, 1.6)});\n    Mesh m = MeshIso::from_function([](double x, double y, double z) {\n        double tpms = MeshIso::eval(TpmsType::GYROID, x, y, z, 1.0);\n        double shell = std::abs(MeshIso::sdf_sphere(0.0, 0.0, 0.0, 1.3, x, y, z)) - 0.08;\n        return MeshIso::smooth_union(tpms * 0.3, shell, 8.0);\n    }, box, 10, 10, 10);\n\n    MINI_CHECK(m.is_valid());\n    MINI_CHECK(m.number_of_vertices() > 0);\n}",
-          "file": "mesh_iso_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"MeshIso\", \"Gyroid Sphere Shell\")",
-          "code": "@MINI_TEST(\"MeshIso\", \"Gyroid Sphere Shell\")\ndef test_mesh_iso_gyroid_sphere_shell():\n    from session_py import MeshIso\n    from session_py import TpmsType\n    from session_py import OBB\n    from session_py import Point\n\n    box = OBB.from_points([Point(-1.6, -1.6, -1.6), Point(1.6, 1.6, 1.6)])\n    def fn(x, y, z):\n        tpms = MeshIso.eval(TpmsType.GYROID, x, y, z, 1.0)\n        shell = abs(MeshIso.sdf_sphere(0.0, 0.0, 0.0, 1.3, x, y, z)) - 0.08\n        return MeshIso.smooth_union(tpms * 0.3, shell, 8.0)\n    m = MeshIso.from_function(fn, box, 10, 10, 10, 0.0)\n\n    MINI_CHECK(m.is_valid())\n    MINI_CHECK(m.number_of_vertices() > 0)\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
-          "file": "mesh_iso_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\")",
-          "code": "MINI_TEST!(\"MeshIso\", \"Gyroid Sphere Shell\", crate::mesh_iso_test::run_mesh_iso_gyroid_sphere_shell);",
-          "file": "mesh_iso_test.rs"
         }
       }
     },
@@ -90667,7 +89346,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Plane\", \"Constructor\")",
-          "code": "MINI_TEST!(\"Plane\", \"Constructor\", crate::plane_test::run_plane_constructor);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Valid\", crate::plane_test::run_plane_is_valid);\nREGISTER_MINI_TEST!(\"Plane\", \"Reverse\", crate::plane_test::run_plane_reverse);\nREGISTER_MINI_TEST!(\"Plane\", \"Rotate\", crate::plane_test::run_plane_rotate);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Right Hand\", crate::plane_test::run_plane_is_right_hand);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Direction\", crate::plane_test::run_plane_is_same_direction);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Position\", crate::plane_test::run_plane_is_same_position);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
+          "code": "MINI_TEST!(\"Plane\", \"Constructor\", crate::plane_test::run_plane_constructor);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Valid\", crate::plane_test::run_plane_is_valid);\nREGISTER_MINI_TEST!(\"Plane\", \"Reverse\", crate::plane_test::run_plane_reverse);\nREGISTER_MINI_TEST!(\"Plane\", \"Rotate\", crate::plane_test::run_plane_rotate);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Right Hand\", crate::plane_test::run_plane_is_right_hand);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Direction\", crate::plane_test::run_plane_is_same_direction);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Position\", crate::plane_test::run_plane_is_same_position);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Base1 Base2\", crate::plane_test::run_plane_base1_base2);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
           "file": "plane_test.rs"
         }
       }
@@ -90687,7 +89366,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Plane\", \"Is Valid\")",
-          "code": "MINI_TEST!(\"Plane\", \"Is Valid\", crate::plane_test::run_plane_is_valid);\nREGISTER_MINI_TEST!(\"Plane\", \"Reverse\", crate::plane_test::run_plane_reverse);\nREGISTER_MINI_TEST!(\"Plane\", \"Rotate\", crate::plane_test::run_plane_rotate);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Right Hand\", crate::plane_test::run_plane_is_right_hand);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Direction\", crate::plane_test::run_plane_is_same_direction);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Position\", crate::plane_test::run_plane_is_same_position);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
+          "code": "MINI_TEST!(\"Plane\", \"Is Valid\", crate::plane_test::run_plane_is_valid);\nREGISTER_MINI_TEST!(\"Plane\", \"Reverse\", crate::plane_test::run_plane_reverse);\nREGISTER_MINI_TEST!(\"Plane\", \"Rotate\", crate::plane_test::run_plane_rotate);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Right Hand\", crate::plane_test::run_plane_is_right_hand);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Direction\", crate::plane_test::run_plane_is_same_direction);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Position\", crate::plane_test::run_plane_is_same_position);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Base1 Base2\", crate::plane_test::run_plane_base1_base2);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
           "file": "plane_test.rs"
         }
       }
@@ -90707,7 +89386,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Plane\", \"Reverse\")",
-          "code": "MINI_TEST!(\"Plane\", \"Reverse\", crate::plane_test::run_plane_reverse);\nREGISTER_MINI_TEST!(\"Plane\", \"Rotate\", crate::plane_test::run_plane_rotate);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Right Hand\", crate::plane_test::run_plane_is_right_hand);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Direction\", crate::plane_test::run_plane_is_same_direction);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Position\", crate::plane_test::run_plane_is_same_position);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
+          "code": "MINI_TEST!(\"Plane\", \"Reverse\", crate::plane_test::run_plane_reverse);\nREGISTER_MINI_TEST!(\"Plane\", \"Rotate\", crate::plane_test::run_plane_rotate);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Right Hand\", crate::plane_test::run_plane_is_right_hand);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Direction\", crate::plane_test::run_plane_is_same_direction);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Position\", crate::plane_test::run_plane_is_same_position);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Base1 Base2\", crate::plane_test::run_plane_base1_base2);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
           "file": "plane_test.rs"
         }
       }
@@ -90727,7 +89406,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Plane\", \"Rotate\")",
-          "code": "MINI_TEST!(\"Plane\", \"Rotate\", crate::plane_test::run_plane_rotate);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Right Hand\", crate::plane_test::run_plane_is_right_hand);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Direction\", crate::plane_test::run_plane_is_same_direction);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Position\", crate::plane_test::run_plane_is_same_position);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
+          "code": "MINI_TEST!(\"Plane\", \"Rotate\", crate::plane_test::run_plane_rotate);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Right Hand\", crate::plane_test::run_plane_is_right_hand);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Direction\", crate::plane_test::run_plane_is_same_direction);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Position\", crate::plane_test::run_plane_is_same_position);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Base1 Base2\", crate::plane_test::run_plane_base1_base2);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
           "file": "plane_test.rs"
         }
       }
@@ -90747,7 +89426,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Plane\", \"Is Right Hand\")",
-          "code": "MINI_TEST!(\"Plane\", \"Is Right Hand\", crate::plane_test::run_plane_is_right_hand);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Direction\", crate::plane_test::run_plane_is_same_direction);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Position\", crate::plane_test::run_plane_is_same_position);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
+          "code": "MINI_TEST!(\"Plane\", \"Is Right Hand\", crate::plane_test::run_plane_is_right_hand);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Direction\", crate::plane_test::run_plane_is_same_direction);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Position\", crate::plane_test::run_plane_is_same_position);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Base1 Base2\", crate::plane_test::run_plane_base1_base2);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
           "file": "plane_test.rs"
         }
       }
@@ -90767,7 +89446,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Plane\", \"Is Same Direction\")",
-          "code": "MINI_TEST!(\"Plane\", \"Is Same Direction\", crate::plane_test::run_plane_is_same_direction);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Position\", crate::plane_test::run_plane_is_same_position);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
+          "code": "MINI_TEST!(\"Plane\", \"Is Same Direction\", crate::plane_test::run_plane_is_same_direction);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Same Position\", crate::plane_test::run_plane_is_same_position);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Base1 Base2\", crate::plane_test::run_plane_base1_base2);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
           "file": "plane_test.rs"
         }
       }
@@ -90787,7 +89466,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Plane\", \"Is Same Position\")",
-          "code": "MINI_TEST!(\"Plane\", \"Is Same Position\", crate::plane_test::run_plane_is_same_position);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
+          "code": "MINI_TEST!(\"Plane\", \"Is Same Position\", crate::plane_test::run_plane_is_same_position);\nREGISTER_MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Base1 Base2\", crate::plane_test::run_plane_base1_base2);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
           "file": "plane_test.rs"
         }
       }
@@ -90807,7 +89486,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Plane\", \"Is Coplanar\")",
-          "code": "MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
+          "code": "MINI_TEST!(\"Plane\", \"Is Coplanar\", crate::plane_test::run_plane_is_coplanar);\nREGISTER_MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Base1 Base2\", crate::plane_test::run_plane_base1_base2);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
           "file": "plane_test.rs"
         }
       }
@@ -90827,7 +89506,27 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Plane\", \"Translate By Normal\")",
-          "code": "MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
+          "code": "MINI_TEST!(\"Plane\", \"Translate By Normal\", crate::plane_test::run_plane_translate_by_normal);\nREGISTER_MINI_TEST!(\"Plane\", \"Base1 Base2\", crate::plane_test::run_plane_base1_base2);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
+          "file": "plane_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Plane.test_Base1 Base2",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Plane\", \"Base1 Base2\")",
+          "code": "MINI_TEST(\"Plane\", \"Base1 Base2\") {\n    // uncomment #include \"plane.h\"\n\n    Plane xy = Plane::xy_plane();\n    Vector b1 = xy.base1();\n    Vector b2 = xy.base2();\n    MINI_CHECK(TOLERANCE.is_close(std::abs(b1.dot(xy.z_axis())), 0.0));\n    MINI_CHECK(TOLERANCE.is_close(std::abs(b2.dot(xy.z_axis())), 0.0));\n    MINI_CHECK(TOLERANCE.is_close(b1.dot(b2), 0.0));\n    MINI_CHECK(TOLERANCE.is_close(b1.magnitude(), 1.0));\n    MINI_CHECK(TOLERANCE.is_close(b2.magnitude(), 1.0));\n}",
+          "file": "plane_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Plane\", \"Base1 Base2\")",
+          "code": "@MINI_TEST(\"Plane\", \"Base1 Base2\")\ndef test_plane_base1_base2():\n    from session_py import Plane\n\n    xy = Plane.xy_plane()\n    b1 = xy.base1()\n    b2 = xy.base2()\n    MINI_CHECK(TOLERANCE.is_close(abs(b1.dot(xy.z_axis)), 0.0))\n    MINI_CHECK(TOLERANCE.is_close(abs(b2.dot(xy.z_axis)), 0.0))\n    MINI_CHECK(TOLERANCE.is_close(b1.dot(b2), 0.0))\n    MINI_CHECK(TOLERANCE.is_close(b1.magnitude(), 1.0))\n    MINI_CHECK(TOLERANCE.is_close(b2.magnitude(), 1.0))",
+          "file": "plane_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Plane\", \"Base1 Base2\")",
+          "code": "MINI_TEST!(\"Plane\", \"Base1 Base2\", crate::plane_test::run_plane_base1_base2);\nREGISTER_MINI_TEST!(\"Plane\", \"Transform\", crate::plane_test::run_plane_transform);\nREGISTER_MINI_TEST!(\"Plane\", \"Transformed\", crate::plane_test::run_plane_transformed);\nREGISTER_MINI_TEST!(\"Plane\", \"Json Roundtrip\", crate::plane_test::run_plane_json_roundtrip);\nREGISTER_MINI_TEST!(\"Plane\", \"Protobuf Roundtrip\", crate::plane_test::run_plane_protobuf_roundtrip);\n\npub fn run_plane_has_on_negative_side() -> TestResult {\n    MINI_TEST!(\"Has On Negative Side\", {\n        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);\n        MINI_CHECK!(pl.has_on_negative_side(&below));\n        MINI_CHECK!(!pl.has_on_negative_side(&above));\n    })\n}",
           "file": "plane_test.rs"
         }
       }
@@ -91647,7 +90346,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Constructor\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Constructor\", crate::polyline_test::run_polyline_constructor);\nREGISTER_MINI_TEST!(\"Polyline\", \"Transformation\", crate::polyline_test::run_polyline_transformation);\nREGISTER_MINI_TEST!(\"Polyline\", \"Json Roundtrip\", crate::polyline_test::run_polyline_json_roundtrip);\nREGISTER_MINI_TEST!(\"Polyline\", \"Protobuf Roundtrip\", crate::polyline_test::run_polyline_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Polyline\", \"Length\", crate::polyline_test::run_polyline_length);\nREGISTER_MINI_TEST!(\"Polyline\", \"Center\", crate::polyline_test::run_polyline_center);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Closed\", crate::polyline_test::run_polyline_is_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Constructor\", crate::polyline_test::run_polyline_constructor);\nREGISTER_MINI_TEST!(\"Polyline\", \"Transformation\", crate::polyline_test::run_polyline_transformation);\nREGISTER_MINI_TEST!(\"Polyline\", \"Json Roundtrip\", crate::polyline_test::run_polyline_json_roundtrip);\nREGISTER_MINI_TEST!(\"Polyline\", \"Protobuf Roundtrip\", crate::polyline_test::run_polyline_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Polyline\", \"Length\", crate::polyline_test::run_polyline_length);\nREGISTER_MINI_TEST!(\"Polyline\", \"Center\", crate::polyline_test::run_polyline_center);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Closed\", crate::polyline_test::run_polyline_is_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -91707,7 +90406,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Transformation\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Transformation\", crate::polyline_test::run_polyline_transformation);\nREGISTER_MINI_TEST!(\"Polyline\", \"Json Roundtrip\", crate::polyline_test::run_polyline_json_roundtrip);\nREGISTER_MINI_TEST!(\"Polyline\", \"Protobuf Roundtrip\", crate::polyline_test::run_polyline_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Polyline\", \"Length\", crate::polyline_test::run_polyline_length);\nREGISTER_MINI_TEST!(\"Polyline\", \"Center\", crate::polyline_test::run_polyline_center);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Closed\", crate::polyline_test::run_polyline_is_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Transformation\", crate::polyline_test::run_polyline_transformation);\nREGISTER_MINI_TEST!(\"Polyline\", \"Json Roundtrip\", crate::polyline_test::run_polyline_json_roundtrip);\nREGISTER_MINI_TEST!(\"Polyline\", \"Protobuf Roundtrip\", crate::polyline_test::run_polyline_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Polyline\", \"Length\", crate::polyline_test::run_polyline_length);\nREGISTER_MINI_TEST!(\"Polyline\", \"Center\", crate::polyline_test::run_polyline_center);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Closed\", crate::polyline_test::run_polyline_is_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -91727,7 +90426,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Json Roundtrip\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Json Roundtrip\", crate::polyline_test::run_polyline_json_roundtrip);\nREGISTER_MINI_TEST!(\"Polyline\", \"Protobuf Roundtrip\", crate::polyline_test::run_polyline_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Polyline\", \"Length\", crate::polyline_test::run_polyline_length);\nREGISTER_MINI_TEST!(\"Polyline\", \"Center\", crate::polyline_test::run_polyline_center);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Closed\", crate::polyline_test::run_polyline_is_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Json Roundtrip\", crate::polyline_test::run_polyline_json_roundtrip);\nREGISTER_MINI_TEST!(\"Polyline\", \"Protobuf Roundtrip\", crate::polyline_test::run_polyline_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Polyline\", \"Length\", crate::polyline_test::run_polyline_length);\nREGISTER_MINI_TEST!(\"Polyline\", \"Center\", crate::polyline_test::run_polyline_center);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Closed\", crate::polyline_test::run_polyline_is_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -91747,7 +90446,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Protobuf Roundtrip\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Protobuf Roundtrip\", crate::polyline_test::run_polyline_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Polyline\", \"Length\", crate::polyline_test::run_polyline_length);\nREGISTER_MINI_TEST!(\"Polyline\", \"Center\", crate::polyline_test::run_polyline_center);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Closed\", crate::polyline_test::run_polyline_is_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Protobuf Roundtrip\", crate::polyline_test::run_polyline_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Polyline\", \"Length\", crate::polyline_test::run_polyline_length);\nREGISTER_MINI_TEST!(\"Polyline\", \"Center\", crate::polyline_test::run_polyline_center);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Closed\", crate::polyline_test::run_polyline_is_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -91767,7 +90466,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Length\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Length\", crate::polyline_test::run_polyline_length);\nREGISTER_MINI_TEST!(\"Polyline\", \"Center\", crate::polyline_test::run_polyline_center);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Closed\", crate::polyline_test::run_polyline_is_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Length\", crate::polyline_test::run_polyline_length);\nREGISTER_MINI_TEST!(\"Polyline\", \"Center\", crate::polyline_test::run_polyline_center);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Closed\", crate::polyline_test::run_polyline_is_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -91787,7 +90486,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Center\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Center\", crate::polyline_test::run_polyline_center);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Closed\", crate::polyline_test::run_polyline_is_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Center\", crate::polyline_test::run_polyline_center);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Closed\", crate::polyline_test::run_polyline_is_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -91807,7 +90506,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Is Closed\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Is Closed\", crate::polyline_test::run_polyline_is_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Is Closed\", crate::polyline_test::run_polyline_is_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -91827,7 +90526,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Closed\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Closed\", crate::polyline_test::run_polyline_closed);\nREGISTER_MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -91847,7 +90546,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Reverse\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Reverse\", crate::polyline_test::run_polyline_reverse);\nREGISTER_MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -91867,7 +90566,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Closest Point\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Closest Point\", crate::polyline_test::run_polyline_closest_point);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -92007,7 +90706,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Extend Segment\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Extend Segment\", crate::polyline_test::run_polyline_extend_segment);\nREGISTER_MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -92027,7 +90726,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Extend Segment Equally\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Extend Segment Equally\", crate::polyline_test::run_polyline_extend_segment_equally);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -92087,7 +90786,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Get Points\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Get Points\", crate::polyline_test::run_polyline_get_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -92107,7 +90806,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Get Lines\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Get Lines\", crate::polyline_test::run_polyline_get_lines);\nREGISTER_MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -92187,7 +90886,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Shift\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Shift\", crate::polyline_test::run_polyline_shift);\nREGISTER_MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -92207,7 +90906,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Point At\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Point At\", crate::polyline_test::run_polyline_point_at);\nREGISTER_MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -92227,7 +90926,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Is Clockwise\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Is Clockwise\", crate::polyline_test::run_polyline_is_clockwise);\nREGISTER_MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -92247,7 +90946,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Convex Corners\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Convex Corners\", crate::polyline_test::run_polyline_convex_corners);\nREGISTER_MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -92267,7 +90966,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Tween\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Tween\", crate::polyline_test::run_polyline_tween);\nREGISTER_MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -92287,7 +90986,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Average Plane\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Average Plane\", crate::polyline_test::run_polyline_average_plane);\nREGISTER_MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -92307,7 +91006,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Interpolate Points\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Interpolate Points\", crate::polyline_test::run_polyline_interpolate_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -92327,7 +91026,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Quick Hull\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Quick Hull\", crate::polyline_test::run_polyline_quick_hull);\nREGISTER_MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -92347,7 +91046,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Bounding Rectangle\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Bounding Rectangle\", crate::polyline_test::run_polyline_bounding_rectangle);\nREGISTER_MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -92367,7 +91066,37 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\")",
-          "code": "MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "code": "MINI_TEST!(\"Polyline\", \"Grid Of Points In Polygon\", crate::polyline_test::run_polyline_grid_of_points);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "file": "polyline_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Polyline.test_Polylabel",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Polyline\", \"Polylabel\")",
+          "code": "MINI_TEST(\"Polyline\", \"Polylabel\") {\n    Polyline poly({\n        Point(0.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n        Point(0.0, 10.0, 0.0),\n    });\n    std::vector<Polyline> polys = { poly };\n    std::tuple<Point, Plane, double> res = Polyline::polylabel(polys, 0.5);\n    const Point& c = std::get<0>(res);\n    double r = std::get<2>(res);\n\n    MINI_CHECK(std::abs(c[0] - 5.0) < 0.6);\n    MINI_CHECK(std::abs(c[1] - 5.0) < 0.6);\n    MINI_CHECK(std::abs(r - 5.0) < 0.6);\n}",
+          "file": "polyline_test.cpp"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Polyline\", \"Polylabel\")",
+          "code": "MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
+          "file": "polyline_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Polyline.test_Polylabel Circle Division Points",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Polyline\", \"Polylabel Circle Division Points\")",
+          "code": "MINI_TEST(\"Polyline\", \"Polylabel Circle Division Points\") {\n    Polyline poly({\n        Point(0.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n        Point(0.0, 10.0, 0.0),\n    });\n    std::vector<Polyline> polys = { poly };\n    Vector dir(0.0, 0.0, 0.0);\n    std::vector<Point> pts = Polyline::polylabel_circle_division_points(dir, polys, 4, 0.5, 1.0, true);\n\n    MINI_CHECK(pts.size() == 4);\n    for (const auto& p : pts) {\n        MINI_CHECK(std::abs(p[2]) < 1e-6);\n    }\n}",
+          "file": "polyline_test.cpp"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\")",
+          "code": "MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
           "file": "polyline_test.rs"
         }
       }
@@ -97202,11 +95931,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "n",
         "circle",
-        "points",
-        "into",
         "subdivide",
+        "points",
+        "n",
+        "into",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -97220,11 +95949,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "ellipse",
         "arc",
         "by",
-        "length",
         "subdivide",
+        "length",
+        "ellipse",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -97239,8 +95968,8 @@ window.API_INDEX = {
       "title": "Arc Through 3 Points",
       "tags": [
         "arc",
-        "through",
         "points",
+        "through",
         "nurbscurve",
         "primitives",
         "point"
@@ -97254,12 +95983,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "from",
         "adaptive",
-        "polyline",
         "curve",
-        "points",
         "open",
+        "points",
+        "polyline",
+        "from",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -97274,9 +96003,9 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
+        "evaluation",
         "curve",
         "at",
-        "evaluation",
         "parameter",
         "set_domain",
         "point_at",
@@ -97296,9 +96025,9 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
+        "frames",
         "curve",
         "along",
-        "frames",
         "length",
         "divide_by_count",
         "frame_at",
@@ -97322,8 +96051,8 @@ window.API_INDEX = {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
         "ellipse",
-        "perpendicular",
         "frames",
+        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -97344,10 +96073,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "cylinder",
-        "surface",
         "evaluate",
+        "surface",
         "point",
+        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -97362,10 +96091,10 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "from",
+        "vertices",
         "and",
         "mesh",
-        "vertices",
+        "from",
         "faces",
         "add_vertex",
         "add_face",
@@ -97417,15 +96146,12 @@ window.API_INDEX = {
     "KDTree": "KD-tree for point-to-point nearest-neighbor queries.",
     "CurveKnotStyle": "Knot spacing style for interpolated curves (matches Rhino's CurveKnotStyle).",
     "Line": "A 3D line segment with visual properties.",
-    "MarchingSquares": "Marching squares iso-contour extraction.",
     "Matrix": "Matrix geometry class",
     "VertexData": "Vertex data containing position and attributes.",
     "LoftWallFace": "LoftWallFace geometry class",
     "LoftPanel": "LoftPanel geometry class",
     "LoftAdjPair": "LoftAdjPair geometry class",
     "Mesh": "A halfedge mesh data structure for representing polygonal surfaces.",
-    "TpmsMode": "TpmsMode geometry class",
-    "MeshIso": "MeshIso geometry class",
     "NurbsCurve": "A Non-Uniform Rational B-Spline (NURBS) curve.",
     "NurbsSurface": "A Non-Uniform Rational B-Spline (NURBS) surface.",
     "OBB": "OBB geometry class",
@@ -97463,7 +96189,6 @@ window.API_INDEX = {
     "T": "T geometry class",
     "Intersection": "Intersection geometry class",
     "ColorMode": "ColorMode geometry class",
-    "TpmsType": "TpmsType geometry class",
     "knot": "knot geometry class",
     "Delaunay": "Delaunay geometry class",
     "TriangulateResult": "TriangulateResult geometry class",
@@ -97514,26 +96239,17 @@ window.API_INDEX = {
       ],
       "summary": "TriangulateResult geometry class"
     },
-    "MarchingSquares": {
+    "GeometryDecoder": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Point",
-        "Polyline"
-      ],
-      "summary": "Marching squares iso-contour extraction."
+      "uses": [],
+      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
     },
     "GeometryEncoder": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
-    },
-    "GeometryDecoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
     },
     "BooleanPolyline": {
       "composition": [],
@@ -97559,6 +96275,26 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_PartitionVars geometry class"
     },
+    "CurveKnotStyle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Knot spacing style for interpolated curves (matches Rhino's CurveKnotStyle)."
+    },
+    "ToleranceGuard": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Tolerance"
+      ],
+      "summary": "ToleranceGuard geometry class"
+    },
+    "VIntersectNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VIntersectNode geometry class"
+    },
     "TrimmedSurface": {
       "composition": [
         "NurbsCurve",
@@ -97571,26 +96307,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "TrimmedSurface geometry class"
-    },
-    "ToleranceGuard": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tolerance"
-      ],
-      "summary": "ToleranceGuard geometry class"
-    },
-    "CurveKnotStyle": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Knot spacing style for interpolated curves (matches Rhino's CurveKnotStyle)."
-    },
-    "VIntersectNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VIntersectNode geometry class"
     },
     "SessionConfig": {
       "composition": [],
@@ -97610,38 +96326,6 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "ElementColumn geometry class"
-    },
-    "Intersection": {
-      "composition": [
-        "Element",
-        "Line",
-        "Polyline",
-        "Tolerance",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "ElementPlate",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point"
-      ],
-      "summary": "Intersection geometry class"
-    },
-    "VattiScratch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VattiScratch geometry class"
-    },
-    "LoftWallFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftWallFace geometry class"
     },
     "ScanlineHeap": {
       "composition": [],
@@ -97684,18 +96368,6 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
-    "VLocalMinima": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VLocalMinima geometry class"
-    },
-    "BRepLoopType": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoopType geometry class"
-    },
     "ElementPlate": {
       "composition": [],
       "factories": [],
@@ -97710,6 +96382,50 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "ElementPlate geometry class"
+    },
+    "VattiScratch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VattiScratch geometry class"
+    },
+    "Intersection": {
+      "composition": [
+        "Element",
+        "Line",
+        "Polyline",
+        "Tolerance",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "ElementPlate",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point"
+      ],
+      "summary": "Intersection geometry class"
+    },
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
+    },
+    "LoftWallFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftWallFace geometry class"
+    },
+    "BRepLoopType": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoopType geometry class"
     },
     "ElementBeam": {
       "composition": [],
@@ -97729,6 +96445,76 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "LoftAdjPair geometry class"
+    },
+    "Primitives": {
+      "composition": [
+        "CurveKnotStyle",
+        "NurbsCurve",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsSurface",
+        "Point",
+        "Xform"
+      ],
+      "summary": "Static factory methods for creating NURBS curve primitives."
+    },
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
+    },
+    "PointCloud": {
+      "composition": [
+        "Color",
+        "Xform"
+      ],
+      "factories": [
+        "AABB",
+        "OBB"
+      ],
+      "uses": [
+        "Point",
+        "Vector"
+      ],
+      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
+    },
+    "ConvexHull": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Point"
+      ],
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+    },
+    "BRepVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepVertex geometry class"
+    },
+    "Quaternion": {
+      "composition": [
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Plane"
+      ],
+      "summary": "A quaternion for 3D rotations (scalar + vector)."
+    },
+    "VertexData": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "Vertex data containing position and attributes."
     },
     "NurbsCurve": {
       "composition": [
@@ -97750,81 +96536,43 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
-    "ConvexHull": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Point"
-      ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
-    },
-    "Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Delaunay2D geometry class"
-    },
-    "Primitives": {
-      "composition": [
-        "CurveKnotStyle",
-        "NurbsCurve",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsSurface",
-        "Point",
-        "Xform"
-      ],
-      "summary": "Static factory methods for creating NURBS curve primitives."
-    },
-    "Quaternion": {
-      "composition": [
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Plane"
-      ],
-      "summary": "A quaternion for 3D rotations (scalar + vector)."
-    },
-    "BRepVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepVertex geometry class"
-    },
-    "PointCloud": {
-      "composition": [
-        "Color",
-        "Xform"
-      ],
-      "factories": [
-        "AABB",
-        "OBB"
-      ],
-      "uses": [
-        "Point",
-        "Vector"
-      ],
-      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
-    },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "Vertex data containing position and attributes."
-    },
     "VHorzJoin": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VHorzJoin geometry class"
+    },
+    "FlatMap64": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Delaunay2D",
+        "Point",
+        "Vector"
+      ],
+      "summary": "FlatMap64 geometry class"
+    },
+    "Tolerance": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "ToleranceGuard",
+        "Vector"
+      ],
+      "summary": "Tolerance settings for geometric operations."
+    },
+    "LoftPanel": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftPanel geometry class"
+    },
+    "Component": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Component geometry class"
     },
     "RemeshCDT": {
       "composition": [],
@@ -97857,37 +96605,66 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
-    "Component": {
+    "BRepFace": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Component geometry class"
+      "summary": "BRepFace geometry class"
     },
-    "FlatMap64": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Delaunay2D",
-        "Point",
-        "Vector"
-      ],
-      "summary": "FlatMap64 geometry class"
-    },
-    "Tolerance": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "ToleranceGuard",
-        "Vector"
-      ],
-      "summary": "Tolerance settings for geometric operations."
-    },
-    "LoftPanel": {
+    "Geometry": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "LoftPanel geometry class"
+      "summary": "Geometry geometry class"
+    },
+    "BRepLoop": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoop geometry class"
+    },
+    "BRepEdge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepEdge geometry class"
+    },
+    "TreeNode": {
+      "composition": [
+        "Color"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A node of a tree data structure."
+    },
+    "Polyline": {
+      "composition": [
+        "Plane",
+        "Point",
+        "Xform"
+      ],
+      "factories": [
+        "AABB",
+        "BRep",
+        "BRepTrimType",
+        "ColorMode",
+        "Mesh",
+        "OBB",
+        "RemeshCDT",
+        "Xform"
+      ],
+      "uses": [
+        "Line",
+        "Tolerance",
+        "Vector"
+      ],
+      "summary": "A polyline defined by a collection of coordinates with an associated plane."
+    },
+    "VHorzSeg": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzSeg geometry class"
     },
     "Delaunay": {
       "composition": [],
@@ -97906,94 +96683,41 @@ window.API_INDEX = {
       ],
       "summary": "AABBTree geometry class"
     },
-    "BRepFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepFace geometry class"
-    },
-    "BRepEdge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
-    },
-    "VHorzSeg": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzSeg geometry class"
-    },
-    "Geometry": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Geometry geometry class"
-    },
-    "TreeNode": {
-      "composition": [
-        "Color"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A node of a tree data structure."
-    },
-    "TpmsMode": {
-      "composition": [],
-      "factories": [
-        "MeshIso",
-        "TpmsType"
-      ],
-      "uses": [],
-      "summary": "TpmsMode geometry class"
-    },
     "BRepTrim": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepTrim geometry class"
     },
-    "TpmsType": {
-      "composition": [],
-      "factories": [
-        "MeshIso"
-      ],
-      "uses": [
-        "Mesh",
-        "OBB",
-        "Point",
-        "TpmsMode"
-      ],
-      "summary": "TpmsType geometry class"
-    },
-    "BRepLoop": {
+    "VOutRec": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepLoop geometry class"
+      "summary": "VOutRec geometry class"
     },
-    "Polyline": {
+    "Element": {
       "composition": [
         "Line",
-        "Plane",
-        "Point",
-        "Xform"
-      ],
-      "factories": [
-        "AABB",
-        "BRep",
-        "BRepTrimType",
-        "ColorMode",
         "Mesh",
         "OBB",
-        "RemeshCDT",
-        "Xform"
-      ],
-      "uses": [
-        "Tolerance",
+        "Plane",
+        "Point",
+        "Polyline",
         "Vector"
       ],
-      "summary": "A polyline defined by a collection of coordinates with an associated plane."
+      "factories": [],
+      "uses": [
+        "AABB",
+        "BRep",
+        "Xform"
+      ],
+      "summary": "Element geometry class"
+    },
+    "_Branch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Branch geometry class"
     },
     "VActive": {
       "composition": [],
@@ -98001,17 +96725,68 @@ window.API_INDEX = {
       "uses": [],
       "summary": "VActive geometry class"
     },
-    "MeshIso": {
+    "Objects": {
+      "composition": [
+        "BRep",
+        "Component",
+        "Element",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A collection of all geometry objects."
+    },
+    "BVHNode": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Mesh",
+        "AABB",
+        "BVH",
         "OBB",
         "Point",
-        "TpmsMode",
-        "TpmsType"
+        "Vector"
       ],
-      "summary": "MeshIso geometry class"
+      "summary": "A node in the BVH tree."
+    },
+    "Default": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "Default geometry class"
+    },
+    "Closest": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Static methods for finding closest points between geometry objects."
+    },
+    "VVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VVertex geometry class"
     },
     "Session": {
       "composition": [
@@ -98041,126 +96816,17 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "BVHNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "BVH",
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "A node in the BVH tree."
-    },
-    "VOutRec": {
+    "Matrix": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VOutRec geometry class"
-    },
-    "Closest": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Static methods for finding closest points between geometry objects."
-    },
-    "Element": {
-      "composition": [
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "BRep",
-        "Xform"
-      ],
-      "summary": "Element geometry class"
-    },
-    "VVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VVertex geometry class"
-    },
-    "Default": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "Default geometry class"
-    },
-    "_Branch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Branch geometry class"
-    },
-    "Objects": {
-      "composition": [
-        "BRep",
-        "Component",
-        "Element",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A collection of all geometry objects."
-    },
-    "BIVec2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BIVec2 geometry class"
-    },
-    "KDTree": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [],
-      "uses": [
-        "_Node"
-      ],
-      "summary": "KD-tree for point-to-point nearest-neighbor queries."
+      "summary": "Matrix geometry class"
     },
     "VOutPt": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VOutPt geometry class"
-    },
-    "RayHit": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RayHit geometry class"
     },
     "Vertex": {
       "composition": [],
@@ -98183,23 +96849,66 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A 3D vector with visual properties."
     },
-    "Matrix": {
-      "composition": [],
+    "KDTree": {
+      "composition": [
+        "Point"
+      ],
       "factories": [],
-      "uses": [],
-      "summary": "Matrix geometry class"
+      "uses": [
+        "_Node"
+      ],
+      "summary": "KD-tree for point-to-point nearest-neighbor queries."
     },
-    "Color": {
+    "RayHit": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "An index-based 0-255 color with RGBA values."
+      "summary": "RayHit geometry class"
     },
-    "_Edge": {
+    "BIVec2": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Edge geometry class"
+      "summary": "BIVec2 geometry class"
+    },
+    "Point": {
+      "composition": [],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Vector"
+      ],
+      "uses": [],
+      "summary": "A 3D point with visual properties."
+    },
+    "_Node": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Node geometry class"
+    },
+    "_Rect": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Rect geometry class"
+    },
+    "Plane": {
+      "composition": [],
+      "factories": [
+        "OBB",
+        "Quaternion"
+      ],
+      "uses": [
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "A 3D plane defined by origin and coordinate axes."
     },
     "Xform": {
       "composition": [
@@ -98216,6 +96925,18 @@ window.API_INDEX = {
       ],
       "summary": "Xform geometry class"
     },
+    "_Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Edge geometry class"
+    },
+    "RTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "RTree geometry class"
+    },
     "Graph": {
       "composition": [
         "Edge"
@@ -98226,50 +96947,53 @@ window.API_INDEX = {
       ],
       "summary": "A graph data structure with string-only vertices and attributes."
     },
-    "_Node": {
+    "Color": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Node geometry class"
+      "summary": "An index-based 0-255 color with RGBA values."
     },
-    "_Rect": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Rect geometry class"
-    },
-    "Point": {
-      "composition": [],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Vector"
+    "Tree": {
+      "composition": [
+        "TreeNode"
       ],
+      "factories": [],
       "uses": [],
-      "summary": "A 3D point with visual properties."
+      "summary": "A hierarchical data structure with parent-child relationships."
     },
-    "Plane": {
+    "Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
+    "_P64": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_P64 geometry class"
+    },
+    "_Tri": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Tri geometry class"
+    },
+    "AABB": {
       "composition": [],
       "factories": [
-        "OBB",
-        "Quaternion"
+        "OBB"
       ],
       "uses": [
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
         "Point",
-        "Polyline",
-        "Vector"
+        "PointCloud",
+        "Polyline"
       ],
-      "summary": "A 3D plane defined by origin and coordinate axes."
-    },
-    "RTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RTree geometry class"
+      "summary": "Axis-aligned bounding box (center + half-size)."
     },
     "BRep": {
       "composition": [
@@ -98295,48 +97019,6 @@ window.API_INDEX = {
       ],
       "summary": "BRep geometry class"
     },
-    "Mesh": {
-      "composition": [
-        "AABBTree",
-        "ColorMode",
-        "LoftAdjPair",
-        "LoftPanel",
-        "LoftWallFace"
-      ],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Element",
-        "MeshIso",
-        "OBB",
-        "RemeshCDT",
-        "RemeshNurbsSurfaceGrid",
-        "TpmsType"
-      ],
-      "uses": [
-        "Color",
-        "Line",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "A halfedge mesh data structure for representing polygonal surfaces."
-    },
-    "_Tri": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Tri geometry class"
-    },
-    "Tree": {
-      "composition": [
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
-    },
     "Line": {
       "composition": [
         "Point"
@@ -98352,33 +97034,31 @@ window.API_INDEX = {
       ],
       "summary": "A 3D line segment with visual properties."
     },
-    "_P64": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_P64 geometry class"
-    },
-    "AABB": {
-      "composition": [],
+    "Mesh": {
+      "composition": [
+        "AABBTree",
+        "ColorMode",
+        "LoftAdjPair",
+        "LoftPanel",
+        "LoftWallFace"
+      ],
       "factories": [
-        "OBB"
+        "AABB",
+        "ColorMode",
+        "Element",
+        "OBB",
+        "RemeshCDT",
+        "RemeshNurbsSurfaceGrid"
       ],
       "uses": [
+        "Color",
         "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
         "Point",
-        "PointCloud",
-        "Polyline"
+        "Polyline",
+        "Vector",
+        "Xform"
       ],
-      "summary": "Axis-aligned bounding box (center + half-size)."
-    },
-    "Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
+      "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
     "OBB": {
       "composition": [
@@ -98388,9 +97068,7 @@ window.API_INDEX = {
       ],
       "factories": [
         "BVH",
-        "BVHNode",
-        "MeshIso",
-        "TpmsType"
+        "BVHNode"
       ],
       "uses": [
         "AABB",
@@ -99974,8 +98652,7 @@ window.API_INDEX = {
       "ElementColumn.extend",
       "Line.extend",
       "NurbsCurve.extend",
-      "Element.extend",
-      "Polyline.extend"
+      "Element.extend"
     ],
     "height": [
       "ElementColumn.height",
@@ -100002,7 +98679,6 @@ window.API_INDEX = {
     ],
     "key": [
       "ElementPlate.key",
-      "MarchingSquares.key",
       "Tolerance.key",
       "Element.key",
       "GlobalTolerance.key"
@@ -100305,8 +98981,7 @@ window.API_INDEX = {
       "Line.end"
     ],
     "get_middle_line": [
-      "Line.get_middle_line",
-      "Polyline.get_middle_line"
+      "Line.get_middle_line"
     ],
     "__iadd__": [
       "Line.__iadd__",
@@ -100383,27 +99058,6 @@ window.API_INDEX = {
     ],
     "overlap_average": [
       "Line.overlap_average"
-    ],
-    "_interp": [
-      "MarchingSquares._interp"
-    ],
-    "extract": [
-      "MarchingSquares.extract"
-    ],
-    "edge_pt": [
-      "MarchingSquares.edge_pt"
-    ],
-    "extract_from_func": [
-      "MarchingSquares.extract_from_func"
-    ],
-    "edge_pt_f": [
-      "MarchingSquares.edge_pt_f"
-    ],
-    "_connect_segments": [
-      "MarchingSquares._connect_segments"
-    ],
-    "pop_next": [
-      "MarchingSquares.pop_next"
     ],
     "rows": [
       "Matrix.rows"
@@ -100875,64 +99529,6 @@ window.API_INDEX = {
     ],
     "set_edge_width": [
       "Mesh.set_edge_width"
-    ],
-    "_marching_cubes": [
-      "TpmsMode._marching_cubes"
-    ],
-    "get_slot": [
-      "TpmsMode.get_slot"
-    ],
-    "make_vertex": [
-      "TpmsMode.make_vertex"
-    ],
-    "eval": [
-      "MeshIso.eval",
-      "TpmsType.eval"
-    ],
-    "from_tpms": [
-      "MeshIso.from_tpms",
-      "TpmsType.from_tpms"
-    ],
-    "fn": [
-      "MeshIso.fn"
-    ],
-    "from_function": [
-      "MeshIso.from_function"
-    ],
-    "sdf_sphere": [
-      "MeshIso.sdf_sphere",
-      "TpmsType.sdf_sphere"
-    ],
-    "sdf_box": [
-      "MeshIso.sdf_box",
-      "TpmsType.sdf_box"
-    ],
-    "sdf_capsule": [
-      "MeshIso.sdf_capsule",
-      "TpmsType.sdf_capsule"
-    ],
-    "sdf_torus": [
-      "MeshIso.sdf_torus",
-      "TpmsType.sdf_torus"
-    ],
-    "sdf_plane": [
-      "MeshIso.sdf_plane",
-      "TpmsType.sdf_plane"
-    ],
-    "smooth_union": [
-      "MeshIso.smooth_union",
-      "TpmsType.smooth_union"
-    ],
-    "smooth_subtract": [
-      "MeshIso.smooth_subtract",
-      "TpmsType.smooth_subtract"
-    ],
-    "smooth_intersect": [
-      "MeshIso.smooth_intersect",
-      "TpmsType.smooth_intersect"
-    ],
-    "_merge_meshes": [
-      "MeshIso._merge_meshes"
     ],
     "create": [
       "NurbsCurve.create",
@@ -101549,6 +100145,12 @@ window.API_INDEX = {
     "translate_by_normal": [
       "Plane.translate_by_normal"
     ],
+    "base1": [
+      "Plane.base1"
+    ],
+    "base2": [
+      "Plane.base2"
+    ],
     "to_polylines": [
       "Plane.to_polylines"
     ],
@@ -101705,16 +100307,20 @@ window.API_INDEX = {
       "Polyline.closest_point_to_line"
     ],
     "line_line_overlap": [
-      "Polyline.line_line_overlap"
+      "Polyline.line_line_overlap",
+      "Line.line_line_overlap"
     ],
     "line_line_average": [
-      "Polyline.line_line_average"
+      "Polyline.line_line_average",
+      "Line.line_line_average"
     ],
     "line_line_overlap_average": [
-      "Polyline.line_line_overlap_average"
+      "Polyline.line_line_overlap_average",
+      "Line.line_line_overlap_average"
     ],
     "line_from_projected_points": [
-      "Polyline.line_from_projected_points"
+      "Polyline.line_from_projected_points",
+      "Line.line_from_projected_points"
     ],
     "closest_distance_and_point": [
       "Polyline.closest_distance_and_point"
@@ -103125,14 +101731,17 @@ window.API_INDEX = {
     "make_pair": [
       "std.make_pair"
     ],
+    "extend_line": [
+      "Line.extend_line"
+    ],
+    "extend_equally": [
+      "Line.extend_equally"
+    ],
+    "scale_line": [
+      "Line.scale_line"
+    ],
     "invalid_argument": [
       "std.invalid_argument"
-    ],
-    "interp": [
-      "MarchingSquares.interp"
-    ],
-    "connect_segments": [
-      "MarchingSquares.connect_segments"
     ],
     "from_vec": [
       "Matrix.from_vec"
@@ -103200,12 +101809,6 @@ window.API_INDEX = {
     "get_cached_aabb_tree": [
       "ColorMode.get_cached_aabb_tree"
     ],
-    "sin": [
-      "std.sin"
-    ],
-    "cos": [
-      "std.cos"
-    ],
     "cv_capacity": [
       "NurbsCurve.cv_capacity"
     ],
@@ -103271,12 +101874,6 @@ window.API_INDEX = {
     "assign": [
       "OBB.assign"
     ],
-    "base1": [
-      "Plane.base1"
-    ],
-    "base2": [
-      "Plane.base2"
-    ],
     "ccw": [
       "Point.ccw"
     ],
@@ -103293,6 +101890,12 @@ window.API_INDEX = {
     "length_squared": [
       "Polyline.length_squared"
     ],
+    "polylabel": [
+      "Polyline.polylabel"
+    ],
+    "polylabel_circle_division_points": [
+      "Polyline.polylabel_circle_division_points"
+    ],
     "recompute_plane_if_needed": [
       "Polyline.recompute_plane_if_needed"
     ],
@@ -103301,28 +101904,6 @@ window.API_INDEX = {
     ],
     "simplify_rdp": [
       "Polyline.simplify_rdp"
-    ],
-    "polyline_length": [
-      "Polyline.polyline_length"
-    ],
-    "polyline_length_squared": [
-      "Polyline.polyline_length_squared"
-    ],
-    "center_vec": [
-      "Polyline.center_vec"
-    ],
-    "move": [
-      "Polyline.move"
-    ],
-    "extend_line": [
-      "Polyline.extend_line"
-    ],
-    "extend_equally": [
-      "Polyline.extend_equally",
-      "Line.extend_equally"
-    ],
-    "scale_line": [
-      "Polyline.scale_line"
     ],
     "unit_cylinder_geometry": [
       "Primitives.unit_cylinder_geometry"
@@ -103957,6 +102538,9 @@ window.API_INDEX = {
     "z_axis_ref": [
       "Plane.z_axis_ref"
     ],
+    "center_vec": [
+      "Polyline.center_vec"
+    ],
     "move_by": [
       "Polyline.move_by"
     ],
@@ -104387,22 +102971,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Line": {
-      "cpp": 38,
+      "cpp": 45,
       "python": 50,
       "rust": 39,
-      "gaps": 29,
-      "present_in": [
-        "cpp",
-        "python",
-        "rust"
-      ],
-      "status": "TODO"
-    },
-    "MarchingSquares": {
-      "cpp": 5,
-      "python": 8,
-      "rust": 2,
-      "gaps": 8,
+      "gaps": 35,
       "present_in": [
         "cpp",
         "python",
@@ -104475,28 +103047,6 @@ window.API_INDEX = {
       ],
       "status": "TODO"
     },
-    "TpmsMode": {
-      "cpp": 0,
-      "python": 3,
-      "rust": 0,
-      "gaps": 3,
-      "present_in": [
-        "python"
-      ],
-      "status": "TODO"
-    },
-    "MeshIso": {
-      "cpp": 11,
-      "python": 13,
-      "rust": 10,
-      "gaps": 3,
-      "present_in": [
-        "cpp",
-        "python",
-        "rust"
-      ],
-      "status": "TODO"
-    },
     "NurbsCurve": {
       "cpp": 115,
       "python": 125,
@@ -104547,9 +103097,9 @@ window.API_INDEX = {
     },
     "Plane": {
       "cpp": 47,
-      "python": 57,
-      "rust": 54,
-      "gaps": 36,
+      "python": 59,
+      "rust": 56,
+      "gaps": 34,
       "present_in": [
         "cpp",
         "python",
@@ -104582,10 +103132,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Polyline": {
-      "cpp": 83,
+      "cpp": 75,
       "python": 97,
-      "rust": 72,
-      "gaps": 68,
+      "rust": 74,
+      "gaps": 62,
       "present_in": [
         "cpp",
         "python",
@@ -104862,10 +103412,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "std": {
-      "cpp": 22,
+      "cpp": 20,
       "python": 0,
       "rust": 0,
-      "gaps": 22,
+      "gaps": 20,
       "present_in": [
         "cpp"
       ],
@@ -104907,16 +103457,6 @@ window.API_INDEX = {
       "python": 0,
       "rust": 0,
       "gaps": 114,
-      "present_in": [
-        "cpp"
-      ],
-      "status": "TODO"
-    },
-    "TpmsType": {
-      "cpp": 10,
-      "python": 0,
-      "rust": 0,
-      "gaps": 10,
       "present_in": [
         "cpp"
       ],

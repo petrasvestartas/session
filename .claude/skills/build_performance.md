@@ -65,9 +65,9 @@ The CMakeLists.txt already auto-detects sccache/ccache (lines 66-76) but neither
 **Fix**: `cargo install sccache` (uses Rust toolchain already present)
 
 ### 5. C++: Reduce unity build exclusions
-`CMakeLists.txt:48-61` excludes 12 files from unity build. Files that are no longer under active development should be moved back into unity batches.
+`CMakeLists.txt:48-61` excludes files from unity build. Files that are no longer under active development should be moved back into unity batches.
 
-Current exclusions: nurbscurve, nurbssurface, trimmedsurface, knot, mesh, brep, mesh_iso, graph, tree, treenode, session, element
+Current exclusions: nurbscurve, nurbssurface, trimmedsurface, knot, mesh, brep, graph, tree, treenode, session, element
 
 ## Medium-Term Improvements
 

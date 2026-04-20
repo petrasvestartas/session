@@ -13,7 +13,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.0
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -93,7 +93,7 @@
     "line": 51,
     "passed": true,
     "test_name": "Format Number",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -109,7 +109,7 @@
     "line": 60,
     "passed": true,
     "test_name": "Key",
-    "time_ms": 0.004
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -160,7 +160,7 @@
     "line": 69,
     "passed": true,
     "test_name": "Runtime Modification",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -181,7 +181,7 @@
     "line": 323,
     "passed": true,
     "test_name": "Temporary",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -276,7 +276,7 @@
     "line": 268,
     "passed": true,
     "test_name": "Precision From Tolerance",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -594,6 +594,6 @@
     "line": 154,
     "passed": true,
     "test_name": "To Radians",
-    "time_ms": 0.001
+    "time_ms": 0.0
   }
 ]

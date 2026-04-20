@@ -3,7 +3,7 @@
     "group": "Color",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.068,
+    "time_ms": 0.045,
     "line": 8,
     "code": "    from session_py import Color\n\n    # Constructor\n    red = Color(255, 0, 0, 255, \"red\")\n\n    # Setters\n    red[0] = 255\n    red[1] = 0\n    red[2] = 0\n    red[3] = 255\n\n    # Getters\n    r = red[0]\n    g = red[1]\n    b = red[2]\n    a = red[3]\n\n    # Minimal and Full String Representation\n    cstr = str(red)\n    crepr = repr(red)\n\n    # Copy (duplicates everything except guid)\n    ccopy = red.duplicate()\n    cother = Color(255, 0, 0, 255, \"red\")",
     "checks": [
@@ -74,7 +74,7 @@
     "group": "Color",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 6.459,
+    "time_ms": 4.898,
     "line": 50,
     "code": "    from session_py import Color\n    from pathlib import Path\n\n    c = Color(255, 128, 64, 255, \"test_color\")\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   json_dumps()    \u2502 str          \u2502 to JSON string\n    #   json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   json_dump(path) \u2502 file         \u2502 write to file\n    #   json_load(path) \u2502 file         \u2502 read from file\n\n    # json_dump(fname) / json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_color.json\"\n    c.json_dump(fname)\n    loaded = Color.json_load(fname)",
     "checks": [
@@ -110,7 +110,7 @@
     "group": "Color",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 5.636,
+    "time_ms": 4.446,
     "line": 76,
     "code": "    from session_py import Color\n    from pathlib import Path\n\n    color = Color(255, 128, 64, 255, \"test_color\")\n\n    #   pb_dumps()      \u2502 bytes        \u2502 to protobuf bytes\n    #   pb_loads(b)     \u2502 bytes        \u2502 from protobuf bytes\n    #   pb_dump(path)   \u2502 file         \u2502 write to file\n    #   pb_load(path)   \u2502 file         \u2502 read from file\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_color.bin\"\n    color.pb_dump(path)\n    loaded = Color.pb_load(path)",
     "checks": [
@@ -146,7 +146,7 @@
     "group": "Color",
     "test_name": "Conversion",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.012,
     "line": 99,
     "code": "    from session_py import Color\n\n    color = Color(255, 128, 64, 255)\n    flts = color.to_unified_array()\n    ints = Color.from_unified_array(flts)",
     "checks": [
@@ -182,7 +182,7 @@
     "group": "Color",
     "test_name": "Presets",
     "passed": true,
-    "time_ms": 0.075,
+    "time_ms": 0.062,
     "line": 113,
     "code": "    from session_py import Color\n    \n    white = Color.white()\n    black = Color.black()\n    grey = Color.grey()\n    red = Color.red()\n    orange = Color.orange()\n    yellow = Color.yellow()\n    lime = Color.lime()\n    green = Color.green()\n    mint = Color.mint()\n    cyan = Color.cyan()\n    azure = Color.azure()\n    blue = Color.blue()\n    violet = Color.violet()\n    magenta = Color.magenta()\n    pink = Color.pink()\n    maroon = Color.maroon()\n    brown = Color.brown()\n    olive = Color.olive()\n    teal = Color.teal()\n    navy = Color.navy()\n    purple = Color.purple()\n    silver = Color.silver()",
     "checks": [

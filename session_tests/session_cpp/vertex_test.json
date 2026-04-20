@@ -3,7 +3,7 @@
     "group": "Vertex",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.003,
     "line": 8,
     "code": "    // uncomment #include \"graph.h\"\n\n    // Default constructor\n    Vertex v0;\n\n    // Constructor with name + attribute\n    Vertex v(\"v_named\", \"attr\");\n\n    // Minimal string representation\n    std::string vstr = v.str();",
     "checks": [
@@ -44,7 +44,7 @@
     "group": "Vertex",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 5.582,
+    "time_ms": 5.076,
     "line": 28,
     "code": "    // uncomment #include \"graph.h\"\n    // uncomment #include \"encoders.h\"\n\n    Vertex original(\"v0\", \"test_attribute\");\n    encoders::json_dump(original, \"serialization/test_vertex.json\");\n    Vertex loaded = encoders::json_load<Vertex>(\"serialization/test_vertex.json\");",
     "checks": [
@@ -101,7 +101,7 @@
     "group": "Vertex",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 4.896,
+    "time_ms": 4.65,
     "line": 26,
     "code": "    Vertex original(\"v0\", \"test_attribute\");\n\n    std::string fname = \"serialization/test_vertex.json\";\n    encoders::json_dump(original, fname);\n    Vertex loaded = encoders::json_load<Vertex>(fname);",
     "checks": [
