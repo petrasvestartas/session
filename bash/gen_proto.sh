@@ -82,7 +82,7 @@ if $DO_PY; then
     "$PYTHON_BIN" -m grpc_tools.protoc \
         --python_out="$PY_OUT" \
         -I "$PROTO_DIR" \
-        "$PROTO_DIR"/*.proto
+        $(printf '%s\n' "$PROTO_DIR"/*.proto | LC_ALL=C sort | tr '\n' ' ')
     # Rewrite cross-module imports to be package-relative so _pb2 modules
     # can import each other without polluting sys.path.
     for pb in "$PY_OUT"/*_pb2.py; do
@@ -125,7 +125,7 @@ if $DO_CPP; then
         echo "  SESSION_REGEN_PROTO=ON." >&2
         exit 1
     fi
-    "$PROTOC" --cpp_out="$CPP_OUT" --proto_path="$PROTO_DIR" "$PROTO_DIR"/*.proto
+    "$PROTOC" --cpp_out="$CPP_OUT" --proto_path="$PROTO_DIR" $(printf '%s\n' "$PROTO_DIR"/*.proto | LC_ALL=C sort | tr '\n' ' ')
 fi
 
 # ---- Rust -----------------------------------------------------------------
