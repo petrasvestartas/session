@@ -87,6 +87,14 @@ jobs:
         chmod +x bash/*.sh bash/lib/*.sh
         ./bash/minitest.sh
 
+    # Fails if anyone edited a .proto file without committing the refreshed
+    # Python/C++/Rust generated output. Runs only on Linux to keep CI time down;
+    # generated output is platform-independent.
+    - name: Check committed proto bindings are fresh
+      if: runner.os == 'Linux'
+      shell: bash
+      run: ./bash/gen_proto.sh --check
+
     - name: Verify dist exists
       shell: bash
       run: |

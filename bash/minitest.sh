@@ -82,54 +82,57 @@ else
     DEV_ARG="--release"
 fi
 
-# Regenerate Python protos — skip if all _pb2.py are up-to-date
-regenerate_python_protos() {
+# Regenerate committed protobuf bindings that are stale.
+#
+# Option C: Python (_pb2.py) and C++ (.pb.cc/.pb.h) generated files are
+# committed alongside the .proto sources. This helper refreshes them when
+# any .proto is newer than its corresponding output. Rust auto-regens via
+# session_rust/build.rs on every `cargo build` so it is NOT handled here.
+regenerate_protos() {
     local proto_dir="${REPO_ROOT}/session_proto"
-    local py_proto_out="${REPO_ROOT}/session_py/src/session_py/proto"
+    [[ -d "$proto_dir" ]] || return 0
 
-    if [[ ! -d "$proto_dir" ]]; then
-        return 0
-    fi
-
-    # Check if any .proto is newer than its _pb2.py
-    local stale=false
+    # ---- Python ----
+    local py_out="${REPO_ROOT}/session_py/src/session_py/proto"
+    local py_stale=false
     for proto_file in "${proto_dir}"/*.proto; do
         [[ -f "$proto_file" ]] || continue
         local base=$(basename "$proto_file" .proto)
-        local pb2="${py_proto_out}/${base}_pb2.py"
-        if [[ ! -f "$pb2" ]] || [[ "$proto_file" -nt "$pb2" ]]; then
-            stale=true
+        if [[ ! -f "${py_out}/${base}_pb2.py" ]] || [[ "$proto_file" -nt "${py_out}/${base}_pb2.py" ]]; then
+            py_stale=true
             break
         fi
     done
 
-    if [[ "$stale" == "false" ]]; then
+    # ---- C++ ----
+    local cpp_out="${REPO_ROOT}/session_cpp/generated"
+    local cpp_stale=false
+    for proto_file in "${proto_dir}"/*.proto; do
+        [[ -f "$proto_file" ]] || continue
+        local base=$(basename "$proto_file" .proto)
+        if [[ ! -f "${cpp_out}/${base}.pb.cc" ]] || [[ "$proto_file" -nt "${cpp_out}/${base}.pb.cc" ]]; then
+            cpp_stale=true
+            break
+        fi
+    done
+
+    if [[ "$py_stale" == "false" && "$cpp_stale" == "false" ]]; then
         log "Protos up-to-date, skipping regeneration"
         return 0
     fi
 
-    mkdir -p "$py_proto_out"
-    log "Regenerating Python protobuf bindings..."
-    for proto_file in "${proto_dir}"/*.proto; do
-        if [[ -f "$proto_file" ]]; then
-            python -m grpc_tools.protoc --python_out="$py_proto_out" -I "$proto_dir" "$proto_file" 2>/dev/null || true
-        fi
-    done
-
-    # Fix imports for relative imports
-    for pb_file in "${py_proto_out}"/*_pb2.py; do
-        if [[ -f "$pb_file" ]]; then
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                sed -i '' 's/^import \([a-z_]*_pb2\) as/from . import \1 as/g' "$pb_file"
-            else
-                sed -i 's/^import \([a-z_]*_pb2\) as/from . import \1 as/g' "$pb_file"
-            fi
-        fi
-    done
+    local args=()
+    [[ "$py_stale" == "true" ]] && args+=(--py)
+    [[ "$cpp_stale" == "true" ]] && args+=(--cpp)
+    log "Regenerating protobuf bindings: ${args[*]}"
+    "${SCRIPT_DIR}/gen_proto.sh" "${args[@]}"
 }
 
-if [[ "$RUN_PYTHON" == "true" ]]; then
-    regenerate_python_protos
+# Back-compat alias for earlier callers.
+regenerate_python_protos() { regenerate_protos; }
+
+if [[ "$RUN_PYTHON" == "true" || "$RUN_CPP" == "true" ]]; then
+    regenerate_protos
 fi
 
 # Count enabled languages
