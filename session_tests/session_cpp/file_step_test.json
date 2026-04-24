@@ -1,0 +1,882 @@
+[
+  {
+    "group": "FileStep",
+    "test_name": "NurbsCurve Round Trip",
+    "passed": true,
+    "time_ms": 1.357,
+    "line": 13,
+    "code": "    std::filesystem::create_directories(\"./serialization\");\n    std::string path = \"./serialization/test_step_nurbscurve.step\";\n\n    // Build a cubic non-rational curve with 4 CVs\n    std::vector<Point> pts = {Point(0,0,0), Point(1,2,0), Point(2,2,0), Point(3,0,0)};\n    NurbsCurve nc = NurbsCurve::create(false, 3, pts);\n\n    file_step::write_file_step_nurbscurves({nc}, path);\n\n    auto curves = file_step::read_file_step_nurbscurves(path);\n    const NurbsCurve& back = curves[0];\n\n    // Check knot round-trip\n    auto kn_orig = nc.get_nurbsknots();\n    auto kn_back = back.get_nurbsknots();\n    for (size_t i = 0; i < kn_orig.size() && i < kn_back.size(); i++)\n\n    // Check CV round-trip\n    for (int i = 0; i < 4; i++) {\n        Point p_orig = nc.get_cv(i);\n        Point p_back = back.get_cv(i);\n    }\n    std::filesystem::remove(path);",
+    "checks": [
+      {
+        "line": 20,
+        "code_line": "nc.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 21,
+        "code_line": "nc.degree() == 3",
+        "passed": true
+      },
+      {
+        "line": 22,
+        "code_line": "nc.cv_count() == 4",
+        "passed": true
+      },
+      {
+        "line": 25,
+        "code_line": "std::filesystem::exists(path)",
+        "passed": true
+      },
+      {
+        "line": 28,
+        "code_line": "curves.size() >= 1",
+        "passed": true
+      },
+      {
+        "line": 30,
+        "code_line": "back.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 31,
+        "code_line": "back.degree() == 3",
+        "passed": true
+      },
+      {
+        "line": 32,
+        "code_line": "back.cv_count() == 4",
+        "passed": true
+      },
+      {
+        "line": 33,
+        "code_line": "back.m_is_rat == 0",
+        "passed": true
+      },
+      {
+        "line": 38,
+        "code_line": "kn_orig.size() == kn_back.size()",
+        "passed": true
+      },
+      {
+        "line": 40,
+        "code_line": "std::abs(kn_orig[i] - kn_back[i]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 40,
+        "code_line": "std::abs(kn_orig[i] - kn_back[i]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 40,
+        "code_line": "std::abs(kn_orig[i] - kn_back[i]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 40,
+        "code_line": "std::abs(kn_orig[i] - kn_back[i]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 40,
+        "code_line": "std::abs(kn_orig[i] - kn_back[i]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 40,
+        "code_line": "std::abs(kn_orig[i] - kn_back[i]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 46,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 47,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 46,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 47,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 46,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 47,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 46,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 47,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "FileStep",
+    "test_name": "NurbsCurve Rational Round Trip",
+    "passed": true,
+    "time_ms": 1.559,
+    "line": 53,
+    "code": "    std::filesystem::create_directories(\"./serialization\");\n    std::string path = \"./serialization/test_step_nurbscurve_rat.step\";\n\n    // Build a degree-2 rational curve (quarter circle) with 3 CVs\n    // Exact rational NURBS quarter arc: w = [1, cos(pi/4), 1], CVs at (1,0,0),(1,1,0),(0,1,0)\n    NurbsCurve nc(3, true, 3, 3); // order=3 (degree-2), 3 CVs, rational\n    double w_mid = std::cos(3.14159265358979323846 / 4.0);\n    // knots: full = {0,0,0,1,1,1}, internal = {0,1} → m_nurbsknot size = order + cv_count - 2 = 3+3-2=4\n    nc.m_nurbsknot = {0.0, 0.0, 1.0, 1.0};\n    double* cv = nc.cv_array();\n    // CV0: (1,0,0) w=1 → homogeneous (1,0,0,1)\n    cv[0]=1.0; cv[1]=0.0; cv[2]=0.0; cv[3]=1.0;\n    // CV1: (1,1,0) w=w_mid → homogeneous (w_mid, w_mid, 0, w_mid)\n    cv[4]=w_mid*1.0; cv[5]=w_mid*1.0; cv[6]=0.0; cv[7]=w_mid;\n    // CV2: (0,1,0) w=1 → homogeneous (0,1,0,1)\n    cv[8]=0.0; cv[9]=1.0; cv[10]=0.0; cv[11]=1.0;\n\n\n    file_step::write_file_step_nurbscurves({nc}, path);\n\n    auto curves = file_step::read_file_step_nurbscurves(path);\n    const NurbsCurve& back = curves[0];\n\n    // Check CVs and weights survive round-trip\n    const double* cv_back = back.m_cv.data();\n    int s = back.m_cv_stride;\n    for (int i = 0; i < 3; i++) {\n        double w_orig = cv[i*4+3];\n        double w_back = cv_back[i*s+3];\n    }\n    std::filesystem::remove(path);",
+    "checks": [
+      {
+        "line": 71,
+        "code_line": "nc.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 72,
+        "code_line": "nc.degree() == 2",
+        "passed": true
+      },
+      {
+        "line": 73,
+        "code_line": "nc.cv_count() == 3",
+        "passed": true
+      },
+      {
+        "line": 74,
+        "code_line": "nc.m_is_rat == 1",
+        "passed": true
+      },
+      {
+        "line": 77,
+        "code_line": "std::filesystem::exists(path)",
+        "passed": true
+      },
+      {
+        "line": 80,
+        "code_line": "curves.size() >= 1",
+        "passed": true
+      },
+      {
+        "line": 82,
+        "code_line": "back.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 83,
+        "code_line": "back.degree() == 2",
+        "passed": true
+      },
+      {
+        "line": 84,
+        "code_line": "back.cv_count() == 3",
+        "passed": true
+      },
+      {
+        "line": 85,
+        "code_line": "back.m_is_rat == 1",
+        "passed": true
+      },
+      {
+        "line": 93,
+        "code_line": "std::abs(w_orig - w_back) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 95,
+        "code_line": "std::abs(cv[i*4+0]/w_orig - cv_back[i*s+0]/w_back) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 96,
+        "code_line": "std::abs(cv[i*4+1]/w_orig - cv_back[i*s+1]/w_back) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 93,
+        "code_line": "std::abs(w_orig - w_back) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 95,
+        "code_line": "std::abs(cv[i*4+0]/w_orig - cv_back[i*s+0]/w_back) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 96,
+        "code_line": "std::abs(cv[i*4+1]/w_orig - cv_back[i*s+1]/w_back) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 93,
+        "code_line": "std::abs(w_orig - w_back) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 95,
+        "code_line": "std::abs(cv[i*4+0]/w_orig - cv_back[i*s+0]/w_back) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 96,
+        "code_line": "std::abs(cv[i*4+1]/w_orig - cv_back[i*s+1]/w_back) < 1e-10",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "FileStep",
+    "test_name": "NurbsSurface Round Trip",
+    "passed": true,
+    "time_ms": 1.658,
+    "line": 102,
+    "code": "    std::filesystem::create_directories(\"./serialization\");\n    std::string path = \"./serialization/test_step_nurbssurface.step\";\n\n    // Build a bicubic patch 4x4 CVs\n    std::vector<Point> pts;\n    for (int u = 0; u < 4; u++)\n        for (int v = 0; v < 4; v++)\n            pts.emplace_back((double)u, (double)v, std::sin(u + v) * 0.5);\n    NurbsSurface srf = NurbsSurface::create(false, false, 3, 3, 4, 4, pts);\n\n    file_step::write_file_step_nurbssurfaces({srf}, path);\n\n    auto surfaces = file_step::read_file_step_nurbssurfaces(path);\n    const NurbsSurface& back = surfaces[0];\n\n    // Check knot round-trip\n    auto ku_orig = srf.m_nurbsknot[0];\n    auto kv_orig = srf.m_nurbsknot[1];\n    auto ku_back = back.m_nurbsknot[0];\n    auto kv_back = back.m_nurbsknot[1];\n    for (size_t i = 0; i < ku_orig.size() && i < ku_back.size(); i++)\n\n    // Check CV round-trip\n    for (int u = 0; u < 4; u++) for (int v = 0; v < 4; v++) {\n        Point p_orig = srf.get_cv(u, v);\n        Point p_back = back.get_cv(u, v);\n    }\n    std::filesystem::remove(path);",
+    "checks": [
+      {
+        "line": 112,
+        "code_line": "srf.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 113,
+        "code_line": "srf.degree(0) == 3",
+        "passed": true
+      },
+      {
+        "line": 114,
+        "code_line": "srf.degree(1) == 3",
+        "passed": true
+      },
+      {
+        "line": 115,
+        "code_line": "srf.cv_count(0) == 4",
+        "passed": true
+      },
+      {
+        "line": 116,
+        "code_line": "srf.cv_count(1) == 4",
+        "passed": true
+      },
+      {
+        "line": 119,
+        "code_line": "std::filesystem::exists(path)",
+        "passed": true
+      },
+      {
+        "line": 122,
+        "code_line": "surfaces.size() >= 1",
+        "passed": true
+      },
+      {
+        "line": 124,
+        "code_line": "back.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 125,
+        "code_line": "back.degree(0) == 3",
+        "passed": true
+      },
+      {
+        "line": 126,
+        "code_line": "back.degree(1) == 3",
+        "passed": true
+      },
+      {
+        "line": 127,
+        "code_line": "back.cv_count(0) == 4",
+        "passed": true
+      },
+      {
+        "line": 128,
+        "code_line": "back.cv_count(1) == 4",
+        "passed": true
+      },
+      {
+        "line": 129,
+        "code_line": "back.m_is_rat == 0",
+        "passed": true
+      },
+      {
+        "line": 136,
+        "code_line": "ku_orig.size() == ku_back.size()",
+        "passed": true
+      },
+      {
+        "line": 137,
+        "code_line": "kv_orig.size() == kv_back.size()",
+        "passed": true
+      },
+      {
+        "line": 139,
+        "code_line": "std::abs(ku_orig[i] - ku_back[i]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 139,
+        "code_line": "std::abs(ku_orig[i] - ku_back[i]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 139,
+        "code_line": "std::abs(ku_orig[i] - ku_back[i]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 139,
+        "code_line": "std::abs(ku_orig[i] - ku_back[i]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 139,
+        "code_line": "std::abs(ku_orig[i] - ku_back[i]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 139,
+        "code_line": "std::abs(ku_orig[i] - ku_back[i]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 145,
+        "code_line": "std::abs(p_orig[0] - p_back[0]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "std::abs(p_orig[1] - p_back[1]) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "std::abs(p_orig[2] - p_back[2]) < 1e-10",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "FileStep",
+    "test_name": "NurbsSurface Rational Round Trip",
+    "passed": true,
+    "time_ms": 1.148,
+    "line": 152,
+    "code": "    std::filesystem::create_directories(\"./serialization\");\n    std::string path = \"./serialization/test_step_nurbssurface_rat.step\";\n\n    // Build a rational bicubic surface 3x3 CVs (bilinear rational patch with uniform weights)\n    NurbsSurface srf(3, true, 3, 3, 3, 3);\n    // Set clamped knots: internal = {0,1} for degree-2 with 3 CVs → nurbsknot size=3+3-2=4\n    srf.m_nurbsknot[0] = {0.0, 0.0, 1.0, 1.0};\n    srf.m_nurbsknot[1] = {0.0, 0.0, 1.0, 1.0};\n    double w = 0.8;\n    for (int u = 0; u < 3; u++) for (int v = 0; v < 3; v++) {\n        double x = (double)u, y = (double)v, z = std::sin(u+v)*0.3;\n        srf.set_cv_4d(u, v, w*x, w*y, w*z, w);\n    }\n\n    file_step::write_file_step_nurbssurfaces({srf}, path);\n\n    auto surfaces = file_step::read_file_step_nurbssurfaces(path);\n    const NurbsSurface& back = surfaces[0];\n\n    // Check weight round-trip\n    for (int u = 0; u < 3; u++) for (int v = 0; v < 3; v++) {\n        double x1, y1, z1, w1, x2, y2, z2, w2;\n        srf.get_cv_4d(u, v, x1, y1, z1, w1);\n        back.get_cv_4d(u, v, x2, y2, z2, w2);\n    }\n    std::filesystem::remove(path);",
+    "checks": [
+      {
+        "line": 166,
+        "code_line": "srf.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 167,
+        "code_line": "srf.m_is_rat == 1",
+        "passed": true
+      },
+      {
+        "line": 170,
+        "code_line": "std::filesystem::exists(path)",
+        "passed": true
+      },
+      {
+        "line": 173,
+        "code_line": "surfaces.size() >= 1",
+        "passed": true
+      },
+      {
+        "line": 175,
+        "code_line": "back.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 176,
+        "code_line": "back.degree(0) == 2",
+        "passed": true
+      },
+      {
+        "line": 177,
+        "code_line": "back.degree(1) == 2",
+        "passed": true
+      },
+      {
+        "line": 178,
+        "code_line": "back.cv_count(0) == 3",
+        "passed": true
+      },
+      {
+        "line": 179,
+        "code_line": "back.cv_count(1) == 3",
+        "passed": true
+      },
+      {
+        "line": 180,
+        "code_line": "back.m_is_rat == 1",
+        "passed": true
+      },
+      {
+        "line": 187,
+        "code_line": "std::abs(w1 - w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 189,
+        "code_line": "std::abs(x1/w1 - x2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 190,
+        "code_line": "std::abs(y1/w1 - y2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 187,
+        "code_line": "std::abs(w1 - w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 189,
+        "code_line": "std::abs(x1/w1 - x2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 190,
+        "code_line": "std::abs(y1/w1 - y2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 187,
+        "code_line": "std::abs(w1 - w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 189,
+        "code_line": "std::abs(x1/w1 - x2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 190,
+        "code_line": "std::abs(y1/w1 - y2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 187,
+        "code_line": "std::abs(w1 - w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 189,
+        "code_line": "std::abs(x1/w1 - x2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 190,
+        "code_line": "std::abs(y1/w1 - y2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 187,
+        "code_line": "std::abs(w1 - w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 189,
+        "code_line": "std::abs(x1/w1 - x2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 190,
+        "code_line": "std::abs(y1/w1 - y2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 187,
+        "code_line": "std::abs(w1 - w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 189,
+        "code_line": "std::abs(x1/w1 - x2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 190,
+        "code_line": "std::abs(y1/w1 - y2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 187,
+        "code_line": "std::abs(w1 - w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 189,
+        "code_line": "std::abs(x1/w1 - x2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 190,
+        "code_line": "std::abs(y1/w1 - y2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 187,
+        "code_line": "std::abs(w1 - w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 189,
+        "code_line": "std::abs(x1/w1 - x2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 190,
+        "code_line": "std::abs(y1/w1 - y2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 187,
+        "code_line": "std::abs(w1 - w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 189,
+        "code_line": "std::abs(x1/w1 - x2/w2) < 1e-10",
+        "passed": true
+      },
+      {
+        "line": 190,
+        "code_line": "std::abs(y1/w1 - y2/w2) < 1e-10",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "FileStep",
+    "test_name": "NurbsSurfaceTrimmed Round Trip",
+    "passed": true,
+    "time_ms": 1.465,
+    "line": 196,
+    "code": "    std::filesystem::create_directories(\"./serialization\");\n    std::string path = \"./serialization/test_step_nurbssurface_trimmed.step\";\n\n    // Build a bicubic surface\n    std::vector<Point> pts;\n    for (int u = 0; u < 4; u++)\n        for (int v = 0; v < 4; v++)\n            pts.emplace_back((double)u, (double)v, 0.0);\n    NurbsSurface srf = NurbsSurface::create(false, false, 3, 3, 4, 4, pts);\n\n    // Build a 2D outer trim loop as a closed square in UV: (0,0)→(1,0)→(1,1)→(0,1)→(0,0)\n    std::vector<Point> loop_pts = {Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0), Point(0,0,0)};\n    NurbsCurve outer(2, false, 2, 5);\n    outer.m_nurbsknot = {0.0, 1.0, 2.0, 3.0, 4.0};\n    double* cv = outer.cv_array();\n    for (int i = 0; i < 5; i++) { cv[i*2+0] = loop_pts[i][0]; cv[i*2+1] = loop_pts[i][1]; }\n\n    NurbsSurfaceTrimmed trimmed = NurbsSurfaceTrimmed::create(srf, outer);\n\n    file_step::write_file_step_nurbssurfaces_trimmed({trimmed}, path);\n\n    // Verify the written file contains a valid STEP file by reading surfaces back\n    auto surfaces = file_step::read_file_step_nurbssurfaces(path);\n    const NurbsSurface& back_srf = surfaces[0];\n\n    // Verify the trim curve (outer loop) is also in the file\n    auto ncurves = file_step::read_file_step_nurbscurves(path);\n\n    std::filesystem::remove(path);",
+    "checks": [
+      {
+        "line": 213,
+        "code_line": "outer.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 216,
+        "code_line": "trimmed.m_surface.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 219,
+        "code_line": "std::filesystem::exists(path)",
+        "passed": true
+      },
+      {
+        "line": 223,
+        "code_line": "surfaces.size() >= 1",
+        "passed": true
+      },
+      {
+        "line": 225,
+        "code_line": "back_srf.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 226,
+        "code_line": "back_srf.degree(0) == 3",
+        "passed": true
+      },
+      {
+        "line": 227,
+        "code_line": "back_srf.degree(1) == 3",
+        "passed": true
+      },
+      {
+        "line": 228,
+        "code_line": "back_srf.cv_count(0) == 4",
+        "passed": true
+      },
+      {
+        "line": 229,
+        "code_line": "back_srf.cv_count(1) == 4",
+        "passed": true
+      },
+      {
+        "line": 233,
+        "code_line": "ncurves.size() >= 1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "FileStep",
+    "test_name": "BRep Read Schoring",
+    "passed": true,
+    "time_ms": 0.021,
+    "line": 238,
+    "code": "    std::string step_path = \"session_data/elements/schoring_foot_0.step\";\n    if (!std::filesystem::exists(step_path)) return;\n\n    auto breps = file_step::read_file_step_breps(step_path);\n\n    size_t total_faces = 0, total_edges = 0, total_verts = 0;\n    for (const auto& b : breps) {\n        total_faces += b.face_count();\n        total_edges += b.edge_count();\n        total_verts += b.vertex_count();\n    }\n\n    for (const auto& b : breps) {\n    }\n\n    // Verify point count via read_file_step_points\n    auto pts = file_step::read_file_step_points(step_path);",
+    "checks": [],
+    "failures": []
+  }
+]

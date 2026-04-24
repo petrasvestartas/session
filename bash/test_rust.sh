@@ -12,7 +12,7 @@ source "${SCRIPT_DIR}/lib/common.sh"
 REPO_ROOT=$(resolve_repo_root "${BASH_SOURCE[0]}")
 RUST_DIR="${REPO_ROOT}/session_rust"
 UPDATE_VIEWER=true
-DEV_MODE=false
+DEV_MODE=true
 
 # Parse args
 for arg in "$@"; do

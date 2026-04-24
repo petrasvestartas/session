@@ -83,7 +83,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.042
+    "time_ms": 0.118
   },
   {
     "checks": [
@@ -99,7 +99,7 @@
     "line": 80,
     "passed": true,
     "test_name": "From Polylines",
-    "time_ms": 0.046
+    "time_ms": 0.266
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 116,
     "passed": true,
     "test_name": "From Lines",
-    "time_ms": 0.067
+    "time_ms": 0.234
   },
   {
     "checks": [
@@ -136,7 +136,7 @@
     "line": 150,
     "passed": true,
     "test_name": "From Polygon With Holes",
-    "time_ms": 0.191
+    "time_ms": 0.474
   },
   {
     "checks": [
@@ -167,7 +167,7 @@
     "line": 205,
     "passed": true,
     "test_name": "Loft",
-    "time_ms": 0.249
+    "time_ms": 1.068
   },
   {
     "checks": [
@@ -203,7 +203,7 @@
     "line": 286,
     "passed": true,
     "test_name": "From Polygon With Holes Many",
-    "time_ms": 0.699
+    "time_ms": 1.348
   },
   {
     "checks": [
@@ -334,7 +334,7 @@
     "line": 320,
     "passed": true,
     "test_name": "Loft Many",
-    "time_ms": 0.483
+    "time_ms": 1.396
   },
   {
     "checks": [
@@ -380,7 +380,7 @@
     "line": 538,
     "passed": true,
     "test_name": "Boolean Queries",
-    "time_ms": 0.06
+    "time_ms": 0.196
   },
   {
     "checks": [
@@ -726,7 +726,7 @@
     "line": 598,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.054
+    "time_ms": 0.248
   },
   {
     "checks": [
@@ -752,7 +752,7 @@
     "line": 716,
     "passed": true,
     "test_name": "Create Dodecahedron",
-    "time_ms": 0.168
+    "time_ms": 0.486
   },
   {
     "checks": [
@@ -963,7 +963,7 @@
     "line": 728,
     "passed": true,
     "test_name": "Vertex and Face Operations",
-    "time_ms": 0.183
+    "time_ms": 0.83
   },
   {
     "checks": [
@@ -1134,7 +1134,7 @@
     "line": 852,
     "passed": true,
     "test_name": "Connectivity Queries",
-    "time_ms": 0.053
+    "time_ms": 0.159
   },
   {
     "checks": [
@@ -1150,1245 +1150,1245 @@
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(angle_in_degrees, 116.565051177078)",
-        "line": 1064,
+        "line": 1062,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
-        "line": 1070,
+        "line": 1068,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
-        "line": 1070,
+        "line": 1068,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
-        "line": 1070,
+        "line": 1068,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
-        "line": 1070,
+        "line": 1068,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
-        "line": 1070,
+        "line": 1068,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
-        "line": 1070,
+        "line": 1068,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
-        "line": 1070,
+        "line": 1068,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
-        "line": 1070,
+        "line": 1068,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
-        "line": 1070,
+        "line": 1068,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
-        "line": 1070,
+        "line": 1068,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
-        "line": 1070,
+        "line": 1068,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(face_area, 3.87107415132518)",
-        "line": 1070,
+        "line": 1068,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&centroids[0],\n&Point::new(0.878115294937453, 0.0, 1.420820393249937))",
-        "line": 1079,
+        "line": 1077,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&centroids[1],\n&Point::new(1.420820393249937, 0.878115294937453, 0.0))",
-        "line": 1080,
+        "line": 1078,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&centroids[2],\n&Point::new(0.0, 1.420820393249937, 0.878115294937453))",
-        "line": 1081,
+        "line": 1079,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&centroids[3],\n&Point::new(0.878115294937453, 0.0, -1.420820393249937))",
-        "line": 1082,
+        "line": 1080,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&centroids[4],\n&Point::new(0.0, 1.420820393249937, -0.878115294937453))",
-        "line": 1083,
+        "line": 1081,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&centroids[5],\n&Point::new(0.0, -1.420820393249937, 0.878115294937453))",
-        "line": 1084,
+        "line": 1082,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&centroids[6],\n&Point::new(1.420820393249937, -0.878115294937453, 0.0))",
-        "line": 1085,
+        "line": 1083,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&centroids[7],\n&Point::new(0.0, -1.420820393249937, -0.878115294937453))",
-        "line": 1086,
+        "line": 1084,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&centroids[8],\n&Point::new(-1.420820393249937, 0.878115294937453, 0.0))",
-        "line": 1087,
+        "line": 1085,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&centroids[9],\n&Point::new(-0.878115294937453, 0.0, 1.420820393249937))",
-        "line": 1088,
+        "line": 1086,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&centroids[10],\n&Point::new(-0.878115294937453, 0.0, -1.420820393249937))",
-        "line": 1089,
+        "line": 1087,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&centroids[11],\n&Point::new(-1.420820393249937, -0.878115294937453, 0.0))",
-        "line": 1090,
+        "line": 1088,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&f], &mesh.face_normal(f).unwrap())",
-        "line": 1097,
+        "line": 1095,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&f], &mesh.face_normal(f).unwrap())",
-        "line": 1097,
+        "line": 1095,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&f], &mesh.face_normal(f).unwrap())",
-        "line": 1097,
+        "line": 1095,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&f], &mesh.face_normal(f).unwrap())",
-        "line": 1097,
+        "line": 1095,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&f], &mesh.face_normal(f).unwrap())",
-        "line": 1097,
+        "line": 1095,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&f], &mesh.face_normal(f).unwrap())",
-        "line": 1097,
+        "line": 1095,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&f], &mesh.face_normal(f).unwrap())",
-        "line": 1097,
+        "line": 1095,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&f], &mesh.face_normal(f).unwrap())",
-        "line": 1097,
+        "line": 1095,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&f], &mesh.face_normal(f).unwrap())",
-        "line": 1097,
+        "line": 1095,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&f], &mesh.face_normal(f).unwrap())",
-        "line": 1097,
+        "line": 1095,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&f], &mesh.face_normal(f).unwrap())",
-        "line": 1097,
+        "line": 1095,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&f], &mesh.face_normal(f).unwrap())",
-        "line": 1097,
+        "line": 1095,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&0],\n&Vector::new(0.5257311121191336, 0.0, 0.8506508083520400))",
-        "line": 1100,
+        "line": 1098,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&1],\n&Vector::new(0.8506508083520400, 0.5257311121191336, 0.0))",
-        "line": 1101,
+        "line": 1099,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&2],\n&Vector::new(0.0, 0.8506508083520400, 0.5257311121191336))",
-        "line": 1102,
+        "line": 1100,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&3],\n&Vector::new(0.5257311121191336, 0.0, -0.8506508083520400))",
-        "line": 1103,
+        "line": 1101,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&4],\n&Vector::new(0.0, 0.8506508083520400, -0.5257311121191336))",
-        "line": 1104,
+        "line": 1102,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&5],\n&Vector::new(0.0, -0.8506508083520400, 0.5257311121191336))",
-        "line": 1105,
+        "line": 1103,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&6],\n&Vector::new(0.8506508083520400, -0.5257311121191336, 0.0))",
-        "line": 1106,
+        "line": 1104,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&7],\n&Vector::new(0.0, -0.8506508083520400, -0.5257311121191336))",
-        "line": 1107,
+        "line": 1105,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&8],\n&Vector::new(-0.8506508083520400, 0.5257311121191336, 0.0))",
-        "line": 1108,
+        "line": 1106,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&9],\n&Vector::new(-0.5257311121191336, 0.0, 0.8506508083520400))",
-        "line": 1109,
+        "line": 1107,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&10],\n&Vector::new(-0.5257311121191336, 0.0, -0.8506508083520400))",
-        "line": 1110,
+        "line": 1108,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&face_normals[&11],\n&Vector::new(-0.8506508083520400, -0.5257311121191336, 0.0))",
-        "line": 1111,
+        "line": 1109,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(mesh.vertex_angle_in_face(*v, f).unwrap(),\n1.8849555921538759)",
-        "line": 1117,
+        "line": 1115,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&v],\n&mesh.vertex_normal(v).unwrap())",
-        "line": 1126,
+        "line": 1124,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&0],\n&Vector::new(0.5773502691896258, 0.5773502691896258, 0.5773502691896258))",
-        "line": 1129,
+        "line": 1127,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&1],\n&Vector::new(0.0, 0.3568220897730899, 0.9341723589627158))",
-        "line": 1130,
+        "line": 1128,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&2],\n&Vector::new(0.0, -0.3568220897730899, 0.9341723589627158))",
-        "line": 1131,
+        "line": 1129,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&3],\n&Vector::new(0.5773502691896257, -0.5773502691896258, 0.5773502691896258))",
-        "line": 1132,
+        "line": 1130,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&4],\n&Vector::new(0.9341723589627158, 0.0, 0.3568220897730899))",
-        "line": 1133,
+        "line": 1131,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&5],\n&Vector::new(0.9341723589627158, 0.0, -0.3568220897730899))",
-        "line": 1134,
+        "line": 1132,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&6],\n&Vector::new(0.5773502691896258, 0.5773502691896257, -0.5773502691896258))",
-        "line": 1135,
+        "line": 1133,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&7],\n&Vector::new(0.3568220897730899, 0.9341723589627158, 0.0))",
-        "line": 1136,
+        "line": 1134,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&8],\n&Vector::new(-0.3568220897730899, 0.9341723589627157, 0.0))",
-        "line": 1137,
+        "line": 1135,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&9],\n&Vector::new(-0.5773502691896258, 0.5773502691896258, 0.5773502691896257))",
-        "line": 1138,
+        "line": 1136,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&10],\n&Vector::new(0.5773502691896258, -0.5773502691896258, -0.5773502691896257))",
-        "line": 1139,
+        "line": 1137,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&11],\n&Vector::new(0.0, -0.3568220897730899, -0.9341723589627157))",
-        "line": 1140,
+        "line": 1138,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&12],\n&Vector::new(0.0, 0.3568220897730899, -0.9341723589627158))",
-        "line": 1141,
+        "line": 1139,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&13],\n&Vector::new(-0.5773502691896257, 0.5773502691896258, -0.5773502691896258))",
-        "line": 1142,
+        "line": 1140,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&14],\n&Vector::new(-0.5773502691896258, -0.5773502691896257, 0.5773502691896258))",
-        "line": 1143,
+        "line": 1141,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&15],\n&Vector::new(-0.3568220897730899, -0.9341723589627157, 0.0))",
-        "line": 1144,
+        "line": 1142,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&16],\n&Vector::new(0.3568220897730899, -0.9341723589627158, 0.0))",
-        "line": 1145,
+        "line": 1143,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&17],\n&Vector::new(-0.5773502691896258, -0.5773502691896258, -0.5773502691896258))",
-        "line": 1146,
+        "line": 1144,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&18],\n&Vector::new(-0.9341723589627157, 0.0, -0.3568220897730899))",
-        "line": 1147,
+        "line": 1145,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals[&19],\n&Vector::new(-0.9341723589627158, 0.0, 0.3568220897730899))",
-        "line": 1148,
+        "line": 1146,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&v],\n&mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap())",
-        "line": 1155,
+        "line": 1153,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&0],\n&Vector::new(0.5773502691896257, 0.5773502691896257, 0.5773502691896257))",
-        "line": 1158,
+        "line": 1156,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&1],\n&Vector::new(0.0, 0.3568220897730899, 0.9341723589627158))",
-        "line": 1159,
+        "line": 1157,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&2],\n&Vector::new(0.0, -0.3568220897730899, 0.9341723589627158))",
-        "line": 1160,
+        "line": 1158,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&3],\n&Vector::new(0.5773502691896257, -0.5773502691896257, 0.5773502691896258))",
-        "line": 1161,
+        "line": 1159,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&4],\n&Vector::new(0.9341723589627158, 0.0, 0.3568220897730899))",
-        "line": 1162,
+        "line": 1160,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&5],\n&Vector::new(0.9341723589627158, 0.0, -0.3568220897730899))",
-        "line": 1163,
+        "line": 1161,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&6],\n&Vector::new(0.5773502691896258, 0.5773502691896257, -0.5773502691896257))",
-        "line": 1164,
+        "line": 1162,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&7],\n&Vector::new(0.3568220897730899, 0.9341723589627158, 0.0))",
-        "line": 1165,
+        "line": 1163,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&8],\n&Vector::new(-0.3568220897730899, 0.9341723589627158, 0.0))",
-        "line": 1166,
+        "line": 1164,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&9],\n&Vector::new(-0.5773502691896257, 0.5773502691896258, 0.5773502691896257))",
-        "line": 1167,
+        "line": 1165,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&10],\n&Vector::new(0.5773502691896257, -0.5773502691896258, -0.5773502691896257))",
-        "line": 1168,
+        "line": 1166,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&11],\n&Vector::new(0.0, -0.3568220897730899, -0.9341723589627158))",
-        "line": 1169,
+        "line": 1167,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&12],\n&Vector::new(0.0, 0.3568220897730899, -0.9341723589627158))",
-        "line": 1170,
+        "line": 1168,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&13],\n&Vector::new(-0.5773502691896257, 0.5773502691896257, -0.5773502691896258))",
-        "line": 1171,
+        "line": 1169,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&14],\n&Vector::new(-0.5773502691896258, -0.5773502691896257, 0.5773502691896257))",
-        "line": 1172,
+        "line": 1170,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&15],\n&Vector::new(-0.3568220897730900, -0.9341723589627158, 0.0))",
-        "line": 1173,
+        "line": 1171,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&16],\n&Vector::new(0.3568220897730899, -0.9341723589627158, 0.0))",
-        "line": 1174,
+        "line": 1172,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&17],\n&Vector::new(-0.5773502691896257, -0.5773502691896257, -0.5773502691896257))",
-        "line": 1175,
+        "line": 1173,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&18],\n&Vector::new(-0.9341723589627158, 0.0, -0.3568220897730899))",
-        "line": 1176,
+        "line": 1174,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_vector_close(&vertex_normals_weighted[&19],\n&Vector::new(-0.9341723589627158, 0.0, 0.3568220897730899))",
-        "line": 1177,
+        "line": 1175,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(volume, 25.8630264921081)",
-        "line": 1182,
+        "line": 1180,
         "passed": true
       }
     ],
-    "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Vector;\n        use crate::mesh::NormalWeighting;\n\n        let mesh = Mesh::create_dodecahedron(1.5);\n\n        // area\n        let area = mesh.area();\n\n\n        // centroid\n        let centroid = mesh.centroid();\n\n        // dihedral angle\n        let (angles, _arcs, _points) = mesh.dihedral_angles(0.3);\n\n        for (edge, angle) in &angles {\n            let _u = edge.0;\n            let _v = edge.1;\n            let angle_in_degrees = *angle;\n        }\n\n        // face area\n        for f in mesh.faces() {\n            let face_area = mesh.face_area(f).unwrap();\n        }\n\n        // face centroid\n        let mut centroids = Vec::new();\n        for f in mesh.faces() {\n            centroids.push(mesh.face_centroid(f).unwrap());\n        }\n\n\n        // face normal / s\n        let face_normals = mesh.face_normals();\n        for f in mesh.faces() {\n            let _normal0 = mesh.face_normal(f).unwrap();\n            let _normal1 = &face_normals[&f];\n        }\n\n\n        // vertex angle in face\n        for f in mesh.faces() {\n            for v in mesh.face_vertices(f).unwrap() {\n                let _angle = mesh.vertex_angle_in_face(*v, f).unwrap();\n            }\n        }\n\n        // vertex normal / s\n        let vertex_normals = mesh.vertex_normals();\n        for v in mesh.vertices() {\n            let _normal0 = mesh.vertex_normal(v).unwrap();\n            let _normal1 = &vertex_normals[&v];\n        }\n\n\n        // vertex normal weighted / s\n        let vertex_normals_weighted = mesh.vertex_normals_weighted(NormalWeighting::Angle);\n        for v in mesh.vertices() {\n            let _normal0 = mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap();\n            let _normal1 = &vertex_normals_weighted[&v];\n        }\n\n\n\n        // volume\n        let volume = mesh.volume();",
+    "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Vector;\n        use crate::mesh::NormalWeighting;\n\n        let mesh = Mesh::create_dodecahedron(1.5);\n\n        // area\n        let area = mesh.area();\n\n\n        // centroid\n        let centroid = mesh.centroid();\n\n        // dihedral angle\n        let (angles, _arcs, _points) = mesh.dihedral_angles(0.3);\n\n        for (_edge, angle) in &angles {\n            let angle_in_degrees = *angle;\n        }\n\n        // face area\n        for f in mesh.faces() {\n            let face_area = mesh.face_area(f).unwrap();\n        }\n\n        // face centroid\n        let mut centroids = Vec::new();\n        for f in mesh.faces() {\n            centroids.push(mesh.face_centroid(f).unwrap());\n        }\n\n\n        // face normal / s\n        let face_normals = mesh.face_normals();\n        for f in mesh.faces() {\n            let _normal0 = mesh.face_normal(f).unwrap();\n            let _normal1 = &face_normals[&f];\n        }\n\n\n        // vertex angle in face\n        for f in mesh.faces() {\n            for v in mesh.face_vertices(f).unwrap() {\n                let _angle = mesh.vertex_angle_in_face(*v, f).unwrap();\n            }\n        }\n\n        // vertex normal / s\n        let vertex_normals = mesh.vertex_normals();\n        for v in mesh.vertices() {\n            let _normal0 = mesh.vertex_normal(v).unwrap();\n            let _normal1 = &vertex_normals[&v];\n        }\n\n\n        // vertex normal weighted / s\n        let vertex_normals_weighted = mesh.vertex_normals_weighted(NormalWeighting::Angle);\n        for v in mesh.vertices() {\n            let _normal0 = mesh.vertex_normal_weighted(v, NormalWeighting::Angle).unwrap();\n            let _normal1 = &vertex_normals_weighted[&v];\n        }\n\n\n\n        // volume\n        let volume = mesh.volume();",
     "failures": [],
     "group": "Mesh",
     "line": 1040,
     "passed": true,
     "test_name": "Geometric Properties",
-    "time_ms": 1.236
+    "time_ms": 2.945
   },
   {
     "checks": [
       {
         "code_line": "!mesh1.xform.is_identity()",
-        "line": 1205,
+        "line": 1203,
         "passed": true
       },
       {
         "code_line": "mesh1.vertex_point(v0).unwrap()[2] == 1.0",
-        "line": 1206,
+        "line": 1204,
         "passed": true
       },
       {
         "code_line": "mesh2.xform.is_identity()",
-        "line": 1212,
+        "line": 1210,
         "passed": true
       },
       {
         "code_line": "mesh2.vertex_point(v0).unwrap()[2] == 1.0",
-        "line": 1213,
+        "line": 1211,
         "passed": true
       },
       {
         "code_line": "!mesh3t.xform.is_identity()",
-        "line": 1219,
+        "line": 1217,
         "passed": true
       },
       {
         "code_line": "mesh3t.vertex_point(v0).unwrap()[2] == 10.0",
-        "line": 1220,
+        "line": 1218,
         "passed": true
       },
       {
         "code_line": "mesh4t.xform.is_identity()",
-        "line": 1226,
+        "line": 1224,
         "passed": true
       },
       {
         "code_line": "mesh4t.vertex_point(v0).unwrap()[2] == 10.0",
-        "line": 1227,
+        "line": 1225,
         "passed": true
       }
     ],
     "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Xform;\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2]]);\n        let v0 = mesh.vertices()[0];\n\n        // transform(None) — apply stored xform in-place; xform field unchanged\n        let mut mesh1 = mesh.duplicate();\n        mesh1.xform = Xform::translation(0.0, 0.0, 1.0);\n        mesh1.transform(None);\n\n\n        // transform(Some(xf)) — apply given xform in-place; stored xform unchanged\n        let mut mesh2 = mesh.duplicate();\n        let x = Xform::translation(0.0, 0.0, 1.0);\n        mesh2.transform(Some(&x));\n\n        // transformed(None) — copy with stored xform applied\n        let mut mesh3 = mesh.duplicate();\n        mesh3.xform = Xform::translation(0.0, 0.0, 10.0);\n        let mesh3t = mesh3.transformed(None);\n\n        // transformed(Some(xf)) — copy with given xform applied\n        let mesh4 = mesh.duplicate();\n        let x = Xform::translation(0.0, 0.0, 10.0);\n        let mesh4t = mesh4.transformed(Some(&x));",
     "failures": [],
     "group": "Mesh",
-    "line": 1187,
+    "line": 1185,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.028
+    "time_ms": 0.071
   },
   {
     "checks": [
       {
         "code_line": "loaded_json == mesh",
-        "line": 1256,
+        "line": 1254,
         "passed": true
       },
       {
         "code_line": "loaded_string == mesh",
-        "line": 1257,
+        "line": 1255,
         "passed": true
       },
       {
         "code_line": "loaded_file == mesh",
-        "line": 1258,
+        "line": 1256,
         "passed": true
       },
       {
         "code_line": "!loaded_tri.triangulation.is_empty()",
-        "line": 1270,
+        "line": 1268,
         "passed": true
       },
       {
         "code_line": "loaded_tri.triangulation.contains_key(&fk)",
-        "line": 1271,
+        "line": 1269,
         "passed": true
       },
       {
         "code_line": "!loaded_holes.face_holes.is_empty()",
-        "line": 1290,
+        "line": 1288,
         "passed": true
       },
       {
         "code_line": "loaded_holes.face_holes[&hfk] == hmesh.face_holes[&hfk]",
-        "line": 1291,
+        "line": 1289,
         "passed": true
       }
     ],
-    "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Xform;\n        use std::path::PathBuf;\n\n        let mut mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"test_mesh\".to_string();\n        mesh.xform = Xform::translation(1.0, 2.0, 3.0);\n\n        // JSON object\n        let json = mesh.jsondump();\n        let loaded_json = Mesh::jsonload(&json).unwrap();\n\n        // String\n        let json_string = mesh.json_dumps();\n        let loaded_string = Mesh::json_loads(&json_string);\n\n        // File\n        let filename = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"))\n            .join(\"serialization\").join(\"test_mesh.json\");\n        mesh.json_dump(filename.to_str().unwrap()).unwrap();\n        let loaded_file = Mesh::json_load(filename.to_str().unwrap()).unwrap();\n\n\n        // Triangulation roundtrip\n        let polys = vec![vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ]];\n        let pmesh = Mesh::from_polylines(polys, None);\n        let loaded_tri = Mesh::jsonload(&pmesh.jsondump()).unwrap();\n        let fk = *pmesh.triangulation.keys().next().unwrap();\n\n        // Face holes roundtrip\n        let hmesh = Mesh::from_polygon_with_holes(&[\n            vec![\n                Point::new(0.0, 0.0, 0.0),\n                Point::new(4.0, 0.0, 0.0),\n                Point::new(4.0, 4.0, 0.0),\n                Point::new(0.0, 4.0, 0.0),\n            ],\n            vec![\n                Point::new(1.0, 1.0, 0.0),\n                Point::new(3.0, 1.0, 0.0),\n                Point::new(3.0, 3.0, 0.0),\n                Point::new(1.0, 3.0, 0.0),\n            ],\n        ], true);\n        let loaded_holes = Mesh::jsonload(&hmesh.jsondump()).unwrap();\n        let hfk = *hmesh.face_holes.keys().next().unwrap();",
+    "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Xform;\n        use std::path::PathBuf;\n\n        let mut mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"test_mesh\".to_string();\n        mesh.xform = Xform::translation(1.0, 2.0, 3.0);\n\n        // JSON object\n        let json = mesh.jsondump();\n        let loaded_json = Mesh::jsonload(&json).unwrap();\n\n        // String\n        let json_string = mesh.file_json_dumps();\n        let loaded_string = Mesh::file_json_loads(&json_string);\n\n        // File\n        let filename = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"))\n            .join(\"serialization\").join(\"test_mesh.json\");\n        mesh.file_json_dump(filename.to_str().unwrap()).unwrap();\n        let loaded_file = Mesh::file_json_load(filename.to_str().unwrap()).unwrap();\n\n\n        // Triangulation roundtrip\n        let polys = vec![vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ]];\n        let pmesh = Mesh::from_polylines(polys, None);\n        let loaded_tri = Mesh::jsonload(&pmesh.jsondump()).unwrap();\n        let fk = *pmesh.triangulation.keys().next().unwrap();\n\n        // Face holes roundtrip\n        let hmesh = Mesh::from_polygon_with_holes(&[\n            vec![\n                Point::new(0.0, 0.0, 0.0),\n                Point::new(4.0, 0.0, 0.0),\n                Point::new(4.0, 4.0, 0.0),\n                Point::new(0.0, 4.0, 0.0),\n            ],\n            vec![\n                Point::new(1.0, 1.0, 0.0),\n                Point::new(3.0, 1.0, 0.0),\n                Point::new(3.0, 3.0, 0.0),\n                Point::new(1.0, 3.0, 0.0),\n            ],\n        ], true);\n        let loaded_holes = Mesh::jsonload(&hmesh.jsondump()).unwrap();\n        let hfk = *hmesh.face_holes.keys().next().unwrap();",
     "failures": [],
     "group": "Mesh",
-    "line": 1232,
+    "line": 1230,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 6.275
+    "time_ms": 9.395
   },
   {
     "checks": [
       {
         "code_line": "loaded_string == mesh",
-        "line": 1316,
+        "line": 1314,
         "passed": true
       },
       {
         "code_line": "loaded_file == mesh",
-        "line": 1317,
+        "line": 1315,
         "passed": true
       },
       {
         "code_line": "!loaded_tri.triangulation.is_empty()",
-        "line": 1329,
+        "line": 1327,
         "passed": true
       },
       {
         "code_line": "loaded_tri.triangulation.contains_key(&fk)",
-        "line": 1330,
+        "line": 1328,
         "passed": true
       },
       {
         "code_line": "!loaded_holes.face_holes.is_empty()",
-        "line": 1349,
+        "line": 1347,
         "passed": true
       },
       {
         "code_line": "loaded_holes.face_holes[&hfk] == hmesh.face_holes[&hfk]",
-        "line": 1350,
+        "line": 1348,
         "passed": true
       }
     ],
     "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Xform;\n        use std::path::PathBuf;\n\n        let mut mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"test_mesh_proto\".to_string();\n        mesh.xform = Xform::translation(1.0, 2.0, 3.0);\n\n        // String\n        let proto_bytes = mesh.pb_dumps();\n        let loaded_string = Mesh::pb_loads(&proto_bytes).unwrap();\n\n        // File\n        let filename = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"))\n            .join(\"serialization\").join(\"test_mesh.bin\");\n        mesh.pb_dump(filename.to_str().unwrap());\n        let loaded_file = Mesh::pb_load(filename.to_str().unwrap());\n\n\n        // Triangulation roundtrip\n        let polys = vec![vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ]];\n        let pmesh = Mesh::from_polylines(polys, None);\n        let loaded_tri = Mesh::pb_loads(&pmesh.pb_dumps()).unwrap();\n        let fk = *pmesh.triangulation.keys().next().unwrap();\n\n        // Face holes roundtrip\n        let hmesh = Mesh::from_polygon_with_holes(&[\n            vec![\n                Point::new(0.0, 0.0, 0.0),\n                Point::new(4.0, 0.0, 0.0),\n                Point::new(4.0, 4.0, 0.0),\n                Point::new(0.0, 4.0, 0.0),\n            ],\n            vec![\n                Point::new(1.0, 1.0, 0.0),\n                Point::new(3.0, 1.0, 0.0),\n                Point::new(3.0, 3.0, 0.0),\n                Point::new(1.0, 3.0, 0.0),\n            ],\n        ], true);\n        let loaded_holes = Mesh::pb_loads(&hmesh.pb_dumps()).unwrap();\n        let hfk = *hmesh.face_holes.keys().next().unwrap();",
     "failures": [],
     "group": "Mesh",
-    "line": 1296,
+    "line": 1294,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 5.97
+    "time_ms": 7.263
   },
   {
     "checks": [
@@ -2409,7 +2409,7 @@
     "line": 702,
     "passed": true,
     "test_name": "Edges",
-    "time_ms": 0.016
+    "time_ms": 0.102
   },
   {
     "checks": [
@@ -2510,6 +2510,6 @@
     "line": 375,
     "passed": true,
     "test_name": "Loft with quads and triangles",
-    "time_ms": 0.453
+    "time_ms": 2.246
   }
 ]

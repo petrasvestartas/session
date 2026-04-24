@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Minitest - Run tests for Python, C++, and Rust implementations
 # Usage:
-#   ./minitest.sh              # Run all languages (fast+dev defaults)
+#   ./minitest.sh              # Run all languages (fast+dev defaults, C++ builds point_minitest only)
 #   ./minitest.sh --py         # Python only
 #   ./minitest.sh --cpp        # C++ only
 #   ./minitest.sh --rust       # Rust only
@@ -24,7 +24,7 @@ RUN_RUST=true
 FAST_MODE=true
 START_WEB=true
 KILL_SERVER=false
-DEV_MODE=false
+DEV_MODE=true
 
 # Parse arguments
 for arg in "$@"; do
@@ -76,7 +76,11 @@ FAST_ARG=""
 FULL_ARG=""
 [[ "$FAST_MODE" == "false" ]] && FULL_ARG="--full"
 DEV_ARG=""
-[[ "$DEV_MODE" == "true" ]] && DEV_ARG="--dev"
+if [[ "$DEV_MODE" == "true" ]]; then
+    DEV_ARG="--dev"
+else
+    DEV_ARG="--release"
+fi
 
 # Regenerate Python protos — skip if all _pb2.py are up-to-date
 regenerate_python_protos() {
@@ -201,24 +205,27 @@ log "=== Consolidating Test Data ==="
 source "${SCRIPT_DIR}/lib/consolidate.sh"
 consolidate_test_data "$REPO_ROOT"
 
-# Regenerate browser API index — skip if source hash unchanged
+# Regenerate browser API index — skip if no watched source is newer than apiIndex.js
 API_INDEX="${REPO_ROOT}/session_tests/public/apiIndex.js"
-API_HASH_FILE="${REPO_ROOT}/.api_index_hash"
 REGEN_API=false
 if [[ ! -f "$API_INDEX" ]]; then
     REGEN_API=true
 else
-    API_HASH=$(find "${REPO_ROOT}/session_py/src" "${REPO_ROOT}/session_cpp/src" "${REPO_ROOT}/session_rust/src" -name "*.py" -o -name "*.cpp" -o -name "*.h" -o -name "*.rs" 2>/dev/null | sort | xargs md5sum 2>/dev/null | md5sum | cut -d' ' -f1)
-    if [[ ! -f "$API_HASH_FILE" ]] || [[ "$(cat "$API_HASH_FILE")" != "$API_HASH" ]]; then
+    # find -newer returns any file with mtime newer than the reference; stop at the first hit
+    NEWER=$(find \
+        "${REPO_ROOT}/session_py/src" \
+        "${REPO_ROOT}/session_cpp/src" \
+        "${REPO_ROOT}/session_rust/src" \
+        \( -name "*.py" -o -name "*.cpp" -o -name "*.h" -o -name "*.rs" \) \
+        -newer "$API_INDEX" -print -quit 2>/dev/null)
+    if [[ -n "$NEWER" ]]; then
         REGEN_API=true
     fi
 fi
 if [[ "$REGEN_API" == "true" ]]; then
     log "=== Regenerating Browser API Index ==="
     cd "$REPO_ROOT"
-    if python -m session_mcp.generate_browser_index; then
-        echo "$API_HASH" > "$API_HASH_FILE"
-    else
+    if ! python -m session_mcp.generate_browser_index; then
         log "Warning: Failed to generate browser index"
     fi
 else

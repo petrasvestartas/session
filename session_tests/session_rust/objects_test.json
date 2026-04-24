@@ -7,13 +7,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::{Objects, Point};\n        use crate::encoders::{json_dump, json_load};\n        let mut original = Objects::new();\n        original.points.push(Point::new(1.0, 2.0, 3.0));\n        original.points.push(Point::new(4.0, 5.0, 6.0));\n        json_dump(&original, \"serialization/test_objects.json\", false).unwrap();\n        let loaded = json_load::<Objects>(\"serialization/test_objects.json\").unwrap();",
+    "code": "        use crate::{Objects, Point};\n        use crate::file_encoders::{file_json_dump, file_json_load};\n        let mut original = Objects::new();\n        original.points.push(Point::new(1.0, 2.0, 3.0));\n        original.points.push(Point::new(4.0, 5.0, 6.0));\n        file_json_dump(&original, \"serialization/test_objects.json\", false).unwrap();\n        let loaded = file_json_load::<Objects>(\"serialization/test_objects.json\").unwrap();",
     "failures": [],
     "group": "Objects",
     "line": 16,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 5.941
+    "time_ms": 7.711
   },
   {
     "checks": [
@@ -44,7 +44,7 @@
     "line": 100,
     "passed": true,
     "test_name": "Component Protobuf Roundtrip",
-    "time_ms": 6.071
+    "time_ms": 5.757
   },
   {
     "checks": [
@@ -74,13 +74,13 @@
         "passed": true
       }
     ],
-    "code": "        // Round-trip a Component through JSON: all custom fields must survive.\n        // jsondump produces a flat dict (type/guid/name + extra fields).\n        // jsonload reconstructs it; serde flatten handles the extra fields.\n        use crate::{Objects, Component};\n        use crate::encoders::{json_dump, json_load};\n\n        let mut extra = std::collections::HashMap::new();\n        extra.insert(\"size\".to_string(),   serde_json::json!(3000));\n        extra.insert(\"height\".to_string(), serde_json::json!(650));\n        extra.insert(\"rise\".to_string(),   serde_json::json!(453));\n\n        let original_guid = uuid::Uuid::new_v4().to_string();\n        let c = Component {\n            type_name: \"FloorBuilder\".to_string(),\n            guid:       original_guid.clone(),\n            name:       \"floor_builder\".to_string(),\n            extra,\n        };\n\n        let mut original = Objects::new();\n        original.components.push(c);\n\n        json_dump(&original, \"serialization/test_objects_component.json\", false).unwrap();\n        let loaded = json_load::<Objects>(\"serialization/test_objects_component.json\").unwrap();\n",
+    "code": "        // Round-trip a Component through JSON: all custom fields must survive.\n        // jsondump produces a flat dict (type/guid/name + extra fields).\n        // jsonload reconstructs it; serde flatten handles the extra fields.\n        use crate::{Objects, Component};\n        use crate::file_encoders::{file_json_dump, file_json_load};\n\n        let mut extra = std::collections::HashMap::new();\n        extra.insert(\"size\".to_string(),   serde_json::json!(3000));\n        extra.insert(\"height\".to_string(), serde_json::json!(650));\n        extra.insert(\"rise\".to_string(),   serde_json::json!(453));\n\n        let original_guid = uuid::Uuid::new_v4().to_string();\n        let c = Component {\n            type_name: \"FloorBuilder\".to_string(),\n            guid:       original_guid.clone(),\n            name:       \"floor_builder\".to_string(),\n            extra,\n        };\n\n        let mut original = Objects::new();\n        original.components.push(c);\n\n        file_json_dump(&original, \"serialization/test_objects_component.json\", false).unwrap();\n        let loaded = file_json_load::<Objects>(\"serialization/test_objects_component.json\").unwrap();\n",
     "failures": [],
     "group": "Objects",
     "line": 65,
     "passed": true,
     "test_name": "Component Json Roundtrip",
-    "time_ms": 5.393
+    "time_ms": 6.38
   },
   {
     "checks": [
@@ -111,7 +111,7 @@
     "line": 41,
     "passed": true,
     "test_name": "Component Constructor",
-    "time_ms": 0.002
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -127,7 +127,7 @@
     "line": 29,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 5.322
+    "time_ms": 7.116
   },
   {
     "checks": [
@@ -153,6 +153,6 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.0
+    "time_ms": 0.002
   }
 ]

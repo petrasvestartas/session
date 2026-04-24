@@ -1,0 +1,195 @@
+[
+  {
+    "group": "SpatialAABBTree",
+    "test_name": "Constructor",
+    "passed": true,
+    "time_ms": 0.062,
+    "line": 7,
+    "code": "    from session_py import AABB\n    from session_py import Closest\n\n    # SpatialAABBTree: O(n log n) build, O(log n) cull \u2014 prune candidates before exact test\n    box0 = AABB(0.0, 0.0, 0.0, 0.5, 0.5, 0.5)\n    box1 = AABB(5.0, 0.0, 0.0, 0.5, 0.5, 0.5)\n    box2 = AABB(10.0, 0.0, 0.0, 0.5, 0.5, 0.5)\n    pairs = Closest.boxes_closest([box0, box1, box2], 0.0)\n\n\n    pairs_near = Closest.boxes_closest([box0, AABB(1.0, 0.0, 0.0, 0.5, 0.5, 0.5)], 0.0)",
+    "checks": [
+      {
+        "line": 18,
+        "code_line": "len(pairs) == 0",
+        "passed": true
+      },
+      {
+        "line": 22,
+        "code_line": "len(pairs_near) == 1",
+        "passed": true
+      },
+      {
+        "line": 23,
+        "code_line": "pairs_near[0][0] == 0",
+        "passed": true
+      },
+      {
+        "line": 24,
+        "code_line": "pairs_near[0][1] == 1",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "SpatialAABBTree",
+    "test_name": "Build Empty",
+    "passed": true,
+    "time_ms": 0.009,
+    "line": 27,
+    "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    cp, fk, d = Closest.mesh_point_aabb(m, Point(0.0, 0.0, 0.0))",
+    "checks": [
+      {
+        "line": 36,
+        "code_line": "d == float('inf')",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "SpatialAABBTree",
+    "test_name": "Build Single",
+    "passed": true,
+    "time_ms": 0.035,
+    "line": 39,
+    "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    vk0 = m.add_vertex(Point(0.0, 0.0, 0.0))\n    vk1 = m.add_vertex(Point(1.0, 0.0, 0.0))\n    vk2 = m.add_vertex(Point(0.0, 1.0, 0.0))\n    m.add_face([vk0, vk1, vk2])\n    cp, fk, d = Closest.mesh_point_aabb(m, Point(0.0, 0.0, 1.0))",
+    "checks": [
+      {
+        "line": 52,
+        "code_line": "d > 0.0",
+        "passed": true
+      },
+      {
+        "line": 53,
+        "code_line": "TOLERANCE.is_close(d, 1.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "SpatialAABBTree",
+    "test_name": "Build Multiple",
+    "passed": true,
+    "time_ms": 0.051,
+    "line": 56,
+    "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    vk0 = m.add_vertex(Point(0.0, 0.0, 0.0))\n    vk1 = m.add_vertex(Point(1.0, 0.0, 0.0))\n    vk2 = m.add_vertex(Point(0.0, 1.0, 0.0))\n    vk3 = m.add_vertex(Point(5.0, 0.0, 0.0))\n    vk4 = m.add_vertex(Point(6.0, 0.0, 0.0))\n    vk5 = m.add_vertex(Point(5.0, 1.0, 0.0))\n    vk6 = m.add_vertex(Point(10.0, 0.0, 0.0))\n    vk7 = m.add_vertex(Point(11.0, 0.0, 0.0))\n    vk8 = m.add_vertex(Point(10.0, 1.0, 0.0))\n    m.add_face([vk0, vk1, vk2])\n    m.add_face([vk3, vk4, vk5])\n    m.add_face([vk6, vk7, vk8])\n    cp, fk, d = Closest.mesh_point_aabb(m, Point(0.5, 0.0, 0.0))",
+    "checks": [
+      {
+        "line": 77,
+        "code_line": "d < 0.5",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "SpatialAABBTree",
+    "test_name": "Node Count",
+    "passed": true,
+    "time_ms": 1.341,
+    "line": 80,
+    "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    vkeys = []\n    for i in range(100):\n        vkeys.append(m.add_vertex(Point(float(i), 0.0, 0.0)))\n        vkeys.append(m.add_vertex(Point(float(i) + 0.5, 0.5, 0.0)))\n        vkeys.append(m.add_vertex(Point(float(i), 0.5, 0.0)))\n    for i in range(100):\n        m.add_face([vkeys[i*3], vkeys[i*3+1], vkeys[i*3+2]])\n    cp, fk, d = Closest.mesh_point_aabb(m, Point(50.0, 0.0, 0.0))",
+    "checks": [
+      {
+        "line": 96,
+        "code_line": "d < 0.5",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "SpatialAABBTree",
+    "test_name": "Mesh Point Aabb",
+    "passed": true,
+    "time_ms": 0.489,
+    "line": 99,
+    "code": "    from session_py import Closest\n    from session_py import Primitives\n    from session_py import Point\n\n    m = Primitives.cube(2.0)\n    cp1, fk1, d1 = Closest.mesh_point_aabb(m, Point(0.0, 0.0, 2.0))\n\n    cp2, fk2, d2 = Closest.mesh_point_aabb(m, Point(1.0, 1.0, 1.0))",
+    "checks": [
+      {
+        "line": 108,
+        "code_line": "TOLERANCE.is_close(cp1[2], 1.0)",
+        "passed": true
+      },
+      {
+        "line": 109,
+        "code_line": "TOLERANCE.is_close(d1, 1.0)",
+        "passed": true
+      },
+      {
+        "line": 111,
+        "code_line": "TOLERANCE.is_close(d2, 0.0)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "SpatialAABBTree",
+    "test_name": "Mesh Point Aabb Matches Bvh",
+    "passed": true,
+    "time_ms": 0.457,
+    "line": 114,
+    "code": "    from session_py import Closest\n    from session_py import Primitives\n    from session_py import Point\n\n    m = Primitives.cube(2.0)\n    tp = Point(0.3, 0.7, 1.5)\n    cp_bvh, fk_bvh, d_bvh = Closest.mesh_point(m, tp)\n    cp_aabb, fk_aabb, d_aabb = Closest.mesh_point_aabb(m, tp)",
+    "checks": [
+      {
+        "line": 125,
+        "code_line": "TOLERANCE.is_close(d_bvh, d_aabb)",
+        "passed": true
+      },
+      {
+        "line": 126,
+        "code_line": "TOLERANCE.is_close(cp_bvh[0], cp_aabb[0])",
+        "passed": true
+      },
+      {
+        "line": 127,
+        "code_line": "TOLERANCE.is_close(cp_bvh[1], cp_aabb[1])",
+        "passed": true
+      },
+      {
+        "line": 128,
+        "code_line": "TOLERANCE.is_close(cp_bvh[2], cp_aabb[2])",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "SpatialAABBTree",
+    "test_name": "Query Aabb",
+    "passed": true,
+    "time_ms": 0.069,
+    "line": 131,
+    "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    vk0 = m.add_vertex(Point(0.0, 0.0, 0.0))\n    vk1 = m.add_vertex(Point(1.0, 0.0, 0.0))\n    vk2 = m.add_vertex(Point(0.5, 1.0, 0.0))\n    vk3 = m.add_vertex(Point(20.0, 0.0, 0.0))\n    vk4 = m.add_vertex(Point(21.0, 0.0, 0.0))\n    vk5 = m.add_vertex(Point(20.5, 1.0, 0.0))\n    m.add_face([vk0, vk1, vk2])\n    m.add_face([vk3, vk4, vk5])\n    cp_near, fk_near, d_near = Closest.mesh_point_aabb(m, Point(0.5, 0.25, 0.0))\n    cp_far, fk_far, d_far = Closest.mesh_point_aabb(m, Point(20.5, 0.25, 0.0))",
+    "checks": [
+      {
+        "line": 149,
+        "code_line": "TOLERANCE.is_close(d_near, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 150,
+        "code_line": "TOLERANCE.is_close(d_far, 0.0)",
+        "passed": true
+      },
+      {
+        "line": 151,
+        "code_line": "fk_near != fk_far",
+        "passed": true
+      },
+      {
+        "line": 152,
+        "code_line": "cp_near[0] < 2.0",
+        "passed": true
+      },
+      {
+        "line": 153,
+        "code_line": "cp_far[0] > 15.0",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

@@ -1,0 +1,307 @@
+[
+  {
+    "group": "ElementFeature",
+    "test_name": "Cross Constructor",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 9,
+    "code": "    // uncomment #include \"elementfeature.h\"\n    CrossElementFeature cf;",
+    "checks": [
+      {
+        "line": 13,
+        "code_line": "cf.face_ids_a.first == -1",
+        "passed": true
+      },
+      {
+        "line": 14,
+        "code_line": "cf.face_ids_a.second == -1",
+        "passed": true
+      },
+      {
+        "line": 15,
+        "code_line": "cf.face_ids_b.first == -1",
+        "passed": true
+      },
+      {
+        "line": 16,
+        "code_line": "cf.face_ids_b.second == -1",
+        "passed": true
+      },
+      {
+        "line": 17,
+        "code_line": "cf.joint_area_guid.empty()",
+        "passed": true
+      },
+      {
+        "line": 18,
+        "code_line": "cf.joint_volume_guids[0].empty()",
+        "passed": true
+      },
+      {
+        "line": 19,
+        "code_line": "cf.joint_line_guids[0].empty()",
+        "passed": true
+      },
+      {
+        "line": 20,
+        "code_line": "!cf.guid().empty()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementFeature",
+    "test_name": "Cross Equality",
+    "passed": true,
+    "time_ms": 0.003,
+    "line": 23,
+    "code": "    // uncomment #include \"elementfeature.h\"\n    CrossElementFeature a;\n    a.face_ids_a = {2, 4};\n    a.face_ids_b = {3, 5};\n    a.joint_area_guid = \"area\";\n    a.joint_volume_guids = {\"v0\", \"v1\"};\n    a.joint_line_guids   = {\"l0\", \"l1\"};\n\n    CrossElementFeature b = a;\n    b.face_ids_a.first = 9;",
+    "checks": [
+      {
+        "line": 33,
+        "code_line": "a == b",
+        "passed": true
+      },
+      {
+        "line": 35,
+        "code_line": "a != b",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementFeature",
+    "test_name": "Cross Json Round Trip",
+    "passed": true,
+    "time_ms": 0.026,
+    "line": 38,
+    "code": "    // uncomment #include \"elementfeature.h\"\n    CrossElementFeature a;\n    a.face_ids_a = {2, 4};\n    a.face_ids_b = {3, 5};\n    a.joint_area_guid = \"area\";\n    a.joint_volume_guids = {\"v0\", \"v1\"};\n    a.joint_line_guids   = {\"l0\", \"l1\"};\n    (void)a.guid();\n\n    auto json = a.file_json_dumps();\n    auto b = CrossElementFeature::file_json_loads(json);",
+    "checks": [
+      {
+        "line": 50,
+        "code_line": "a == b",
+        "passed": true
+      },
+      {
+        "line": 51,
+        "code_line": "b.guid() == a.guid()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementFeature",
+    "test_name": "Cross Pb Round Trip",
+    "passed": true,
+    "time_ms": 0.008,
+    "line": 54,
+    "code": "    // uncomment #include \"elementfeature.h\"\n    CrossElementFeature a;\n    a.face_ids_a = {2, 4};\n    a.face_ids_b = {3, 5};\n    a.joint_area_guid = \"area\";\n    a.joint_volume_guids = {\"v0\", \"v1\"};\n    a.joint_line_guids   = {\"l0\", \"l1\"};\n    (void)a.guid();\n\n    auto bytes = a.pb_dumps();\n    auto b = CrossElementFeature::pb_loads(bytes);",
+    "checks": [
+      {
+        "line": 66,
+        "code_line": "a == b",
+        "passed": true
+      },
+      {
+        "line": 67,
+        "code_line": "b.guid() == a.guid()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementFeature",
+    "test_name": "Face Round Trip",
+    "passed": true,
+    "time_ms": 0.011,
+    "line": 70,
+    "code": "    // uncomment #include \"elementfeature.h\"\n    FaceElementFeature a;\n    a.face_id_a = 3;\n    a.face_id_b = 5;\n    a.joint_area_guid = \"area\";\n    (void)a.guid();\n\n    auto bytes = a.pb_dumps();\n    auto b = FaceElementFeature::pb_loads(bytes);\n\n    auto json = a.file_json_dumps();\n    auto c = FaceElementFeature::file_json_loads(json);",
+    "checks": [
+      {
+        "line": 80,
+        "code_line": "a == b",
+        "passed": true
+      },
+      {
+        "line": 81,
+        "code_line": "b.guid() == a.guid()",
+        "passed": true
+      },
+      {
+        "line": 85,
+        "code_line": "a == c",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementFeature",
+    "test_name": "Axis Round Trip",
+    "passed": true,
+    "time_ms": 0.013,
+    "line": 88,
+    "code": "    // uncomment #include \"elementfeature.h\"\n    AxisElementFeature a;\n    a.axis_a_guid = \"axis_a\";\n    a.axis_b_guid = \"axis_b\";\n    a.connector_guid = \"conn\";\n    a.distance = 1.5;\n    (void)a.guid();\n\n    auto bytes = a.pb_dumps();\n    auto b = AxisElementFeature::pb_loads(bytes);\n\n    auto json = a.file_json_dumps();\n    auto c = AxisElementFeature::file_json_loads(json);",
+    "checks": [
+      {
+        "line": 99,
+        "code_line": "a == b",
+        "passed": true
+      },
+      {
+        "line": 100,
+        "code_line": "b.distance == 1.5",
+        "passed": true
+      },
+      {
+        "line": 101,
+        "code_line": "b.guid() == a.guid()",
+        "passed": true
+      },
+      {
+        "line": 105,
+        "code_line": "a == c",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementFeature",
+    "test_name": "Collision Round Trip",
+    "passed": true,
+    "time_ms": 0.01,
+    "line": 108,
+    "code": "    // uncomment #include \"elementfeature.h\"\n    CollisionElementFeature a;\n    a.mode = \"bvh\";\n    (void)a.guid();\n\n    auto bytes = a.pb_dumps();\n    auto b = CollisionElementFeature::pb_loads(bytes);\n\n    auto json = a.file_json_dumps();\n    auto c = CollisionElementFeature::file_json_loads(json);",
+    "checks": [
+      {
+        "line": 116,
+        "code_line": "a == b",
+        "passed": true
+      },
+      {
+        "line": 117,
+        "code_line": "b.mode == \"bvh\"",
+        "passed": true
+      },
+      {
+        "line": 121,
+        "code_line": "a == c",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementFeature",
+    "test_name": "Edge ElementFeature Variant",
+    "passed": true,
+    "time_ms": 0.018,
+    "line": 124,
+    "code": "    // uncomment #include \"elementfeature.h\"\n    CrossElementFeature cf;\n    cf.joint_area_guid = \"area\";\n    EdgeElementFeature f1 = cf;\n\n    auto bytes = edge_elementfeature_pb_dumps(f1);\n    auto f2 = edge_elementfeature_pb_loads(bytes);\n\n    FaceElementFeature ff;\n    ff.face_id_a = 2;\n    EdgeElementFeature f3 = ff;\n    auto f4 = edge_elementfeature_pb_loads(edge_elementfeature_pb_dumps(f3));\n\n    EdgeElementFeature empty{};\n    auto f5 = edge_elementfeature_pb_loads(edge_elementfeature_pb_dumps(empty));",
+    "checks": [
+      {
+        "line": 132,
+        "code_line": "std::holds_alternative<CrossElementFeature>(f2)",
+        "passed": true
+      },
+      {
+        "line": 133,
+        "code_line": "std::get<CrossElementFeature>(f2).joint_area_guid == \"area\"",
+        "passed": true
+      },
+      {
+        "line": 139,
+        "code_line": "std::holds_alternative<FaceElementFeature>(f4)",
+        "passed": true
+      },
+      {
+        "line": 143,
+        "code_line": "std::holds_alternative<std::monostate>(f5)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementFeature",
+    "test_name": "Session Add ElementFeature",
+    "passed": true,
+    "time_ms": 0.037,
+    "line": 146,
+    "code": "    // uncomment #include \"elementfeature.h\"\n    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n    Session session;\n    auto p1 = std::make_shared<Point>(0, 0, 0);\n    auto p2 = std::make_shared<Point>(1, 1, 1);\n    session.add_point(p1);\n    session.add_point(p2);\n\n    CrossElementFeature cf;\n    cf.face_ids_a = {2, 3};\n    cf.face_ids_b = {4, 5};\n    cf.joint_area_guid = \"area_abc\";\n\n    auto feat_guid = session.add_elementfeature(p1->guid(), p2->guid(), cf);\n\n    auto edge_key = std::make_tuple(p1->guid(), p2->guid());",
+    "checks": [
+      {
+        "line": 163,
+        "code_line": "session.edge_elementfeatures.size() == 1",
+        "passed": true
+      },
+      {
+        "line": 164,
+        "code_line": "session.edge_elementfeatures.count(feat_guid) == 1",
+        "passed": true
+      },
+      {
+        "line": 165,
+        "code_line": "std::holds_alternative<CrossElementFeature>(session.edge_elementfeatures.at(feat_guid))",
+        "passed": true
+      },
+      {
+        "line": 167,
+        "code_line": "session.graph.has_edge(edge_key)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "ElementFeature",
+    "test_name": "Session Pb Round Trip",
+    "passed": true,
+    "time_ms": 0.108,
+    "line": 170,
+    "code": "    // uncomment #include \"elementfeature.h\"\n    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n    Session session;\n    auto p1 = std::make_shared<Point>(0, 0, 0);\n    auto p2 = std::make_shared<Point>(1, 1, 1);\n    session.add_point(p1);\n    session.add_point(p2);\n\n    CrossElementFeature cf;\n    cf.face_ids_a = {2, 3};\n    cf.face_ids_b = {4, 5};\n    cf.joint_area_guid = \"area_abc\";\n    cf.joint_volume_guids = {\"v0\", \"v1\"};\n    auto feat_guid = session.add_elementfeature(p1->guid(), p2->guid(), cf);\n\n    auto bytes = session.pb_dumps();\n    auto session2 = Session::pb_loads(bytes);\n\n    auto& recovered = std::get<CrossElementFeature>(session2.edge_elementfeatures.at(feat_guid));",
+    "checks": [
+      {
+        "line": 190,
+        "code_line": "session2.edge_elementfeatures.size() == 1",
+        "passed": true
+      },
+      {
+        "line": 191,
+        "code_line": "session2.edge_elementfeatures.count(feat_guid) == 1",
+        "passed": true
+      },
+      {
+        "line": 193,
+        "code_line": "recovered.face_ids_a.first == 2",
+        "passed": true
+      },
+      {
+        "line": 194,
+        "code_line": "recovered.face_ids_b.second == 5",
+        "passed": true
+      },
+      {
+        "line": 195,
+        "code_line": "recovered.joint_area_guid == \"area_abc\"",
+        "passed": true
+      },
+      {
+        "line": 196,
+        "code_line": "recovered.joint_volume_guids[0] == \"v0\"",
+        "passed": true
+      },
+      {
+        "line": 197,
+        "code_line": "recovered.joint_volume_guids[1] == \"v1\"",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

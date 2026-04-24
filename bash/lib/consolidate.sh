@@ -37,10 +37,7 @@ parts = []
 # Test results
 for cls in classes:
     for lang, d in langs:
-        if lang == 'rust':
-            name = cls.replace('_','') + '_test.json'
-        else:
-            name = cls + '_test.json'
+        name = cls + '_test.json'
         p = os.path.join(tests, d, name)
         if os.path.isfile(p):
             with open(p, 'r') as f:

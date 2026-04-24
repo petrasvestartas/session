@@ -1,6 +1,0 @@
-SSIP2 #1 v0=0 v1=4 edge_length=283.578 divisions=1 jve_len=20 scale[2]=1 total=14.1789 move=14.1789
-SSIP2 #2 v0=1 v1=4 edge_length=401.062 divisions=2 jve_len=20 scale[2]=1 total=20.0531 move=10.0266
-SSIP2 #3 v0=2 v1=8 edge_length=778.5 divisions=3 jve_len=20 scale[2]=1 total=38.925 move=12.975
-SSIP2 #1 v0=0 v1=4 edge_length=283.578 divisions=1 jve_len=20 scale[2]=1 total=14.1789 move=14.1789
-SSIP2 #2 v0=1 v1=4 edge_length=401.062 divisions=2 jve_len=20 scale[2]=1 total=20.0531 move=10.0266
-SSIP2 #3 v0=2 v1=8 edge_length=778.5 divisions=3 jve_len=20 scale[2]=1 total=38.925 move=12.975

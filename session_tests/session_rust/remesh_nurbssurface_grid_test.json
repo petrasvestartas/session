@@ -1,0 +1,241 @@
+[
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 12,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() == 191",
+        "line": 13,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() == 378",
+        "line": 14,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;\n\n        let s = Primitives::sphere_surface(0.0, 0.0, 0.0, 1.0);\n        let m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);\n",
+    "failures": [],
+    "group": "RemeshNurbsSurfaceGrid",
+    "line": 5,
+    "passed": true,
+    "test_name": "Sphere",
+    "time_ms": 6.791
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 26,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() == 693",
+        "line": 27,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() == 1386",
+        "line": 28,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;\n\n        let s = Primitives::torus_surface(0.0, 0.0, 0.0, 3.0, 1.0);\n        let m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);\n",
+    "failures": [],
+    "group": "RemeshNurbsSurfaceGrid",
+    "line": 19,
+    "passed": true,
+    "test_name": "Torus",
+    "time_ms": 22.163
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 40,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() == 42",
+        "line": 41,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() == 42",
+        "line": 42,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;\n\n        let s = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);\n",
+    "failures": [],
+    "group": "RemeshNurbsSurfaceGrid",
+    "line": 33,
+    "passed": true,
+    "test_name": "Cylinder",
+    "time_ms": 1.153
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 54,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() == 22",
+        "line": 55,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() == 21",
+        "line": 56,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;\n\n        let s = Primitives::cone_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);\n",
+    "failures": [],
+    "group": "RemeshNurbsSurfaceGrid",
+    "line": 47,
+    "passed": true,
+    "test_name": "Cone",
+    "time_ms": 0.802
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 68,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() == 961",
+        "line": 69,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() == 1800",
+        "line": 70,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;\n\n        let s = Primitives::wave_surface(1.0, 0.5);\n        let m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);\n",
+    "failures": [],
+    "group": "RemeshNurbsSurfaceGrid",
+    "line": 61,
+    "passed": true,
+    "test_name": "Doubly Curved",
+    "time_ms": 38.702
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m_lo.is_valid()",
+        "line": 83,
+        "passed": true
+      },
+      {
+        "code_line": "m_lo.number_of_vertices() == 64",
+        "line": 84,
+        "passed": true
+      },
+      {
+        "code_line": "m_hi.is_valid()",
+        "line": 85,
+        "passed": true
+      },
+      {
+        "code_line": "m_hi.number_of_vertices() > m_lo.number_of_vertices()",
+        "line": 86,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;\n\n        let s = Primitives::wave_surface(1.0, 0.5);\n        let m_lo = RemeshNurbsSurfaceGrid::from_u_v(s.clone(), 8, 8);\n        let m_hi = RemeshNurbsSurfaceGrid::from_u_v(s, 32, 32);\n",
+    "failures": [],
+    "group": "RemeshNurbsSurfaceGrid",
+    "line": 75,
+    "passed": true,
+    "test_name": "Grid Target",
+    "time_ms": 65.006
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 104,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() == 4",
+        "line": 105,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() == 2",
+        "line": 106,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;\n\n        let s = NurbsSurface::create(false, false, 1, 1, 2, 2, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n        ]).unwrap();\n        let m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);\n",
+    "failures": [],
+    "group": "RemeshNurbsSurfaceGrid",
+    "line": 91,
+    "passed": true,
+    "test_name": "Flat Quad",
+    "time_ms": 0.179
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 124,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() == 3",
+        "line": 125,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() == 1",
+        "line": 126,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;\n\n        let s = NurbsSurface::create(false, false, 1, 1, 2, 2, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 4.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(2.0, 4.0, 0.0),\n        ]).unwrap();\n        let m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);\n",
+    "failures": [],
+    "group": "RemeshNurbsSurfaceGrid",
+    "line": 111,
+    "passed": true,
+    "test_name": "Flat Triangle",
+    "time_ms": 0.136
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 150,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() == 64",
+        "line": 151,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() == 98",
+        "line": 152,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use crate::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 3.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(0.0, 2.0, 2.0),\n            Point::new(2.0, 2.0, 5.0),\n            Point::new(4.0, 2.0, 2.0),\n            Point::new(2.0, 4.0, 0.0),\n            Point::new(2.0, 4.0, 0.0),\n            Point::new(2.0, 4.0, 0.0),\n        ];\n        let s = NurbsSurface::create(false, false, 2, 2, 3, 3, &pts).unwrap();\n        let m = RemeshNurbsSurfaceGrid::from_u_v(s, 0, 0);\n",
+    "failures": [],
+    "group": "RemeshNurbsSurfaceGrid",
+    "line": 131,
+    "passed": true,
+    "test_name": "Double-Curved Triangle",
+    "time_ms": 1.718
+  }
+]

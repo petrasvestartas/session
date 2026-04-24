@@ -18,7 +18,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Mesh Arrow",
-    "time_ms": 0.127
+    "time_ms": 0.326
   },
   {
     "checks": [
@@ -39,7 +39,7 @@
     "line": 19,
     "passed": true,
     "test_name": "Mesh Cylinder",
-    "time_ms": 0.06
+    "time_ms": 0.22
   },
   {
     "checks": [
@@ -80,7 +80,7 @@
     "line": 54,
     "passed": true,
     "test_name": "Nurbscurve Polyline",
-    "time_ms": 0.16
+    "time_ms": 0.503
   },
   {
     "checks": [
@@ -132,7 +132,7 @@
     "line": 88,
     "passed": true,
     "test_name": "Nurbscurve Ellipse",
-    "time_ms": 0.006
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -158,7 +158,7 @@
     "line": 100,
     "passed": true,
     "test_name": "Nurbscurve Arc",
-    "time_ms": 0.006
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -184,7 +184,7 @@
     "line": 116,
     "passed": true,
     "test_name": "Nurbscurve Parabola",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -210,7 +210,7 @@
     "line": 132,
     "passed": true,
     "test_name": "Nurbscurve Hyperbola",
-    "time_ms": 0.02
+    "time_ms": 0.022
   },
   {
     "checks": [
@@ -236,7 +236,7 @@
     "line": 146,
     "passed": true,
     "test_name": "Nurbscurve Spiral",
-    "time_ms": 0.023
+    "time_ms": 0.024
   },
   {
     "checks": [
@@ -322,7 +322,7 @@
     "line": 158,
     "passed": true,
     "test_name": "Nurbssurface Cylinder",
-    "time_ms": 0.007
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -408,7 +408,7 @@
     "line": 188,
     "passed": true,
     "test_name": "Nurbssurface Cone",
-    "time_ms": 0.005
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -509,7 +509,7 @@
     "line": 218,
     "passed": true,
     "test_name": "Nurbssurface Sphere",
-    "time_ms": 0.008
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -710,7 +710,7 @@
     "line": 253,
     "passed": true,
     "test_name": "Nurbssurface Quad Sphere",
-    "time_ms": 0.116
+    "time_ms": 0.377
   },
   {
     "checks": [
@@ -796,7 +796,7 @@
     "line": 287,
     "passed": true,
     "test_name": "Nurbssurface Torus",
-    "time_ms": 0.006
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -1122,7 +1122,7 @@
     "line": 317,
     "passed": true,
     "test_name": "Nurbssurface Ruled",
-    "time_ms": 3.545
+    "time_ms": 8.067
   },
   {
     "checks": [
@@ -1333,7 +1333,7 @@
     "line": 429,
     "passed": true,
     "test_name": "Nurbssurface Planar",
-    "time_ms": 10.658
+    "time_ms": 55.586
   },
   {
     "checks": [
@@ -1564,7 +1564,7 @@
     "line": 529,
     "passed": true,
     "test_name": "Nurbssurface Extrusion",
-    "time_ms": 0.716
+    "time_ms": 3.15
   },
   {
     "checks": [
@@ -1845,7 +1845,7 @@
     "line": 616,
     "passed": true,
     "test_name": "Nurbssurface Loft",
-    "time_ms": 0.131
+    "time_ms": 1.412
   },
   {
     "checks": [
@@ -2100,13 +2100,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n        use crate::vector::Vector;\n\n        let pa = NurbsCurve::create(false, 3, &[\n            Point::new(1.5, 0.0, 0.0),\n            Point::new(1.5, 0.0, 0.3),\n            Point::new(0.3, 0.0, 0.5),\n            Point::new(0.3, 0.0, 2.5),\n            Point::new(0.2, 0.0, 3.0),\n            Point::new(2.0, 0.0, 4.5),\n            Point::new(1.8, 0.0, 5.0),\n        ]);\n        let s_vase = Primitives::create_revolve(&pa, &Point::new(0.0, 0.0, 0.0), &Vector::new(0.0, 0.0, 1.0), 2.0 * crate::tolerance::PI);\n        let m_vase = s_vase.mesh();\n\n        let w = (2.0_f64).sqrt() / 2.0;\n        let cw = [1.0, w, 1.0, w, 1.0, w, 1.0, w, 1.0];\n        let ca = [1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0, 1.0, 1.0];\n        let sa = [0.0, 1.0, 1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0];\n        let ck = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0];\n        let rr = 5.0; let r = 1.5; let tcx = 14.0;\n        let mut pb = NurbsCurve::new(3, true, 3, 9);\n        for i in 0..10 { pb.set_knot(i, ck[i]); }\n        for i in 0..9 { pb.set_cv_4d(i, (tcx + rr + r * ca[i]) * cw[i], 0.0, r * sa[i] * cw[i], cw[i]); }\n        let s_torus = Primitives::create_revolve(&pb, &Point::new(tcx, 0.0, 0.0), &Vector::new(0.0, 0.0, 1.0), 2.0 * crate::tolerance::PI);\n        let m_torus = s_torus.mesh();\n\n        let pc = NurbsCurve::create(false, 1, &[\n            Point::new(29.0, 0.0, -0.5),\n            Point::new(29.0, 0.0, 0.5),\n        ]);\n        let s_elbow = Primitives::create_revolve(&pc, &Point::new(26.0, 0.0, 0.0), &Vector::new(0.0, 0.0, 1.0), crate::tolerance::PI / 2.0);\n        let m_elbow = s_elbow.mesh();\n\n        let sr = 2.0; let scx = 36.0;\n        let mut pd = NurbsCurve::new(3, true, 3, 5);\n        let sk = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0];\n        for i in 0..6 { pd.set_knot(i, sk[i]); }\n        let spx = [0.0, sr, sr, sr, 0.0]; let spz = [-sr, -sr, 0.0, sr, sr]; let spw = [1.0, w, 1.0, w, 1.0];\n        for i in 0..5 { pd.set_cv_4d(i, (scx + spx[i]) * spw[i], 0.0, spz[i] * spw[i], spw[i]); }\n        let s_sphere = Primitives::create_revolve(&pd, &Point::new(scx, 0.0, 0.0), &Vector::new(0.0, 0.0, 1.0), 2.0 * crate::tolerance::PI);\n        let m_sphere = s_sphere.mesh();\n\n        let pe = NurbsCurve::create(false, 1, &[\n            Point::new(44.0, 0.0, 3.0),\n            Point::new(46.0, 0.0, 0.0),\n        ]);\n        let s_cone = Primitives::create_revolve(&pe, &Point::new(44.0, 0.0, 0.0), &Vector::new(0.0, 0.0, 1.0), 2.0 * crate::tolerance::PI);\n        let m_cone = s_cone.mesh();\n\n\n\n\n",
+    "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n        use crate::vector::Vector;\n\n        let pa = NurbsCurve::create(false, 3, &[\n            Point::new(1.5, 0.0, 0.0),\n            Point::new(1.5, 0.0, 0.3),\n            Point::new(0.3, 0.0, 0.5),\n            Point::new(0.3, 0.0, 2.5),\n            Point::new(0.2, 0.0, 3.0),\n            Point::new(2.0, 0.0, 4.5),\n            Point::new(1.8, 0.0, 5.0),\n        ]);\n        let s_vase = Primitives::create_revolve(&pa, &Point::new(0.0, 0.0, 0.0), &Vector::new(0.0, 0.0, 1.0), 2.0 * crate::tolerance::PI);\n        let m_vase = s_vase.mesh();\n\n        let w = (2.0_f64).sqrt() / 2.0;\n        let cw = [1.0, w, 1.0, w, 1.0, w, 1.0, w, 1.0];\n        let ca = [1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0, 1.0, 1.0];\n        let sa = [0.0, 1.0, 1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0];\n        let ck = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0];\n        let rr = 5.0; let r = 1.5; let tcx = 14.0;\n        let mut pb = NurbsCurve::new(3, true, 3, 9);\n        for i in 0..10 { pb.set_nurbsknot(i, ck[i]); }\n        for i in 0..9 { pb.set_cv_4d(i, (tcx + rr + r * ca[i]) * cw[i], 0.0, r * sa[i] * cw[i], cw[i]); }\n        let s_torus = Primitives::create_revolve(&pb, &Point::new(tcx, 0.0, 0.0), &Vector::new(0.0, 0.0, 1.0), 2.0 * crate::tolerance::PI);\n        let m_torus = s_torus.mesh();\n\n        let pc = NurbsCurve::create(false, 1, &[\n            Point::new(29.0, 0.0, -0.5),\n            Point::new(29.0, 0.0, 0.5),\n        ]);\n        let s_elbow = Primitives::create_revolve(&pc, &Point::new(26.0, 0.0, 0.0), &Vector::new(0.0, 0.0, 1.0), crate::tolerance::PI / 2.0);\n        let m_elbow = s_elbow.mesh();\n\n        let sr = 2.0; let scx = 36.0;\n        let mut pd = NurbsCurve::new(3, true, 3, 5);\n        let sk = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0];\n        for i in 0..6 { pd.set_nurbsknot(i, sk[i]); }\n        let spx = [0.0, sr, sr, sr, 0.0]; let spz = [-sr, -sr, 0.0, sr, sr]; let spw = [1.0, w, 1.0, w, 1.0];\n        for i in 0..5 { pd.set_cv_4d(i, (scx + spx[i]) * spw[i], 0.0, spz[i] * spw[i], spw[i]); }\n        let s_sphere = Primitives::create_revolve(&pd, &Point::new(scx, 0.0, 0.0), &Vector::new(0.0, 0.0, 1.0), 2.0 * crate::tolerance::PI);\n        let m_sphere = s_sphere.mesh();\n\n        let pe = NurbsCurve::create(false, 1, &[\n            Point::new(44.0, 0.0, 3.0),\n            Point::new(46.0, 0.0, 0.0),\n        ]);\n        let s_cone = Primitives::create_revolve(&pe, &Point::new(44.0, 0.0, 0.0), &Vector::new(0.0, 0.0, 1.0), 2.0 * crate::tolerance::PI);\n        let m_cone = s_cone.mesh();\n\n\n\n\n",
     "failures": [],
     "group": "Primitives",
     "line": 715,
     "passed": true,
     "test_name": "Nurbssurface Revolve",
-    "time_ms": 11.031
+    "time_ms": 86.754
   },
   {
     "checks": [
@@ -2242,7 +2242,7 @@
     "line": 826,
     "passed": true,
     "test_name": "Nurbssurface Sweep",
-    "time_ms": 19.278
+    "time_ms": 87.935
   },
   {
     "checks": [
@@ -2343,7 +2343,7 @@
     "line": 895,
     "passed": true,
     "test_name": "Nurbssurface Edge",
-    "time_ms": 0.561
+    "time_ms": 3.688
   },
   {
     "checks": [
@@ -2384,7 +2384,7 @@
     "line": 958,
     "passed": true,
     "test_name": "Mesh Quad Mesh",
-    "time_ms": 0.154
+    "time_ms": 1.258
   },
   {
     "checks": [
@@ -2425,7 +2425,7 @@
     "line": 976,
     "passed": true,
     "test_name": "Mesh Diamond Mesh",
-    "time_ms": 0.115
+    "time_ms": 0.903
   },
   {
     "checks": [
@@ -2466,7 +2466,7 @@
     "line": 994,
     "passed": true,
     "test_name": "Mesh Hex Mesh",
-    "time_ms": 0.168
+    "time_ms": 1.567
   },
   {
     "checks": [
@@ -2522,7 +2522,7 @@
     "line": 1012,
     "passed": true,
     "test_name": "Mesh Cone Subdivisions",
-    "time_ms": 0.168
+    "time_ms": 1.802
   },
   {
     "checks": [
@@ -2557,27 +2557,27 @@
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[3]), &points[1])",
+        "code_line": "TOLERANCE.is_point_close(&c.point_at(nurbsknots[3]), &points[1])",
         "line": 1061,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[4]), &points[2])",
+        "code_line": "TOLERANCE.is_point_close(&c.point_at(nurbsknots[4]), &points[2])",
         "line": 1062,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[5]), &points[3])",
+        "code_line": "TOLERANCE.is_point_close(&c.point_at(nurbsknots[5]), &points[3])",
         "line": 1063,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[6]), &points[4])",
+        "code_line": "TOLERANCE.is_point_close(&c.point_at(nurbsknots[6]), &points[4])",
         "line": 1064,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&c.point_at(knots[7]), &points[5])",
+        "code_line": "TOLERANCE.is_point_close(&c.point_at(nurbsknots[7]), &points[5])",
         "line": 1065,
         "passed": true
       },
@@ -2622,13 +2622,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::primitives::Primitives;\n        use crate::point::Point;\n        use crate::knot::CurveKnotStyle;\n\n        let points = vec![\n            Point::new(14.0, 9.0, 0.0),\n            Point::new(15.342777, 13.734889, 0.0),\n            Point::new(21.897914, 32.239195, 0.0),\n            Point::new(24.678472, 0.354555, 0.0),\n            Point::new(33.813678, 24.76858, 0.0),\n            Point::new(39.626394, 15.47249, 0.0),\n            Point::new(41.0, 13.0, 0.0),\n        ];\n\n        let c = Primitives::create_interpolated(&points, CurveKnotStyle::Chord);\n\n\n        let (d0, d1) = c.domain();\n        let knots = c.get_knots();\n\n\n        let pts4 = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(3.0, 1.0, 0.0),\n            Point::new(5.0, 3.0, 0.0),\n        ];\n        let c4 = Primitives::create_interpolated(&pts4, CurveKnotStyle::Chord);\n        let (d4_0, d4_1) = c4.domain();",
+    "code": "        use crate::primitives::Primitives;\n        use crate::point::Point;\n        use crate::nurbsknot::CurveNurbsKnotStyle;\n\n        let points = vec![\n            Point::new(14.0, 9.0, 0.0),\n            Point::new(15.342777, 13.734889, 0.0),\n            Point::new(21.897914, 32.239195, 0.0),\n            Point::new(24.678472, 0.354555, 0.0),\n            Point::new(33.813678, 24.76858, 0.0),\n            Point::new(39.626394, 15.47249, 0.0),\n            Point::new(41.0, 13.0, 0.0),\n        ];\n\n        let c = Primitives::create_interpolated(&points, CurveNurbsKnotStyle::Chord);\n\n\n        let (d0, d1) = c.domain();\n        let nurbsknots = c.get_nurbsknots();\n\n\n        let pts4 = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(3.0, 1.0, 0.0),\n            Point::new(5.0, 3.0, 0.0),\n        ];\n        let c4 = Primitives::create_interpolated(&pts4, CurveNurbsKnotStyle::Chord);\n        let (d4_0, d4_1) = c4.domain();",
     "failures": [],
     "group": "Primitives",
     "line": 1035,
     "passed": true,
     "test_name": "Nurbscurve Interpolated",
-    "time_ms": 0.012
+    "time_ms": 0.079
   },
   {
     "checks": [
@@ -2654,7 +2654,7 @@
     "line": 1088,
     "passed": true,
     "test_name": "Mesh Tetrahedron",
-    "time_ms": 0.012
+    "time_ms": 0.1
   },
   {
     "checks": [
@@ -2680,7 +2680,7 @@
     "line": 1099,
     "passed": true,
     "test_name": "Mesh Cube",
-    "time_ms": 0.049
+    "time_ms": 0.389
   },
   {
     "checks": [
@@ -2706,7 +2706,7 @@
     "line": 1110,
     "passed": true,
     "test_name": "Mesh Octahedron",
-    "time_ms": 0.016
+    "time_ms": 0.157
   },
   {
     "checks": [
@@ -2732,7 +2732,7 @@
     "line": 1121,
     "passed": true,
     "test_name": "Mesh Icosahedron",
-    "time_ms": 0.044
+    "time_ms": 0.237
   },
   {
     "checks": [
@@ -2773,7 +2773,7 @@
     "line": 1132,
     "passed": true,
     "test_name": "Nurbssurface Wave",
-    "time_ms": 0.07
+    "time_ms": 0.178
   },
   {
     "checks": [
@@ -2794,6 +2794,6 @@
     "line": 32,
     "passed": true,
     "test_name": "Mesh Edge Pipes",
-    "time_ms": 0.332
+    "time_ms": 4.201
   }
 ]

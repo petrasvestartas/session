@@ -35,7 +35,7 @@ Dev order: Python → Rust → C++. Use `/build` command for full reference.
 - Tests identical across all 3 languages (names, logic, line count)
 - One test per API method; constructor test groups: ctor, [], ==, !=, str, repr
 - JSON fields alphabetically ordered across all languages
-- Every class needs: json_dump/json_load + to_proto/from_proto tests
+- Every class needs: file_json_dump/file_json_load + to_proto/from_proto tests
 - Operators go inside constructor test, not separate tests
 - Method order: constructors → accessors → mutators (*_self) → operators → utilities → serialization → str/repr
 - Use `/test-rules` command for full import patterns and conventions

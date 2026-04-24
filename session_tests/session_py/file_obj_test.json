@@ -1,0 +1,79 @@
+[
+  {
+    "group": "FileObj",
+    "test_name": "Read Bunny",
+    "passed": true,
+    "time_ms": 30.28,
+    "line": 8,
+    "code": "    # load Stanford Bunny (real-world OBJ: 2503 vertices, 4968 faces)\n    bunny_path = Path(__file__).resolve().parents[3] / \"session_data\" / \"bunny.obj\"\n    if not bunny_path.exists():\n        return\n    from session_py import Mesh\n    from session_py.file_obj import read_file_obj\n    mesh = read_file_obj(str(bunny_path))\n\n    vertices, faces = mesh.to_vertices_and_faces()\n    has_non_zero = any(v[0] != 0.0 or v[1] != 0.0 or v[2] != 0.0 for v in vertices)",
+    "checks": [
+      {
+        "line": 18,
+        "code_line": "mesh.number_of_vertices() == 2503",
+        "passed": true
+      },
+      {
+        "line": 19,
+        "code_line": "mesh.number_of_faces() == 4968",
+        "passed": true
+      },
+      {
+        "line": 21,
+        "code_line": "len(vertices) == 2503",
+        "passed": true
+      },
+      {
+        "line": 22,
+        "code_line": "len(faces) == 4968",
+        "passed": true
+      },
+      {
+        "line": 24,
+        "code_line": "has_non_zero",
+        "passed": true
+      },
+      {
+        "line": 25,
+        "code_line": "all(len(f) >= 3 for f in faces)",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "FileObj",
+    "test_name": "Write Read Roundtrip",
+    "passed": true,
+    "time_ms": 2.102,
+    "line": 28,
+    "code": "    # build a small mesh (4 verts, 2 faces), write to OBJ, read back, compare counts\n    from session_py import Mesh, Point\n    from session_py.file_obj import read_file_obj, write_file_obj\n    original_mesh = Mesh()\n    v0 = original_mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = original_mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = original_mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    v3 = original_mesh.add_vertex(Point(0.0, 0.0, 1.0))\n    original_mesh.add_face([v0, v1, v2])\n    original_mesh.add_face([v0, v1, v3])\n\n    temp_file = str(Path(__file__).resolve().parents[2] / \"serialization\" / \"test_temp_roundtrip.obj\")\n    write_file_obj(original_mesh, temp_file)\n    loaded_mesh = read_file_obj(temp_file)\n    os.remove(temp_file)",
+    "checks": [
+      {
+        "line": 41,
+        "code_line": "original_mesh.number_of_vertices() == 4",
+        "passed": true
+      },
+      {
+        "line": 42,
+        "code_line": "original_mesh.number_of_faces() == 2",
+        "passed": true
+      },
+      {
+        "line": 45,
+        "code_line": "os.path.exists(temp_file)",
+        "passed": true
+      },
+      {
+        "line": 47,
+        "code_line": "loaded_mesh.number_of_vertices() == original_mesh.number_of_vertices()",
+        "passed": true
+      },
+      {
+        "line": 48,
+        "code_line": "loaded_mesh.number_of_faces() == original_mesh.number_of_faces()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

@@ -150,7 +150,8 @@ const loadSuitesFromTestData = () => {
     const suite = parts.join('_');
     if (suite) set.add(suite);
   }
-  testsSuites.value = Array.from(set.values());
+  testsSuites.value = Array.from(set.values())
+    .sort((a, b) => suiteLabel(a).localeCompare(suiteLabel(b), undefined, { sensitivity: 'base' }));
 };
 
 const syncSelectedSuiteWithRoute = () => {
@@ -176,11 +177,24 @@ const openTestsMenu = () => {
 };
 
 const suiteLabel = (suite) => {
+  // Normalize an identifier for matching: lowercase, strip non-alnum.
+  const norm = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const suiteKey = norm(suite.replace(/_test$/i, ''));
   if (typeof window.TEST_DATA !== 'undefined') {
+    const seen = new Set();
+    let fallback = null;
     for (const lang of ['cpp', 'python', 'rust']) {
       const arr = window.TEST_DATA[suite + '_' + lang];
-      if (Array.isArray(arr) && arr.length > 0 && arr[0].group) return arr[0].group;
+      if (!Array.isArray(arr)) continue;
+      for (const t of arr) {
+        const g = t && t.group;
+        if (!g || seen.has(g)) continue;
+        seen.add(g);
+        if (norm(g) === suiteKey) return g;
+        if (fallback === null) fallback = g;
+      }
     }
+    if (fallback !== null) return fallback;
   }
   return suite.replace(/_test$/i, '')
     .split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');

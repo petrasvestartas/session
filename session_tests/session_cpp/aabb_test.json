@@ -1,114 +1,114 @@
 [
   {
-    "group": "Aabb",
+    "group": "AABB",
     "test_name": "Constructor",
     "passed": true,
     "time_ms": 0.003,
-    "line": 124,
+    "line": 20,
     "code": "    // uncomment #include \"aabb.h\"\n    // uncomment #include \"point.h\"\n    // AABB(0,0,0, 1,2,3) — dims 2×4×6\n    AABB a(0.0, 0.0, 0.0, 1.0, 2.0, 3.0);\n\n\n\n\n\n    AABB b(5.0, 0.0, 0.0, 1.0, 1.0, 1.0);\n    a.union_with(b);\n    AABB c = AABB::merge(AABB(0.0, 0.0, 0.0, 1.0, 1.0, 1.0), AABB(4.0, 0.0, 0.0, 1.0, 1.0, 1.0));",
     "checks": [
       {
-        "line": 130,
+        "line": 26,
         "code_line": "TOLERANCE.is_close(a.area(), 88.0)",
         "passed": true
       },
       {
-        "line": 131,
+        "line": 27,
         "code_line": "a.center() == Point(0.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 132,
+        "line": 28,
         "code_line": "TOLERANCE.is_close(a.diagonal(), 2.0 * std::sqrt(14.0))",
         "passed": true
       },
       {
-        "line": 133,
+        "line": 29,
         "code_line": "a.is_valid()",
         "passed": true
       },
       {
-        "line": 134,
+        "line": 30,
         "code_line": "TOLERANCE.is_close(a.volume(), 48.0)",
         "passed": true
       },
       {
-        "line": 136,
+        "line": 32,
         "code_line": "a.closest_point(Point(0.0, 0.0, 0.0)) == Point(0.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 137,
+        "line": 33,
         "code_line": "a.closest_point(Point(10.0, 0.0, 0.0)) == Point(1.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 138,
+        "line": 34,
         "code_line": "a.contains(Point(0.0, 0.0, 0.0))",
         "passed": true
       },
       {
-        "line": 139,
+        "line": 35,
         "code_line": "!a.contains(Point(10.0, 0.0, 0.0))",
         "passed": true
       },
       {
-        "line": 141,
+        "line": 37,
         "code_line": "a.corner(false, false, false) == Point(-1.0, -2.0, -3.0)",
         "passed": true
       },
       {
-        "line": 142,
+        "line": 38,
         "code_line": "a.corner(true, true, true) == Point(1.0, 2.0, 3.0)",
         "passed": true
       },
       {
-        "line": 143,
+        "line": 39,
         "code_line": "a.get_corners().size() == 8",
         "passed": true
       },
       {
-        "line": 144,
+        "line": 40,
         "code_line": "a.get_edges().size() == 12",
         "passed": true
       },
       {
-        "line": 146,
+        "line": 42,
         "code_line": "a.point_at(1.0, 0.0, 0.0) == Point(1.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 147,
+        "line": 43,
         "code_line": "a.point_at(0.0, 0.0, 0.0) == Point(0.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 149,
+        "line": 45,
         "code_line": "a.intersects(AABB(0.5, 0.0, 0.0, 0.5, 0.5, 0.5))",
         "passed": true
       },
       {
-        "line": 150,
+        "line": 46,
         "code_line": "!a.intersects(AABB(10.0, 0.0, 0.0, 0.5, 0.5, 0.5))",
         "passed": true
       },
       {
-        "line": 153,
+        "line": 49,
         "code_line": "a.min_point() == Point(-1.0, -2.0, -3.0)",
         "passed": true
       },
       {
-        "line": 154,
+        "line": 50,
         "code_line": "a.max_point() == Point(6.0, 2.0, 3.0)",
         "passed": true
       },
       {
-        "line": 156,
+        "line": 52,
         "code_line": "c.min_point() == Point(-1.0, -1.0, -1.0)",
         "passed": true
       },
       {
-        "line": 157,
+        "line": 53,
         "code_line": "c.max_point() == Point(5.0, 1.0, 1.0)",
         "passed": true
       }
@@ -116,90 +116,90 @@
     "failures": []
   },
   {
-    "group": "Aabb",
+    "group": "AABB",
     "test_name": "From Geometry",
     "passed": true,
-    "time_ms": 0.216,
-    "line": 160,
+    "time_ms": 0.276,
+    "line": 56,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"polyline.h\"\n    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"nurbscurve.h\"\n    // uncomment #include \"nurbssurface.h\"\n    AABB a_pt = AABB::from_point(Point(1.0, 2.0, 3.0), 0.5);\n\n\n    AABB a_pts = AABB::from_points({\n        Point(0.0, 0.0, 0.0),\n        Point(3.0, 4.0, 5.0),\n    }, 0.0);\n\n\n    Line ln(0.0, 0.0, 0.0, 4.0, 0.0, 0.0);\n    AABB a_line = AABB::from_line(ln, 1.0);\n\n\n    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n    });\n    AABB a_pl = AABB::from_polyline(pl, 0.0);\n\n\n    Mesh cube = Primitives::cube(2.0);\n    AABB a_mesh = AABB::from_mesh(cube, 0.0);\n\n\n    PointCloud pc(\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(4.0, 2.0, 6.0),\n        },\n        {\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        },\n        {\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n        }\n    );\n    AABB a_pc = AABB::from_pointcloud(pc, 0.0);\n\n\n    NurbsCurve curve = NurbsCurve::create(false, 2, {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    });\n    AABB a_nc = AABB::from_nurbscurve(curve, 0.5, false);\n\n\n    NurbsSurface surf = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n        Point(2.0, 2.0, 2.0),\n    });\n    AABB a_ns = AABB::from_nurbssurface(surf, 0.0);",
     "checks": [
       {
-        "line": 168,
+        "line": 64,
         "code_line": "a_pt.center() == Point(1.0, 2.0, 3.0)",
         "passed": true
       },
       {
-        "line": 169,
+        "line": 65,
         "code_line": "TOLERANCE.is_close(a_pt.hx, 0.5)",
         "passed": true
       },
       {
-        "line": 176,
+        "line": 72,
         "code_line": "a_pts.min_point() == Point(0.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 177,
+        "line": 73,
         "code_line": "a_pts.max_point() == Point(3.0, 4.0, 5.0)",
         "passed": true
       },
       {
-        "line": 182,
+        "line": 78,
         "code_line": "a_line.min_point() == Point(-1.0, -1.0, -1.0)",
         "passed": true
       },
       {
-        "line": 183,
+        "line": 79,
         "code_line": "a_line.max_point() == Point(5.0, 1.0, 1.0)",
         "passed": true
       },
       {
-        "line": 192,
+        "line": 88,
         "code_line": "a_pl.min_point() == Point(0.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 193,
+        "line": 89,
         "code_line": "a_pl.max_point() == Point(2.0, 2.0, 0.0)",
         "passed": true
       },
       {
-        "line": 198,
+        "line": 94,
         "code_line": "a_mesh.min_point() == Point(-1.0, -1.0, -1.0)",
         "passed": true
       },
       {
-        "line": 199,
+        "line": 95,
         "code_line": "a_mesh.max_point() == Point(1.0, 1.0, 1.0)",
         "passed": true
       },
       {
-        "line": 217,
+        "line": 113,
         "code_line": "a_pc.min_point() == Point(0.0, 0.0, 0.0)",
         "passed": true
       },
       {
-        "line": 218,
+        "line": 114,
         "code_line": "a_pc.max_point() == Point(4.0, 2.0, 6.0)",
         "passed": true
       },
       {
-        "line": 228,
+        "line": 124,
         "code_line": "a_nc.is_valid()",
         "passed": true
       },
       {
-        "line": 229,
+        "line": 125,
         "code_line": "a_nc.contains(Point(1.5, 0.0, 0.0))",
         "passed": true
       },
       {
-        "line": 239,
+        "line": 135,
         "code_line": "a_ns.is_valid()",
         "passed": true
       },
       {
-        "line": 240,
+        "line": 136,
         "code_line": "TOLERANCE.is_close(a_ns.volume(), 8.0)",
         "passed": true
       }
