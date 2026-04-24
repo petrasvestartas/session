@@ -137,18 +137,30 @@ if $DO_RUST; then
 fi
 
 # ---- Freshness check (CI) -------------------------------------------------
+# Only inspect the generated proto output paths — minitest also dirties
+# other files (serialization/test_*.json, etc.) which are unrelated.
 if $DO_CHECK; then
     echo "[gen_proto] running freshness check…"
-    for sub in session_py session_cpp session_rust; do
+    declare -A CHECK_PATHS=(
+        [session_py]="src/session_py/proto"
+        [session_cpp]="generated"
+        [session_rust]="src/proto"
+    )
+    bad=0
+    for sub in "${!CHECK_PATHS[@]}"; do
+        local_path="${CHECK_PATHS[$sub]}"
         pushd "${REPO_ROOT}/${sub}" >/dev/null
-        if ! git diff --quiet -- '*'; then
-            echo "ERROR: ${sub} has stale generated protobuf output." >&2
-            echo "Run ./bash/gen_proto.sh and commit the result." >&2
-            git --no-pager diff --stat -- '*' >&2
-            popd >/dev/null
-            exit 1
+        if ! git diff --quiet -- "$local_path"; then
+            echo "ERROR: ${sub}/${local_path} has stale generated output:" >&2
+            git --no-pager diff --stat -- "$local_path" >&2
+            bad=1
         fi
         popd >/dev/null
     done
-    echo "[gen_proto] all submodules clean."
+    if [[ $bad -ne 0 ]]; then
+        echo "" >&2
+        echo "Run ./bash/gen_proto.sh locally and commit the refreshed files." >&2
+        exit 1
+    fi
+    echo "[gen_proto] all generated proto paths are up-to-date."
 fi
