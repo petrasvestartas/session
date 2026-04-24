@@ -23,6 +23,28 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PROTO_DIR="${REPO_ROOT}/session_proto"
 
+# Prefer the uvsession venv's python when it exists — that is where
+# minitest.sh installs grpcio-tools (needed for the Python codegen path).
+# Fall back to whatever `python` is on PATH.
+pick_python() {
+    local venv_py=""
+    if [[ -x "${REPO_ROOT}/uvsession/Scripts/python.exe" ]]; then
+        venv_py="${REPO_ROOT}/uvsession/Scripts/python.exe"
+    elif [[ -x "${REPO_ROOT}/uvsession/bin/python" ]]; then
+        venv_py="${REPO_ROOT}/uvsession/bin/python"
+    fi
+    if [[ -n "$venv_py" ]] && "$venv_py" -c "import grpc_tools.protoc" 2>/dev/null; then
+        echo "$venv_py"
+        return
+    fi
+    if command -v python >/dev/null 2>&1 && python -c "import grpc_tools.protoc" 2>/dev/null; then
+        echo "python"
+        return
+    fi
+    echo ""
+}
+PYTHON_BIN="$(pick_python)"
+
 DO_PY=true
 DO_CPP=true
 DO_RUST=true
@@ -51,8 +73,13 @@ fi
 if $DO_PY; then
     PY_OUT="${REPO_ROOT}/session_py/src/session_py/proto"
     mkdir -p "$PY_OUT"
-    echo "[gen_proto] Python -> ${PY_OUT#${REPO_ROOT}/}"
-    python -m grpc_tools.protoc \
+    if [[ -z "$PYTHON_BIN" ]]; then
+        echo "ERROR: no Python with grpcio-tools found. Install session_py" >&2
+        echo "  (which pulls in grpcio-tools) or pip install grpcio-tools." >&2
+        exit 1
+    fi
+    echo "[gen_proto] Python -> ${PY_OUT#${REPO_ROOT}/}  (using ${PYTHON_BIN})"
+    "$PYTHON_BIN" -m grpc_tools.protoc \
         --python_out="$PY_OUT" \
         -I "$PROTO_DIR" \
         "$PROTO_DIR"/*.proto
