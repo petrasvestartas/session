@@ -15,8 +15,15 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, macos-15, macos-15-intel, windows-latest]
+        language: [py, rust, cpp]
+        include:
+          # One full integration run on Linux that produces the viewer dist
+          # artifact and runs the proto freshness check.
+          - os: ubuntu-22.04
+            language: full
 
     runs-on: ${{ matrix.os }}
+    name: minitest-${{ matrix.language }} (${{ matrix.os }})
     env:
       MINITEST_JOBS: "4"
 
@@ -96,17 +103,24 @@ jobs:
         MSYS_NO_PATHCONV: 1
       run: |
         chmod +x bash/*.sh bash/lib/*.sh
-        ./bash/minitest.sh
+        case "${{ matrix.language }}" in
+          py)   ./bash/minitest.sh --py   --no-web ;;
+          rust) ./bash/minitest.sh --rust --no-web ;;
+          cpp)  ./bash/minitest.sh --cpp  --no-web ;;
+          full) ./bash/minitest.sh ;;
+          *)    echo "unknown language: ${{ matrix.language }}" >&2; exit 1 ;;
+        esac
 
     # Fails if anyone edited a .proto file without committing the refreshed
-    # Python/C++/Rust generated output. Runs only on Linux to keep CI time down;
-    # generated output is platform-independent.
+    # Python/C++/Rust generated output. Runs only on the full Linux job
+    # (generated output is platform-independent, one OS check suffices).
     - name: Check committed proto bindings are fresh
-      if: runner.os == 'Linux'
+      if: matrix.language == 'full'
       shell: bash
       run: ./bash/gen_proto.sh --check
 
     - name: Verify dist exists
+      if: matrix.language == 'full'
       shell: bash
       run: |
         if [ ! -d "session_tests/dist" ]; then
@@ -116,6 +130,7 @@ jobs:
         ls -la session_tests/dist
 
     - name: Upload mini-test website as artifact
+      if: matrix.language == 'full'
       uses: actions/upload-artifact@v6
       with:
         name: session-mini-tests-website-${{ matrix.os }}
