@@ -31,6 +31,16 @@ jobs:
       if: runner.os == 'Linux'
       run: sudo apt-get update && sudo apt-get install -y build-essential cmake
 
+    # Prebuilt protoc — only needed on Linux for the 'Check committed proto
+    # bindings are fresh' step. Generated code is platform-independent, so
+    # all OSes read the committed artefacts without installing protoc.
+    - name: Set up protoc (Linux — for freshness check)
+      if: runner.os == 'Linux'
+      uses: arduino/setup-protoc@v3
+      with:
+        version: '33.2'
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+
     # ============ CACHING ============
 
     - name: Cache Rust Cargo

@@ -92,6 +92,13 @@ regenerate_protos() {
     local proto_dir="${REPO_ROOT}/session_proto"
     [[ -d "$proto_dir" ]] || return 0
 
+    # Skip on CI: git checkout does not preserve mtimes, so -nt comparisons
+    # trip false-positives. CI has a dedicated ./bash/gen_proto.sh --check
+    # step that uses git diff instead of mtime.
+    if [[ -n "${CI:-}" ]]; then
+        return 0
+    fi
+
     # ---- Python ----
     local py_out="${REPO_ROOT}/session_py/src/session_py/proto"
     local py_stale=false

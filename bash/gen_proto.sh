@@ -72,13 +72,19 @@ if $DO_CPP; then
     mkdir -p "$CPP_OUT"
     echo "[gen_proto] C++    -> ${CPP_OUT#${REPO_ROOT}/}"
 
-    # Prefer an already-built protoc from a previous C++ configure; otherwise
-    # trigger a one-off SESSION_REGEN_PROTO configure to get one.
+    # Protoc resolution order (all Option-C friendly — none build protoc
+    # from source):
+    #   1. System `protoc` (apt / brew / pre-installed)
+    #   2. An existing protoc under session_cpp/build/_deps (if user ran
+    #      cmake with SESSION_REGEN_PROTO=ON earlier)
+    #   3. `python -m grpc_tools.protoc` — grpcio-tools bundles protoc and
+    #      is already a Python dep of session_py; works on CI without any
+    #      C++ toolchain
     PROTOC=""
     for candidate in \
+        "$(command -v protoc 2>/dev/null)" \
         "${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/Release/protoc.exe" \
-        "${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/protoc" \
-        "$(command -v protoc 2>/dev/null)"; do
+        "${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/protoc"; do
         if [[ -n "$candidate" && -x "$candidate" ]]; then
             PROTOC="$candidate"
             break
@@ -86,22 +92,12 @@ if $DO_CPP; then
     done
 
     if [[ -z "$PROTOC" ]]; then
-        echo "[gen_proto] no protoc found; configuring session_cpp with SESSION_REGEN_PROTO=ON"
-        cmake -S "${REPO_ROOT}/session_cpp" -B "${REPO_ROOT}/session_cpp/build" \
-            -DSESSION_REGEN_PROTO=ON -DCMAKE_BUILD_TYPE=Release >/dev/null
-        cmake --build "${REPO_ROOT}/session_cpp/build" --target protoc --config Release -j 4
-        for candidate in \
-            "${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/Release/protoc.exe" \
-            "${REPO_ROOT}/session_cpp/build/_deps/protobuf-build/protoc"; do
-            [[ -x "$candidate" ]] && PROTOC="$candidate" && break
-        done
-    fi
-
-    if [[ -z "$PROTOC" ]]; then
-        echo "ERROR: could not obtain protoc for C++ codegen" >&2
+        echo "ERROR: no protoc available for C++ codegen." >&2
+        echo "Install one of: protobuf-compiler (apt), protobuf (brew)," >&2
+        echo "  or let session_cpp's CMake build it once with" >&2
+        echo "  SESSION_REGEN_PROTO=ON." >&2
         exit 1
     fi
-
     "$PROTOC" --cpp_out="$CPP_OUT" --proto_path="$PROTO_DIR" "$PROTO_DIR"/*.proto
 fi
 
