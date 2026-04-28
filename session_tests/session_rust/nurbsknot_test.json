@@ -13,7 +13,7 @@
     "line": 8,
     "passed": true,
     "test_name": "Make Clamped Uniform",
-    "time_ms": 0.005
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 32,
     "passed": true,
     "test_name": "Is Clamped",
-    "time_ms": 0.002
+    "time_ms": 0.007
   },
   {
     "checks": [

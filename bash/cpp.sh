@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# Build and run session_cpp executables
+# Build and run every executable in session_cpp.
 # Usage:
-#   ./bash/cpp.sh              # Build all + run main_1..5
-#   ./bash/cpp.sh 1            # Build all + run main_1 only
-#   ./bash/cpp.sh 1 2          # Build all + run main_1 and main_2
+#   ./bash/cpp.sh              # Build all + run every main_* / example_*
+#   ./bash/cpp.sh main_5       # Build all + run only the listed exes
 #   ./bash/cpp.sh --clean      # Force cmake reconfigure
 set -e
 
@@ -18,21 +17,15 @@ TARGETS=()
 for arg in "$@"; do
     case $arg in
         --clean|-c) FORCE_CLEAN=true ;;
-        [1-9]) TARGETS+=("$arg") ;;
+        *)          TARGETS+=("$arg") ;;
     esac
 done
-
-# Default: run all 5
-if [[ ${#TARGETS[@]} -eq 0 ]]; then
-    TARGETS=(1 2 3 4 5)
-fi
 
 cd "$CPP_DIR"
 
 PLATFORM=$(detect_platform)
 JOBS=$(get_jobs)
 
-# Skip configure if build exists (use --clean to force)
 if [[ ! -d "build" ]] || [[ "$FORCE_CLEAN" == "true" ]]; then
     log_lang "cpp" "Configuring CMake..."
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release 2>&1 | grep -vE "^-- |^MSBuild|Completed '|Performing|No .* step|absl|abseil" || true
@@ -41,16 +34,31 @@ fi
 log_lang "cpp" "Building..."
 if [[ "$PLATFORM" == "windows" ]]; then
     cmake --build build --config Release --parallel "${JOBS}" 2>&1 | grep -vE "\.vcxproj ->|\.lib$|\.exe$|absl|abseil" || true
+    BIN_DIR="build/Release"
+    EXE_EXT=".exe"
 else
     cmake --build build --config Release -- -j"${JOBS}"
+    BIN_DIR="build"
+    EXE_EXT=""
+fi
+
+# Default: every main_* / example_* in BIN_DIR (skip the test runner).
+if [[ ${#TARGETS[@]} -eq 0 ]]; then
+    while IFS= read -r f; do
+        name=$(basename "$f" "$EXE_EXT")
+        [[ "$name" == *minitest* ]] && continue
+        TARGETS+=("$name")
+    done < <(ls "$BIN_DIR"/main_*"$EXE_EXT" "$BIN_DIR"/example_*"$EXE_EXT" 2>/dev/null | sort)
 fi
 
 for t in "${TARGETS[@]}"; do
-    if [[ "$PLATFORM" == "windows" ]]; then
-        EXE="./build/Release/main_${t}.exe"
-    else
-        EXE="./build/main_${t}"
+    EXE="$BIN_DIR/${t}${EXE_EXT}"
+    if [[ ! -x "$EXE" && ! -f "$EXE" ]]; then
+        log_lang "cpp" "Skipping ${t}: ${EXE} not found"
+        continue
     fi
-    log_lang "cpp" "Running main_${t}..."
-    "$EXE"
+    log_lang "cpp" "Running ${t}..."
+    if ! "$EXE"; then
+        log_lang "cpp" "${t} failed (exit=$?), continuing"
+    fi
 done

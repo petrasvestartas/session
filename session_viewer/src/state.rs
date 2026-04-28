@@ -1,12 +1,14 @@
 use std::sync::Arc;
 
+// Docs (v0.30): https://docs.rs/winit/0.30/winit/
 use winit::{
-    application::ApplicationHandler,
-    event::*,
-    event_loop::{ActiveEventLoop, EventLoop},
-    keyboard:: {KeyCode, PhysicalKey},
-    window::Window
+    application::ApplicationHandler,   // winit::application::ApplicationHandler
+    event::*,                           // everything in winit::event
+    event_loop::{ActiveEventLoop, EventLoop}, // two items from winit::event_loop
+    keyboard::{KeyCode, PhysicalKey},   // two from winit::keyboard
+    window::Window                      // winit::window::Window
 };
+
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;

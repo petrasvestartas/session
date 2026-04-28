@@ -88,7 +88,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.051
+    "time_ms": 0.03
   },
   {
     "checks": [
@@ -139,7 +139,7 @@
     "line": 83,
     "passed": true,
     "test_name": "Collision",
-    "time_ms": 0.01
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -165,7 +165,7 @@
     "line": 103,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.009
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -211,7 +211,7 @@
     "line": 127,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.451
+    "time_ms": 5.715
   },
   {
     "checks": [
@@ -257,7 +257,7 @@
     "line": 162,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 5.613
+    "time_ms": 3.748
   },
   {
     "checks": [
@@ -303,7 +303,7 @@
     "line": 332,
     "passed": true,
     "test_name": "Two Rectangles",
-    "time_ms": 0.011
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -349,7 +349,7 @@
     "line": 304,
     "passed": true,
     "test_name": "From Plane",
-    "time_ms": 0.026
+    "time_ms": 0.029
   },
   {
     "checks": [
@@ -415,7 +415,7 @@
     "line": 226,
     "passed": true,
     "test_name": "From Geometry",
-    "time_ms": 0.636
+    "time_ms": 0.488
   },
   {
     "checks": [
@@ -491,6 +491,6 @@
     "line": 194,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 0.017
+    "time_ms": 0.01
   }
 ]

@@ -115,7 +115,7 @@
     "group": "Plane",
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.005,
     "line": 109,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.reverse();",
     "checks": [
@@ -151,7 +151,7 @@
     "group": "Plane",
     "test_name": "Rotate",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 122,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"tolerance.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.rotate(Tolerance::PI / 2.0);",
     "checks": [
@@ -318,7 +318,7 @@
     "group": "Plane",
     "test_name": "Transform",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.001,
     "line": 205,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"xform.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.xform = Xform::translation(1.0, 2.0, 3.0);\n    pl.transform();",
     "checks": [
@@ -375,7 +375,7 @@
     "group": "Plane",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 6.819,
+    "time_ms": 5.382,
     "line": 232,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_plane.json\";\n    pl.file_json_dump(fname);\n    Plane loaded = Plane::file_json_load(fname);",
     "checks": [
@@ -396,7 +396,7 @@
     "group": "Plane",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 6.834,
+    "time_ms": 4.255,
     "line": 253,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    std::string fname = \"serialization/test_plane.bin\";\n    pl.pb_dump(fname);\n    Plane loaded = Plane::pb_load(fname);",
     "checks": [

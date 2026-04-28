@@ -71355,7 +71355,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "bool closed_and_open_paths_2d(const Polyline& plate,\n                                              const Polyline& joint,\n                                              const Plane& plane,\n                                              Polyline& out,\n                                              std::pair<double, double>& cp_pair)",
-          "code": "bool Intersection::closed_and_open_paths_2d(const Polyline& plate,\n                                              const Polyline& joint,\n                                              const Plane& plane,\n                                              Polyline& out,\n                                              std::pair<double, double>& cp_pair) {\n    // Native (no Clipper2) port of wood `wood_element.cpp:438-651`. Clips an\n    // OPEN-path joint outline against a CLOSED plate polygon in 2D and\n    // returns the clipped 3D segment + parametric positions on the plate\n    // edges.\n    //\n    // Algorithm: project plate + joint into the plate-frame 2D, then for\n    // each joint segment compute its intersection parameters against every\n    // plate edge, sort, classify each sub-segment by midpoint test\n    // (point-in-polygon), keep insides, concatenate using the\n    // distance-based reorientation rule, then locate t0/t1 on the plate\n    // boundary.\n\n    struct P2 { double x, y; }",
+          "code": "bool Intersection::closed_and_open_paths_2d(const Polyline& plate,\n                                              const Polyline& joint,\n                                              const Plane& plane,\n                                              Polyline& out,\n                                              std::pair<double, double>& cp_pair) {\n    // Port of wood `wood_element.cpp:438-651`. Clips an OPEN-path joint\n    // outline against a CLOSED plate polygon in 2D and returns the clipped\n    // 3D segment + parametric positions on the plate edges.\n    //\n    // Algorithm: project plate + joint into the plate-frame 2D, then for\n    // each joint segment compute its intersection parameters against every\n    // plate edge, sort, classify each sub-segment by midpoint test\n    // (point-in-polygon), keep insides, concatenate using the\n    // distance-based reorientation rule, then locate t0/t1 on the plate\n    // boundary.\n\n    struct P2 { double x, y; }",
           "file": "intersection.cpp"
         }
       }
@@ -88678,6 +88678,21 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Mesh.test_Loft concave with holes and collinear",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Mesh\", \"Loft concave with holes and collinear\")",
+          "code": "MINI_TEST(\"Mesh\", \"Loft concave with holes and collinear\") {\n        // uncomment #include \"mesh.h\"\n\n        std::vector<Polyline> annen_bot = {\n            Polyline({\n                {2142.008, -530.170, 1172.487},\n                {2142.008, -530.170, -318.768},\n                {2142.008, -318.102, -318.768},\n                {2142.008, -347.792, -414.110},\n                {2142.008, -106.034, -414.110},\n                {2142.008, -135.724, -318.768},\n                {2142.008,  106.034, -318.768},\n                {2142.008,   76.344, -414.110},\n                {2142.008,  318.102, -414.110},\n                {2142.008,  288.412, -318.768},\n                {2142.008,  530.170, -318.768},\n                {2142.008,  530.170, 1172.487},\n                {2142.008, -530.170, 1172.487},\n            }),\n            Polyline({\n                {2142.008, 97.448,  841.097},\n                {2142.008,  0.000,  841.097},\n                {2142.008,  0.000, 1006.792},\n                {2142.008, 97.448, 1006.792},\n                {2142.008, 97.448,  841.097},\n            }),\n            Polyline({\n                {2142.008, 97.448, 178.317},\n                {2142.008,  0.000, 178.317},\n                {2142.008,  0.000, 344.012},\n                {2142.008, 97.448, 344.012},\n                {2142.008, 97.448, 178.317},\n            }),\n        };\n        std::vector<Polyline> annen_top = {\n            Polyline({\n                {2223.416, -530.170, 1172.487},\n                {2223.416, -530.170, -269.141},\n                {2223.416, -318.102, -269.141},\n                {2223.416, -347.792, -364.483},\n                {2223.416, -106.034, -364.483},\n                {2223.416, -135.724, -269.141},\n                {2223.416,  106.034, -269.141},\n                {2223.416,   76.344, -364.483},\n                {2223.416,  318.102, -364.483},\n                {2223.416,  288.412, -269.141},\n                {2223.416,  530.170, -269.141},\n                {2223.416,  530.170, 1172.487},\n                {2223.416, -530.170, 1172.487},\n            }),\n            Polyline({\n                {2223.416, 97.448,  841.097},\n                {2223.416,  0.000,  841.097},\n                {2223.416,  0.000, 1006.792},\n                {2223.416, 97.448, 1006.792},\n                {2223.416, 97.448,  841.097},\n            }),\n            Polyline({\n                {2223.416, 97.448, 178.317},\n                {2223.416,  0.000, 178.317},\n                {2223.416,  0.000, 344.012},\n                {2223.416, 97.448, 344.012},\n                {2223.416, 97.448, 178.317},\n            }),\n        };\n        Mesh annen = Mesh::loft(annen_bot, annen_top, true);\n        MINI_CHECK(annen.is_valid());\n        MINI_CHECK(annen.is_closed());\n        MINI_CHECK(annen.vertex.size() == 40);\n        MINI_CHECK(annen.face.size() == 22);\n\n        std::vector<Polyline> col_bot = {\n            Polyline({\n                { 0, 0, 0},\n                { 4, 0, 0},\n                { 7, 0, 0},\n                {12, 0, 0},\n                {12, 5, 0},\n                { 0, 5, 0},\n                { 0, 0, 0},\n            }),\n        };\n        std::vector<Polyline> col_top = {\n            Polyline({\n                { 0, 0, 1.5},\n                { 4, 0, 1.5},\n                { 7, 0, 1.5},\n                {12, 0, 1.5},\n                {12, 5, 1.5},\n                { 0, 5, 1.5},\n                { 0, 0, 1.5},\n            }),\n        };\n        Mesh colmesh = Mesh::loft(col_bot, col_top, true);\n        MINI_CHECK(colmesh.is_valid());\n        MINI_CHECK(colmesh.is_closed());\n        MINI_CHECK(colmesh.vertex.size() == 8);\n        MINI_CHECK(colmesh.face.size() == 6);\n    }",
+          "file": "mesh_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Mesh\", \"Loft concave with holes and collinear\")",
+          "code": "@MINI_TEST(\"Mesh\", \"Loft concave with holes and collinear\")\ndef test_mesh_loft_concave_with_holes_and_collinear():\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Polyline\n\n    annen_bot = [\n        Polyline([\n            Point(2142.008, -530.170, 1172.487),\n            Point(2142.008, -530.170, -318.768),\n            Point(2142.008, -318.102, -318.768),\n            Point(2142.008, -347.792, -414.110),\n            Point(2142.008, -106.034, -414.110),\n            Point(2142.008, -135.724, -318.768),\n            Point(2142.008,  106.034, -318.768),\n            Point(2142.008,   76.344, -414.110),\n            Point(2142.008,  318.102, -414.110),\n            Point(2142.008,  288.412, -318.768),\n            Point(2142.008,  530.170, -318.768),\n            Point(2142.008,  530.170, 1172.487),\n            Point(2142.008, -530.170, 1172.487),\n        ]),\n        Polyline([\n            Point(2142.008, 97.448,  841.097),\n            Point(2142.008,  0.000,  841.097),\n            Point(2142.008,  0.000, 1006.792),\n            Point(2142.008, 97.448, 1006.792),\n            Point(2142.008, 97.448,  841.097),\n        ]),\n        Polyline([\n            Point(2142.008, 97.448, 178.317),\n            Point(2142.008,  0.000, 178.317),\n            Point(2142.008,  0.000, 344.012),\n            Point(2142.008, 97.448, 344.012),\n            Point(2142.008, 97.448, 178.317),\n        ]),\n    ]\n    annen_top = [\n        Polyline([\n            Point(2223.416, -530.170, 1172.487),\n            Point(2223.416, -530.170, -269.141),\n            Point(2223.416, -318.102, -269.141),\n            Point(2223.416, -347.792, -364.483),\n            Point(2223.416, -106.034, -364.483),\n            Point(2223.416, -135.724, -269.141),\n            Point(2223.416,  106.034, -269.141),\n            Point(2223.416,   76.344, -364.483),\n            Point(2223.416,  318.102, -364.483),\n            Point(2223.416,  288.412, -269.141),\n            Point(2223.416,  530.170, -269.141),\n            Point(2223.416,  530.170, 1172.487),\n            Point(2223.416, -530.170, 1172.487),\n        ]),\n        Polyline([\n            Point(2223.416, 97.448,  841.097),\n            Point(2223.416,  0.000,  841.097),\n            Point(2223.416,  0.000, 1006.792),\n            Point(2223.416, 97.448, 1006.792),\n            Point(2223.416, 97.448,  841.097),\n        ]),\n        Polyline([\n            Point(2223.416, 97.448, 178.317),\n            Point(2223.416,  0.000, 178.317),\n            Point(2223.416,  0.000, 344.012),\n            Point(2223.416, 97.448, 344.012),\n            Point(2223.416, 97.448, 178.317),\n        ]),\n    ]\n    annen = Mesh.loft(annen_bot, annen_top, True)\n    MINI_CHECK(annen.is_valid())\n    MINI_CHECK(annen.is_closed())\n    MINI_CHECK(len(annen.vertex) == 40)\n    MINI_CHECK(len(annen.face) == 22)\n\n    col_bot = [\n        Polyline([\n            Point( 0, 0, 0),\n            Point( 4, 0, 0),\n            Point( 7, 0, 0),\n            Point(12, 0, 0),\n            Point(12, 5, 0),\n            Point( 0, 5, 0),\n            Point( 0, 0, 0),\n        ]),\n    ]\n    col_top = [\n        Polyline([\n            Point( 0, 0, 1.5),\n            Point( 4, 0, 1.5),\n            Point( 7, 0, 1.5),\n            Point(12, 0, 1.5),\n            Point(12, 5, 1.5),\n            Point( 0, 5, 1.5),\n            Point( 0, 0, 1.5),\n        ]),\n    ]\n    colmesh = Mesh.loft(col_bot, col_top, True)\n    MINI_CHECK(colmesh.is_valid())\n    MINI_CHECK(colmesh.is_closed())\n    MINI_CHECK(len(colmesh.vertex) == 8)\n    MINI_CHECK(len(colmesh.face) == 6)",
+          "file": "mesh_test.py"
+        }
+      }
+    },
+    {
       "name": "Mesh.test_From Polygon With Holes Many",
       "implementations": {
         "cpp": {
@@ -92442,12 +92457,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Primitives\", \"Nurbssurface Planar\")",
-          "code": "MINI_TEST(\"Primitives\", \"Nurbssurface Planar\"){\n    // uncomment #include \"nurbssurface.h\"\n    double c1=std::cos(0.7), s1=std::sin(0.7);\n    double c2=std::cos(0.96), s2=std::sin(0.96);\n    double c3=std::cos(0.52), s3=std::sin(0.52);\n    double c4=std::cos(1.13), s4=std::sin(1.13);\n\n    auto ca = NurbsCurve::create(false, 1, {\n        Point(0, 0, 0),\n        Point(4, 0, 0),\n        Point(4, 3*c1, 3*s1),\n        Point(0, 3*c1, 3*s1),\n        Point(0, 0, 0)});\n    auto s_quad = Primitives::create_planar(ca);\n    s_quad.name = \"quad\";\n    auto m_quad = s_quad.mesh();\n\n    auto cb1 = NurbsCurve::create(false, 1, {\n        Point(8, 0, 0),\n        Point(8+5*c2, 0, 5*s2),\n        Point(8+2*c2, 3, 2*s2),\n        Point(8, 0, 0)});\n    auto s_triangle = Primitives::create_planar(cb1);\n    s_triangle.name = \"triangle\";\n    auto m_triangle = s_triangle.mesh();\n\n    double ox=18;\n    auto cb2 = NurbsCurve::create(false, 1, {\n        Point(ox+0*c3, 0*s3, 0),\n        Point(ox+4*c3, 4*s3, 0),\n        Point(ox+5*c3-2*s3, 5*s3+2*c3, 0),\n        Point(ox+3*c3-4*s3, 3*s3+4*c3, 0),\n        Point(ox-1*c3-3*s3, -1*s3+3*c3, 0),\n        Point(ox+0*c3, 0*s3, 0)});\n    auto s_polygon = Primitives::create_planar(cb2);\n    s_polygon.name = \"polygon\";\n    auto m_polygon = s_polygon.mesh();\n\n    auto cc = NurbsCurve::create(false, 3, {\n        Point(26, 0, 0),\n        Point(29, 1*c4, 1*s4),\n        Point(31, 0.5*c4, 0.5*s4),\n        Point(32, 3*c4, 3*s4),\n        Point(30, 5*c4, 5*s4),\n        Point(27, 4*c4, 4*s4),\n        Point(26, 0, 0)});\n    auto s_nurbs = Primitives::create_planar(cc);\n    s_nurbs.name = \"nurbs\";\n    auto m_nurbs = s_nurbs.mesh();\n\n    MINI_CHECK(s_quad.is_valid());\n    MINI_CHECK(s_quad.is_planar());\n    MINI_CHECK(s_quad.cv_count(0) == 2);\n    MINI_CHECK(s_quad.cv_count(1) == 2);\n    MINI_CHECK(m_quad.number_of_vertices() == 4);\n    MINI_CHECK(m_quad.number_of_faces() == 2);\n    MINI_CHECK(TOLERANCE.is_point_close(s_quad.get_cv(0,0), Point(0.0, 0.0, 0.0)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_quad.get_cv(0,1), Point(0.0, 2.294526561853465, 1.932653061713073)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_quad.get_cv(1,0), Point(4.0, 0.0, 0.0)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_quad.get_cv(1,1), Point(4.0, 2.294526561853465, 1.932653061713073)));\n\n    MINI_CHECK(s_triangle.is_valid());\n    MINI_CHECK(s_triangle.is_planar());\n    MINI_CHECK(s_triangle.cv_count(0) == 2);\n    MINI_CHECK(s_triangle.cv_count(1) == 2);\n    MINI_CHECK(m_triangle.number_of_vertices() == 3);\n    MINI_CHECK(m_triangle.number_of_faces() == 1);\n    MINI_CHECK(TOLERANCE.is_point_close(s_triangle.get_cv(0,0), Point(8.0, 0.0, 0.0)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_triangle.get_cv(0,1), Point(8.0, 0.0, 0.0)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_triangle.get_cv(1,0), Point(10.867599930362283, 0.0, 4.095957841504991)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_triangle.get_cv(1,1), Point(9.147039972144913, 3.0, 1.638383136601997)));\n\n    MINI_CHECK(s_polygon.is_valid());\n    MINI_CHECK(s_polygon.is_planar());\n    MINI_CHECK(s_polygon.cv_count(0) == 2);\n    MINI_CHECK(s_polygon.cv_count(1) == 2);\n    MINI_CHECK(m_polygon.number_of_vertices() == 4);\n    MINI_CHECK(m_polygon.number_of_faces() == 2);\n    MINI_CHECK(TOLERANCE.is_point_close(s_polygon.get_cv(0,0), Point(19.673777861921977, 6.364048611360808, 0.0)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_polygon.get_cv(0,1), Point(22.915428262469927, 2.987233669553135, 0.0)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_polygon.get_cv(1,0), Point(15.247175891573059, 2.114631246911942, 0.0)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_polygon.get_cv(1,1), Point(18.488826292121008, -1.262183694895731, 0.0)));\n\n    MINI_CHECK(s_nurbs.is_valid());\n    MINI_CHECK(s_nurbs.is_planar());\n    MINI_CHECK(s_nurbs.cv_count(0) == 2);\n    MINI_CHECK(s_nurbs.cv_count(1) == 2);\n    MINI_CHECK(m_nurbs.number_of_vertices() == 4);\n    MINI_CHECK(m_nurbs.number_of_faces() == 2);\n    MINI_CHECK(TOLERANCE.is_point_close(s_nurbs.get_cv(0,0), Point(26.652846559932474, -0.727774577493594, -1.542700265577809)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_nurbs.get_cv(0,1), Point(24.347485651711366, 0.916607409071279, 1.942978687541882)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_nurbs.get_cv(1,0), Point(32.606791655643732, 0.791738725121784, 1.678288276735475)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_nurbs.get_cv(1,1), Point(30.301430747422629, 2.436120711686657, 5.163967229855166)));\n}",
+          "code": "MINI_TEST(\"Primitives\", \"Nurbssurface Planar\"){\n    // uncomment #include \"nurbssurface.h\"\n    // Hardcoded expected CVs include create_planar's least-squares\n    // fitting noise; libm cos/sin precision varies by platform (esp.\n    // Apple Silicon vs x86). Loosen TOLERANCE for parity with the\n    // Python/Rust mirrors of this test.\n    double _saved_abs = TOLERANCE.absolute();\n    TOLERANCE.set_absolute(1e-6);\n\n    double c1=std::cos(0.7), s1=std::sin(0.7);\n    double c2=std::cos(0.96), s2=std::sin(0.96);\n    double c3=std::cos(0.52), s3=std::sin(0.52);\n    double c4=std::cos(1.13), s4=std::sin(1.13);\n\n    auto ca = NurbsCurve::create(false, 1, {\n        Point(0, 0, 0),\n        Point(4, 0, 0),\n        Point(4, 3*c1, 3*s1),\n        Point(0, 3*c1, 3*s1),\n        Point(0, 0, 0)});\n    auto s_quad = Primitives::create_planar(ca);\n    s_quad.name = \"quad\";\n    auto m_quad = s_quad.mesh();\n\n    auto cb1 = NurbsCurve::create(false, 1, {\n        Point(8, 0, 0),\n        Point(8+5*c2, 0, 5*s2),\n        Point(8+2*c2, 3, 2*s2),\n        Point(8, 0, 0)});\n    auto s_triangle = Primitives::create_planar(cb1);\n    s_triangle.name = \"triangle\";\n    auto m_triangle = s_triangle.mesh();\n\n    double ox=18;\n    auto cb2 = NurbsCurve::create(false, 1, {\n        Point(ox+0*c3, 0*s3, 0),\n        Point(ox+4*c3, 4*s3, 0),\n        Point(ox+5*c3-2*s3, 5*s3+2*c3, 0),\n        Point(ox+3*c3-4*s3, 3*s3+4*c3, 0),\n        Point(ox-1*c3-3*s3, -1*s3+3*c3, 0),\n        Point(ox+0*c3, 0*s3, 0)});\n    auto s_polygon = Primitives::create_planar(cb2);\n    s_polygon.name = \"polygon\";\n    auto m_polygon = s_polygon.mesh();\n\n    auto cc = NurbsCurve::create(false, 3, {\n        Point(26, 0, 0),\n        Point(29, 1*c4, 1*s4),\n        Point(31, 0.5*c4, 0.5*s4),\n        Point(32, 3*c4, 3*s4),\n        Point(30, 5*c4, 5*s4),\n        Point(27, 4*c4, 4*s4),\n        Point(26, 0, 0)});\n    auto s_nurbs = Primitives::create_planar(cc);\n    s_nurbs.name = \"nurbs\";\n    auto m_nurbs = s_nurbs.mesh();\n\n    MINI_CHECK(s_quad.is_valid());\n    MINI_CHECK(s_quad.is_planar());\n    MINI_CHECK(s_quad.cv_count(0) == 2);\n    MINI_CHECK(s_quad.cv_count(1) == 2);\n    MINI_CHECK(m_quad.number_of_vertices() == 4);\n    MINI_CHECK(m_quad.number_of_faces() == 2);\n    MINI_CHECK(TOLERANCE.is_point_close(s_quad.get_cv(0,0), Point(0.0, 0.0, 0.0)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_quad.get_cv(0,1), Point(0.0, 2.294526561853465, 1.932653061713073)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_quad.get_cv(1,0), Point(4.0, 0.0, 0.0)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_quad.get_cv(1,1), Point(4.0, 2.294526561853465, 1.932653061713073)));\n\n    MINI_CHECK(s_triangle.is_valid());\n    MINI_CHECK(s_triangle.is_planar());\n    MINI_CHECK(s_triangle.cv_count(0) == 2);\n    MINI_CHECK(s_triangle.cv_count(1) == 2);\n    MINI_CHECK(m_triangle.number_of_vertices() == 3);\n    MINI_CHECK(m_triangle.number_of_faces() == 1);\n    MINI_CHECK(TOLERANCE.is_point_close(s_triangle.get_cv(0,0), Point(8.0, 0.0, 0.0)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_triangle.get_cv(0,1), Point(8.0, 0.0, 0.0)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_triangle.get_cv(1,0), Point(10.867599930362283, 0.0, 4.095957841504991)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_triangle.get_cv(1,1), Point(9.147039972144913, 3.0, 1.638383136601997)));\n\n    MINI_CHECK(s_polygon.is_valid());\n    MINI_CHECK(s_polygon.is_planar());\n    MINI_CHECK(s_polygon.cv_count(0) == 2);\n    MINI_CHECK(s_polygon.cv_count(1) == 2);\n    MINI_CHECK(m_polygon.number_of_vertices() == 4);\n    MINI_CHECK(m_polygon.number_of_faces() == 2);\n    MINI_CHECK(TOLERANCE.is_point_close(s_polygon.get_cv(0,0), Point(19.673777861921977, 6.364048611360808, 0.0)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_polygon.get_cv(0,1), Point(22.915428262469927, 2.987233669553135, 0.0)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_polygon.get_cv(1,0), Point(15.247175891573059, 2.114631246911942, 0.0)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_polygon.get_cv(1,1), Point(18.488826292121008, -1.262183694895731, 0.0)));\n\n    MINI_CHECK(s_nurbs.is_valid());\n    MINI_CHECK(s_nurbs.is_planar());\n    MINI_CHECK(s_nurbs.cv_count(0) == 2);\n    MINI_CHECK(s_nurbs.cv_count(1) == 2);\n    MINI_CHECK(m_nurbs.number_of_vertices() == 4);\n    MINI_CHECK(m_nurbs.number_of_faces() == 2);\n    MINI_CHECK(TOLERANCE.is_point_close(s_nurbs.get_cv(0,0), Point(26.652846559932474, -0.727774577493594, -1.542700265577809)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_nurbs.get_cv(0,1), Point(24.347485651711366, 0.916607409071279, 1.942978687541882)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_nurbs.get_cv(1,0), Point(32.606791655643732, 0.791738725121784, 1.678288276735475)));\n    MINI_CHECK(TOLERANCE.is_point_close(s_nurbs.get_cv(1,1), Point(30.301430747422629, 2.436120711686657, 5.163967229855166)));\n\n    TOLERANCE.set_absolute(_saved_abs);\n}",
           "file": "primitives_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Primitives\", \"Nurbssurface Planar\")",
-          "code": "@MINI_TEST(\"Primitives\", \"Nurbssurface Planar\")\ndef test_nurbssurface_planar():\n    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    c1 = math.cos(0.7); s1 = math.sin(0.7)\n    c2 = math.cos(0.96); s2 = math.sin(0.96)\n    c3 = math.cos(0.52); s3 = math.sin(0.52)\n    c4 = math.cos(1.13); s4 = math.sin(1.13)\n\n    ca = NurbsCurve.create(False, 1, [\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 3.0*c1, 3.0*s1),\n        Point(0.0, 3.0*c1, 3.0*s1),\n        Point(0.0, 0.0, 0.0),\n    ])\n    s_quad = Primitives.create_planar(ca)\n    m_quad = s_quad.mesh()\n\n    cb1 = NurbsCurve.create(False, 1, [\n        Point(8.0, 0.0, 0.0),\n        Point(8.0+5.0*c2, 0.0, 5.0*s2),\n        Point(8.0+2.0*c2, 3.0, 2.0*s2),\n        Point(8.0, 0.0, 0.0),\n    ])\n    s_triangle = Primitives.create_planar(cb1)\n    m_triangle = s_triangle.mesh()\n\n    ox = 18.0\n    cb2 = NurbsCurve.create(False, 1, [\n        Point(ox+0.0*c3, 0.0*s3, 0.0),\n        Point(ox+4.0*c3, 4.0*s3, 0.0),\n        Point(ox+5.0*c3-2.0*s3, 5.0*s3+2.0*c3, 0.0),\n        Point(ox+3.0*c3-4.0*s3, 3.0*s3+4.0*c3, 0.0),\n        Point(ox-1.0*c3-3.0*s3, -1.0*s3+3.0*c3, 0.0),\n        Point(ox+0.0*c3, 0.0*s3, 0.0)])\n    s_polygon = Primitives.create_planar(cb2)\n    m_polygon = s_polygon.mesh()\n\n    cc = NurbsCurve.create(False, 3, [\n        Point(26.0, 0.0, 0.0),\n        Point(29.0, 1.0*c4, 1.0*s4),\n        Point(31.0, 0.5*c4, 0.5*s4),\n        Point(32.0, 3.0*c4, 3.0*s4),\n        Point(30.0, 5.0*c4, 5.0*s4),\n        Point(27.0, 4.0*c4, 4.0*s4),\n        Point(26.0, 0.0, 0.0)])\n    s_nurbs = Primitives.create_planar(cc)\n    m_nurbs = s_nurbs.mesh()\n\n    MINI_CHECK(s_quad.is_valid())\n    MINI_CHECK(s_quad.is_planar())\n    MINI_CHECK(s_quad.cv_count_dir(0) == 2)\n    MINI_CHECK(s_quad.cv_count_dir(1) == 2)\n    MINI_CHECK(m_quad.number_of_vertices() == 4)\n    MINI_CHECK(m_quad.number_of_faces() == 2)\n    MINI_CHECK(TOLERANCE.is_point_close(s_quad.get_cv(0, 0), Point(0.0, 0.0, 0.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_quad.get_cv(0, 1), Point(0.0, 2.294526561853465, 1.932653061713073)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_quad.get_cv(1, 0), Point(4.0, 0.0, 0.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_quad.get_cv(1, 1), Point(4.0, 2.294526561853465, 1.932653061713073)))\n\n    MINI_CHECK(s_triangle.is_valid())\n    MINI_CHECK(s_triangle.is_planar())\n    MINI_CHECK(s_triangle.cv_count_dir(0) == 2)\n    MINI_CHECK(s_triangle.cv_count_dir(1) == 2)\n    MINI_CHECK(m_triangle.number_of_vertices() == 3)\n    MINI_CHECK(m_triangle.number_of_faces() == 1)\n    MINI_CHECK(TOLERANCE.is_point_close(s_triangle.get_cv(0, 0), Point(8.0, 0.0, 0.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_triangle.get_cv(0, 1), Point(8.0, 0.0, 0.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_triangle.get_cv(1, 0), Point(10.867599930362283, 0.0, 4.095957841504991)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_triangle.get_cv(1, 1), Point(9.147039972144913, 3.0, 1.638383136601997)))\n\n    MINI_CHECK(s_polygon.is_valid())\n    MINI_CHECK(s_polygon.is_planar())\n    MINI_CHECK(s_polygon.cv_count_dir(0) == 2)\n    MINI_CHECK(s_polygon.cv_count_dir(1) == 2)\n    MINI_CHECK(m_polygon.number_of_vertices() == 4)\n    MINI_CHECK(m_polygon.number_of_faces() == 2)\n    MINI_CHECK(TOLERANCE.is_point_close(s_polygon.get_cv(0, 0), Point(19.673777861921977, 6.364048611360808, 0.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_polygon.get_cv(0, 1), Point(22.915428262469927, 2.987233669553135, 0.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_polygon.get_cv(1, 0), Point(15.247175891573059, 2.114631246911942, 0.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_polygon.get_cv(1, 1), Point(18.488826292121008, -1.262183694895731, 0.0)))\n\n    MINI_CHECK(s_nurbs.is_valid())\n    MINI_CHECK(s_nurbs.is_planar())\n    MINI_CHECK(s_nurbs.cv_count_dir(0) == 2)\n    MINI_CHECK(s_nurbs.cv_count_dir(1) == 2)\n    MINI_CHECK(m_nurbs.number_of_vertices() == 4)\n    MINI_CHECK(m_nurbs.number_of_faces() == 2)\n    MINI_CHECK(TOLERANCE.is_point_close(s_nurbs.get_cv(0, 0), Point(26.652846559932474, -0.727774577493594, -1.542700265577809)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_nurbs.get_cv(0, 1), Point(24.347485651711366, 0.916607409071279, 1.942978687541882)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_nurbs.get_cv(1, 0), Point(32.606791655643732, 0.791738725121784, 1.678288276735475)))\n    MINI_CHECK(TOLERANCE.is_point_close(s_nurbs.get_cv(1, 1), Point(30.301430747422629, 2.436120711686657, 5.163967229855166)))",
+          "code": "@MINI_TEST(\"Primitives\", \"Nurbssurface Planar\")\ndef test_nurbssurface_planar():\n    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    # Hardcoded expected CVs include create_planar's least-squares fitting\n    # noise. Apple Silicon's libm produces cos/sin values that diverge from\n    # x86 by ~1 ulp; downstream the algorithm amplifies this past the\n    # default 1e-9 tolerance. Loosen for this one test (still well below\n    # the model unit scale).\n    _saved_abs = TOLERANCE.absolute\n    TOLERANCE.absolute = 1e-6\n    try:\n        _test_nurbssurface_planar_body()\n    finally:\n        TOLERANCE.absolute = _saved_abs",
           "file": "primitives_test.py"
         },
         "rust": {
@@ -97109,9 +97124,9 @@ window.API_INDEX = {
       "tags": [
         "points",
         "subdivide",
+        "circle",
         "into",
         "n",
-        "circle",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -97125,11 +97140,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "ellipse",
-        "subdivide",
-        "by",
-        "arc",
         "length",
+        "ellipse",
+        "arc",
+        "by",
+        "subdivide",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -97143,8 +97158,8 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "through",
         "points",
+        "through",
         "arc",
         "nurbscurve",
         "primitives",
@@ -97160,10 +97175,10 @@ window.API_INDEX = {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
         "points",
-        "curve",
+        "open",
         "adaptive",
         "from",
-        "open",
+        "curve",
         "polyline",
         "to_polyline_adaptive",
         "create",
@@ -97179,10 +97194,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "at",
         "curve",
-        "parameter",
         "evaluation",
+        "parameter",
+        "at",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -97201,10 +97216,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "frames",
         "curve",
-        "length",
         "along",
+        "length",
+        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -97226,9 +97241,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "frames",
         "perpendicular",
         "ellipse",
+        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -97250,9 +97265,9 @@ window.API_INDEX = {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
         "point",
-        "evaluate",
         "surface",
         "cylinder",
+        "evaluate",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -97267,11 +97282,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
+        "from",
+        "mesh",
+        "vertices",
         "faces",
         "and",
-        "mesh",
-        "from",
-        "vertices",
         "add_vertex",
         "add_face",
         "vertex"
@@ -97400,17 +97415,11 @@ window.API_INDEX = {
       ],
       "summary": "RemeshNurbsSurfaceGrid geometry class"
     },
-    "CurveNurbsKnotStyle": {
+    "GlobalSessionConfig": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
-    },
-    "GeometryFileDecoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
+      "summary": "GlobalSessionConfig geometry class"
     },
     "GeometryFileEncoder": {
       "composition": [],
@@ -97430,11 +97439,17 @@ window.API_INDEX = {
       ],
       "summary": "NurbsSurfaceTrimmed geometry class"
     },
-    "GlobalSessionConfig": {
+    "GeometryFileDecoder": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "GlobalSessionConfig geometry class"
+      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
+    },
+    "CurveNurbsKnotStyle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
     },
     "TriangulateResult": {
       "composition": [],
@@ -97447,20 +97462,6 @@ window.API_INDEX = {
       ],
       "summary": "TriangulateResult geometry class"
     },
-    "SpatialAABBTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB"
-      ],
-      "summary": "SpatialAABBTree geometry class"
-    },
-    "ElementSchoring": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
-    },
     "GlobalTolerance": {
       "composition": [],
       "factories": [],
@@ -97471,6 +97472,12 @@ window.API_INDEX = {
       ],
       "summary": "GlobalTolerance geometry class"
     },
+    "ElementSchoring": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
+    },
     "BooleanPolyline": {
       "composition": [],
       "factories": [],
@@ -97479,17 +97486,21 @@ window.API_INDEX = {
       ],
       "summary": "BooleanPolyline geometry class"
     },
-    "_PartitionVars": {
+    "SpatialAABBTree": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "_PartitionVars geometry class"
+      "uses": [
+        "AABB"
+      ],
+      "summary": "SpatialAABBTree geometry class"
     },
-    "VIntersectNode": {
+    "ToleranceGuard": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "VIntersectNode geometry class"
+      "uses": [
+        "Tolerance"
+      ],
+      "summary": "ToleranceGuard geometry class"
     },
     "SpatialBVHNode": {
       "composition": [],
@@ -97503,13 +97514,17 @@ window.API_INDEX = {
       ],
       "summary": "A node in the SpatialBVH tree."
     },
-    "ToleranceGuard": {
+    "VIntersectNode": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Tolerance"
-      ],
-      "summary": "ToleranceGuard geometry class"
+      "uses": [],
+      "summary": "VIntersectNode geometry class"
+    },
+    "_PartitionVars": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_PartitionVars geometry class"
     },
     "SessionConfig": {
       "composition": [],
@@ -97539,58 +97554,6 @@ window.API_INDEX = {
       ],
       "summary": "ElementColumn geometry class"
     },
-    "ElementPlate": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "ElementPlate geometry class"
-    },
-    "SpatialRTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SpatialRTree geometry class"
-    },
-    "LoftWallFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftWallFace geometry class"
-    },
-    "Intersection": {
-      "composition": [
-        "Element",
-        "Line",
-        "Polyline",
-        "Tolerance",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point"
-      ],
-      "summary": "Intersection geometry class"
-    },
-    "VLocalMinima": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VLocalMinima geometry class"
-    },
     "BRepTrimType": {
       "composition": [],
       "factories": [],
@@ -97612,11 +97575,24 @@ window.API_INDEX = {
       "uses": [],
       "summary": "ScanlineHeap geometry class"
     },
-    "BRepLoopType": {
-      "composition": [],
+    "Intersection": {
+      "composition": [
+        "Element",
+        "Line",
+        "Polyline",
+        "Tolerance",
+        "Vector"
+      ],
       "factories": [],
-      "uses": [],
-      "summary": "BRepLoopType geometry class"
+      "uses": [
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point"
+      ],
+      "summary": "Intersection geometry class"
     },
     "VattiScratch": {
       "composition": [],
@@ -97644,6 +97620,45 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
+    "LoftWallFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftWallFace geometry class"
+    },
+    "BRepLoopType": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoopType geometry class"
+    },
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
+    },
+    "ElementPlate": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "ElementPlate geometry class"
+    },
+    "SpatialRTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SpatialRTree geometry class"
+    },
     "LoftAdjPair": {
       "composition": [],
       "factories": [],
@@ -97663,73 +97678,17 @@ window.API_INDEX = {
       ],
       "summary": "ElementBeam geometry class"
     },
-    "ConvexHull": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Point"
-      ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
-    },
-    "Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Delaunay2D geometry class"
-    },
     "BRepVertex": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepVertex geometry class"
     },
-    "VertexData": {
+    "Delaunay2D": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "Vertex data containing position and attributes."
-    },
-    "SpatialBVH": {
-      "composition": [],
-      "factories": [
-        "SpatialBVHNode"
-      ],
-      "uses": [
-        "AABB",
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
-    },
-    "Quaternion": {
-      "composition": [
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Plane"
-      ],
-      "summary": "A quaternion for 3D rotations (scalar + vector)."
-    },
-    "Primitives": {
-      "composition": [
-        "CurveNurbsKnotStyle",
-        "NurbsCurve",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsSurface",
-        "Point",
-        "Xform"
-      ],
-      "summary": "Static factory methods for creating NURBS curve primitives."
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
     },
     "PointCloud": {
       "composition": [
@@ -97766,21 +97725,61 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
-    "_Delaunay": {
-      "composition": [],
+    "Primitives": {
+      "composition": [
+        "CurveNurbsKnotStyle",
+        "NurbsCurve",
+        "Vector"
+      ],
       "factories": [],
-      "uses": [],
-      "summary": "_Delaunay geometry class"
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsSurface",
+        "Point",
+        "Xform"
+      ],
+      "summary": "Static factory methods for creating NURBS curve primitives."
     },
-    "Tolerance": {
+    "ConvexHull": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Point",
-        "ToleranceGuard",
+        "Mesh",
+        "Point"
+      ],
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+    },
+    "VertexData": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "Vertex data containing position and attributes."
+    },
+    "Quaternion": {
+      "composition": [
         "Vector"
       ],
-      "summary": "Tolerance settings for geometric operations."
+      "factories": [],
+      "uses": [
+        "Plane"
+      ],
+      "summary": "A quaternion for 3D rotations (scalar + vector)."
+    },
+    "SpatialBVH": {
+      "composition": [],
+      "factories": [
+        "SpatialBVHNode"
+      ],
+      "uses": [
+        "AABB",
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
     },
     "RemeshCDT": {
       "composition": [],
@@ -97790,6 +97789,18 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "RemeshCDT geometry class"
+    },
+    "_Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay geometry class"
+    },
+    "LoftPanel": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftPanel geometry class"
     },
     "ColorMode": {
       "composition": [],
@@ -97807,6 +97818,22 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
+    "Tolerance": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "ToleranceGuard",
+        "Vector"
+      ],
+      "summary": "Tolerance settings for geometric operations."
+    },
+    "VHorzJoin": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzJoin geometry class"
+    },
     "Component": {
       "composition": [],
       "factories": [],
@@ -97823,41 +97850,17 @@ window.API_INDEX = {
       ],
       "summary": "FlatMap64 geometry class"
     },
-    "VHorzJoin": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzJoin geometry class"
-    },
-    "LoftPanel": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftPanel geometry class"
-    },
-    "BRepEdge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
-    },
-    "BRepLoop": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoop geometry class"
-    },
-    "VHorzSeg": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzSeg geometry class"
-    },
     "Geometry": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Geometry geometry class"
+    },
+    "BRepTrim": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepTrim geometry class"
     },
     "Delaunay": {
       "composition": [],
@@ -97897,6 +97900,18 @@ window.API_INDEX = {
       "uses": [],
       "summary": "BRepFace geometry class"
     },
+    "VHorzSeg": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzSeg geometry class"
+    },
+    "BRepLoop": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoop geometry class"
+    },
     "TreeNode": {
       "composition": [],
       "factories": [],
@@ -97905,32 +97920,42 @@ window.API_INDEX = {
       ],
       "summary": "A node of a tree data structure."
     },
-    "BRepTrim": {
+    "BRepEdge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepTrim geometry class"
+      "summary": "BRepEdge geometry class"
     },
-    "_Branch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Branch geometry class"
-    },
-    "Closest": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
+    "Objects": {
+      "composition": [
+        "BRep",
+        "Component",
+        "Element",
         "Line",
         "Mesh",
         "NurbsCurve",
         "NurbsSurface",
+        "OBB",
+        "Plane",
         "Point",
         "PointCloud",
         "Polyline"
       ],
-      "summary": "Static methods for finding closest points between geometry objects."
+      "factories": [],
+      "uses": [],
+      "summary": "A collection of all geometry objects."
+    },
+    "VVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VVertex geometry class"
+    },
+    "Dataset": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Dataset geometry class"
     },
     "Session": {
       "composition": [
@@ -97960,17 +97985,26 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "Dataset": {
+    "VOutRec": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Dataset geometry class"
+      "summary": "VOutRec geometry class"
     },
-    "VVertex": {
+    "Closest": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "VVertex geometry class"
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Static methods for finding closest points between geometry objects."
     },
     "Element": {
       "composition": [
@@ -97990,6 +98024,18 @@ window.API_INDEX = {
       ],
       "summary": "Element geometry class"
     },
+    "_Branch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Branch geometry class"
+    },
+    "VActive": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VActive geometry class"
+    },
     "Default": {
       "composition": [],
       "factories": [],
@@ -98000,37 +98046,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "Default geometry class"
-    },
-    "VOutRec": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutRec geometry class"
-    },
-    "VActive": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VActive geometry class"
-    },
-    "Objects": {
-      "composition": [
-        "BRep",
-        "Component",
-        "Element",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A collection of all geometry objects."
     },
     "Matrix": {
       "composition": [],
@@ -98043,6 +98058,19 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "RayHit geometry class"
+    },
+    "Vector": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [
+        "Line",
+        "Plane",
+        "Quaternion",
+        "Xform"
+      ],
+      "uses": [],
+      "summary": "A 3D vector with visual properties."
     },
     "BIVec2": {
       "composition": [],
@@ -98058,49 +98086,26 @@ window.API_INDEX = {
       ],
       "summary": "A graph vertex with a unique identifier and attribute string."
     },
-    "Vector": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [
-        "Line",
-        "Plane",
-        "Quaternion",
-        "Xform"
-      ],
-      "uses": [],
-      "summary": "A 3D vector with visual properties."
-    },
     "VOutPt": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VOutPt geometry class"
     },
-    "_Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Edge geometry class"
-    },
-    "Plane": {
-      "composition": [],
-      "factories": [
-        "OBB",
-        "Quaternion"
-      ],
-      "uses": [
+    "Xform": {
+      "composition": [
         "Point",
-        "Polyline",
         "Vector"
       ],
-      "summary": "A 3D plane defined by origin and coordinate axes."
-    },
-    "Color": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "An index-based 0-255 color with RGBA values."
+      "factories": [
+        "Element"
+      ],
+      "uses": [
+        "Line",
+        "Plane",
+        "Polyline"
+      ],
+      "summary": "Xform geometry class"
     },
     "Point": {
       "composition": [],
@@ -98115,6 +98120,37 @@ window.API_INDEX = {
       ],
       "uses": [],
       "summary": "A 3D point with visual properties."
+    },
+    "_Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Edge geometry class"
+    },
+    "_Rect": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Rect geometry class"
+    },
+    "Color": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "An index-based 0-255 color with RGBA values."
+    },
+    "Plane": {
+      "composition": [],
+      "factories": [
+        "OBB",
+        "Quaternion"
+      ],
+      "uses": [
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "A 3D plane defined by origin and coordinate axes."
     },
     "Graph": {
       "composition": [
@@ -98132,77 +98168,14 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_Node geometry class"
     },
-    "Xform": {
+    "Tree": {
       "composition": [
-        "Point",
-        "Vector"
+        "Color",
+        "TreeNode"
       ],
-      "factories": [
-        "Element"
-      ],
-      "uses": [
-        "Line",
-        "Plane",
-        "Polyline"
-      ],
-      "summary": "Xform geometry class"
-    },
-    "_Rect": {
-      "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Rect geometry class"
-    },
-    "Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
-    },
-    "BRep": {
-      "composition": [
-        "BRepEdge",
-        "BRepFace",
-        "BRepLoop",
-        "BRepLoopType",
-        "BRepTrim",
-        "BRepTrimType",
-        "BRepVertex",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point"
-      ],
-      "factories": [
-        "BRepTrimType",
-        "Element"
-      ],
-      "uses": [
-        "Mesh",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRep geometry class"
-    },
-    "_P64": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_P64 geometry class"
-    },
-    "Line": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Mesh",
-        "OBB"
-      ],
-      "uses": [
-        "Vector"
-      ],
-      "summary": "A 3D line segment with visual properties."
+      "summary": "A hierarchical data structure with parent-child relationships."
     },
     "Mesh": {
       "composition": [
@@ -98230,6 +98203,39 @@ window.API_INDEX = {
       ],
       "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
+    "Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
+    "Line": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Mesh",
+        "OBB"
+      ],
+      "uses": [
+        "Vector"
+      ],
+      "summary": "A 3D line segment with visual properties."
+    },
+    "_P64": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_P64 geometry class"
+    },
+    "_Tri": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Tri geometry class"
+    },
     "AABB": {
       "composition": [],
       "factories": [
@@ -98246,20 +98252,35 @@ window.API_INDEX = {
       ],
       "summary": "Axis-aligned bounding box (center + half-size)."
     },
-    "Tree": {
+    "BRep": {
       "composition": [
-        "Color",
-        "TreeNode"
+        "BRepEdge",
+        "BRepFace",
+        "BRepLoop",
+        "BRepLoopType",
+        "BRepTrim",
+        "BRepTrimType",
+        "BRepVertex",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point"
       ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
+      "factories": [
+        "BRepTrimType",
+        "Element"
+      ],
+      "uses": [
+        "Mesh",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRep geometry class"
     },
-    "_Tri": {
+    "_V2": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Tri geometry class"
+      "summary": "_V2 geometry class"
     },
     "OBB": {
       "composition": [
@@ -98282,12 +98303,6 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
-    },
-    "_V2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],
