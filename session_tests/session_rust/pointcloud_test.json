@@ -68,7 +68,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.019
+    "time_ms": 0.026
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 297,
     "passed": true,
     "test_name": "Transform",
-    "time_ms": 0.003
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -124,13 +124,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)],\n            vec![Vector::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0)],\n            vec![Color::new(255, 0, 0, 255), Color::new(0, 255, 0, 255)],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        //   jsondump()      │ String       │ to JSON string (internal use)\n        //   jsonload(s)     │ String       │ from JSON string (internal use)\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let fname = \"serialization/test_pointcloud.json\";\n        pc.json_dump(fname).unwrap();\n        let loaded = PointCloud::json_load(fname).unwrap();\n",
+    "code": "        use crate::PointCloud;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(\n            vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)],\n            vec![Vector::new(0.0, 0.0, 1.0), Vector::new(0.0, 0.0, 1.0)],\n            vec![Color::new(255, 0, 0, 255), Color::new(0, 255, 0, 255)],\n        );\n        pc.name = \"test_pointcloud\".to_string();\n\n        //   jsondump()      │ String       │ to JSON string (internal use)\n        //   jsonload(s)     │ String       │ from JSON string (internal use)\n        //   file_json_dumps()    │ String       │ to JSON string\n        //   file_json_loads(s)   │ String       │ from JSON string\n        //   file_json_dump(path) │ file         │ write to file\n        //   file_json_load(path) │ file         │ read from file\n\n        let fname = \"serialization/test_pointcloud.json\";\n        pc.file_json_dump(fname).unwrap();\n        let loaded = PointCloud::file_json_load(fname).unwrap();\n",
     "failures": [],
     "group": "PointCloud",
     "line": 330,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 6.015
+    "time_ms": 4.215
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 363,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 5.346
+    "time_ms": 3.52
   },
   {
     "checks": [
@@ -197,7 +197,7 @@
     "line": 313,
     "passed": true,
     "test_name": "Transformed",
-    "time_ms": 0.004
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -223,7 +223,7 @@
     "line": 283,
     "passed": true,
     "test_name": "Get Normals",
-    "time_ms": 0.003
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -244,7 +244,7 @@
     "line": 270,
     "passed": true,
     "test_name": "Add Normal",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -270,7 +270,7 @@
     "line": 256,
     "passed": true,
     "test_name": "Set Normal",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -296,7 +296,7 @@
     "line": 242,
     "passed": true,
     "test_name": "Get Normal",
-    "time_ms": 0.002
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -312,7 +312,7 @@
     "line": 231,
     "passed": true,
     "test_name": "Normal Count",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -338,7 +338,7 @@
     "line": 217,
     "passed": true,
     "test_name": "Get Colors",
-    "time_ms": 0.001
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -359,7 +359,7 @@
     "line": 204,
     "passed": true,
     "test_name": "Add Color",
-    "time_ms": 0.001
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -375,7 +375,7 @@
     "line": 192,
     "passed": true,
     "test_name": "Set Color",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -391,7 +391,7 @@
     "line": 180,
     "passed": true,
     "test_name": "Get Color",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -407,7 +407,7 @@
     "line": 169,
     "passed": true,
     "test_name": "Color Count",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -433,7 +433,7 @@
     "line": 155,
     "passed": true,
     "test_name": "Get Points",
-    "time_ms": 0.003
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -464,7 +464,7 @@
     "line": 140,
     "passed": true,
     "test_name": "Add Point",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -490,7 +490,7 @@
     "line": 126,
     "passed": true,
     "test_name": "Set Point",
-    "time_ms": 0.002
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -516,7 +516,7 @@
     "line": 112,
     "passed": true,
     "test_name": "Get Point",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -537,7 +537,7 @@
     "line": 99,
     "passed": true,
     "test_name": "Is Empty",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -553,7 +553,7 @@
     "line": 88,
     "passed": true,
     "test_name": "Len",
-    "time_ms": 0.001
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -569,7 +569,7 @@
     "line": 77,
     "passed": true,
     "test_name": "Point Count",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [

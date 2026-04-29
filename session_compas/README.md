@@ -48,6 +48,6 @@ from session_py.session import Session
 
 session = Session()
 session.objects.points.append(Point(1, 2, 3))
-session.json_dump("scene.json")
+session.file_json_dump("scene.json")
 session.pb_dump("scene.pb")
 ```

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Minitest - Run tests for Python, C++, and Rust implementations
 # Usage:
-#   ./minitest.sh              # Run all languages (fast+dev defaults)
+#   ./minitest.sh              # Run all languages (fast+dev defaults, C++ builds point_minitest only)
 #   ./minitest.sh --py         # Python only
 #   ./minitest.sh --cpp        # C++ only
 #   ./minitest.sh --rust       # Rust only
@@ -24,7 +24,7 @@ RUN_RUST=true
 FAST_MODE=true
 START_WEB=true
 KILL_SERVER=false
-DEV_MODE=false
+DEV_MODE=true
 
 # Parse arguments
 for arg in "$@"; do
@@ -76,56 +76,70 @@ FAST_ARG=""
 FULL_ARG=""
 [[ "$FAST_MODE" == "false" ]] && FULL_ARG="--full"
 DEV_ARG=""
-[[ "$DEV_MODE" == "true" ]] && DEV_ARG="--dev"
+if [[ "$DEV_MODE" == "true" ]]; then
+    DEV_ARG="--dev"
+else
+    DEV_ARG="--release"
+fi
 
-# Regenerate Python protos — skip if all _pb2.py are up-to-date
-regenerate_python_protos() {
+# Regenerate committed protobuf bindings that are stale.
+#
+# Option C: Python (_pb2.py) and C++ (.pb.cc/.pb.h) generated files are
+# committed alongside the .proto sources. This helper refreshes them when
+# any .proto is newer than its corresponding output. Rust auto-regens via
+# session_rust/build.rs on every `cargo build` so it is NOT handled here.
+regenerate_protos() {
     local proto_dir="${REPO_ROOT}/session_proto"
-    local py_proto_out="${REPO_ROOT}/session_py/src/session_py/proto"
+    [[ -d "$proto_dir" ]] || return 0
 
-    if [[ ! -d "$proto_dir" ]]; then
+    # Skip on CI: git checkout does not preserve mtimes, so -nt comparisons
+    # trip false-positives. CI has a dedicated ./bash/gen_proto.sh --check
+    # step that uses git diff instead of mtime.
+    if [[ -n "${CI:-}" ]]; then
         return 0
     fi
 
-    # Check if any .proto is newer than its _pb2.py
-    local stale=false
+    # ---- Python ----
+    local py_out="${REPO_ROOT}/session_py/src/session_py/proto"
+    local py_stale=false
     for proto_file in "${proto_dir}"/*.proto; do
         [[ -f "$proto_file" ]] || continue
         local base=$(basename "$proto_file" .proto)
-        local pb2="${py_proto_out}/${base}_pb2.py"
-        if [[ ! -f "$pb2" ]] || [[ "$proto_file" -nt "$pb2" ]]; then
-            stale=true
+        if [[ ! -f "${py_out}/${base}_pb2.py" ]] || [[ "$proto_file" -nt "${py_out}/${base}_pb2.py" ]]; then
+            py_stale=true
             break
         fi
     done
 
-    if [[ "$stale" == "false" ]]; then
+    # ---- C++ ----
+    local cpp_out="${REPO_ROOT}/session_cpp/generated"
+    local cpp_stale=false
+    for proto_file in "${proto_dir}"/*.proto; do
+        [[ -f "$proto_file" ]] || continue
+        local base=$(basename "$proto_file" .proto)
+        if [[ ! -f "${cpp_out}/${base}.pb.cc" ]] || [[ "$proto_file" -nt "${cpp_out}/${base}.pb.cc" ]]; then
+            cpp_stale=true
+            break
+        fi
+    done
+
+    if [[ "$py_stale" == "false" && "$cpp_stale" == "false" ]]; then
         log "Protos up-to-date, skipping regeneration"
         return 0
     fi
 
-    mkdir -p "$py_proto_out"
-    log "Regenerating Python protobuf bindings..."
-    for proto_file in "${proto_dir}"/*.proto; do
-        if [[ -f "$proto_file" ]]; then
-            python -m grpc_tools.protoc --python_out="$py_proto_out" -I "$proto_dir" "$proto_file" 2>/dev/null || true
-        fi
-    done
-
-    # Fix imports for relative imports
-    for pb_file in "${py_proto_out}"/*_pb2.py; do
-        if [[ -f "$pb_file" ]]; then
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-                sed -i '' 's/^import \([a-z_]*_pb2\) as/from . import \1 as/g' "$pb_file"
-            else
-                sed -i 's/^import \([a-z_]*_pb2\) as/from . import \1 as/g' "$pb_file"
-            fi
-        fi
-    done
+    local args=()
+    [[ "$py_stale" == "true" ]] && args+=(--py)
+    [[ "$cpp_stale" == "true" ]] && args+=(--cpp)
+    log "Regenerating protobuf bindings: ${args[*]}"
+    "${SCRIPT_DIR}/gen_proto.sh" "${args[@]}"
 }
 
-if [[ "$RUN_PYTHON" == "true" ]]; then
-    regenerate_python_protos
+# Back-compat alias for earlier callers.
+regenerate_python_protos() { regenerate_protos; }
+
+if [[ "$RUN_PYTHON" == "true" || "$RUN_CPP" == "true" ]]; then
+    regenerate_protos
 fi
 
 # Count enabled languages
@@ -201,24 +215,27 @@ log "=== Consolidating Test Data ==="
 source "${SCRIPT_DIR}/lib/consolidate.sh"
 consolidate_test_data "$REPO_ROOT"
 
-# Regenerate browser API index — skip if source hash unchanged
+# Regenerate browser API index — skip if no watched source is newer than apiIndex.js
 API_INDEX="${REPO_ROOT}/session_tests/public/apiIndex.js"
-API_HASH_FILE="${REPO_ROOT}/.api_index_hash"
 REGEN_API=false
 if [[ ! -f "$API_INDEX" ]]; then
     REGEN_API=true
 else
-    API_HASH=$(find "${REPO_ROOT}/session_py/src" "${REPO_ROOT}/session_cpp/src" "${REPO_ROOT}/session_rust/src" -name "*.py" -o -name "*.cpp" -o -name "*.h" -o -name "*.rs" 2>/dev/null | sort | xargs md5sum 2>/dev/null | md5sum | cut -d' ' -f1)
-    if [[ ! -f "$API_HASH_FILE" ]] || [[ "$(cat "$API_HASH_FILE")" != "$API_HASH" ]]; then
+    # find -newer returns any file with mtime newer than the reference; stop at the first hit
+    NEWER=$(find \
+        "${REPO_ROOT}/session_py/src" \
+        "${REPO_ROOT}/session_cpp/src" \
+        "${REPO_ROOT}/session_rust/src" \
+        \( -name "*.py" -o -name "*.cpp" -o -name "*.h" -o -name "*.rs" \) \
+        -newer "$API_INDEX" -print -quit 2>/dev/null)
+    if [[ -n "$NEWER" ]]; then
         REGEN_API=true
     fi
 fi
 if [[ "$REGEN_API" == "true" ]]; then
     log "=== Regenerating Browser API Index ==="
     cd "$REPO_ROOT"
-    if python -m session_mcp.generate_browser_index; then
-        echo "$API_HASH" > "$API_HASH_FILE"
-    else
+    if ! python -m session_mcp.generate_browser_index; then
         log "Warning: Failed to generate browser index"
     fi
 else

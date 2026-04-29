@@ -456,7 +456,7 @@ class APIIndex:
 
     def _build_class_graph(self):
         """Build a class-level relationship graph: composition, factories, uses."""
-        NOISE = {'fmt', 'std', 'knot'}
+        NOISE = {'fmt', 'std', 'nurbsknot'}
         all_classes = sorted(
             {k.split('.', 1)[0] for k in self.methods if '.' in k} - NOISE,
             key=len, reverse=True,

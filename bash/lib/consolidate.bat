@@ -21,7 +21,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$testDir='%TESTS_DIR%';" ^
     "$repoRoot='%REPO_ROOT%';" ^
     "$output='%OUTPUT%';" ^
-    "$classes=@('color','knot','line','mesh','nurbscurve','nurbssurface','plane','point','pointcloud','polyline','tolerance','vector','xform');" ^
+    "$classes=@('color','nurbsknot','line','mesh','nurbscurve','nurbssurface','plane','point','pointcloud','polyline','tolerance','vector','xform');" ^
     "$langs=@(@{n='python';d='session_py'},@{n='cpp';d='session_cpp'},@{n='rust';d='session_rust'});" ^
     "" ^
     "Set-Content $output '// Auto-generated test data - Do not edit manually';" ^

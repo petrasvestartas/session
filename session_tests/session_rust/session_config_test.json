@@ -1,0 +1,43 @@
+[
+  {
+    "checks": [
+      {
+        "code_line": "SESSION_CONFIG.explode_mesh_faces() == false",
+        "line": 13,
+        "passed": true
+      },
+      {
+        "code_line": "SESSION_CONFIG.explode_mesh_faces() == true",
+        "line": 15,
+        "passed": true
+      },
+      {
+        "code_line": "(SESSION_CONFIG.scale_factor() - 1.0).abs() < 1e-10",
+        "line": 16,
+        "passed": true
+      },
+      {
+        "code_line": "(SESSION_CONFIG.scale_factor() - 0.001).abs() < 1e-10",
+        "line": 18,
+        "passed": true
+      },
+      {
+        "code_line": "SESSION_CONFIG.explode_mesh_faces() == false",
+        "line": 20,
+        "passed": true
+      },
+      {
+        "code_line": "(SESSION_CONFIG.scale_factor() - 1.0).abs() < 1e-10",
+        "line": 21,
+        "passed": true
+      }
+    ],
+    "code": "        // SessionConfig holds global rendering/export flags.\n        // explode_mesh_faces: when true, each mesh face is a separate mesh (for coloring)\n        // scale_factor: unit conversion multiplier applied during export (1.0 = meters)\n        // Modify config at runtime, then reset() restores all defaults.\n\n        SESSION_CONFIG.set_explode_mesh_faces(true);\n        SESSION_CONFIG.set_scale_factor(0.001);\n        SESSION_CONFIG.reset();",
+    "failures": [],
+    "group": "SessionConfig",
+    "line": 7,
+    "passed": true,
+    "test_name": "Runtime Modification",
+    "time_ms": 0.001
+  }
+]

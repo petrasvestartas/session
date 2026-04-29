@@ -52,7 +52,7 @@ BEFORE:  Point(1.28955,0.0,1.127558)    →   AFTER:  Point(1.28955, 0.0, 1.1275
 BEFORE:  Point::new(1.0,2.0,3.0)        →   AFTER:  Point::new(1.0, 2.0, 3.0)
 BEFORE:  {1.28955,0.0,1.127558}         →   AFTER:  {1.28955, 0.0, 1.127558}
 BEFORE:  Color(255,0,0,255)              →   AFTER:  Color(255, 0, 0, 255)
-BEFORE:  [0,0,0,0,1,1,1,1]              →   AFTER:  [0, 0, 0, 0, 1, 1, 1, 1]   (knot vectors)
+BEFORE:  [0,0,0,0,1,1,1,1]              →   AFTER:  [0, 0, 0, 0, 1, 1, 1, 1]   (nurbsknot vectors)
 BEFORE:  vec![0.0,0.0,1.0,1.0]          →   AFTER:  vec![0.0, 0.0, 1.0, 1.0]
 
 ## RULE 3 — One Line/Polyline per line in arrays

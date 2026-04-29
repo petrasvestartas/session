@@ -58,7 +58,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 4.357
+    "time_ms": 9.527
   },
   {
     "checks": [
@@ -68,7 +68,7 @@
         "passed": true
       },
       {
-        "code_line": "is_valid_knot_vector",
+        "code_line": "is_valid_nurbsknot_vector",
         "line": 162,
         "passed": true
       },
@@ -198,7 +198,7 @@
         "passed": true
       },
       {
-        "code_line": "knot_count == 5",
+        "code_line": "nurbsknot_count == 5",
         "line": 249,
         "passed": true
       },
@@ -253,12 +253,12 @@
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(knot3, 3.519488670956267)",
+        "code_line": "TOLERANCE.is_close(nurbsknot3, 3.519488670956267)",
         "line": 300,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(curve.knot(4).unwrap(), end_knot)",
+        "code_line": "TOLERANCE.is_close(curve.nurbsknot(4).unwrap(), end_nurbsknot)",
         "line": 306,
         "passed": true
       },
@@ -288,7 +288,7 @@
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(superfluous_knot, 7.038977341912535)",
+        "code_line": "TOLERANCE.is_close(superfluous_nurbsknot, 7.038977341912535)",
         "line": 322,
         "passed": true
       },
@@ -298,27 +298,27 @@
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(knot_vector[0], 0.0)",
+        "code_line": "TOLERANCE.is_close(nurbsknot_vector[0], 0.0)",
         "line": 330,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(knot_vector[1], 0.0)",
+        "code_line": "TOLERANCE.is_close(nurbsknot_vector[1], 0.0)",
         "line": 331,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(knot_vector[2], 1.759744335478134)",
+        "code_line": "TOLERANCE.is_close(nurbsknot_vector[2], 1.759744335478134)",
         "line": 332,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(knot_vector[3], 3.519488670956267)",
+        "code_line": "TOLERANCE.is_close(nurbsknot_vector[3], 3.519488670956267)",
         "line": 333,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(knot_vector[4], 3.519488670956267)",
+        "code_line": "TOLERANCE.is_close(nurbsknot_vector[4], 3.519488670956267)",
         "line": 334,
         "passed": true
       },
@@ -373,13 +373,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Plane;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 1.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n\n        /////////////////////////////////////////////\n        // Boolean Queries\n        /////////////////////////////////////////////\n\n        // Whole curve\n        let is_valid = curve.is_valid();\n\n\n        // Check whole knot vector for\n        // For correct size: order + cv_count - 2\n        // Non-decreasing (can repeat, can't go down)\n        // Valid domain exists\n        let is_valid_knot_vector = curve.is_valid_knot_vector();\n\n        // Check if the curve is clamped at start, end, or both\n        let is_clamped_start = curve.is_clamped(0);\n        let is_clamped_end = curve.is_clamped(1);\n        let is_clamped_both = curve.is_clamped(2);\n\n        // Is rational is related to control points having weights\n        // is_rational = false means control points [x, y, z]\n        // is_rational = false means control points [xw, yw, zw]\n        // Rational curves are used to represent:\n        // circles, ellipses, parabolas, hyperbolas exactly\n        let is_rational = curve.is_rational();\n        let closed = curve.is_closed();\n        let periodic = curve.is_periodic();\n        let linear = curve.is_linear(None);\n        let planar = curve.is_planar(None);\n        let arc = curve.is_arc(None);\n        let plane = Plane::xy_plane();\n        let on_plane = curve.is_in_plane(&plane, None);\n        let is_open = curve.is_natural(None);\n        let is_polyline = curve.is_polyline(None);\n        let is_singular = curve.is_singular();\n        let is_duplicate = curve.is_duplicate(&curve, false);\n        let is_continuous = curve.is_continuous(1, curve.domain_middle());\n\n\n        /////////////////////////////////////////////\n        // Knot Operations\n        /////////////////////////////////////////////\n\n        // Insert knot into curve\n        // Useful for splitting curves at a parameter\n        // Increase local control without changing shape\n        let mut copy_curve = curve.duplicate();\n        let before_pt = copy_curve.point_at(1.5);\n        copy_curve.insert_knot(1.5, 1);\n\n        // Useful for controlling curve by cv on lying on it\n        let greville0 = curve.greville_abcissa(0);\n\n        let greville = curve.get_greville_abcissae();\n\n        /////////////////////////////////////////////\n        // Accessors\n        /////////////////////////////////////////////\n        // Memory layout 2-2D, 3-3D\n        let dimension = curve.dimension();\n        // Degree - Polynomial order, 1=linear, 2=quadratic, 3=cubic\n        let degree = curve.degree();\n        // Is rational is related to control points having weights\n        // is_rational = false means control points [x, y, z]\n        // is_rational = false means control points [xw, yw, zw]\n        // Rational curves are used to represent:\n        // Order = degree + 1, control points + order = knots\n        let order = curve.order();\n        // Number of control vertices\n        let cv_count = curve.cv_count();\n        // Number of floats per 1 control vertex\n        let cv_size = curve.cv_size();\n        // The knots are a list of (degree+control_points-1) numbers\n        let knot_count = curve.knot_count();\n        // Span = a knot interval where a single polynomial segment is evaluated\n        // Knot vector: [0, 0, 0 ↑, 1 ↑, 2 ↑, 3, 3, 3]  (cubic, 5 CVs)\n        let span_count = curve.span_count();\n        /////////////////////////////////////////////////////\n        // Control Vertex Access\n        //  m_cv = [x0, y0, z0, (w0), x1, y1, z1, (w1), ...]\n        //          └─── CV 0 ───┘    └─── CV 1 ───┘\n        /////////////////////////////////////////////////////\n\n        // Get pointer to control vertex\n        // Each CV occupies m_cv_stride doubles:\n        // (3 for non-rational, 4 for rational)\n        // cv(index) returns pointer to m_cv[index * m_cv_stride]\n        let p = curve.cv(1).unwrap();\n\n        // Returns the control vertex as Point object\n        let cv_point = curve.get_cv(1).unwrap();\n\n        // Raw homogeneous coords\n        let (x, y, z, w) = curve.get_cv_4d(1).unwrap();\n\n        // Use for regular points on curve, Polyline, B-Spline\n        curve.set_cv(2, &Point::new(2.0, 0.0, 0.5));\n\n        // Use for rational curvers like circles, ellipses\n        curve.set_cv_4d(2, 2.0, 0.0, 0.5, 0.707);\n        let (x, y, z, w) = curve.get_cv_4d(2).unwrap();\n\n        // Get weight of a control vertex (1.0 if non-rational)\n        let weight = curve.weight(2);\n\n        // Set the weight of a control vertex\n        curve.set_weight(2, 0.5);\n\n        /////////////////////////////////////////////////////\n        // Knot Access\n        /////////////////////////////////////////////////////\n\n        // Get knot value at index\n        let knot3 = curve.knot(3).unwrap();\n\n        // Set knot value at index\n        // ATTENTION you can brake increasing rule\n        let end_knot = curve.knot(4).unwrap();\n        curve.set_knot(4, end_knot);\n\n        // Count repeated knots at index [0, 0, 1, 1, 2]\n        let m0 = curve.knot_multiplicity(0);  // 2 (two 0's)\n        let m1 = curve.knot_multiplicity(1);  // 2 (still counting the 0's)\n        let m2 = curve.knot_multiplicity(2);  // 1 (single 0.5)\n        let m3 = curve.knot_multiplicity(3);  // 2 (single 1's)\n        let m4 = curve.knot_multiplicity(4);  // 2 (single 2)\n\n        // Superflous knots are used for extension of clamped curves\n        let superfluous_knot = curve.superfluous_knot(1);\n\n        // Direct memory access to knot values, fast, read-only\n        // Vector return is slower and makes a copy\n        let knots = curve.knot_array();\n        let k0 = knots[0];\n        let knot_vector = curve.get_knots();\n\n        // Control vertex array access\n        let cvs = curve.cv_array();\n        let cx0 = cvs[0];\n\n        /////////////////////////////////////////////////////\n        // Domain & Parameterization - HERE\n        /////////////////////////////////////////////////////\n\n        // get start and end of the curve interval\n        let (start, end) = curve.domain();\n\n        // Get start, middle and end values of the interval\n        let start = curve.domain_start();\n        let middle = curve.domain_middle();\n        let end = curve.domain_end();\n\n        // Change curve domain\n        curve.set_domain(0.0, 1.0);\n\n        // Span of distict knot intervals\n        let intervals = curve.get_span_vector();\n\n        /////////////////////////////////////////////////////\n        // Geometric checks\n        /////////////////////////////////////////////////////\n\n        let (found, t_out) = curve.get_next_discontinuity(2, curve.domain_start(), curve.domain_end());",
+    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Plane;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 1.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n\n        /////////////////////////////////////////////\n        // Boolean Queries\n        /////////////////////////////////////////////\n\n        // Whole curve\n        let is_valid = curve.is_valid();\n\n\n        // Check whole nurbsknot vector for\n        // For correct size: order + cv_count - 2\n        // Non-decreasing (can repeat, can't go down)\n        // Valid domain exists\n        let is_valid_nurbsknot_vector = curve.is_valid_nurbsknot_vector();\n\n        // Check if the curve is clamped at start, end, or both\n        let is_clamped_start = curve.is_clamped(0);\n        let is_clamped_end = curve.is_clamped(1);\n        let is_clamped_both = curve.is_clamped(2);\n\n        // Is rational is related to control points having weights\n        // is_rational = false means control points [x, y, z]\n        // is_rational = false means control points [xw, yw, zw]\n        // Rational curves are used to represent:\n        // circles, ellipses, parabolas, hyperbolas exactly\n        let is_rational = curve.is_rational();\n        let closed = curve.is_closed();\n        let periodic = curve.is_periodic();\n        let linear = curve.is_linear(None);\n        let planar = curve.is_planar(None);\n        let arc = curve.is_arc(None);\n        let plane = Plane::xy_plane();\n        let on_plane = curve.is_in_plane(&plane, None);\n        let is_open = curve.is_natural(None);\n        let is_polyline = curve.is_polyline(None);\n        let is_singular = curve.is_singular();\n        let is_duplicate = curve.is_duplicate(&curve, false);\n        let is_continuous = curve.is_continuous(1, curve.domain_middle());\n\n\n        /////////////////////////////////////////////\n        // NurbsKnot Operations\n        /////////////////////////////////////////////\n\n        // Insert nurbsknot into curve\n        // Useful for splitting curves at a parameter\n        // Increase local control without changing shape\n        let mut copy_curve = curve.duplicate();\n        let before_pt = copy_curve.point_at(1.5);\n        copy_curve.insert_nurbsknot(1.5, 1);\n\n        // Useful for controlling curve by cv on lying on it\n        let greville0 = curve.greville_abcissa(0);\n\n        let greville = curve.get_greville_abcissae();\n\n        /////////////////////////////////////////////\n        // Accessors\n        /////////////////////////////////////////////\n        // Memory layout 2-2D, 3-3D\n        let dimension = curve.dimension();\n        // Degree - Polynomial order, 1=linear, 2=quadratic, 3=cubic\n        let degree = curve.degree();\n        // Is rational is related to control points having weights\n        // is_rational = false means control points [x, y, z]\n        // is_rational = false means control points [xw, yw, zw]\n        // Rational curves are used to represent:\n        // Order = degree + 1, control points + order = nurbsknots\n        let order = curve.order();\n        // Number of control vertices\n        let cv_count = curve.cv_count();\n        // Number of floats per 1 control vertex\n        let cv_size = curve.cv_size();\n        // The nurbsknots are a list of (degree+control_points-1) numbers\n        let nurbsknot_count = curve.nurbsknot_count();\n        // Span = a nurbsknot interval where a single polynomial segment is evaluated\n        // NurbsKnot vector: [0, 0, 0 ↑, 1 ↑, 2 ↑, 3, 3, 3]  (cubic, 5 CVs)\n        let span_count = curve.span_count();\n        /////////////////////////////////////////////////////\n        // Control Vertex Access\n        //  m_cv = [x0, y0, z0, (w0), x1, y1, z1, (w1), ...]\n        //          └─── CV 0 ───┘    └─── CV 1 ───┘\n        /////////////////////////////////////////////////////\n\n        // Get pointer to control vertex\n        // Each CV occupies m_cv_stride doubles:\n        // (3 for non-rational, 4 for rational)\n        // cv(index) returns pointer to m_cv[index * m_cv_stride]\n        let p = curve.cv(1).unwrap();\n\n        // Returns the control vertex as Point object\n        let cv_point = curve.get_cv(1).unwrap();\n\n        // Raw homogeneous coords\n        let (x, y, z, w) = curve.get_cv_4d(1).unwrap();\n\n        // Use for regular points on curve, Polyline, B-Spline\n        curve.set_cv(2, &Point::new(2.0, 0.0, 0.5));\n\n        // Use for rational curvers like circles, ellipses\n        curve.set_cv_4d(2, 2.0, 0.0, 0.5, 0.707);\n        let (x, y, z, w) = curve.get_cv_4d(2).unwrap();\n\n        // Get weight of a control vertex (1.0 if non-rational)\n        let weight = curve.weight(2);\n\n        // Set the weight of a control vertex\n        curve.set_weight(2, 0.5);\n\n        /////////////////////////////////////////////////////\n        // NurbsKnot Access\n        /////////////////////////////////////////////////////\n\n        // Get nurbsknot value at index\n        let nurbsknot3 = curve.nurbsknot(3).unwrap();\n\n        // Set nurbsknot value at index\n        // ATTENTION you can brake increasing rule\n        let end_nurbsknot = curve.nurbsknot(4).unwrap();\n        curve.set_nurbsknot(4, end_nurbsknot);\n\n        // Count repeated nurbsknots at index [0, 0, 1, 1, 2]\n        let m0 = curve.nurbsknot_multiplicity(0);  // 2 (two 0's)\n        let m1 = curve.nurbsknot_multiplicity(1);  // 2 (still counting the 0's)\n        let m2 = curve.nurbsknot_multiplicity(2);  // 1 (single 0.5)\n        let m3 = curve.nurbsknot_multiplicity(3);  // 2 (single 1's)\n        let m4 = curve.nurbsknot_multiplicity(4);  // 2 (single 2)\n\n        // Superflous nurbsknots are used for extension of clamped curves\n        let superfluous_nurbsknot = curve.superfluous_nurbsknot(1);\n\n        // Direct memory access to nurbsknot values, fast, read-only\n        // Vector return is slower and makes a copy\n        let nurbsknots = curve.nurbsknot_array();\n        let k0 = nurbsknots[0];\n        let nurbsknot_vector = curve.get_nurbsknots();\n\n        // Control vertex array access\n        let cvs = curve.cv_array();\n        let cx0 = cvs[0];\n\n        /////////////////////////////////////////////////////\n        // Domain & Parameterization - HERE\n        /////////////////////////////////////////////////////\n\n        // get start and end of the curve interval\n        let (start, end) = curve.domain();\n\n        // Get start, middle and end values of the interval\n        let start = curve.domain_start();\n        let middle = curve.domain_middle();\n        let end = curve.domain_end();\n\n        // Change curve domain\n        curve.set_domain(0.0, 1.0);\n\n        // Span of distict nurbsknot intervals\n        let intervals = curve.get_span_vector();\n\n        /////////////////////////////////////////////////////\n        // Geometric checks\n        /////////////////////////////////////////////////////\n\n        let (found, t_out) = curve.get_next_discontinuity(2, curve.domain_start(), curve.domain_end());",
     "failures": [],
     "group": "NurbsCurve",
     "line": 134,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.129
+    "time_ms": 0.292
   },
   {
     "checks": [
@@ -485,7 +485,7 @@
     "line": 377,
     "passed": true,
     "test_name": "Conversions",
-    "time_ms": 9.157
+    "time_ms": 21.507
   },
   {
     "checks": [
@@ -831,7 +831,7 @@
     "line": 426,
     "passed": true,
     "test_name": "Evaluation",
-    "time_ms": 3.604
+    "time_ms": 11.092
   },
   {
     "checks": [
@@ -896,12 +896,12 @@
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(knots[0], knots[1])",
+        "code_line": "TOLERANCE.is_close(nurbsknots[0], nurbsknots[1])",
         "line": 622,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(knots[knots.len() - 2], knots[knots.len() - 1])",
+        "code_line": "TOLERANCE.is_close(nurbsknots[nurbsknots.len() - 2],\nnurbsknots[nurbsknots.len() - 1])",
         "line": 623,
         "passed": true
       },
@@ -921,13 +921,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 2.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n\n        // Reverse the curve\n        let mut curve_reversed = curve.duplicate();\n        curve_reversed.reverse();\n\n        // Swap coordinates axes\n        curve.swap_coordinates(0, 1);\n\n        // Trim curve at domain parameter\n        let mut ct = curve.duplicate();\n        let a = ct.domain_start() + (ct.domain_end() - ct.domain_start()) / 3.0;\n        let b = ct.domain_start() + 2.0 * (ct.domain_end() - ct.domain_start()) / 3.0;\n        ct.trim(a, b);\n\n        // Split curve at domain middle\n        let split_t = curve.domain_middle();\n        let (curve_left, curve_right) = curve.split(split_t);\n\n        // Extend curve smoothly at both ends\n        let mut curve_extended = curve.duplicate();\n        curve_extended.extend(curve.domain_start() - 0.5, curve.domain_end() + 0.5);\n\n        // Enable curve weights - Make rational or non-rational\n        let mut curve_rational = curve.duplicate();\n        let original_length = curve.length(None);\n        curve_rational.make_rational();\n        curve_rational.set_weight(2, 10.0);\n\n        curve_rational.make_non_rational(true);\n\n        // Clamp ends - create unclamped curve manually\n        let points_open = points.clone();\n        let mut curve_open = NurbsCurve::new(3, false, 3, 5);  // dim=3, non-rational, order=3 (deg 2), 5 CVs\n\n        for i in 0..5 {\n            curve_open.set_cv(i, &points_open[i]);\n        }\n\n        for i in 0..curve_open.knot_count() {\n            curve_open.set_knot(i, i as f64 * 1.0);\n        }\n\n        // Now clamp, making 2 knots at the ends the same\n        curve_open.clamp_end(2);\n        let knots = curve_open.get_knots();\n\n        // Increase degree without change the shape\n        let mut raised = curve.duplicate();\n        raised.increase_degree(3);\n\n        // Change closed curve seam\n        let closed_pts = vec![\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(-1.0, 0.0, 0.0),\n            Point::new(0.0, -1.0, 0.0),\n        ];\n        let mut c = NurbsCurve::create(true, 2, &closed_pts);\n        let expected_start = c.point_at(c.domain_middle());\n        c.change_closed_curve_seam(c.domain_middle());",
+    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 2.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n\n        // Reverse the curve\n        let mut curve_reversed = curve.duplicate();\n        curve_reversed.reverse();\n\n        // Swap coordinates axes\n        curve.swap_coordinates(0, 1);\n\n        // Trim curve at domain parameter\n        let mut ct = curve.duplicate();\n        let a = ct.domain_start() + (ct.domain_end() - ct.domain_start()) / 3.0;\n        let b = ct.domain_start() + 2.0 * (ct.domain_end() - ct.domain_start()) / 3.0;\n        ct.trim(a, b);\n\n        // Split curve at domain middle\n        let split_t = curve.domain_middle();\n        let (curve_left, curve_right) = curve.split(split_t);\n\n        // Extend curve smoothly at both ends\n        let mut curve_extended = curve.duplicate();\n        curve_extended.extend(curve.domain_start() - 0.5, curve.domain_end() + 0.5);\n\n        // Enable curve weights - Make rational or non-rational\n        let mut curve_rational = curve.duplicate();\n        let original_length = curve.length(None);\n        curve_rational.make_rational();\n        curve_rational.set_weight(2, 10.0);\n\n        curve_rational.make_non_rational(true);\n\n        // Clamp ends - create unclamped curve manually\n        let points_open = points.clone();\n        let mut curve_open = NurbsCurve::new(3, false, 3, 5);  // dim=3, non-rational, order=3 (deg 2), 5 CVs\n\n        for i in 0..5 {\n            curve_open.set_cv(i, &points_open[i]);\n        }\n\n        for i in 0..curve_open.nurbsknot_count() {\n            curve_open.set_nurbsknot(i, i as f64 * 1.0);\n        }\n\n        // Now clamp, making 2 nurbsknots at the ends the same\n        curve_open.clamp_end(2);\n        let nurbsknots = curve_open.get_nurbsknots();\n\n        // Increase degree without change the shape\n        let mut raised = curve.duplicate();\n        raised.increase_degree(3);\n\n        // Change closed curve seam\n        let closed_pts = vec![\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(-1.0, 0.0, 0.0),\n            Point::new(0.0, -1.0, 0.0),\n        ];\n        let mut c = NurbsCurve::create(true, 2, &closed_pts);\n        let expected_start = c.point_at(c.domain_middle());\n        c.change_closed_curve_seam(c.domain_middle());",
     "failures": [],
     "group": "NurbsCurve",
     "line": 551,
     "passed": true,
     "test_name": "Modifications",
-    "time_ms": 3.094
+    "time_ms": 11.926
   },
   {
     "checks": [
@@ -947,13 +947,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use std::path::PathBuf;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 2.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n        let curve = NurbsCurve::create(false, 2, &points);\n\n        //   jsondump()      │ String       │ to JSON string (internal use)\n        //   jsonload(s)     │ String       │ from JSON string (internal use)\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        // JSON object\n        let json = curve.jsondump().unwrap();\n        let loaded_json = NurbsCurve::jsonload(&json).unwrap();\n\n        // String\n        let json_string = curve.json_dumps();\n        let loaded_json_string = NurbsCurve::json_loads(&json_string);\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbscurve.json\");\n        curve.json_dump(filename.to_str().unwrap());\n        let loaded_from_file = NurbsCurve::json_load(filename.to_str().unwrap());\n",
+    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use std::path::PathBuf;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 2.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n        let curve = NurbsCurve::create(false, 2, &points);\n\n        //   jsondump()      │ String       │ to JSON string (internal use)\n        //   jsonload(s)     │ String       │ from JSON string (internal use)\n        //   file_json_dumps()    │ String       │ to JSON string\n        //   file_json_loads(s)   │ String       │ from JSON string\n        //   file_json_dump(path) │ file         │ write to file\n        //   file_json_load(path) │ file         │ read from file\n\n        // JSON object\n        let json = curve.jsondump().unwrap();\n        let loaded_json = NurbsCurve::jsonload(&json).unwrap();\n\n        // String\n        let json_string = curve.file_json_dumps();\n        let loaded_json_string = NurbsCurve::file_json_loads(&json_string);\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbscurve.json\");\n        curve.file_json_dump(filename.to_str().unwrap());\n        let loaded_from_file = NurbsCurve::file_json_load(filename.to_str().unwrap());\n",
     "failures": [],
     "group": "NurbsCurve",
     "line": 690,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.147
+    "time_ms": 5.551
   },
   {
     "checks": [
@@ -974,7 +974,7 @@
     "line": 732,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 6.186
+    "time_ms": 4.797
   },
   {
     "checks": [
@@ -1025,7 +1025,7 @@
     "line": 646,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 0.551
+    "time_ms": 1.484
   },
   {
     "checks": [
@@ -1095,13 +1095,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::knot::CurveKnotStyle;\n\n        let points = vec![\n            Point::new(14.0, 9.0, 0.0),\n            Point::new(21.0, 22.0, 0.0),\n            Point::new(26.0, 10.0, 0.0),\n            Point::new(35.0, 19.0, 0.0),\n            Point::new(41.0, 13.0, 0.0),\n        ];\n\n        let c = NurbsCurve::create_interpolated(&points, CurveKnotStyle::Chord);\n\n\n        let (d0, d1) = c.domain();\n\n        // Periodic closed curve\n        let closed_pts = vec![\n            Point::new(4.0, 20.0, 0.0),\n            Point::new(-2.0, 20.0, 0.0),\n            Point::new(-2.0, 25.0, 0.0),\n            Point::new(-3.0, 28.0, 0.0),\n            Point::new(-10.0, 28.0, 0.0),\n            Point::new(-10.0, 21.0, 0.0),\n            Point::new(-13.0, 16.0, 0.0),\n            Point::new(-8.0, 14.0, 0.0),\n            Point::new(-6.0, 11.0, 0.0),\n            Point::new(0.0, 15.0, 0.0),\n        ];\n\n        let cp = NurbsCurve::create_interpolated(&closed_pts, CurveKnotStyle::ChordPeriodic);\n",
+    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::nurbsknot::CurveNurbsKnotStyle;\n\n        let points = vec![\n            Point::new(14.0, 9.0, 0.0),\n            Point::new(21.0, 22.0, 0.0),\n            Point::new(26.0, 10.0, 0.0),\n            Point::new(35.0, 19.0, 0.0),\n            Point::new(41.0, 13.0, 0.0),\n        ];\n\n        let c = NurbsCurve::create_interpolated(&points, CurveNurbsKnotStyle::Chord);\n\n\n        let (d0, d1) = c.domain();\n\n        // Periodic closed curve\n        let closed_pts = vec![\n            Point::new(4.0, 20.0, 0.0),\n            Point::new(-2.0, 20.0, 0.0),\n            Point::new(-2.0, 25.0, 0.0),\n            Point::new(-3.0, 28.0, 0.0),\n            Point::new(-10.0, 28.0, 0.0),\n            Point::new(-10.0, 21.0, 0.0),\n            Point::new(-13.0, 16.0, 0.0),\n            Point::new(-8.0, 14.0, 0.0),\n            Point::new(-6.0, 11.0, 0.0),\n            Point::new(0.0, 15.0, 0.0),\n        ];\n\n        let cp = NurbsCurve::create_interpolated(&closed_pts, CurveNurbsKnotStyle::ChordPeriodic);\n",
     "failures": [],
     "group": "NurbsCurve",
     "line": 49,
     "passed": true,
     "test_name": "Create Interpolated",
-    "time_ms": 0.033
+    "time_ms": 0.068
   },
   {
     "checks": [
@@ -1152,6 +1152,6 @@
     "line": 100,
     "passed": true,
     "test_name": "Create Fitted",
-    "time_ms": 0.059
+    "time_ms": 0.107
   }
 ]

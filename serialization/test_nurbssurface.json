@@ -41,13 +41,13 @@
     "order_v": 3,
     "cv_count_u": 3,
     "cv_count_v": 3,
-    "knots_u": [
+    "nurbsknots_u": [
         0.0,
         0.0,
         1.0,
         1.0
     ],
-    "knots_v": [
+    "nurbsknots_v": [
         0.0,
         0.0,
         1.0,

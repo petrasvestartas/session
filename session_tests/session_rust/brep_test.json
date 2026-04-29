@@ -53,7 +53,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.011
+    "time_ms": 0.03
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 28,
     "passed": true,
     "test_name": "Create Box",
-    "time_ms": 1.387
+    "time_ms": 0.231
   },
   {
     "checks": [
@@ -135,7 +135,7 @@
     "line": 43,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 0.958
+    "time_ms": 0.193
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 62,
     "passed": true,
     "test_name": "Add Face",
-    "time_ms": 0.052
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 94,
     "passed": true,
     "test_name": "Mesh",
-    "time_ms": 87.004
+    "time_ms": 0.693
   },
   {
     "checks": [
@@ -208,7 +208,7 @@
     "line": 107,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.939
+    "time_ms": 0.131
   },
   {
     "checks": [
@@ -229,7 +229,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Is Solid",
-    "time_ms": 0.966
+    "time_ms": 0.116
   },
   {
     "checks": [
@@ -255,7 +255,7 @@
     "line": 143,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 1.006
+    "time_ms": 0.203
   },
   {
     "checks": [
@@ -270,13 +270,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::brep::BRep;\n        use crate::Color;\n        use std::path::PathBuf;\n\n        let mut b = BRep::create_box(2.0, 3.0, 4.0);\n        b.name = \"test_brep\".to_string();\n        b.width = 2.0;\n        b.surfacecolor = Color::new(255, 128, 64, 255);\n\n        // String\n        let json_string = b.json_dumps();\n        let loaded_json_string = BRep::json_loads(&json_string);\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_brep.json\");\n        b.json_dump(filename.to_str().unwrap());\n        let loaded_from_file = BRep::json_load(filename.to_str().unwrap());\n",
+    "code": "        use crate::brep::BRep;\n        use crate::Color;\n        use std::path::PathBuf;\n\n        let mut b = BRep::create_box(2.0, 3.0, 4.0);\n        b.name = \"test_brep\".to_string();\n        b.width = 2.0;\n        b.surfacecolor = Color::new(255, 128, 64, 255);\n\n        // String\n        let json_string = b.file_json_dumps();\n        let loaded_json_string = BRep::file_json_loads(&json_string);\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_brep.json\");\n        b.file_json_dump(filename.to_str().unwrap());\n        let loaded_from_file = BRep::file_json_load(filename.to_str().unwrap());\n",
     "failures": [],
     "group": "BRep",
     "line": 161,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 9.148
+    "time_ms": 12.912
   },
   {
     "checks": [
@@ -317,7 +317,7 @@
     "line": 229,
     "passed": true,
     "test_name": "Create Cylinder",
-    "time_ms": 135.885
+    "time_ms": 132.139
   },
   {
     "checks": [
@@ -358,7 +358,7 @@
     "line": 245,
     "passed": true,
     "test_name": "Create Sphere",
-    "time_ms": 73.18
+    "time_ms": 8.857
   },
   {
     "checks": [
@@ -404,7 +404,7 @@
     "line": 261,
     "passed": true,
     "test_name": "From Polylines",
-    "time_ms": 163.122
+    "time_ms": 51.295
   },
   {
     "checks": [
@@ -435,7 +435,7 @@
     "line": 337,
     "passed": true,
     "test_name": "From Nurbscurves",
-    "time_ms": 55.13
+    "time_ms": 102.287
   },
   {
     "checks": [
@@ -481,7 +481,7 @@
     "line": 410,
     "passed": true,
     "test_name": "From Nurbscurves Holes",
-    "time_ms": 47.513
+    "time_ms": 99.903
   },
   {
     "checks": [
@@ -502,7 +502,7 @@
     "line": 203,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 15.938
+    "time_ms": 8.736
   },
   {
     "checks": [
@@ -543,6 +543,6 @@
     "line": 187,
     "passed": true,
     "test_name": "Create Block With Hole",
-    "time_ms": 208.308
+    "time_ms": 149.015
   }
 ]

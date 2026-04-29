@@ -48,7 +48,7 @@
     "line": 173,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.007
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -78,13 +78,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Color;\n\n        let color = Color::with_name(255, 128, 64, 255, \"test_color\");\n\n        //   json_dumps()    │ String       │ to JSON string\n        //   json_loads(s)   │ String       │ from JSON string\n        //   json_dump(path) │ file         │ write to file\n        //   json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_color.json\";\n        color.json_dump(filename).unwrap();\n        let loaded = Color::json_load(filename).unwrap();\n",
+    "code": "        use crate::Color;\n\n        let color = Color::with_name(255, 128, 64, 255, \"test_color\");\n\n        //   file_json_dumps()    │ String       │ to JSON string\n        //   file_json_loads(s)   │ String       │ from JSON string\n        //   file_json_dump(path) │ file         │ write to file\n        //   file_json_load(path) │ file         │ read from file\n\n        let filename = \"serialization/test_color.json\";\n        color.file_json_dump(filename).unwrap();\n        let loaded = Color::file_json_load(filename).unwrap();\n",
     "failures": [],
     "group": "Color",
     "line": 213,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 5.963
+    "time_ms": 4.324
   },
   {
     "checks": [
@@ -120,7 +120,7 @@
     "line": 236,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 5.668
+    "time_ms": 3.255
   },
   {
     "checks": [
@@ -156,7 +156,7 @@
     "line": 255,
     "passed": true,
     "test_name": "Conversion",
-    "time_ms": 0.0
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -387,6 +387,6 @@
     "line": 272,
     "passed": true,
     "test_name": "Presets",
-    "time_ms": 0.014
+    "time_ms": 0.021
   }
 ]

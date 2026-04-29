@@ -22,6 +22,18 @@ consolidate_test_data() {
     # (bash loops with cat/awk per file take ~60s on Windows, Python takes <1s)
     local PYTHON
     PYTHON=$(get_python_path "$repo_root")
+    # Fall back to system python when the uvsession venv isn't set up
+    # (e.g. rust-only or cpp-only CI matrix runs).
+    if [[ ! -x "$PYTHON" ]]; then
+        if command -v python3 >/dev/null 2>&1; then
+            PYTHON=python3
+        elif command -v python >/dev/null 2>&1; then
+            PYTHON=python
+        else
+            log "Warning: no Python found, skipping testData.js consolidation"
+            return 0
+        fi
+    fi
     local repo_native
     repo_native=$(cd "$repo_root" && pwd -W 2>/dev/null || pwd)
     "$PYTHON" -c "
@@ -37,10 +49,7 @@ parts = []
 # Test results
 for cls in classes:
     for lang, d in langs:
-        if lang == 'rust':
-            name = cls.replace('_','') + '_test.json'
-        else:
-            name = cls + '_test.json'
+        name = cls + '_test.json'
         p = os.path.join(tests, d, name)
         if os.path.isfile(p):
             with open(p, 'r') as f:

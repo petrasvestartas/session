@@ -31,7 +31,7 @@
     "dimension": 3,
     "guid": "6c435d1f-1196-486a-9bf3-9ce323df805d",
     "is_rational": false,
-    "knots": [
+    "nurbsknots": [
         0.0,
         0.0,
         1.0,

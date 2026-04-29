@@ -34,18 +34,18 @@ One file = one class (or one tightly-coupled group like `graph` which contains `
 - [ ] `element_beam`
 - [ ] `element_column`
 - [ ] `element_plate`
-- [ ] `encoders`
+- [ ] `file_encoders`
 - [ ] `graph`
 - [ ] `intersection`
 - [ ] `kdtree`
-- [x] `knot`
+- [x] `nurbsknot`
 - [ ] `line`
 - [ ] `matrix`
 - [x] `mesh`
 - [x] `nurbscurve`
 - [x] `nurbssurface`
 - [ ] `obb`
-- [ ] `obj`
+- [ ] `file_obj`
 - [ ] `objects`
 - [ ] `plane`
 - [ ] `point`
@@ -62,7 +62,7 @@ One file = one class (or one tightly-coupled group like `graph` which contains `
 - [ ] `tolerance`
 - [ ] `tree`
 - [ ] `treenode`
-- [ ] `trimmedsurface`
+- [ ] `nurbssurface_trimmed`
 - [ ] `vector`
 - [x] `xform`
 

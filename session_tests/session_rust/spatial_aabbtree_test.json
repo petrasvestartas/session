@@ -1,0 +1,195 @@
+[
+  {
+    "checks": [
+      {
+        "code_line": "d == f64::INFINITY",
+        "line": 38,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Closest;\n        use crate::Mesh;\n        use crate::Point;\n\n        let m = Mesh::new();\n        let (_cp, _fk, d) = Closest::mesh_point_aabb(&m, &Point::new(0.0, 0.0, 0.0));\n",
+    "failures": [],
+    "group": "SpatialAABBTree",
+    "line": 30,
+    "passed": true,
+    "test_name": "Build Empty",
+    "time_ms": 0.013
+  },
+  {
+    "checks": [
+      {
+        "code_line": "d > 0.0",
+        "line": 55,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(d, 1.0)",
+        "line": 56,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Closest;\n        use crate::Mesh;\n        use crate::Point;\n\n        let mut m = Mesh::new();\n        let vk0 = m.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let vk1 = m.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let vk2 = m.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        m.add_face(vec![vk0, vk1, vk2], None);\n        let (_cp, _fk, d) = Closest::mesh_point_aabb(&m, &Point::new(0.0, 0.0, 1.0));\n",
+    "failures": [],
+    "group": "SpatialAABBTree",
+    "line": 43,
+    "passed": true,
+    "test_name": "Build Single",
+    "time_ms": 0.087
+  },
+  {
+    "checks": [
+      {
+        "code_line": "d < 0.5",
+        "line": 81,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Closest;\n        use crate::Mesh;\n        use crate::Point;\n\n        let mut m = Mesh::new();\n        let vk0 = m.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let vk1 = m.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let vk2 = m.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        let vk3 = m.add_vertex(Point::new(5.0, 0.0, 0.0), None);\n        let vk4 = m.add_vertex(Point::new(6.0, 0.0, 0.0), None);\n        let vk5 = m.add_vertex(Point::new(5.0, 1.0, 0.0), None);\n        let vk6 = m.add_vertex(Point::new(10.0, 0.0, 0.0), None);\n        let vk7 = m.add_vertex(Point::new(11.0, 0.0, 0.0), None);\n        let vk8 = m.add_vertex(Point::new(10.0, 1.0, 0.0), None);\n        m.add_face(vec![vk0, vk1, vk2], None);\n        m.add_face(vec![vk3, vk4, vk5], None);\n        m.add_face(vec![vk6, vk7, vk8], None);\n        let (_cp, _fk, d) = Closest::mesh_point_aabb(&m, &Point::new(0.5, 0.0, 0.0));\n",
+    "failures": [],
+    "group": "SpatialAABBTree",
+    "line": 61,
+    "passed": true,
+    "test_name": "Build Multiple",
+    "time_ms": 0.088
+  },
+  {
+    "checks": [
+      {
+        "code_line": "d < 0.5",
+        "line": 103,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Closest;\n        use crate::Mesh;\n        use crate::Point;\n\n        let mut m = Mesh::new();\n        let mut vkeys: Vec<usize> = Vec::new();\n        for i in 0..100 {\n            vkeys.push(m.add_vertex(Point::new(i as f64, 0.0, 0.0), None));\n            vkeys.push(m.add_vertex(Point::new(i as f64 + 0.5, 0.5, 0.0), None));\n            vkeys.push(m.add_vertex(Point::new(i as f64, 0.5, 0.0), None));\n        }\n        for i in 0..100 {\n            m.add_face(vec![vkeys[i*3], vkeys[i*3+1], vkeys[i*3+2]], None);\n        }\n        let (_cp, _fk, d) = Closest::mesh_point_aabb(&m, &Point::new(50.0, 0.0, 0.0));\n",
+    "failures": [],
+    "group": "SpatialAABBTree",
+    "line": 86,
+    "passed": true,
+    "test_name": "Node Count",
+    "time_ms": 1.541
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(cp1[2], 1.0)",
+        "line": 116,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(d1, 1.0)",
+        "line": 117,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(d2, 0.0)",
+        "line": 119,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Closest;\n        use crate::Primitives;\n        use crate::Point;\n\n        let m = Primitives::cube(2.0);\n        let (cp1, _fk1, d1) = Closest::mesh_point_aabb(&m, &Point::new(0.0, 0.0, 2.0));\n\n        let (_cp2, _fk2, d2) = Closest::mesh_point_aabb(&m, &Point::new(1.0, 1.0, 1.0));",
+    "failures": [],
+    "group": "SpatialAABBTree",
+    "line": 108,
+    "passed": true,
+    "test_name": "Mesh Point Aabb",
+    "time_ms": 0.329
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(d_bvh, d_aabb)",
+        "line": 134,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(cp_bvh[0], cp_aabb[0])",
+        "line": 135,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(cp_bvh[1], cp_aabb[1])",
+        "line": 136,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(cp_bvh[2], cp_aabb[2])",
+        "line": 137,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Closest;\n        use crate::Primitives;\n        use crate::Point;\n\n        let m = Primitives::cube(2.0);\n        let tp = Point::new(0.3, 0.7, 1.5);\n        let (cp_bvh, _fk_bvh, d_bvh) = Closest::mesh_point(&m, &tp);\n        let (cp_aabb, _fk_aabb, d_aabb) = Closest::mesh_point_aabb(&m, &tp);\n",
+    "failures": [],
+    "group": "SpatialAABBTree",
+    "line": 124,
+    "passed": true,
+    "test_name": "Mesh Point Aabb Matches Bvh",
+    "time_ms": 0.216
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(d_near, 0.0)",
+        "line": 159,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(d_far, 0.0)",
+        "line": 160,
+        "passed": true
+      },
+      {
+        "code_line": "fk_near != fk_far",
+        "line": 161,
+        "passed": true
+      },
+      {
+        "code_line": "cp_near[0] < 2.0",
+        "line": 162,
+        "passed": true
+      },
+      {
+        "code_line": "cp_far[0] > 15.0",
+        "line": 163,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Closest;\n        use crate::Mesh;\n        use crate::Point;\n\n        let mut m = Mesh::new();\n        let vk0 = m.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let vk1 = m.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let vk2 = m.add_vertex(Point::new(0.5, 1.0, 0.0), None);\n        let vk3 = m.add_vertex(Point::new(20.0, 0.0, 0.0), None);\n        let vk4 = m.add_vertex(Point::new(21.0, 0.0, 0.0), None);\n        let vk5 = m.add_vertex(Point::new(20.5, 1.0, 0.0), None);\n        m.add_face(vec![vk0, vk1, vk2], None);\n        m.add_face(vec![vk3, vk4, vk5], None);\n        let (cp_near, fk_near, d_near) = Closest::mesh_point_aabb(&m, &Point::new(0.5, 0.25, 0.0));\n        let (cp_far, fk_far, d_far) = Closest::mesh_point_aabb(&m, &Point::new(20.5, 0.25, 0.0));\n",
+    "failures": [],
+    "group": "SpatialAABBTree",
+    "line": 142,
+    "passed": true,
+    "test_name": "Query Aabb",
+    "time_ms": 0.054
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pairs.is_empty()",
+        "line": 17,
+        "passed": true
+      },
+      {
+        "code_line": "pairs_near.len() == 1",
+        "line": 23,
+        "passed": true
+      },
+      {
+        "code_line": "pairs_near[0].0 == 0",
+        "line": 24,
+        "passed": true
+      },
+      {
+        "code_line": "pairs_near[0].1 == 1",
+        "line": 25,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::AABB;\n        use crate::Closest;\n\n        // SpatialAABBTree: O(n log n) build, O(log n) cull — prune candidates before exact test\n        let box0 = AABB::new(0.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n        let box1 = AABB::new(5.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n        let box2 = AABB::new(10.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n        let pairs = Closest::boxes_closest(&[box0, box1, box2], 0.0);\n\n\n        let box_a = AABB::new(0.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n        let box_b = AABB::new(1.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n        let pairs_near = Closest::boxes_closest(&[box_a, box_b], 0.0);\n",
+    "failures": [],
+    "group": "SpatialAABBTree",
+    "line": 7,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.012
+  }
+]

@@ -3,7 +3,7 @@ REM Shared functions for minitest system (Windows)
 REM This file is meant to be called from other batch files
 
 REM Single source of truth for class names
-set "CLASS_NAMES=color knot line mesh nurbscurve nurbssurface plane point pointcloud polyline tolerance vector xform"
+set "CLASS_NAMES=color nurbsknot line mesh nurbscurve nurbssurface plane point pointcloud polyline tolerance vector xform"
 
 REM Get script directory (call with %~dp0)
 REM Usage: call :get_repo_root SCRIPT_DIR RESULT_VAR

@@ -1,3 +1,4 @@
+import copy
 import importlib
 import json
 
@@ -10,6 +11,7 @@ _MODULE_MAP = {
     "NurbsCurve":   "session_compas.compas_nurbscurve",
     "NurbsSurface": "session_compas.compas_nurbssurface",
     "Plane":        "session_compas.compas_plane",
+    "BRep":         "session_compas.compas_brep",
 }
 
 
@@ -63,6 +65,7 @@ def view(filepath_or_session):
         data.objects.points, data.objects.lines,
         data.objects.polylines, data.objects.meshes,
         data.objects.nurbscurves, data.objects.nurbssurfaces,
+        data.objects.breps,
     ]
     for col in collections:
         for obj in col:
@@ -90,14 +93,25 @@ def view(filepath_or_session):
         viewer.scene.add(rect, name=name, parent=parent, **kw)
         viewer.scene.add(normal, name=name + "_normal", parent=parent, **kw)
     for elem in data.objects.elements:
-        mesh = elem.session_geometry
-        if mesh is None:
+        geom = elem.session_geometry
+        if geom is None:
             continue
         if xf is not None:
-            mesh.xform = xf
-            mesh.transform()
-        module = _get_module("Mesh")
-        compas_obj = module.to_compas(mesh)
+            geom.xform = xf
+            geom.transform()
+        type_name = type(geom).__name__
+        if type_name not in _MODULE_MAP:
+            continue
+        module = _get_module(type_name)
+        if type_name == "BRep":
+            fallback = getattr(elem, "_fallback_mesh", None)
+            if fallback is not None and xf is not None:
+                fallback = copy.deepcopy(fallback)
+                fallback.xform = xf
+                fallback.transform()
+            compas_obj = module.to_compas(geom, fallback_mesh=fallback)
+        else:
+            compas_obj = module.to_compas(geom)
         name = getattr(elem, "name", None) or "Element"
         parent = _get_parent(elem)
         viewer.scene.add(compas_obj, name=name, parent=parent)

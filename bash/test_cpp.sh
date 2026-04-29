@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Run C++ minitest only - does NOT touch other languages' JSON
 # Usage:
-#   ./test_cpp.sh              # Build and run (skips cmake if build exists)
-#   ./test_cpp.sh --clean      # Force cmake reconfigure
-#   ./test_cpp.sh --no-viewer  # Don't update testData.js
+#   ./test_cpp.sh               # Build point_minitest only and run it
+#   ./test_cpp.sh --clean       # Force cmake reconfigure
+#   ./test_cpp.sh --all-targets # Also build main_* / main_wood_* executables
+#   ./test_cpp.sh --no-viewer   # Don't update testData.js
 
 set -e
 set -o pipefail
@@ -15,12 +16,17 @@ REPO_ROOT=$(resolve_repo_root "${BASH_SOURCE[0]}")
 CPP_DIR="${REPO_ROOT}/session_cpp"
 UPDATE_VIEWER=true
 FORCE_CLEAN=false
+ALL_TARGETS=false
+if [[ "${MINITEST_CPP_ALL:-0}" == "1" ]]; then
+    ALL_TARGETS=true
+fi
 
 # Parse args
 for arg in "$@"; do
     case $arg in
         --clean|-c) FORCE_CLEAN=true ;;
         --no-viewer) UPDATE_VIEWER=false ;;
+        --all-targets) ALL_TARGETS=true ;;
     esac
 done
 
@@ -43,11 +49,16 @@ if [[ ! -d "build" ]] || [[ "$FORCE_CLEAN" == "true" ]]; then
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release 2>&1 | grep -vE "^-- |^MSBuild|Completed '|Performing|No .* step"
 fi
 
+TARGET_ARGS=()
+if [[ "$ALL_TARGETS" != "true" ]]; then
+    TARGET_ARGS=(--target point_minitest)
+fi
+
 log_lang "cpp" "Compiling..."
 if [[ "$PLATFORM" == "windows" ]]; then
-    cmake --build build --config Release --parallel "${JOBS}" 2>&1 | grep -vE "\.vcxproj ->|\.lib$|\.exe$"
+    cmake --build build --config Release --parallel "${JOBS}" "${TARGET_ARGS[@]}" 2>&1 | grep -vE "\.vcxproj ->|\.lib$|\.exe$"
 else
-    cmake --build build --config Release -- -j"${JOBS}"
+    cmake --build build --config Release "${TARGET_ARGS[@]}" -- -j"${JOBS}"
 fi
 
 if [[ $? -ne 0 ]]; then
