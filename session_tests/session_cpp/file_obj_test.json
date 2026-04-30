@@ -3,7 +3,7 @@
     "group": "FileObj",
     "test_name": "Read Bunny",
     "passed": true,
-    "time_ms": 19.615,
+    "time_ms": 77.411,
     "line": 10,
     "code": "    // load Stanford Bunny (real-world OBJ: 2503 vertices, 4968 faces)\n    if (!std::filesystem::exists(\"session_data/bunny.obj\"))\n        return;\n\n    Mesh mesh = file_obj::read_file_obj(\"session_data/bunny.obj\");\n\n\n    auto [vertices, faces] = mesh.to_vertices_and_faces();\n\n    bool has_non_zero = std::any_of(vertices.begin(), vertices.end(),\n        [](const auto& v) { return v[0] != 0.0 || v[1] != 0.0 || v[2] != 0.0; });\n\n        [](const auto& f) { return f.size() >= 3; }));",
     "checks": [
@@ -44,7 +44,7 @@
     "group": "FileObj",
     "test_name": "Write Read Roundtrip",
     "passed": true,
-    "time_ms": 8.473,
+    "time_ms": 19.288,
     "line": 32,
     "code": "    // build a small mesh (4 verts, 2 faces), write to OBJ, read back, compare counts\n    std::filesystem::create_directories(\"./serialization\");\n    Mesh original_mesh;\n    auto v0 = original_mesh.add_vertex(Point(0.0, 0.0, 0.0));\n    auto v1 = original_mesh.add_vertex(Point(1.0, 0.0, 0.0));\n    auto v2 = original_mesh.add_vertex(Point(0.0, 1.0, 0.0));\n    auto v3 = original_mesh.add_vertex(Point(0.0, 0.0, 1.0));\n\n    original_mesh.add_face({v0, v1, v2});\n    original_mesh.add_face({v0, v1, v3});\n\n\n    std::string temp_file = \"./serialization/test_temp_roundtrip.obj\";\n    file_obj::write_file_obj(original_mesh, temp_file);\n\n\n    Mesh loaded_mesh = file_obj::read_file_obj(temp_file);\n\n\n    std::filesystem::remove(temp_file);",
     "checks": [
