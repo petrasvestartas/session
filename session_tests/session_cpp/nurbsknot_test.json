@@ -3,7 +3,7 @@
     "group": "NurbsKnot",
     "test_name": "Make Clamped Uniform",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 15,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots = nurbsknot::make_clamped_uniform(order, cv_count);",
     "checks": [
@@ -104,7 +104,7 @@
     "group": "NurbsKnot",
     "test_name": "Compute Parameters",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 97,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    double pts[] = {0,0,0, 1,0,0, 2,0,0, 3,0,0};\n    // Chord-length parameterization: since all gaps are 1.0, params = {0, 1, 2, 3}\n    std::vector<double> t = nurbsknot::compute_parameters(pts, 4, 3, CurveNurbsKnotStyle::Chord);",
     "checks": [

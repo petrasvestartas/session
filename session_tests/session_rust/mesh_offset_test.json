@@ -1,0 +1,219 @@
+[
+  {
+    "checks": [
+      {
+        "code_line": "result.is_valid()",
+        "line": 18,
+        "passed": true
+      },
+      {
+        "code_line": "result == copy",
+        "line": 19,
+        "passed": true
+      },
+      {
+        "code_line": "!(result != copy)",
+        "line": 20,
+        "passed": true
+      },
+      {
+        "code_line": "result.number_of_vertices() == 8",
+        "line": 21,
+        "passed": true
+      },
+      {
+        "code_line": "result.number_of_faces() == 6",
+        "line": 22,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2, 3]]);\n        let result = MeshOffset::from_mesh(&mesh, 1.0);\n        let copy = result.clone();",
+    "failures": [],
+    "group": "MeshOffset",
+    "line": 5,
+    "passed": true,
+    "test_name": "from_mesh",
+    "time_ms": 0.256
+  },
+  {
+    "checks": [
+      {
+        "code_line": "result.is_valid()",
+        "line": 51,
+        "passed": true
+      },
+      {
+        "code_line": "result.number_of_vertices() == 18",
+        "line": 52,
+        "passed": true
+      },
+      {
+        "code_line": "result.number_of_faces() == 16",
+        "line": 53,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 1.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n        ];\n        let faces = vec![\n            vec![0, 1, 4, 3],\n            vec![1, 2, 5, 4],\n            vec![3, 4, 7, 6],\n            vec![4, 5, 8, 7],\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, faces);\n        let result = MeshOffset::from_mesh(&mesh, 2.0);",
+    "failures": [],
+    "group": "MeshOffset",
+    "line": 28,
+    "passed": true,
+    "test_name": "from_mesh_grid",
+    "time_ms": 0.262
+  },
+  {
+    "checks": [
+      {
+        "code_line": "layers.bottom.is_valid()",
+        "line": 71,
+        "passed": true
+      },
+      {
+        "code_line": "layers.top.is_valid()",
+        "line": 72,
+        "passed": true
+      },
+      {
+        "code_line": "layers.sides.is_valid()",
+        "line": 73,
+        "passed": true
+      },
+      {
+        "code_line": "layers.bottom.number_of_vertices() == 4",
+        "line": 74,
+        "passed": true
+      },
+      {
+        "code_line": "layers.bottom.number_of_faces() == 1",
+        "line": 75,
+        "passed": true
+      },
+      {
+        "code_line": "layers.top.number_of_vertices() == 4",
+        "line": 76,
+        "passed": true
+      },
+      {
+        "code_line": "layers.top.number_of_faces() == 1",
+        "line": 77,
+        "passed": true
+      },
+      {
+        "code_line": "layers.sides.number_of_faces() == 4",
+        "line": 78,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2, 3]]);\n        let layers = MeshOffset::from_mesh_layers(&mesh, 1.0);",
+    "failures": [],
+    "group": "MeshOffset",
+    "line": 59,
+    "passed": true,
+    "test_name": "from_mesh_layers",
+    "time_ms": 0.121
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded.is_valid()",
+        "line": 98,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.number_of_vertices() == result.number_of_vertices()",
+        "line": 99,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.number_of_faces() == result.number_of_faces()",
+        "line": 100,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2, 3]]);\n        let result = MeshOffset::from_mesh(&mesh, 1.0);\n        result.file_json_dump(\"mesh_offset_test_dump.json\");\n        let loaded = Mesh::file_json_load(\"mesh_offset_test_dump.json\").unwrap();",
+    "failures": [],
+    "group": "MeshOffset",
+    "line": 84,
+    "passed": true,
+    "test_name": "file_json_dump",
+    "time_ms": 11.009
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded.is_valid()",
+        "line": 109,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.number_of_vertices() == 8",
+        "line": 110,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.number_of_faces() == 6",
+        "line": 111,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Mesh;\n        let loaded = Mesh::file_json_load(\"mesh_offset_test_dump.json\").unwrap();",
+    "failures": [],
+    "group": "MeshOffset",
+    "line": 106,
+    "passed": true,
+    "test_name": "file_json_load",
+    "time_ms": 0.185
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded.is_valid()",
+        "line": 131,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.number_of_vertices() == result.number_of_vertices()",
+        "line": 132,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.number_of_faces() == result.number_of_faces()",
+        "line": 133,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2, 3]]);\n        let result = MeshOffset::from_mesh(&mesh, 1.0);\n        result.pb_dump(\"mesh_offset_test.pb\");\n        let loaded = Mesh::pb_load(\"mesh_offset_test.pb\");",
+    "failures": [],
+    "group": "MeshOffset",
+    "line": 117,
+    "passed": true,
+    "test_name": "to_proto",
+    "time_ms": 8.649
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded.is_valid()",
+        "line": 142,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.number_of_vertices() == 8",
+        "line": 143,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.number_of_faces() == 6",
+        "line": 144,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Mesh;\n        let loaded = Mesh::pb_load(\"mesh_offset_test.pb\");",
+    "failures": [],
+    "group": "MeshOffset",
+    "line": 139,
+    "passed": true,
+    "test_name": "from_proto",
+    "time_ms": 0.107
+  }
+]

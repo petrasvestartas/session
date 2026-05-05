@@ -1,44 +1,13 @@
 [
   {
-    "checks": [
-      {
-        "code_line": "mesh.number_of_vertices() == 2503",
-        "line": 17,
-        "passed": true
-      },
-      {
-        "code_line": "mesh.number_of_faces() == 4968",
-        "line": 18,
-        "passed": true
-      },
-      {
-        "code_line": "vertices.len() == 2503",
-        "line": 20,
-        "passed": true
-      },
-      {
-        "code_line": "faces.len() == 4968",
-        "line": 21,
-        "passed": true
-      },
-      {
-        "code_line": "has_non_zero",
-        "line": 23,
-        "passed": true
-      },
-      {
-        "code_line": "faces.iter().all(|f| f.len() >= 3)",
-        "line": 24,
-        "passed": true
-      }
-    ],
+    "checks": [],
     "code": "        // load Stanford Bunny (real-world OBJ: 2503 vertices, 4968 faces)\n        use std::path::PathBuf;\n        use crate::file_obj::read_file_obj;\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let bunny_path = src_dir.parent().unwrap().join(\"session_data\").join(\"bunny.obj\");\n        if !bunny_path.exists() {\n            return Ok(());\n        }\n        let mesh = read_file_obj(bunny_path.to_str().unwrap()).unwrap();\n\n        let (vertices, faces) = mesh.to_vertices_and_faces();\n        let has_non_zero = vertices.iter().any(|v| v[0] != 0.0 || v[1] != 0.0 || v[2] != 0.0);",
     "failures": [],
     "group": "FileObj",
     "line": 6,
     "passed": true,
     "test_name": "Read Bunny",
-    "time_ms": 84.677
+    "time_ms": 0.023
   },
   {
     "checks": [
@@ -74,6 +43,6 @@
     "line": 29,
     "passed": true,
     "test_name": "Write Read Roundtrip",
-    "time_ms": 9.506
+    "time_ms": 1.004
   }
 ]

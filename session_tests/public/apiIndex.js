@@ -16055,12 +16055,17 @@ window.API_INDEX = {
         "Line.__mul__",
         "Line.__neg__",
         "Line.__truediv__",
+        "Line.extend",
+        "Line.extend_equally",
         "Line.from_point_and_vector",
         "Line.from_point_direction_length",
+        "Line.from_projected_points",
+        "Line.get_middle_line",
         "Line.length",
         "Line.new",
         "Line.overlap",
         "Line.overlap_average",
+        "Line.scale",
         "Line.str",
         "Line.transform",
         "Line.transformed",
@@ -16439,9 +16444,11 @@ window.API_INDEX = {
         "Line.closest_point",
         "Line.end",
         "Line.extend",
+        "Line.extend_equally",
         "Line.file_json_dumps",
         "Line.file_json_loads",
         "Line.from_point_direction_length",
+        "Line.from_projected_points",
         "Line.get_middle_line",
         "Line.length",
         "Line.new",
@@ -16450,6 +16457,7 @@ window.API_INDEX = {
         "Line.pb_dumps",
         "Line.pb_loads",
         "Line.point_at",
+        "Line.scale",
         "Line.squared_length",
         "Line.subdivide",
         "Line.subdivide_by_distance",
@@ -16496,11 +16504,11 @@ window.API_INDEX = {
         "Line.duplicate",
         "Line.extend",
         "Line.extend_equally",
-        "Line.extend_line",
         "Line.file_json_dumps",
         "Line.file_json_loads",
         "Line.fit_points",
         "Line.from_point_direction_length",
+        "Line.from_projected_points",
         "Line.get_middle_line",
         "Line.guid",
         "Line.length",
@@ -16511,6 +16519,7 @@ window.API_INDEX = {
         "Line.pb_dumps",
         "Line.pb_loads",
         "Line.point_at",
+        "Line.scale",
         "Line.squared_length",
         "Line.start",
         "Line.subdivide",
@@ -16596,8 +16605,8 @@ window.API_INDEX = {
           "file": "line.py"
         },
         "cpp": {
-          "sig": "void get_middle_line(const Point& line0_start, const Point& line0_end,\n                          const Point& line1_start, const Point& line1_end,\n                          Point& output_start, Point& output_end)",
-          "code": "void Line::get_middle_line(const Point& line0_start, const Point& line0_end,\n                          const Point& line1_start, const Point& line1_end,\n                          Point& output_start, Point& output_end) {\n    output_start = Point(\n        (line0_start[0] + line1_start[0]) * 0.5,\n        (line0_start[1] + line1_start[1]) * 0.5,\n        (line0_start[2] + line1_start[2]) * 0.5\n    );\n    output_end = Point(\n        (line0_end[0] + line1_end[0]) * 0.5,\n        (line0_end[1] + line1_end[1]) * 0.5,\n        (line0_end[2] + line1_end[2]) * 0.5\n    );\n}",
+          "sig": "void get_middle_line(const Line& l0, const Line& l1, Line& out)",
+          "code": "void Line::get_middle_line(const Line& l0, const Line& l1, Line& out) {\n    Point os, oe;\n    Line::get_middle_line(l0.start(), l0.end(), l1.start(), l1.end(), os, oe);\n    out = Line::from_points(os, oe);\n}",
           "file": "line.cpp"
         },
         "rust": {
@@ -16616,6 +16625,7 @@ window.API_INDEX = {
         "Line.center",
         "Line.closest_point",
         "Line.end",
+        "Line.from_points",
         "Line.new",
         "Line.start"
       ]
@@ -16848,7 +16858,6 @@ window.API_INDEX = {
         "Line.end",
         "Line.format",
         "Line.from_points",
-        "Line.line_line_overlap",
         "Line.new",
         "Line.overlap",
         "Line.overlap_average",
@@ -16879,8 +16888,6 @@ window.API_INDEX = {
         "Line.end",
         "Line.format",
         "Line.from_points",
-        "Line.line_line_overlap",
-        "Line.line_line_overlap_average",
         "Line.new",
         "Line.overlap",
         "Line.overlap_average",
@@ -16912,8 +16919,6 @@ window.API_INDEX = {
         "Line.format",
         "Line.from_points",
         "Line.length",
-        "Line.line_line_overlap",
-        "Line.line_line_overlap_average",
         "Line.new",
         "Line.overlap",
         "Line.overlap_average",
@@ -16956,8 +16961,6 @@ window.API_INDEX = {
         "Line.format",
         "Line.from_points",
         "Line.length",
-        "Line.line_line_overlap",
-        "Line.line_line_overlap_average",
         "Line.new",
         "Line.overlap",
         "Line.overlap_average",
@@ -17000,8 +17003,6 @@ window.API_INDEX = {
         "Line.guid",
         "Line.jsondump",
         "Line.length",
-        "Line.line_line_overlap",
-        "Line.line_line_overlap_average",
         "Line.new",
         "Line.overlap",
         "Line.overlap_average",
@@ -17021,7 +17022,7 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "bool overlap(const Line& other, Line& out)",
-          "code": "bool Line::overlap(const Line& other, Line& out) const {\n    return ::session_cpp::line_line_overlap(*this, other, out);\n}",
+          "code": "bool Line::overlap(const Line& other, Line& out) const {\n    Point os, oe;\n    bool r = Polyline::line_line_overlap(start(), end(), other.start(), other.end(), os, oe);\n    out = Line::from_points(os, oe);\n    return r;\n}",
           "file": "line.cpp"
         },
         "rust": {
@@ -17044,8 +17045,6 @@ window.API_INDEX = {
         "Line.guid",
         "Line.jsondump",
         "Line.length",
-        "Line.line_line_overlap",
-        "Line.line_line_overlap_average",
         "Line.linecolor",
         "Line.new",
         "Line.overlap_average",
@@ -17066,7 +17065,7 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "bool overlap_average(const Line& other, Line& out)",
-          "code": "bool Line::overlap_average(const Line& other, Line& out) const {\n    ::session_cpp::line_line_overlap_average(*this, other, out);\n    return out.squared_length() > 0.0;\n}",
+          "code": "bool Line::overlap_average(const Line& other, Line& out) const {\n    Line lineA, lineB;\n    overlap(other, lineA);\n    other.overlap(*this, lineB);\n    Point a0=lineA.start(), a1=lineA.end(), b0=lineB.start(), b1=lineB.end();\n    Point m0s((a0[0]+b0[0])*0.5,(a0[1]+b0[1])*0.5,(a0[2]+b0[2])*0.5);\n    Point m0e((a1[0]+b1[0])*0.5,(a1[1]+b1[1])*0.5,(a1[2]+b1[2])*0.5);\n    Point m1s((a0[0]+b1[0])*0.5,(a0[1]+b1[1])*0.5,(a0[2]+b1[2])*0.5);\n    Point m1e((a1[0]+b0[0])*0.5,(a1[1]+b0[1])*0.5,(a1[2]+b0[2])*0.5);\n    double dx0=m0e[0]-m0s[0], dy0=m0e[1]-m0s[1], dz0=m0e[2]-m0s[2];\n    double dx1=m1e[0]-m1s[0], dy1=m1e[1]-m1s[1], dz1=m1e[2]-m1s[2];\n    out = (dx0*dx0+dy0*dy0+dz0*dz0 >= dx1*dx1+dy1*dy1+dz1*dz1)\n          ? Line::from_points(m0s, m0e) : Line::from_points(m1s, m1e);\n    return out.squared_length() > 0.0;\n}",
           "file": "line.cpp"
         },
         "rust": {
@@ -17089,8 +17088,6 @@ window.API_INDEX = {
         "Line.guid",
         "Line.jsondump",
         "Line.length",
-        "Line.line_line_overlap",
-        "Line.line_line_overlap_average",
         "Line.linecolor",
         "Line.new",
         "Line.overlap",
@@ -17112,7 +17109,7 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "void extend(double ext_start, double ext_end)",
-          "code": "void Line::extend(double ext_start, double ext_end) {\n    ::session_cpp::extend_line(*this, ext_start, ext_end);\n}",
+          "code": "void Line::extend(double ext_start, double ext_end) {\n    Point s = start(), e = end();\n    Polyline::extend_line_segment(s, e, ext_start, ext_end);\n    *this = Line::from_points(s, e);\n}",
           "file": "line.cpp"
         },
         "rust": {
@@ -17127,10 +17124,10 @@ window.API_INDEX = {
         "Line.__neg__",
         "Line.end",
         "Line.extend_equally",
-        "Line.extend_line",
         "Line.file_json_dump",
         "Line.file_json_load",
         "Line.format",
+        "Line.from_points",
         "Line.guid",
         "Line.jsondump",
         "Line.jsonload",
@@ -20645,8 +20642,10 @@ window.API_INDEX = {
         "Mesh.__ne__",
         "Mesh.__repr__",
         "Mesh.__str__",
+        "Mesh._zero_t",
         "Mesh.add_face",
         "Mesh.add_vertex",
+        "Mesh.align_cost",
         "Mesh.create_box",
         "Mesh.create_dodecahedron",
         "Mesh.duplicate",
@@ -20697,8 +20696,8 @@ window.API_INDEX = {
           "file": "mesh.py"
         },
         "cpp": {
-          "sig": "Mesh from_vertices_and_faces(const std::vector<Point>& vertices,\n                                    const std::vector<std::vector<size_t>>& faces)",
-          "code": "Mesh Mesh::from_vertices_and_faces(const std::vector<Point>& vertices,\n                                    const std::vector<std::vector<size_t>>& faces) {\n    Mesh mesh;\n    for (const auto& pt : vertices)\n        mesh.add_vertex(pt);\n    for (const auto& f : faces)\n        mesh.add_face(f);\n    return mesh;\n}",
+          "sig": "return from_vertices_and_faces(all_pts, faces)",
+          "code": "return Mesh::from_vertices_and_faces(all_pts, faces);\n}",
           "file": "mesh.cpp"
         },
         "rust": {
@@ -20834,7 +20833,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_polygon_with_holes(\n        polylines: List[List[Point]], sort_by_bbox: bool = False\n    ) -> \"Mesh\"",
-          "code": "def from_polygon_with_holes(\n        polylines: List[List[Point]], sort_by_bbox: bool = False\n    ) -> \"Mesh\":\n\n        from .remesh_cdt import RemeshCDT\n        from .polyline import Polyline\n        if not polylines:\n            return Mesh()\n        pls = [Polyline(v) for v in polylines]\n        return RemeshCDT.from_polylines(pls, False, not sort_by_bbox)\n\n    @staticmethod\n    def loft(polylines0: List, polylines1: List, cap: bool = True) -> \"Mesh\":\n        if not polylines0 or not polylines1 or len(polylines0) != len(polylines1):\n            return Mesh()\n        border_idx = 0\n        max_diag = 0.0\n        for i, pl in enumerate(polylines0):\n            pts = pl.get_points()\n            if not pts:\n                continue\n            xs = [p[0] for p in pts]; ys = [p[1] for p in pts]; zs = [p[2] for p in pts]\n            dx = max(xs) - min(xs); dy = max(ys) - min(ys); dz = max(zs) - min(zs)\n            diag = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if diag > max_diag:\n                max_diag = diag; border_idx = i\n        def get_open(pl):\n            pts = pl.get_points()\n            if len(pts) > 1:\n                f, b = pts[0], pts[-1]\n                if abs(f[0]-b[0]) < 1e-12 and abs(f[1]-b[1]) < 1e-12 and abs(f[2]-b[2]) < 1e-12:\n                    return pts[:-1]\n            return pts\n        origin, xaxis, yaxis, zaxis = polylines0[border_idx].get_average_plane()\n        c0 = polylines0[border_idx].center(); c1 = polylines1[border_idx].center()\n        btt = Vector(c1[0] - c0[0], c1[1] - c0[1], c1[2] - c0[2])\n        if zaxis.dot(btt) < 0:\n            yaxis = Vector(-yaxis[0], -yaxis[1], -yaxis[2])\n        def proj(p):\n            dx = p[0] - origin[0]; dy = p[1] - origin[1]; dz = p[2] - origin[2]\n            return (dx*xaxis[0] + dy*xaxis[1] + dz*xaxis[2], dx*yaxis[0] + dy*yaxis[1] + dz*yaxis[2])\n        def sarea(pts):\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        def strip_shared_collinear(bot, top):\n            cdt_scale = 1e6\n            def cross_q(a, b, c):\n                pa = proj(a); pb = proj(b); pc = proj(c)\n                iax = round(pa[0] * cdt_scale); iay = round(pa[1] * cdt_scale)\n                ibx = round(pb[0] * cdt_scale); iby = round(pb[1] * cdt_scale)\n                icx = round(pc[0] * cdt_scale); icy = round(pc[1] * cdt_scale)\n                return (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            changed = True\n            while changed and len(bot) > 3:\n                changed = False\n                n = len(bot)\n                for i in range(n):\n                    prev = (i + n - 1) % n\n                    nxt = (i + 1) % n\n                    if (cross_q(bot[prev], bot[i], bot[nxt]) == 0 and\n                            cross_q(top[prev], top[i], top[nxt]) == 0):\n                        bot.pop(i); top.pop(i)\n                        changed = True\n                        break\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            if len(bot) == len(top): strip_shared_collinear(bot, top)\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]",
+          "code": "def from_polygon_with_holes(\n        polylines: List[List[Point]], sort_by_bbox: bool = False\n    ) -> \"Mesh\":\n\n        from .remesh_cdt import RemeshCDT\n        from .polyline import Polyline\n        if not polylines:\n            return Mesh()\n        pls = [Polyline(v) for v in polylines]\n        return RemeshCDT.from_polylines(pls, False, not sort_by_bbox)\n\n    @staticmethod\n    def loft(polylines0: List, polylines1: List, cap: bool = True, fix_collinear: bool = True) -> \"Mesh\":\n        if not polylines0 or not polylines1 or len(polylines0) != len(polylines1):\n            return Mesh()\n        border_idx = 0\n        max_diag = 0.0\n        for i, pl in enumerate(polylines0):\n            pts = pl.get_points()\n            if not pts:\n                continue\n            xs = [p[0] for p in pts]; ys = [p[1] for p in pts]; zs = [p[2] for p in pts]\n            dx = max(xs) - min(xs); dy = max(ys) - min(ys); dz = max(zs) - min(zs)\n            diag = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if diag > max_diag:\n                max_diag = diag; border_idx = i\n        def get_open(pl):\n            pts = pl.get_points()\n            if len(pts) > 1:\n                f, b = pts[0], pts[-1]\n                if abs(f[0]-b[0]) < 1e-12 and abs(f[1]-b[1]) < 1e-12 and abs(f[2]-b[2]) < 1e-12:\n                    return pts[:-1]\n            return pts\n        origin, xaxis, yaxis, zaxis = polylines0[border_idx].get_average_plane()\n        c0 = polylines0[border_idx].center(); c1 = polylines1[border_idx].center()\n        btt = Vector(c1[0] - c0[0], c1[1] - c0[1], c1[2] - c0[2])\n        if zaxis.dot(btt) < 0:\n            yaxis = Vector(-yaxis[0], -yaxis[1], -yaxis[2])\n        def proj(p):\n            dx = p[0] - origin[0]; dy = p[1] - origin[1]; dz = p[2] - origin[2]\n            return (dx*xaxis[0] + dy*xaxis[1] + dz*xaxis[2], dx*yaxis[0] + dy*yaxis[1] + dz*yaxis[2])\n        def sarea(pts):\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        def strip_shared_collinear(bot, top):\n            cdt_scale = 1e6\n            def cross_q(a, b, c):\n                pa = proj(a); pb = proj(b); pc = proj(c)\n                iax = round(pa[0] * cdt_scale); iay = round(pa[1] * cdt_scale)\n                ibx = round(pb[0] * cdt_scale); iby = round(pb[1] * cdt_scale)\n                icx = round(pc[0] * cdt_scale); icy = round(pc[1] * cdt_scale)\n                return (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            changed = True\n            while changed and len(bot) > 3:\n                changed = False\n                n = len(bot)\n                for i in range(n):\n                    prev = (i + n - 1) % n\n                    nxt = (i + 1) % n\n                    if (cross_q(bot[prev], bot[i], bot[nxt]) == 0 and\n                            cross_q(top[prev], top[i], top[nxt]) == 0):\n                        bot.pop(i); top.pop(i)\n                        changed = True\n                        break\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            if len(bot) == len(top): strip_shared_collinear(bot, top)\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]",
           "file": "mesh.py"
         },
         "cpp": {
@@ -20867,28 +20866,29 @@ window.API_INDEX = {
       "name": "Mesh.loft",
       "implementations": {
         "python": {
-          "sig": "loft(polylines0: List, polylines1: List, cap: bool = True) -> \"Mesh\"",
-          "code": "def loft(polylines0: List, polylines1: List, cap: bool = True) -> \"Mesh\":\n\n        if not polylines0 or not polylines1 or len(polylines0) != len(polylines1):\n            return Mesh()\n        border_idx = 0\n        max_diag = 0.0\n        for i, pl in enumerate(polylines0):\n            pts = pl.get_points()\n            if not pts:\n                continue\n            xs = [p[0] for p in pts]; ys = [p[1] for p in pts]; zs = [p[2] for p in pts]\n            dx = max(xs) - min(xs); dy = max(ys) - min(ys); dz = max(zs) - min(zs)\n            diag = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if diag > max_diag:\n                max_diag = diag; border_idx = i\n        def get_open(pl):\n            pts = pl.get_points()\n            if len(pts) > 1:\n                f, b = pts[0], pts[-1]\n                if abs(f[0]-b[0]) < 1e-12 and abs(f[1]-b[1]) < 1e-12 and abs(f[2]-b[2]) < 1e-12:\n                    return pts[:-1]\n            return pts\n        origin, xaxis, yaxis, zaxis = polylines0[border_idx].get_average_plane()\n        c0 = polylines0[border_idx].center(); c1 = polylines1[border_idx].center()\n        btt = Vector(c1[0] - c0[0], c1[1] - c0[1], c1[2] - c0[2])\n        if zaxis.dot(btt) < 0:\n            yaxis = Vector(-yaxis[0], -yaxis[1], -yaxis[2])\n        def proj(p):\n            dx = p[0] - origin[0]; dy = p[1] - origin[1]; dz = p[2] - origin[2]\n            return (dx*xaxis[0] + dy*xaxis[1] + dz*xaxis[2], dx*yaxis[0] + dy*yaxis[1] + dz*yaxis[2])\n        def sarea(pts):\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        def strip_shared_collinear(bot, top):\n            cdt_scale = 1e6\n            def cross_q(a, b, c):\n                pa = proj(a); pb = proj(b); pc = proj(c)\n                iax = round(pa[0] * cdt_scale); iay = round(pa[1] * cdt_scale)\n                ibx = round(pb[0] * cdt_scale); iby = round(pb[1] * cdt_scale)\n                icx = round(pc[0] * cdt_scale); icy = round(pc[1] * cdt_scale)\n                return (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            changed = True\n            while changed and len(bot) > 3:\n                changed = False\n                n = len(bot)\n                for i in range(n):\n                    prev = (i + n - 1) % n\n                    nxt = (i + 1) % n\n                    if (cross_q(bot[prev], bot[i], bot[nxt]) == 0 and\n                            cross_q(top[prev], top[i], top[nxt]) == 0):\n                        bot.pop(i); top.pop(i)\n                        changed = True\n                        break\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            if len(bot) == len(top): strip_shared_collinear(bot, top)\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else [])\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]",
+          "sig": "loft(polylines0: List, polylines1: List, cap: bool = True, fix_collinear: bool = True) -> \"Mesh\"",
+          "code": "def loft(polylines0: List, polylines1: List, cap: bool = True, fix_collinear: bool = True) -> \"Mesh\":\n\n        if not polylines0 or not polylines1 or len(polylines0) != len(polylines1):\n            return Mesh()\n        border_idx = 0\n        max_diag = 0.0\n        for i, pl in enumerate(polylines0):\n            pts = pl.get_points()\n            if not pts:\n                continue\n            xs = [p[0] for p in pts]; ys = [p[1] for p in pts]; zs = [p[2] for p in pts]\n            dx = max(xs) - min(xs); dy = max(ys) - min(ys); dz = max(zs) - min(zs)\n            diag = math.sqrt(dx*dx + dy*dy + dz*dz)\n            if diag > max_diag:\n                max_diag = diag; border_idx = i\n        def get_open(pl):\n            pts = pl.get_points()\n            if len(pts) > 1:\n                f, b = pts[0], pts[-1]\n                if abs(f[0]-b[0]) < 1e-12 and abs(f[1]-b[1]) < 1e-12 and abs(f[2]-b[2]) < 1e-12:\n                    return pts[:-1]\n            return pts\n        origin, xaxis, yaxis, zaxis = polylines0[border_idx].get_average_plane()\n        c0 = polylines0[border_idx].center(); c1 = polylines1[border_idx].center()\n        btt = Vector(c1[0] - c0[0], c1[1] - c0[1], c1[2] - c0[2])\n        if zaxis.dot(btt) < 0:\n            yaxis = Vector(-yaxis[0], -yaxis[1], -yaxis[2])\n        def proj(p):\n            dx = p[0] - origin[0]; dy = p[1] - origin[1]; dz = p[2] - origin[2]\n            return (dx*xaxis[0] + dy*xaxis[1] + dz*xaxis[2], dx*yaxis[0] + dy*yaxis[1] + dz*yaxis[2])\n        def sarea(pts):\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        def strip_shared_collinear(bot, top):\n            cdt_scale = 1e6\n            def cross_q(a, b, c):\n                pa = proj(a); pb = proj(b); pc = proj(c)\n                iax = round(pa[0] * cdt_scale); iay = round(pa[1] * cdt_scale)\n                ibx = round(pb[0] * cdt_scale); iby = round(pb[1] * cdt_scale)\n                icx = round(pc[0] * cdt_scale); icy = round(pc[1] * cdt_scale)\n                return (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            changed = True\n            while changed and len(bot) > 3:\n                changed = False\n                n = len(bot)\n                for i in range(n):\n                    prev = (i + n - 1) % n\n                    nxt = (i + 1) % n\n                    if (cross_q(bot[prev], bot[i], bot[nxt]) == 0 and\n                            cross_q(top[prev], top[i], top[nxt]) == 0):\n                        bot.pop(i); top.pop(i)\n                        changed = True\n                        break\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            if len(bot) == len(top): strip_shared_collinear(bot, top)\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else [])\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n                if fix_collinear:",
           "file": "mesh.py"
         },
         "cpp": {
-          "sig": "Mesh loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1, bool cap)",
-          "code": "Mesh Mesh::loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1, bool cap) {\n    if (polylines0.empty() || polylines1.empty()) return Mesh();\n    if (polylines0.size() != polylines1.size()) return Mesh();\n\n    // Find border polyline (largest bbox diagonal) among polylines0\n    int border_idx = 0;\n    double max_diag = 0.0;\n    for (size_t i = 0; i < polylines0.size(); ++i) {\n        auto pts = polylines0[i].get_points();\n        if (pts.empty()) continue;\n        double minx = pts[0][0], miny = pts[0][1], minz = pts[0][2];\n        double maxx = minx, maxy = miny, maxz = minz;\n        for (const auto& p : pts) {\n            if (p[0] < minx) minx = p[0]; if (p[0] > maxx) maxx = p[0];\n            if (p[1] < miny) miny = p[1]; if (p[1] > maxy) maxy = p[1];\n            if (p[2] < minz) minz = p[2]; if (p[2] > maxz) maxz = p[2];\n        }",
+          "sig": "Mesh loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1, bool cap, bool fix_collinear)",
+          "code": "Mesh Mesh::loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1, bool cap, bool fix_collinear) {\n    // LOFT_DUMP=1 env var: print per-poly ia/ib/winding/strip diagnostics to stderr\n    const bool loft_dbg = (std::getenv(\"LOFT_DUMP\") != nullptr);\n    if (polylines0.empty() || polylines1.empty()) return Mesh();\n    if (polylines0.size() != polylines1.size()) return Mesh();\n\n    // Find border polyline (largest bbox diagonal) among polylines0\n    int border_idx = 0;\n    double max_diag = 0.0;\n    for (size_t i = 0; i < polylines0.size(); ++i) {\n        auto pts = polylines0[i].get_points();\n        if (pts.empty()) continue;\n        double minx = pts[0][0], miny = pts[0][1], minz = pts[0][2];\n        double maxx = minx, maxy = miny, maxz = minz;\n        for (const auto& p : pts) {\n            if (p[0] < minx) minx = p[0]; if (p[0] > maxx) maxx = p[0];\n            if (p[1] < miny) miny = p[1]; if (p[1] > maxy) maxy = p[1];\n            if (p[2] < minz) minz = p[2]; if (p[2] > maxz) maxz = p[2];\n        }",
           "file": "mesh.cpp"
         },
         "rust": {
-          "sig": "loft(polylines0: &[Polyline], polylines1: &[Polyline], cap: bool) -> Self",
-          "code": "pub fn loft(polylines0: &[Polyline], polylines1: &[Polyline], cap: bool) -> Self {\n        if polylines0.is_empty() || polylines1.is_empty() || polylines0.len() != polylines1.len() {\n            return Mesh::new();\n        }\n        let mut border_idx = 0usize;\n        let mut max_diag = 0.0_f64;\n        for (i, pl) in polylines0.iter().enumerate() {\n            let pts = pl.get_points();\n            if pts.is_empty() { continue; }\n            let (mut minx, mut miny, mut minz) = (pts[0][0], pts[0][1], pts[0][2]);\n            let (mut maxx, mut maxy, mut maxz) = (minx, miny, minz);\n            for p in &pts {\n                if p[0] < minx { minx = p[0]; } if p[0] > maxx { maxx = p[0]; }\n                if p[1] < miny { miny = p[1]; } if p[1] > maxy { maxy = p[1]; }\n                if p[2] < minz { minz = p[2]; } if p[2] > maxz { maxz = p[2]; }\n            }\n            let (dx, dy, dz) = (maxx-minx, maxy-miny, maxz-minz);\n            let diag = (dx*dx + dy*dy + dz*dz).sqrt();\n            if diag > max_diag { max_diag = diag; border_idx = i; }\n        }\n        let get_open = |pl: &Polyline| -> Vec<Point> {\n            let mut pts = pl.get_points();\n            if pts.len() > 1 {\n                let f = pts[0].clone(); let b = pts[pts.len()-1].clone();\n                if (f[0]-b[0]).abs() < 1e-12 && (f[1]-b[1]).abs() < 1e-12 && (f[2]-b[2]).abs() < 1e-12 {\n                    pts.pop();\n                }\n            }\n            pts\n        };\n        let (origin, xaxis, mut yaxis, zaxis) = polylines0[border_idx].get_average_plane();\n        {\n            let c0 = polylines0[border_idx].center();\n            let c1 = polylines1[border_idx].center();\n            let btt = Vector::new(c1[0]-c0[0], c1[1]-c0[1], c1[2]-c0[2]);\n            if zaxis.dot(&btt) < 0.0 {\n                yaxis = Vector::new(-yaxis[0], -yaxis[1], -yaxis[2]);\n            }\n        }\n        let proj = |p: &Point| -> Point {\n            let dx = p[0]-origin[0]; let dy = p[1]-origin[1]; let dz = p[2]-origin[2];\n            Point::new(dx*xaxis[0]+dy*xaxis[1]+dz*xaxis[2], dx*yaxis[0]+dy*yaxis[1]+dz*yaxis[2], 0.0)\n        };\n        let sarea = |pts: &[Point]| -> f64 {\n            let n = pts.len();\n            let mut a = 0.0;\n            for i in 0..n {\n                let j = (i+1) % n;\n                let pi = proj(&pts[i]); let pj = proj(&pts[j]);\n                a += pi[0]*pj[1] - pj[0]*pi[1];\n            }\n            a * 0.5\n        };\n        let mut order: Vec<usize> = vec![border_idx];\n        for i in 0..polylines0.len() { if i != border_idx { order.push(i); } }\n        let mut poly_infos: Vec<(usize, usize, usize, usize)> = Vec::new(); // (bot_off, bot_n, top_off, top_n)\n        let mut all_bot: Vec<Point> = Vec::new();\n        let mut all_top: Vec<Point> = Vec::new();\n        let strip_shared_collinear = |bot: &mut Vec<Point>, top: &mut Vec<Point>| {\n            let cdt_scale = 1.0e6_f64;\n            let cross_q = |a: &Point, b: &Point, c: &Point| -> i64 {\n                let pa = proj(a); let pb = proj(b); let pc = proj(c);\n                let iax = (pa[0] * cdt_scale).round() as i64;\n                let iay = (pa[1] * cdt_scale).round() as i64;\n                let ibx = (pb[0] * cdt_scale).round() as i64;\n                let iby = (pb[1] * cdt_scale).round() as i64;\n                let icx = (pc[0] * cdt_scale).round() as i64;\n                let icy = (pc[1] * cdt_scale).round() as i64;\n                (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            };\n            let mut changed = true;\n            while changed && bot.len() > 3 {\n                changed = false;\n                let n = bot.len();\n                for i in 0..n {\n                    let prev = (i + n - 1) % n;\n                    let next = (i + 1) % n;\n                    if cross_q(&bot[prev], &bot[i], &bot[next]) == 0\n                        && cross_q(&top[prev], &top[i], &top[next]) == 0\n                    {\n                        bot.remove(i);\n                        top.remove(i);\n                        changed = true;\n                        break;\n                    }\n                }\n            }\n        };\n        for (oi, &idx) in order.iter().enumerate() {\n            let mut bot = get_open(&polylines0[idx]);\n            let mut top = get_open(&polylines1[idx]);\n            let area = sarea(&bot);\n            if (oi == 0 && area < 0.0) || (oi != 0 && area > 0.0) {\n                bot.reverse(); top.reverse();\n            }\n            if bot.len() == top.len() { strip_shared_collinear(&mut bot, &mut top); }\n            poly_infos.push((all_bot.len(), bot.len(), all_top.len(), top.len()));\n            all_bot.extend(bot.into_iter());\n            all_top.extend(top.into_iter());\n        }\n        let mut mesh = Mesh::new();\n        let bvk: Vec<usize> = all_bot.iter().map(|p| mesh.add_vertex(p.clone(), None)).collect();\n        let tvk: Vec<usize> = all_top.iter().map(|p| mesh.add_vertex(p.clone(), None)).collect();\n        if cap {\n            let (_, bot_n0, _, top_n0) = poly_infos[0];\n            // Bottom cap CDT\n            let b2d: Vec<Point> = (0..bot_n0).map(|i| proj(&all_bot[i])).collect();\n            let bh2d: Vec<Vec<Point>> = poly_infos[1..].iter().map(|&(off,cnt,_,_)| {\n                (off..off+cnt).map(|i| proj(&all_bot[i])).collect()\n            }).collect();\n            let b_tris = remesh_cdt::cdt_triangulate(&b2d, &bh2d);\n            let bot_fvkeys: Vec<usize> = (0..bot_n0).rev().map(|i| bvk[i]).collect();\n            if let Some(fk_bot) = mesh.add_face(bot_fvkeys, None) {\n                if !bh2d.is_empty() {\n                    let hole_rings: Vec<Vec<usize>> = poly_infos[1..].iter()\n                        .map(|&(off,cnt,_,_)| (off..off+cnt).map(|i| bvk[i]).collect())\n                        .collect();\n                    mesh.face_holes.insert(fk_bot, hole_rings);\n                }\n                let tri_list: Vec<[usize;3]> = b_tris.iter().map(|&(a,b,c)| [bvk[a], bvk[c], bvk[b]]).collect();\n                mesh.triangulation.insert(fk_bot, tri_list);\n            }\n            // Top cap CDT\n            let t2d: Vec<Point> = (0..top_n0).map(|i| proj(&all_top[i])).collect();\n            let th2d: Vec<Vec<Point>> = poly_infos[1..].iter().map(|&(_,_,off,cnt)| {\n                (off..off+cnt).map(|i| proj(&all_top[i])).collect()\n            }).collect();\n            let t_tris = remesh_cdt::cdt_triangulate(&t2d, &th2d);\n            let top_fvkeys: Vec<usize> = (0..top_n0).map(|i| tvk[i]).collect();\n            if let Some(fk_top) = mesh.add_face(top_fvkeys, None) {\n                if !th2d.is_empty() {\n                    let hole_rings: Vec<Vec<usize>> = poly_infos[1..].iter()\n                        .map(|&(_,_,off,cnt)| (off..off+cnt).map(|i| tvk[i]).collect())\n                        .collect();\n                    mesh.face_holes.insert(fk_top, hole_rings);\n                }\n                let tri_list: Vec<[usize;3]> = t_tris.iter().map(|&(a,b,c)| [tvk[a], tvk[b], tvk[c]]).collect();\n                mesh.triangulation.insert(fk_top, tri_list);\n            }\n        }\n        // Side faces: align by longest edge, quads for equal counts, zipper+triangles otherwise\n        let edsq = |pts: &[Point], i: usize| -> f64 {\n            let j = (i + 1) % pts.len();\n            let (dx, dy, dz) = (pts[j][0]-pts[i][0], pts[j][1]-pts[i][1], pts[j][2]-pts[i][2]);\n            dx*dx + dy*dy + dz*dz\n        };\n        for &(bot_off, bot_n, top_off, top_n) in &poly_infos {\n            let bpts = &all_bot[bot_off..bot_off+bot_n];\n            let tpts = &all_top[top_off..top_off+top_n];\n            let ia = (0..bot_n).max_by(|&a, &b| edsq(bpts, a).partial_cmp(&edsq(bpts, b)).unwrap()).unwrap_or(0);\n            let ib = (0..top_n).max_by(|&a, &b| edsq(tpts, a).partial_cmp(&edsq(tpts, b)).unwrap()).unwrap_or(0);\n            if bot_n == top_n {\n                for k in 0..bot_n {\n                    let (cb, ct) = (bot_off+(ia+k)%bot_n, top_off+(ib+k)%t",
+          "sig": "loft(polylines0: &[Polyline], polylines1: &[Polyline], cap: bool, fix_collinear: bool) -> Self",
+          "code": "pub fn loft(polylines0: &[Polyline], polylines1: &[Polyline], cap: bool, fix_collinear: bool) -> Self {\n        if polylines0.is_empty() || polylines1.is_empty() || polylines0.len() != polylines1.len() {\n            return Mesh::new();\n        }\n        let mut border_idx = 0usize;\n        let mut max_diag = 0.0_f64;\n        for (i, pl) in polylines0.iter().enumerate() {\n            let pts = pl.get_points();\n            if pts.is_empty() { continue; }\n            let (mut minx, mut miny, mut minz) = (pts[0][0], pts[0][1], pts[0][2]);\n            let (mut maxx, mut maxy, mut maxz) = (minx, miny, minz);\n            for p in &pts {\n                if p[0] < minx { minx = p[0]; } if p[0] > maxx { maxx = p[0]; }\n                if p[1] < miny { miny = p[1]; } if p[1] > maxy { maxy = p[1]; }\n                if p[2] < minz { minz = p[2]; } if p[2] > maxz { maxz = p[2]; }\n            }\n            let (dx, dy, dz) = (maxx-minx, maxy-miny, maxz-minz);\n            let diag = (dx*dx + dy*dy + dz*dz).sqrt();\n            if diag > max_diag { max_diag = diag; border_idx = i; }\n        }\n        let get_open = |pl: &Polyline| -> Vec<Point> {\n            let mut pts = pl.get_points();\n            if pts.len() > 1 {\n                let f = pts[0].clone(); let b = pts[pts.len()-1].clone();\n                if (f[0]-b[0]).abs() < 1e-12 && (f[1]-b[1]).abs() < 1e-12 && (f[2]-b[2]).abs() < 1e-12 {\n                    pts.pop();\n                }\n            }\n            pts\n        };\n        let (origin, xaxis, mut yaxis, zaxis) = polylines0[border_idx].get_average_plane();\n        {\n            let c0 = polylines0[border_idx].center();\n            let c1 = polylines1[border_idx].center();\n            let btt = Vector::new(c1[0]-c0[0], c1[1]-c0[1], c1[2]-c0[2]);\n            if zaxis.dot(&btt) < 0.0 {\n                yaxis = Vector::new(-yaxis[0], -yaxis[1], -yaxis[2]);\n            }\n        }\n        let proj = |p: &Point| -> Point {\n            let dx = p[0]-origin[0]; let dy = p[1]-origin[1]; let dz = p[2]-origin[2];\n            Point::new(dx*xaxis[0]+dy*xaxis[1]+dz*xaxis[2], dx*yaxis[0]+dy*yaxis[1]+dz*yaxis[2], 0.0)\n        };\n        let sarea = |pts: &[Point]| -> f64 {\n            let n = pts.len();\n            let mut a = 0.0;\n            for i in 0..n {\n                let j = (i+1) % n;\n                let pi = proj(&pts[i]); let pj = proj(&pts[j]);\n                a += pi[0]*pj[1] - pj[0]*pi[1];\n            }\n            a * 0.5\n        };\n        let mut order: Vec<usize> = vec![border_idx];\n        for i in 0..polylines0.len() { if i != border_idx { order.push(i); } }\n        let mut poly_infos: Vec<(usize, usize, usize, usize)> = Vec::new(); // (bot_off, bot_n, top_off, top_n)\n        let mut all_bot: Vec<Point> = Vec::new();\n        let mut all_top: Vec<Point> = Vec::new();\n        let strip_shared_collinear = |bot: &mut Vec<Point>, top: &mut Vec<Point>| {\n            let cdt_scale = 1.0e6_f64;\n            let cross_q = |a: &Point, b: &Point, c: &Point| -> i64 {\n                let pa = proj(a); let pb = proj(b); let pc = proj(c);\n                let iax = (pa[0] * cdt_scale).round() as i64;\n                let iay = (pa[1] * cdt_scale).round() as i64;\n                let ibx = (pb[0] * cdt_scale).round() as i64;\n                let iby = (pb[1] * cdt_scale).round() as i64;\n                let icx = (pc[0] * cdt_scale).round() as i64;\n                let icy = (pc[1] * cdt_scale).round() as i64;\n                (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            };\n            let mut changed = true;\n            while changed && bot.len() > 3 {\n                changed = false;\n                let n = bot.len();\n                for i in 0..n {\n                    let prev = (i + n - 1) % n;\n                    let next = (i + 1) % n;\n                    if cross_q(&bot[prev], &bot[i], &bot[next]) == 0\n                        && cross_q(&top[prev], &top[i], &top[next]) == 0\n                    {\n                        bot.remove(i);\n                        top.remove(i);\n                        changed = true;\n                        break;\n                    }\n                }\n            }\n        };\n        for (oi, &idx) in order.iter().enumerate() {\n            let mut bot = get_open(&polylines0[idx]);\n            let mut top = get_open(&polylines1[idx]);\n            let area = sarea(&bot);\n            if (oi == 0 && area < 0.0) || (oi != 0 && area > 0.0) {\n                bot.reverse(); top.reverse();\n            }\n            if bot.len() == top.len() { strip_shared_collinear(&mut bot, &mut top); }\n            poly_infos.push((all_bot.len(), bot.len(), all_top.len(), top.len()));\n            all_bot.extend(bot.into_iter());\n            all_top.extend(top.into_iter());\n        }\n        let mut mesh = Mesh::new();\n        let bvk: Vec<usize> = all_bot.iter().map(|p| mesh.add_vertex(p.clone(), None)).collect();\n        let tvk: Vec<usize> = all_top.iter().map(|p| mesh.add_vertex(p.clone(), None)).collect();\n        if cap {\n            let (_, bot_n0, _, top_n0) = poly_infos[0];\n            // Bottom cap CDT\n            let b2d: Vec<Point> = (0..bot_n0).map(|i| proj(&all_bot[i])).collect();\n            let bh2d: Vec<Vec<Point>> = poly_infos[1..].iter().map(|&(off,cnt,_,_)| {\n                (off..off+cnt).map(|i| proj(&all_bot[i])).collect()\n            }).collect();\n            let b_tris = remesh_cdt::cdt_triangulate(&b2d, &bh2d);\n            let bot_fvkeys: Vec<usize> = (0..bot_n0).rev().map(|i| bvk[i]).collect();\n            if let Some(fk_bot) = mesh.add_face(bot_fvkeys, None) {\n                if !bh2d.is_empty() {\n                    let hole_rings: Vec<Vec<usize>> = poly_infos[1..].iter()\n                        .map(|&(off,cnt,_,_)| (off..off+cnt).map(|i| bvk[i]).collect())\n                        .collect();\n                    mesh.face_holes.insert(fk_bot, hole_rings);\n                }\n                let mut tri_list: Vec<[usize;3]> = b_tris.iter().map(|&(a,b,c)| [bvk[a], bvk[c], bvk[b]]).collect();\n                if fix_collinear {\n                    let vk2d: std::collections::HashMap<usize,(f64,f64)> = (0..bot_n0).map(|i| { let p = proj(&all_bot[i]); (bvk[i], (p[0],p[1])) }).collect();\n                    let fv: Vec<usize> = (0..bot_n0).rev().map(|i| bvk[i]).collect();\n                    let mut chg = true;\n                    while chg {\n                        chg = false;\n                        let tv: std::collections::HashSet<usize> = tri_list.iter().flat_map(|t| t.iter().copied()).collect();\n                        let n = fv.len();\n                        'outer: for k in 0..n {\n                            let b_vk = fv[k];\n                            if tv.contains(&b_vk) { continue; }\n                            let a_vk = fv[(k+n-1)%n]; let c_vk = fv[(k+1)%n];\n                            for j in 0..tri_list.len() {\n                                let ha = tri_list[j].contains(&a_vk); let hc = tri_list[j].contains(&c_vk);\n                                if !ha || !hc { continue; }\n                                let ft = tri_list[j];\n                                let (t1, t2) = if (ft[0]==a_vk||ft[0]==c_vk) && (ft[1]==a_vk||ft[1]==c_vk) {\n                                    ([ft[0],b_vk,ft[2]], [b_vk,ft[1],ft[2]])\n                                } else if (ft[1]==a_vk||ft[1]==c_vk) && (ft[2]==a_vk||ft[2]==c_vk) {\n                                    ([ft[0],ft[1],b_vk], [ft[0],b_vk,ft[2]])\n                                } else {\n                                    ([ft[0],ft[1],b_vk], [b_vk,ft[1],ft[2]])\n                                };\n                                tri_list[j] = t1; tri_list.push(t2); chg = true; break 'outer;\n                            }\n                        }\n                    }\n                    let sc = 1e6_f64;\n                    tri_list.retain(|t| {\n                        let (u0,v0) = vk2d.get(&t[0]).copied().unwrap_or((0.0,0.0));\n                        let",
           "file": "mesh.rs"
         }
       },
       "related": [
+        "Mesh._zero_t",
         "Mesh.add_face",
         "Mesh.add_vertex",
+        "Mesh.align_cost",
         "Mesh.area",
         "Mesh.cross_q",
         "Mesh.edsq",
-        "Mesh.faces",
         "Mesh.from_polygon_with_holes",
         "Mesh.from_polygon_with_holes_many",
         "Mesh.get_open",
@@ -20908,7 +20908,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_open(pl)",
-          "code": "def get_open(pl):\n\n            pts = pl.get_points()\n            if len(pts) > 1:\n                f, b = pts[0], pts[-1]\n                if abs(f[0]-b[0]) < 1e-12 and abs(f[1]-b[1]) < 1e-12 and abs(f[2]-b[2]) < 1e-12:\n                    return pts[:-1]\n            return pts\n        origin, xaxis, yaxis, zaxis = polylines0[border_idx].get_average_plane()\n        c0 = polylines0[border_idx].center(); c1 = polylines1[border_idx].center()\n        btt = Vector(c1[0] - c0[0], c1[1] - c0[1], c1[2] - c0[2])\n        if zaxis.dot(btt) < 0:\n            yaxis = Vector(-yaxis[0], -yaxis[1], -yaxis[2])\n        def proj(p):\n            dx = p[0] - origin[0]; dy = p[1] - origin[1]; dz = p[2] - origin[2]\n            return (dx*xaxis[0] + dy*xaxis[1] + dz*xaxis[2], dx*yaxis[0] + dy*yaxis[1] + dz*yaxis[2])\n        def sarea(pts):\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        def strip_shared_collinear(bot, top):\n            cdt_scale = 1e6\n            def cross_q(a, b, c):\n                pa = proj(a); pb = proj(b); pc = proj(c)\n                iax = round(pa[0] * cdt_scale); iay = round(pa[1] * cdt_scale)\n                ibx = round(pb[0] * cdt_scale); iby = round(pb[1] * cdt_scale)\n                icx = round(pc[0] * cdt_scale); icy = round(pc[1] * cdt_scale)\n                return (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            changed = True\n            while changed and len(bot) > 3:\n                changed = False\n                n = len(bot)\n                for i in range(n):\n                    prev = (i + n - 1) % n\n                    nxt = (i + 1) % n\n                    if (cross_q(bot[prev], bot[i], bot[nxt]) == 0 and\n                            cross_q(top[prev], top[i], top[nxt]) == 0):\n                        bot.pop(i); top.pop(i)\n                        changed = True\n                        break\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            if len(bot) == len(top): strip_shared_collinear(bot, top)\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else [])\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else [])\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n        def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j][0] - pts[i][0]; dy = pts[j][1] - pts[i][1]; dz = pts[j][2] - pts[i][2]\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))",
+          "code": "def get_open(pl):\n\n            pts = pl.get_points()\n            if len(pts) > 1:\n                f, b = pts[0], pts[-1]\n                if abs(f[0]-b[0]) < 1e-12 and abs(f[1]-b[1]) < 1e-12 and abs(f[2]-b[2]) < 1e-12:\n                    return pts[:-1]\n            return pts\n        origin, xaxis, yaxis, zaxis = polylines0[border_idx].get_average_plane()\n        c0 = polylines0[border_idx].center(); c1 = polylines1[border_idx].center()\n        btt = Vector(c1[0] - c0[0], c1[1] - c0[1], c1[2] - c0[2])\n        if zaxis.dot(btt) < 0:\n            yaxis = Vector(-yaxis[0], -yaxis[1], -yaxis[2])\n        def proj(p):\n            dx = p[0] - origin[0]; dy = p[1] - origin[1]; dz = p[2] - origin[2]\n            return (dx*xaxis[0] + dy*xaxis[1] + dz*xaxis[2], dx*yaxis[0] + dy*yaxis[1] + dz*yaxis[2])\n        def sarea(pts):\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        def strip_shared_collinear(bot, top):\n            cdt_scale = 1e6\n            def cross_q(a, b, c):\n                pa = proj(a); pb = proj(b); pc = proj(c)\n                iax = round(pa[0] * cdt_scale); iay = round(pa[1] * cdt_scale)\n                ibx = round(pb[0] * cdt_scale); iby = round(pb[1] * cdt_scale)\n                icx = round(pc[0] * cdt_scale); icy = round(pc[1] * cdt_scale)\n                return (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            changed = True\n            while changed and len(bot) > 3:\n                changed = False\n                n = len(bot)\n                for i in range(n):\n                    prev = (i + n - 1) % n\n                    nxt = (i + 1) % n\n                    if (cross_q(bot[prev], bot[i], bot[nxt]) == 0 and\n                            cross_q(top[prev], top[i], top[nxt]) == 0):\n                        bot.pop(i); top.pop(i)\n                        changed = True\n                        break\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            if len(bot) == len(top): strip_shared_collinear(bot, top)\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else [])\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n                if fix_collinear:\n                    sc = 1e6\n                    vk2d = {bvk[i]: proj(all_bot[i]) for i in range(bot_n0)}\n                    fv = [bvk[bot_n0 - 1 - i] for i in range(bot_n0)]\n                    tl = mesh.triangulation[fk_bot]\n                    chg = True\n                    while chg:\n                        chg = False\n                        tv = set(v for t in tl for v in t)\n                        n = len(fv)\n                        for k in range(n):\n                            B = fv[k]\n                            if B in tv:\n                                continue\n                            A = fv[(k + n - 1) % n]; C = fv[(k + 1) % n]",
           "file": "mesh.py"
         }
       },
@@ -20917,13 +20917,10 @@ window.API_INDEX = {
         "Mesh.add_vertex",
         "Mesh.area",
         "Mesh.cross_q",
-        "Mesh.edsq",
-        "Mesh.faces",
         "Mesh.from_polygon_with_holes",
         "Mesh.loft",
         "Mesh.proj",
         "Mesh.sarea",
-        "Mesh.side_faces",
         "Mesh.str",
         "Mesh.strip_shared_collinear"
       ]
@@ -20933,17 +20930,19 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "proj(p)",
-          "code": "def proj(p):\n\n            dx = p[0] - origin[0]; dy = p[1] - origin[1]; dz = p[2] - origin[2]\n            return (dx*xaxis[0] + dy*xaxis[1] + dz*xaxis[2], dx*yaxis[0] + dy*yaxis[1] + dz*yaxis[2])\n        def sarea(pts):\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        def strip_shared_collinear(bot, top):\n            cdt_scale = 1e6\n            def cross_q(a, b, c):\n                pa = proj(a); pb = proj(b); pc = proj(c)\n                iax = round(pa[0] * cdt_scale); iay = round(pa[1] * cdt_scale)\n                ibx = round(pb[0] * cdt_scale); iby = round(pb[1] * cdt_scale)\n                icx = round(pc[0] * cdt_scale); icy = round(pc[1] * cdt_scale)\n                return (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            changed = True\n            while changed and len(bot) > 3:\n                changed = False\n                n = len(bot)\n                for i in range(n):\n                    prev = (i + n - 1) % n\n                    nxt = (i + 1) % n\n                    if (cross_q(bot[prev], bot[i], bot[nxt]) == 0 and\n                            cross_q(top[prev], top[i], top[nxt]) == 0):\n                        bot.pop(i); top.pop(i)\n                        changed = True\n                        break\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            if len(bot) == len(top): strip_shared_collinear(bot, top)\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else [])\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else [])\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n        def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j][0] - pts[i][0]; dy = pts[j][1] - pts[i][1]; dz = pts[j][2] - pts[i][2]\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j][0] - bpts[i][0]; dy = bpts[j][1] - bpts[i][1]; dz = bpts[j][2] - bpts[i][2]\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)",
+          "code": "def proj(p):\n\n            dx = p[0] - origin[0]; dy = p[1] - origin[1]; dz = p[2] - origin[2]\n            return (dx*xaxis[0] + dy*xaxis[1] + dz*xaxis[2], dx*yaxis[0] + dy*yaxis[1] + dz*yaxis[2])\n        def sarea(pts):\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        def strip_shared_collinear(bot, top):\n            cdt_scale = 1e6\n            def cross_q(a, b, c):\n                pa = proj(a); pb = proj(b); pc = proj(c)\n                iax = round(pa[0] * cdt_scale); iay = round(pa[1] * cdt_scale)\n                ibx = round(pb[0] * cdt_scale); iby = round(pb[1] * cdt_scale)\n                icx = round(pc[0] * cdt_scale); icy = round(pc[1] * cdt_scale)\n                return (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            changed = True\n            while changed and len(bot) > 3:\n                changed = False\n                n = len(bot)\n                for i in range(n):\n                    prev = (i + n - 1) % n\n                    nxt = (i + 1) % n\n                    if (cross_q(bot[prev], bot[i], bot[nxt]) == 0 and\n                            cross_q(top[prev], top[i], top[nxt]) == 0):\n                        bot.pop(i); top.pop(i)\n                        changed = True\n                        break\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            if len(bot) == len(top): strip_shared_collinear(bot, top)\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else [])\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n                if fix_collinear:\n                    sc = 1e6\n                    vk2d = {bvk[i]: proj(all_bot[i]) for i in range(bot_n0)}\n                    fv = [bvk[bot_n0 - 1 - i] for i in range(bot_n0)]\n                    tl = mesh.triangulation[fk_bot]\n                    chg = True\n                    while chg:\n                        chg = False\n                        tv = set(v for t in tl for v in t)\n                        n = len(fv)\n                        for k in range(n):\n                            B = fv[k]\n                            if B in tv:\n                                continue\n                            A = fv[(k + n - 1) % n]; C = fv[(k + 1) % n]\n                            for j, t in enumerate(tl):\n                                if A in t and C in t:\n                                    if (t[0]==A or t[0]==C) and (t[1]==A or t[1]==C):\n                                        tl[j] = [t[0], B, t[2]]; tl.append([B, t[1], t[2]])\n                                    elif (t[1]==A or t[1]==C) and (t[2]==A or t[2]==C):\n                                        tl[j] = [t[0], t[1], B]; tl.append([t[0], B, t[2]])\n                                    else:\n                                        tl[j] = [t[0], t[1], B]; tl.append([B, t[1], t[2]])\n                                    chg = True; break\n                            if chg:\n                                break\n                    def _zero(t):",
           "file": "mesh.py"
         }
       },
       "related": [
+        "Mesh._zero",
+        "Mesh._zero_t",
         "Mesh.add_face",
         "Mesh.add_vertex",
+        "Mesh.align_cost",
         "Mesh.area",
         "Mesh.cross_q",
         "Mesh.edsq",
-        "Mesh.faces",
         "Mesh.from_polygon_with_holes",
         "Mesh.get_open",
         "Mesh.loft",
@@ -20958,22 +20957,20 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "sarea(pts)",
-          "code": "def sarea(pts):\n\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        def strip_shared_collinear(bot, top):\n            cdt_scale = 1e6\n            def cross_q(a, b, c):\n                pa = proj(a); pb = proj(b); pc = proj(c)\n                iax = round(pa[0] * cdt_scale); iay = round(pa[1] * cdt_scale)\n                ibx = round(pb[0] * cdt_scale); iby = round(pb[1] * cdt_scale)\n                icx = round(pc[0] * cdt_scale); icy = round(pc[1] * cdt_scale)\n                return (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            changed = True\n            while changed and len(bot) > 3:\n                changed = False\n                n = len(bot)\n                for i in range(n):\n                    prev = (i + n - 1) % n\n                    nxt = (i + 1) % n\n                    if (cross_q(bot[prev], bot[i], bot[nxt]) == 0 and\n                            cross_q(top[prev], top[i], top[nxt]) == 0):\n                        bot.pop(i); top.pop(i)\n                        changed = True\n                        break\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            if len(bot) == len(top): strip_shared_collinear(bot, top)\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else [])\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else [])\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n        def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j][0] - pts[i][0]; dy = pts[j][1] - pts[i][1]; dz = pts[j][2] - pts[i][2]\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j][0] - bpts[i][0]; dy = bpts[j][1] - bpts[i][1]; dz = bpts[j][2] - bpts[i][2]\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j][0] - tpts[i][0]; dy = tpts[j][1] - tpts[i][1]; dz = tpts[j][2] - tpts[i][2]",
+          "code": "def sarea(pts):\n\n            a = 0.0; n = len(pts)\n            for i in range(n):\n                j = (i + 1) % n\n                xi, yi = proj(pts[i]); xj, yj = proj(pts[j])\n                a += xi*yj - xj*yi\n            return a * 0.5\n        order = [border_idx] + [i for i in range(len(polylines0)) if i != border_idx]\n        poly_infos = []  # (bot_off, bot_n, top_off, top_n)\n        all_bot = []; all_top = []\n        def strip_shared_collinear(bot, top):\n            cdt_scale = 1e6\n            def cross_q(a, b, c):\n                pa = proj(a); pb = proj(b); pc = proj(c)\n                iax = round(pa[0] * cdt_scale); iay = round(pa[1] * cdt_scale)\n                ibx = round(pb[0] * cdt_scale); iby = round(pb[1] * cdt_scale)\n                icx = round(pc[0] * cdt_scale); icy = round(pc[1] * cdt_scale)\n                return (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            changed = True\n            while changed and len(bot) > 3:\n                changed = False\n                n = len(bot)\n                for i in range(n):\n                    prev = (i + n - 1) % n\n                    nxt = (i + 1) % n\n                    if (cross_q(bot[prev], bot[i], bot[nxt]) == 0 and\n                            cross_q(top[prev], top[i], top[nxt]) == 0):\n                        bot.pop(i); top.pop(i)\n                        changed = True\n                        break\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            if len(bot) == len(top): strip_shared_collinear(bot, top)\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else [])\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n                if fix_collinear:\n                    sc = 1e6\n                    vk2d = {bvk[i]: proj(all_bot[i]) for i in range(bot_n0)}\n                    fv = [bvk[bot_n0 - 1 - i] for i in range(bot_n0)]\n                    tl = mesh.triangulation[fk_bot]\n                    chg = True\n                    while chg:\n                        chg = False\n                        tv = set(v for t in tl for v in t)\n                        n = len(fv)\n                        for k in range(n):\n                            B = fv[k]\n                            if B in tv:\n                                continue\n                            A = fv[(k + n - 1) % n]; C = fv[(k + 1) % n]\n                            for j, t in enumerate(tl):\n                                if A in t and C in t:\n                                    if (t[0]==A or t[0]==C) and (t[1]==A or t[1]==C):\n                                        tl[j] = [t[0], B, t[2]]; tl.append([B, t[1], t[2]])\n                                    elif (t[1]==A or t[1]==C) and (t[2]==A or t[2]==C):\n                                        tl[j] = [t[0], t[1], B]; tl.append([t[0], B, t[2]])\n                                    else:\n                                        tl[j] = [t[0], t[1], B]; tl.append([B, t[1], t[2]])\n                                    chg = True; break\n                            if chg:\n                                break\n                    def _zero(t):\n                        u0, v0 = vk2d.get(t[0], (0.0, 0.0)); u1, v1 = vk2d.get(t[1], (0.0, 0.0)); u2, v2 = vk2d.get(t[2], (0.0, 0.0))\n                        return (round(u1*sc)-round(u0*sc))*(round(v2*sc)-round(v0*sc)) - (round(v1*sc)-round(v0*sc))*(round(u2*sc)-round(u0*sc)) == 0\n                    mesh.triangulation[fk_bot] = [t for t in tl if not _zero(t)]",
           "file": "mesh.py"
         }
       },
       "related": [
+        "Mesh._zero",
         "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.area",
         "Mesh.cross_q",
-        "Mesh.edsq",
-        "Mesh.faces",
         "Mesh.from_polygon_with_holes",
         "Mesh.get_open",
         "Mesh.loft",
         "Mesh.proj",
-        "Mesh.side_faces",
         "Mesh.str",
         "Mesh.strip_shared_collinear"
       ]
@@ -20983,23 +20980,21 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "strip_shared_collinear(bot, top)",
-          "code": "def strip_shared_collinear(bot, top):\n\n            cdt_scale = 1e6\n            def cross_q(a, b, c):\n                pa = proj(a); pb = proj(b); pc = proj(c)\n                iax = round(pa[0] * cdt_scale); iay = round(pa[1] * cdt_scale)\n                ibx = round(pb[0] * cdt_scale); iby = round(pb[1] * cdt_scale)\n                icx = round(pc[0] * cdt_scale); icy = round(pc[1] * cdt_scale)\n                return (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            changed = True\n            while changed and len(bot) > 3:\n                changed = False\n                n = len(bot)\n                for i in range(n):\n                    prev = (i + n - 1) % n\n                    nxt = (i + 1) % n\n                    if (cross_q(bot[prev], bot[i], bot[nxt]) == 0 and\n                            cross_q(top[prev], top[i], top[nxt]) == 0):\n                        bot.pop(i); top.pop(i)\n                        changed = True\n                        break\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            if len(bot) == len(top): strip_shared_collinear(bot, top)\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else [])\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else [])\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n        def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j][0] - pts[i][0]; dy = pts[j][1] - pts[i][1]; dz = pts[j][2] - pts[i][2]\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j][0] - bpts[i][0]; dy = bpts[j][1] - bpts[i][1]; dz = bpts[j][2] - bpts[i][2]\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j][0] - tpts[i][0]; dy = tpts[j][1] - tpts[i][1]; dz = tpts[j][2] - tpts[i][2]\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:",
+          "code": "def strip_shared_collinear(bot, top):\n\n            cdt_scale = 1e6\n            def cross_q(a, b, c):\n                pa = proj(a); pb = proj(b); pc = proj(c)\n                iax = round(pa[0] * cdt_scale); iay = round(pa[1] * cdt_scale)\n                ibx = round(pb[0] * cdt_scale); iby = round(pb[1] * cdt_scale)\n                icx = round(pc[0] * cdt_scale); icy = round(pc[1] * cdt_scale)\n                return (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            changed = True\n            while changed and len(bot) > 3:\n                changed = False\n                n = len(bot)\n                for i in range(n):\n                    prev = (i + n - 1) % n\n                    nxt = (i + 1) % n\n                    if (cross_q(bot[prev], bot[i], bot[nxt]) == 0 and\n                            cross_q(top[prev], top[i], top[nxt]) == 0):\n                        bot.pop(i); top.pop(i)\n                        changed = True\n                        break\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            if len(bot) == len(top): strip_shared_collinear(bot, top)\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else [])\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n                if fix_collinear:\n                    sc = 1e6\n                    vk2d = {bvk[i]: proj(all_bot[i]) for i in range(bot_n0)}\n                    fv = [bvk[bot_n0 - 1 - i] for i in range(bot_n0)]\n                    tl = mesh.triangulation[fk_bot]\n                    chg = True\n                    while chg:\n                        chg = False\n                        tv = set(v for t in tl for v in t)\n                        n = len(fv)\n                        for k in range(n):\n                            B = fv[k]\n                            if B in tv:\n                                continue\n                            A = fv[(k + n - 1) % n]; C = fv[(k + 1) % n]\n                            for j, t in enumerate(tl):\n                                if A in t and C in t:\n                                    if (t[0]==A or t[0]==C) and (t[1]==A or t[1]==C):\n                                        tl[j] = [t[0], B, t[2]]; tl.append([B, t[1], t[2]])\n                                    elif (t[1]==A or t[1]==C) and (t[2]==A or t[2]==C):\n                                        tl[j] = [t[0], t[1], B]; tl.append([t[0], B, t[2]])\n                                    else:\n                                        tl[j] = [t[0], t[1], B]; tl.append([B, t[1], t[2]])\n                                    chg = True; break\n                            if chg:\n                                break\n                    def _zero(t):\n                        u0, v0 = vk2d.get(t[0], (0.0, 0.0)); u1, v1 = vk2d.get(t[1], (0.0, 0.0)); u2, v2 = vk2d.get(t[2], (0.0, 0.0))\n                        return (round(u1*sc)-round(u0*sc))*(round(v2*sc)-round(v0*sc)) - (round(v1*sc)-round(v0*sc))*(round(u2*sc)-round(u0*sc)) == 0\n                    mesh.triangulation[fk_bot] = [t for t in tl if not _zero(t)]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else [])\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n                if fix_collinear:\n                    sc = 1e6",
           "file": "mesh.py"
         }
       },
       "related": [
+        "Mesh._zero",
         "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.area",
         "Mesh.cross_q",
-        "Mesh.edsq",
-        "Mesh.faces",
         "Mesh.from_polygon_with_holes",
         "Mesh.get_open",
         "Mesh.loft",
         "Mesh.proj",
         "Mesh.sarea",
-        "Mesh.side_faces",
         "Mesh.str"
       ]
     },
@@ -21008,24 +21003,69 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "cross_q(a, b, c)",
-          "code": "def cross_q(a, b, c):\n\n                pa = proj(a); pb = proj(b); pc = proj(c)\n                iax = round(pa[0] * cdt_scale); iay = round(pa[1] * cdt_scale)\n                ibx = round(pb[0] * cdt_scale); iby = round(pb[1] * cdt_scale)\n                icx = round(pc[0] * cdt_scale); icy = round(pc[1] * cdt_scale)\n                return (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            changed = True\n            while changed and len(bot) > 3:\n                changed = False\n                n = len(bot)\n                for i in range(n):\n                    prev = (i + n - 1) % n\n                    nxt = (i + 1) % n\n                    if (cross_q(bot[prev], bot[i], bot[nxt]) == 0 and\n                            cross_q(top[prev], top[i], top[nxt]) == 0):\n                        bot.pop(i); top.pop(i)\n                        changed = True\n                        break\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            if len(bot) == len(top): strip_shared_collinear(bot, top)\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else [])\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else [])\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n        def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j][0] - pts[i][0]; dy = pts[j][1] - pts[i][1]; dz = pts[j][2] - pts[i][2]\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j][0] - bpts[i][0]; dy = bpts[j][1] - bpts[i][1]; dz = bpts[j][2] - bpts[i][2]\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j][0] - tpts[i][0]; dy = tpts[j][1] - tpts[i][1]; dz = tpts[j][2] - tpts[i][2]\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                else:",
+          "code": "def cross_q(a, b, c):\n\n                pa = proj(a); pb = proj(b); pc = proj(c)\n                iax = round(pa[0] * cdt_scale); iay = round(pa[1] * cdt_scale)\n                ibx = round(pb[0] * cdt_scale); iby = round(pb[1] * cdt_scale)\n                icx = round(pc[0] * cdt_scale); icy = round(pc[1] * cdt_scale)\n                return (ibx - iax) * (icy - iay) - (iby - iay) * (icx - iax)\n            changed = True\n            while changed and len(bot) > 3:\n                changed = False\n                n = len(bot)\n                for i in range(n):\n                    prev = (i + n - 1) % n\n                    nxt = (i + 1) % n\n                    if (cross_q(bot[prev], bot[i], bot[nxt]) == 0 and\n                            cross_q(top[prev], top[i], top[nxt]) == 0):\n                        bot.pop(i); top.pop(i)\n                        changed = True\n                        break\n        for oi, idx in enumerate(order):\n            bot = get_open(polylines0[idx]); top = get_open(polylines1[idx])\n            if (oi == 0 and sarea(bot) < 0) or (oi != 0 and sarea(bot) > 0):\n                bot.reverse(); top.reverse()\n            if len(bot) == len(top): strip_shared_collinear(bot, top)\n            poly_infos.append((len(all_bot), len(bot), len(all_top), len(top)))\n            all_bot.extend(bot); all_top.extend(top)\n        mesh = Mesh()\n        bvk = [mesh.add_vertex(p) for p in all_bot]\n        tvk = [mesh.add_vertex(p) for p in all_top]\n        if cap:\n            _, bot_n0, _, top_n0 = poly_infos[0]\n            bpts = [Point(*proj(all_bot[i]), 0.0) for i in range(bot_n0)]\n            b_hpts = [[Point(*proj(all_bot[i]), 0.0) for i in range(off, off+cnt)] for off, cnt, _, _ in poly_infos[1:]]\n            bot_tris = _cdt_triangulate(bpts, b_hpts if b_hpts else [])\n            fk_bot = mesh.add_face([bvk[bot_n0 - 1 - i] for i in range(bot_n0)])\n            if fk_bot is not None:\n                if b_hpts:\n                    mesh.face_holes[fk_bot] = [[bvk[off + j] for j in range(cnt)] for off, cnt, _, _ in poly_infos[1:]]\n                mesh.triangulation[fk_bot] = [[bvk[t[0]], bvk[t[2]], bvk[t[1]]] for t in bot_tris]\n                if fix_collinear:\n                    sc = 1e6\n                    vk2d = {bvk[i]: proj(all_bot[i]) for i in range(bot_n0)}\n                    fv = [bvk[bot_n0 - 1 - i] for i in range(bot_n0)]\n                    tl = mesh.triangulation[fk_bot]\n                    chg = True\n                    while chg:\n                        chg = False\n                        tv = set(v for t in tl for v in t)\n                        n = len(fv)\n                        for k in range(n):\n                            B = fv[k]\n                            if B in tv:\n                                continue\n                            A = fv[(k + n - 1) % n]; C = fv[(k + 1) % n]\n                            for j, t in enumerate(tl):\n                                if A in t and C in t:\n                                    if (t[0]==A or t[0]==C) and (t[1]==A or t[1]==C):\n                                        tl[j] = [t[0], B, t[2]]; tl.append([B, t[1], t[2]])\n                                    elif (t[1]==A or t[1]==C) and (t[2]==A or t[2]==C):\n                                        tl[j] = [t[0], t[1], B]; tl.append([t[0], B, t[2]])\n                                    else:\n                                        tl[j] = [t[0], t[1], B]; tl.append([B, t[1], t[2]])\n                                    chg = True; break\n                            if chg:\n                                break\n                    def _zero(t):\n                        u0, v0 = vk2d.get(t[0], (0.0, 0.0)); u1, v1 = vk2d.get(t[1], (0.0, 0.0)); u2, v2 = vk2d.get(t[2], (0.0, 0.0))\n                        return (round(u1*sc)-round(u0*sc))*(round(v2*sc)-round(v0*sc)) - (round(v1*sc)-round(v0*sc))*(round(u2*sc)-round(u0*sc)) == 0\n                    mesh.triangulation[fk_bot] = [t for t in tl if not _zero(t)]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else [])\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n                if fix_collinear:\n                    sc = 1e6\n                    vk2d_t = {tvk[i]: proj(all_top[i]) for i in range(top_n0)}\n                    fv = [tvk[i] for i in range(top_n0)]",
           "file": "mesh.py"
         }
       },
       "related": [
+        "Mesh._zero",
         "Mesh.add_face",
         "Mesh.add_vertex",
         "Mesh.area",
-        "Mesh.edsq",
-        "Mesh.faces",
         "Mesh.from_polygon_with_holes",
         "Mesh.get_open",
         "Mesh.loft",
         "Mesh.proj",
         "Mesh.sarea",
-        "Mesh.side_faces",
         "Mesh.str",
         "Mesh.strip_shared_collinear"
+      ]
+    },
+    {
+      "name": "Mesh._zero",
+      "implementations": {
+        "python": {
+          "sig": "_zero(t)",
+          "code": "def _zero(t):\n\n                        u0, v0 = vk2d.get(t[0], (0.0, 0.0)); u1, v1 = vk2d.get(t[1], (0.0, 0.0)); u2, v2 = vk2d.get(t[2], (0.0, 0.0))\n                        return (round(u1*sc)-round(u0*sc))*(round(v2*sc)-round(v0*sc)) - (round(v1*sc)-round(v0*sc))*(round(u2*sc)-round(u0*sc)) == 0\n                    mesh.triangulation[fk_bot] = [t for t in tl if not _zero(t)]\n            tpts = [Point(*proj(all_top[i]), 0.0) for i in range(top_n0)]\n            t_hpts = [[Point(*proj(all_top[i]), 0.0) for i in range(off, off+cnt)] for _, _, off, cnt in poly_infos[1:]]\n            top_tris = _cdt_triangulate(tpts, t_hpts if t_hpts else [])\n            fk_top = mesh.add_face([tvk[i] for i in range(top_n0)])\n            if fk_top is not None:\n                if t_hpts:\n                    mesh.face_holes[fk_top] = [[tvk[off + j] for j in range(cnt)] for _, _, off, cnt in poly_infos[1:]]\n                mesh.triangulation[fk_top] = [[tvk[t[0]], tvk[t[1]], tvk[t[2]]] for t in top_tris]\n                if fix_collinear:\n                    sc = 1e6\n                    vk2d_t = {tvk[i]: proj(all_top[i]) for i in range(top_n0)}\n                    fv = [tvk[i] for i in range(top_n0)]\n                    tl = mesh.triangulation[fk_top]\n                    chg = True\n                    while chg:\n                        chg = False\n                        tv = set(v for t in tl for v in t)\n                        n = len(fv)\n                        for k in range(n):\n                            B = fv[k]\n                            if B in tv:\n                                continue\n                            A = fv[(k + n - 1) % n]; C = fv[(k + 1) % n]\n                            for j, t in enumerate(tl):\n                                if A in t and C in t:\n                                    if (t[0]==A or t[0]==C) and (t[1]==A or t[1]==C):\n                                        tl[j] = [t[0], B, t[2]]; tl.append([B, t[1], t[2]])\n                                    elif (t[1]==A or t[1]==C) and (t[2]==A or t[2]==C):\n                                        tl[j] = [t[0], t[1], B]; tl.append([t[0], B, t[2]])\n                                    else:\n                                        tl[j] = [t[0], t[1], B]; tl.append([B, t[1], t[2]])\n                                    chg = True; break\n                            if chg:\n                                break\n                    def _zero_t(t):\n                        u0, v0 = vk2d_t.get(t[0], (0.0, 0.0)); u1, v1 = vk2d_t.get(t[1], (0.0, 0.0)); u2, v2 = vk2d_t.get(t[2], (0.0, 0.0))\n                        return (round(u1*sc)-round(u0*sc))*(round(v2*sc)-round(v0*sc)) - (round(v1*sc)-round(v0*sc))*(round(u2*sc)-round(u0*sc)) == 0\n                    mesh.triangulation[fk_top] = [t for t in tl if not _zero_t(t)]\n        def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j][0] - pts[i][0]; dy = pts[j][1] - pts[i][1]; dz = pts[j][2] - pts[i][2]\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = 0\n            if bot_n == top_n:\n                def align_cost(cand):\n                    total = 0.0\n                    for k in range(bot_n):\n                        xb, yb = proj(bpts[(ia+k)%bot_n])\n                        xt, yt = proj(tpts[(cand+k)%top_n])\n                        total += (xt-xb)**2 + (yt-yb)**2\n                    return total\n                ib = min(range(top_n), key=align_cost)\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j][0] - bpts[i][0]; dy = bpts[j][1] - bpts[i][1]; dz = bpts[j][2] - bpts[i][2]\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j][0] - tpts[i][0]; dy = tpts[j][1] - tpts[i][1]; dz = tpts[j][2] - tpts[i][2]\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "Mesh._zero_t",
+        "Mesh.add_face",
+        "Mesh.align_cost",
+        "Mesh.cross_q",
+        "Mesh.edsq",
+        "Mesh.faces",
+        "Mesh.proj",
+        "Mesh.sarea",
+        "Mesh.side_faces",
+        "Mesh.strip_shared_collinear"
+      ]
+    },
+    {
+      "name": "Mesh._zero_t",
+      "implementations": {
+        "python": {
+          "sig": "_zero_t(t)",
+          "code": "def _zero_t(t):\n\n                        u0, v0 = vk2d_t.get(t[0], (0.0, 0.0)); u1, v1 = vk2d_t.get(t[1], (0.0, 0.0)); u2, v2 = vk2d_t.get(t[2], (0.0, 0.0))\n                        return (round(u1*sc)-round(u0*sc))*(round(v2*sc)-round(v0*sc)) - (round(v1*sc)-round(v0*sc))*(round(u2*sc)-round(u0*sc)) == 0\n                    mesh.triangulation[fk_top] = [t for t in tl if not _zero_t(t)]\n        def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j][0] - pts[i][0]; dy = pts[j][1] - pts[i][1]; dz = pts[j][2] - pts[i][2]\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = 0\n            if bot_n == top_n:\n                def align_cost(cand):\n                    total = 0.0\n                    for k in range(bot_n):\n                        xb, yb = proj(bpts[(ia+k)%bot_n])\n                        xt, yt = proj(tpts[(cand+k)%top_n])\n                        total += (xt-xb)**2 + (yt-yb)**2\n                    return total\n                ib = min(range(top_n), key=align_cost)\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j][0] - bpts[i][0]; dy = bpts[j][1] - bpts[i][1]; dz = bpts[j][2] - bpts[i][2]\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j][0] - tpts[i][0]; dy = tpts[j][1] - tpts[i][1]; dz = tpts[j][2] - tpts[i][2]\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                else:\n                    bp = b_arcs[bi + 1] * inv_b; tp = t_arcs[ti + 1] * inv_t\n                    if abs(bp - tp) < 1e-9:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]]); bi += 1; ti += 1\n                    elif bp < tp:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                    else:\n                        mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n        for bot_off, bot_n, top_off, top_n in poly_infos:\n            side_faces(bot_off, bot_n, top_off, top_n, all_bot[bot_off:bot_off+bot_n], all_top[top_off:top_off+top_n])\n        return mesh\n\n    @staticmethod\n    def loft_panels(\n        top_polygons: List[List[Point]],\n        bot_polygons: List[List[Point]],\n        merge_precision: float,\n        edge_gap: float = 0.0,\n        edge_match_threshold: float = 2.0,\n        add_caps: bool = True,\n        skip_triangles: bool = False) -> List[\"LoftPanel\"]:\n        top_mesh = Mesh.from_polylines(top_polygons, merge_precision)\n        bot_mesh = Mesh.from_polylines(bot_polygons, merge_precision)\n        tfks = list(top_mesh.face.keys())\n        bfks = list(bot_mesh.face.keys())\n        import numpy as np\n        top_cents = np.zeros((len(tfks), 3))\n        for i, fk in enumerate(tfks):\n            vkeys = top_mesh.face_vertices(fk)\n            for vk in vkeys:\n                p = top_mesh.vertex_point(vk)\n                top_cents[i, 0] += p[0]; top_cents[i, 1] += p[1]; top_cents[i, 2] += p[2]\n            top_cents[i] /= len(vkeys)\n        bot_cents = np.zeros((len(bfks), 3))",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "Mesh._zero",
+        "Mesh.add_face",
+        "Mesh.align_cost",
+        "Mesh.edsq",
+        "Mesh.face_vertices",
+        "Mesh.faces",
+        "Mesh.from_polylines",
+        "Mesh.loft",
+        "Mesh.loft_panels",
+        "Mesh.proj",
+        "Mesh.side_faces",
+        "Mesh.vertex_point",
+        "Mesh.vertices"
       ]
     },
     {
@@ -21033,24 +21073,22 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts)",
-          "code": "def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j][0] - pts[i][0]; dy = pts[j][1] - pts[i][1]; dz = pts[j][2] - pts[i][2]\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j][0] - bpts[i][0]; dy = bpts[j][1] - bpts[i][1]; dz = bpts[j][2] - bpts[i][2]\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j][0] - tpts[i][0]; dy = tpts[j][1] - tpts[i][1]; dz = tpts[j][2] - tpts[i][2]\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                else:\n                    bp = b_arcs[bi + 1] * inv_b; tp = t_arcs[ti + 1] * inv_t\n                    if abs(bp - tp) < 1e-9:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]]); bi += 1; ti += 1\n                    elif bp < tp:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                    else:\n                        mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n        for bot_off, bot_n, top_off, top_n in poly_infos:\n            side_faces(bot_off, bot_n, top_off, top_n, all_bot[bot_off:bot_off+bot_n], all_top[top_off:top_off+top_n])\n        return mesh\n\n    @staticmethod\n    def loft_panels(\n        top_polygons: List[List[Point]],\n        bot_polygons: List[List[Point]],\n        merge_precision: float,\n        edge_gap: float = 0.0,\n        edge_match_threshold: float = 2.0,\n        add_caps: bool = True,\n        skip_triangles: bool = False) -> List[\"LoftPanel\"]:\n        top_mesh = Mesh.from_polylines(top_polygons, merge_precision)\n        bot_mesh = Mesh.from_polylines(bot_polygons, merge_precision)\n        tfks = list(top_mesh.face.keys())\n        bfks = list(bot_mesh.face.keys())\n        import numpy as np\n        top_cents = np.zeros((len(tfks), 3))\n        for i, fk in enumerate(tfks):\n            vkeys = top_mesh.face_vertices(fk)\n            for vk in vkeys:\n                p = top_mesh.vertex_point(vk)\n                top_cents[i, 0] += p[0]; top_cents[i, 1] += p[1]; top_cents[i, 2] += p[2]\n            top_cents[i] /= len(vkeys)\n        bot_cents = np.zeros((len(bfks), 3))\n        for i, fk in enumerate(bfks):\n            vkeys = bot_mesh.face_vertices(fk)\n            for vk in vkeys:\n                p = bot_mesh.vertex_point(vk)\n                bot_cents[i, 0] += p[0]; bot_cents[i, 1] += p[1]; bot_cents[i, 2] += p[2]\n            bot_cents[i] /= len(vkeys)\n        diff = top_cents[:, np.newaxis, :] - bot_cents[np.newaxis, :, :]\n        dist_mat = np.sqrt((diff * diff).sum(axis=2))\n        flat_order = np.argsort(dist_mat, axis=None)\n        top_used = [False] * len(tfks)\n        bot_used = [False] * len(bfks)\n        face_match = []\n        for flat_idx in flat_order:",
+          "code": "def side_faces(bot_off, bot_n, top_off, top_n, bpts, tpts):\n\n            def edsq(pts, i):\n                j = (i + 1) % len(pts)\n                dx = pts[j][0] - pts[i][0]; dy = pts[j][1] - pts[i][1]; dz = pts[j][2] - pts[i][2]\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = 0\n            if bot_n == top_n:\n                def align_cost(cand):\n                    total = 0.0\n                    for k in range(bot_n):\n                        xb, yb = proj(bpts[(ia+k)%bot_n])\n                        xt, yt = proj(tpts[(cand+k)%top_n])\n                        total += (xt-xb)**2 + (yt-yb)**2\n                    return total\n                ib = min(range(top_n), key=align_cost)\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j][0] - bpts[i][0]; dy = bpts[j][1] - bpts[i][1]; dz = bpts[j][2] - bpts[i][2]\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j][0] - tpts[i][0]; dy = tpts[j][1] - tpts[i][1]; dz = tpts[j][2] - tpts[i][2]\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                else:\n                    bp = b_arcs[bi + 1] * inv_b; tp = t_arcs[ti + 1] * inv_t\n                    if abs(bp - tp) < 1e-9:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]]); bi += 1; ti += 1\n                    elif bp < tp:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                    else:\n                        mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n        for bot_off, bot_n, top_off, top_n in poly_infos:\n            side_faces(bot_off, bot_n, top_off, top_n, all_bot[bot_off:bot_off+bot_n], all_top[top_off:top_off+top_n])\n        return mesh\n\n    @staticmethod\n    def loft_panels(\n        top_polygons: List[List[Point]],\n        bot_polygons: List[List[Point]],\n        merge_precision: float,\n        edge_gap: float = 0.0,\n        edge_match_threshold: float = 2.0,\n        add_caps: bool = True,\n        skip_triangles: bool = False) -> List[\"LoftPanel\"]:\n        top_mesh = Mesh.from_polylines(top_polygons, merge_precision)\n        bot_mesh = Mesh.from_polylines(bot_polygons, merge_precision)\n        tfks = list(top_mesh.face.keys())\n        bfks = list(bot_mesh.face.keys())\n        import numpy as np\n        top_cents = np.zeros((len(tfks), 3))\n        for i, fk in enumerate(tfks):\n            vkeys = top_mesh.face_vertices(fk)\n            for vk in vkeys:\n                p = top_mesh.vertex_point(vk)\n                top_cents[i, 0] += p[0]; top_cents[i, 1] += p[1]; top_cents[i, 2] += p[2]\n            top_cents[i] /= len(vkeys)\n        bot_cents = np.zeros((len(bfks), 3))\n        for i, fk in enumerate(bfks):\n            vkeys = bot_mesh.face_vertices(fk)\n            for vk in vkeys:\n                p = bot_mesh.vertex_point(vk)",
           "file": "mesh.py"
         }
       },
       "related": [
+        "Mesh._zero",
+        "Mesh._zero_t",
         "Mesh.add_face",
-        "Mesh.cross_q",
+        "Mesh.align_cost",
         "Mesh.edsq",
         "Mesh.face_vertices",
         "Mesh.faces",
         "Mesh.from_polylines",
-        "Mesh.get_open",
         "Mesh.loft",
         "Mesh.loft_panels",
-        "Mesh.new",
         "Mesh.proj",
-        "Mesh.sarea",
-        "Mesh.strip_shared_collinear",
         "Mesh.vertex_point",
         "Mesh.vertices"
       ]
@@ -21060,24 +21098,48 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "edsq(pts, i)",
-          "code": "def edsq(pts, i):\n\n                j = (i + 1) % len(pts)\n                dx = pts[j][0] - pts[i][0]; dy = pts[j][1] - pts[i][1]; dz = pts[j][2] - pts[i][2]\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = max(range(top_n), key=lambda i: edsq(tpts, i))\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j][0] - bpts[i][0]; dy = bpts[j][1] - bpts[i][1]; dz = bpts[j][2] - bpts[i][2]\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j][0] - tpts[i][0]; dy = tpts[j][1] - tpts[i][1]; dz = tpts[j][2] - tpts[i][2]\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                else:\n                    bp = b_arcs[bi + 1] * inv_b; tp = t_arcs[ti + 1] * inv_t\n                    if abs(bp - tp) < 1e-9:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]]); bi += 1; ti += 1\n                    elif bp < tp:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                    else:\n                        mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n        for bot_off, bot_n, top_off, top_n in poly_infos:\n            side_faces(bot_off, bot_n, top_off, top_n, all_bot[bot_off:bot_off+bot_n], all_top[top_off:top_off+top_n])\n        return mesh\n\n    @staticmethod\n    def loft_panels(\n        top_polygons: List[List[Point]],\n        bot_polygons: List[List[Point]],\n        merge_precision: float,\n        edge_gap: float = 0.0,\n        edge_match_threshold: float = 2.0,\n        add_caps: bool = True,\n        skip_triangles: bool = False) -> List[\"LoftPanel\"]:\n        top_mesh = Mesh.from_polylines(top_polygons, merge_precision)\n        bot_mesh = Mesh.from_polylines(bot_polygons, merge_precision)\n        tfks = list(top_mesh.face.keys())\n        bfks = list(bot_mesh.face.keys())\n        import numpy as np\n        top_cents = np.zeros((len(tfks), 3))\n        for i, fk in enumerate(tfks):\n            vkeys = top_mesh.face_vertices(fk)\n            for vk in vkeys:\n                p = top_mesh.vertex_point(vk)\n                top_cents[i, 0] += p[0]; top_cents[i, 1] += p[1]; top_cents[i, 2] += p[2]\n            top_cents[i] /= len(vkeys)\n        bot_cents = np.zeros((len(bfks), 3))\n        for i, fk in enumerate(bfks):\n            vkeys = bot_mesh.face_vertices(fk)\n            for vk in vkeys:\n                p = bot_mesh.vertex_point(vk)\n                bot_cents[i, 0] += p[0]; bot_cents[i, 1] += p[1]; bot_cents[i, 2] += p[2]\n            bot_cents[i] /= len(vkeys)\n        diff = top_cents[:, np.newaxis, :] - bot_cents[np.newaxis, :, :]\n        dist_mat = np.sqrt((diff * diff).sum(axis=2))\n        flat_order = np.argsort(dist_mat, axis=None)\n        top_used = [False] * len(tfks)\n        bot_used = [False] * len(bfks)\n        face_match = []\n        for flat_idx in flat_order:\n            ti, bi = divmod(int(flat_idx), len(bfks))",
+          "code": "def edsq(pts, i):\n\n                j = (i + 1) % len(pts)\n                dx = pts[j][0] - pts[i][0]; dy = pts[j][1] - pts[i][1]; dz = pts[j][2] - pts[i][2]\n                return dx*dx + dy*dy + dz*dz\n            ia = max(range(bot_n), key=lambda i: edsq(bpts, i))\n            ib = 0\n            if bot_n == top_n:\n                def align_cost(cand):\n                    total = 0.0\n                    for k in range(bot_n):\n                        xb, yb = proj(bpts[(ia+k)%bot_n])\n                        xt, yt = proj(tpts[(cand+k)%top_n])\n                        total += (xt-xb)**2 + (yt-yb)**2\n                    return total\n                ib = min(range(top_n), key=align_cost)\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j][0] - bpts[i][0]; dy = bpts[j][1] - bpts[i][1]; dz = bpts[j][2] - bpts[i][2]\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j][0] - tpts[i][0]; dy = tpts[j][1] - tpts[i][1]; dz = tpts[j][2] - tpts[i][2]\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                else:\n                    bp = b_arcs[bi + 1] * inv_b; tp = t_arcs[ti + 1] * inv_t\n                    if abs(bp - tp) < 1e-9:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]]); bi += 1; ti += 1\n                    elif bp < tp:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                    else:\n                        mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n        for bot_off, bot_n, top_off, top_n in poly_infos:\n            side_faces(bot_off, bot_n, top_off, top_n, all_bot[bot_off:bot_off+bot_n], all_top[top_off:top_off+top_n])\n        return mesh\n\n    @staticmethod\n    def loft_panels(\n        top_polygons: List[List[Point]],\n        bot_polygons: List[List[Point]],\n        merge_precision: float,\n        edge_gap: float = 0.0,\n        edge_match_threshold: float = 2.0,\n        add_caps: bool = True,\n        skip_triangles: bool = False) -> List[\"LoftPanel\"]:\n        top_mesh = Mesh.from_polylines(top_polygons, merge_precision)\n        bot_mesh = Mesh.from_polylines(bot_polygons, merge_precision)\n        tfks = list(top_mesh.face.keys())\n        bfks = list(bot_mesh.face.keys())\n        import numpy as np\n        top_cents = np.zeros((len(tfks), 3))\n        for i, fk in enumerate(tfks):\n            vkeys = top_mesh.face_vertices(fk)\n            for vk in vkeys:\n                p = top_mesh.vertex_point(vk)\n                top_cents[i, 0] += p[0]; top_cents[i, 1] += p[1]; top_cents[i, 2] += p[2]\n            top_cents[i] /= len(vkeys)\n        bot_cents = np.zeros((len(bfks), 3))\n        for i, fk in enumerate(bfks):\n            vkeys = bot_mesh.face_vertices(fk)\n            for vk in vkeys:\n                p = bot_mesh.vertex_point(vk)\n                bot_cents[i, 0] += p[0]; bot_cents[i, 1] += p[1]; bot_cents[i, 2] += p[2]",
           "file": "mesh.py"
         }
       },
       "related": [
+        "Mesh._zero",
+        "Mesh._zero_t",
         "Mesh.add_face",
-        "Mesh.cross_q",
+        "Mesh.align_cost",
         "Mesh.face_vertices",
         "Mesh.faces",
         "Mesh.from_polylines",
-        "Mesh.get_open",
+        "Mesh.loft",
+        "Mesh.loft_panels",
+        "Mesh.proj",
+        "Mesh.side_faces",
+        "Mesh.vertex_point",
+        "Mesh.vertices"
+      ]
+    },
+    {
+      "name": "Mesh.align_cost",
+      "implementations": {
+        "python": {
+          "sig": "align_cost(cand)",
+          "code": "def align_cost(cand):\n\n                    total = 0.0\n                    for k in range(bot_n):\n                        xb, yb = proj(bpts[(ia+k)%bot_n])\n                        xt, yt = proj(tpts[(cand+k)%top_n])\n                        total += (xt-xb)**2 + (yt-yb)**2\n                    return total\n                ib = min(range(top_n), key=align_cost)\n            if bot_n == top_n:\n                for k in range(bot_n):\n                    cb = bot_off + (ia + k) % bot_n; ct = top_off + (ib + k) % top_n\n                    nb = bot_off + (ia + k + 1) % bot_n; nt = top_off + (ib + k + 1) % top_n\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]])\n                return\n            b_arcs = [0.0] * (bot_n + 1)\n            for k in range(bot_n):\n                i = (ia + k) % bot_n; j = (ia + k + 1) % bot_n\n                dx = bpts[j][0] - bpts[i][0]; dy = bpts[j][1] - bpts[i][1]; dz = bpts[j][2] - bpts[i][2]\n                b_arcs[k + 1] = b_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            t_arcs = [0.0] * (top_n + 1)\n            for k in range(top_n):\n                i = (ib + k) % top_n; j = (ib + k + 1) % top_n\n                dx = tpts[j][0] - tpts[i][0]; dy = tpts[j][1] - tpts[i][1]; dz = tpts[j][2] - tpts[i][2]\n                t_arcs[k + 1] = t_arcs[k] + math.sqrt(dx*dx + dy*dy + dz*dz)\n            inv_b = 1.0 / b_arcs[bot_n] if b_arcs[bot_n] > 0 else 1.0\n            inv_t = 1.0 / t_arcs[top_n] if t_arcs[top_n] > 0 else 1.0\n            bi = ti = 0\n            while bi < bot_n or ti < top_n:\n                cb = bot_off + (ia + bi) % bot_n; ct = top_off + (ib + ti) % top_n\n                nb = bot_off + (ia + bi + 1) % bot_n; nt = top_off + (ib + ti + 1) % top_n\n                if bi >= bot_n:\n                    mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n                elif ti >= top_n:\n                    mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                else:\n                    bp = b_arcs[bi + 1] * inv_b; tp = t_arcs[ti + 1] * inv_t\n                    if abs(bp - tp) < 1e-9:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[nt], tvk[ct]]); bi += 1; ti += 1\n                    elif bp < tp:\n                        mesh.add_face([bvk[cb], bvk[nb], tvk[ct]]); bi += 1\n                    else:\n                        mesh.add_face([bvk[cb], tvk[ct], tvk[nt]]); ti += 1\n        for bot_off, bot_n, top_off, top_n in poly_infos:\n            side_faces(bot_off, bot_n, top_off, top_n, all_bot[bot_off:bot_off+bot_n], all_top[top_off:top_off+top_n])\n        return mesh\n\n    @staticmethod\n    def loft_panels(\n        top_polygons: List[List[Point]],\n        bot_polygons: List[List[Point]],\n        merge_precision: float,\n        edge_gap: float = 0.0,\n        edge_match_threshold: float = 2.0,\n        add_caps: bool = True,\n        skip_triangles: bool = False) -> List[\"LoftPanel\"]:\n        top_mesh = Mesh.from_polylines(top_polygons, merge_precision)\n        bot_mesh = Mesh.from_polylines(bot_polygons, merge_precision)\n        tfks = list(top_mesh.face.keys())\n        bfks = list(bot_mesh.face.keys())\n        import numpy as np\n        top_cents = np.zeros((len(tfks), 3))\n        for i, fk in enumerate(tfks):\n            vkeys = top_mesh.face_vertices(fk)\n            for vk in vkeys:\n                p = top_mesh.vertex_point(vk)\n                top_cents[i, 0] += p[0]; top_cents[i, 1] += p[1]; top_cents[i, 2] += p[2]\n            top_cents[i] /= len(vkeys)\n        bot_cents = np.zeros((len(bfks), 3))\n        for i, fk in enumerate(bfks):\n            vkeys = bot_mesh.face_vertices(fk)\n            for vk in vkeys:\n                p = bot_mesh.vertex_point(vk)\n                bot_cents[i, 0] += p[0]; bot_cents[i, 1] += p[1]; bot_cents[i, 2] += p[2]\n            bot_cents[i] /= len(vkeys)\n        diff = top_cents[:, np.newaxis, :] - bot_cents[np.newaxis, :, :]\n        dist_mat = np.sqrt((diff * diff).sum(axis=2))\n        flat_order = np.argsort(dist_mat, axis=None)\n        top_used = [False] * len(tfks)\n        bot_used = [False] * len(bfks)\n        face_match = []",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
+        "Mesh._zero",
+        "Mesh._zero_t",
+        "Mesh.add_face",
+        "Mesh.edsq",
+        "Mesh.face_vertices",
+        "Mesh.faces",
+        "Mesh.from_polylines",
         "Mesh.loft",
         "Mesh.loft_panels",
         "Mesh.new",
         "Mesh.proj",
-        "Mesh.sarea",
         "Mesh.side_faces",
-        "Mesh.strip_shared_collinear",
         "Mesh.vertex_point",
         "Mesh.vertices"
       ]
@@ -21102,8 +21164,10 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh._zero_t",
         "Mesh.add_face",
         "Mesh.add_vertex",
+        "Mesh.align_cost",
         "Mesh.centroid",
         "Mesh.edsq",
         "Mesh.face_centroid",
@@ -21123,7 +21187,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_polygon_with_holes_many(inputs: List, sort_by_bbox: bool = False, parallel: bool = False) -> List[\"Mesh\"]",
-          "code": "def from_polygon_with_holes_many(inputs: List, sort_by_bbox: bool = False, parallel: bool = False) -> List[\"Mesh\"]:\n\n        if parallel and len(inputs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda x: Mesh.from_polygon_with_holes(x, sort_by_bbox), inputs))\n        return [Mesh.from_polygon_with_holes(x, sort_by_bbox) for x in inputs]\n\n    @staticmethod\n    def loft_many(pairs: List, cap: bool = True, parallel: bool = False) -> List[\"Mesh\"]:\n        if parallel and len(pairs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda p: Mesh.loft(p[0], p[1], cap), pairs))\n        return [Mesh.loft(p[0], p[1], cap) for p in pairs]\n\n    ###########################################################################################\n    # Boolean Queries\n    ###########################################################################################\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        hole_edges = set()\n        for fk, rings in self.face_holes.items():\n            for ring in rings:\n                n = len(ring)\n                for i in range(n):\n                    a = ring[i]; b = ring[(i + 1) % n]\n                    hole_edges.add((a, b))\n                    hole_edges.add((b, a))\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None and (u, v) not in hole_edges:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        fe = self.face_edges(face_key)\n        if fe is None:\n            return False\n        return any(self.is_edge_on_boundary(u, v) for u, v in fe)\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:",
+          "code": "def from_polygon_with_holes_many(inputs: List, sort_by_bbox: bool = False, parallel: bool = False) -> List[\"Mesh\"]:\n\n        if parallel and len(inputs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda x: Mesh.from_polygon_with_holes(x, sort_by_bbox), inputs))\n        return [Mesh.from_polygon_with_holes(x, sort_by_bbox) for x in inputs]\n\n    @staticmethod\n    def loft_many(pairs: List, cap: bool = True, parallel: bool = False, fix_collinear: bool = True) -> List[\"Mesh\"]:\n        if parallel and len(pairs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda p: Mesh.loft(p[0], p[1], cap, fix_collinear), pairs))\n        return [Mesh.loft(p[0], p[1], cap, fix_collinear) for p in pairs]\n\n    ###########################################################################################\n    # Boolean Queries\n    ###########################################################################################\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        hole_edges = set()\n        for fk, rings in self.face_holes.items():\n            for ring in rings:\n                n = len(ring)\n                for i in range(n):\n                    a = ring[i]; b = ring[(i + 1) % n]\n                    hole_edges.add((a, b))\n                    hole_edges.add((b, a))\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None and (u, v) not in hole_edges:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        fe = self.face_edges(face_key)\n        if fe is None:\n            return False\n        return any(self.is_edge_on_boundary(u, v) for u, v in fe)\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:",
           "file": "mesh.py"
         },
         "cpp": {
@@ -21157,18 +21221,18 @@ window.API_INDEX = {
       "name": "Mesh.loft_many",
       "implementations": {
         "python": {
-          "sig": "loft_many(pairs: List, cap: bool = True, parallel: bool = False) -> List[\"Mesh\"]",
-          "code": "def loft_many(pairs: List, cap: bool = True, parallel: bool = False) -> List[\"Mesh\"]:\n\n        if parallel and len(pairs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda p: Mesh.loft(p[0], p[1], cap), pairs))\n        return [Mesh.loft(p[0], p[1], cap) for p in pairs]\n\n    ###########################################################################################\n    # Boolean Queries\n    ###########################################################################################\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        hole_edges = set()\n        for fk, rings in self.face_holes.items():\n            for ring in rings:\n                n = len(ring)\n                for i in range(n):\n                    a = ring[i]; b = ring[(i + 1) % n]\n                    hole_edges.add((a, b))\n                    hole_edges.add((b, a))\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None and (u, v) not in hole_edges:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        fe = self.face_edges(face_key)\n        if fe is None:\n            return False\n        return any(self.is_edge_on_boundary(u, v) for u, v in fe)\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:",
+          "sig": "loft_many(pairs: List, cap: bool = True, parallel: bool = False, fix_collinear: bool = True) -> List[\"Mesh\"]",
+          "code": "def loft_many(pairs: List, cap: bool = True, parallel: bool = False, fix_collinear: bool = True) -> List[\"Mesh\"]:\n\n        if parallel and len(pairs) > 1:\n            from concurrent.futures import ThreadPoolExecutor\n            with ThreadPoolExecutor() as ex:\n                return list(ex.map(lambda p: Mesh.loft(p[0], p[1], cap, fix_collinear), pairs))\n        return [Mesh.loft(p[0], p[1], cap, fix_collinear) for p in pairs]\n\n    ###########################################################################################\n    # Boolean Queries\n    ###########################################################################################\n\n    def is_empty(self) -> bool:\n        \"\"\"Check if the mesh is empty.\"\"\"\n        return len(self.vertex) == 0\n\n    def is_valid(self) -> bool:\n        if not self.vertex or not self.face:\n            return False\n        for fkey, vkeys in self.face.items():\n            if len(vkeys) < 3:\n                return False\n            for vk in vkeys:\n                if vk not in self.vertex:\n                    return False\n        return True\n\n    def is_closed(self) -> bool:\n        hole_edges = set()\n        for fk, rings in self.face_holes.items():\n            for ring in rings:\n                n = len(ring)\n                for i in range(n):\n                    a = ring[i]; b = ring[(i + 1) % n]\n                    hole_edges.add((a, b))\n                    hole_edges.add((b, a))\n        for u, nbrs in self.halfedge.items():\n            for v, fkey in nbrs.items():\n                if fkey is None and (u, v) not in hole_edges:\n                    return False\n        return bool(self.halfedge)\n\n    def is_vertex_on_boundary(self, vertex_key: int) -> bool:\n        \"\"\"Check if a vertex is on the boundary.\"\"\"\n        if vertex_key not in self.halfedge:\n            return False\n\n        for v, face_opt in self.halfedge[vertex_key].items():\n            if face_opt is None:\n                return True\n\n        for u, neighbors in self.halfedge.items():\n            if vertex_key in neighbors and neighbors[vertex_key] is None:\n                return True\n\n        return False\n\n    def is_edge_on_boundary(self, u: int, v: int) -> bool:\n        \"\"\"Check if an edge is on the boundary.\"\"\"\n        return self.halfedge.get(u, {}).get(v) is None or self.halfedge.get(v, {}).get(u) is None\n\n    def is_face_on_boundary(self, face_key: int) -> bool:\n        \"\"\"Check if a face is on the boundary.\"\"\"\n        fe = self.face_edges(face_key)\n        if fe is None:\n            return False\n        return any(self.is_edge_on_boundary(u, v) for u, v in fe)\n\n    ###########################################################################################\n    # Basic Queries\n    ###########################################################################################\n\n    def number_of_vertices(self) -> int:\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:",
           "file": "mesh.py"
         },
         "cpp": {
-          "sig": "std::vector<Mesh> loft_many(\n    const std::vector<std::pair<std::vector<Polyline>, std::vector<Polyline>>>& pairs,\n    bool cap, bool parallel)",
-          "code": "std::vector<Mesh> Mesh::loft_many(\n    const std::vector<std::pair<std::vector<Polyline>, std::vector<Polyline>>>& pairs,\n    bool cap, bool parallel)\n{\n    std::vector<Mesh> results(pairs.size());\n    auto fn = [&](size_t i) { results[i] = loft(pairs[i].first, pairs[i].second, cap); }",
+          "sig": "std::vector<Mesh> loft_many(\n    const std::vector<std::pair<std::vector<Polyline>, std::vector<Polyline>>>& pairs,\n    bool cap, bool parallel, bool fix_collinear)",
+          "code": "std::vector<Mesh> Mesh::loft_many(\n    const std::vector<std::pair<std::vector<Polyline>, std::vector<Polyline>>>& pairs,\n    bool cap, bool parallel, bool fix_collinear)\n{\n    std::vector<Mesh> results(pairs.size());\n    auto fn = [&](size_t i) { results[i] = loft(pairs[i].first, pairs[i].second, cap, fix_collinear); }",
           "file": "mesh.cpp"
         },
         "rust": {
           "sig": "loft_many(pairs: Vec<(Vec<Polyline>, Vec<Polyline>)",
-          "code": "pub fn loft_many(pairs: Vec<(Vec<Polyline>, Vec<Polyline>)>, cap: bool, parallel: bool) -> Vec<Self> {\n        if parallel && pairs.len() > 1 {\n            use rayon::prelude::*;\n            pairs.into_par_iter().map(|(p0, p1)| Mesh::loft(&p0, &p1, cap)).collect()\n        } else {\n            pairs.iter().map(|(p0, p1)| Mesh::loft(p0, p1, cap)).collect()\n        }\n    }",
+          "code": "pub fn loft_many(pairs: Vec<(Vec<Polyline>, Vec<Polyline>)>, cap: bool, parallel: bool, fix_collinear: bool) -> Vec<Self> {\n        if parallel && pairs.len() > 1 {\n            use rayon::prelude::*;\n            pairs.into_par_iter().map(|(p0, p1)| Mesh::loft(&p0, &p1, cap, fix_collinear)).collect()\n        } else {\n            pairs.iter().map(|(p0, p1)| Mesh::loft(p0, p1, cap, fix_collinear)).collect()\n        }\n    }",
           "file": "mesh.rs"
         }
       },
@@ -21565,8 +21629,10 @@ window.API_INDEX = {
         "Mesh.__ne__",
         "Mesh.__repr__",
         "Mesh.__str__",
+        "Mesh._zero_t",
         "Mesh.add_face",
         "Mesh.add_vertex",
+        "Mesh.align_cost",
         "Mesh.area",
         "Mesh.build_triangle_bvh",
         "Mesh.centroid",
@@ -21615,6 +21681,7 @@ window.API_INDEX = {
         "Mesh.linecolors",
         "Mesh.loft_many",
         "Mesh.loft_panels",
+        "Mesh.miter_contours",
         "Mesh.naked_edges",
         "Mesh.naked_faces",
         "Mesh.naked_vertices",
@@ -21680,7 +21747,10 @@ window.API_INDEX = {
         "Mesh.__ne__",
         "Mesh.__repr__",
         "Mesh.__str__",
+        "Mesh._zero",
+        "Mesh._zero_t",
         "Mesh.add_face",
+        "Mesh.align_cost",
         "Mesh.area",
         "Mesh.build_triangle_bvh",
         "Mesh.centroid",
@@ -21690,7 +21760,6 @@ window.API_INDEX = {
         "Mesh.clear_pointcolors",
         "Mesh.create_box",
         "Mesh.create_dodecahedron",
-        "Mesh.cross_q",
         "Mesh.dihedral_angle",
         "Mesh.dihedral_angles",
         "Mesh.duplicate",
@@ -21722,7 +21791,6 @@ window.API_INDEX = {
         "Mesh.from_vertices_and_faces",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
-        "Mesh.get_open",
         "Mesh.get_pointcolors",
         "Mesh.get_vkey",
         "Mesh.guid",
@@ -21733,9 +21801,9 @@ window.API_INDEX = {
         "Mesh.is_valid",
         "Mesh.is_vertex_on_boundary",
         "Mesh.linecolors",
-        "Mesh.loft",
         "Mesh.loft_many",
         "Mesh.loft_panels",
+        "Mesh.miter_contours",
         "Mesh.naked_edges",
         "Mesh.naked_faces",
         "Mesh.naked_vertices",
@@ -21747,19 +21815,16 @@ window.API_INDEX = {
         "Mesh.pb_fill",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
-        "Mesh.proj",
         "Mesh.remove_edge",
         "Mesh.remove_face",
         "Mesh.remove_vertex",
         "Mesh.repr",
-        "Mesh.sarea",
         "Mesh.set_facecolors",
         "Mesh.set_linecolors",
         "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
         "Mesh.side_faces",
         "Mesh.str",
-        "Mesh.strip_shared_collinear",
         "Mesh.to_vertices_and_faces",
         "Mesh.unify_winding",
         "Mesh.vertex_angle_in_face",
@@ -22177,6 +22242,7 @@ window.API_INDEX = {
         "Mesh.is_edge_on_boundary",
         "Mesh.is_face_on_boundary",
         "Mesh.linecolors",
+        "Mesh.miter_contours",
         "Mesh.naked_edges",
         "Mesh.naked_faces",
         "Mesh.naked_vertices",
@@ -23209,7 +23275,10 @@ window.API_INDEX = {
         "Mesh.__ne__",
         "Mesh.__repr__",
         "Mesh.__str__",
+        "Mesh._zero",
+        "Mesh._zero_t",
         "Mesh.add_vertex",
+        "Mesh.align_cost",
         "Mesh.cross_q",
         "Mesh.edges",
         "Mesh.edsq",
@@ -23789,6 +23858,8 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh._zero_t",
+        "Mesh.align_cost",
         "Mesh.area",
         "Mesh.centroid",
         "Mesh.dihedral_angle",
@@ -23812,6 +23883,7 @@ window.API_INDEX = {
         "Mesh.flip_face",
         "Mesh.from_polyline_pairs_vnf",
         "Mesh.loft_panels",
+        "Mesh.miter_contours",
         "Mesh.side_faces",
         "Mesh.to_vertices_and_faces",
         "Mesh.vertex_angle_in_face",
@@ -23932,6 +24004,8 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh._zero_t",
+        "Mesh.align_cost",
         "Mesh.area",
         "Mesh.centroid",
         "Mesh.clear_facecolors",
@@ -23958,6 +24032,7 @@ window.API_INDEX = {
         "Mesh.flip_face",
         "Mesh.from_polyline_pairs_vnf",
         "Mesh.loft_panels",
+        "Mesh.miter_contours",
         "Mesh.orient_outward",
         "Mesh.remove_edge",
         "Mesh.side_faces",
@@ -25177,6 +25252,74 @@ window.API_INDEX = {
         "Mesh.set_face_color",
         "Mesh.set_vertex_color",
         "Mesh.widths"
+      ]
+    },
+    {
+      "name": "MeshOffset.__init__",
+      "implementations": {
+        "python": {
+          "sig": "__init__(top: Mesh, bottom: Mesh, sides: Mesh)",
+          "code": "def __init__(self, top: Mesh, bottom: Mesh, sides: Mesh):\n\n            self.top = top\n            self.bottom = bottom\n            self.sides = sides\n\n    @staticmethod\n    def from_mesh(mesh: Mesh, distance: float) -> Mesh:\n        planes = _offset_planes(mesh, distance)\n        off_verts = _offset_vertices(mesh, planes)\n\n        result = Mesh()\n        bot_vmap = {}\n        top_vmap = {}\n        for vk in mesh.vertices():\n            bot_vmap[vk] = result.add_vertex(mesh.vertex_point(vk))\n            top_vmap[vk] = result.add_vertex(off_verts[vk])\n\n        for fk in mesh.faces():\n            fv = mesh.face_vertices(fk)\n            bkeys = [bot_vmap[v] for v in fv]\n            tkeys = [top_vmap[v] for v in fv]\n            result.add_face(list(reversed(bkeys)))\n            result.add_face(tkeys)\n\n        for (u, v) in mesh.naked_edges(True):\n            result.add_face([bot_vmap[u], bot_vmap[v], top_vmap[v], top_vmap[u]])\n\n        return result\n\n    @staticmethod\n    def from_mesh_layers(mesh: Mesh, distance: float) -> \"MeshOffset.Layers\":\n        planes = _offset_planes(mesh, distance)\n        off_verts = _offset_vertices(mesh, planes)\n\n        bot = Mesh()\n        top = Mesh()\n        sides = Mesh()\n        bot_vmap = {}\n        top_vmap = {}\n        for vk in mesh.vertices():\n            bot_vmap[vk] = bot.add_vertex(mesh.vertex_point(vk))\n            top_vmap[vk] = top.add_vertex(off_verts[vk])\n\n        for fk in mesh.faces():\n            fv = mesh.face_vertices(fk)\n            bkeys = [bot_vmap[v] for v in fv]\n            tkeys = [top_vmap[v] for v in fv]\n            bot.add_face(list(reversed(bkeys)))\n            top.add_face(tkeys)\n\n        s_bot = {}\n        s_top = {}\n        for (u, v) in mesh.naked_edges(True):\n            if u not in s_bot:\n                s_bot[u] = sides.add_vertex(mesh.vertex_point(u))\n            if v not in s_bot:\n                s_bot[v] = sides.add_vertex(mesh.vertex_point(v))\n            if u not in s_top:\n                s_top[u] = sides.add_vertex(off_verts[u])\n            if v not in s_top:\n                s_top[v] = sides.add_vertex(off_verts[v])\n            sides.add_face([s_bot[u], s_bot[v], s_top[v], s_top[u]])\n\n        return MeshOffset.Layers(top, bot, sides)",
+          "file": "mesh_offset.py"
+        }
+      },
+      "related": [
+        "MeshOffset.from_mesh",
+        "MeshOffset.from_mesh_layers",
+        "MeshOffset.offset_planes",
+        "MeshOffset.offset_vertices"
+      ]
+    },
+    {
+      "name": "MeshOffset.from_mesh",
+      "implementations": {
+        "python": {
+          "sig": "from_mesh(mesh: Mesh, distance: float) -> Mesh",
+          "code": "def from_mesh(mesh: Mesh, distance: float) -> Mesh:\n\n        planes = _offset_planes(mesh, distance)\n        off_verts = _offset_vertices(mesh, planes)\n\n        result = Mesh()\n        bot_vmap = {}\n        top_vmap = {}\n        for vk in mesh.vertices():\n            bot_vmap[vk] = result.add_vertex(mesh.vertex_point(vk))\n            top_vmap[vk] = result.add_vertex(off_verts[vk])\n\n        for fk in mesh.faces():\n            fv = mesh.face_vertices(fk)\n            bkeys = [bot_vmap[v] for v in fv]\n            tkeys = [top_vmap[v] for v in fv]\n            result.add_face(list(reversed(bkeys)))\n            result.add_face(tkeys)\n\n        for (u, v) in mesh.naked_edges(True):\n            result.add_face([bot_vmap[u], bot_vmap[v], top_vmap[v], top_vmap[u]])\n\n        return result\n\n    @staticmethod\n    def from_mesh_layers(mesh: Mesh, distance: float) -> \"MeshOffset.Layers\":\n        planes = _offset_planes(mesh, distance)\n        off_verts = _offset_vertices(mesh, planes)\n\n        bot = Mesh()\n        top = Mesh()\n        sides = Mesh()\n        bot_vmap = {}\n        top_vmap = {}\n        for vk in mesh.vertices():\n            bot_vmap[vk] = bot.add_vertex(mesh.vertex_point(vk))\n            top_vmap[vk] = top.add_vertex(off_verts[vk])\n\n        for fk in mesh.faces():\n            fv = mesh.face_vertices(fk)\n            bkeys = [bot_vmap[v] for v in fv]\n            tkeys = [top_vmap[v] for v in fv]\n            bot.add_face(list(reversed(bkeys)))\n            top.add_face(tkeys)\n\n        s_bot = {}\n        s_top = {}\n        for (u, v) in mesh.naked_edges(True):\n            if u not in s_bot:\n                s_bot[u] = sides.add_vertex(mesh.vertex_point(u))\n            if v not in s_bot:\n                s_bot[v] = sides.add_vertex(mesh.vertex_point(v))\n            if u not in s_top:\n                s_top[u] = sides.add_vertex(off_verts[u])\n            if v not in s_top:\n                s_top[v] = sides.add_vertex(off_verts[v])\n            sides.add_face([s_bot[u], s_bot[v], s_top[v], s_top[u]])\n\n        return MeshOffset.Layers(top, bot, sides)",
+          "file": "mesh_offset.py"
+        },
+        "cpp": {
+          "sig": "Mesh from_mesh(const Mesh& mesh, double distance)",
+          "code": "Mesh MeshOffset::from_mesh(const Mesh& mesh, double distance) {\n    auto planes = _offset_planes(mesh, distance);\n    auto off_verts = _offset_vertices(mesh, planes);\n\n    Mesh result;\n    std::map<size_t, size_t> bot_vmap, top_vmap;\n    for (size_t vk : mesh.vertices()) {\n        bot_vmap[vk] = result.add_vertex(mesh.vertex_point(vk).value());\n        top_vmap[vk] = result.add_vertex(off_verts[vk]);\n    }",
+          "file": "mesh_offset.cpp"
+        },
+        "rust": {
+          "sig": "from_mesh(mesh: &Mesh, distance: f64) -> Mesh",
+          "code": "pub fn from_mesh(mesh: &Mesh, distance: f64) -> Mesh {\n        let planes = offset_planes(mesh, distance);\n        let off_verts = offset_vertices(mesh, &planes);\n\n        let mut result = Mesh::new();\n        let mut bot_vmap: HashMap<usize, usize> = HashMap::new();\n        let mut top_vmap: HashMap<usize, usize> = HashMap::new();\n        for vk in mesh.vertices() {\n            let vp = mesh.vertex_point(vk).unwrap();\n            bot_vmap.insert(vk, result.add_vertex(vp, None));\n            top_vmap.insert(vk, result.add_vertex(off_verts[&vk].clone(), None));\n        }\n\n        for fk in mesh.faces() {\n            let fv = mesh.face_vertices(fk).unwrap();\n            let bkeys: Vec<usize> = fv.iter().map(|v| bot_vmap[v]).collect();\n            let tkeys: Vec<usize> = fv.iter().map(|v| top_vmap[v]).collect();\n            let mut brev = bkeys.clone();\n            brev.reverse();\n            result.add_face(brev, None);\n            result.add_face(tkeys, None);\n        }\n\n        for (u, v) in mesh.naked_edges(true) {\n            result.add_face(vec![bot_vmap[&u], bot_vmap[&v], top_vmap[&v], top_vmap[&u]], None);\n        }\n\n        result\n    }",
+          "file": "mesh_offset.rs"
+        }
+      },
+      "related": [
+        "MeshOffset.__init__",
+        "MeshOffset.from_mesh_layers",
+        "MeshOffset.offset_planes",
+        "MeshOffset.offset_vertices"
+      ]
+    },
+    {
+      "name": "MeshOffset.from_mesh_layers",
+      "implementations": {
+        "python": {
+          "sig": "from_mesh_layers(mesh: Mesh, distance: float) -> \"MeshOffset.Layers\"",
+          "code": "def from_mesh_layers(mesh: Mesh, distance: float) -> \"MeshOffset.Layers\":\n\n        planes = _offset_planes(mesh, distance)\n        off_verts = _offset_vertices(mesh, planes)\n\n        bot = Mesh()\n        top = Mesh()\n        sides = Mesh()\n        bot_vmap = {}\n        top_vmap = {}\n        for vk in mesh.vertices():\n            bot_vmap[vk] = bot.add_vertex(mesh.vertex_point(vk))\n            top_vmap[vk] = top.add_vertex(off_verts[vk])\n\n        for fk in mesh.faces():\n            fv = mesh.face_vertices(fk)\n            bkeys = [bot_vmap[v] for v in fv]\n            tkeys = [top_vmap[v] for v in fv]\n            bot.add_face(list(reversed(bkeys)))\n            top.add_face(tkeys)\n\n        s_bot = {}\n        s_top = {}\n        for (u, v) in mesh.naked_edges(True):\n            if u not in s_bot:\n                s_bot[u] = sides.add_vertex(mesh.vertex_point(u))\n            if v not in s_bot:\n                s_bot[v] = sides.add_vertex(mesh.vertex_point(v))\n            if u not in s_top:\n                s_top[u] = sides.add_vertex(off_verts[u])\n            if v not in s_top:\n                s_top[v] = sides.add_vertex(off_verts[v])\n            sides.add_face([s_bot[u], s_bot[v], s_top[v], s_top[u]])\n\n        return MeshOffset.Layers(top, bot, sides)",
+          "file": "mesh_offset.py"
+        },
+        "cpp": {
+          "sig": "MeshOffset::Layers from_mesh_layers(const Mesh& mesh, double distance)",
+          "code": "MeshOffset::Layers MeshOffset::from_mesh_layers(const Mesh& mesh, double distance) {\n    auto planes = _offset_planes(mesh, distance);\n    auto off_verts = _offset_vertices(mesh, planes);\n\n    Layers layers;\n    std::map<size_t, size_t> bot_vmap, top_vmap;\n    for (size_t vk : mesh.vertices()) {\n        bot_vmap[vk] = layers.bottom.add_vertex(mesh.vertex_point(vk).value());\n        top_vmap[vk] = layers.top.add_vertex(off_verts[vk]);\n    }",
+          "file": "mesh_offset.cpp"
+        },
+        "rust": {
+          "sig": "from_mesh_layers(mesh: &Mesh, distance: f64) -> MeshOffsetLayers",
+          "code": "pub fn from_mesh_layers(mesh: &Mesh, distance: f64) -> MeshOffsetLayers {\n        let planes = offset_planes(mesh, distance);\n        let off_verts = offset_vertices(mesh, &planes);\n\n        let mut bot = Mesh::new();\n        let mut top = Mesh::new();\n        let mut sides = Mesh::new();\n        let mut bot_vmap: HashMap<usize, usize> = HashMap::new();\n        let mut top_vmap: HashMap<usize, usize> = HashMap::new();\n        for vk in mesh.vertices() {\n            let vp = mesh.vertex_point(vk).unwrap();\n            bot_vmap.insert(vk, bot.add_vertex(vp, None));\n            top_vmap.insert(vk, top.add_vertex(off_verts[&vk].clone(), None));\n        }\n\n        for fk in mesh.faces() {\n            let fv = mesh.face_vertices(fk).unwrap();\n            let bkeys: Vec<usize> = fv.iter().map(|v| bot_vmap[v]).collect();\n            let tkeys: Vec<usize> = fv.iter().map(|v| top_vmap[v]).collect();\n            let mut brev = bkeys.clone();\n            brev.reverse();\n            bot.add_face(brev, None);\n            top.add_face(tkeys, None);\n        }\n\n        let mut s_bot: HashMap<usize, usize> = HashMap::new();\n        let mut s_top: HashMap<usize, usize> = HashMap::new();\n        for (u, v) in mesh.naked_edges(true) {\n            if !s_bot.contains_key(&u) {\n                s_bot.insert(u, sides.add_vertex(mesh.vertex_point(u).unwrap(), None));\n            }\n            if !s_bot.contains_key(&v) {\n                s_bot.insert(v, sides.add_vertex(mesh.vertex_point(v).unwrap(), None));\n            }\n            if !s_top.contains_key(&u) {\n                s_top.insert(u, sides.add_vertex(off_verts[&u].clone(), None));\n            }\n            if !s_top.contains_key(&v) {\n                s_top.insert(v, sides.add_vertex(off_verts[&v].clone(), None));\n            }\n            sides.add_face(vec![s_bot[&u], s_bot[&v], s_top[&v], s_top[&u]], None);\n        }\n\n        MeshOffsetLayers { top, bottom: bot, sides }\n    }",
+          "file": "mesh_offset.rs"
+        }
+      },
+      "related": [
+        "MeshOffset.__init__",
+        "MeshOffset.from_mesh",
+        "MeshOffset.offset_planes",
+        "MeshOffset.offset_vertices"
       ]
     },
     {
@@ -47005,7 +47148,6 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
-        "Polyline.polyline_two_rects_from_frame",
         "Polyline.proj2d",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
@@ -47018,6 +47160,7 @@ window.API_INDEX = {
         "Polyline.transformed",
         "Polyline.transformed_xform",
         "Polyline.translate",
+        "Polyline.two_rects_from_frame",
         "Polyline.unproj"
       ]
     },
@@ -53172,6 +53315,31 @@ window.API_INDEX = {
         "Quaternion.pb_loads",
         "Quaternion.str"
       ]
+    },
+    {
+      "name": "ReciprocalResult.__init__",
+      "implementations": {
+        "python": {
+          "sig": "__init__()",
+          "code": "def __init__(self):\n\n        self.center: List[Line] = []\n        self.top: List[Line] = []\n        self.bottom: List[Line] = []\n        self.lineplanes: List[Plane] = []\n        self.endplanes: List[List[Plane]] = []\n\n\nclass Reciprocal:\n    @staticmethod\n    def from_mesh(\n        mesh: Mesh,\n        angle: float,\n        scale: float,\n        use_ngon_normals: bool,\n        height: float,\n    ) -> ReciprocalResult:\n        fkeys = mesh.faces()\n        ekeys = mesh.edges()\n        ne = len(ekeys)\n        nf = len(fkeys)\n\n        edge_idx = {}\n        for i, (u, v) in enumerate(ekeys):\n            edge_idx[(u, v)] = i\n            edge_idx[(v, u)] = i\n\n        fplane = {}\n        for fk in fkeys:\n            n = mesh.face_normal(fk)\n            c = mesh.face_centroid(fk)\n            if n is not None and c is not None:\n                fplane[fk] = Plane.from_point_normal(c, n)\n\n        fe = []\n        for fi in range(nf):\n            fk = fkeys[fi]\n            edges_of_face = mesh.face_edges(fk) or []\n            row = []\n            for (u, v) in edges_of_face:\n                key = (min(u, v), max(u, v))\n                if key in edge_idx:\n                    row.append(edge_idx[key])\n            fe.append(row)\n\n        vecs = [Vector(0, 0, 0)] * ne\n        for ei, (u, v) in enumerate(ekeys):\n            adj = mesh.edge_faces(u, v)\n            if not adj:\n                continue\n            sx, sy, sz = 0.0, 0.0, 0.0\n            for fk in adj:\n                if fk in fplane:\n                    z = fplane[fk].z_axis\n                    sx += z[0]; sy += z[1]; sz += z[2]\n            count = len(adj)\n            if count > 0:\n                ax, ay, az = sx / count, sy / count, sz / count\n                length = (ax*ax + ay*ay + az*az) ** 0.5\n                if length > 1e-12:\n                    vecs[ei] = Vector(ax / length, ay / length, az / length)\n\n        lines = []\n        for u, v in ekeys:\n            el = mesh.edge_line(u, v)\n            if el is not None:\n                lines.append(copy.deepcopy(el))\n            else:\n                lines.append(Line())\n\n        for ei in range(ne):\n            v = vecs[ei]\n            if v[0] == 0.0 and v[1] == 0.0 and v[2] == 0.0:\n                continue\n            mid = lines[ei].center()\n            lines[ei].xform = Xform.scale_uniform(mid, scale)\n            lines[ei].transform()\n            mid2 = lines[ei].center()\n            axis_end = Point(mid2[0] + v[0], mid2[1] + v[1], mid2[2] + v[2])\n            rot_axis = Line.from_points(mid2, axis_end)",
+          "file": "reciprocal.py"
+        }
+      }
+    },
+    {
+      "name": "Reciprocal.from_mesh",
+      "implementations": {
+        "python": {
+          "sig": "from_mesh(\n        mesh: Mesh,\n        angle: float,\n        scale: float,\n        use_ngon_normals: bool,\n        height: float,\n    ) -> ReciprocalResult",
+          "code": "def from_mesh(\n        mesh: Mesh,\n        angle: float,\n        scale: float,\n        use_ngon_normals: bool,\n        height: float,\n    ) -> ReciprocalResult:\n\n        fkeys = mesh.faces()\n        ekeys = mesh.edges()\n        ne = len(ekeys)\n        nf = len(fkeys)\n\n        edge_idx = {}\n        for i, (u, v) in enumerate(ekeys):\n            edge_idx[(u, v)] = i\n            edge_idx[(v, u)] = i\n\n        fplane = {}\n        for fk in fkeys:\n            n = mesh.face_normal(fk)\n            c = mesh.face_centroid(fk)\n            if n is not None and c is not None:\n                fplane[fk] = Plane.from_point_normal(c, n)\n\n        fe = []\n        for fi in range(nf):\n            fk = fkeys[fi]\n            edges_of_face = mesh.face_edges(fk) or []\n            row = []\n            for (u, v) in edges_of_face:\n                key = (min(u, v), max(u, v))\n                if key in edge_idx:\n                    row.append(edge_idx[key])\n            fe.append(row)\n\n        vecs = [Vector(0, 0, 0)] * ne\n        for ei, (u, v) in enumerate(ekeys):\n            adj = mesh.edge_faces(u, v)\n            if not adj:\n                continue\n            sx, sy, sz = 0.0, 0.0, 0.0\n            for fk in adj:\n                if fk in fplane:\n                    z = fplane[fk].z_axis\n                    sx += z[0]; sy += z[1]; sz += z[2]\n            count = len(adj)\n            if count > 0:\n                ax, ay, az = sx / count, sy / count, sz / count\n                length = (ax*ax + ay*ay + az*az) ** 0.5\n                if length > 1e-12:\n                    vecs[ei] = Vector(ax / length, ay / length, az / length)\n\n        lines = []\n        for u, v in ekeys:\n            el = mesh.edge_line(u, v)\n            if el is not None:\n                lines.append(copy.deepcopy(el))\n            else:\n                lines.append(Line())\n\n        for ei in range(ne):\n            v = vecs[ei]\n            if v[0] == 0.0 and v[1] == 0.0 and v[2] == 0.0:\n                continue\n            mid = lines[ei].center()\n            lines[ei].xform = Xform.scale_uniform(mid, scale)\n            lines[ei].transform()\n            mid2 = lines[ei].center()\n            axis_end = Point(mid2[0] + v[0], mid2[1] + v[1], mid2[2] + v[2])\n            rot_axis = Line.from_points(mid2, axis_end)\n            lines[ei].xform = Xform.rotation_around_line(rot_axis, angle)\n            lines[ei].transform()\n\n        lp = []\n        for ei in range(ne):\n            mid = lines[ei].center()\n            d = lines[ei].to_direction()\n            v = vecs[ei]\n            if not (v[0] == 0.0 and v[1] == 0.0 and v[2] == 0.0):\n                lp.append(Plane(mid, d, v))\n            else:\n                lp.append(Plane.from_point_normal(mid, d))\n\n        result = ReciprocalResult()\n        result.lineplanes = lp",
+          "file": "reciprocal.py"
+        },
+        "cpp": {
+          "sig": "Reciprocal::Result from_mesh(\n    const Mesh& mesh,\n    double angle,\n    double scale,\n    bool   /*use_ngon_normals*/,\n    double height)",
+          "code": "Reciprocal::Result Reciprocal::from_mesh(\n    const Mesh& mesh,\n    double angle,\n    double scale,\n    bool   /*use_ngon_normals*/,\n    double height)\n{\n    auto fkeys = mesh.faces();\n    auto ekeys = mesh.edges();\n    int ne = (int)ekeys.size();\n    int nf = (int)fkeys.size();\n\n    std::map<std::pair<size_t,size_t>, int> edge_idx;\n    for (int i = 0; i < ne; i++) {\n        edge_idx[ekeys[i]] = i;\n        edge_idx[{ekeys[i].second, ekeys[i].first}",
+          "file": "reciprocal.cpp"
+        }
+      }
     },
     {
       "name": "_P64.__init__",
@@ -65049,7 +65217,7 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "Vector average_normal(const std::vector<Point>& points)",
-          "code": "Vector Vector::average_normal(const std::vector<Point>& points) {\n    Vector out;\n    ::session_cpp::average_normal(points, out);\n    return out;\n}",
+          "code": "Vector Vector::average_normal(const std::vector<Point>& points) {\n    constexpr double DISTANCE_SQUARED = 1e-10;\n    double dx = points.back()[0] - points.front()[0];\n    double dy = points.back()[1] - points.front()[1];\n    double dz = points.back()[2] - points.front()[2];\n    size_t len = (dx*dx + dy*dy + dz*dz) < DISTANCE_SQUARED ? points.size()-1 : points.size();\n    Vector out(0, 0, 0);\n    for (size_t i = 0; i < len; i++) {\n        size_t prev = ((int)i - 1 + len) % len;\n        size_t next = (i + 1) % len;\n        double ax = points[i][0]-points[prev][0], ay = points[i][1]-points[prev][1], az = points[i][2]-points[prev][2];\n        double bx = points[next][0]-points[i][0],  by = points[next][1]-points[i][1],  bz = points[next][2]-points[i][2];\n        out[0] += ay*bz - az*by;\n        out[1] += az*bx - ax*bz;\n        out[2] += ax*by - ay*bx;\n    }",
           "file": "vector.cpp"
         },
         "rust": {
@@ -65451,11 +65619,6 @@ window.API_INDEX = {
           "sig": "interpolate_points(from_pt, to_pt, steps, type=0)",
           "code": "def interpolate_points(from_pt, to_pt, steps, type=0):\n\n    \"\"\"Interpolate points between two endpoints.\n\n    Parameters\n    ----------\n    from_pt : :class:`Point`\n        Start point.\n    to_pt : :class:`Point`\n        End point.\n    steps : int\n        Number of interior steps.\n    type : int, optional\n        0 = interior only, 1 = both endpoints included, 2 = start + interior.\n\n    Returns\n    -------\n    list of :class:`Point`\n        Interpolated points.\n\n    \"\"\"\n    from .point import Point\n    pts = []\n    if type == 1:\n        pts.append(Point(from_pt[0], from_pt[1], from_pt[2]))\n    elif type == 2:\n        pts.append(Point(from_pt[0], from_pt[1], from_pt[2]))\n    for i in range(1, steps + 1):\n        t = i / (1 + steps)\n        pts.append(Point(\n            from_pt[0] + t * (to_pt[0] - from_pt[0]),\n            from_pt[1] + t * (to_pt[1] - from_pt[1]),\n            from_pt[2] + t * (to_pt[2] - from_pt[2])\n        ))\n    if type == 1:\n        pts.append(Point(to_pt[0], to_pt[1], to_pt[2]))\n    return pts",
           "file": "vector.py"
-        },
-        "cpp": {
-          "sig": "void interpolate_points(const Point& from, const Point& to, int steps,\n                        std::vector<Point>& points, int type = 0)",
-          "code": "void interpolate_points(const Point& from, const Point& to, int steps,\n                        std::vector<Point>& points, int type = 0);",
-          "file": "vector.h"
         }
       },
       "related": [
@@ -71504,6 +71667,58 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Line.from_projected_points",
+      "implementations": {
+        "cpp": {
+          "sig": "bool from_projected_points(const Line& line, const std::vector<Point>& pts, Line& out)",
+          "code": "bool Line::from_projected_points(const Line& line, const std::vector<Point>& pts, Line& out) {\n    Point os, oe;\n    bool r = Polyline::line_from_projected_points(line.start(), line.end(), pts, os, oe);\n    out = Line::from_points(os, oe);\n    return r;\n}",
+          "file": "line.cpp"
+        }
+      },
+      "related": [
+        "Line.end",
+        "Line.from_points",
+        "Line.start"
+      ]
+    },
+    {
+      "name": "Line.extend_equally",
+      "implementations": {
+        "cpp": {
+          "sig": "void extend_equally(double dist, double proportion)",
+          "code": "void Line::extend_equally(double dist, double proportion) {\n    if (dist == 0 && proportion == 0) return;\n    Point s = start(), e = end();\n    Polyline::extend_segment_equally(s, e, dist, proportion);\n    *this = Line::from_points(s, e);\n}",
+          "file": "line.cpp"
+        },
+        "rust": {
+          "sig": "extend_equally(distance: f64)",
+          "code": "pub fn extend_equally(&mut self, distance: f64) {\n        let len = self.length();\n        if len < crate::tolerance::Tolerance::ZERO_TOLERANCE {\n            return;\n        }\n        // Don't allow the line to collapse to zero or invert.\n        if distance < 0.0 && (-distance) * 2.0 >= len {\n            return;\n        }\n        let inv_len = 1.0 / len;\n        let dx = (self._x1 - self._x0) * inv_len * distance;\n        let dy = (self._y1 - self._y0) * inv_len * distance;\n        let dz = (self._z1 - self._z0) * inv_len * distance;\n        self._x0 -= dx;\n        self._y0 -= dy;\n        self._z0 -= dz;\n        self._x1 += dx;\n        self._y1 += dy;\n        self._z1 += dz;\n    }",
+          "file": "line.rs"
+        }
+      },
+      "related": [
+        "Line.end",
+        "Line.extend",
+        "Line.from_points",
+        "Line.length",
+        "Line.start"
+      ]
+    },
+    {
+      "name": "Line.scale",
+      "implementations": {
+        "cpp": {
+          "sig": "void scale(double dist)",
+          "code": "void Line::scale(double dist) {\n    Point s = start(), e = end();\n    Vector v(e[0]-s[0], e[1]-s[1], e[2]-s[2]);\n    s[0]+=v[0]*dist; s[1]+=v[1]*dist; s[2]+=v[2]*dist;\n    e[0]-=v[0]*dist; e[1]-=v[1]*dist; e[2]-=v[2]*dist;\n    *this = Line::from_points(s, e);\n}",
+          "file": "line.cpp"
+        }
+      },
+      "related": [
+        "Line.end",
+        "Line.from_points",
+        "Line.start"
+      ]
+    },
+    {
       "name": "Line.str",
       "implementations": {
         "cpp": {
@@ -71627,109 +71842,6 @@ window.API_INDEX = {
         "Line.str",
         "Line.xform"
       ]
-    },
-    {
-      "name": "Line.line_line_average",
-      "implementations": {
-        "cpp": {
-          "sig": "void line_line_average(const Line& l0, const Line& l1, Line& out)",
-          "code": "void line_line_average(const Line& l0, const Line& l1, Line& out);",
-          "file": "line.h"
-        }
-      }
-    },
-    {
-      "name": "Line.line_line_overlap",
-      "implementations": {
-        "cpp": {
-          "sig": "bool line_line_overlap(const Line& l0, const Line& l1, Line& out)",
-          "code": "bool line_line_overlap(const Line& l0, const Line& l1, Line& out);",
-          "file": "line.h"
-        }
-      },
-      "related": [
-        "Line.__mul__",
-        "Line.__neg__",
-        "Line.__truediv__",
-        "Line.line_line_overlap_average",
-        "Line.overlap",
-        "Line.overlap_average",
-        "Line.transform",
-        "Line.transformed"
-      ]
-    },
-    {
-      "name": "Line.line_line_overlap_average",
-      "implementations": {
-        "cpp": {
-          "sig": "void line_line_overlap_average(const Line& l0, const Line& l1, Line& out)",
-          "code": "void line_line_overlap_average(const Line& l0, const Line& l1, Line& out);",
-          "file": "line.h"
-        }
-      },
-      "related": [
-        "Line.__neg__",
-        "Line.__truediv__",
-        "Line.line_line_overlap",
-        "Line.overlap",
-        "Line.overlap_average",
-        "Line.transform",
-        "Line.transformed"
-      ]
-    },
-    {
-      "name": "Line.line_from_projected_points",
-      "implementations": {
-        "cpp": {
-          "sig": "bool line_from_projected_points(const Line& line, const std::vector<Point>& pts,\n                                Line& out)",
-          "code": "bool line_from_projected_points(const Line& line, const std::vector<Point>& pts,\n                                Line& out);",
-          "file": "line.h"
-        }
-      }
-    },
-    {
-      "name": "Line.extend_line",
-      "implementations": {
-        "cpp": {
-          "sig": "void extend_line(Line& line, double d0, double d1)",
-          "code": "void extend_line(Line& line, double d0, double d1);",
-          "file": "line.h"
-        }
-      },
-      "related": [
-        "Line.end",
-        "Line.extend"
-      ]
-    },
-    {
-      "name": "Line.extend_equally",
-      "implementations": {
-        "cpp": {
-          "sig": "void extend_equally(Line& line, double dist = 0, double proportion = 0)",
-          "code": "void extend_equally(Line& line, double dist = 0, double proportion = 0);",
-          "file": "line.h"
-        },
-        "rust": {
-          "sig": "extend_equally(distance: f64)",
-          "code": "pub fn extend_equally(&mut self, distance: f64) {\n        let len = self.length();\n        if len < crate::tolerance::Tolerance::ZERO_TOLERANCE {\n            return;\n        }\n        // Don't allow the line to collapse to zero or invert.\n        if distance < 0.0 && (-distance) * 2.0 >= len {\n            return;\n        }\n        let inv_len = 1.0 / len;\n        let dx = (self._x1 - self._x0) * inv_len * distance;\n        let dy = (self._y1 - self._y0) * inv_len * distance;\n        let dz = (self._z1 - self._z0) * inv_len * distance;\n        self._x0 -= dx;\n        self._y0 -= dy;\n        self._z0 -= dz;\n        self._x1 += dx;\n        self._y1 += dy;\n        self._z1 += dz;\n    }",
-          "file": "line.rs"
-        }
-      },
-      "related": [
-        "Line.end",
-        "Line.extend",
-        "Line.length"
-      ]
-    },
-    {
-      "name": "Line.scale_line",
-      "implementations": {
-        "cpp": {
-          "sig": "void scale_line(Line& line, double dist)",
-          "code": "void scale_line(Line& line, double dist);",
-          "file": "line.h"
-        }
-      }
     },
     {
       "name": "Line.parse",
@@ -72383,8 +72495,8 @@ window.API_INDEX = {
       "name": "ColorMode.loft",
       "implementations": {
         "cpp": {
-          "sig": "Mesh loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1, bool cap = true)",
-          "code": "static Mesh loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1, bool cap = true);",
+          "sig": "Mesh loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1, bool cap = true, bool fix_collinear = true)",
+          "code": "static Mesh loft(const std::vector<Polyline>& polylines0, const std::vector<Polyline>& polylines1, bool cap = true, bool fix_collinear = true);",
           "file": "mesh.h"
         }
       },
@@ -72410,8 +72522,8 @@ window.API_INDEX = {
       "name": "ColorMode.loft_many",
       "implementations": {
         "cpp": {
-          "sig": "std::vector<Mesh> loft_many(\n        const std::vector<std::pair<std::vector<Polyline>, std::vector<Polyline>>>& pairs,\n        bool cap = true, bool parallel = true)",
-          "code": "static std::vector<Mesh> loft_many(\n        const std::vector<std::pair<std::vector<Polyline>, std::vector<Polyline>>>& pairs,\n        bool cap = true, bool parallel = true);",
+          "sig": "std::vector<Mesh> loft_many(\n        const std::vector<std::pair<std::vector<Polyline>, std::vector<Polyline>>>& pairs,\n        bool cap = true, bool parallel = true, bool fix_collinear = true)",
+          "code": "static std::vector<Mesh> loft_many(\n        const std::vector<std::pair<std::vector<Polyline>, std::vector<Polyline>>>& pairs,\n        bool cap = true, bool parallel = true, bool fix_collinear = true);",
           "file": "mesh.h"
         }
       },
@@ -72479,6 +72591,26 @@ window.API_INDEX = {
         "ColorMode.normal",
         "ColorMode.vertices"
       ]
+    },
+    {
+      "name": "ColorMode.reflex_fold",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh reflex_fold(const Polyline& cross_section, const Polyline& profile)",
+          "code": "static Mesh reflex_fold(const Polyline& cross_section, const Polyline& profile);",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
+      "name": "ColorMode.miter_contours",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<std::tuple<\n        std::vector<Point>, std::vector<Point>,\n        std::vector<Point>, std::vector<Point>,\n        Vector>> miter_contours(const Mesh& shell, double thickness,\n                   double chamfer_bot, double chamfer_top, bool flatter,\n                   double chamfer_angle_deg = 90.0)",
+          "code": "static std::vector<std::tuple<\n        std::vector<Point>, std::vector<Point>,\n        std::vector<Point>, std::vector<Point>,\n        Vector>>\n    miter_contours(const Mesh& shell, double thickness,\n                   double chamfer_bot, double chamfer_top, bool flatter,\n                   double chamfer_angle_deg = 90.0);",
+          "file": "mesh.h"
+        }
+      }
     },
     {
       "name": "ColorMode.is_empty",
@@ -73750,6 +73882,73 @@ window.API_INDEX = {
         "Mesh.is_empty",
         "Mesh.vertex_point",
         "Mesh.vertices"
+      ]
+    },
+    {
+      "name": "session_cpp.Point",
+      "implementations": {
+        "cpp": {
+          "sig": "return Point(x / n, y / n, z / n)",
+          "code": "return session_cpp::Point(x / n, y / n, z / n);\n}",
+          "file": "mesh.cpp"
+        }
+      }
+    },
+    {
+      "name": "Mesh.miter_contours",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<std::tuple<\n    std::vector<Point>, std::vector<Point>,\n    std::vector<Point>, std::vector<Point>,\n    Vector>> miter_contours(const Mesh& shell, double thickness,\n                     double chamfer_bot, double chamfer_top, bool,\n                     double chamfer_angle_deg)",
+          "code": "std::vector<std::tuple<\n    std::vector<Point>, std::vector<Point>,\n    std::vector<Point>, std::vector<Point>,\n    Vector>>\nMesh::miter_contours(const Mesh& shell, double thickness,\n                     double chamfer_bot, double chamfer_top, bool,\n                     double chamfer_angle_deg) {\n    std::vector<std::tuple<\n        std::vector<Point>, std::vector<Point>,\n        std::vector<Point>, std::vector<Point>,\n        Vector>> result;\n    for (size_t fk : shell.faces()) {\n        auto fverts_opt = shell.face_vertices(fk);\n        if (!fverts_opt) continue;\n        const auto& fverts = *fverts_opt;\n        size_t n = fverts.size();\n\n        std::vector<Point> pts;\n        pts.reserve(n);\n        for (auto vk : fverts) {\n            auto p = shell.vertex_point(vk);\n            if (!p) { pts.clear(); break; }",
+          "file": "mesh.cpp"
+        }
+      },
+      "related": [
+        "Mesh.clear",
+        "Mesh.face_vertices",
+        "Mesh.faces",
+        "Mesh.vertex_point",
+        "Mesh.vertices"
+      ]
+    },
+    {
+      "name": "Mesh.reflex_fold",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh reflex_fold(const Polyline& cross_section, const Polyline& profile)",
+          "code": "Mesh Mesh::reflex_fold(const Polyline& cross_section, const Polyline& profile) {\n    size_t nCS = cross_section.point_count();\n    size_t nP  = profile.point_count();\n\n    std::vector<Plane> planes;\n    planes.reserve(nCS);\n    for (size_t i = 0; i < nCS; ++i) {\n        Vector normal(0, 0, 1);\n        if (i > 0 && i < nCS - 1) {\n            Point ci = cross_section[i];\n            Point cp = cross_section[i - 1];\n            Point cn = cross_section[i + 1];\n            Vector v1(cp[0]-ci[0], cp[1]-ci[1], cp[2]-ci[2]);\n            Vector v2(cn[0]-ci[0], cn[1]-ci[1], cn[2]-ci[2]);\n            v1 = v1.normalized();\n            v2 = v2.normalized();\n            normal = Vector(v1[0]+v2[0], v1[1]+v2[1], v1[2]+v2[2]);\n            normal.normalize_self();\n        }",
+          "file": "mesh.cpp"
+        }
+      }
+    },
+    {
+      "name": "MeshOffset.offset_planes",
+      "implementations": {
+        "cpp": {
+          "sig": "std::map<size_t, Plane> offset_planes(const Mesh& mesh, double distance)",
+          "code": "std::map<size_t, Plane> MeshOffset::offset_planes(const Mesh& mesh, double distance) {\n    return _offset_planes(mesh, distance);\n}",
+          "file": "mesh_offset.cpp"
+        }
+      },
+      "related": [
+        "MeshOffset.__init__",
+        "MeshOffset.from_mesh",
+        "MeshOffset.from_mesh_layers"
+      ]
+    },
+    {
+      "name": "MeshOffset.offset_vertices",
+      "implementations": {
+        "cpp": {
+          "sig": "std::map<size_t, Point> offset_vertices(\n    const Mesh& mesh,\n    const std::map<size_t, Plane>& planes)",
+          "code": "std::map<size_t, Point> MeshOffset::offset_vertices(\n    const Mesh& mesh,\n    const std::map<size_t, Plane>& planes)\n{\n    return _offset_vertices(mesh, planes);\n}",
+          "file": "mesh_offset.cpp"
+        }
+      },
+      "related": [
+        "MeshOffset.__init__",
+        "MeshOffset.from_mesh",
+        "MeshOffset.from_mesh_layers"
       ]
     },
     {
@@ -76146,7 +76345,6 @@ window.API_INDEX = {
         "Polyline.point_in_polygon_2d",
         "Polyline.polylabel",
         "Polyline.polylabel_circle_division_points",
-        "Polyline.polyline_two_rects_from_frame",
         "Polyline.project",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
@@ -76172,6 +76370,7 @@ window.API_INDEX = {
         "Polyline.translate",
         "Polyline.translated",
         "Polyline.tween_two_polylines",
+        "Polyline.two_rects_from_frame",
         "Polyline.xform"
       ]
     },
@@ -76328,7 +76527,6 @@ window.API_INDEX = {
         "Polyline.points",
         "Polyline.polylabel",
         "Polyline.polylabel_circle_division_points",
-        "Polyline.polyline_two_rects_from_frame",
         "Polyline.proj2d",
         "Polyline.project",
         "Polyline.pt_in_poly",
@@ -76347,6 +76545,7 @@ window.API_INDEX = {
         "Polyline.transformed_xform",
         "Polyline.translate",
         "Polyline.tween_two_polylines",
+        "Polyline.two_rects_from_frame",
         "Polyline.unproj",
         "Polyline.xform"
       ]
@@ -76442,6 +76641,22 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Polyline.two_rects_from_frame",
+      "implementations": {
+        "cpp": {
+          "sig": "void two_rects_from_frame(\n    const Point&  p,\n    const Vector& segment_vector,\n    const Vector& zaxis,\n    bool          middle,\n    double        radius,\n    double        length,\n    int           flip_male,\n    Polyline&     rect0,\n    Polyline&     rect1)",
+          "code": "void Polyline::two_rects_from_frame(\n    const Point&  p,\n    const Vector& segment_vector,\n    const Vector& zaxis,\n    bool          middle,\n    double        radius,\n    double        length,\n    int           flip_male,\n    Polyline&     rect0,\n    Polyline&     rect1)\n{\n    Vector y_axis = zaxis.cross(segment_vector);\n    Vector x_axis = y_axis.cross(segment_vector);\n    x_axis.normalize_self();\n    y_axis.normalize_self();\n    x_axis = x_axis * radius;\n    y_axis = y_axis * radius;\n\n    Vector sv0 = segment_vector * (length * -0.5);\n    Vector sv1 = segment_vector * ( length *  0.5);\n\n    std::array<Vector, 4> v = {\n        Vector(-x_axis[0] - y_axis[0], -x_axis[1] - y_axis[1], -x_axis[2] - y_axis[2]),\n        Vector( x_axis[0] - y_axis[0],  x_axis[1] - y_axis[1],  x_axis[2] - y_axis[2]),\n        Vector( x_axis[0] + y_axis[0],  x_axis[1] + y_axis[1],  x_axis[2] + y_axis[2]),\n        Vector(-x_axis[0] + y_axis[0], -x_axis[1] + y_axis[1], -x_axis[2] + y_axis[2]),\n    }",
+          "file": "polyline.cpp"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.flip",
+        "Polyline.len",
+        "Polyline.length"
+      ]
+    },
+    {
       "name": "Polyline.recompute_plane_if_needed",
       "implementations": {
         "cpp": {
@@ -76531,22 +76746,6 @@ window.API_INDEX = {
         "Polyline.simplify",
         "Polyline.simplify_perp_dist",
         "Polyline.simplify_points"
-      ]
-    },
-    {
-      "name": "Polyline.polyline_two_rects_from_frame",
-      "implementations": {
-        "cpp": {
-          "sig": "void polyline_two_rects_from_frame(\n    const Point&  p,\n    const Vector& segment_vector,\n    const Vector& zaxis,\n    bool          middle,\n    double        radius,\n    double        length,\n    int           flip_male,\n    Polyline&     rect0,\n    Polyline&     rect1)",
-          "code": "void polyline_two_rects_from_frame(\n    const Point&  p,\n    const Vector& segment_vector,\n    const Vector& zaxis,\n    bool          middle,\n    double        radius,\n    double        length,\n    int           flip_male,\n    Polyline&     rect0,\n    Polyline&     rect1);",
-          "file": "polyline.h"
-        }
-      },
-      "related": [
-        "Polyline.Polyline",
-        "Polyline.flip",
-        "Polyline.len",
-        "Polyline.length"
       ]
     },
     {
@@ -76903,6 +77102,16 @@ window.API_INDEX = {
         "Quaternion.str",
         "Quaternion.type"
       ]
+    },
+    {
+      "name": "Reciprocal.get_lines",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<Line> get_lines(\n    const std::vector<Line>&             lines,\n    const std::vector<Plane>&            lp,\n    const std::vector<std::vector<int>>& fe,\n    std::vector<std::array<Plane,2>>&    end_planes,\n    double move)",
+          "code": "std::vector<Line> Reciprocal::get_lines(\n    const std::vector<Line>&             lines,\n    const std::vector<Plane>&            lp,\n    const std::vector<std::vector<int>>& fe,\n    std::vector<std::array<Plane,2>>&    end_planes,\n    double move)\n{\n    int ne = (int)lines.size();\n    int nf = (int)fe.size();\n\n    std::vector<Line> moved = lines;\n    for (int i = 0; i < ne; i++)\n        moved[i] += lp[i].y_axis() * move;\n\n    std::vector<std::vector<Point>> pts(ne);\n    std::vector<std::vector<int>>   pid(ne);\n\n    for (int fi = 0; fi < nf; fi++) {\n        int n = (int)fe[fi].size();\n        for (int j = 0; j < n; j++) {\n            int cur  = fe[fi][j];\n            int prev = fe[fi][((j - 1) % n + n) % n];\n            int next = fe[fi][(j + 1) % n];\n            Point p0, p1;\n            if (Intersection::line_plane(moved[cur], lp[prev], p0, false)) {\n                pts[cur].push_back(p0);\n                pid[cur].push_back(prev);\n            }",
+          "file": "reciprocal.cpp"
+        }
+      }
     },
     {
       "name": "Delaunay.CleanUp",
@@ -81308,6 +81517,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.add_face",
         "Mesh.add_vertex",
+        "Mesh.align_cost",
         "Mesh.centroid",
         "Mesh.clone_with_new_guid",
         "Mesh.create_box",
@@ -81316,7 +81526,6 @@ window.API_INDEX = {
         "Mesh.duplicate",
         "Mesh.edge_edges",
         "Mesh.edges",
-        "Mesh.edsq",
         "Mesh.face_area",
         "Mesh.face_centroid",
         "Mesh.face_normal",
@@ -81348,7 +81557,6 @@ window.API_INDEX = {
         "Mesh.pointcolors",
         "Mesh.ray_cast_bvh",
         "Mesh.remove_edge",
-        "Mesh.side_faces",
         "Mesh.str",
         "Mesh.to_vertices_and_faces",
         "Mesh.transform",
@@ -82636,8 +82844,8 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.line_line_overlap_average",
-        "Polyline.polyline_two_rects_from_frame",
-        "Polyline.reverse"
+        "Polyline.reverse",
+        "Polyline.two_rects_from_frame"
       ]
     },
     {
@@ -88682,7 +88890,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Mesh\", \"Loft concave with holes and collinear\")",
-          "code": "MINI_TEST(\"Mesh\", \"Loft concave with holes and collinear\") {\n        // uncomment #include \"mesh.h\"\n\n        std::vector<Polyline> annen_bot = {\n            Polyline({\n                {2142.008, -530.170, 1172.487},\n                {2142.008, -530.170, -318.768},\n                {2142.008, -318.102, -318.768},\n                {2142.008, -347.792, -414.110},\n                {2142.008, -106.034, -414.110},\n                {2142.008, -135.724, -318.768},\n                {2142.008,  106.034, -318.768},\n                {2142.008,   76.344, -414.110},\n                {2142.008,  318.102, -414.110},\n                {2142.008,  288.412, -318.768},\n                {2142.008,  530.170, -318.768},\n                {2142.008,  530.170, 1172.487},\n                {2142.008, -530.170, 1172.487},\n            }),\n            Polyline({\n                {2142.008, 97.448,  841.097},\n                {2142.008,  0.000,  841.097},\n                {2142.008,  0.000, 1006.792},\n                {2142.008, 97.448, 1006.792},\n                {2142.008, 97.448,  841.097},\n            }),\n            Polyline({\n                {2142.008, 97.448, 178.317},\n                {2142.008,  0.000, 178.317},\n                {2142.008,  0.000, 344.012},\n                {2142.008, 97.448, 344.012},\n                {2142.008, 97.448, 178.317},\n            }),\n        };\n        std::vector<Polyline> annen_top = {\n            Polyline({\n                {2223.416, -530.170, 1172.487},\n                {2223.416, -530.170, -269.141},\n                {2223.416, -318.102, -269.141},\n                {2223.416, -347.792, -364.483},\n                {2223.416, -106.034, -364.483},\n                {2223.416, -135.724, -269.141},\n                {2223.416,  106.034, -269.141},\n                {2223.416,   76.344, -364.483},\n                {2223.416,  318.102, -364.483},\n                {2223.416,  288.412, -269.141},\n                {2223.416,  530.170, -269.141},\n                {2223.416,  530.170, 1172.487},\n                {2223.416, -530.170, 1172.487},\n            }),\n            Polyline({\n                {2223.416, 97.448,  841.097},\n                {2223.416,  0.000,  841.097},\n                {2223.416,  0.000, 1006.792},\n                {2223.416, 97.448, 1006.792},\n                {2223.416, 97.448,  841.097},\n            }),\n            Polyline({\n                {2223.416, 97.448, 178.317},\n                {2223.416,  0.000, 178.317},\n                {2223.416,  0.000, 344.012},\n                {2223.416, 97.448, 344.012},\n                {2223.416, 97.448, 178.317},\n            }),\n        };\n        Mesh annen = Mesh::loft(annen_bot, annen_top, true);\n        MINI_CHECK(annen.is_valid());\n        MINI_CHECK(annen.is_closed());\n        MINI_CHECK(annen.vertex.size() == 40);\n        MINI_CHECK(annen.face.size() == 22);\n\n        std::vector<Polyline> col_bot = {\n            Polyline({\n                { 0, 0, 0},\n                { 4, 0, 0},\n                { 7, 0, 0},\n                {12, 0, 0},\n                {12, 5, 0},\n                { 0, 5, 0},\n                { 0, 0, 0},\n            }),\n        };\n        std::vector<Polyline> col_top = {\n            Polyline({\n                { 0, 0, 1.5},\n                { 4, 0, 1.5},\n                { 7, 0, 1.5},\n                {12, 0, 1.5},\n                {12, 5, 1.5},\n                { 0, 5, 1.5},\n                { 0, 0, 1.5},\n            }),\n        };\n        Mesh colmesh = Mesh::loft(col_bot, col_top, true);\n        MINI_CHECK(colmesh.is_valid());\n        MINI_CHECK(colmesh.is_closed());\n        MINI_CHECK(colmesh.vertex.size() == 8);\n        MINI_CHECK(colmesh.face.size() == 6);\n    }",
+          "code": "MINI_TEST(\"Mesh\", \"Loft concave with holes and collinear\") {\n        // uncomment #include \"mesh.h\"\n\n        std::vector<Polyline> annen_bot = {\n            Polyline({\n                {2142.008, -530.170, 1172.487},\n                {2142.008, -530.170, -318.768},\n                {2142.008, -318.102, -318.768},\n                {2142.008, -347.792, -414.110},\n                {2142.008, -106.034, -414.110},\n                {2142.008, -135.724, -318.768},\n                {2142.008,  106.034, -318.768},\n                {2142.008,   76.344, -414.110},\n                {2142.008,  318.102, -414.110},\n                {2142.008,  288.412, -318.768},\n                {2142.008,  530.170, -318.768},\n                {2142.008,  530.170, 1172.487},\n                {2142.008, -530.170, 1172.487},\n            }),\n            Polyline({\n                {2142.008, 97.448,  841.097},\n                {2142.008,  0.000,  841.097},\n                {2142.008,  0.000, 1006.792},\n                {2142.008, 97.448, 1006.792},\n                {2142.008, 97.448,  841.097},\n            }),\n            Polyline({\n                {2142.008, 97.448, 178.317},\n                {2142.008,  0.000, 178.317},\n                {2142.008,  0.000, 344.012},\n                {2142.008, 97.448, 344.012},\n                {2142.008, 97.448, 178.317},\n            }),\n        };\n        std::vector<Polyline> annen_top = {\n            Polyline({\n                {2223.416, -530.170, 1172.487},\n                {2223.416, -530.170, -269.141},\n                {2223.416, -318.102, -269.141},\n                {2223.416, -347.792, -364.483},\n                {2223.416, -106.034, -364.483},\n                {2223.416, -135.724, -269.141},\n                {2223.416,  106.034, -269.141},\n                {2223.416,   76.344, -364.483},\n                {2223.416,  318.102, -364.483},\n                {2223.416,  288.412, -269.141},\n                {2223.416,  530.170, -269.141},\n                {2223.416,  530.170, 1172.487},\n                {2223.416, -530.170, 1172.487},\n            }),\n            Polyline({\n                {2223.416, 97.448,  841.097},\n                {2223.416,  0.000,  841.097},\n                {2223.416,  0.000, 1006.792},\n                {2223.416, 97.448, 1006.792},\n                {2223.416, 97.448,  841.097},\n            }),\n            Polyline({\n                {2223.416, 97.448, 178.317},\n                {2223.416,  0.000, 178.317},\n                {2223.416,  0.000, 344.012},\n                {2223.416, 97.448, 344.012},\n                {2223.416, 97.448, 178.317},\n            }),\n        };\n        Mesh annen = Mesh::loft(annen_bot, annen_top, true);\n        MINI_CHECK(annen.is_valid());\n        MINI_CHECK(annen.is_closed());\n        MINI_CHECK(annen.vertex.size() == 40);\n        MINI_CHECK(annen.face.size() == 22);\n\n        std::vector<Polyline> col_bot = {\n            Polyline({\n                { 0, 0, 0},\n                { 4, 0, 0},\n                { 7, 0, 0},\n                {12, 0, 0},\n                {12, 5, 0},\n                { 0, 5, 0},\n                { 0, 0, 0},\n            }),\n        };\n        std::vector<Polyline> col_top = {\n            Polyline({\n                { 0, 0, 1.5},\n                { 4, 0, 1.5},\n                { 7, 0, 1.5},\n                {12, 0, 1.5},\n                {12, 5, 1.5},\n                { 0, 5, 1.5},\n                { 0, 0, 1.5},\n            }),\n        };\n        Mesh colmesh = Mesh::loft(col_bot, col_top, true);\n        MINI_CHECK(colmesh.is_valid());\n        MINI_CHECK(colmesh.is_closed());\n        MINI_CHECK(colmesh.vertex.size() == 12);\n        MINI_CHECK(colmesh.face.size() == 8);\n    }",
           "file": "mesh_test.cpp"
         },
         "python": {
@@ -88949,6 +89157,146 @@ window.API_INDEX = {
           "sig": "MINI_TEST!(\"Mesh\", \"Edges\")",
           "code": "MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);",
           "file": "mesh_test.rs"
+        }
+      }
+    },
+    {
+      "name": "MeshOffset.test_from_mesh",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"MeshOffset\", \"from_mesh\")",
+          "code": "MINI_TEST(\"MeshOffset\", \"from_mesh\") {\n        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        Mesh result = MeshOffset::from_mesh(mesh, 1.0);\n        Mesh copy = result;\n        MINI_CHECK(result.is_valid());\n        MINI_CHECK(result == copy);\n        MINI_CHECK(!(result != copy));\n        MINI_CHECK(result.number_of_vertices() == 8);\n        MINI_CHECK(result.number_of_faces() == 6);\n    }",
+          "file": "mesh_offset_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"MeshOffset\", \"from_mesh\")",
+          "code": "@MINI_TEST(\"MeshOffset\", \"from_mesh\")\ndef test_mesh_offset_from_mesh():\n    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    result = MeshOffset.from_mesh(mesh, 1.0)\n    import copy as _copy\n    copy = _copy.copy(result)\n    MINI_CHECK(result.is_valid())\n    MINI_CHECK(result == copy)\n    MINI_CHECK(not (result != copy))\n    MINI_CHECK(result.number_of_vertices() == 8)\n    MINI_CHECK(result.number_of_faces() == 6)",
+          "file": "mesh_offset_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"MeshOffset\", \"from_mesh\")",
+          "code": "MINI_TEST!(\"MeshOffset\", \"from_mesh\", crate::mesh_offset_test::run_mesh_offset_from_mesh);\n\npub fn run_mesh_offset_from_mesh_grid() -> TestResult {\n    MINI_TEST!(\"from_mesh_grid\", {\n        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 1.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n        ];\n        let faces = vec![\n            vec![0, 1, 4, 3],\n            vec![1, 2, 5, 4],\n            vec![3, 4, 7, 6],\n            vec![4, 5, 8, 7],\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, faces);\n        let result = MeshOffset::from_mesh(&mesh, 2.0);\n        MINI_CHECK!(result.is_valid());\n        MINI_CHECK!(result.number_of_vertices() == 18);\n        MINI_CHECK!(result.number_of_faces() == 16);\n    })\n}",
+          "file": "mesh_offset_test.rs"
+        }
+      }
+    },
+    {
+      "name": "MeshOffset.test_from_mesh_grid",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"MeshOffset\", \"from_mesh_grid\")",
+          "code": "MINI_TEST(\"MeshOffset\", \"from_mesh_grid\") {\n        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(2, 0, 0),\n            Point(0, 1, 0),\n            Point(1, 1, 0),\n            Point(2, 1, 0),\n            Point(0, 2, 0),\n            Point(1, 2, 0),\n            Point(2, 2, 0),\n        };\n        std::vector<std::vector<size_t>> faces = {\n            {0, 1, 4, 3},\n            {1, 2, 5, 4},\n            {3, 4, 7, 6},\n            {4, 5, 8, 7},\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, faces);\n        Mesh result = MeshOffset::from_mesh(mesh, 2.0);\n        MINI_CHECK(result.is_valid());\n        MINI_CHECK(result.number_of_vertices() == 18);\n        MINI_CHECK(result.number_of_faces() == 16);\n    }",
+          "file": "mesh_offset_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"MeshOffset\", \"from_mesh_grid\")",
+          "code": "@MINI_TEST(\"MeshOffset\", \"from_mesh_grid\")\ndef test_mesh_offset_from_mesh_grid():\n    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(2, 0, 0),\n        Point(0, 1, 0),\n        Point(1, 1, 0),\n        Point(2, 1, 0),\n        Point(0, 2, 0),\n        Point(1, 2, 0),\n        Point(2, 2, 0),\n    ]\n    faces = [\n        [0, 1, 4, 3],\n        [1, 2, 5, 4],\n        [3, 4, 7, 6],\n        [4, 5, 8, 7],\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, faces)\n    result = MeshOffset.from_mesh(mesh, 2.0)\n    MINI_CHECK(result.is_valid())\n    MINI_CHECK(result.number_of_vertices() == 18)\n    MINI_CHECK(result.number_of_faces() == 16)",
+          "file": "mesh_offset_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"MeshOffset\", \"from_mesh_grid\")",
+          "code": "MINI_TEST!(\"MeshOffset\", \"from_mesh_grid\", crate::mesh_offset_test::run_mesh_offset_from_mesh_grid);\n\npub fn run_mesh_offset_from_mesh_layers() -> TestResult {\n    MINI_TEST!(\"from_mesh_layers\", {\n        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2, 3]]);\n        let layers = MeshOffset::from_mesh_layers(&mesh, 1.0);\n        MINI_CHECK!(layers.bottom.is_valid());\n        MINI_CHECK!(layers.top.is_valid());\n        MINI_CHECK!(layers.sides.is_valid());\n        MINI_CHECK!(layers.bottom.number_of_vertices() == 4);\n        MINI_CHECK!(layers.bottom.number_of_faces() == 1);\n        MINI_CHECK!(layers.top.number_of_vertices() == 4);\n        MINI_CHECK!(layers.top.number_of_faces() == 1);\n        MINI_CHECK!(layers.sides.number_of_faces() == 4);\n    })\n}",
+          "file": "mesh_offset_test.rs"
+        }
+      }
+    },
+    {
+      "name": "MeshOffset.test_from_mesh_layers",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"MeshOffset\", \"from_mesh_layers\")",
+          "code": "MINI_TEST(\"MeshOffset\", \"from_mesh_layers\") {\n        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        auto layers = MeshOffset::from_mesh_layers(mesh, 1.0);\n        MINI_CHECK(layers.bottom.is_valid());\n        MINI_CHECK(layers.top.is_valid());\n        MINI_CHECK(layers.sides.is_valid());\n        MINI_CHECK(layers.bottom.number_of_vertices() == 4);\n        MINI_CHECK(layers.bottom.number_of_faces() == 1);\n        MINI_CHECK(layers.top.number_of_vertices() == 4);\n        MINI_CHECK(layers.top.number_of_faces() == 1);\n        MINI_CHECK(layers.sides.number_of_faces() == 4);\n    }",
+          "file": "mesh_offset_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"MeshOffset\", \"from_mesh_layers\")",
+          "code": "@MINI_TEST(\"MeshOffset\", \"from_mesh_layers\")\ndef test_mesh_offset_from_mesh_layers():\n    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    layers = MeshOffset.from_mesh_layers(mesh, 1.0)\n    MINI_CHECK(layers.bottom.is_valid())\n    MINI_CHECK(layers.top.is_valid())\n    MINI_CHECK(layers.sides.is_valid())\n    MINI_CHECK(layers.bottom.number_of_vertices() == 4)\n    MINI_CHECK(layers.bottom.number_of_faces() == 1)\n    MINI_CHECK(layers.top.number_of_vertices() == 4)\n    MINI_CHECK(layers.top.number_of_faces() == 1)\n    MINI_CHECK(layers.sides.number_of_faces() == 4)",
+          "file": "mesh_offset_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"MeshOffset\", \"from_mesh_layers\")",
+          "code": "MINI_TEST!(\"MeshOffset\", \"from_mesh_layers\", crate::mesh_offset_test::run_mesh_offset_from_mesh_layers);\n\npub fn run_mesh_offset_file_json_dump() -> TestResult {\n    MINI_TEST!(\"file_json_dump\", {\n        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2, 3]]);\n        let result = MeshOffset::from_mesh(&mesh, 1.0);\n        result.file_json_dump(\"mesh_offset_test_dump.json\");\n        let loaded = Mesh::file_json_load(\"mesh_offset_test_dump.json\").unwrap();\n        MINI_CHECK!(loaded.is_valid());\n        MINI_CHECK!(loaded.number_of_vertices() == result.number_of_vertices());\n        MINI_CHECK!(loaded.number_of_faces() == result.number_of_faces());\n    })\n}",
+          "file": "mesh_offset_test.rs"
+        }
+      }
+    },
+    {
+      "name": "MeshOffset.test_file_json_dump",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"MeshOffset\", \"file_json_dump\")",
+          "code": "MINI_TEST(\"MeshOffset\", \"file_json_dump\") {\n        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        Mesh result = MeshOffset::from_mesh(mesh, 1.0);\n        result.file_json_dump(\"mesh_offset_test_dump.json\");\n        Mesh loaded = Mesh::file_json_load(\"mesh_offset_test_dump.json\");\n        MINI_CHECK(loaded.is_valid());\n        MINI_CHECK(loaded.number_of_vertices() == result.number_of_vertices());\n        MINI_CHECK(loaded.number_of_faces() == result.number_of_faces());\n    }",
+          "file": "mesh_offset_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"MeshOffset\", \"file_json_dump\")",
+          "code": "@MINI_TEST(\"MeshOffset\", \"file_json_dump\")\ndef test_mesh_offset_file_json_dump():\n    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    result = MeshOffset.from_mesh(mesh, 1.0)\n    result.file_json_dump(\"mesh_offset_test_dump.json\")\n    loaded = Mesh.file_json_load(\"mesh_offset_test_dump.json\")\n    MINI_CHECK(loaded.is_valid())\n    MINI_CHECK(loaded.number_of_vertices() == result.number_of_vertices())\n    MINI_CHECK(loaded.number_of_faces() == result.number_of_faces())",
+          "file": "mesh_offset_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"MeshOffset\", \"file_json_dump\")",
+          "code": "MINI_TEST!(\"MeshOffset\", \"file_json_dump\", crate::mesh_offset_test::run_mesh_offset_file_json_dump);\n\npub fn run_mesh_offset_file_json_load() -> TestResult {\n    MINI_TEST!(\"file_json_load\", {\n        use crate::Mesh;\n        let loaded = Mesh::file_json_load(\"mesh_offset_test_dump.json\").unwrap();\n        MINI_CHECK!(loaded.is_valid());\n        MINI_CHECK!(loaded.number_of_vertices() == 8);\n        MINI_CHECK!(loaded.number_of_faces() == 6);\n    })\n}",
+          "file": "mesh_offset_test.rs"
+        }
+      }
+    },
+    {
+      "name": "MeshOffset.test_file_json_load",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"MeshOffset\", \"file_json_load\")",
+          "code": "MINI_TEST(\"MeshOffset\", \"file_json_load\") {\n        Mesh loaded = Mesh::file_json_load(\"mesh_offset_test_dump.json\");\n        MINI_CHECK(loaded.is_valid());\n        MINI_CHECK(loaded.number_of_vertices() == 8);\n        MINI_CHECK(loaded.number_of_faces() == 6);\n    }",
+          "file": "mesh_offset_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"MeshOffset\", \"file_json_load\")",
+          "code": "@MINI_TEST(\"MeshOffset\", \"file_json_load\")\ndef test_mesh_offset_file_json_load():\n    from session_py import Mesh\n    loaded = Mesh.file_json_load(\"mesh_offset_test_dump.json\")\n    MINI_CHECK(loaded.is_valid())\n    MINI_CHECK(loaded.number_of_vertices() == 8)\n    MINI_CHECK(loaded.number_of_faces() == 6)",
+          "file": "mesh_offset_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"MeshOffset\", \"file_json_load\")",
+          "code": "MINI_TEST!(\"MeshOffset\", \"file_json_load\", crate::mesh_offset_test::run_mesh_offset_file_json_load);\n\npub fn run_mesh_offset_to_proto() -> TestResult {\n    MINI_TEST!(\"to_proto\", {\n        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2, 3]]);\n        let result = MeshOffset::from_mesh(&mesh, 1.0);\n        result.pb_dump(\"mesh_offset_test.pb\");\n        let loaded = Mesh::pb_load(\"mesh_offset_test.pb\");\n        MINI_CHECK!(loaded.is_valid());\n        MINI_CHECK!(loaded.number_of_vertices() == result.number_of_vertices());\n        MINI_CHECK!(loaded.number_of_faces() == result.number_of_faces());\n    })\n}",
+          "file": "mesh_offset_test.rs"
+        }
+      }
+    },
+    {
+      "name": "MeshOffset.test_to_proto",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"MeshOffset\", \"to_proto\")",
+          "code": "MINI_TEST(\"MeshOffset\", \"to_proto\") {\n        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        Mesh result = MeshOffset::from_mesh(mesh, 1.0);\n        result.pb_dump(\"mesh_offset_test.pb\");\n        Mesh loaded = Mesh::pb_load(\"mesh_offset_test.pb\");\n        MINI_CHECK(loaded.is_valid());\n        MINI_CHECK(loaded.number_of_vertices() == result.number_of_vertices());\n        MINI_CHECK(loaded.number_of_faces() == result.number_of_faces());\n    }",
+          "file": "mesh_offset_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"MeshOffset\", \"to_proto\")",
+          "code": "@MINI_TEST(\"MeshOffset\", \"to_proto\")\ndef test_mesh_offset_to_proto():\n    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    result = MeshOffset.from_mesh(mesh, 1.0)\n    result.pb_dump(\"mesh_offset_test.pb\")\n    loaded = Mesh.pb_load(\"mesh_offset_test.pb\")\n    MINI_CHECK(loaded.is_valid())\n    MINI_CHECK(loaded.number_of_vertices() == result.number_of_vertices())\n    MINI_CHECK(loaded.number_of_faces() == result.number_of_faces())",
+          "file": "mesh_offset_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"MeshOffset\", \"to_proto\")",
+          "code": "MINI_TEST!(\"MeshOffset\", \"to_proto\", crate::mesh_offset_test::run_mesh_offset_to_proto);\n\npub fn run_mesh_offset_from_proto() -> TestResult {\n    MINI_TEST!(\"from_proto\", {\n        use crate::Mesh;\n        let loaded = Mesh::pb_load(\"mesh_offset_test.pb\");\n        MINI_CHECK!(loaded.is_valid());\n        MINI_CHECK!(loaded.number_of_vertices() == 8);\n        MINI_CHECK!(loaded.number_of_faces() == 6);\n    })\n}",
+          "file": "mesh_offset_test.rs"
+        }
+      }
+    },
+    {
+      "name": "MeshOffset.test_from_proto",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"MeshOffset\", \"from_proto\")",
+          "code": "MINI_TEST(\"MeshOffset\", \"from_proto\") {\n        Mesh loaded = Mesh::pb_load(\"mesh_offset_test.pb\");\n        MINI_CHECK(loaded.is_valid());\n        MINI_CHECK(loaded.number_of_vertices() == 8);\n        MINI_CHECK(loaded.number_of_faces() == 6);\n    }",
+          "file": "mesh_offset_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"MeshOffset\", \"from_proto\")",
+          "code": "@MINI_TEST(\"MeshOffset\", \"from_proto\")\ndef test_mesh_offset_from_proto():\n    from session_py import Mesh\n    loaded = Mesh.pb_load(\"mesh_offset_test.pb\")\n    MINI_CHECK(loaded.is_valid())\n    MINI_CHECK(loaded.number_of_vertices() == 8)\n    MINI_CHECK(loaded.number_of_faces() == 6)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "file": "mesh_offset_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"MeshOffset\", \"from_proto\")",
+          "code": "MINI_TEST!(\"MeshOffset\", \"from_proto\", crate::mesh_offset_test::run_mesh_offset_from_proto);",
+          "file": "mesh_offset_test.rs"
         }
       }
     },
@@ -93153,6 +93501,21 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Reciprocal.test_from_mesh",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Reciprocal\", \"from_mesh\")",
+          "code": "MINI_TEST(\"Reciprocal\", \"from_mesh\") {\n        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(2, 0, 0),\n            Point(0, 1, 0),\n            Point(1, 1, 0),\n            Point(2, 1, 0),\n            Point(0, 2, 0),\n            Point(1, 2, 0),\n            Point(2, 2, 0),\n        };\n        std::vector<std::vector<size_t>> faces = {\n            {0, 1, 4, 3},\n            {1, 2, 5, 4},\n            {3, 4, 7, 6},\n            {4, 5, 8, 7},\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, faces);\n        auto r = Reciprocal::from_mesh(mesh, 0.7, 1.4, true, 1.0);\n        int ne = (int)mesh.number_of_edges();\n        MINI_CHECK((int)r.center.size() == ne);\n        MINI_CHECK((int)r.top.size() == ne);\n        MINI_CHECK((int)r.bottom.size() == ne);\n        MINI_CHECK((int)r.lineplanes.size() == ne);\n        MINI_CHECK((int)r.endplanes.size() == ne);\n        MINI_CHECK(r.center[0].length() > 0.0);\n        MINI_CHECK(r.lineplanes[0].is_valid());\n    }",
+          "file": "reciprocal_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Reciprocal\", \"from_mesh\")",
+          "code": "@MINI_TEST(\"Reciprocal\", \"from_mesh\")\ndef test_reciprocal_from_mesh():\n    from session_py import Mesh\n    from session_py import Point\n    from session_py.reciprocal import Reciprocal\n\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(2, 0, 0),\n        Point(0, 1, 0),\n        Point(1, 1, 0),\n        Point(2, 1, 0),\n        Point(0, 2, 0),\n        Point(1, 2, 0),\n        Point(2, 2, 0),\n    ]\n    faces = [\n        [0, 1, 4, 3],\n        [1, 2, 5, 4],\n        [3, 4, 7, 6],\n        [4, 5, 8, 7],\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, faces)\n    r = Reciprocal.from_mesh(mesh, 0.7, 1.4, True, 1.0)\n    ne = mesh.number_of_edges()\n    MINI_CHECK(len(r.center) == ne)\n    MINI_CHECK(len(r.top) == ne)\n    MINI_CHECK(len(r.bottom) == ne)\n    MINI_CHECK(len(r.lineplanes) == ne)\n    MINI_CHECK(len(r.endplanes) == ne)\n    MINI_CHECK(r.center[0].length() > 0.0)\n    MINI_CHECK(r.lineplanes[0].is_valid())\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "file": "reciprocal_test.py"
+        }
+      }
+    },
+    {
       "name": "RemeshCDT.test_Triangulate",
       "implementations": {
         "cpp": {
@@ -96588,26 +96951,6 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "Vector.test_Interpolate Points",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Vector\", \"Interpolate Points\")",
-          "code": "MINI_TEST(\"Vector\", \"Interpolate Points\") {\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    Point from(0.0, 0.0, 0.0);\n    Point to(1.0, 0.0, 0.0);\n    std::vector<Point> pts0;\n    interpolate_points(from, to, 2, pts0, 0);\n    std::vector<Point> pts1;\n    interpolate_points(from, to, 1, pts1, 1);\n\n    MINI_CHECK((int)pts0.size() == 2);\n    MINI_CHECK(TOLERANCE.is_close(pts0[0][0], 1.0 / 3.0));\n    MINI_CHECK(TOLERANCE.is_close(pts0[1][0], 2.0 / 3.0));\n    MINI_CHECK((int)pts1.size() == 3);\n    MINI_CHECK(TOLERANCE.is_close(pts1[0][0], 0.0) && TOLERANCE.is_close(pts1[2][0], 1.0));\n}",
-          "file": "vector_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Vector\", \"Interpolate Points\")",
-          "code": "@MINI_TEST(\"Vector\", \"Interpolate Points\")\ndef test_vector_interpolate_points():\n    from session_py import Point\n    from session_py.vector import interpolate_points\n\n    from_pt = Point(0.0, 0.0, 0.0)\n    to_pt = Point(1.0, 0.0, 0.0)\n    pts0 = interpolate_points(from_pt, to_pt, 2, 0)\n    pts1 = interpolate_points(from_pt, to_pt, 1, 1)\n\n    MINI_CHECK(len(pts0) == 2)\n    MINI_CHECK(TOLERANCE.is_close(pts0[0][0], 1.0 / 3.0))\n    MINI_CHECK(TOLERANCE.is_close(pts0[1][0], 2.0 / 3.0))\n    MINI_CHECK(len(pts1) == 3)\n    MINI_CHECK(TOLERANCE.is_close(pts1[0][0], 0.0) and TOLERANCE.is_close(pts1[2][0], 1.0))",
-          "file": "vector_test.py"
-        },
-        "rust": {
-          "sig": "MINI_TEST!(\"Vector\", \"Interpolate Points\")",
-          "code": "MINI_TEST!(\"Vector\", \"Interpolate Points\", crate::vector_test::run_vector_interpolate_points);\nREGISTER_MINI_TEST!(\"Vector\", \"Json Roundtrip\", crate::vector_test::run_vector_json_roundtrip);\nREGISTER_MINI_TEST!(\"Vector\", \"Protobuf Roundtrip\", crate::vector_test::run_vector_protobuf_roundtrip);",
-          "file": "vector_test.rs"
-        }
-      }
-    },
-    {
       "name": "Vector.test_Json Roundtrip",
       "implementations": {
         "cpp": {
@@ -97108,6 +97451,21 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Vector.test_Interpolate Points",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Vector\", \"Interpolate Points\")",
+          "code": "@MINI_TEST(\"Vector\", \"Interpolate Points\")\ndef test_vector_interpolate_points():\n    from session_py import Point\n    from session_py.vector import interpolate_points\n\n    from_pt = Point(0.0, 0.0, 0.0)\n    to_pt = Point(1.0, 0.0, 0.0)\n    pts0 = interpolate_points(from_pt, to_pt, 2, 0)\n    pts1 = interpolate_points(from_pt, to_pt, 1, 1)\n\n    MINI_CHECK(len(pts0) == 2)\n    MINI_CHECK(TOLERANCE.is_close(pts0[0][0], 1.0 / 3.0))\n    MINI_CHECK(TOLERANCE.is_close(pts0[1][0], 2.0 / 3.0))\n    MINI_CHECK(len(pts1) == 3)\n    MINI_CHECK(TOLERANCE.is_close(pts1[0][0], 0.0) and TOLERANCE.is_close(pts1[2][0], 1.0))",
+          "file": "vector_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Vector\", \"Interpolate Points\")",
+          "code": "MINI_TEST!(\"Vector\", \"Interpolate Points\", crate::vector_test::run_vector_interpolate_points);\nREGISTER_MINI_TEST!(\"Vector\", \"Json Roundtrip\", crate::vector_test::run_vector_json_roundtrip);\nREGISTER_MINI_TEST!(\"Vector\", \"Protobuf Roundtrip\", crate::vector_test::run_vector_protobuf_roundtrip);",
+          "file": "vector_test.rs"
+        }
+      }
+    },
+    {
       "name": "Objects.test_Component Protobuf Roundtrip",
       "implementations": {
         "rust": {
@@ -97122,11 +97480,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "points",
-        "subdivide",
+        "n",
         "circle",
         "into",
-        "n",
+        "subdivide",
+        "points",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -97140,10 +97498,10 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "length",
-        "ellipse",
-        "arc",
         "by",
+        "length",
+        "arc",
+        "ellipse",
         "subdivide",
         "divide_by_length",
         "nurbscurve",
@@ -97174,12 +97532,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "points",
         "open",
         "adaptive",
         "from",
-        "curve",
         "polyline",
+        "points",
+        "curve",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -97194,10 +97552,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "curve",
         "evaluation",
-        "parameter",
         "at",
+        "curve",
+        "parameter",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -97216,10 +97574,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "curve",
-        "along",
-        "length",
         "frames",
+        "along",
+        "curve",
+        "length",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -97241,9 +97599,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "frames",
         "perpendicular",
         "ellipse",
-        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -97264,10 +97622,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "point",
-        "surface",
-        "cylinder",
         "evaluate",
+        "surface",
+        "point",
+        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -97282,11 +97640,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "from",
+        "and",
         "mesh",
         "vertices",
+        "from",
         "faces",
-        "and",
         "add_vertex",
         "add_face",
         "vertex"
@@ -97341,6 +97699,7 @@ window.API_INDEX = {
     "LoftPanel": "LoftPanel geometry class",
     "LoftAdjPair": "LoftAdjPair geometry class",
     "Mesh": "A halfedge mesh data structure for representing polygonal surfaces.",
+    "MeshOffset": "MeshOffset geometry class",
     "NurbsCurve": "A Non-Uniform Rational B-Spline (NURBS) curve.",
     "CurveNurbsKnotStyle": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle).",
     "NurbsSurface": "A Non-Uniform Rational B-Spline (NURBS) surface.",
@@ -97353,6 +97712,8 @@ window.API_INDEX = {
     "Polyline": "A polyline defined by a collection of coordinates with an associated plane.",
     "Primitives": "Static factory methods for creating NURBS curve primitives.",
     "Quaternion": "A quaternion for 3D rotations (scalar + vector).",
+    "ReciprocalResult": "ReciprocalResult geometry class",
+    "Reciprocal": "Reciprocal geometry class",
     "_P64": "_P64 geometry class",
     "_V2": "_V2 geometry class",
     "_Edge": "_Edge geometry class",
@@ -97382,6 +97743,7 @@ window.API_INDEX = {
     "T": "T geometry class",
     "Intersection": "Intersection geometry class",
     "ColorMode": "ColorMode geometry class",
+    "session_cpp": "session_cpp geometry class",
     "nurbsknot": "nurbsknot geometry class",
     "Delaunay2D": "Delaunay2D geometry class",
     "FlatMap64": "FlatMap64 geometry class",
@@ -97415,12 +97777,6 @@ window.API_INDEX = {
       ],
       "summary": "RemeshNurbsSurfaceGrid geometry class"
     },
-    "GlobalSessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "GlobalSessionConfig geometry class"
-    },
     "GeometryFileEncoder": {
       "composition": [],
       "factories": [],
@@ -97445,6 +97801,12 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
     },
+    "GlobalSessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "GlobalSessionConfig geometry class"
+    },
     "CurveNurbsKnotStyle": {
       "composition": [],
       "factories": [],
@@ -97462,6 +97824,20 @@ window.API_INDEX = {
       ],
       "summary": "TriangulateResult geometry class"
     },
+    "ReciprocalResult": {
+      "composition": [],
+      "factories": [
+        "Reciprocal"
+      ],
+      "uses": [],
+      "summary": "ReciprocalResult geometry class"
+    },
+    "ElementSchoring": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
+    },
     "GlobalTolerance": {
       "composition": [],
       "factories": [],
@@ -97471,12 +97847,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "GlobalTolerance geometry class"
-    },
-    "ElementSchoring": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
     },
     "BooleanPolyline": {
       "composition": [],
@@ -97494,13 +97864,11 @@ window.API_INDEX = {
       ],
       "summary": "SpatialAABBTree geometry class"
     },
-    "ToleranceGuard": {
+    "VIntersectNode": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Tolerance"
-      ],
-      "summary": "ToleranceGuard geometry class"
+      "uses": [],
+      "summary": "VIntersectNode geometry class"
     },
     "SpatialBVHNode": {
       "composition": [],
@@ -97514,23 +97882,19 @@ window.API_INDEX = {
       ],
       "summary": "A node in the SpatialBVH tree."
     },
-    "VIntersectNode": {
+    "ToleranceGuard": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "VIntersectNode geometry class"
+      "uses": [
+        "Tolerance"
+      ],
+      "summary": "ToleranceGuard geometry class"
     },
     "_PartitionVars": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_PartitionVars geometry class"
-    },
-    "SessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SessionConfig geometry class"
     },
     "SpatialKDTree": {
       "composition": [],
@@ -97554,26 +97918,11 @@ window.API_INDEX = {
       ],
       "summary": "ElementColumn geometry class"
     },
-    "BRepTrimType": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "BRep",
-        "BRepLoopType",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRepTrimType geometry class"
-    },
-    "ScanlineHeap": {
+    "SessionConfig": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "ScanlineHeap geometry class"
+      "summary": "SessionConfig geometry class"
     },
     "Intersection": {
       "composition": [
@@ -97594,11 +97943,71 @@ window.API_INDEX = {
       ],
       "summary": "Intersection geometry class"
     },
+    "LoftWallFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftWallFace geometry class"
+    },
     "VattiScratch": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VattiScratch geometry class"
+    },
+    "ElementPlate": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "ElementPlate geometry class"
+    },
+    "ScanlineHeap": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "ScanlineHeap geometry class"
+    },
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
+    },
+    "SpatialRTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SpatialRTree geometry class"
+    },
+    "BRepLoopType": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoopType geometry class"
+    },
+    "BRepTrimType": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "BRep",
+        "BRepLoopType",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRepTrimType geometry class"
     },
     "NurbsSurface": {
       "composition": [
@@ -97620,51 +98029,6 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
-    "LoftWallFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftWallFace geometry class"
-    },
-    "BRepLoopType": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoopType geometry class"
-    },
-    "VLocalMinima": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VLocalMinima geometry class"
-    },
-    "ElementPlate": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "ElementPlate geometry class"
-    },
-    "SpatialRTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SpatialRTree geometry class"
-    },
-    "LoftAdjPair": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftAdjPair geometry class"
-    },
     "ElementBeam": {
       "composition": [],
       "factories": [],
@@ -97678,11 +98042,28 @@ window.API_INDEX = {
       ],
       "summary": "ElementBeam geometry class"
     },
-    "BRepVertex": {
+    "LoftAdjPair": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepVertex geometry class"
+      "summary": "LoftAdjPair geometry class"
+    },
+    "session_cpp": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "session_cpp geometry class"
+    },
+    "ConvexHull": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Point"
+      ],
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
     },
     "Delaunay2D": {
       "composition": [],
@@ -97690,20 +98071,15 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Delaunay2D geometry class"
     },
-    "PointCloud": {
+    "Quaternion": {
       "composition": [
-        "Color",
-        "Xform"
-      ],
-      "factories": [
-        "AABB",
-        "OBB"
-      ],
-      "uses": [
-        "Point",
         "Vector"
       ],
-      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
+      "factories": [],
+      "uses": [
+        "Plane"
+      ],
+      "summary": "A quaternion for 3D rotations (scalar + vector)."
     },
     "NurbsCurve": {
       "composition": [
@@ -97721,7 +98097,8 @@ window.API_INDEX = {
       "uses": [
         "Plane",
         "Vector",
-        "Xform"
+        "Xform",
+        "session_cpp"
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
@@ -97741,14 +98118,22 @@ window.API_INDEX = {
       ],
       "summary": "Static factory methods for creating NURBS curve primitives."
     },
-    "ConvexHull": {
+    "BRepVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepVertex geometry class"
+    },
+    "Reciprocal": {
       "composition": [],
       "factories": [],
       "uses": [
+        "Line",
         "Mesh",
-        "Point"
+        "Plane",
+        "ReciprocalResult"
       ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+      "summary": "Reciprocal geometry class"
     },
     "VertexData": {
       "composition": [],
@@ -97758,15 +98143,30 @@ window.API_INDEX = {
       ],
       "summary": "Vertex data containing position and attributes."
     },
-    "Quaternion": {
+    "PointCloud": {
       "composition": [
+        "Color",
+        "Xform"
+      ],
+      "factories": [
+        "AABB",
+        "OBB"
+      ],
+      "uses": [
+        "Point",
         "Vector"
       ],
+      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
+    },
+    "MeshOffset": {
+      "composition": [],
       "factories": [],
       "uses": [
-        "Plane"
+        "Mesh",
+        "Plane",
+        "Point"
       ],
-      "summary": "A quaternion for 3D rotations (scalar + vector)."
+      "summary": "MeshOffset geometry class"
     },
     "SpatialBVH": {
       "composition": [],
@@ -97790,17 +98190,39 @@ window.API_INDEX = {
       ],
       "summary": "RemeshCDT geometry class"
     },
-    "_Delaunay": {
+    "VHorzJoin": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Delaunay geometry class"
+      "summary": "VHorzJoin geometry class"
+    },
+    "Tolerance": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "ToleranceGuard",
+        "Vector"
+      ],
+      "summary": "Tolerance settings for geometric operations."
+    },
+    "Component": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Component geometry class"
     },
     "LoftPanel": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "LoftPanel geometry class"
+    },
+    "_Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay geometry class"
     },
     "ColorMode": {
       "composition": [],
@@ -97818,28 +98240,6 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
-    "Tolerance": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "ToleranceGuard",
-        "Vector"
-      ],
-      "summary": "Tolerance settings for geometric operations."
-    },
-    "VHorzJoin": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzJoin geometry class"
-    },
-    "Component": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Component geometry class"
-    },
     "FlatMap64": {
       "composition": [],
       "factories": [],
@@ -97850,26 +98250,23 @@ window.API_INDEX = {
       ],
       "summary": "FlatMap64 geometry class"
     },
-    "Geometry": {
+    "VHorzSeg": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Geometry geometry class"
+      "summary": "VHorzSeg geometry class"
     },
-    "BRepTrim": {
+    "BRepFace": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepTrim geometry class"
+      "summary": "BRepFace geometry class"
     },
-    "Delaunay": {
+    "BRepLoop": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Edge",
-        "TriangulateResult"
-      ],
-      "summary": "Delaunay geometry class"
+      "uses": [],
+      "summary": "BRepLoop geometry class"
     },
     "Polyline": {
       "composition": [
@@ -97890,27 +98287,19 @@ window.API_INDEX = {
       "uses": [
         "Line",
         "Tolerance",
-        "Vector"
+        "Vector",
+        "session_cpp"
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "BRepFace": {
+    "Delaunay": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "BRepFace geometry class"
-    },
-    "VHorzSeg": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzSeg geometry class"
-    },
-    "BRepLoop": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoop geometry class"
+      "uses": [
+        "Edge",
+        "TriangulateResult"
+      ],
+      "summary": "Delaunay geometry class"
     },
     "TreeNode": {
       "composition": [],
@@ -97920,42 +98309,35 @@ window.API_INDEX = {
       ],
       "summary": "A node of a tree data structure."
     },
+    "BRepTrim": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepTrim geometry class"
+    },
     "BRepEdge": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepEdge geometry class"
     },
-    "Objects": {
-      "composition": [
-        "BRep",
-        "Component",
-        "Element",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A collection of all geometry objects."
-    },
-    "VVertex": {
+    "Geometry": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VVertex geometry class"
+      "summary": "Geometry geometry class"
     },
-    "Dataset": {
+    "_Branch": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Dataset geometry class"
+      "summary": "_Branch geometry class"
+    },
+    "VOutRec": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutRec geometry class"
     },
     "Session": {
       "composition": [
@@ -97985,12 +98367,6 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "VOutRec": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutRec geometry class"
-    },
     "Closest": {
       "composition": [],
       "factories": [],
@@ -98005,6 +98381,29 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "Static methods for finding closest points between geometry objects."
+    },
+    "Dataset": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Dataset geometry class"
+    },
+    "VActive": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VActive geometry class"
+    },
+    "Default": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "Default geometry class"
     },
     "Element": {
       "composition": [
@@ -98024,28 +98423,52 @@ window.API_INDEX = {
       ],
       "summary": "Element geometry class"
     },
-    "_Branch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Branch geometry class"
-    },
-    "VActive": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VActive geometry class"
-    },
-    "Default": {
-      "composition": [],
+    "Objects": {
+      "composition": [
+        "BRep",
+        "Component",
+        "Element",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
       "factories": [],
       "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
-        "Vector"
+        "session_cpp"
       ],
-      "summary": "Default geometry class"
+      "summary": "A collection of all geometry objects."
+    },
+    "VVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VVertex geometry class"
+    },
+    "Vector": {
+      "composition": [],
+      "factories": [
+        "Line",
+        "Plane",
+        "Quaternion",
+        "Xform"
+      ],
+      "uses": [
+        "Point",
+        "session_cpp"
+      ],
+      "summary": "A 3D vector with visual properties."
+    },
+    "VOutPt": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutPt geometry class"
     },
     "Matrix": {
       "composition": [],
@@ -98053,24 +98476,14 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Matrix geometry class"
     },
-    "RayHit": {
+    "Vertex": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "RayHit geometry class"
-    },
-    "Vector": {
-      "composition": [
-        "Point"
+      "uses": [
+        "Graph",
+        "session_cpp"
       ],
-      "factories": [
-        "Line",
-        "Plane",
-        "Quaternion",
-        "Xform"
-      ],
-      "uses": [],
-      "summary": "A 3D vector with visual properties."
+      "summary": "A graph vertex with a unique identifier and attribute string."
     },
     "BIVec2": {
       "composition": [],
@@ -98078,19 +98491,21 @@ window.API_INDEX = {
       "uses": [],
       "summary": "BIVec2 geometry class"
     },
-    "Vertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Graph"
-      ],
-      "summary": "A graph vertex with a unique identifier and attribute string."
-    },
-    "VOutPt": {
+    "RayHit": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VOutPt geometry class"
+      "summary": "RayHit geometry class"
+    },
+    "Graph": {
+      "composition": [
+        "Edge"
+      ],
+      "factories": [],
+      "uses": [
+        "Vertex"
+      ],
+      "summary": "A graph data structure with string-only vertices and attributes."
     },
     "Xform": {
       "composition": [
@@ -98107,6 +98522,32 @@ window.API_INDEX = {
       ],
       "summary": "Xform geometry class"
     },
+    "_Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Edge geometry class"
+    },
+    "Plane": {
+      "composition": [],
+      "factories": [
+        "OBB",
+        "Quaternion"
+      ],
+      "uses": [
+        "Point",
+        "Polyline",
+        "Vector",
+        "session_cpp"
+      ],
+      "summary": "A 3D plane defined by origin and coordinate axes."
+    },
+    "_Rect": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Rect geometry class"
+    },
     "Point": {
       "composition": [],
       "factories": [
@@ -98121,136 +98562,19 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A 3D point with visual properties."
     },
-    "_Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Edge geometry class"
-    },
-    "_Rect": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Rect geometry class"
-    },
-    "Color": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "An index-based 0-255 color with RGBA values."
-    },
-    "Plane": {
-      "composition": [],
-      "factories": [
-        "OBB",
-        "Quaternion"
-      ],
-      "uses": [
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "A 3D plane defined by origin and coordinate axes."
-    },
-    "Graph": {
-      "composition": [
-        "Edge"
-      ],
-      "factories": [],
-      "uses": [
-        "Vertex"
-      ],
-      "summary": "A graph data structure with string-only vertices and attributes."
-    },
     "_Node": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Node geometry class"
     },
-    "Tree": {
-      "composition": [
-        "Color",
-        "TreeNode"
-      ],
+    "Color": {
+      "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
-    },
-    "Mesh": {
-      "composition": [
-        "ColorMode",
-        "LoftAdjPair",
-        "LoftPanel",
-        "LoftWallFace",
-        "SpatialAABBTree"
-      ],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Element",
-        "OBB",
-        "RemeshCDT",
-        "RemeshNurbsSurfaceGrid"
-      ],
       "uses": [
-        "Color",
-        "Line",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
+        "session_cpp"
       ],
-      "summary": "A halfedge mesh data structure for representing polygonal surfaces."
-    },
-    "Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
-    },
-    "Line": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Mesh",
-        "OBB"
-      ],
-      "uses": [
-        "Vector"
-      ],
-      "summary": "A 3D line segment with visual properties."
-    },
-    "_P64": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_P64 geometry class"
-    },
-    "_Tri": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Tri geometry class"
-    },
-    "AABB": {
-      "composition": [],
-      "factories": [
-        "OBB"
-      ],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Axis-aligned bounding box (center + half-size)."
+      "summary": "An index-based 0-255 color with RGBA values."
     },
     "BRep": {
       "composition": [
@@ -98276,11 +98600,92 @@ window.API_INDEX = {
       ],
       "summary": "BRep geometry class"
     },
-    "_V2": {
+    "AABB": {
+      "composition": [],
+      "factories": [
+        "OBB"
+      ],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Axis-aligned bounding box (center + half-size)."
+    },
+    "_P64": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_V2 geometry class"
+      "summary": "_P64 geometry class"
+    },
+    "Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
+    "Line": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Mesh",
+        "OBB"
+      ],
+      "uses": [
+        "Vector",
+        "session_cpp"
+      ],
+      "summary": "A 3D line segment with visual properties."
+    },
+    "Mesh": {
+      "composition": [
+        "ColorMode",
+        "LoftAdjPair",
+        "LoftPanel",
+        "LoftWallFace",
+        "SpatialAABBTree"
+      ],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Element",
+        "MeshOffset",
+        "OBB",
+        "Reciprocal",
+        "RemeshCDT",
+        "RemeshNurbsSurfaceGrid"
+      ],
+      "uses": [
+        "Color",
+        "Line",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "A halfedge mesh data structure for representing polygonal surfaces."
+    },
+    "_Tri": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Tri geometry class"
+    },
+    "Tree": {
+      "composition": [
+        "Color",
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A hierarchical data structure with parent-child relationships."
     },
     "OBB": {
       "composition": [
@@ -98303,6 +98708,12 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
+    },
+    "_V2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],
@@ -98344,7 +98755,9 @@ window.API_INDEX = {
     ],
     "from_mesh": [
       "AABB.from_mesh",
+      "MeshOffset.from_mesh",
       "OBB.from_mesh",
+      "Reciprocal.from_mesh",
       "Element.from_mesh"
     ],
     "from_pointcloud": [
@@ -98489,6 +98902,7 @@ window.API_INDEX = {
       "LoftPanel.__init__",
       "LoftAdjPair.__init__",
       "Mesh.__init__",
+      "MeshOffset.__init__",
       "NurbsCurve.__init__",
       "NurbsSurface.__init__",
       "NurbsSurfaceTrimmed.__init__",
@@ -98499,6 +98913,7 @@ window.API_INDEX = {
       "PointCloud.__init__",
       "Polyline.__init__",
       "Quaternion.__init__",
+      "ReciprocalResult.__init__",
       "_P64.__init__",
       "_V2.__init__",
       "_Edge.__init__",
@@ -100143,7 +100558,8 @@ window.API_INDEX = {
     ],
     "scale": [
       "Matrix.scale",
-      "Vector.scale"
+      "Vector.scale",
+      "Line.scale"
     ],
     "multiply": [
       "Matrix.multiply"
@@ -100283,11 +100699,20 @@ window.API_INDEX = {
     "cross_q": [
       "Mesh.cross_q"
     ],
+    "_zero": [
+      "Mesh._zero"
+    ],
+    "_zero_t": [
+      "Mesh._zero_t"
+    ],
     "side_faces": [
       "Mesh.side_faces"
     ],
     "edsq": [
       "Mesh.edsq"
+    ],
+    "align_cost": [
+      "Mesh.align_cost"
     ],
     "loft_panels": [
       "Mesh.loft_panels",
@@ -100572,6 +100997,9 @@ window.API_INDEX = {
     ],
     "set_edge_width": [
       "Mesh.set_edge_width"
+    ],
+    "from_mesh_layers": [
+      "MeshOffset.from_mesh_layers"
     ],
     "create": [
       "NurbsCurve.create",
@@ -101467,7 +101895,8 @@ window.API_INDEX = {
       "Polyline.segment_count"
     ],
     "get_lines": [
-      "Polyline.get_lines"
+      "Polyline.get_lines",
+      "Reciprocal.get_lines"
     ],
     "lines": [
       "Polyline.lines"
@@ -101508,20 +101937,16 @@ window.API_INDEX = {
       "Polyline.closest_point_to_line"
     ],
     "line_line_overlap": [
-      "Polyline.line_line_overlap",
-      "Line.line_line_overlap"
+      "Polyline.line_line_overlap"
     ],
     "line_line_average": [
-      "Polyline.line_line_average",
-      "Line.line_line_average"
+      "Polyline.line_line_average"
     ],
     "line_line_overlap_average": [
-      "Polyline.line_line_overlap_average",
-      "Line.line_line_overlap_average"
+      "Polyline.line_line_overlap_average"
     ],
     "line_from_projected_points": [
-      "Polyline.line_from_projected_points",
-      "Line.line_from_projected_points"
+      "Polyline.line_from_projected_points"
     ],
     "closest_distance_and_point": [
       "Polyline.closest_distance_and_point"
@@ -102988,14 +103413,11 @@ window.API_INDEX = {
     "hypot": [
       "std.hypot"
     ],
-    "extend_line": [
-      "Line.extend_line"
+    "from_projected_points": [
+      "Line.from_projected_points"
     ],
     "extend_equally": [
       "Line.extend_equally"
-    ],
-    "scale_line": [
-      "Line.scale_line"
     ],
     "invalid_argument": [
       "std.invalid_argument"
@@ -103040,6 +103462,14 @@ window.API_INDEX = {
       "ColorMode.from_polyline_pairs_vnf",
       "Mesh.from_polyline_pairs_vnf"
     ],
+    "reflex_fold": [
+      "ColorMode.reflex_fold",
+      "Mesh.reflex_fold"
+    ],
+    "miter_contours": [
+      "ColorMode.miter_contours",
+      "Mesh.miter_contours"
+    ],
     "build_triangle_bvh": [
       "ColorMode.build_triangle_bvh",
       "Mesh.build_triangle_bvh"
@@ -103068,6 +103498,16 @@ window.API_INDEX = {
     ],
     "acos": [
       "std.acos"
+    ],
+    "Point": [
+      "session_cpp.Point",
+      "FlatMap64.Point"
+    ],
+    "offset_planes": [
+      "MeshOffset.offset_planes"
+    ],
+    "offset_vertices": [
+      "MeshOffset.offset_vertices"
     ],
     "cv_capacity": [
       "NurbsCurve.cv_capacity"
@@ -103185,9 +103625,6 @@ window.API_INDEX = {
     "v_axis": [
       "FlatMap64.v_axis"
     ],
-    "Point": [
-      "FlatMap64.Point"
-    ],
     "dt": [
       "FlatMap64.dt"
     ],
@@ -103240,6 +103677,9 @@ window.API_INDEX = {
     "remove_consecutive_duplicates": [
       "Polyline.remove_consecutive_duplicates"
     ],
+    "two_rects_from_frame": [
+      "Polyline.two_rects_from_frame"
+    ],
     "recompute_plane_if_needed": [
       "Polyline.recompute_plane_if_needed"
     ],
@@ -103248,9 +103688,6 @@ window.API_INDEX = {
     ],
     "simplify_rdp": [
       "Polyline.simplify_rdp"
-    ],
-    "polyline_two_rects_from_frame": [
-      "Polyline.polyline_two_rects_from_frame"
     ],
     "unit_cylinder_geometry": [
       "Primitives.unit_cylinder_geometry"
@@ -104237,10 +104674,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Line": {
-      "cpp": 45,
+      "cpp": 41,
       "python": 50,
       "rust": 39,
-      "gaps": 35,
+      "gaps": 31,
       "present_in": [
         "cpp",
         "python",
@@ -104302,10 +104739,22 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Mesh": {
-      "cpp": 85,
-      "python": 118,
+      "cpp": 87,
+      "python": 121,
       "rust": 110,
-      "gaps": 67,
+      "gaps": 72,
+      "present_in": [
+        "cpp",
+        "python",
+        "rust"
+      ],
+      "status": "TODO"
+    },
+    "MeshOffset": {
+      "cpp": 4,
+      "python": 3,
+      "rust": 2,
+      "gaps": 3,
       "present_in": [
         "cpp",
         "python",
@@ -104453,6 +104902,27 @@ window.API_INDEX = {
         "cpp",
         "python",
         "rust"
+      ],
+      "status": "TODO"
+    },
+    "ReciprocalResult": {
+      "cpp": 0,
+      "python": 1,
+      "rust": 0,
+      "gaps": 1,
+      "present_in": [
+        "python"
+      ],
+      "status": "TODO"
+    },
+    "Reciprocal": {
+      "cpp": 2,
+      "python": 1,
+      "rust": 0,
+      "gaps": 2,
+      "present_in": [
+        "cpp",
+        "python"
       ],
       "status": "TODO"
     },
@@ -104703,7 +105173,7 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Vector": {
-      "cpp": 56,
+      "cpp": 55,
       "python": 73,
       "rust": 53,
       "gaps": 37,
@@ -104768,10 +105238,20 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "ColorMode": {
-      "cpp": 114,
+      "cpp": 116,
       "python": 0,
       "rust": 0,
-      "gaps": 114,
+      "gaps": 116,
+      "present_in": [
+        "cpp"
+      ],
+      "status": "TODO"
+    },
+    "session_cpp": {
+      "cpp": 1,
+      "python": 0,
+      "rust": 0,
+      "gaps": 1,
       "present_in": [
         "cpp"
       ],
