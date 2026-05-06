@@ -68,7 +68,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.023
+    "time_ms": 0.031
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 297,
     "passed": true,
     "test_name": "Transform",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -130,7 +130,7 @@
     "line": 330,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 8.259
+    "time_ms": 5.305
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 363,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 6.829
+    "time_ms": 5.858
   },
   {
     "checks": [
@@ -187,7 +187,7 @@
     "line": 204,
     "passed": true,
     "test_name": "Add Color",
-    "time_ms": 0.005
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -208,7 +208,7 @@
     "line": 99,
     "passed": true,
     "test_name": "Is Empty",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -224,7 +224,7 @@
     "line": 231,
     "passed": true,
     "test_name": "Normal Count",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -255,7 +255,7 @@
     "line": 313,
     "passed": true,
     "test_name": "Transformed",
-    "time_ms": 0.006
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -297,7 +297,7 @@
     "line": 242,
     "passed": true,
     "test_name": "Get Normal",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -485,7 +485,7 @@
     "line": 61,
     "passed": true,
     "test_name": "From Coords",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [

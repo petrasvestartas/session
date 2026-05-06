@@ -3,7 +3,7 @@
     "group": "MeshOffset",
     "test_name": "from_mesh",
     "passed": true,
-    "time_ms": 0.1,
+    "time_ms": 0.22,
     "line": 8,
     "code": "    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    result = MeshOffset.from_mesh(mesh, 1.0)\n    import copy as _copy\n    copy = _copy.copy(result)",
     "checks": [
@@ -39,7 +39,7 @@
     "group": "MeshOffset",
     "test_name": "from_mesh_grid",
     "passed": true,
-    "time_ms": 0.257,
+    "time_ms": 0.307,
     "line": 30,
     "code": "    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(2, 0, 0),\n        Point(0, 1, 0),\n        Point(1, 1, 0),\n        Point(2, 1, 0),\n        Point(0, 2, 0),\n        Point(1, 2, 0),\n        Point(2, 2, 0),\n    ]\n    faces = [\n        [0, 1, 4, 3],\n        [1, 2, 5, 4],\n        [3, 4, 7, 6],\n        [4, 5, 8, 7],\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, faces)\n    result = MeshOffset.from_mesh(mesh, 2.0)",
     "checks": [
@@ -65,7 +65,7 @@
     "group": "MeshOffset",
     "test_name": "from_mesh_layers",
     "passed": true,
-    "time_ms": 0.111,
+    "time_ms": 0.149,
     "line": 59,
     "code": "    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    layers = MeshOffset.from_mesh_layers(mesh, 1.0)",
     "checks": [
@@ -116,7 +116,7 @@
     "group": "MeshOffset",
     "test_name": "file_json_dump",
     "passed": true,
-    "time_ms": 10.544,
+    "time_ms": 9.76,
     "line": 82,
     "code": "    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    result = MeshOffset.from_mesh(mesh, 1.0)\n    result.file_json_dump(\"mesh_offset_test_dump.json\")\n    loaded = Mesh.file_json_load(\"mesh_offset_test_dump.json\")",
     "checks": [
@@ -142,7 +142,7 @@
     "group": "MeshOffset",
     "test_name": "file_json_load",
     "passed": true,
-    "time_ms": 0.151,
+    "time_ms": 0.196,
     "line": 102,
     "code": "    from session_py import Mesh\n    loaded = Mesh.file_json_load(\"mesh_offset_test_dump.json\")",
     "checks": [
@@ -168,7 +168,7 @@
     "group": "MeshOffset",
     "test_name": "to_proto",
     "passed": true,
-    "time_ms": 13.699,
+    "time_ms": 8.385,
     "line": 111,
     "code": "    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    result = MeshOffset.from_mesh(mesh, 1.0)\n    result.pb_dump(\"mesh_offset_test.pb\")\n    loaded = Mesh.pb_load(\"mesh_offset_test.pb\")",
     "checks": [
@@ -194,7 +194,7 @@
     "group": "MeshOffset",
     "test_name": "from_proto",
     "passed": true,
-    "time_ms": 0.143,
+    "time_ms": 0.202,
     "line": 131,
     "code": "    from session_py import Mesh\n    loaded = Mesh.pb_load(\"mesh_offset_test.pb\")",
     "checks": [
