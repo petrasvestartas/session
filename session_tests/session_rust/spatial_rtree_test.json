@@ -13,7 +13,7 @@
     "line": 24,
     "passed": true,
     "test_name": "Creation",
-    "time_ms": 0.004
+    "time_ms": 0.028
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Insert",
-    "time_ms": 0.004
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 43,
     "passed": true,
     "test_name": "Insert Multiple",
-    "time_ms": 0.002
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -66,7 +66,7 @@
     "line": 55,
     "passed": true,
     "test_name": "Search Hit",
-    "time_ms": 0.002
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -82,7 +82,7 @@
     "line": 71,
     "passed": true,
     "test_name": "Search Miss",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -98,7 +98,7 @@
     "line": 82,
     "passed": true,
     "test_name": "Remove",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 93,
     "passed": true,
     "test_name": "Remove All",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -130,7 +130,7 @@
     "line": 106,
     "passed": true,
     "test_name": "Search Count",
-    "time_ms": 0.005
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -146,7 +146,7 @@
     "line": 121,
     "passed": true,
     "test_name": "Search Stop",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -1167,7 +1167,7 @@
     "line": 134,
     "passed": true,
     "test_name": "Search 100 Boxes",
-    "time_ms": 0.225
+    "time_ms": 0.449
   },
   {
     "checks": [
@@ -1183,6 +1183,6 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.001
+    "time_ms": 0.008
   }
 ]
