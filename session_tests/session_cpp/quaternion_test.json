@@ -3,7 +3,7 @@
     "group": "Quaternion",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.009,
     "line": 13,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // FUNCTION: Quaternion constructors and operators\n    // WHAT: Create quaternions and access components, copy them, and combine\n    //       them with arithmetic. Multiplication composes rotations:\n    //       q3 = q2 * q1 means \"apply q1 first, then q2\".\n    // WHEN TO USE: You will rarely call the raw constructor directly. The\n    //       factories (from_axis_angle, from_arc, from_euler) are what you\n    //       reach for in practice. The * operator is what chains rotations.\n    // TEST: Exercises default ctor, indexing, duplicate, equality, +, -, *, neg.\n\n    // Default constructor (identity)\n    Quaternion q0;\n\n    // Constructor with arguments\n    Quaternion q = Quaternion::from_components(2.0, Vector(1.0, 0.0, 0.0));\n\n    // Setters\n    q[0] = 5.0;\n    q[1] = 0.0;\n    q[2] = 1.0;\n    q[3] = 0.0;\n\n    // Getters\n    double s_val = q[0];\n    double x = q[1];\n    double y = q[2];\n    double z = q[3];\n\n    // Minimal and Full String Representation\n    std::string qstr = q.str();\n    std::string qrepr = q.repr();\n\n    // Copy (duplicates everything except guid)\n    Quaternion qcopy = q.duplicate();\n    Quaternion qother = Quaternion::from_components(2.0, Vector(1.0, 0.0, 0.0));\n\n    // Copy operators\n    Quaternion qrot = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    Quaternion qmul = qrot * qrot;\n    Quaternion qscaled = Quaternion::identity() * 2.0;\n    Quaternion a = Quaternion::from_components(1.0, Vector(0.0, 0.0, 0.0));\n    Quaternion b = Quaternion::from_components(0.0, Vector(0.0, 0.0, 1.0));\n    Quaternion qsum = a + b;\n    Quaternion qdiff = qrot - qrot;\n    Quaternion qneg = -Quaternion::identity();",
     "checks": [
@@ -120,7 +120,7 @@
     "group": "Quaternion",
     "test_name": "From Components",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 96,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // q = s + xi + yj + zk: first arg is scalar, second arg is (i,j,k) coefficients (NOT a rotation axis).\n    Quaternion q = Quaternion::from_components(2.0, Vector(1.0, 2.0, 3.0));\n\n\n    // Geometric meaning of (s, v): a rotation by `angle` around `axis`.\n    // to_axis_angle() extracts these — for q=(2,(1,2,3)):\n    //   axis  = (1,2,3)/sqrt(14)\n    //   angle = 2*acos(2/sqrt(18)) ≈ 2.1617 rad ≈ 123.85°\n    auto axis_angle = q.to_axis_angle();\n    Vector axis = axis_angle.first;\n    double angle = axis_angle.second;\n    double sqrt14 = std::sqrt(14.0);\n\n    // Round-trip: from_axis_angle(to_axis_angle(q)) == q.normalized()\n    Quaternion q_round = Quaternion::from_axis_angle(axis, angle);\n    Quaternion qn = q.normalized();",
     "checks": [
@@ -248,7 +248,7 @@
     "group": "Quaternion",
     "test_name": "From Euler",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 176,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // FUNCTION: Quaternion::from_euler(x, y, z)\n    // WHAT: Build a quaternion from three Euler angles (XYZ convention).\n    // WHEN TO USE: Only at I/O boundaries (importing pitch/yaw/roll, UI input).\n    // AVOID WHEN: Composing many rotations - Euler angles suffer from gimbal\n    //       lock. Store/compose as quaternions, convert to Euler only to save.\n    // TEST: Euler (0, 0, PI/2) equals from_axis_angle(Z, PI/2).\n\n    Quaternion q_euler = Quaternion::from_euler(0.0, 0.0, Tolerance::PI / 2.0);\n    Quaternion q_axis = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);",
     "checks": [
@@ -321,7 +321,7 @@
     "group": "Quaternion",
     "test_name": "Get Rotation",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 236,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"plane.h\"\n\n    // FUNCTION: q.get_rotation()\n    // WHAT: Apply this rotation to the world XY plane and return the resulting\n    //       Plane. Equivalent to a Plane whose axes are the rotated X, Y, Z.\n    // WHEN TO USE: Visualize a quaternion as a frame, or convert a stored\n    //       quaternion into a Plane for frame-based APIs in the rest of the\n    //       kernel. Inverse of from_rotation(xy_plane(), result).\n    // TEST: 90 deg around Z gives a frame whose x_axis = Y, y_axis = -X.\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    Plane p = q.get_rotation();",
     "checks": [
@@ -384,7 +384,7 @@
     "group": "Quaternion",
     "test_name": "Normalized",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 286,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // FUNCTION: q.normalized()\n    // WHAT: Return a unit-length copy of this quaternion (divides by magnitude).\n    // WHEN TO USE: Periodically after composing many rotations in a loop -\n    //       floating-point drift slowly makes a quaternion non-unit, and a\n    //       non-unit quaternion no longer represents a valid rotation.\n\n    Quaternion q = Quaternion::from_components(2.0, Vector(0.0, 0.0, 2.0));\n    Quaternion n = q.normalized();",
     "checks": [
@@ -499,7 +499,7 @@
     "group": "Quaternion",
     "test_name": "Nlerp",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 378,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // FUNCTION: q1.nlerp(q2, t)\n    // WHAT: Normalized Linear intERPolation. Cheaper than slerp but the\n    //       angular velocity isn't perfectly uniform. Often \"good enough\".\n    // WHEN TO USE: Real-time loops where every microsecond matters and the\n    //       visual difference from slerp is negligible (game animation,\n    //       crowd systems, particle orientations).\n\n    Quaternion q1 = Quaternion::identity();\n    Quaternion q2 = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    Quaternion r0 = q1.nlerp(q2, 0.0);\n    Quaternion r1 = q1.nlerp(q2, 1.0);",
     "checks": [
@@ -520,7 +520,7 @@
     "group": "Quaternion",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.692,
+    "time_ms": 9.352,
     "line": 398,
     "code": "    // uncomment #include \"quaternion.h\"\n\n    // FUNCTION: q.file_json_dump / Quaternion::file_json_load\n    // WHAT: Write a quaternion to a JSON file, read it back.\n    // WHEN TO USE: Human-readable persistence and debugging, or when sharing\n    //       data with tools that consume JSON.\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    q.name = \"serialization/test_quaternion\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    std::string filename = \"serialization/test_quaternion.json\";\n    q.file_json_dump(filename);\n    Quaternion loaded = Quaternion::file_json_load(filename);",
     "checks": [
@@ -546,7 +546,7 @@
     "group": "Quaternion",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 0.838,
+    "time_ms": 9.028,
     "line": 425,
     "code": "    // uncomment #include \"quaternion.h\"\n\n    // FUNCTION: q.pb_dump / Quaternion::pb_load\n    // WHAT: Write a quaternion to a binary protobuf file, read it back.\n    // WHEN TO USE: Compact storage, network protocols, or any pipeline that\n    //       needs the smallest serialized footprint and the fastest IO.\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    q.name = \"serialization/test_quaternion\";\n\n    std::string filename = \"serialization/test_quaternion.bin\";\n    q.pb_dump(filename);\n    Quaternion loaded = Quaternion::pb_load(filename);",
     "checks": [

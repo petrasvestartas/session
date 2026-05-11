@@ -347,7 +347,7 @@
     "group": "Vector",
     "test_name": "Is Parallel To",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 244,
     "code": "    // uncomment #include \"vector.h\"\n\n    // is_parallel_to returns: 1 (parallel), -1 (anti-parallel), 0 (not parallel)\n    Vector v1(2.0, 2.0, 2.0);\n    Vector v2(4.0, 4.0, 4.0);      // parallel (same direction)\n    Vector v3(-1.0, -1.0, -1.0);   // anti-parallel (opposite direction)\n    Vector v4(1.0, 0.0, 0.0);      // not parallel",
     "checks": [
@@ -373,7 +373,7 @@
     "group": "Vector",
     "test_name": "Is Perpendicular To",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.0,
     "line": 258,
     "code": "    // uncomment #include \"vector.h\"\n\n    // is_perpendicular_to: checks if two vectors are perpendicular (dot product ~ 0)\n    Vector v1(1.0, 0.0, 0.0);\n    Vector v2(0.0, 1.0, 0.0);  // perpendicular\n    Vector v3(0.0, 0.0, 1.0);  // perpendicular\n    Vector v4(1.0, 1.0, 0.0);  // not perpendicular\n\n    // perpendicular_to: sets a vector to be perpendicular to another\n    Vector z_axis(0.0, 0.0, 1.0);\n    Vector x_axis = Vector::zero();\n    // x_axis is now perpendicular to z_axis\n    x_axis.perpendicular_to(z_axis);\n\n    Vector arbitrary(1.0, 2.0, 3.0);\n    Vector perp = Vector::zero();\n    // perp is now perpendicular to arbitrary\n    perp.perpendicular_to(arbitrary);",
     "checks": [
@@ -506,7 +506,7 @@
     "group": "Vector",
     "test_name": "Sum Of Vectors",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.001,
     "line": 343,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Sum of multiple vectors\n    std::vector<Vector> vecs = {\n        Vector(1.0, 1.0, 1.0),\n        Vector(2.0, 2.0, 2.0),\n        Vector(3.0, 3.0, 3.0),\n    };\n    Vector sum_v = Vector::sum_of_vectors(vecs);\n\n\n    // Empty list returns zero vector\n    std::vector<Vector> empty;\n    Vector zero = Vector::sum_of_vectors(empty);",
     "checks": [
@@ -573,7 +573,7 @@
     "group": "Vector",
     "test_name": "Is Zero",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.0,
     "line": 385,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector zero(0.0, 0.0, 0.0);\n    Vector nonzero(1.0, 0.0, 0.0);\n    Vector tiny(1e-13, 1e-13, 1e-13);  // Magnitude ~ 1.7e-13 < 1e-12",
     "checks": [
@@ -635,7 +635,7 @@
     "group": "Vector",
     "test_name": "Reflect",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 415,
     "code": "    // uncomment #include \"vector.h\"\n\n    // Reflect across YZ plane (normal = x_axis): x flips, y/z unchanged\n    Vector v(1.0, 2.0, 3.0);\n    Vector n = Vector::x_axis();\n    Vector r = v.reflect(n);",
     "checks": [
@@ -661,7 +661,7 @@
     "group": "Vector",
     "test_name": "Average Normal",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 428,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Closed square in XY plane — normal should be z_axis\n    std::vector<Point> sq = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0),\n    };\n    Vector n = Vector::average_normal(sq);",
     "checks": [
@@ -682,7 +682,7 @@
     "group": "Vector",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 6.27,
+    "time_ms": 8.407,
     "line": 446,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    // file_json_dump(filename) / file_json_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.json\";\n    v.file_json_dump(filename);\n    Vector loaded = Vector::file_json_load(filename);",
     "checks": [
@@ -713,7 +713,7 @@
     "group": "Vector",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 6.667,
+    "time_ms": 7.321,
     "line": 470,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // pb_dump(filename) / pb_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.bin\";\n    v.pb_dump(filename);\n    Vector loaded = Vector::pb_load(filename);",
     "checks": [
