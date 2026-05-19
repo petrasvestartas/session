@@ -98,7 +98,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.054
+    "time_ms": 0.171
   },
   {
     "checks": [
@@ -129,7 +129,7 @@
     "line": 129,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.009
+    "time_ms": 0.031
   },
   {
     "checks": [
@@ -165,7 +165,7 @@
     "line": 151,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 7.215
+    "time_ms": 10.565
   },
   {
     "checks": [
@@ -201,7 +201,7 @@
     "line": 181,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 7.363
+    "time_ms": 9.585
   },
   {
     "checks": [
@@ -222,7 +222,7 @@
     "line": 206,
     "passed": true,
     "test_name": "Length",
-    "time_ms": 0.004
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -248,7 +248,7 @@
     "line": 225,
     "passed": true,
     "test_name": "Center",
-    "time_ms": 0.005
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -269,7 +269,7 @@
     "line": 246,
     "passed": true,
     "test_name": "Is Closed",
-    "time_ms": 0.007
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -295,7 +295,7 @@
     "line": 294,
     "passed": true,
     "test_name": "Reverse",
-    "time_ms": 0.009
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -326,7 +326,7 @@
     "line": 320,
     "passed": true,
     "test_name": "Closest Point",
-    "time_ms": 0.007
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -347,7 +347,7 @@
     "line": 453,
     "passed": true,
     "test_name": "Extend Segment",
-    "time_ms": 0.009
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -368,7 +368,7 @@
     "line": 471,
     "passed": true,
     "test_name": "Extend Segment Equally",
-    "time_ms": 0.009
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -424,7 +424,7 @@
     "line": 519,
     "passed": true,
     "test_name": "Get Points",
-    "time_ms": 0.005
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -445,7 +445,7 @@
     "line": 615,
     "passed": true,
     "test_name": "Shift",
-    "time_ms": 0.006
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -466,7 +466,7 @@
     "line": 634,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -487,7 +487,7 @@
     "line": 649,
     "passed": true,
     "test_name": "Is Clockwise",
-    "time_ms": 0.007
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -503,7 +503,7 @@
     "line": 672,
     "passed": true,
     "test_name": "Convex Corners",
-    "time_ms": 0.019
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -550,7 +550,7 @@
     "line": 707,
     "passed": true,
     "test_name": "Average Plane",
-    "time_ms": 0.022
+    "time_ms": 0.024
   },
   {
     "checks": [
@@ -602,7 +602,7 @@
     "line": 1045,
     "passed": true,
     "test_name": "Simplify Zigzag",
-    "time_ms": 0.014
+    "time_ms": 0.023
   },
   {
     "checks": [
@@ -628,7 +628,7 @@
     "line": 115,
     "passed": true,
     "test_name": "From Sides",
-    "time_ms": 0.005
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -775,7 +775,7 @@
     "line": 940,
     "passed": true,
     "test_name": "Boolean Op Plane",
-    "time_ms": 0.064
+    "time_ms": 0.074
   },
   {
     "checks": [
@@ -827,7 +827,7 @@
     "line": 542,
     "passed": true,
     "test_name": "Get Lines",
-    "time_ms": 0.005
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -848,7 +848,7 @@
     "line": 436,
     "passed": true,
     "test_name": "Point In Polygon 2d",
-    "time_ms": 0.004
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -890,7 +890,7 @@
     "line": 811,
     "passed": true,
     "test_name": "Polylabel",
-    "time_ms": 0.035
+    "time_ms": 0.041
   },
   {
     "checks": [
@@ -926,7 +926,7 @@
     "line": 980,
     "passed": true,
     "test_name": "Simplify Points",
-    "time_ms": 0.061
+    "time_ms": 0.072
   },
   {
     "checks": [
@@ -978,7 +978,7 @@
     "line": 400,
     "passed": true,
     "test_name": "Line Line Overlap Average",
-    "time_ms": 0.006
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -1154,7 +1154,7 @@
     "line": 789,
     "passed": true,
     "test_name": "Grid Of Points In Polygon",
-    "time_ms": 0.024
+    "time_ms": 0.026
   },
   {
     "checks": [
@@ -1196,7 +1196,7 @@
     "line": 489,
     "passed": true,
     "test_name": "Extend Line Segment",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -1248,7 +1248,7 @@
     "line": 418,
     "passed": true,
     "test_name": "Line From Projected Points",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -1290,7 +1290,7 @@
     "line": 577,
     "passed": true,
     "test_name": "Insert Point",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -1321,7 +1321,7 @@
     "line": 275,
     "passed": true,
     "test_name": "Closed",
-    "time_ms": 0.01
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -1398,7 +1398,7 @@
     "line": 725,
     "passed": true,
     "test_name": "Interpolate Points",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -1460,7 +1460,7 @@
     "line": 831,
     "passed": true,
     "test_name": "Polylabel Circle Division Points",
-    "time_ms": 0.036
+    "time_ms": 0.039
   },
   {
     "checks": [
@@ -1481,7 +1481,7 @@
     "line": 1093,
     "passed": true,
     "test_name": "Translate",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -1567,7 +1567,7 @@
     "line": 882,
     "passed": true,
     "test_name": "Boolean Op",
-    "time_ms": 0.052
+    "time_ms": 0.059
   },
   {
     "checks": [
@@ -1635,7 +1635,7 @@
     "line": 766,
     "passed": true,
     "test_name": "Bounding Rectangle",
-    "time_ms": 0.04
+    "time_ms": 0.044
   },
   {
     "checks": [
@@ -1656,7 +1656,7 @@
     "line": 504,
     "passed": true,
     "test_name": "Shrink Line Segment",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -1687,6 +1687,6 @@
     "line": 357,
     "passed": true,
     "test_name": "Line Line Overlap",
-    "time_ms": 0.003
+    "time_ms": 0.004
   }
 ]

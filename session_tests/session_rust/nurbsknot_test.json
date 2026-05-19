@@ -13,7 +13,7 @@
     "line": 8,
     "passed": true,
     "test_name": "Make Clamped Uniform",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 20,
     "passed": true,
     "test_name": "Make Periodic Uniform",
-    "time_ms": 0.0
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -66,7 +66,7 @@
     "line": 48,
     "passed": true,
     "test_name": "Reverse",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -146,7 +146,7 @@
     "line": 127,
     "passed": true,
     "test_name": "Evaluation Basis",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -162,7 +162,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Build Fitted NurbsKnots Adaptive",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -178,7 +178,7 @@
     "line": 159,
     "passed": true,
     "test_name": "Build Fitted NurbsKnots Periodic Adaptive",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [

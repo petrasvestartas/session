@@ -13,7 +13,7 @@
     "line": 24,
     "passed": true,
     "test_name": "Creation",
-    "time_ms": 0.002
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Insert",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 43,
     "passed": true,
     "test_name": "Insert Multiple",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -1167,7 +1167,7 @@
     "line": 134,
     "passed": true,
     "test_name": "Search 100 Boxes",
-    "time_ms": 0.334
+    "time_ms": 0.218
   },
   {
     "checks": [

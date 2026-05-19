@@ -24,7 +24,7 @@
     "group": "SpatialBVH",
     "test_name": "Expand Bits",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.001,
     "line": 29,
     "code": "    // uncomment #include \"spatial_bvh.h\"\n\n    uint32_t result = expand_bits(1023);",
     "checks": [
@@ -60,7 +60,7 @@
     "group": "SpatialBVH",
     "test_name": "Morton Code Origin",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 41,
     "code": "    // uncomment #include \"spatial_bvh.h\"\n    uint32_t code = calculate_morton_code(0.0, 0.0, 0.0, 100.0);",
     "checks": [
@@ -113,7 +113,7 @@
     "group": "SpatialBVH",
     "test_name": "Node Creation",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 73,
     "code": "    // uncomment #include \"spatial_bvh.h\"\n    SpatialBVHNode node;",
     "checks": [
@@ -196,7 +196,7 @@
     "group": "SpatialBVH",
     "test_name": "Build Empty",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 104,
     "code": "    // uncomment #include \"spatial_bvh.h\"\n    // uncomment #include \"obb.h\"\n    std::vector<OBB> boxes;\n    SpatialBVH bvh = SpatialBVH::from_boxes(boxes, 100.0);",
     "checks": [
@@ -212,7 +212,7 @@
     "group": "SpatialBVH",
     "test_name": "Build Single",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.002,
     "line": 113,
     "code": "    // uncomment #include \"spatial_bvh.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    OBB bbox(\n        Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1));\n    std::vector<OBB> boxes = {bbox};\n\n    SpatialBVH bvh = SpatialBVH::from_boxes(boxes, 100.0);",
     "checks": [
@@ -238,7 +238,7 @@
     "group": "SpatialBVH",
     "test_name": "Build Multiple",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.004,
     "line": 129,
     "code": "    // uncomment #include \"spatial_bvh.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    std::vector<OBB> bboxes = {\n        OBB(\n            Point(-10, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n        OBB(\n            Point(10, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n        OBB(\n            Point(0, 10, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1))\n    };\n\n    SpatialBVH bvh = SpatialBVH::from_boxes(bboxes, 100.0);",
     "checks": [
@@ -290,7 +290,7 @@
     "group": "SpatialBVH",
     "test_name": "Check All Collisions",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.005,
     "line": 171,
     "code": "    // uncomment #include \"spatial_bvh.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    std::vector<OBB> bboxes = {\n        OBB(\n            Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n        OBB(\n            Point(0.5, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n        OBB(\n            Point(10, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1))\n    };\n\n    SpatialBVH bvh = SpatialBVH::from_boxes(bboxes, 100.0);\n\n    auto [collisions, colliding_indices, checks] = bvh.check_all_collisions(bboxes);",
     "checks": [
@@ -336,7 +336,7 @@
     "group": "SpatialBVH",
     "test_name": "Nearest Neighbors",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.005,
     "line": 198,
     "code": "    // uncomment #include \"spatial_bvh.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    std::vector<OBB> bboxes = {\n        OBB(\n            Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n        OBB(\n            Point(0.5, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1)),\n        OBB(\n            Point(10, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1))\n    };\n\n    SpatialBVH bvh = SpatialBVH::from_boxes(bboxes, 100.0);\n\n    std::vector<int> n0 = bvh.nearest_neighbors(0, bboxes, 1.2);\n\n    std::vector<int> n2 = bvh.nearest_neighbors(2, bboxes, 1.2);\n\n    std::vector<int> n2_wide = bvh.nearest_neighbors(2, bboxes, 10.0);",
     "checks": [
@@ -367,7 +367,7 @@
     "group": "SpatialBVH",
     "test_name": "Merge Aabb",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 225,
     "code": "    // uncomment #include \"spatial_bvh.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    SpatialBVH bvh(100.0);\n\n    OBB bbox1(\n        Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1));\n    OBB bbox2(\n        Point(5, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), Vector(1, 1, 1));\n\n    OBB merged = bvh.merge_aabb(bbox1, bbox2);",
     "checks": [
@@ -739,7 +739,7 @@
     "group": "SpatialBVH",
     "test_name": "Query Aabb",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.003,
     "line": 377,
     "code": "    // uncomment #include \"spatial_bvh.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    std::vector<OBB> bboxes = {\n        OBB(Point(0.0, 0.0, 0.0),\n            Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0),\n            Vector(0.0, 0.0, 1.0), Vector(1.0, 1.0, 1.0)),\n        OBB(Point(5.0, 0.0, 0.0),\n            Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0),\n            Vector(0.0, 0.0, 1.0), Vector(1.0, 1.0, 1.0)),\n        OBB(Point(0.0, 5.0, 0.0),\n            Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0),\n            Vector(0.0, 0.0, 1.0), Vector(1.0, 1.0, 1.0)),\n    };\n    SpatialBVH bvh = SpatialBVH::from_boxes(bboxes, 100.0);\n    // Query near origin — should hit box 0 only\n    AABB query(0.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n    std::vector<int> hits = bvh.query_aabb(query);\n\n    // Query covering all three boxes\n    AABB query_all(2.5, 2.5, 0.0, 5.0, 5.0, 2.0);\n    std::vector<int> hits_all = bvh.query_aabb(query_all);",
     "checks": [
