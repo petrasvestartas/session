@@ -3,7 +3,7 @@
     "group": "Quaternion",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.017,
     "line": 13,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // FUNCTION: Quaternion constructors and operators\n    // WHAT: Create quaternions and access components, copy them, and combine\n    //       them with arithmetic. Multiplication composes rotations:\n    //       q3 = q2 * q1 means \"apply q1 first, then q2\".\n    // WHEN TO USE: You will rarely call the raw constructor directly. The\n    //       factories (from_axis_angle, from_arc, from_euler) are what you\n    //       reach for in practice. The * operator is what chains rotations.\n    // TEST: Exercises default ctor, indexing, duplicate, equality, +, -, *, neg.\n\n    // Default constructor (identity)\n    Quaternion q0;\n\n    // Constructor with arguments\n    Quaternion q = Quaternion::from_components(2.0, Vector(1.0, 0.0, 0.0));\n\n    // Setters\n    q[0] = 5.0;\n    q[1] = 0.0;\n    q[2] = 1.0;\n    q[3] = 0.0;\n\n    // Getters\n    double s_val = q[0];\n    double x = q[1];\n    double y = q[2];\n    double z = q[3];\n\n    // Minimal and Full String Representation\n    std::string qstr = q.str();\n    std::string qrepr = q.repr();\n\n    // Copy (duplicates everything except guid)\n    Quaternion qcopy = q.duplicate();\n    Quaternion qother = Quaternion::from_components(2.0, Vector(1.0, 0.0, 0.0));\n\n    // Copy operators\n    Quaternion qrot = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    Quaternion qmul = qrot * qrot;\n    Quaternion qscaled = Quaternion::identity() * 2.0;\n    Quaternion a = Quaternion::from_components(1.0, Vector(0.0, 0.0, 0.0));\n    Quaternion b = Quaternion::from_components(0.0, Vector(0.0, 0.0, 1.0));\n    Quaternion qsum = a + b;\n    Quaternion qdiff = qrot - qrot;\n    Quaternion qneg = -Quaternion::identity();",
     "checks": [
@@ -89,7 +89,7 @@
     "group": "Quaternion",
     "test_name": "Identity",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.007,
     "line": 79,
     "code": "    // uncomment #include \"quaternion.h\"\n\n    // FUNCTION: Quaternion::identity()\n    // WHAT: The \"do nothing\" rotation. Rotating any vector by identity returns\n    //       it unchanged. Equivalent to (scalar=1, vector=(0,0,0)).\n    // WHEN TO USE: As the starting orientation of an object that has not been\n    //       rotated yet, or as the start point of an interpolation like slerp.\n\n    Quaternion q = Quaternion::identity();",
     "checks": [
@@ -120,7 +120,7 @@
     "group": "Quaternion",
     "test_name": "From Components",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.007,
     "line": 96,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // q = s + xi + yj + zk: first arg is scalar, second arg is (i,j,k) coefficients (NOT a rotation axis).\n    Quaternion q = Quaternion::from_components(2.0, Vector(1.0, 2.0, 3.0));\n\n\n    // Geometric meaning of (s, v): a rotation by `angle` around `axis`.\n    // to_axis_angle() extracts these — for q=(2,(1,2,3)):\n    //   axis  = (1,2,3)/sqrt(14)\n    //   angle = 2*acos(2/sqrt(18)) ≈ 2.1617 rad ≈ 123.85°\n    auto axis_angle = q.to_axis_angle();\n    Vector axis = axis_angle.first;\n    double angle = axis_angle.second;\n    double sqrt14 = std::sqrt(14.0);\n\n    // Round-trip: from_axis_angle(to_axis_angle(q)) == q.normalized()\n    Quaternion q_round = Quaternion::from_axis_angle(axis, angle);\n    Quaternion qn = q.normalized();",
     "checks": [
@@ -191,7 +191,7 @@
     "group": "Quaternion",
     "test_name": "From Axis Angle",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 130,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // FUNCTION: Quaternion::from_axis_angle(axis, angle)\n    // WHAT: Build a unit quaternion that rotates by `angle` radians around `axis`.\n    //       This is the geometric meaning most people expect.\n    // WHEN TO USE: The everyday rotation builder. Anytime you can describe the\n    //       rotation as \"spin by N radians around this direction\" - turning a\n    //       wheel, opening a door, orbiting a camera - this is the constructor.\n    // TEST: 90 deg around Z. scalar=cos(45 deg), z=sin(45 deg).\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);",
     "checks": [
@@ -212,7 +212,7 @@
     "group": "Quaternion",
     "test_name": "From Arc",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.006,
     "line": 148,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // FUNCTION: Quaternion::from_arc(src, dst)\n    // WHAT: Build the shortest rotation that maps direction `src` to direction\n    //       `dst`. The rotation axis is perpendicular to both vectors.\n    // WHEN TO USE: Look-at logic (point a camera at a target), aligning a\n    //       model's forward axis with a desired direction, snapping one face\n    //       normal to another.\n    // TEST: Rotate (1,0,0) to (0,1,0); also handles the 180 deg flip case.\n\n    Vector src(1.0, 0.0, 0.0);\n    Vector dst(0.0, 1.0, 0.0);\n    Quaternion q = Quaternion::from_arc(src, dst);\n    Vector rotated = q.rotate_vector(src);\n\n    Vector src2(1.0, 0.0, 0.0);\n    Vector dst2(-1.0, 0.0, 0.0);\n    Quaternion q2 = Quaternion::from_arc(src2, dst2);\n    Vector rot = q2.rotate_vector(src2);",
     "checks": [
@@ -426,7 +426,7 @@
     "group": "Quaternion",
     "test_name": "Invert",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 320,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // FUNCTION: q.invert()\n    // WHAT: True multiplicative inverse: conjugate / magnitude_squared. Works\n    //       for non-unit quaternions too.\n    // WHEN TO USE: When you need q^-1 and you are NOT sure the quaternion is\n    //       unit. q * q.invert() always equals identity by definition.\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 3.0);\n    Quaternion result = q * q.invert();",
     "checks": [
@@ -499,7 +499,7 @@
     "group": "Quaternion",
     "test_name": "Nlerp",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.006,
     "line": 378,
     "code": "    // uncomment #include \"quaternion.h\"\n    // uncomment #include \"vector.h\"\n\n    // FUNCTION: q1.nlerp(q2, t)\n    // WHAT: Normalized Linear intERPolation. Cheaper than slerp but the\n    //       angular velocity isn't perfectly uniform. Often \"good enough\".\n    // WHEN TO USE: Real-time loops where every microsecond matters and the\n    //       visual difference from slerp is negligible (game animation,\n    //       crowd systems, particle orientations).\n\n    Quaternion q1 = Quaternion::identity();\n    Quaternion q2 = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    Quaternion r0 = q1.nlerp(q2, 0.0);\n    Quaternion r1 = q1.nlerp(q2, 1.0);",
     "checks": [
@@ -520,7 +520,7 @@
     "group": "Quaternion",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 11.803,
+    "time_ms": 12.708,
     "line": 398,
     "code": "    // uncomment #include \"quaternion.h\"\n\n    // FUNCTION: q.file_json_dump / Quaternion::file_json_load\n    // WHAT: Write a quaternion to a JSON file, read it back.\n    // WHEN TO USE: Human-readable persistence and debugging, or when sharing\n    //       data with tools that consume JSON.\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    q.name = \"serialization/test_quaternion\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    std::string filename = \"serialization/test_quaternion.json\";\n    q.file_json_dump(filename);\n    Quaternion loaded = Quaternion::file_json_load(filename);",
     "checks": [
@@ -546,7 +546,7 @@
     "group": "Quaternion",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 9.743,
+    "time_ms": 11.093,
     "line": 425,
     "code": "    // uncomment #include \"quaternion.h\"\n\n    // FUNCTION: q.pb_dump / Quaternion::pb_load\n    // WHAT: Write a quaternion to a binary protobuf file, read it back.\n    // WHEN TO USE: Compact storage, network protocols, or any pipeline that\n    //       needs the smallest serialized footprint and the fastest IO.\n\n    Quaternion q = Quaternion::from_axis_angle(Vector(0.0, 0.0, 1.0), Tolerance::PI / 2.0);\n    q.name = \"serialization/test_quaternion\";\n\n    std::string filename = \"serialization/test_quaternion.bin\";\n    q.pb_dump(filename);\n    Quaternion loaded = Quaternion::pb_load(filename);",
     "checks": [

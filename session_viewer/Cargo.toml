@@ -6,6 +6,6 @@ edition = "2024" # We use v2 feature resolver for dependencies
 [dependencies]
 anyhow = "1.0" 
 winit = { version = "0.30", features = ["android-native-activity"] }
-env_logger = "0.10" # To run env_logger::init(); so that wgpu won't fail silently 
+env_logger = "0.11" # To run env_logger::init(); so that wgpu won't fail silently 
 wgpu = "29.0"
-pollster = "0.3"
+pollster = "0.4"
