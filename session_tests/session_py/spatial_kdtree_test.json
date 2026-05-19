@@ -3,7 +3,7 @@
     "group": "SpatialKDTree",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.021,
     "line": 8,
     "code": "    from session_py import SpatialKDTree\n    from session_py import Point\n\n    # SpatialKDTree: O(n log n) build, O(log n) nearest \u2014 static point set closest search\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n    ]\n    tree = SpatialKDTree(pts)\n    idx, dist = tree.nearest(Point(2.0, 0.0, 0.0))",
     "checks": [
@@ -24,7 +24,7 @@
     "group": "SpatialKDTree",
     "test_name": "Nearest",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.019,
     "line": 26,
     "code": "    from session_py import SpatialKDTree\n    from session_py import Point\n\n    # 5 known points on a line: 0, 1, 2, 3, 4\n    # Query at 1.1 \u2014 nearest should be index 1 (point at x=1), distance 0.1\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = SpatialKDTree(pts)\n    query = Point(1.1, 0.0, 0.0)\n    idx, dist = tree.nearest(query)",
     "checks": [
