@@ -16,6 +16,8 @@ struct Vertex {
 }
 ```
 
+I would also pass the buffers as session to wgpu.
+
 ## Dependecies
 
 Trunk is a build tool specifically for Rust + WebAssembly web apps.
