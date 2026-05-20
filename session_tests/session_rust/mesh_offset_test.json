@@ -33,7 +33,7 @@
     "line": 5,
     "passed": true,
     "test_name": "from_mesh",
-    "time_ms": 0.101
+    "time_ms": 0.102
   },
   {
     "checks": [
@@ -59,7 +59,7 @@
     "line": 28,
     "passed": true,
     "test_name": "from_mesh_grid",
-    "time_ms": 0.213
+    "time_ms": 0.288
   },
   {
     "checks": [
@@ -110,7 +110,7 @@
     "line": 59,
     "passed": true,
     "test_name": "from_mesh_layers",
-    "time_ms": 0.1
+    "time_ms": 0.107
   },
   {
     "checks": [
@@ -136,7 +136,7 @@
     "line": 84,
     "passed": true,
     "test_name": "file_json_dump",
-    "time_ms": 12.934
+    "time_ms": 13.647
   },
   {
     "checks": [
@@ -162,7 +162,7 @@
     "line": 106,
     "passed": true,
     "test_name": "file_json_load",
-    "time_ms": 0.175
+    "time_ms": 0.205
   },
   {
     "checks": [
@@ -188,7 +188,7 @@
     "line": 117,
     "passed": true,
     "test_name": "to_proto",
-    "time_ms": 8.608
+    "time_ms": 10.566
   },
   {
     "checks": [
@@ -214,6 +214,6 @@
     "line": 139,
     "passed": true,
     "test_name": "from_proto",
-    "time_ms": 0.132
+    "time_ms": 0.099
   }
 ]

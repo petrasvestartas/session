@@ -43,6 +43,6 @@
     "line": 29,
     "passed": true,
     "test_name": "Write Read Roundtrip",
-    "time_ms": 8.604
+    "time_ms": 12.532
   }
 ]

@@ -201,7 +201,7 @@
     "line": 124,
     "passed": true,
     "test_name": "Build Single",
-    "time_ms": 0.014
+    "time_ms": 0.022
   },
   {
     "checks": [
@@ -222,7 +222,7 @@
     "line": 142,
     "passed": true,
     "test_name": "Build Multiple",
-    "time_ms": 0.018
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -243,7 +243,7 @@
     "line": 164,
     "passed": true,
     "test_name": "Aabb Intersect",
-    "time_ms": 0.005
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -274,7 +274,7 @@
     "line": 183,
     "passed": true,
     "test_name": "Check All Collisions",
-    "time_ms": 0.016
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -295,7 +295,7 @@
     "line": 207,
     "passed": true,
     "test_name": "Merge Aabb",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -516,7 +516,7 @@
     "line": 224,
     "passed": true,
     "test_name": "Fixed 100 Boxes",
-    "time_ms": 0.213
+    "time_ms": 0.252
   },
   {
     "checks": [
@@ -547,7 +547,7 @@
     "line": 358,
     "passed": true,
     "test_name": "Nearest Neighbors",
-    "time_ms": 0.021
+    "time_ms": 0.027
   },
   {
     "checks": [
@@ -568,7 +568,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.015
+    "time_ms": 0.017
   },
   {
     "checks": [

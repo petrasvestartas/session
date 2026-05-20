@@ -19,7 +19,15 @@ All features below are researched. Use when the time comes to implement each.
 
 ## Project Location
 - `session_viewer/` — Rust wgpu viewer
-- `session_viewer/src/state.rs` — app state and winit event loop
+- `session_viewer/src/lib.rs` — app state and winit event loop
+
+## wgpu 29 API Notes (breaking changes from older tutorials)
+- `TextureFormat::describe().srgb()` → **removed**, use `format.is_srgb()` directly
+- `Instance::new(desc)` takes `&InstanceDescriptor` (reference), not owned
+- `request_adapter` returns `Result`, use `.await?` directly
+- No `pollster::block_on` — everything is `.await` inside `async fn new()`
+- Backends for web: `Backends::BROWSER_WEBGPU | Backends::GL` (not `Backends::all()`)
+- Limits for web: `Limits::downlevel_webgl2_defaults()` (works on both WebGPU and WebGL2)
 
 ---
 
@@ -53,28 +61,37 @@ crate-type = ["cdylib", "rlib"]  # REQUIRED for WASM
 
 ## Dependency Stack
 
+### Current (session_viewer/Cargo.toml — web only, no desktop)
 ```toml
+[lib]
+crate-type = ["cdylib", "rlib"]  # REQUIRED for wasm
+
 [dependencies]
-wgpu     = { version = "29.0", features = ["webgpu", "webgl"] }
-bytemuck = { version = "1", features = ["derive"] }
-winit    = { version = "0.30", features = ["android-native-activity"] }
-pollster = "0.4"
-anyhow   = "1"
-glam     = "0.29"
-log      = "0.4"
-wasm-logger          = "0.2"
+anyhow               = "1.0"
+winit                = { version = "0.30", features = ["android-native-activity"] }
+wgpu                 = { version = "29.0", features = ["webgl"] }  # webgl = WebGL2 fallback
+log                  = "0.4"
+console_error_panic_hook = "0.1.6"
+console_log          = "1.0"
 wasm-bindgen         = "0.2"
-wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = [
-    "Document", "Element", "HtmlCanvasElement", "Window", "Response", "Blob"
-] }
-serde             = { version = "1", features = ["derive"] }
-serde_json        = "1"
-serde_wasm_bindgen = "0.6"   # preferred for JS<>Rust interop in wasm
-prost             = "0.13"   # protobuf — wasm compatible
-egui              = "0.34"
-egui-wgpu         = { version = "0.34", features = ["winit"] }
-egui-winit        = "0.34"
+wasm-bindgen-futures = "0.4.30"
+web-sys              = { version = "0.3", features = ["Document", "Window", "Element"] }
+
+[profile.release]
+strip = true
+```
+
+### Future additions (when needed)
+```toml
+bytemuck           = { version = "1", features = ["derive"] }
+glam               = "0.29"
+serde              = { version = "1", features = ["derive"] }
+serde_json         = "1"
+serde_wasm_bindgen = "0.6"
+prost              = "0.13"
+egui               = "0.34"
+egui-wgpu          = { version = "0.34", features = ["winit"] }
+egui-winit         = "0.34"
 ```
 
 ---

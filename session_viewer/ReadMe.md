@@ -33,4 +33,4 @@ done. fire good.
 
 ## Tutorials
 
-https://sotrh.github.io/learn-wgpu/beginner/tutorial1-window/
+https://sotrh.github.io/learn-wgpu/beginner/tutorial2-surface/#validation-errors
