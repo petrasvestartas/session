@@ -1,5 +1,21 @@
 # session_viewer
 
+## Buffers
+
+Instead of vertex buffer use point class in session_rust. 
+Be sure that mesh vertex contians points too.
+Be sure we use f32.
+
+
+```
+#[repr(C)]
+#[derive(Copy, Clone, Debug)]
+struct Vertex {
+    position: [f32; 3],
+    color: [f32; 3],
+}
+```
+
 ## Dependecies
 
 Trunk is a build tool specifically for Rust + WebAssembly web apps.
