@@ -25,6 +25,7 @@ rustup target add wasm32-unknown-unknown
    ```
 3. build app:
    ```
+   cmd //c "taskkill /F /IM trunk.exe"     
    trunk serve  
    ```
 
@@ -33,4 +34,5 @@ done. fire good.
 
 ## Tutorials
 
-https://sotrh.github.io/learn-wgpu/beginner/tutorial2-surface/#validation-errors
+https://sotrh.github.io/learn-wgpu/beginner/tutorial3-pipeline/
+https://github.com/sotrh/learn-wgpu/tree/master/code/beginner/tutorial3-pipeline

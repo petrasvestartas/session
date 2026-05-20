@@ -60,6 +60,9 @@ pub struct State {
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     is_surface_configured: bool,
+    // Current background clear color — updated by mouse position.
+    mouse_position: (f64, f64),
+    clear_color: wgpu::Color,
 }
 
 impl State {
@@ -133,13 +136,17 @@ impl State {
         };
 
 
+        // Initialize all the fields of our State struct and return it.
         Ok(Self { 
             surface, 
             device, 
             queue, 
             config, 
             is_surface_configured: false,
-            window,  })
+            clear_color: wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 },
+            window,
+            mouse_position: (0.0, 0.0),
+        })
 
     }
 
@@ -228,12 +235,7 @@ impl State {
                     view: &view,
                     resolve_target: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.1,
-                            g: 0.2,
-                            b: 0.3,
-                            a: 1.0,
-                        }),
+                        load: wgpu::LoadOp::Clear(self.clear_color),
                         store: wgpu::StoreOp::Store,
                     },
                     depth_slice: None,
@@ -253,6 +255,12 @@ impl State {
         Ok(())
     }
 
+
+    /// Update clear color based on mouse position.
+    // r = x / width, g = y / height — maps mouse coords to [0, 1] color range.
+    pub fn handle_mouse_moved(&mut self, x: f64, y: f64) {
+         self.mouse_position = (x, y);
+    }
 
     /// Handle keyboard input.
     pub fn handle_key(&self, event_loop: &ActiveEventLoop, code: KeyCode, is_pressed: bool) {
@@ -450,7 +458,12 @@ impl ApplicationHandler<State> for App {
                 ..  // ignore device_id, is_synthetic
             } => state.handle_key(event_loop, code, key_state.is_pressed()),
 
-            // Ignore all other events (mouse move, scroll, focus, etc.) for now.
+            // Mouse moved — update the clear color based on cursor position.
+            WindowEvent::CursorMoved { position, .. } => {
+                state.handle_mouse_moved(position.x, position.y);
+            }
+
+            // Ignore all other events (scroll, focus, etc.) for now.
             _ => {}
         }
     }

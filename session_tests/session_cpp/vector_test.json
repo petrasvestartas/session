@@ -150,7 +150,7 @@
     "group": "Vector",
     "test_name": "Magnitude",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 105,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(3.0, 4.0, 0.0);\n    double length = v.magnitude();\n    double len_squared = v.magnitude_squared();",
     "checks": [
@@ -239,7 +239,7 @@
     "group": "Vector",
     "test_name": "Cross Product",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.002,
     "line": 168,
     "code": "    // uncomment #include \"vector.h\"\n\n    // Get normal\n    Vector v1(1.0, 0.0, 0.0);\n    Vector v2(0.0, 1.0, 0.0);\n    Vector vn = v1.cross(v2);\n\n    // Perpendicular, area = 3*4=12\n    Vector a(3.0, 0.0, 0.0);\n    Vector b(0.0, 4.0, 0.0);\n    Vector cross = a.cross(b);\n    double area = std::sqrt(cross[0]*cross[0] + cross[1]*cross[1] + cross[2]*cross[2]);",
     "checks": [
@@ -547,7 +547,7 @@
     "group": "Vector",
     "test_name": "Average",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 368,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Average of multiple vectors\n    std::vector<Vector> vecs = {\n        Vector(1.0, 2.0, 3.0),\n        Vector(3.0, 4.0, 5.0),\n        Vector(5.0, 6.0, 7.0),\n    };\n    Vector avg = Vector::average(vecs);",
     "checks": [
@@ -661,7 +661,7 @@
     "group": "Vector",
     "test_name": "Average Normal",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 428,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Closed square in XY plane — normal should be z_axis\n    std::vector<Point> sq = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0),\n    };\n    Vector n = Vector::average_normal(sq);",
     "checks": [
@@ -682,7 +682,7 @@
     "group": "Vector",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.788,
+    "time_ms": 12.31,
     "line": 446,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    // file_json_dump(filename) / file_json_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.json\";\n    v.file_json_dump(filename);\n    Vector loaded = Vector::file_json_load(filename);",
     "checks": [
@@ -713,7 +713,7 @@
     "group": "Vector",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 7.483,
+    "time_ms": 8.89,
     "line": 470,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // pb_dump(filename) / pb_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.bin\";\n    v.pb_dump(filename);\n    Vector loaded = Vector::pb_load(filename);",
     "checks": [

@@ -68,7 +68,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.016
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 297,
     "passed": true,
     "test_name": "Transform",
-    "time_ms": 0.008
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -130,7 +130,7 @@
     "line": 330,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 9.504
+    "time_ms": 5.168
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 363,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 11.919
+    "time_ms": 7.853
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 217,
     "passed": true,
     "test_name": "Get Colors",
-    "time_ms": 0.004
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -250,7 +250,7 @@
     "line": 242,
     "passed": true,
     "test_name": "Get Normal",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -266,7 +266,7 @@
     "line": 77,
     "passed": true,
     "test_name": "Point Count",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -354,7 +354,7 @@
     "line": 61,
     "passed": true,
     "test_name": "From Coords",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -506,7 +506,7 @@
     "line": 140,
     "passed": true,
     "test_name": "Add Point",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -558,7 +558,7 @@
     "line": 112,
     "passed": true,
     "test_name": "Get Point",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [

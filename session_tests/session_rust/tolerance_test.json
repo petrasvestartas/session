@@ -13,7 +13,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.003
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 15,
     "passed": true,
     "test_name": "Is Close",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 24,
     "passed": true,
     "test_name": "Is Positive",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -61,7 +61,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Is Negative",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -77,7 +77,7 @@
     "line": 42,
     "passed": true,
     "test_name": "Is Between",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -93,7 +93,7 @@
     "line": 51,
     "passed": true,
     "test_name": "Format Number",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -109,7 +109,7 @@
     "line": 60,
     "passed": true,
     "test_name": "Key",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -176,7 +176,7 @@
     "line": 278,
     "passed": true,
     "test_name": "Tolerance",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -264,7 +264,7 @@
     "line": 180,
     "passed": true,
     "test_name": "Count Digits",
-    "time_ms": 0.0
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -301,7 +301,7 @@
     "line": 257,
     "passed": true,
     "test_name": "Round To",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -337,7 +337,7 @@
     "line": 111,
     "passed": true,
     "test_name": "Wrap Index",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -353,7 +353,7 @@
     "line": 268,
     "passed": true,
     "test_name": "Precision From Tolerance",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -421,7 +421,7 @@
     "line": 128,
     "passed": true,
     "test_name": "Triangle Edge By Angle",
-    "time_ms": 0.004
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -463,7 +463,7 @@
     "line": 323,
     "passed": true,
     "test_name": "Temporary",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -489,7 +489,7 @@
     "line": 139,
     "passed": true,
     "test_name": "Rad Deg Conversion",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -573,7 +573,7 @@
     "line": 309,
     "passed": true,
     "test_name": "Is Vector Close",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
