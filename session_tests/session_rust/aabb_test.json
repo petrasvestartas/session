@@ -2,97 +2,6 @@
   {
     "checks": [
       {
-        "code_line": "a_pt.center() == Point::new(1.0, 2.0, 3.0)",
-        "line": 56,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(a_pt.hx, 0.5)",
-        "line": 57,
-        "passed": true
-      },
-      {
-        "code_line": "a_pts.min_point() == Point::new(0.0, 0.0, 0.0)",
-        "line": 64,
-        "passed": true
-      },
-      {
-        "code_line": "a_pts.max_point() == Point::new(3.0, 4.0, 5.0)",
-        "line": 65,
-        "passed": true
-      },
-      {
-        "code_line": "a_line.min_point() == Point::new(-1.0, -1.0, -1.0)",
-        "line": 70,
-        "passed": true
-      },
-      {
-        "code_line": "a_line.max_point() == Point::new(5.0, 1.0, 1.0)",
-        "line": 71,
-        "passed": true
-      },
-      {
-        "code_line": "a_pl.min_point() == Point::new(0.0, 0.0, 0.0)",
-        "line": 80,
-        "passed": true
-      },
-      {
-        "code_line": "a_pl.max_point() == Point::new(2.0, 2.0, 0.0)",
-        "line": 81,
-        "passed": true
-      },
-      {
-        "code_line": "a_mesh.min_point() == Point::new(-1.0, -1.0, -1.0)",
-        "line": 86,
-        "passed": true
-      },
-      {
-        "code_line": "a_mesh.max_point() == Point::new(1.0, 1.0, 1.0)",
-        "line": 87,
-        "passed": true
-      },
-      {
-        "code_line": "a_pc.min_point() == Point::new(0.0, 0.0, 0.0)",
-        "line": 105,
-        "passed": true
-      },
-      {
-        "code_line": "a_pc.max_point() == Point::new(4.0, 2.0, 6.0)",
-        "line": 106,
-        "passed": true
-      },
-      {
-        "code_line": "a_nc.is_valid()",
-        "line": 116,
-        "passed": true
-      },
-      {
-        "code_line": "a_nc.contains(&Point::new(1.5, 0.0, 0.0))",
-        "line": 117,
-        "passed": true
-      },
-      {
-        "code_line": "a_ns.is_valid()",
-        "line": 127,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(a_ns.volume(), 8.0)",
-        "line": 128,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::AABB;\n        use crate::Color;\n        use crate::Line;\n        use crate::NurbsCurve;\n        use crate::NurbsSurface;\n        use crate::Point;\n        use crate::PointCloud;\n        use crate::Polyline;\n        use crate::Primitives;\n        use crate::Vector;\n\n        let a_pt = AABB::from_point(&Point::new(1.0, 2.0, 3.0), 0.5);\n\n\n        let a_pts = AABB::from_points(&[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(3.0, 4.0, 5.0),\n        ], 0.0);\n\n\n        let ln = Line::new(0.0, 0.0, 0.0, 4.0, 0.0, 0.0);\n        let a_line = AABB::from_line(&ln, 1.0);\n\n\n        let pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n        ]);\n        let a_pl = AABB::from_polyline(&pl, 0.0);\n\n\n        let cube = Primitives::cube(2.0);\n        let a_mesh = AABB::from_mesh(&cube, 0.0);\n\n\n        let pc = PointCloud::new(\n            vec![\n                Point::new(0.0, 0.0, 0.0),\n                Point::new(4.0, 2.0, 6.0),\n            ],\n            vec![\n                Vector::new(0.0, 0.0, 1.0),\n                Vector::new(0.0, 0.0, 1.0),\n            ],\n            vec![\n                Color::new(255, 0, 0, 255),\n                Color::new(0, 255, 0, 255),\n            ],\n        );\n        let a_pc = AABB::from_pointcloud(&pc, 0.0);\n\n\n        let curve = NurbsCurve::create(false, 2, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n        ]);\n        let a_nc = AABB::from_nurbscurve(&curve, 0.5, false);\n\n\n        let surf = NurbsSurface::create(false, false, 1, 1, 2, 2, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n            Point::new(2.0, 2.0, 2.0),\n        ]).unwrap();\n        let a_ns = AABB::from_nurbssurface(&surf, 0.0);\n",
-    "failures": [],
-    "group": "AABB",
-    "line": 42,
-    "passed": true,
-    "test_name": "From Geometry",
-    "time_ms": 2.09
-  },
-  {
-    "checks": [
-      {
         "code_line": "TOLERANCE.is_close(a.area(), 88.0)",
         "line": 13,
         "passed": true
@@ -204,6 +113,97 @@
     "line": 9,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.006
+    "time_ms": 0.021
+  },
+  {
+    "checks": [
+      {
+        "code_line": "a_pt.center() == Point::new(1.0, 2.0, 3.0)",
+        "line": 56,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(a_pt.hx, 0.5)",
+        "line": 57,
+        "passed": true
+      },
+      {
+        "code_line": "a_pts.min_point() == Point::new(0.0, 0.0, 0.0)",
+        "line": 64,
+        "passed": true
+      },
+      {
+        "code_line": "a_pts.max_point() == Point::new(3.0, 4.0, 5.0)",
+        "line": 65,
+        "passed": true
+      },
+      {
+        "code_line": "a_line.min_point() == Point::new(-1.0, -1.0, -1.0)",
+        "line": 70,
+        "passed": true
+      },
+      {
+        "code_line": "a_line.max_point() == Point::new(5.0, 1.0, 1.0)",
+        "line": 71,
+        "passed": true
+      },
+      {
+        "code_line": "a_pl.min_point() == Point::new(0.0, 0.0, 0.0)",
+        "line": 80,
+        "passed": true
+      },
+      {
+        "code_line": "a_pl.max_point() == Point::new(2.0, 2.0, 0.0)",
+        "line": 81,
+        "passed": true
+      },
+      {
+        "code_line": "a_mesh.min_point() == Point::new(-1.0, -1.0, -1.0)",
+        "line": 86,
+        "passed": true
+      },
+      {
+        "code_line": "a_mesh.max_point() == Point::new(1.0, 1.0, 1.0)",
+        "line": 87,
+        "passed": true
+      },
+      {
+        "code_line": "a_pc.min_point() == Point::new(0.0, 0.0, 0.0)",
+        "line": 105,
+        "passed": true
+      },
+      {
+        "code_line": "a_pc.max_point() == Point::new(4.0, 2.0, 6.0)",
+        "line": 106,
+        "passed": true
+      },
+      {
+        "code_line": "a_nc.is_valid()",
+        "line": 116,
+        "passed": true
+      },
+      {
+        "code_line": "a_nc.contains(&Point::new(1.5, 0.0, 0.0))",
+        "line": 117,
+        "passed": true
+      },
+      {
+        "code_line": "a_ns.is_valid()",
+        "line": 127,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(a_ns.volume(), 8.0)",
+        "line": 128,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::AABB;\n        use crate::Color;\n        use crate::Line;\n        use crate::NurbsCurve;\n        use crate::NurbsSurface;\n        use crate::Point;\n        use crate::PointCloud;\n        use crate::Polyline;\n        use crate::Primitives;\n        use crate::Vector;\n\n        let a_pt = AABB::from_point(&Point::new(1.0, 2.0, 3.0), 0.5);\n\n\n        let a_pts = AABB::from_points(&[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(3.0, 4.0, 5.0),\n        ], 0.0);\n\n\n        let ln = Line::new(0.0, 0.0, 0.0, 4.0, 0.0, 0.0);\n        let a_line = AABB::from_line(&ln, 1.0);\n\n\n        let pl = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n        ]);\n        let a_pl = AABB::from_polyline(&pl, 0.0);\n\n\n        let cube = Primitives::cube(2.0);\n        let a_mesh = AABB::from_mesh(&cube, 0.0);\n\n\n        let pc = PointCloud::new(\n            vec![\n                Point::new(0.0, 0.0, 0.0),\n                Point::new(4.0, 2.0, 6.0),\n            ],\n            vec![\n                Vector::new(0.0, 0.0, 1.0),\n                Vector::new(0.0, 0.0, 1.0),\n            ],\n            vec![\n                Color::new(255, 0, 0, 255),\n                Color::new(0, 255, 0, 255),\n            ],\n        );\n        let a_pc = AABB::from_pointcloud(&pc, 0.0);\n\n\n        let curve = NurbsCurve::create(false, 2, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n        ]);\n        let a_nc = AABB::from_nurbscurve(&curve, 0.5, false);\n\n\n        let surf = NurbsSurface::create(false, false, 1, 1, 2, 2, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n            Point::new(2.0, 2.0, 2.0),\n        ]).unwrap();\n        let a_ns = AABB::from_nurbssurface(&surf, 0.0);\n",
+    "failures": [],
+    "group": "AABB",
+    "line": 42,
+    "passed": true,
+    "test_name": "From Geometry",
+    "time_ms": 0.653
   }
 ]

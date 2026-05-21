@@ -3,7 +3,7 @@
     "group": "Line",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.038,
+    "time_ms": 0.015,
     "line": 16,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    // Constructor\n    Line l(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);\n\n    // Setters\n    l[0] = 10.0;\n    l[1] = 20.0;\n    l[2] = 30.0;\n    l[3] = 40.0;\n    l[4] = 50.0;\n    l[5] = 60.0;\n\n    // Getters\n    double x0 = l[0];\n    double y0 = l[1];\n    double z0 = l[2];\n    double x1 = l[3];\n    double y1 = l[4];\n    double z1 = l[5];\n\n    // Minimal and Full String Representation\n    std::string lstr = l.str();\n    std::string lrepr = l.repr();\n\n    // Copy (duplicate everything but guid())\n    Line lcopy = l;\n    Line lother(10.0, 20.0, 30.0, 40.0, 50.0, 60.0);\n\n    // No-copy operators\n    Line lmult = l;\n    lmult *= 2.0;\n    Line ldiv = l;\n    ldiv /= 2.0;\n    Line ladd = l;\n    ladd += Vector(1.0, 1.0, 1.0);\n    Line lsub = l;\n    lsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Line rmul = l * 2.0;\n    Line rdiv = l / 2.0;\n    Line radd = l + Vector(1.0, 1.0, 1.0);\n    Line rdif = l - Vector(1.0, 1.0, 1.0);\n\n    // Negation (flip start and end)\n    Line lneg(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);\n    Line neg = -lneg;\n\n    // From points constructor\n    Point p0(1.0, 2.0, 3.0);\n    Point p1(4.0, 5.0, 6.0);\n    Line l2p = Line::from_points(p0, p1);\n\n    // from_point_and_vector constructor\n    Point pv(1.0, 2.0, 3.0);\n    Vector vv(3.0, 4.0, 5.0);\n    Line l_pv = Line::from_point_and_vector(pv, vv);\n\n    // from_point_direction_length constructor\n    Point pd(0.0, 0.0, 0.0);\n    Vector dd(1.0, 0.0, 0.0);\n    Line l_pdl = Line::from_point_direction_length(pd, dd, 5.0);\n\n    // Line with custom color and width\n    Line lc(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);\n    lc.linecolor = Color(255, 0, 0, 255, \"red\");\n    lc.width = 2.5;\n\n    // with_name constructor\n    Line lwn = Line::with_name(\"custom\", 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n\n    // get_middle_line\n    Point ms, me;\n    Line::get_middle_line(Point(0.0, 0.0, 0.0), Point(2.0, 0.0, 0.0),\n                          Point(0.0, 2.0, 0.0), Point(2.0, 2.0, 0.0), ms, me);",
     "checks": [
@@ -154,7 +154,7 @@
     "group": "Line",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.001,
     "line": 127,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"xform.h\"\n\n    Line l(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    l.xform = Xform::translation(10.0, 0.0, 0.0);\n    Line l_transformed = l.transformed(); // Make a copy\n    l.transform(); // After the call, \"xform\" is reset",
     "checks": [
@@ -180,7 +180,7 @@
     "group": "Line",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 13.9,
+    "time_ms": 10.054,
     "line": 141,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    //   jsondump()      | ordered_json | to JSON object\n    //   jsonload(j)     | ordered_json | from JSON object\n    //   file_json_dumps()    | string       | to JSON string\n    //   file_json_loads(s)   | string       | from JSON string\n    //   file_json_dump(path) | file         | write to file\n    //   file_json_load(path) | file         | read from file\n\n    // JSON object\n    nlohmann::ordered_json j = l.jsondump();\n    Line loaded_j = Line::jsonload(j);\n\n\n    // String\n    std::string s = l.file_json_dumps();\n    Line loaded_s = Line::file_json_loads(s);\n\n    // File\n    std::string fname = \"serialization/test_line.json\";\n    l.file_json_dump(fname);\n    Line loaded = Line::file_json_load(fname);",
     "checks": [
@@ -246,7 +246,7 @@
     "group": "Line",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 10.8,
+    "time_ms": 9.718,
     "line": 180,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(42.1, 84.2, 126.3, 168.4, 210.5, 252.6);\n    l.name = \"test_line\";\n\n    //   pb_dumps()      | string       | to protobuf bytes\n    //   pb_loads(s)     | string       | from protobuf bytes\n    //   pb_dump(path)   | file         | write to file\n    //   pb_load(path)   | file         | read from file\n\n    // String\n    std::string s = l.pb_dumps();\n    Line loaded_s = Line::pb_loads(s);\n\n\n    // File\n    std::string fname = \"serialization/test_line.bin\";\n    l.pb_dump(fname);\n    Line loaded = Line::pb_load(fname);",
     "checks": [
@@ -312,7 +312,7 @@
     "group": "Line",
     "test_name": "Length",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 213,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(0.0, 0.0, 0.0, 3.0, 4.0, 0.0);\n    double ln = l.length();\n    double lsq = l.squared_length();",
     "checks": [
@@ -349,7 +349,7 @@
     "group": "Line",
     "test_name": "To Direction",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 233,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(0.0, 0.0, 0.0, 3.0, 4.0, 0.0);\n    Vector d = l.to_direction();",
     "checks": [
@@ -406,7 +406,7 @@
     "group": "Line",
     "test_name": "Closest Point",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 258,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n\n    Line l(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n    Point p1(5.0, 5.0, 0.0);\n    Point p2(-5.0, 0.0, 0.0);\n    Point p3(15.0, 0.0, 0.0);\n    auto [t1, cp1] = l.closest_point(p1);\n    auto [t2, cp2] = l.closest_point(p2);\n    auto [t3, cp3] = l.closest_point(p3);",
     "checks": [
@@ -447,7 +447,7 @@
     "group": "Line",
     "test_name": "Start End Center",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.001,
     "line": 278,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);\n    Point start = l.start();\n    Point end = l.end();\n    Point center = l.center();",
     "checks": [
@@ -473,7 +473,7 @@
     "group": "Line",
     "test_name": "Fit Points",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 291,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include <vector>\n\n    std::vector<Point> fit_pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.5),\n        Point(2.0, 2.0, 1.0),\n        Point(3.0, 3.0, 1.5),\n    };\n    Line l_fit = Line::fit_points(fit_pts);",
     "checks": [
@@ -489,7 +489,7 @@
     "group": "Line",
     "test_name": "Subdivide",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.002,
     "line": 307,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include <vector>\n\n    Line l(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n\n    // subdivide by count\n    std::vector<Point> pts = l.subdivide(3);\n\n    // subdivide_by_distance\n    std::vector<Point> pts_dist = l.subdivide_by_distance(2.5);\n",
     "checks": [
@@ -540,7 +540,7 @@
     "group": "Line",
     "test_name": "Overlap",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.006,
     "line": 330,
     "code": "    // uncomment #include \"line.h\"\n\n    // Two collinear segments overlapping in [5, 10] along X.\n    Line l0 = Line::from_points(Point(0.0, 0.0, 0.0), Point(10.0, 0.0, 0.0));\n    Line l1 = Line::from_points(Point(5.0, 0.0, 0.0), Point(15.0, 0.0, 0.0));\n    Line out;\n    bool ok = l0.overlap(l1, out);",
     "checks": [
@@ -566,7 +566,7 @@
     "group": "Line",
     "test_name": "Overlap Average",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.002,
     "line": 344,
     "code": "    // uncomment #include \"line.h\"\n\n    // Two collinear segments overlapping in [5, 10] along X.\n    Line l0 = Line::from_points(Point(0.0, 0.0, 0.0), Point(10.0, 0.0, 0.0));\n    Line l1 = Line::from_points(Point(5.0, 0.0, 0.0), Point(15.0, 0.0, 0.0));\n    Line out;\n    bool ok = l0.overlap_average(l1, out);",
     "checks": [
@@ -592,7 +592,7 @@
     "group": "Line",
     "test_name": "Extend",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.003,
     "line": 358,
     "code": "    // uncomment #include \"line.h\"\n\n    Line l = Line::from_points(Point(0.0, 0.0, 0.0), Point(10.0, 0.0, 0.0));\n    l.extend(1.0, 2.0);",
     "checks": [

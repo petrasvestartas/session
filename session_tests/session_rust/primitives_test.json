@@ -18,7 +18,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Mesh Arrow",
-    "time_ms": 0.438
+    "time_ms": 0.234
   },
   {
     "checks": [
@@ -39,7 +39,7 @@
     "line": 19,
     "passed": true,
     "test_name": "Mesh Cylinder",
-    "time_ms": 0.265
+    "time_ms": 0.158
   },
   {
     "checks": [
@@ -80,7 +80,7 @@
     "line": 54,
     "passed": true,
     "test_name": "Nurbscurve Polyline",
-    "time_ms": 0.725
+    "time_ms": 0.334
   },
   {
     "checks": [
@@ -106,7 +106,7 @@
     "line": 76,
     "passed": true,
     "test_name": "Nurbscurve Circle",
-    "time_ms": 0.005
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -132,7 +132,7 @@
     "line": 88,
     "passed": true,
     "test_name": "Nurbscurve Ellipse",
-    "time_ms": 0.009
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -158,7 +158,7 @@
     "line": 100,
     "passed": true,
     "test_name": "Nurbscurve Arc",
-    "time_ms": 0.011
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -184,7 +184,7 @@
     "line": 116,
     "passed": true,
     "test_name": "Nurbscurve Parabola",
-    "time_ms": 0.005
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -210,7 +210,7 @@
     "line": 132,
     "passed": true,
     "test_name": "Nurbscurve Hyperbola",
-    "time_ms": 0.023
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -236,7 +236,7 @@
     "line": 146,
     "passed": true,
     "test_name": "Nurbscurve Spiral",
-    "time_ms": 0.028
+    "time_ms": 0.019
   },
   {
     "checks": [
@@ -322,7 +322,7 @@
     "line": 158,
     "passed": true,
     "test_name": "Nurbssurface Cylinder",
-    "time_ms": 0.019
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -408,7 +408,7 @@
     "line": 188,
     "passed": true,
     "test_name": "Nurbssurface Cone",
-    "time_ms": 0.016
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -509,7 +509,7 @@
     "line": 218,
     "passed": true,
     "test_name": "Nurbssurface Sphere",
-    "time_ms": 0.03
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -710,7 +710,7 @@
     "line": 253,
     "passed": true,
     "test_name": "Nurbssurface Quad Sphere",
-    "time_ms": 0.467
+    "time_ms": 0.268
   },
   {
     "checks": [
@@ -796,7 +796,7 @@
     "line": 287,
     "passed": true,
     "test_name": "Nurbssurface Torus",
-    "time_ms": 0.023
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -1122,7 +1122,7 @@
     "line": 317,
     "passed": true,
     "test_name": "Nurbssurface Ruled",
-    "time_ms": 10.297
+    "time_ms": 5.413
   },
   {
     "checks": [
@@ -1333,7 +1333,7 @@
     "line": 429,
     "passed": true,
     "test_name": "Nurbssurface Planar",
-    "time_ms": 60.756
+    "time_ms": 28.818
   },
   {
     "checks": [
@@ -1564,7 +1564,7 @@
     "line": 538,
     "passed": true,
     "test_name": "Nurbssurface Extrusion",
-    "time_ms": 3.563
+    "time_ms": 1.885
   },
   {
     "checks": [
@@ -1845,7 +1845,7 @@
     "line": 625,
     "passed": true,
     "test_name": "Nurbssurface Loft",
-    "time_ms": 0.903
+    "time_ms": 0.446
   },
   {
     "checks": [
@@ -2106,7 +2106,7 @@
     "line": 724,
     "passed": true,
     "test_name": "Nurbssurface Revolve",
-    "time_ms": 75.753
+    "time_ms": 34.098
   },
   {
     "checks": [
@@ -2242,7 +2242,7 @@
     "line": 835,
     "passed": true,
     "test_name": "Nurbssurface Sweep",
-    "time_ms": 109.486
+    "time_ms": 42.787
   },
   {
     "checks": [
@@ -2343,7 +2343,7 @@
     "line": 904,
     "passed": true,
     "test_name": "Nurbssurface Edge",
-    "time_ms": 4.262
+    "time_ms": 1.369
   },
   {
     "checks": [
@@ -2384,7 +2384,7 @@
     "line": 967,
     "passed": true,
     "test_name": "Mesh Quad Mesh",
-    "time_ms": 1.665
+    "time_ms": 0.493
   },
   {
     "checks": [
@@ -2425,7 +2425,7 @@
     "line": 985,
     "passed": true,
     "test_name": "Mesh Diamond Mesh",
-    "time_ms": 1.139
+    "time_ms": 0.345
   },
   {
     "checks": [
@@ -2466,7 +2466,7 @@
     "line": 1003,
     "passed": true,
     "test_name": "Mesh Hex Mesh",
-    "time_ms": 1.621
+    "time_ms": 0.643
   },
   {
     "checks": [
@@ -2522,7 +2522,7 @@
     "line": 1021,
     "passed": true,
     "test_name": "Mesh Cone Subdivisions",
-    "time_ms": 1.933
+    "time_ms": 0.757
   },
   {
     "checks": [
@@ -2628,7 +2628,7 @@
     "line": 1044,
     "passed": true,
     "test_name": "Nurbscurve Interpolated",
-    "time_ms": 0.066
+    "time_ms": 0.032
   },
   {
     "checks": [
@@ -2654,7 +2654,7 @@
     "line": 1097,
     "passed": true,
     "test_name": "Mesh Tetrahedron",
-    "time_ms": 0.11
+    "time_ms": 0.049
   },
   {
     "checks": [
@@ -2680,7 +2680,7 @@
     "line": 1108,
     "passed": true,
     "test_name": "Mesh Cube",
-    "time_ms": 0.385
+    "time_ms": 0.167
   },
   {
     "checks": [
@@ -2706,7 +2706,7 @@
     "line": 1119,
     "passed": true,
     "test_name": "Mesh Octahedron",
-    "time_ms": 0.227
+    "time_ms": 0.065
   },
   {
     "checks": [
@@ -2732,7 +2732,7 @@
     "line": 1130,
     "passed": true,
     "test_name": "Mesh Icosahedron",
-    "time_ms": 0.515
+    "time_ms": 0.141
   },
   {
     "checks": [
@@ -2773,7 +2773,7 @@
     "line": 1141,
     "passed": true,
     "test_name": "Nurbssurface Wave",
-    "time_ms": 0.276
+    "time_ms": 0.081
   },
   {
     "checks": [
@@ -2794,6 +2794,6 @@
     "line": 32,
     "passed": true,
     "test_name": "Mesh Edge Pipes",
-    "time_ms": 5.287
+    "time_ms": 1.496
   }
 ]

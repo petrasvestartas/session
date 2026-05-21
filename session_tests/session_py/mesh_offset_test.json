@@ -1,0 +1,219 @@
+[
+  {
+    "group": "MeshOffset",
+    "test_name": "from_mesh",
+    "passed": true,
+    "time_ms": 0.146,
+    "line": 8,
+    "code": "    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    result = MeshOffset.from_mesh(mesh, 1.0)\n    import copy as _copy\n    copy = _copy.copy(result)",
+    "checks": [
+      {
+        "line": 23,
+        "code_line": "result.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 24,
+        "code_line": "result == copy",
+        "passed": true
+      },
+      {
+        "line": 25,
+        "code_line": "not (result != copy)",
+        "passed": true
+      },
+      {
+        "line": 26,
+        "code_line": "result.number_of_vertices() == 8",
+        "passed": true
+      },
+      {
+        "line": 27,
+        "code_line": "result.number_of_faces() == 6",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "MeshOffset",
+    "test_name": "from_mesh_grid",
+    "passed": true,
+    "time_ms": 0.191,
+    "line": 30,
+    "code": "    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(2, 0, 0),\n        Point(0, 1, 0),\n        Point(1, 1, 0),\n        Point(2, 1, 0),\n        Point(0, 2, 0),\n        Point(1, 2, 0),\n        Point(2, 2, 0),\n    ]\n    faces = [\n        [0, 1, 4, 3],\n        [1, 2, 5, 4],\n        [3, 4, 7, 6],\n        [4, 5, 8, 7],\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, faces)\n    result = MeshOffset.from_mesh(mesh, 2.0)",
+    "checks": [
+      {
+        "line": 54,
+        "code_line": "result.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 55,
+        "code_line": "result.number_of_vertices() == 18",
+        "passed": true
+      },
+      {
+        "line": 56,
+        "code_line": "result.number_of_faces() == 16",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "MeshOffset",
+    "test_name": "from_mesh_layers",
+    "passed": true,
+    "time_ms": 0.089,
+    "line": 59,
+    "code": "    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    layers = MeshOffset.from_mesh_layers(mesh, 1.0)",
+    "checks": [
+      {
+        "line": 72,
+        "code_line": "layers.bottom.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 73,
+        "code_line": "layers.top.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 74,
+        "code_line": "layers.sides.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 75,
+        "code_line": "layers.bottom.number_of_vertices() == 4",
+        "passed": true
+      },
+      {
+        "line": 76,
+        "code_line": "layers.bottom.number_of_faces() == 1",
+        "passed": true
+      },
+      {
+        "line": 77,
+        "code_line": "layers.top.number_of_vertices() == 4",
+        "passed": true
+      },
+      {
+        "line": 78,
+        "code_line": "layers.top.number_of_faces() == 1",
+        "passed": true
+      },
+      {
+        "line": 79,
+        "code_line": "layers.sides.number_of_faces() == 4",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "MeshOffset",
+    "test_name": "file_json_dump",
+    "passed": true,
+    "time_ms": 12.264,
+    "line": 82,
+    "code": "    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    result = MeshOffset.from_mesh(mesh, 1.0)\n    result.file_json_dump(\"mesh_offset_test_dump.json\")\n    loaded = Mesh.file_json_load(\"mesh_offset_test_dump.json\")",
+    "checks": [
+      {
+        "line": 97,
+        "code_line": "loaded.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 98,
+        "code_line": "loaded.number_of_vertices() == result.number_of_vertices()",
+        "passed": true
+      },
+      {
+        "line": 99,
+        "code_line": "loaded.number_of_faces() == result.number_of_faces()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "MeshOffset",
+    "test_name": "file_json_load",
+    "passed": true,
+    "time_ms": 0.25,
+    "line": 102,
+    "code": "    from session_py import Mesh\n    loaded = Mesh.file_json_load(\"mesh_offset_test_dump.json\")",
+    "checks": [
+      {
+        "line": 106,
+        "code_line": "loaded.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 107,
+        "code_line": "loaded.number_of_vertices() == 8",
+        "passed": true
+      },
+      {
+        "line": 108,
+        "code_line": "loaded.number_of_faces() == 6",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "MeshOffset",
+    "test_name": "to_proto",
+    "passed": true,
+    "time_ms": 10.359,
+    "line": 111,
+    "code": "    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    result = MeshOffset.from_mesh(mesh, 1.0)\n    result.pb_dump(\"mesh_offset_test.pb\")\n    loaded = Mesh.pb_load(\"mesh_offset_test.pb\")",
+    "checks": [
+      {
+        "line": 126,
+        "code_line": "loaded.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 127,
+        "code_line": "loaded.number_of_vertices() == result.number_of_vertices()",
+        "passed": true
+      },
+      {
+        "line": 128,
+        "code_line": "loaded.number_of_faces() == result.number_of_faces()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "MeshOffset",
+    "test_name": "from_proto",
+    "passed": true,
+    "time_ms": 0.186,
+    "line": 131,
+    "code": "    from session_py import Mesh\n    loaded = Mesh.pb_load(\"mesh_offset_test.pb\")",
+    "checks": [
+      {
+        "line": 135,
+        "code_line": "loaded.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 136,
+        "code_line": "loaded.number_of_vertices() == 8",
+        "passed": true
+      },
+      {
+        "line": 137,
+        "code_line": "loaded.number_of_faces() == 6",
+        "passed": true
+      }
+    ],
+    "failures": []
+  }
+]

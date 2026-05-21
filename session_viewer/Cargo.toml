@@ -1,11 +1,21 @@
 [package]
 name = "session_viewer"
 version = "0.1.0"
-edition = "2024" # We use v2 feature resolver for dependencies
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-anyhow = "1.0" 
+anyhow = "1.0"
 winit = { version = "0.30", features = ["android-native-activity"] }
-env_logger = "0.10" # To run env_logger::init(); so that wgpu won't fail silently 
-wgpu = "29.0"
-pollster = "0.3"
+wgpu = { version = "29.0", features = ["webgl"] }
+log = "0.4"
+console_error_panic_hook = "0.1.6"
+console_log = "1.0"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4.30"
+web-sys = { version = "0.3", features = ["Document", "Window", "Element"] }
+
+[profile.release]
+strip = true

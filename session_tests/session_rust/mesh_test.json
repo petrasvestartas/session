@@ -83,7 +83,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.862
+    "time_ms": 0.529
   },
   {
     "checks": [
@@ -99,7 +99,7 @@
     "line": 80,
     "passed": true,
     "test_name": "From Polylines",
-    "time_ms": 0.58
+    "time_ms": 0.297
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 116,
     "passed": true,
     "test_name": "From Lines",
-    "time_ms": 0.454
+    "time_ms": 0.28
   },
   {
     "checks": [
@@ -136,7 +136,7 @@
     "line": 150,
     "passed": true,
     "test_name": "From Polygon With Holes",
-    "time_ms": 0.601
+    "time_ms": 0.72
   },
   {
     "checks": [
@@ -161,13 +161,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Polyline;\n\n        let bottom = vec![\n            Polyline::new(vec![\n                Point::new(13.20069, -0.556523, -0.178103),\n                Point::new(12.248787, 0.148384, 0.416685),\n                Point::new(12.673247, 2.119511, 1.167431),\n                Point::new(16.910464, 2.961749, 0.289102),\n                Point::new(15.364327, 0.465135, -0.363618),\n                Point::new(15.953685, -1.032727, -1.203717),\n                Point::new(13.20069, -0.556523, -0.178103),\n            ]),\n            Polyline::new(vec![\n                Point::new(14.646845, 0.917382, 0.049546),\n                Point::new(14.636404, 1.36458, 0.251429),\n                Point::new(14.660418, 1.595448, 0.346958),\n                Point::new(15.163581, 1.821395, 0.298639),\n                Point::new(15.422988, 1.014296, -0.136839),\n                Point::new(15.068958, 0.91534, -0.07616),\n                Point::new(15.03918, 0.459713, -0.269899),\n                Point::new(14.771618, 0.635281, -0.112748),\n                Point::new(14.646845, 0.917382, 0.049546),\n            ]),\n            Polyline::new(vec![\n                Point::new(13.628016, 0.548716, 0.186877),\n                Point::new(13.116088, 0.844297, 0.469625),\n                Point::new(13.114799, 1.185147, 0.621527),\n                Point::new(13.591866, 1.424645, 0.586947),\n                Point::new(13.884637, 1.32996, 0.458299),\n                Point::new(14.013519, 0.88254, 0.2213),\n                Point::new(13.656275, 0.924872, 0.345738),\n                Point::new(13.628016, 0.548716, 0.186877),\n            ]),\n        ];\n        let top = vec![\n            Polyline::new(vec![\n                Point::new(13.375135, -0.818817, 0.411936),\n                Point::new(12.423233, -0.113909, 1.006724),\n                Point::new(12.847692, 1.857217, 1.75747),\n                Point::new(17.084909, 2.699455, 0.879141),\n                Point::new(15.538772, 0.202841, 0.226421),\n                Point::new(16.12813, -1.295021, -0.613678),\n                Point::new(13.375135, -0.818817, 0.411936),\n            ]),\n            Polyline::new(vec![\n                Point::new(14.82129, 0.655088, 0.639585),\n                Point::new(14.810849, 1.102286, 0.841468),\n                Point::new(14.834864, 1.333154, 0.936997),\n                Point::new(15.338026, 1.559101, 0.888678),\n                Point::new(15.597433, 0.752002, 0.4532),\n                Point::new(15.243404, 0.653046, 0.513879),\n                Point::new(15.213626, 0.197419, 0.32014),\n                Point::new(14.946063, 0.372987, 0.477291),\n                Point::new(14.82129, 0.655088, 0.639585),\n            ]),\n            Polyline::new(vec![\n                Point::new(13.802461, 0.286422, 0.776916),\n                Point::new(13.290534, 0.582003, 1.059664),\n                Point::new(13.289245, 0.922853, 1.211566),\n                Point::new(13.766312, 1.162351, 1.176986),\n                Point::new(14.059082, 1.067666, 1.048338),\n                Point::new(14.187964, 0.620246, 0.811339),\n                Point::new(13.83072, 0.662578, 0.935777),\n                Point::new(13.802461, 0.286422, 0.776916),\n            ]),\n        ];\n        let mesh = Mesh::loft(&bottom, &top, true);\n\n\n        let mesh_no_cap = Mesh::loft(&bottom, &top, false);",
+    "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Polyline;\n\n        let bottom = vec![\n            Polyline::new(vec![\n                Point::new(13.20069, -0.556523, -0.178103),\n                Point::new(12.248787, 0.148384, 0.416685),\n                Point::new(12.673247, 2.119511, 1.167431),\n                Point::new(16.910464, 2.961749, 0.289102),\n                Point::new(15.364327, 0.465135, -0.363618),\n                Point::new(15.953685, -1.032727, -1.203717),\n                Point::new(13.20069, -0.556523, -0.178103),\n            ]),\n            Polyline::new(vec![\n                Point::new(14.646845, 0.917382, 0.049546),\n                Point::new(14.636404, 1.36458, 0.251429),\n                Point::new(14.660418, 1.595448, 0.346958),\n                Point::new(15.163581, 1.821395, 0.298639),\n                Point::new(15.422988, 1.014296, -0.136839),\n                Point::new(15.068958, 0.91534, -0.07616),\n                Point::new(15.03918, 0.459713, -0.269899),\n                Point::new(14.771618, 0.635281, -0.112748),\n                Point::new(14.646845, 0.917382, 0.049546),\n            ]),\n            Polyline::new(vec![\n                Point::new(13.628016, 0.548716, 0.186877),\n                Point::new(13.116088, 0.844297, 0.469625),\n                Point::new(13.114799, 1.185147, 0.621527),\n                Point::new(13.591866, 1.424645, 0.586947),\n                Point::new(13.884637, 1.32996, 0.458299),\n                Point::new(14.013519, 0.88254, 0.2213),\n                Point::new(13.656275, 0.924872, 0.345738),\n                Point::new(13.628016, 0.548716, 0.186877),\n            ]),\n        ];\n        let top = vec![\n            Polyline::new(vec![\n                Point::new(13.375135, -0.818817, 0.411936),\n                Point::new(12.423233, -0.113909, 1.006724),\n                Point::new(12.847692, 1.857217, 1.75747),\n                Point::new(17.084909, 2.699455, 0.879141),\n                Point::new(15.538772, 0.202841, 0.226421),\n                Point::new(16.12813, -1.295021, -0.613678),\n                Point::new(13.375135, -0.818817, 0.411936),\n            ]),\n            Polyline::new(vec![\n                Point::new(14.82129, 0.655088, 0.639585),\n                Point::new(14.810849, 1.102286, 0.841468),\n                Point::new(14.834864, 1.333154, 0.936997),\n                Point::new(15.338026, 1.559101, 0.888678),\n                Point::new(15.597433, 0.752002, 0.4532),\n                Point::new(15.243404, 0.653046, 0.513879),\n                Point::new(15.213626, 0.197419, 0.32014),\n                Point::new(14.946063, 0.372987, 0.477291),\n                Point::new(14.82129, 0.655088, 0.639585),\n            ]),\n            Polyline::new(vec![\n                Point::new(13.802461, 0.286422, 0.776916),\n                Point::new(13.290534, 0.582003, 1.059664),\n                Point::new(13.289245, 0.922853, 1.211566),\n                Point::new(13.766312, 1.162351, 1.176986),\n                Point::new(14.059082, 1.067666, 1.048338),\n                Point::new(14.187964, 0.620246, 0.811339),\n                Point::new(13.83072, 0.662578, 0.935777),\n                Point::new(13.802461, 0.286422, 0.776916),\n            ]),\n        ];\n        let mesh = Mesh::loft(&bottom, &top, true, true);\n\n\n        let mesh_no_cap = Mesh::loft(&bottom, &top, false, true);",
     "failures": [],
     "group": "Mesh",
     "line": 205,
     "passed": true,
     "test_name": "Loft",
-    "time_ms": 1.801
+    "time_ms": 2.239
   },
   {
     "checks": [
@@ -212,13 +212,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Polyline;\n\n        let annen_bot = vec![\n            Polyline::new(vec![\n                Point::new(2142.008, -530.170, 1172.487),\n                Point::new(2142.008, -530.170, -318.768),\n                Point::new(2142.008, -318.102, -318.768),\n                Point::new(2142.008, -347.792, -414.110),\n                Point::new(2142.008, -106.034, -414.110),\n                Point::new(2142.008, -135.724, -318.768),\n                Point::new(2142.008,  106.034, -318.768),\n                Point::new(2142.008,   76.344, -414.110),\n                Point::new(2142.008,  318.102, -414.110),\n                Point::new(2142.008,  288.412, -318.768),\n                Point::new(2142.008,  530.170, -318.768),\n                Point::new(2142.008,  530.170, 1172.487),\n                Point::new(2142.008, -530.170, 1172.487),\n            ]),\n            Polyline::new(vec![\n                Point::new(2142.008, 97.448,  841.097),\n                Point::new(2142.008,  0.000,  841.097),\n                Point::new(2142.008,  0.000, 1006.792),\n                Point::new(2142.008, 97.448, 1006.792),\n                Point::new(2142.008, 97.448,  841.097),\n            ]),\n            Polyline::new(vec![\n                Point::new(2142.008, 97.448, 178.317),\n                Point::new(2142.008,  0.000, 178.317),\n                Point::new(2142.008,  0.000, 344.012),\n                Point::new(2142.008, 97.448, 344.012),\n                Point::new(2142.008, 97.448, 178.317),\n            ]),\n        ];\n        let annen_top = vec![\n            Polyline::new(vec![\n                Point::new(2223.416, -530.170, 1172.487),\n                Point::new(2223.416, -530.170, -269.141),\n                Point::new(2223.416, -318.102, -269.141),\n                Point::new(2223.416, -347.792, -364.483),\n                Point::new(2223.416, -106.034, -364.483),\n                Point::new(2223.416, -135.724, -269.141),\n                Point::new(2223.416,  106.034, -269.141),\n                Point::new(2223.416,   76.344, -364.483),\n                Point::new(2223.416,  318.102, -364.483),\n                Point::new(2223.416,  288.412, -269.141),\n                Point::new(2223.416,  530.170, -269.141),\n                Point::new(2223.416,  530.170, 1172.487),\n                Point::new(2223.416, -530.170, 1172.487),\n            ]),\n            Polyline::new(vec![\n                Point::new(2223.416, 97.448,  841.097),\n                Point::new(2223.416,  0.000,  841.097),\n                Point::new(2223.416,  0.000, 1006.792),\n                Point::new(2223.416, 97.448, 1006.792),\n                Point::new(2223.416, 97.448,  841.097),\n            ]),\n            Polyline::new(vec![\n                Point::new(2223.416, 97.448, 178.317),\n                Point::new(2223.416,  0.000, 178.317),\n                Point::new(2223.416,  0.000, 344.012),\n                Point::new(2223.416, 97.448, 344.012),\n                Point::new(2223.416, 97.448, 178.317),\n            ]),\n        ];\n        let annen = Mesh::loft(&annen_bot, &annen_top, true);\n\n        let col_bot = vec![\n            Polyline::new(vec![\n                Point::new( 0.0, 0.0, 0.0),\n                Point::new( 4.0, 0.0, 0.0),\n                Point::new( 7.0, 0.0, 0.0),\n                Point::new(12.0, 0.0, 0.0),\n                Point::new(12.0, 5.0, 0.0),\n                Point::new( 0.0, 5.0, 0.0),\n                Point::new( 0.0, 0.0, 0.0),\n            ]),\n        ];\n        let col_top = vec![\n            Polyline::new(vec![\n                Point::new( 0.0, 0.0, 1.5),\n                Point::new( 4.0, 0.0, 1.5),\n                Point::new( 7.0, 0.0, 1.5),\n                Point::new(12.0, 0.0, 1.5),\n                Point::new(12.0, 5.0, 1.5),\n                Point::new( 0.0, 5.0, 1.5),\n                Point::new( 0.0, 0.0, 1.5),\n            ]),\n        ];\n        let colmesh = Mesh::loft(&col_bot, &col_top, true);",
+    "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Polyline;\n\n        let annen_bot = vec![\n            Polyline::new(vec![\n                Point::new(2142.008, -530.170, 1172.487),\n                Point::new(2142.008, -530.170, -318.768),\n                Point::new(2142.008, -318.102, -318.768),\n                Point::new(2142.008, -347.792, -414.110),\n                Point::new(2142.008, -106.034, -414.110),\n                Point::new(2142.008, -135.724, -318.768),\n                Point::new(2142.008,  106.034, -318.768),\n                Point::new(2142.008,   76.344, -414.110),\n                Point::new(2142.008,  318.102, -414.110),\n                Point::new(2142.008,  288.412, -318.768),\n                Point::new(2142.008,  530.170, -318.768),\n                Point::new(2142.008,  530.170, 1172.487),\n                Point::new(2142.008, -530.170, 1172.487),\n            ]),\n            Polyline::new(vec![\n                Point::new(2142.008, 97.448,  841.097),\n                Point::new(2142.008,  0.000,  841.097),\n                Point::new(2142.008,  0.000, 1006.792),\n                Point::new(2142.008, 97.448, 1006.792),\n                Point::new(2142.008, 97.448,  841.097),\n            ]),\n            Polyline::new(vec![\n                Point::new(2142.008, 97.448, 178.317),\n                Point::new(2142.008,  0.000, 178.317),\n                Point::new(2142.008,  0.000, 344.012),\n                Point::new(2142.008, 97.448, 344.012),\n                Point::new(2142.008, 97.448, 178.317),\n            ]),\n        ];\n        let annen_top = vec![\n            Polyline::new(vec![\n                Point::new(2223.416, -530.170, 1172.487),\n                Point::new(2223.416, -530.170, -269.141),\n                Point::new(2223.416, -318.102, -269.141),\n                Point::new(2223.416, -347.792, -364.483),\n                Point::new(2223.416, -106.034, -364.483),\n                Point::new(2223.416, -135.724, -269.141),\n                Point::new(2223.416,  106.034, -269.141),\n                Point::new(2223.416,   76.344, -364.483),\n                Point::new(2223.416,  318.102, -364.483),\n                Point::new(2223.416,  288.412, -269.141),\n                Point::new(2223.416,  530.170, -269.141),\n                Point::new(2223.416,  530.170, 1172.487),\n                Point::new(2223.416, -530.170, 1172.487),\n            ]),\n            Polyline::new(vec![\n                Point::new(2223.416, 97.448,  841.097),\n                Point::new(2223.416,  0.000,  841.097),\n                Point::new(2223.416,  0.000, 1006.792),\n                Point::new(2223.416, 97.448, 1006.792),\n                Point::new(2223.416, 97.448,  841.097),\n            ]),\n            Polyline::new(vec![\n                Point::new(2223.416, 97.448, 178.317),\n                Point::new(2223.416,  0.000, 178.317),\n                Point::new(2223.416,  0.000, 344.012),\n                Point::new(2223.416, 97.448, 344.012),\n                Point::new(2223.416, 97.448, 178.317),\n            ]),\n        ];\n        let annen = Mesh::loft(&annen_bot, &annen_top, true, true);\n\n        let col_bot = vec![\n            Polyline::new(vec![\n                Point::new( 0.0, 0.0, 0.0),\n                Point::new( 4.0, 0.0, 0.0),\n                Point::new( 7.0, 0.0, 0.0),\n                Point::new(12.0, 0.0, 0.0),\n                Point::new(12.0, 5.0, 0.0),\n                Point::new( 0.0, 5.0, 0.0),\n                Point::new( 0.0, 0.0, 0.0),\n            ]),\n        ];\n        let col_top = vec![\n            Polyline::new(vec![\n                Point::new( 0.0, 0.0, 1.5),\n                Point::new( 4.0, 0.0, 1.5),\n                Point::new( 7.0, 0.0, 1.5),\n                Point::new(12.0, 0.0, 1.5),\n                Point::new(12.0, 5.0, 1.5),\n                Point::new( 0.0, 5.0, 1.5),\n                Point::new( 0.0, 0.0, 1.5),\n            ]),\n        ];\n        let colmesh = Mesh::loft(&col_bot, &col_top, true, true);",
     "failures": [],
     "group": "Mesh",
     "line": 286,
     "passed": true,
     "test_name": "Loft concave with holes and collinear",
-    "time_ms": 1.343
+    "time_ms": 1.212
   },
   {
     "checks": [
@@ -254,7 +254,7 @@
     "line": 390,
     "passed": true,
     "test_name": "From Polygon With Holes Many",
-    "time_ms": 1.937
+    "time_ms": 1.893
   },
   {
     "checks": [
@@ -379,13 +379,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Polyline;\n\n        let mut loft_inputs: Vec<(Vec<Polyline>, Vec<Polyline>)> = Vec::new();\n        for i in 0..6 {\n            let x = i as f64 * 3.0;\n            let b = Polyline::new(vec![\n                Point::new(x, 0.0, 0.0),\n                Point::new(x+1.0, 0.0, 0.0),\n                Point::new(x+1.0, 1.0, 0.0),\n                Point::new(x, 1.0, 0.0),\n                Point::new(x, 0.0, 0.0),\n            ]);\n            let t = Polyline::new(vec![\n                Point::new(x, 0.0, 1.0+i as f64*0.5),\n                Point::new(x+1.0, 0.0, 1.0+i as f64*0.5),\n                Point::new(x+1.0, 1.0, 1.0+i as f64*0.5),\n                Point::new(x, 1.0, 1.0+i as f64*0.5),\n                Point::new(x, 0.0, 1.0+i as f64*0.5),\n            ]);\n            loft_inputs.push((vec![b], vec![t]));\n        }\n        let meshes = Mesh::loft_many(loft_inputs.clone(), true, true);\n\n        let meshes_seq = Mesh::loft_many(loft_inputs, true, false);",
+    "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Polyline;\n\n        let mut loft_inputs: Vec<(Vec<Polyline>, Vec<Polyline>)> = Vec::new();\n        for i in 0..6 {\n            let x = i as f64 * 3.0;\n            let b = Polyline::new(vec![\n                Point::new(x, 0.0, 0.0),\n                Point::new(x+1.0, 0.0, 0.0),\n                Point::new(x+1.0, 1.0, 0.0),\n                Point::new(x, 1.0, 0.0),\n                Point::new(x, 0.0, 0.0),\n            ]);\n            let t = Polyline::new(vec![\n                Point::new(x, 0.0, 1.0+i as f64*0.5),\n                Point::new(x+1.0, 0.0, 1.0+i as f64*0.5),\n                Point::new(x+1.0, 1.0, 1.0+i as f64*0.5),\n                Point::new(x, 1.0, 1.0+i as f64*0.5),\n                Point::new(x, 0.0, 1.0+i as f64*0.5),\n            ]);\n            loft_inputs.push((vec![b], vec![t]));\n        }\n        let meshes = Mesh::loft_many(loft_inputs.clone(), true, true, true);\n\n        let meshes_seq = Mesh::loft_many(loft_inputs, true, false, true);",
     "failures": [],
     "group": "Mesh",
     "line": 424,
     "passed": true,
     "test_name": "Loft Many",
-    "time_ms": 1.829
+    "time_ms": 2.35
   },
   {
     "checks": [
@@ -431,7 +431,7 @@
     "line": 642,
     "passed": true,
     "test_name": "Boolean Queries",
-    "time_ms": 0.26
+    "time_ms": 0.309
   },
   {
     "checks": [
@@ -777,7 +777,7 @@
     "line": 702,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.322
+    "time_ms": 0.374
   },
   {
     "checks": [
@@ -803,7 +803,7 @@
     "line": 820,
     "passed": true,
     "test_name": "Create Dodecahedron",
-    "time_ms": 0.77
+    "time_ms": 0.734
   },
   {
     "checks": [
@@ -1014,7 +1014,7 @@
     "line": 832,
     "passed": true,
     "test_name": "Vertex and Face Operations",
-    "time_ms": 1.392
+    "time_ms": 1.096
   },
   {
     "checks": [
@@ -1185,7 +1185,7 @@
     "line": 956,
     "passed": true,
     "test_name": "Connectivity Queries",
-    "time_ms": 0.195
+    "time_ms": 0.151
   },
   {
     "checks": [
@@ -2301,7 +2301,7 @@
     "line": 1144,
     "passed": true,
     "test_name": "Geometric Properties",
-    "time_ms": 3.95
+    "time_ms": 2.669
   },
   {
     "checks": [
@@ -2352,7 +2352,7 @@
     "line": 1289,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.082
+    "time_ms": 0.07
   },
   {
     "checks": [
@@ -2398,7 +2398,7 @@
     "line": 1334,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 13.299
+    "time_ms": 15.134
   },
   {
     "checks": [
@@ -2439,7 +2439,7 @@
     "line": 1398,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 9.1
+    "time_ms": 12.692
   },
   {
     "checks": [
@@ -2460,7 +2460,39 @@
     "line": 806,
     "passed": true,
     "test_name": "Edges",
-    "time_ms": 0.134
+    "time_ms": 0.129
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 1588,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{Mesh, Point, Polyline};\n        let top = vec![\n            Polyline::new(vec![\n                Point::new( 734.392021,  -28.40532,  1101.588031),\n                Point::new( 630.839301,  -97.440466,  946.258951),\n                Point::new( 602.668732,  -21.881034,  974.757956),\n                Point::new(  90.636822, -363.235641,  206.710092),\n                Point::new( 118.807391, -438.795073,  178.211087),\n                Point::new(  15.607979, -507.59468,    23.411969),\n                Point::new(  21.213203, -518.0,        21.213203),\n                Point::new(1478.786797, -518.0,      1478.786797),\n                Point::new(1476.953362, -502.635574, 1488.476681),\n                Point::new(1323.309106, -400.20607,  1411.654553),\n                Point::new(1323.309106, -350.20607,  1449.154553),\n                Point::new( 921.429178,  -82.286119, 1248.214589),\n                Point::new( 921.429178, -132.286119, 1210.714589),\n                Point::new( 773.046638,  -33.364426, 1136.523319),\n                Point::new( 734.392021,  -28.40532,  1101.588031),\n            ]),\n            Polyline::new(vec![\n                Point::new(1055.389154, -196.592769, 1296.444577),\n                Point::new(1189.34913,  -285.89942,  1363.424565),\n                Point::new(1189.34913,  -310.89942,  1344.674565),\n                Point::new(1055.389154, -221.592769, 1277.694577),\n                Point::new(1055.389154, -196.592769, 1296.444577),\n            ]),\n            Polyline::new(vec![\n                Point::new( 411.941252, -196.202593,  653.289308),\n                Point::new( 514.347634, -127.931671,  806.898881),\n                Point::new( 528.432919, -165.711387,  792.649378),\n                Point::new( 426.026537, -233.982309,  639.039805),\n                Point::new( 411.941252, -196.202593,  653.289308),\n            ]),\n            Polyline::new(vec![\n                Point::new( 207.128489, -332.744435,  346.070162),\n                Point::new( 309.53487,  -264.473514,  499.679735),\n                Point::new( 323.620155, -302.25323,   485.430233),\n                Point::new( 221.213773, -370.524151,  331.82066 ),\n                Point::new( 207.128489, -332.744435,  346.070162),\n            ]),\n        ];\n        let bot = vec![\n            Polyline::new(vec![\n                Point::new( 717.764591,  -24.335988, 1136.036032),\n                Point::new( 607.106921,  -98.107768,  970.049526),\n                Point::new( 593.021636,  -60.328052,  984.299029),\n                Point::new(  80.989727, -401.682659,  216.251164),\n                Point::new(  95.075011, -439.462375,  202.001662),\n                Point::new( -28.206905, -521.650319,   17.078787),\n                Point::new( -22.601681, -532.055639,   14.880022),\n                Point::new(1489.346823, -532.055639, 1526.828525),\n                Point::new(1487.513388, -516.691213, 1536.51841 ),\n                Point::new(1323.309106, -407.221692, 1454.416269),\n                Point::new(1323.309106, -382.221692, 1473.166269),\n                Point::new( 921.429178, -114.30174,  1272.226305),\n                Point::new( 921.429178, -139.30174,  1253.476305),\n                Point::new( 756.419209,  -29.295094, 1170.97132 ),\n                Point::new( 717.764591,  -24.335988, 1136.036032),\n            ]),\n            Polyline::new(vec![\n                Point::new(1055.389154, -228.608391, 1320.456293),\n                Point::new(1189.34913,  -317.915041, 1387.436281),\n                Point::new(1189.34913,  -342.915041, 1368.686281),\n                Point::new(1055.389154, -253.608391, 1301.706293),\n                Point::new(1055.389154, -228.608391, 1320.456293),\n            ]),\n            Polyline::new(vec![\n                Point::new( 402.294157, -234.649611,  662.830381),\n                Point::new( 504.700539, -166.37869,   816.439954),\n                Point::new( 518.785824, -204.158406,  802.190451),\n                Point::new( 416.379442, -272.429327,  648.580878),\n                Point::new( 402.294157, -234.649611,  662.830381),\n            ]),\n            Polyline::new(vec![\n                Point::new( 197.481393, -371.191453,  355.611235),\n                Point::new( 299.887775, -302.920532,  509.220808),\n                Point::new( 313.97306,  -340.700248,  494.971305),\n                Point::new( 211.566678, -408.971169,  341.361733),\n                Point::new( 197.481393, -371.191453,  355.611235),\n            ]),\n        ];\n        let m = Mesh::loft(&top, &bot, true, true);",
+    "failures": [],
+    "group": "Mesh",
+    "line": 1505,
+    "passed": true,
+    "test_name": "Loft plate_v2 15-vert outer + 3 holes",
+    "time_ms": 1.278
+  },
+  {
+    "checks": [
+      {
+        "code_line": "m.is_valid()",
+        "line": 1500,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{Mesh, Point, Polyline};\n        let bot = vec![\n            Polyline::new(vec![\n                Point::new( 734.392021, -1906.59468,  1101.588031),\n                Point::new( 632.396858, -1838.597905,  948.595287),\n                Point::new( 624.453132, -1769.270846,  984.70313 ),\n                Point::new( 113.775484, -1428.81908,   218.686657),\n                Point::new( 121.719209, -1498.146139,  182.578814),\n                Point::new(  15.607979, -1427.40532,    23.411969),\n                Point::new(   0.0,      -1441.0,        -18.0     ),\n                Point::new(   0.0,      -1893.0,       -357.0     ),\n                Point::new(  13.416408, -1917.0,       -348.167184),\n                Point::new( 104.290124, -1917.0,       -166.419752),\n                Point::new( 118.441096, -1964.169906,  -173.495238),\n                Point::new( 362.132034, -1799.867966,  179.289322 ),\n                Point::new( 348.0,      -1752.698063,  185.364808 ),\n                Point::new( 623.259018, -1832.362654,  751.385447 ),\n                Point::new( 734.392021, -1906.59468,  1101.588031),\n            ]),\n            Polyline::new(vec![\n                Point::new( 200.979108, -1563.492448,  354.900013),\n                Point::new( 197.007245, -1563.492448,  354.900013),\n                Point::new( 200.979108, -1598.155978,  336.846091),\n                Point::new( 197.007245, -1598.155978,  336.846091),\n                Point::new( 200.979108, -1563.492448,  354.900013),\n            ]),\n            Polyline::new(vec![\n                Point::new( 388.0,      -1716.0,        208.0     ),\n                Point::new( 392.0,      -1716.0,        208.0     ),\n                Point::new( 392.0,      -1750.0,        190.0     ),\n                Point::new( 388.0,      -1750.0,        190.0     ),\n                Point::new( 388.0,      -1716.0,        208.0     ),\n            ]),\n            Polyline::new(vec![\n                Point::new( 540.0,      -1790.0,        620.0     ),\n                Point::new( 544.0,      -1790.0,        620.0     ),\n                Point::new( 544.0,      -1820.0,        604.0     ),\n                Point::new( 540.0,      -1820.0,        604.0     ),\n                Point::new( 540.0,      -1790.0,        620.0     ),\n            ]),\n        ];\n        let top = bot.clone();\n        let m = Mesh::loft(&bot, &top, true, true);",
+    "failures": [],
+    "group": "Mesh",
+    "line": 1456,
+    "passed": true,
+    "test_name": "Loft plate_failing 15-vert outer + 3 holes",
+    "time_ms": 0.897
   },
   {
     "checks": [
@@ -2561,6 +2593,6 @@
     "line": 479,
     "passed": true,
     "test_name": "Loft with quads and triangles",
-    "time_ms": 2.847
+    "time_ms": 2.196
   }
 ]
