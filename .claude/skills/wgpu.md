@@ -14,7 +14,8 @@ All features below are researched. Use when the time comes to implement each.
 | wgpu web examples | https://wgpu.rs/examples/ |
 | learn-wgpu source | https://github.com/sotrh/learn-wgpu |
 | WebGPU spec | https://gpuweb.github.io/gpuweb/ |
-| WGSL spec | https://gpuweb.github.io/gpuweb/wgsl/ |
+| WGSL spec (W3C) | https://www.w3.org/TR/WGSL/ |
+| WGSL spec (gpuweb) | https://gpuweb.github.io/gpuweb/wgsl/ |
 | webgpufundamentals | https://webgpufundamentals.org/ |
 
 ## Project Location

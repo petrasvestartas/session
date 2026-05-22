@@ -4,8 +4,8 @@
 // Arc = Atomically Reference Counted smart pointer.
 // Lets multiple owners share the same heap value across async code.
 // We use it so the Window can be owned by both the event loop and our State.
-use std::sync::Arc;
 use std::iter;
+use std::sync::Arc;
 
 // wasm_bindgen is the bridge between Rust and JavaScript.
 // `prelude::*` imports the most commonly used items:
@@ -40,6 +40,10 @@ use winit::{
     window::Window,
 };
 
+// Pipelines for shaders
+mod pipelines;
+use pipelines::Pipelines;
+
 // ============================================================
 // STATE
 // ============================================================
@@ -63,6 +67,9 @@ pub struct State {
     // Current background clear color — updated by mouse position.
     mouse_position: (f64, f64),
     clear_color: wgpu::Color,
+    pipelines: Pipelines,
+    // 1 = pipeline_shaded, 2 = pipeline_color; selected by number keys
+    active_pipeline: u8,
 }
 
 impl State {
@@ -92,7 +99,6 @@ impl State {
         // A Surface is the thing you draw onto - it represents the connection between wgpu and html canvas.
         let surface = instance.create_surface(window.clone()).unwrap();
 
-
         // Request an adapter — a handle to the actual GPU.
         // No pollster::block_on — we just .await directly since new() is already async.
         let adapter = instance
@@ -104,8 +110,8 @@ impl State {
             .await?;
 
         let (device, queue) = adapter
-            .request_device(&wgpu::DeviceDescriptor {                                  
-                label: None,                                            
+            .request_device(&wgpu::DeviceDescriptor {
+                label: None,
                 required_features: wgpu::Features::empty(),
                 required_limits: wgpu::Limits::downlevel_webgl2_defaults(),
                 memory_hints: Default::default(),
@@ -119,11 +125,13 @@ impl State {
         // Shader code in this tutorial assumes an sRGB surface texture.
         // Using a different one will result in all the color coming out darker.
         // If you want to support non-sRGB surfaces, you will need to change that when drawing to the frame.
-        let surface_format = surface_caps.formats.iter()
+        let surface_format = surface_caps
+            .formats
+            .iter()
             .find(|f| f.is_srgb())
             .copied()
             .unwrap_or(surface_caps.formats[0]);
-    
+
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT, // Texture will be used to write to the screen.
             format: surface_format, // How surface textures should be stored in memory (e.g. Rgba8UnormSrgb).
@@ -135,19 +143,26 @@ impl State {
             desired_maximum_frame_latency: 2,
         };
 
+        let pipelines = Pipelines::new(&device, config.format);
 
         // Initialize all the fields of our State struct and return it.
-        Ok(Self { 
-            surface, 
-            device, 
-            queue, 
-            config, 
+        Ok(Self {
+            surface,
+            device,
+            queue,
+            config,
             is_surface_configured: false,
-            clear_color: wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 },
+            clear_color: wgpu::Color {
+                r: 0.9,
+                g: 0.9,
+                b: 0.9,
+                a: 1.0,
+            },
             window,
             mouse_position: (0.0, 0.0),
+            pipelines,
+            active_pipeline: 1,
         })
-
     }
 
     /// Called when the window is resized.
@@ -228,42 +243,52 @@ impl State {
         // Now we can actuall clear the screen.
         // We need encoder to create a RenderPass
         // We enclose this with curly braces because render_pass borrows encoder mutably.
+        // Sets up one drawing pas on the GPU
         {
-            let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Render Pass"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &view,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(self.clear_color),
-                        store: wgpu::StoreOp::Store,
-                    },
-                    depth_slice: None,
-                })],
+                color_attachments: &[
+                    // This is what @location(0) in the fragment shader targets
+                    Some(wgpu::RenderPassColorAttachment {
+                        view: &view,
+                        resolve_target: None,
+                        depth_slice: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(self.clear_color),
+                            store: wgpu::StoreOp::Store,
+                        },
+                    }),
+                ],
                 depth_stencil_attachment: None,
                 occlusion_query_set: None,
                 timestamp_writes: None,
                 multiview_mask: None,
             });
+
+            // The actual drawing
+            let pipeline = match self.active_pipeline {
+                2 => &self.pipelines.pipeline_color,
+                _ => &self.pipelines.pipeline_shaded,
+            };
+            render_pass.set_pipeline(pipeline);
+            render_pass.draw(0..3, 0..1); // draw 3 vertices, 1 instance → one triangle
         }
 
         // Tell wgpu to finish the command buffer and submit to the GPU's render queue.
         self.queue.submit(iter::once(encoder.finish()));
         output.present();
 
-
         Ok(())
     }
-
 
     /// Update clear color based on mouse position.
     // r = x / width, g = y / height — maps mouse coords to [0, 1] color range.
     pub fn handle_mouse_moved(&mut self, x: f64, y: f64) {
-         self.mouse_position = (x, y);
+        self.mouse_position = (x, y);
     }
 
     /// Handle keyboard input.
-    pub fn handle_key(&self, event_loop: &ActiveEventLoop, code: KeyCode, is_pressed: bool) {
+    pub fn handle_key(&mut self, event_loop: &ActiveEventLoop, code: KeyCode, is_pressed: bool) {
         //   For a web viewer it makes more sense to use Escape for
         //   things like:
         //   - Deselecting objects
@@ -271,10 +296,11 @@ impl State {
         //   - Exiting fullscreen mode (document.exitFullscreen())
         match (code, is_pressed) {
             (KeyCode::Escape, true) => event_loop.exit(),
+            (KeyCode::Digit1, true) => self.active_pipeline = 1,
+            (KeyCode::Digit2, true) => self.active_pipeline = 2,
             _ => {}
         }
     }
-
 }
 
 // ============================================================
@@ -339,7 +365,6 @@ impl App {
 // We must implement at minimum: resumed(), window_event().
 // user_event() is optional but needed because we use the proxy pattern.
 impl ApplicationHandler<State> for App {
-
     // resumed() is called by winit when the app is ready to create its window.
     // On web this happens once the page is loaded and the browser is ready.
     //
@@ -370,8 +395,7 @@ impl ApplicationHandler<State> for App {
         // WindowAttributes describes how to create the window.
         // with_canvas() tells winit to render into our HTML canvas
         // instead of creating a new browser window.
-        let window_attributes = Window::default_attributes()
-            .with_canvas(Some(html_canvas_element));
+        let window_attributes = Window::default_attributes().with_canvas(Some(html_canvas_element));
 
         // Actually create the winit Window backed by our canvas.
         // Arc wraps it so we can share ownership with the async State::new() future.
@@ -385,13 +409,11 @@ impl ApplicationHandler<State> for App {
             wasm_bindgen_futures::spawn_local(async move {
                 // Await State::new() — this is where we'll later init the wgpu GPU resources.
                 // send_event() delivers the finished State to user_event() below.
-                assert!(proxy
-                    .send_event(
-                        State::new(window)
-                            .await
-                            .expect("Unable to create canvas!")
-                    )
-                    .is_ok());
+                assert!(
+                    proxy
+                        .send_event(State::new(window).await.expect("Unable to create canvas!"))
+                        .is_ok()
+                );
             });
         }
     }
