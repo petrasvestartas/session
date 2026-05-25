@@ -8,7 +8,8 @@ pub struct CameraUniform {
     pub key_light_ws: [f32; 4],
     pub fill_light_ws:[f32; 4],
     pub screen_size:  [f32; 2],
-    pub _pad2:        [f32; 2],
+    pub point_size:   f32,
+    pub flags:        u32,   // bit 0 = no shading (unlit)
 }
 
 impl Default for CameraUniform {
@@ -24,7 +25,8 @@ impl Default for CameraUniform {
             key_light_ws: [0.0, 1.0, 0.0, 0.0],
             fill_light_ws:[1.0, 0.0, 0.0, 0.0],
             screen_size:  [1.0, 1.0],
-            _pad2:        [0.0, 0.0],
+            point_size:   5.0,
+            flags:        0,
         }
     }
 }
@@ -38,9 +40,10 @@ pub struct Pipelines {
     pub gumball:  wgpu::RenderPipeline,
     pub text:     wgpu::RenderPipeline,
     pub glyph:    wgpu::RenderPipeline,
-    pub cylinder: wgpu::RenderPipeline,
-    pub cone:     wgpu::RenderPipeline,
-    pub sphere:   wgpu::RenderPipeline,
+    pub cylinder:    wgpu::RenderPipeline,
+    pub cone:        wgpu::RenderPipeline,
+    pub sphere:      wgpu::RenderPipeline,
+    pub point_cloud: wgpu::RenderPipeline,
     pub glyph_bgl: wgpu::BindGroupLayout,
     pub geom_bgl:  wgpu::BindGroupLayout,
     pub bind_group_layout: wgpu::BindGroupLayout,
@@ -51,6 +54,7 @@ impl Pipelines {
         device: &wgpu::Device,
         color_format: wgpu::TextureFormat,
         depth_format: Option<wgpu::TextureFormat>,
+        sample_count: u32,
     ) -> Self {
         let bgl = build_bind_group_layout(device);
         let glyph_bgl = build_glyph_bind_group_layout(device);
@@ -59,19 +63,19 @@ impl Pipelines {
             mesh: build_pipeline(
                 device, "mesh", include_str!("mesh.wgsl"),
                 MeshVertex::layout(), wgpu::PrimitiveTopology::TriangleList,
-                color_format, depth_format, &bgl, true,
+                color_format, depth_format, &bgl, true, sample_count,
             ),
             line: build_pipeline(
                 device, "line", include_str!("line.wgsl"),
                 LineVertex::layout(), wgpu::PrimitiveTopology::LineList,
-                color_format, depth_format, &bgl, false,
+                color_format, depth_format, &bgl, false, sample_count,
             ),
             point: build_pipeline(
                 device, "point", include_str!("point.wgsl"),
                 PointVertex::layout(), wgpu::PrimitiveTopology::TriangleList,
-                color_format, depth_format, &bgl, false,
+                color_format, depth_format, &bgl, false, sample_count,
             ),
-            grid:    build_grid_pipeline(device, color_format, depth_format, &bgl),
+            grid:    build_grid_pipeline(device, color_format, depth_format, &bgl, sample_count),
             gumball: build_overlay_pipeline(
                 device, "gumball", include_str!("line.wgsl"),
                 LineVertex::layout(), wgpu::PrimitiveTopology::LineList,
@@ -80,23 +84,24 @@ impl Pipelines {
             text: build_label_pipeline(
                 device, "text", include_str!("text.wgsl"),
                 TextVertex::layout(), wgpu::PrimitiveTopology::TriangleList,
-                color_format, depth_format, &bgl,
+                color_format, depth_format, &bgl, sample_count,
             ),
             glyph: build_glyph_pipeline(
-                device, color_format, depth_format, &bgl, &glyph_bgl,
+                device, color_format, depth_format, &bgl, &glyph_bgl, sample_count,
             ),
             cylinder: build_instanced_pipeline(
                 device, "cylinder", include_str!("cylinder.wgsl"),
-                color_format, depth_format, &bgl, &geom_bgl,
+                color_format, depth_format, &bgl, &geom_bgl, sample_count,
             ),
             cone: build_instanced_pipeline(
                 device, "cone", include_str!("cone.wgsl"),
-                color_format, depth_format, &bgl, &geom_bgl,
+                color_format, depth_format, &bgl, &geom_bgl, sample_count,
             ),
             sphere: build_instanced_pipeline(
                 device, "sphere", include_str!("sphere.wgsl"),
-                color_format, depth_format, &bgl, &geom_bgl,
+                color_format, depth_format, &bgl, &geom_bgl, sample_count,
             ),
+            point_cloud: build_cloud_pipeline(device, color_format, depth_format, &bgl, &geom_bgl, sample_count),
             glyph_bgl,
             geom_bgl,
             bind_group_layout: bgl,
@@ -214,6 +219,7 @@ fn build_grid_pipeline(
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
     bgl: &wgpu::BindGroupLayout,
+    sample_count: u32,
 ) -> wgpu::RenderPipeline {
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("grid.shader"),
@@ -260,7 +266,7 @@ fn build_grid_pipeline(
             conservative: false,
         },
         depth_stencil,
-        multisample: wgpu::MultisampleState::default(),
+        multisample: wgpu::MultisampleState { count: sample_count, mask: !0, alpha_to_coverage_enabled: false },
         multiview_mask: None,
         cache: None,
     })
@@ -340,6 +346,7 @@ fn build_label_pipeline(
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
     bgl: &wgpu::BindGroupLayout,
+    sample_count: u32,
 ) -> wgpu::RenderPipeline {
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some(&format!("{label}.shader")),
@@ -386,7 +393,7 @@ fn build_label_pipeline(
             conservative: false,
         },
         depth_stencil,
-        multisample: wgpu::MultisampleState::default(),
+        multisample: wgpu::MultisampleState { count: sample_count, mask: !0, alpha_to_coverage_enabled: false },
         multiview_mask: None,
         cache: None,
     })
@@ -399,6 +406,7 @@ fn build_glyph_pipeline(
     depth_format: Option<wgpu::TextureFormat>,
     bgl: &wgpu::BindGroupLayout,
     glyph_bgl: &wgpu::BindGroupLayout,
+    sample_count: u32,
 ) -> wgpu::RenderPipeline {
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("glyph.shader"),
@@ -445,7 +453,7 @@ fn build_glyph_pipeline(
             conservative: false,
         },
         depth_stencil,
-        multisample: wgpu::MultisampleState::default(),
+        multisample: wgpu::MultisampleState { count: sample_count, mask: !0, alpha_to_coverage_enabled: false },
         multiview_mask: None,
         cache: None,
     })
@@ -476,6 +484,7 @@ fn build_instanced_pipeline(
     depth_format: Option<wgpu::TextureFormat>,
     bgl: &wgpu::BindGroupLayout,
     geom_bgl: &wgpu::BindGroupLayout,
+    sample_count: u32,
 ) -> wgpu::RenderPipeline {
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some(&format!("{label}.shader")),
@@ -522,7 +531,66 @@ fn build_instanced_pipeline(
             conservative: false,
         },
         depth_stencil,
-        multisample: wgpu::MultisampleState::default(),
+        multisample: wgpu::MultisampleState { count: sample_count, mask: !0, alpha_to_coverage_enabled: false },
+        multiview_mask: None,
+        cache: None,
+    })
+}
+
+fn build_cloud_pipeline(
+    device: &wgpu::Device,
+    color_format: wgpu::TextureFormat,
+    depth_format: Option<wgpu::TextureFormat>,
+    bgl: &wgpu::BindGroupLayout,
+    geom_bgl: &wgpu::BindGroupLayout,
+    sample_count: u32,
+) -> wgpu::RenderPipeline {
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("cloud.shader"),
+        source: wgpu::ShaderSource::Wgsl(include_str!("cloud.wgsl").into()),
+    });
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("cloud.layout"),
+        bind_group_layouts: &[Some(bgl), Some(geom_bgl)],
+        immediate_size: 0,
+    });
+    let depth_stencil = depth_format.map(|fmt| wgpu::DepthStencilState {
+        format: fmt,
+        depth_write_enabled: Some(false),
+        depth_compare: Some(wgpu::CompareFunction::LessEqual),
+        stencil: wgpu::StencilState::default(),
+        bias: wgpu::DepthBiasState::default(),
+    });
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("cloud"),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState {
+            module: &shader,
+            entry_point: Some("vs_main"),
+            buffers: &[],
+            compilation_options: Default::default(),
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &shader,
+            entry_point: Some("fs_main"),
+            targets: &[Some(wgpu::ColorTargetState {
+                format: color_format,
+                blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+            compilation_options: Default::default(),
+        }),
+        primitive: wgpu::PrimitiveState {
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: None,
+            polygon_mode: wgpu::PolygonMode::Fill,
+            unclipped_depth: false,
+            conservative: false,
+        },
+        depth_stencil,
+        multisample: wgpu::MultisampleState { count: sample_count, mask: !0, alpha_to_coverage_enabled: false },
         multiview_mask: None,
         cache: None,
     })
@@ -538,6 +606,7 @@ fn build_pipeline(
     depth_format: Option<wgpu::TextureFormat>,
     bgl: &wgpu::BindGroupLayout,
     depth_write: bool,
+    sample_count: u32,
 ) -> wgpu::RenderPipeline {
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some(&format!("{label}.shader")),
@@ -584,7 +653,7 @@ fn build_pipeline(
             conservative: false,
         },
         depth_stencil,
-        multisample: wgpu::MultisampleState::default(),
+        multisample: wgpu::MultisampleState { count: sample_count, mask: !0, alpha_to_coverage_enabled: false },
         multiview_mask: None,
         cache: None,
     })

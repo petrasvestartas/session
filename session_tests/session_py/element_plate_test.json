@@ -3,7 +3,7 @@
     "group": "ElementPlate",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 1.02,
+    "time_ms": 1.269,
     "line": 7,
     "code": "    from session_py import ElementPlate\n    from session_py import Point\n    from session_py import Mesh\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = ElementPlate(polygon=polygon, thickness=0.2, name=\"plate1\")\n\n    geo = p.geometry\n    name = p.name\n    guid = p.guid\n    pstr = str(p)\n    prepr = repr(p)\n\n    pcopy = p.duplicate()\n    p2 = ElementPlate(polygon=polygon, thickness=0.2, name=\"plate1\")\n    p3 = ElementPlate(polygon=polygon, thickness=0.5, name=\"plate1\")",
     "checks": [
@@ -64,7 +64,7 @@
     "group": "ElementPlate",
     "test_name": "Default Polygon",
     "passed": true,
-    "time_ms": 0.175,
+    "time_ms": 0.217,
     "line": 43,
     "code": "    from session_py import ElementPlate\n    from session_py import Mesh\n\n    p = ElementPlate()",
     "checks": [
@@ -90,7 +90,7 @@
     "group": "ElementPlate",
     "test_name": "Setters",
     "passed": true,
-    "time_ms": 0.332,
+    "time_ms": 0.392,
     "line": 55,
     "code": "    from session_py import ElementPlate\n    from session_py import Point\n\n    p = ElementPlate()\n    p.thickness = 0.3\n    p.polygon = [\n        Point(0, 0, 0),\n        Point(3, 0, 0),\n        Point(3, 3, 0),\n        Point(0, 3, 0),\n    ]",
     "checks": [
@@ -116,7 +116,7 @@
     "group": "ElementPlate",
     "test_name": "Mesh Topology",
     "passed": true,
-    "time_ms": 0.191,
+    "time_ms": 0.175,
     "line": 74,
     "code": "    from session_py import ElementPlate\n    from session_py import Point\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    p = ElementPlate(polygon=polygon, thickness=0.5)\n    geo = p.geometry",
     "checks": [
@@ -137,7 +137,7 @@
     "group": "ElementPlate",
     "test_name": "AABB",
     "passed": true,
-    "time_ms": 0.557,
+    "time_ms": 0.643,
     "line": 92,
     "code": "    from session_py import ElementPlate\n    from session_py import Point\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = ElementPlate(polygon=polygon, thickness=0.2)\n    aabb = p.aabb",
     "checks": [
@@ -168,7 +168,7 @@
     "group": "ElementPlate",
     "test_name": "Compute Point",
     "passed": true,
-    "time_ms": 0.57,
+    "time_ms": 0.537,
     "line": 112,
     "code": "    from session_py import ElementPlate\n    from session_py import Point\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = ElementPlate(polygon=polygon, thickness=0.2)\n    pt = p.point",
     "checks": [
@@ -194,7 +194,7 @@
     "group": "ElementPlate",
     "test_name": "Triangle Polygon",
     "passed": true,
-    "time_ms": 0.153,
+    "time_ms": 0.151,
     "line": 131,
     "code": "    from session_py import ElementPlate\n    from session_py import Point\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(0.5, 1, 0),\n    ]\n    p = ElementPlate(polygon=polygon, thickness=0.1)\n    geo = p.geometry",
     "checks": [
@@ -215,7 +215,7 @@
     "group": "ElementPlate",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 20.873,
+    "time_ms": 20.597,
     "line": 148,
     "code": "    from session_py import ElementPlate\n    from session_py import Point\n    from session_py import Xform\n    from pathlib import Path\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = ElementPlate(polygon=polygon, thickness=0.3, name=\"json_plate\")\n    p.session_transformation = Xform.translation(1.0, 2.0, 3.0)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_plate_element.json\"\n    p.file_json_dump(fname)\n    loaded = ElementPlate.file_json_load(fname)",
     "checks": [
@@ -251,7 +251,7 @@
     "group": "ElementPlate",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 16.921,
+    "time_ms": 16.617,
     "line": 175,
     "code": "    from session_py import ElementPlate\n    from session_py import Point\n    from session_py import Xform\n    from pathlib import Path\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = ElementPlate(polygon=polygon, thickness=0.3, name=\"proto_plate\")\n    p.session_transformation = Xform.translation(1.0, 2.0, 3.0)\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_plate_element.bin\"\n    p.pb_dump(path)\n    loaded = ElementPlate.pb_load(path)",
     "checks": [
@@ -287,7 +287,7 @@
     "group": "ElementPlate",
     "test_name": "From Top Bottom",
     "passed": true,
-    "time_ms": 0.456,
+    "time_ms": 0.403,
     "line": 202,
     "code": "    from session_py import ElementPlate\n    from session_py import Point\n\n    bottom = [Point(0,0,0), Point(2,0,0), Point(2,2,0), Point(0,2,0), Point(0,0,0)]\n    top    = [Point(0,0,1), Point(2,0,1), Point(2,2,1), Point(0,2,1), Point(0,0,1)]\n    p = ElementPlate(polygon=bottom, polygon_top=top, name=\"tb_plate\")\n    # Reversed argument order should auto-swap\n    pr = ElementPlate(polygon=top, polygon_top=bottom, name=\"tb_plate_r\")",
     "checks": [
@@ -333,7 +333,7 @@
     "group": "ElementPlate",
     "test_name": "Polylines",
     "passed": true,
-    "time_ms": 0.273,
+    "time_ms": 0.328,
     "line": 221,
     "code": "    from session_py import ElementPlate\n    from session_py import Point\n    from session_py import Polyline\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    p = ElementPlate(polygon=polygon, thickness=0.2)\n    pls = p.polylines\n\n    for i in range(2, 6):",
     "checks": [
@@ -384,7 +384,7 @@
     "group": "ElementPlate",
     "test_name": "Planes",
     "passed": true,
-    "time_ms": 0.473,
+    "time_ms": 0.566,
     "line": 244,
     "code": "    from session_py import ElementPlate\n    from session_py import Point\n    from session_py import Plane\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    p = ElementPlate(polygon=polygon, thickness=0.2)\n    pls = p.planes",
     "checks": [
@@ -415,7 +415,7 @@
     "group": "ElementPlate",
     "test_name": "Edge Vectors",
     "passed": true,
-    "time_ms": 0.231,
+    "time_ms": 0.238,
     "line": 265,
     "code": "    from session_py import ElementPlate\n    from session_py import Point\n    from session_py import Vector\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    p = ElementPlate(polygon=polygon, thickness=0.2)\n    evs = p.edge_vectors",
     "checks": [
@@ -456,7 +456,7 @@
     "group": "ElementPlate",
     "test_name": "Axis",
     "passed": true,
-    "time_ms": 0.228,
+    "time_ms": 0.238,
     "line": 288,
     "code": "    from session_py import ElementPlate\n    from session_py import Point\n    from session_py import Line\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = ElementPlate(polygon=polygon, thickness=0.4)\n    ax = p.axis",
     "checks": [
@@ -492,7 +492,7 @@
     "group": "ElementPlate",
     "test_name": "Joint Types",
     "passed": true,
-    "time_ms": 0.179,
+    "time_ms": 0.178,
     "line": 310,
     "code": "    from session_py import ElementPlate\n\n    p = ElementPlate()\n\n    p.joint_types = [1, 2, 3, 4]",
     "checks": [
@@ -523,7 +523,7 @@
     "group": "ElementPlate",
     "test_name": "J Mf",
     "passed": true,
-    "time_ms": 0.17,
+    "time_ms": 0.185,
     "line": 323,
     "code": "    from session_py import ElementPlate\n\n    p = ElementPlate()\n\n    p.j_mf = [\n        [(0, True, 0.5), (1, False, 0.3)],\n        [],\n        [(2, True, 0.8)],\n    ]",
     "checks": [
@@ -559,7 +559,7 @@
     "group": "ElementPlate",
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.252,
+    "time_ms": 0.172,
     "line": 341,
     "code": "    from session_py import ElementPlate\n\n    p = ElementPlate()\n\n    p.key = \"plate_A\"",
     "checks": [
@@ -580,7 +580,7 @@
     "group": "ElementPlate",
     "test_name": "Component Plane",
     "passed": true,
-    "time_ms": 0.28,
+    "time_ms": 0.224,
     "line": 352,
     "code": "    from session_py import ElementPlate\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    p = ElementPlate()\n\n    cp = Plane(origin=Point(1, 2, 3), x_axis=Vector(1, 0, 0), y_axis=Vector(0, 1, 0))\n    p.component_plane = cp",
     "checks": [
@@ -606,7 +606,7 @@
     "group": "ElementPlate",
     "test_name": "Json Roundtrip Joinery",
     "passed": true,
-    "time_ms": 22.898,
+    "time_ms": 15.415,
     "line": 368,
     "code": "    from session_py import ElementPlate\n    from session_py import Point\n    from session_py import Plane\n    from session_py import Vector\n    from pathlib import Path\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = ElementPlate(polygon=polygon, thickness=0.3, name=\"joinery_plate\")\n    p.joint_types = [1, 2, 3, 4]\n    p.j_mf = [[(0, True, 0.5)], [], [(1, False, 0.3)]]\n    p.key = \"plate_A\"\n    p.component_plane = Plane(origin=Point(1, 2, 3), x_axis=Vector(1, 0, 0), y_axis=Vector(0, 1, 0))\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_plate_element_joinery.json\"\n    p.file_json_dump(fname)\n    loaded = ElementPlate.file_json_load(fname)",
     "checks": [
@@ -647,7 +647,7 @@
     "group": "ElementPlate",
     "test_name": "Protobuf Roundtrip Joinery",
     "passed": true,
-    "time_ms": 18.63,
+    "time_ms": 19.555,
     "line": 400,
     "code": "    from session_py import ElementPlate\n    from session_py import Point\n    from session_py import Plane\n    from session_py import Vector\n    from pathlib import Path\n\n    polygon = [\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    ]\n    p = ElementPlate(polygon=polygon, thickness=0.3, name=\"joinery_plate\")\n    p.joint_types = [1, 2, 3, 4]\n    p.j_mf = [[(0, True, 0.5)], [], [(1, False, 0.3)]]\n    p.key = \"plate_A\"\n    p.component_plane = Plane(origin=Point(1, 2, 3), x_axis=Vector(1, 0, 0), y_axis=Vector(0, 1, 0))\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_plate_element_joinery.bin\"\n    p.pb_dump(path)\n    loaded = ElementPlate.pb_load(path)",
     "checks": [

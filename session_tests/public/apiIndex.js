@@ -58552,7 +58552,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "ray_cast(\n        ,\n        origin: &Point,\n        direction: &crate::Vector,\n        tolerance: f32,\n    ) -> Vec<RayHit>",
-          "code": "pub fn ray_cast(\n        &mut self,\n        origin: &Point,\n        direction: &crate::Vector,\n        tolerance: f32,\n    ) -> Vec<RayHit> {\n        let dir_len = direction.magnitude();\n        if dir_len <= 0.0 {\n            return Vec::new();\n        }\n        let dir_unit = crate::Vector::new(\n            direction[0] / dir_len,\n            direction[1] / dir_len,\n            direction[2] / dir_len,\n        );\n\n        let far = 1e6f32;\n        let ray_end = Point::new(\n            origin[0] + dir_unit[0] * far,\n            origin[1] + dir_unit[1] * far,\n            origin[2] + dir_unit[2] * far,\n        );\n        let ray_line = Line::from_points(origin, &ray_end);\n\n        // Use cached SpatialBVH for ray casting\n        if self.bvh_cache_dirty || self.cached_ray_bvh.is_none() {\n            self.rebuild_ray_bvh_cache();\n            self.bvh_cache_dirty = false;\n        }\n        let bvh = match &self.cached_ray_bvh {\n            Some(b) => b,\n            None => return Vec::new(),\n        };\n\n        let mut candidates: Vec<usize> = Vec::new();\n        bvh.ray_cast(origin, &dir_unit, &mut candidates, true);\n\n        // Thin geometry (Line/Polyline/Point/PointCloud) has near-degenerate BVH\n        // boxes (inflated by only 0.001mm) so the ray rarely hits them. Always add\n        // them as candidates so the line_line / point distance tests run.\n        for (idx, guid) in self.cached_guids.iter().enumerate() {\n            if let Some(geom) = self.lookup.get(guid) {\n                match geom {\n                    Geometry::Line(_) | Geometry::Polyline(_)\n                    | Geometry::Point(_) | Geometry::PointCloud(_) => {\n                        if !candidates.contains(&idx) {\n                            candidates.push(idx);\n                        }\n                    }\n                    _ => {}\n                }\n            }\n        }\n\n        let mut hits_all: Vec<RayHit> = Vec::new();\n\n        for idx in candidates {\n            if idx >= self.cached_guids.len() {\n                continue;\n            }\n            let guid = self.cached_guids[idx].clone();\n            let geom = match self.lookup.get_mut(&guid) {\n                Some(g) => g,\n                None => continue,\n            };\n\n            let mut hit_point: Option<Point> = None;\n\n            match geom {\n                Geometry::OBB(bb) => {\n                    if let Some(pts) = crate::intersection::ray_box(&ray_line, bb, 0.0, far) {\n                        if !pts.is_empty() {\n                            hit_point = Some(pts[0].clone());\n                        }\n                    }\n                }\n                Geometry::Plane(pl) => {\n                    if let Some(p) = crate::intersection::line_plane(&ray_line, pl, true) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Line(l) => {\n                    if let Some(p) =\n                        crate::intersection::line_line(&ray_line, l, tolerance)\n                    {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Polyline(pl) => {\n                    let mut best_t = f32::INFINITY;\n                    let mut best_p: Option<Point> = None;\n                    let pl_points = pl.get_points();\n                    if pl_points.len() >= 2 {\n                        for i in 0..(pl_points.len() - 1) {\n                            let seg = Line::from_points(&pl_points[i], &pl_points[i + 1]);\n                            if let Some(p) = crate::intersection::line_line(\n                                &ray_line,\n                                &seg,\n                                tolerance,\n                            ) {\n                                let dx = p[0] - origin[0];\n                                let dy = p[1] - origin[1];\n                                let dz = p[2] - origin[2];\n                                let t = dx * dir_unit[0] + dy * dir_unit[1] + dz * dir_unit[2];\n                                if t >= 0.0 && t < best_t {\n                                    best_t = t;\n                                    best_p = Some(p);\n                                }\n                            }\n                        }\n                    }\n                    if let Some(p) = best_p {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Mesh(m) => {\n                    if let Some(p) = m.ray_cast_bvh(&ray_line, 1e-6) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Point(p) => {\n                    let vx = p[0] - origin[0];\n                    let vy = p[1] - origin[1];\n                    let vz = p[2] - origin[2];\n                    let cross_x = vy * dir_unit[2] - vz * dir_unit[1];\n                    let cross_y = vz * dir_unit[0] - vx * dir_unit[2];\n                    let cross_z = vx * dir_unit[1] - vy * dir_unit[0];\n                    let dist = (cross_x * cross_x + cross_y * cross_y + cross_z * cross_z).sqrt();\n                    if dist <= tolerance {\n                        let t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2];\n                        if t >= 0.0 {\n                            let hp = Point::new(\n                                origin[0] + dir_unit[0] * t,\n                                origin[1] + dir_unit[1] * t,\n                                origin[2] + dir_unit[2] * t,\n                            );\n                            hit_point = Some(hp);\n                        }\n                    }\n                }\n                Geometry::PointCloud(pc) => {\n                    let pts = pc.get_points();\n                    let mut best_t = f32::INFINITY;\n                    let mut best_p: Option<Point> = None;\n                    for p in &pts {\n                        let vx = p[0] - origin[0];\n                        let vy = p[1] - origin[1];\n                        let vz = p[2] - origin[2];\n                        let cross_x = vy * dir_unit[2] - vz * dir_unit[1];\n                        let cross_y = vz * dir_unit[0] - vx * dir_unit[2];\n                        let cross_z = vx * dir_unit[1] - vy * dir_unit[0];\n                        let dist = (cross_x * cross_x + cross_y * cross_y + cross_z * cross_z).sqrt();\n                        if dist <= tolerance {\n                            let t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2];\n                            if t >= 0.0 && t < best_t {\n                                best_t = t;\n                                best_p = Some(Point::new(\n                                    origin[0] + dir_unit[0] * t,\n                                    origin[1] + dir_unit[1] * t,\n                                    origin[2] + dir_unit[2] * t,\n                                ));\n                            }\n                        }\n                    }\n                    if let Some(p) = best_p {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::BRep(_) => {}\n                Geometry::Element(_) => {}\n            }\n\n            if let Some(hp) = hit_point {\n                let dx = hp[0] - origin[0];\n                let dy = hp[1] - origin[1];\n                let dz = hp[2] - origin[2];\n                let forward = dx * dir_unit[0] + dy * dir_unit[1] + dz * dir_unit[2];\n                if forward >= 0.0 {\n                    let dist = (dx * dx + dy * dy + dz * dz).sqrt();\n                    let guid_lock = std::sync::OnceLock::new();\n                    let _ = guid_lock.set(guid.clone());\n                    hits_all.push(RayHit {\n                        guid: guid_lock,\n                        point: hp,\n                        distance: dist,\n                    });\n                }\n            }\n        }\n\n        if hits_all.is_empty() {\n            return Vec::new(",
+          "code": "pub fn ray_cast(\n        &mut self,\n        origin: &Point,\n        direction: &crate::Vector,\n        tolerance: f32,\n    ) -> Vec<RayHit> {\n        let dir_len = direction.magnitude();\n        if dir_len <= 0.0 {\n            return Vec::new();\n        }\n        let dir_unit = crate::Vector::new(\n            direction[0] / dir_len,\n            direction[1] / dir_len,\n            direction[2] / dir_len,\n        );\n\n        let far = 1e6f32;\n        let ray_end = Point::new(\n            origin[0] + dir_unit[0] * far,\n            origin[1] + dir_unit[1] * far,\n            origin[2] + dir_unit[2] * far,\n        );\n        let ray_line = Line::from_points(origin, &ray_end);\n\n        // Use cached SpatialBVH for ray casting\n        if self.bvh_cache_dirty || self.cached_ray_bvh.is_none() {\n            self.rebuild_ray_bvh_cache();\n            self.bvh_cache_dirty = false;\n        }\n        let bvh = match &self.cached_ray_bvh {\n            Some(b) => b,\n            None => return Vec::new(),\n        };\n\n        let mut candidates: Vec<usize> = Vec::new();\n        bvh.ray_cast(origin, &dir_unit, &mut candidates, true);\n\n        // Thin geometry (Line/Polyline/Point/PointCloud) has near-degenerate BVH\n        // boxes (inflated by only 0.001mm) so the ray rarely hits them. Always add\n        // them as candidates so the line_line / point distance tests run.\n        for (idx, guid) in self.cached_guids.iter().enumerate() {\n            if let Some(geom) = self.lookup.get(guid) {\n                match geom {\n                    Geometry::Line(_) | Geometry::Polyline(_)\n                    | Geometry::Point(_) | Geometry::PointCloud(_) => {\n                        if !candidates.contains(&idx) {\n                            candidates.push(idx);\n                        }\n                    }\n                    _ => {}\n                }\n            }\n        }\n\n        let mut hits_all: Vec<RayHit> = Vec::new();\n\n        for idx in candidates {\n            if idx >= self.cached_guids.len() {\n                continue;\n            }\n            let guid = self.cached_guids[idx].clone();\n            let geom = match self.lookup.get_mut(&guid) {\n                Some(g) => g,\n                None => continue,\n            };\n\n            let mut hit_point: Option<Point> = None;\n\n            match geom {\n                Geometry::OBB(bb) => {\n                    if let Some(pts) = crate::intersection::ray_box(&ray_line, bb, 0.0, far) {\n                        if !pts.is_empty() {\n                            hit_point = Some(pts[0].clone());\n                        }\n                    }\n                }\n                Geometry::Plane(pl) => {\n                    if let Some(p) = crate::intersection::line_plane(&ray_line, pl, true) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Line(l) => {\n                    if let Some(p) =\n                        crate::intersection::line_line(&ray_line, l, tolerance)\n                    {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Polyline(pl) => {\n                    let mut best_t = f32::INFINITY;\n                    let mut best_p: Option<Point> = None;\n                    let pl_points = pl.get_points();\n                    if pl_points.len() >= 2 {\n                        for i in 0..(pl_points.len() - 1) {\n                            let seg = Line::from_points(&pl_points[i], &pl_points[i + 1]);\n                            if let Some(p) = crate::intersection::line_line(\n                                &ray_line,\n                                &seg,\n                                tolerance,\n                            ) {\n                                let dx = p[0] - origin[0];\n                                let dy = p[1] - origin[1];\n                                let dz = p[2] - origin[2];\n                                let t = dx * dir_unit[0] + dy * dir_unit[1] + dz * dir_unit[2];\n                                if t >= 0.0 && t < best_t {\n                                    best_t = t;\n                                    best_p = Some(p);\n                                }\n                            }\n                        }\n                    }\n                    if let Some(p) = best_p {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Mesh(m) => {\n                    if let Some(p) = m.ray_cast_bvh(&ray_line, 1e-6) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Point(p) => {\n                    let vx = p[0] - origin[0];\n                    let vy = p[1] - origin[1];\n                    let vz = p[2] - origin[2];\n                    let cross_x = vy * dir_unit[2] - vz * dir_unit[1];\n                    let cross_y = vz * dir_unit[0] - vx * dir_unit[2];\n                    let cross_z = vx * dir_unit[1] - vy * dir_unit[0];\n                    let dist = (cross_x * cross_x + cross_y * cross_y + cross_z * cross_z).sqrt();\n                    if dist <= tolerance {\n                        let t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2];\n                        if t >= 0.0 {\n                            let hp = Point::new(\n                                origin[0] + dir_unit[0] * t,\n                                origin[1] + dir_unit[1] * t,\n                                origin[2] + dir_unit[2] * t,\n                            );\n                            hit_point = Some(hp);\n                        }\n                    }\n                }\n                Geometry::PointCloud(pc) => {\n                    let pts = pc.get_points();\n                    let mut best_t = f32::INFINITY;\n                    let mut best_p: Option<Point> = None;\n                    for p in &pts {\n                        let vx = p[0] - origin[0];\n                        let vy = p[1] - origin[1];\n                        let vz = p[2] - origin[2];\n                        let cross_x = vy * dir_unit[2] - vz * dir_unit[1];\n                        let cross_y = vz * dir_unit[0] - vx * dir_unit[2];\n                        let cross_z = vx * dir_unit[1] - vy * dir_unit[0];\n                        let dist = (cross_x * cross_x + cross_y * cross_y + cross_z * cross_z).sqrt();\n                        if dist <= tolerance {\n                            let t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2];\n                            if t >= 0.0 && t < best_t {\n                                best_t = t;\n                                best_p = Some(Point::new(\n                                    origin[0] + dir_unit[0] * t,\n                                    origin[1] + dir_unit[1] * t,\n                                    origin[2] + dir_unit[2] * t,\n                                ));\n                            }\n                        }\n                    }\n                    if let Some(p) = best_p {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::BRep(b) => {\n                    let mut bm = b.mesh();\n                    if let Some(p) = bm.ray_cast_bvh(&ray_line, 1e-6) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Element(_) => {}\n            }\n\n            if let Some(hp) = hit_point {\n                let dx = hp[0] - origin[0];\n                let dy = hp[1] - origin[1];\n                let dz = hp[2] - origin[2];\n                let forward = dx * dir_unit[0] + dy * dir_unit[1] + dz * dir_unit[2];\n                if forward >= 0.0 {\n                    let dist = (dx * dx + dy * dy + dz * dz).sqrt();\n                    let guid_lock = std::sync::OnceLock::new();\n                    let _ = guid_lock.set(guid.clone());\n                    hits_all.push(RayHit {\n                        guid: guid_lock,",
           "file": "session.rs"
         }
       },
@@ -100282,11 +100282,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
         "points",
-        "n",
         "circle",
+        "into",
         "subdivide",
+        "n",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -100300,11 +100300,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "by",
+        "arc",
         "ellipse",
         "length",
-        "arc",
         "subdivide",
+        "by",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -100336,10 +100336,10 @@ window.API_INDEX = {
       "tags": [
         "curve",
         "points",
-        "adaptive",
-        "polyline",
-        "open",
         "from",
+        "adaptive",
+        "open",
+        "polyline",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -100354,10 +100354,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "parameter",
-        "at",
-        "curve",
         "evaluation",
+        "curve",
+        "at",
+        "parameter",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -100376,10 +100376,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "along",
         "length",
-        "curve",
         "frames",
+        "curve",
+        "along",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -100401,9 +100401,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "ellipse",
         "frames",
         "perpendicular",
+        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -100424,10 +100424,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "cylinder",
         "surface",
         "evaluate",
         "point",
+        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -100442,11 +100442,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
+        "from",
         "and",
+        "vertices",
         "mesh",
         "faces",
-        "vertices",
-        "from",
         "add_vertex",
         "add_face",
         "vertex"
@@ -100585,6 +100585,24 @@ window.API_INDEX = {
       "uses": [],
       "summary": "GlobalSessionConfig geometry class"
     },
+    "GeometryFileDecoder": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
+    },
+    "GeometryFileEncoder": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
+    },
+    "CurveNurbsKnotStyle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
+    },
     "NurbsSurfaceTrimmed": {
       "composition": [],
       "factories": [],
@@ -100596,24 +100614,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "NurbsSurfaceTrimmed geometry class"
-    },
-    "GeometryFileEncoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
-    },
-    "GeometryFileDecoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
-    },
-    "CurveNurbsKnotStyle": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
     },
     "TriangulateResult": {
       "composition": [],
@@ -100644,6 +100644,14 @@ window.API_INDEX = {
       ],
       "summary": "GlobalTolerance geometry class"
     },
+    "BooleanPolyline": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Polyline"
+      ],
+      "summary": "BooleanPolyline geometry class"
+    },
     "SpatialAABBTree": {
       "composition": [],
       "factories": [],
@@ -100658,33 +100666,11 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
     },
-    "BooleanPolyline": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Polyline"
-      ],
-      "summary": "BooleanPolyline geometry class"
-    },
-    "VIntersectNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VIntersectNode geometry class"
-    },
     "_PartitionVars": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_PartitionVars geometry class"
-    },
-    "ToleranceGuard": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tolerance"
-      ],
-      "summary": "ToleranceGuard geometry class"
     },
     "SpatialBVHNode": {
       "composition": [],
@@ -100698,11 +100684,19 @@ window.API_INDEX = {
       ],
       "summary": "A node in the SpatialBVH tree."
     },
-    "SessionConfig": {
+    "ToleranceGuard": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Tolerance"
+      ],
+      "summary": "ToleranceGuard geometry class"
+    },
+    "VIntersectNode": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "SessionConfig geometry class"
+      "summary": "VIntersectNode geometry class"
     },
     "SpatialKDTree": {
       "composition": [],
@@ -100726,11 +100720,23 @@ window.API_INDEX = {
       ],
       "summary": "ElementColumn geometry class"
     },
-    "BRepLoopType": {
+    "SessionConfig": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepLoopType geometry class"
+      "summary": "SessionConfig geometry class"
+    },
+    "SpatialRTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SpatialRTree geometry class"
+    },
+    "VattiScratch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VattiScratch geometry class"
     },
     "NurbsSurface": {
       "composition": [
@@ -100752,11 +100758,51 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
-    "VLocalMinima": {
+    "Intersection": {
+      "composition": [
+        "Element",
+        "Line",
+        "Polyline",
+        "Tolerance",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point"
+      ],
+      "summary": "Intersection geometry class"
+    },
+    "BRepTrimType": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "BRep",
+        "BRepLoopType",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRepTrimType geometry class"
+    },
+    "BRepLoopType": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VLocalMinima geometry class"
+      "summary": "BRepLoopType geometry class"
+    },
+    "ScanlineHeap": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "ScanlineHeap geometry class"
     },
     "LoftWallFace": {
       "composition": [],
@@ -100779,57 +100825,19 @@ window.API_INDEX = {
       ],
       "summary": "ElementPlate geometry class"
     },
-    "BRepTrimType": {
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
+    },
+    "session_cpp": {
       "composition": [],
       "factories": [],
       "uses": [
-        "BRep",
-        "BRepLoopType",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRepTrimType geometry class"
-    },
-    "Intersection": {
-      "composition": [
-        "Element",
-        "Line",
-        "Polyline",
-        "Tolerance",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
         "Point"
       ],
-      "summary": "Intersection geometry class"
-    },
-    "SpatialRTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SpatialRTree geometry class"
-    },
-    "ScanlineHeap": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "ScanlineHeap geometry class"
-    },
-    "VattiScratch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VattiScratch geometry class"
+      "summary": "session_cpp geometry class"
     },
     "LoftAdjPair": {
       "composition": [],
@@ -100850,13 +100858,16 @@ window.API_INDEX = {
       ],
       "summary": "ElementBeam geometry class"
     },
-    "session_cpp": {
+    "Reciprocal": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Point"
+        "Line",
+        "Mesh",
+        "Plane",
+        "ReciprocalResult"
       ],
-      "summary": "session_cpp geometry class"
+      "summary": "Reciprocal geometry class"
     },
     "Primitives": {
       "composition": [
@@ -100873,6 +100884,83 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "Static factory methods for creating NURBS curve primitives."
+    },
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
+    },
+    "BRepVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepVertex geometry class"
+    },
+    "ConvexHull": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Point"
+      ],
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+    },
+    "PointCloud": {
+      "composition": [
+        "Color",
+        "Xform"
+      ],
+      "factories": [
+        "AABB",
+        "OBB"
+      ],
+      "uses": [
+        "Point",
+        "Vector"
+      ],
+      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
+    },
+    "VertexData": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "Vertex data containing position and attributes."
+    },
+    "MeshOffset": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Plane",
+        "Point"
+      ],
+      "summary": "MeshOffset geometry class"
+    },
+    "Quaternion": {
+      "composition": [
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Plane"
+      ],
+      "summary": "A quaternion for 3D rotations (scalar + vector)."
+    },
+    "SpatialBVH": {
+      "composition": [],
+      "factories": [
+        "SpatialBVHNode"
+      ],
+      "uses": [
+        "AABB",
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
     },
     "NurbsCurve": {
       "composition": [
@@ -100895,147 +100983,6 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
-    "Reciprocal": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "Plane",
-        "ReciprocalResult"
-      ],
-      "summary": "Reciprocal geometry class"
-    },
-    "Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Delaunay2D geometry class"
-    },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "Vertex data containing position and attributes."
-    },
-    "ConvexHull": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Point"
-      ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
-    },
-    "MeshOffset": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Plane",
-        "Point"
-      ],
-      "summary": "MeshOffset geometry class"
-    },
-    "Quaternion": {
-      "composition": [
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Plane"
-      ],
-      "summary": "A quaternion for 3D rotations (scalar + vector)."
-    },
-    "BRepVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepVertex geometry class"
-    },
-    "PointCloud": {
-      "composition": [
-        "Color",
-        "Xform"
-      ],
-      "factories": [
-        "AABB",
-        "OBB"
-      ],
-      "uses": [
-        "Point",
-        "Vector"
-      ],
-      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
-    },
-    "SpatialBVH": {
-      "composition": [],
-      "factories": [
-        "SpatialBVHNode"
-      ],
-      "uses": [
-        "AABB",
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
-    },
-    "_Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay geometry class"
-    },
-    "LoftPanel": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftPanel geometry class"
-    },
-    "Component": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Component geometry class"
-    },
-    "RemeshCDT": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Polyline"
-      ],
-      "summary": "RemeshCDT geometry class"
-    },
-    "Tolerance": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "ToleranceGuard",
-        "Vector"
-      ],
-      "summary": "Tolerance settings for geometric operations."
-    },
-    "VHorzJoin": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzJoin geometry class"
-    },
-    "FlatMap64": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Delaunay2D",
-        "Point",
-        "Vector"
-      ],
-      "summary": "FlatMap64 geometry class"
-    },
     "ColorMode": {
       "composition": [],
       "factories": [],
@@ -101052,31 +100999,70 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
-    "TreeNode": {
+    "_Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay geometry class"
+    },
+    "LoftPanel": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftPanel geometry class"
+    },
+    "FlatMap64": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Tree"
+        "Delaunay2D",
+        "Point",
+        "Vector"
       ],
-      "summary": "A node of a tree data structure."
+      "summary": "FlatMap64 geometry class"
     },
-    "BRepTrim": {
+    "Component": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepTrim geometry class"
+      "summary": "Component geometry class"
     },
-    "Geometry": {
+    "VHorzJoin": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Geometry geometry class"
+      "summary": "VHorzJoin geometry class"
+    },
+    "Tolerance": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "ToleranceGuard",
+        "Vector"
+      ],
+      "summary": "Tolerance settings for geometric operations."
+    },
+    "RemeshCDT": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Polyline"
+      ],
+      "summary": "RemeshCDT geometry class"
     },
     "BRepLoop": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepLoop geometry class"
+    },
+    "Geometry": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Geometry geometry class"
     },
     "Polyline": {
       "composition": [
@@ -101102,18 +101088,6 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "BRepEdge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
-    },
-    "BRepFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepFace geometry class"
-    },
     "Delaunay": {
       "composition": [],
       "factories": [],
@@ -101128,6 +101102,82 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "VHorzSeg geometry class"
+    },
+    "BRepTrim": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepTrim geometry class"
+    },
+    "BRepEdge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepEdge geometry class"
+    },
+    "BRepFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepFace geometry class"
+    },
+    "TreeNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Tree"
+      ],
+      "summary": "A node of a tree data structure."
+    },
+    "Default": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "Default geometry class"
+    },
+    "VOutRec": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutRec geometry class"
+    },
+    "_Branch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Branch geometry class"
+    },
+    "VActive": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VActive geometry class"
+    },
+    "VVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VVertex geometry class"
+    },
+    "Closest": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Static methods for finding closest points between geometry objects."
     },
     "Objects": {
       "composition": [
@@ -101150,67 +101200,11 @@ window.API_INDEX = {
       ],
       "summary": "A collection of all geometry objects."
     },
-    "VOutRec": {
+    "Dataset": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VOutRec geometry class"
-    },
-    "Element": {
-      "composition": [
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "BRep",
-        "Xform"
-      ],
-      "summary": "Element geometry class"
-    },
-    "VVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VVertex geometry class"
-    },
-    "Default": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "Default geometry class"
-    },
-    "Closest": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Static methods for finding closest points between geometry objects."
-    },
-    "VActive": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VActive geometry class"
+      "summary": "Dataset geometry class"
     },
     "Session": {
       "composition": [
@@ -101240,17 +101234,23 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "_Branch": {
-      "composition": [],
+    "Element": {
+      "composition": [
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
       "factories": [],
-      "uses": [],
-      "summary": "_Branch geometry class"
-    },
-    "Dataset": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Dataset geometry class"
+      "uses": [
+        "AABB",
+        "BRep",
+        "Xform"
+      ],
+      "summary": "Element geometry class"
     },
     "VOutPt": {
       "composition": [],
@@ -101258,17 +101258,17 @@ window.API_INDEX = {
       "uses": [],
       "summary": "VOutPt geometry class"
     },
+    "Matrix": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Matrix geometry class"
+    },
     "BIVec2": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BIVec2 geometry class"
-    },
-    "RayHit": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RayHit geometry class"
     },
     "Vertex": {
       "composition": [],
@@ -101278,6 +101278,12 @@ window.API_INDEX = {
         "session_cpp"
       ],
       "summary": "A graph vertex with a unique identifier and attribute string."
+    },
+    "RayHit": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "RayHit geometry class"
     },
     "Vector": {
       "composition": [],
@@ -101293,11 +101299,11 @@ window.API_INDEX = {
       ],
       "summary": "A 3D vector with visual properties."
     },
-    "Matrix": {
+    "_Rect": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Matrix geometry class"
+      "summary": "_Rect geometry class"
     },
     "Point": {
       "composition": [],
@@ -101313,26 +101319,6 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A 3D point with visual properties."
     },
-    "_Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Edge geometry class"
-    },
-    "Color": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "An index-based 0.0-1.0 color with RGBA values."
-    },
-    "_Rect": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Rect geometry class"
-    },
     "Plane": {
       "composition": [],
       "factories": [
@@ -101346,6 +101332,12 @@ window.API_INDEX = {
         "session_cpp"
       ],
       "summary": "A 3D plane defined by origin and coordinate axes."
+    },
+    "_Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Edge geometry class"
     },
     "Xform": {
       "composition": [
@@ -101362,6 +101354,12 @@ window.API_INDEX = {
       ],
       "summary": "Xform geometry class"
     },
+    "_Node": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Node geometry class"
+    },
     "Graph": {
       "composition": [
         "Edge"
@@ -101372,36 +101370,13 @@ window.API_INDEX = {
       ],
       "summary": "A graph data structure with string-only vertices and attributes."
     },
-    "_Node": {
+    "Color": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "_Node geometry class"
-    },
-    "Line": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Mesh",
-        "OBB"
-      ],
       "uses": [
-        "Vector",
         "session_cpp"
       ],
-      "summary": "A 3D line segment with visual properties."
-    },
-    "Tree": {
-      "composition": [
-        "Color",
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
+      "summary": "An index-based 0.0-1.0 color with RGBA values."
     },
     "BRep": {
       "composition": [
@@ -101427,6 +101402,21 @@ window.API_INDEX = {
       ],
       "summary": "BRep geometry class"
     },
+    "Tree": {
+      "composition": [
+        "Color",
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A hierarchical data structure with parent-child relationships."
+    },
+    "Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
     "AABB": {
       "composition": [],
       "factories": [
@@ -101443,17 +101433,33 @@ window.API_INDEX = {
       ],
       "summary": "Axis-aligned bounding box (center + half-size)."
     },
-    "Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
+    "Line": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Mesh",
+        "OBB"
+      ],
+      "uses": [
+        "Vector",
+        "session_cpp"
+      ],
+      "summary": "A 3D line segment with visual properties."
     },
     "_P64": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_P64 geometry class"
+    },
+    "_Tri": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Tri geometry class"
     },
     "Mesh": {
       "composition": [
@@ -101483,11 +101489,11 @@ window.API_INDEX = {
       ],
       "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
-    "_Tri": {
+    "_V2": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Tri geometry class"
+      "summary": "_V2 geometry class"
     },
     "OBB": {
       "composition": [
@@ -101510,12 +101516,6 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
-    },
-    "_V2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],

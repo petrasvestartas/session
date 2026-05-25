@@ -3,7 +3,7 @@
 //! Free functions (not impl blocks) so they can live in session_viewer
 //! without violating the orphan rule.
 
-use crate::gpu_session::{CylinderSegment, GlyphPoint, LineVertex, MeshVertex, PointVertex, TemplateVertex};
+use crate::gpu_session::{CloudPoint, CylinderSegment, GlyphPoint, LineVertex, MeshVertex, PointVertex, TemplateVertex};
 use session_rust::{Color, Line, Mesh, OBB, Plane, Point, PointCloud, Polyline};
 
 #[allow(dead_code)]
@@ -186,33 +186,18 @@ pub fn polyline_endpoint_glyphs(pl: &Polyline, instance_id: u32) -> Vec<GlyphPoi
     }).collect()
 }
 
-// ---------- PointCloud → sphere glyphs ----------
+// ---------- PointCloud → instanced cloud points ----------
 
-pub fn pointcloud_to_point_vertices(pc: &PointCloud) -> Vec<PointVertex> {
-    let pts = pc.get_points();
-    let has_colors = pc.color_count() == pts.len();
-    let mut out = Vec::with_capacity(pts.len() * 6);
-    for (i, p) in pts.iter().enumerate() {
-        let c = if has_colors { pc.get_color(i) } else { Color::white() };
-        let v = PointVertex {
-            position: [p[0], p[1], p[2]],
-            color: color_to_rgba_u8(&c),
-        };
-        for _ in 0..6 { out.push(v); }
-    }
-    out
-}
-
-pub fn pointcloud_to_glyphs(pc: &PointCloud, instance_id: u32) -> Vec<GlyphPoint> {
+pub fn pointcloud_to_cloud_points(pc: &PointCloud, instance_id: u32) -> Vec<CloudPoint> {
     let pts = pc.get_points();
     let has_colors = pc.color_count() == pts.len();
     pts.iter().enumerate().map(|(i, p)| {
         let c = if has_colors { pc.get_color(i) } else { Color::white() };
-        GlyphPoint {
-            center: [p[0], p[1], p[2]],
-            radius: SPHERE_RADIUS,
-            color: [c.r, c.g, c.b, c.a],
+        CloudPoint {
+            position: [p[0], p[1], p[2]],
             instance_id,
+            color: [c.r, c.g, c.b, c.a],
+            half_size: 5.0,
             _pad: [0; 3],
         }
     }).collect()
@@ -297,6 +282,55 @@ pub fn mesh_to_vertices(m: &Mesh) -> (Vec<MeshVertex>, Vec<u32>) {
         compute_vertex_normals_in_place(&mut verts, &inds);
     }
 
+    (verts, inds)
+}
+
+/// Builds a LineList wireframe from all unique edges of a mesh.
+/// Color is the mesh objectcolor darkened 40% so wireframe is visually distinct.
+pub fn mesh_to_edge_vertices(m: &Mesh) -> (Vec<LineVertex>, Vec<u32>) {
+    let mut keys: Vec<usize> = m.vertex.keys().copied().collect();
+    keys.sort_unstable();
+    let key_to_idx: std::collections::HashMap<usize, u32> = keys
+        .iter().enumerate().map(|(i, &k)| (k, i as u32)).collect();
+
+    let wire_rgba = [0u8, 0, 0, 255];
+
+    let verts: Vec<LineVertex> = keys.iter().map(|k| {
+        let v = &m.vertex[k];
+        LineVertex { position: [v.x, v.y, v.z], color: wire_rgba }
+    }).collect();
+
+    let edges = m.edges();
+    let mut inds: Vec<u32> = Vec::with_capacity(edges.len() * 2);
+    for (a, b) in &edges {
+        if let (Some(&ia), Some(&ib)) = (key_to_idx.get(a), key_to_idx.get(b)) {
+            inds.push(ia);
+            inds.push(ib);
+        }
+    }
+
+    (verts, inds)
+}
+
+/// Builds a LineList wireframe from only the naked (boundary) edges of a mesh.
+pub fn mesh_to_naked_edge_vertices(m: &Mesh) -> (Vec<LineVertex>, Vec<u32>) {
+    let mut keys: Vec<usize> = m.vertex.keys().copied().collect();
+    keys.sort_unstable();
+    let key_to_idx: std::collections::HashMap<usize, u32> = keys
+        .iter().enumerate().map(|(i, &k)| (k, i as u32)).collect();
+    let wire_rgba = [0u8, 0, 0, 255];
+    let verts: Vec<LineVertex> = keys.iter().map(|k| {
+        let v = &m.vertex[k];
+        LineVertex { position: [v.x, v.y, v.z], color: wire_rgba }
+    }).collect();
+    let edges = m.naked_edges(true);
+    let mut inds: Vec<u32> = Vec::with_capacity(edges.len() * 2);
+    for (a, b) in &edges {
+        if let (Some(&ia), Some(&ib)) = (key_to_idx.get(a), key_to_idx.get(b)) {
+            inds.push(ia);
+            inds.push(ib);
+        }
+    }
     (verts, inds)
 }
 

@@ -3,7 +3,8 @@ struct Camera {
     key_light_ws: vec4<f32>,
     fill_light_ws:vec4<f32>,
     screen_size:  vec2<f32>,
-    _pad:         vec2<f32>,
+    point_size:   f32,
+    flags:        u32,
 }
 
 struct Instance {
@@ -28,8 +29,6 @@ const CORNERS = array<vec2<f32>, 6>(
     vec2<f32>(-1.0,  1.0),
 );
 
-const HALF_SIZE: f32 = 5.0; // half-size in pixels
-
 struct VsIn {
     @location(0) position: vec3<f32>,
     @location(1) color: vec4<f32>,
@@ -52,7 +51,7 @@ fn vs_main(
     let world   = inst.model * vec4<f32>(in.position, 1.0);
     let clip    = camera.view_proj * world;
     let corner  = CORNERS[vid % 6u];
-    let ndc_off = corner * HALF_SIZE * 2.0 / camera.screen_size * clip.w;
+    let ndc_off = corner * camera.point_size * 2.0 / camera.screen_size * clip.w;
     var out: VsOut;
     out.clip_pos = vec4<f32>(clip.xy + ndc_off, clip.zw);
     out.color    = in.color * inst.tint;
@@ -65,7 +64,7 @@ fn vs_main(
 fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
     // SDF circle — smooth anti-aliased edge
     let dist  = length(in.corner);
-    let alpha = clamp((1.0 - dist) * HALF_SIZE, 0.0, 1.0);
+    let alpha = clamp((1.0 - dist) * camera.point_size, 0.0, 1.0);
     if alpha < 0.01 { discard; }
     var color = in.color;
     if (in.flags & 1u) != 0u {

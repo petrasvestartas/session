@@ -89,7 +89,7 @@
     "line": 34,
     "passed": true,
     "test_name": "Polyline Point",
-    "time_ms": 0.041999999433755875
+    "time_ms": 0.04100000113248825
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 57,
     "passed": true,
     "test_name": "Curve Point",
-    "time_ms": 0.33500000834465027
+    "time_ms": 0.335999995470047
   },
   {
     "checks": [
@@ -141,7 +141,7 @@
     "line": 82,
     "passed": true,
     "test_name": "Surface Point",
-    "time_ms": 1.0839999914169312
+    "time_ms": 1.1169999837875366
   },
   {
     "checks": [
@@ -167,7 +167,7 @@
     "line": 119,
     "passed": true,
     "test_name": "Mesh Point",
-    "time_ms": 0.4869999885559082
+    "time_ms": 0.503000020980835
   },
   {
     "checks": [
@@ -193,7 +193,7 @@
     "line": 137,
     "passed": true,
     "test_name": "Mesh Point AABB",
-    "time_ms": 0.4909999966621399
+    "time_ms": 0.4830000102519989
   },
   {
     "checks": [
@@ -229,7 +229,7 @@
     "line": 155,
     "passed": true,
     "test_name": "Pointcloud Point",
-    "time_ms": 0.019999999552965164
+    "time_ms": 0.020999999716877937
   },
   {
     "checks": [
@@ -255,7 +255,7 @@
     "line": 246,
     "passed": true,
     "test_name": "Nurbscurves Closest",
-    "time_ms": 0.2919999957084656
+    "time_ms": 0.3569999933242798
   },
   {
     "checks": [
@@ -281,7 +281,7 @@
     "line": 266,
     "passed": true,
     "test_name": "Boxes Closest",
-    "time_ms": 0.012000000104308128
+    "time_ms": 0.04600000008940697
   },
   {
     "checks": [
@@ -307,7 +307,7 @@
     "line": 226,
     "passed": true,
     "test_name": "Polylines Closest",
-    "time_ms": 0.050999999046325684
+    "time_ms": 0.06599999964237213
   },
   {
     "checks": [
@@ -343,7 +343,7 @@
     "line": 180,
     "passed": true,
     "test_name": "Pointcloud Point SpatialKDTree",
-    "time_ms": 0.02800000086426735
+    "time_ms": 0.0430000014603138
   },
   {
     "checks": [
@@ -369,6 +369,6 @@
     "line": 206,
     "passed": true,
     "test_name": "Lines Closest",
-    "time_ms": 0.032999999821186066
+    "time_ms": 0.03500000014901161
   }
 ]

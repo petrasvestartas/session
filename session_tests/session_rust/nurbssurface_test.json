@@ -273,7 +273,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 3.2739999294281006
+    "time_ms": 2.9189999103546143
   },
   {
     "checks": [
@@ -324,7 +324,7 @@
     "line": 106,
     "passed": true,
     "test_name": "Booleans Queries",
-    "time_ms": 0.09099999815225601
+    "time_ms": 0.09399999678134918
   },
   {
     "checks": [
@@ -390,7 +390,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.026000000536441803
+    "time_ms": 0.05400000140070915
   },
   {
     "checks": [
@@ -547,7 +547,7 @@
     "line": 274,
     "passed": true,
     "test_name": "NurbsKnot Access",
-    "time_ms": 0.08100000023841858
+    "time_ms": 0.07999999821186066
   },
   {
     "checks": [
@@ -1059,7 +1059,7 @@
     "line": 388,
     "passed": true,
     "test_name": "Division",
-    "time_ms": 0.9700000286102295
+    "time_ms": 0.9879999756813049
   },
   {
     "checks": [
@@ -1110,7 +1110,7 @@
     "line": 521,
     "passed": true,
     "test_name": "Evaluation",
-    "time_ms": 0.07100000232458115
+    "time_ms": 0.0729999989271164
   },
   {
     "checks": [
@@ -1201,7 +1201,7 @@
     "line": 582,
     "passed": true,
     "test_name": "Modification",
-    "time_ms": 1.9850000143051147
+    "time_ms": 2.009000062942505
   },
   {
     "checks": [
@@ -1252,7 +1252,7 @@
     "line": 671,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 0.10499999672174454
+    "time_ms": 0.10999999940395355
   },
   {
     "checks": [
@@ -1318,7 +1318,7 @@
     "line": 731,
     "passed": true,
     "test_name": "Meshing",
-    "time_ms": 254.31700134277344
+    "time_ms": 260.21600341796875
   },
   {
     "checks": [
@@ -1344,7 +1344,7 @@
     "line": 864,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 15.100000381469727
+    "time_ms": 16.058000564575195
   },
   {
     "checks": [
@@ -1365,6 +1365,6 @@
     "line": 914,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 12.947999954223633
+    "time_ms": 13.894000053405762
   }
 ]

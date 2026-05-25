@@ -23,7 +23,7 @@
     "line": 63,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 16.388999938964844
+    "time_ms": 12.788000106811523
   },
   {
     "checks": [
@@ -143,7 +143,7 @@
     "line": 148,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 13.21500015258789
+    "time_ms": 12.682999610900879
   },
   {
     "checks": [
@@ -164,7 +164,7 @@
     "line": 180,
     "passed": true,
     "test_name": "Has Node",
-    "time_ms": 0.007000000216066837
+    "time_ms": 0.006000000052154064
   },
   {
     "checks": [
@@ -180,7 +180,7 @@
     "line": 290,
     "passed": true,
     "test_name": "Get Neighbors",
-    "time_ms": 0.03999999910593033
+    "time_ms": 0.027000000700354576
   },
   {
     "checks": [
@@ -196,7 +196,7 @@
     "line": 277,
     "passed": true,
     "test_name": "Neighbors",
-    "time_ms": 0.01899999938905239
+    "time_ms": 0.019999999552965164
   },
   {
     "checks": [
@@ -254,7 +254,7 @@
     "line": 214,
     "passed": true,
     "test_name": "Add Edge",
-    "time_ms": 0.010999999940395355
+    "time_ms": 0.012000000104308128
   },
   {
     "checks": [
@@ -280,7 +280,7 @@
     "line": 238,
     "passed": true,
     "test_name": "Remove Edge",
-    "time_ms": 0.014999999664723873
+    "time_ms": 0.014000000432133675
   },
   {
     "checks": [
@@ -296,7 +296,7 @@
     "line": 303,
     "passed": true,
     "test_name": "Number Of Vertices",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.010999999940395355
   },
   {
     "checks": [
@@ -380,7 +380,7 @@
     "line": 407,
     "passed": true,
     "test_name": "Shortest Path",
-    "time_ms": 0.03999999910593033
+    "time_ms": 0.04100000113248825
   },
   {
     "checks": [
@@ -438,7 +438,7 @@
     "line": 360,
     "passed": true,
     "test_name": "Bfs",
-    "time_ms": 0.05299999937415123
+    "time_ms": 0.052000001072883606
   },
   {
     "checks": [
@@ -490,7 +490,7 @@
     "line": 164,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 12.984000205993652
+    "time_ms": 12.803999900817871
   },
   {
     "checks": [
@@ -511,7 +511,7 @@
     "line": 226,
     "passed": true,
     "test_name": "Remove Node",
-    "time_ms": 0.020999999716877937
+    "time_ms": 0.02199999988079071
   },
   {
     "checks": [
@@ -527,7 +527,7 @@
     "line": 375,
     "passed": true,
     "test_name": "Dfs",
-    "time_ms": 0.06199999898672104
+    "time_ms": 0.06400000303983688
   },
   {
     "checks": [
@@ -553,7 +553,7 @@
     "line": 390,
     "passed": true,
     "test_name": "Connected Components",
-    "time_ms": 0.06499999761581421
+    "time_ms": 0.06599999964237213
   },
   {
     "checks": [
@@ -574,7 +574,7 @@
     "line": 191,
     "passed": true,
     "test_name": "Has Edge",
-    "time_ms": 0.010999999940395355
+    "time_ms": 0.012000000104308128
   },
   {
     "checks": [
@@ -590,7 +590,7 @@
     "line": 349,
     "passed": true,
     "test_name": "Edge Attribute",
-    "time_ms": 0.013000000268220901
+    "time_ms": 0.014000000432133675
   },
   {
     "checks": [
@@ -606,7 +606,7 @@
     "line": 251,
     "passed": true,
     "test_name": "Get Vertices",
-    "time_ms": 0.00800000037997961
+    "time_ms": 0.008999999612569809
   },
   {
     "checks": [
@@ -627,7 +627,7 @@
     "line": 27,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 13.663999557495117
+    "time_ms": 13.456999778747559
   },
   {
     "checks": [
@@ -663,6 +663,6 @@
     "line": 9,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.003000000026077032
+    "time_ms": 0.004000000189989805
   }
 ]

@@ -79,19 +79,33 @@ fn mat4_mul_cm(a: &[[f32; 4]; 4], b: &[[f32; 4]; 4]) -> [[f32; 4]; 4] {
 }
 
 
-fn create_depth_texture(device: &wgpu::Device, width: u32, height: u32) -> (wgpu::Texture, wgpu::TextureView) {
+fn create_depth_texture(device: &wgpu::Device, width: u32, height: u32, sample_count: u32) -> (wgpu::Texture, wgpu::TextureView) {
     let tex = device.create_texture(&wgpu::TextureDescriptor {
         label: Some("depth_texture"),
         size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
         mip_level_count: 1,
-        sample_count: 1,
+        sample_count,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Depth32Float,
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
         view_formats: &[],
     });
     let view = tex.create_view(&wgpu::TextureViewDescriptor::default());
     (tex, view)
+}
+
+fn create_msaa_texture(device: &wgpu::Device, width: u32, height: u32, format: wgpu::TextureFormat, sample_count: u32) -> wgpu::TextureView {
+    let tex = device.create_texture(&wgpu::TextureDescriptor {
+        label: Some("msaa_texture"),
+        size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
+        mip_level_count: 1,
+        sample_count,
+        dimension: wgpu::TextureDimension::D2,
+        format,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        view_formats: &[],
+    });
+    tex.create_view(&wgpu::TextureViewDescriptor::default())
 }
 
 
@@ -183,6 +197,7 @@ pub struct State {
     bind_group: wgpu::BindGroup,
     depth_tex_raw: wgpu::Texture,
     depth_view: wgpu::TextureView,
+    msaa_view: wgpu::TextureView,
     gumball: Option<Gumball>,
     gumball_scale: f32,
     #[allow(dead_code)]
@@ -196,6 +211,9 @@ pub struct State {
     gumball_glyph_bg: wgpu::BindGroup,
     drag_origins: HashMap<String, [[f32; 4]; 4]>,
     hidden_guids: HashSet<String>,
+    line_thickness: f32,
+    shading_enabled: bool,
+    backface_highlight: bool,
     egui_ctx: egui::Context,
     egui_renderer: egui_wgpu::Renderer,
     egui_state: egui_winit::State,
@@ -260,12 +278,16 @@ impl State {
         };
 
         let depth_format = wgpu::TextureFormat::Depth32Float;
-        let pipelines = Pipelines::new(&device, config.format, Some(depth_format));
+        const MSAA_SAMPLES: u32 = 4;
+        let pipelines = Pipelines::new(&device, config.format, Some(depth_format), MSAA_SAMPLES);
 
         let aspect = size.width as f32 / size.height.max(1) as f32;
         let camera = Camera::new(aspect);
         let controller = CameraController::new();
-        let (depth_tex_raw, depth_view) = create_depth_texture(&device, config.width.max(1), config.height.max(1));
+        let w = config.width.max(1);
+        let h = config.height.max(1);
+        let (depth_tex_raw, depth_view) = create_depth_texture(&device, w, h, MSAA_SAMPLES);
+        let msaa_view = create_msaa_texture(&device, w, h, config.format, MSAA_SAMPLES);
 
         let session = demo::make_demo_session();
         let mut gpu_session = GpuSession::new(&device, &pipelines.geom_bgl);
@@ -345,6 +367,7 @@ impl State {
             bind_group,
             depth_tex_raw,
             depth_view,
+            msaa_view,
             gumball: None,
             gumball_scale: 1.0,
             gumball_instance_buf,
@@ -357,6 +380,9 @@ impl State {
             gumball_glyph_bg,
             drag_origins: HashMap::new(),
             hidden_guids: HashSet::new(),
+            line_thickness: gpu_adapters::CYLINDER_RADIUS,
+            shading_enabled: true,
+            backface_highlight: true,
             egui_ctx,
             egui_renderer,
             egui_state,
@@ -374,9 +400,10 @@ impl State {
             self.surface.configure(&self.device, &self.config);
             self.is_surface_configured = true;
             self.camera.aspect = width as f32 / height as f32;
-            let (depth_tex_raw, depth_view) = create_depth_texture(&self.device, width, height);
+            let (depth_tex_raw, depth_view) = create_depth_texture(&self.device, width, height, 4);
             self.depth_tex_raw = depth_tex_raw;
             self.depth_view = depth_view;
+            self.msaa_view = create_msaa_texture(&self.device, width, height, self.config.format, 4);
         }
     }
 
@@ -435,7 +462,8 @@ impl State {
             key_light_ws: cam_to_ws(-0.3, 0.8, 0.6),
             fill_light_ws:cam_to_ws( 0.8,-0.2, 0.5),
             screen_size:  [self.config.width as f32, self.config.height as f32],
-            _pad2:        [0.0, 0.0],
+            point_size:   self.line_thickness / 3.0,
+            flags:        (!self.shading_enabled as u32) | (if self.backface_highlight { 2 } else { 0 }),
         };
         self.queue.write_buffer(&self.camera_buf, 0, bytemuck::bytes_of(&cam));
 
@@ -501,11 +529,18 @@ impl State {
         let pick_radius = self.camera.pick_radius_mm(self.config.height as f32, 8.0)
             .max(crate::gpu_adapters::SPHERE_RADIUS);
         let hits     = pick::pick_by_ray(&mut self.session, ray, pick_radius);
-        log::info!("PICK hits={} guids={:?}", hits.len(),
+        // Also test NurbsSurface tessellations (not in session.lookup).
+        let origin_pt  = session_rust::Point::new(ray.origin[0], ray.origin[1], ray.origin[2]);
+        let dir_vec    = session_rust::Vector::new(ray.direction[0], ray.direction[1], ray.direction[2]);
+        let nurbs_hits = self.gpu_session.pick_nurbssurfaces(&origin_pt, &dir_vec);
+        log::info!("PICK hits={} nurbs_hits={} guids={:?}", hits.len(), nurbs_hits.len(),
             hits.iter().map(|h| h.guid()).collect::<Vec<_>>());
         let new_guid = hits.iter()
             .find(|h| !self.hidden_guids.contains(h.guid()))
-            .map(|h| h.guid().to_string());
+            .map(|h| h.guid().to_string())
+            .or_else(|| nurbs_hits.iter()
+                .find(|(g,_)| !self.hidden_guids.contains(g.as_str()))
+                .map(|(g,_)| g.clone()));
         let shift    = self.controller.select_add();
 
         if shift {
@@ -562,9 +597,35 @@ impl State {
                     }
                     found = true;
                 }
+            } else if let Some(mesh) = self.gpu_session.nurbs_pick_meshes.get(guid) {
+                // NurbsSurface not in session.lookup — use vertex AABB from tessellation.
+                for key in mesh.vertex.keys() {
+                    let v = &mesh.vertex[key];
+                    for (i, c) in [v.x, v.y, v.z].iter().enumerate() {
+                        if *c < mn[i] { mn[i] = *c; }
+                        if *c > mx[i] { mx[i] = *c; }
+                    }
+                    found = true;
+                }
             }
         }
         if found { [(mn[0]+mx[0])*0.5, (mn[1]+mx[1])*0.5, (mn[2]+mx[2])*0.5] } else { [0.0; 3] }
+    }
+
+    fn apply_thickness(&mut self) {
+        let t = self.line_thickness;
+        for seg in &mut self.gpu_session.segments_cpu {
+            seg.radius = t;
+        }
+        self.gpu_session.segments_dirty = true;
+        for glyph in &mut self.gpu_session.glyphs_cpu {
+            glyph.radius = t;
+        }
+        self.gpu_session.glyphs_dirty = true;
+        for pt in &mut self.gpu_session.clouds_cpu {
+            pt.half_size = t / 3.0;
+        }
+        self.gpu_session.clouds_dirty = true;
     }
 
     fn build_ui(&mut self) -> egui::FullOutput {
@@ -587,6 +648,8 @@ impl State {
 
         let mut new_sel: Option<(Vec<String>, bool)> = None;
         let mut vis_chg: Vec<(String, bool)> = Vec::new();
+        let line_thickness = self.line_thickness;
+        let mut new_line_thickness: Option<f32> = None;
 
         let full_output = egui_ctx.run_ui(raw_input, |ui| {
             egui::Panel::right("panel")
@@ -614,6 +677,41 @@ impl State {
                                     new_sel = Some((vec![v0.clone(), v1.clone()], shift));
                                 }
                             }
+                        });
+                    egui::CollapsingHeader::new("Settings")
+                        .default_open(true)
+                        .show(ui, |ui| {
+                            egui::Grid::new("settings_grid").num_columns(2).show(ui, |ui| {
+                                ui.label("Size");
+                                let mut lt = line_thickness;
+                                if ui.add(egui::Slider::new(&mut lt, 1.0..=120.0).suffix(" mm")).changed() {
+                                    new_line_thickness = Some(lt);
+                                }
+                                ui.end_row();
+                            });
+                        });
+                    egui::CollapsingHeader::new("Shortcuts")
+                        .default_open(false)
+                        .show(ui, |ui| {
+                            egui::Grid::new("shortcuts_grid").num_columns(2).striped(true).show(ui, |ui| {
+                                for (key, action) in &[
+                                    ("RMB drag",     "orbit"),
+                                    ("Shift+RMB",    "pan"),
+                                    ("Scroll",       "zoom"),
+                                    ("WASD / ↑↓←→", "pan"),
+                                    ("C",            "reset camera"),
+                                    ("P / O",        "perspective / ortho"),
+                                    ("T/B/L/R",      "named views"),
+                                    ("LMB",          "select"),
+                                    ("Shift+LMB",    "add to selection"),
+                                    ("Q",            "toggle shading"),
+                                    ("E",            "toggle back-face color"),
+                                ] {
+                                    ui.monospace(*key);
+                                    ui.label(*action);
+                                    ui.end_row();
+                                }
+                            });
                         });
                 });
         });
@@ -648,6 +746,8 @@ impl State {
             self.gpu_session.set_flag(&guid, InstanceData::FLAG_HIDDEN, should_hide, &self.queue);
             if should_hide { self.hidden_guids.insert(guid); } else { self.hidden_guids.remove(&guid); }
         }
+
+        if let Some(t) = new_line_thickness { self.line_thickness = t; self.apply_thickness(); }
 
         full_output
     }
@@ -710,12 +810,12 @@ impl State {
             None
         };
 
-        // Geometry pass → swapchain
+        // Geometry pass → MSAA texture
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Geometry Pass"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &view,
+                    view: &self.msaa_view,
                     resolve_target: None,
                     depth_slice: None,
                     ops: wgpu::Operations {
@@ -759,6 +859,11 @@ impl State {
             render_pass.set_bind_group(0, &self.bind_group, &[]);
             render_pass.set_bind_group(1, &self.gpu_session.glyph_sphere_bg, &[]);
             self.gpu_session.draw_spheres(&mut render_pass);
+
+            render_pass.set_pipeline(&self.pipelines.point_cloud);
+            render_pass.set_bind_group(0, &self.bind_group, &[]);
+            render_pass.set_bind_group(1, &self.gpu_session.cloud_bg, &[]);
+            self.gpu_session.draw_clouds(&mut render_pass);
 
             // Text background quads — depth-tested, drawn after opaque geometry.
             if let Some(buf) = &quad_buf {
@@ -851,7 +956,7 @@ impl State {
                 let mut gpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("Gumball Pass"),
                     color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                        view: &view,
+                        view: &self.msaa_view,
                         resolve_target: None,
                         depth_slice: None,
                         ops: wgpu::Operations {
@@ -897,6 +1002,26 @@ impl State {
                     gpass.draw_indexed(0..gpu_adapters::N_SPHERE_INDICES, 0, 0..glyph_pts.len() as u32);
                 }
             }
+        }
+
+        // Resolve pass: MSAA → swapchain (empty pass, resolve triggers on end)
+        {
+            let _resolve = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Resolve Pass"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &self.msaa_view,
+                    resolve_target: Some(&view),
+                    depth_slice: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Discard,
+                    },
+                })],
+                depth_stencil_attachment: None,
+                occlusion_query_set: None,
+                timestamp_writes: None,
+                multiview_mask: None,
+            });
         }
 
         // egui pass
@@ -961,6 +1086,30 @@ impl State {
         self.session.cached_boxes.clear();
         self.session.cached_guids.clear();
         self.session.invalidate_bvh_cache();
+        // NurbsSurface objects live in session.objects.nurbssurfaces, not lookup.
+        // Bake the model matrix into the surface control points and re-upload.
+        if self.gpu_session.nurbs_pick_meshes.contains_key(guid) {
+            let flat = [
+                model[0][0], model[0][1], model[0][2], model[0][3],
+                model[1][0], model[1][1], model[1][2], model[1][3],
+                model[2][0], model[2][1], model[2][2], model[2][3],
+                model[3][0], model[3][1], model[3][2], model[3][3],
+            ];
+            let xf = Xform::from_matrix(flat);
+            let was_selected = self.gpu_session.pick.instance_id(guid)
+                .and_then(|iid| self.gpu_session.instances_cpu.get(iid as usize))
+                .map_or(false, |inst| inst.flags & InstanceData::FLAG_SELECTED != 0);
+            if let Some(ns) = self.session.objects.nurbssurfaces.iter_mut().find(|n| n.guid() == guid) {
+                ns.transform(&xf);
+                let ns_clone = ns.clone();
+                self.gpu_session.remove(guid);
+                self.gpu_session.add_nurbssurface(&ns_clone, &self.device, &self.queue);
+            }
+            if was_selected {
+                self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.queue);
+            }
+            return;
+        }
         let was_selected = self.gpu_session.pick.instance_id(guid)
             .and_then(|iid| self.gpu_session.instances_cpu.get(iid as usize))
             .map_or(false, |inst| inst.flags & InstanceData::FLAG_SELECTED != 0);
@@ -972,6 +1121,7 @@ impl State {
         if was_selected {
             self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.queue);
         }
+        self.text_labels = labels_from_session(&self.session);
     }
 
     pub fn handle_mouse_button(&mut self, button: MouseButton, pressed: bool) {
@@ -1059,6 +1209,10 @@ impl State {
             event_loop.exit();
         } else if code == KeyCode::KeyF && is_pressed {
             self.fit_view();
+        } else if code == KeyCode::KeyQ && is_pressed {
+            self.shading_enabled = !self.shading_enabled;
+        } else if code == KeyCode::KeyE && is_pressed {
+            self.backface_highlight = !self.backface_highlight;
         } else {
             self.controller.process_key(code, is_pressed);
         }

@@ -3,7 +3,7 @@
     "group": "Objects",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.07,
+    "time_ms": 0.05,
     "line": 7,
     "code": "    from session_py import Objects\n\n    obj = Objects()",
     "checks": [
@@ -29,7 +29,7 @@
     "group": "Objects",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 16.301,
+    "time_ms": 16.821,
     "line": 18,
     "code": "    from session_py import Objects\n    from session_py import Point\n    from session_py.file_encoders import file_json_dump\n    from session_py.file_encoders import file_json_load\n    from pathlib import Path\n\n    original = Objects()\n    original.points.append(Point(1.0, 2.0, 3.0))\n    original.points.append(Point(4.0, 5.0, 6.0))\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_objects.json\"\n    file_json_dump(original, fname)\n    loaded = file_json_load(fname)",
     "checks": [
@@ -45,7 +45,7 @@
     "group": "Objects",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 20.3,
+    "time_ms": 19.104,
     "line": 37,
     "code": "    from session_py import Objects\n    from session_py import Point\n    from pathlib import Path\n\n    original = Objects()\n    original.points.append(Point(1.0, 2.0, 3.0))\n    original.points.append(Point(4.0, 5.0, 6.0))\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_objects.bin\"\n    original.pb_dump(fname)\n    loaded = Objects.pb_load(fname)",
     "checks": [
@@ -61,7 +61,7 @@
     "group": "Objects",
     "test_name": "Component Constructor",
     "passed": true,
-    "time_ms": 0.123,
+    "time_ms": 0.08,
     "line": 54,
     "code": "    # A Component is any object with guid + name + __jsondump__/__jsonload__.\n    # Here we use a minimal inline class to keep the test self-contained.\n    import uuid\n    from session_py.file_encoders import file_register_class\n\n    class Box:\n        def __init__(self, width=1.0, height=2.0):\n            self._guid = str(uuid.uuid4())\n            self.name = \"my_box\"\n            self.width = width\n            self.height = height\n        @property\n        def guid(self): return self._guid\n        def __jsondump__(self):\n            return {\"type\": \"Box\", \"guid\": self.guid, \"name\": self.name,\n                    \"width\": self.width, \"height\": self.height}\n        @classmethod\n        def __jsonload__(cls, data, guid=None, name=None):\n            obj = cls(data[\"width\"], data[\"height\"])\n            obj._guid = guid or data.get(\"guid\", obj._guid)\n            obj.name  = name or data.get(\"name\", obj.name)\n            return obj\n\n    file_register_class(\"Box\", Box)\n\n    box = Box(width=3.0, height=5.0)",
     "checks": [
@@ -87,7 +87,7 @@
     "group": "Objects",
     "test_name": "Component Json Roundtrip",
     "passed": true,
-    "time_ms": 16.023,
+    "time_ms": 14.905,
     "line": 87,
     "code": "    import uuid\n    from session_py import Objects\n    from session_py.file_encoders import file_register_class\n    from pathlib import Path\n\n    class Box:\n        def __init__(self, width=1.0, height=2.0):\n            self._guid = str(uuid.uuid4())\n            self.name = \"my_box\"\n            self.width = width\n            self.height = height\n        @property\n        def guid(self): return self._guid\n        def __jsondump__(self):\n            return {\"type\": \"Box\", \"guid\": self.guid, \"name\": self.name,\n                    \"width\": self.width, \"height\": self.height}\n        @classmethod\n        def __jsonload__(cls, data, guid=None, name=None):\n            obj = cls(data[\"width\"], data[\"height\"])\n            obj._guid = guid or data.get(\"guid\", obj._guid)\n            obj.name  = name or data.get(\"name\", obj.name)\n            return obj\n\n    file_register_class(\"Box\", Box)\n\n    original = Objects()\n    box = Box(width=3.0, height=5.0)\n    original.components.append(box)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_objects_component.json\"\n    original.file_json_dump(str(fname))\n    loaded = Objects.file_json_load(str(fname))",
     "checks": [
@@ -123,7 +123,7 @@
     "group": "Session",
     "test_name": "Add Component",
     "passed": true,
-    "time_ms": 0.172,
+    "time_ms": 0.112,
     "line": 129,
     "code": "    import uuid\n    from session_py.session import Session\n    from session_py.file_encoders import file_register_class\n\n    class Box:\n        def __init__(self, width=1.0, height=2.0):\n            self._guid = str(uuid.uuid4())\n            self.name = \"my_box\"\n            self.width = width\n            self.height = height\n        @property\n        def guid(self): return self._guid\n        def __jsondump__(self):\n            return {\"type\": \"Box\", \"guid\": self.guid, \"name\": self.name,\n                    \"width\": self.width, \"height\": self.height}\n        @classmethod\n        def __jsonload__(cls, data, guid=None, name=None):\n            obj = cls(data[\"width\"], data[\"height\"])\n            obj._guid = guid or data.get(\"guid\", obj._guid)\n            obj.name  = name or data.get(\"name\", obj.name)\n            return obj\n\n    file_register_class(\"Box\", Box)\n\n    session = Session()\n    box = Box(width=3.0, height=5.0)\n    guid = box.guid\n\n    session.add_component(box)",
     "checks": [

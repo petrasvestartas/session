@@ -13,7 +13,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Triangulate",
-    "time_ms": 0.38499999046325684
+    "time_ms": 0.5329999923706055
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 37,
     "passed": true,
     "test_name": "Triangle",
-    "time_ms": 0.15299999713897705
+    "time_ms": 0.24699999392032623
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 54,
     "passed": true,
     "test_name": "Rectangle",
-    "time_ms": 0.12800000607967377
+    "time_ms": 0.2529999911785126
   },
   {
     "checks": [
@@ -61,7 +61,7 @@
     "line": 72,
     "passed": true,
     "test_name": "L-shape",
-    "time_ms": 0.17100000381469727
+    "time_ms": 0.3269999921321869
   },
   {
     "checks": [
@@ -77,7 +77,7 @@
     "line": 92,
     "passed": true,
     "test_name": "U-shape",
-    "time_ms": 0.20499999821186066
+    "time_ms": 0.4339999854564667
   },
   {
     "checks": [
@@ -93,7 +93,7 @@
     "line": 114,
     "passed": true,
     "test_name": "Octagon",
-    "time_ms": 0.43299999833106995
+    "time_ms": 0.5929999947547913
   },
   {
     "checks": [
@@ -109,7 +109,7 @@
     "line": 128,
     "passed": true,
     "test_name": "Rectangle with rectangle hole",
-    "time_ms": 0.7540000081062317
+    "time_ms": 0.26499998569488525
   },
   {
     "checks": [
@@ -125,7 +125,7 @@
     "line": 152,
     "passed": true,
     "test_name": "Duplicate vertices",
-    "time_ms": 0.20900000631809235
+    "time_ms": 0.1509999930858612
   },
   {
     "checks": [
@@ -141,7 +141,7 @@
     "line": 172,
     "passed": true,
     "test_name": "Tilted rectangle with rectangle hole",
-    "time_ms": 0.33799999952316284
+    "time_ms": 0.22599999606609344
   },
   {
     "checks": [
@@ -157,7 +157,7 @@
     "line": 197,
     "passed": true,
     "test_name": "Irregular tilted polyline.",
-    "time_ms": 1.0640000104904175
+    "time_ms": 1.003999948501587
   },
   {
     "checks": [
@@ -173,6 +173,6 @@
     "line": 259,
     "passed": true,
     "test_name": "Irregular tilted polyline with holes.",
-    "time_ms": 2.0160000324249268
+    "time_ms": 1.9980000257492065
   }
 ]

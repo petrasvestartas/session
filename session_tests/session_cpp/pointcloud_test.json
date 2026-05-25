@@ -3,7 +3,7 @@
     "group": "PointCloud",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.323,
+    "time_ms": 0.02,
     "line": 15,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n    // uncomment #include <vector>\n\n    // Default constructor (empty cloud)\n    PointCloud pc0;\n\n    // Constructor with points, normals, colors\n    Point p0(0.0, 0.0, 0.0);\n    Point p1(1.0, 0.0, 0.0);\n    Point p2(0.0, 1.0, 0.0);\n    Vector n0(0.0, 0.0, 1.0);\n    Vector n1(0.0, 0.0, 1.0);\n    Vector n2(0.0, 0.0, 1.0);\n    Color c0(1.0f, 0.0f, 0.0f, 1.0f);\n    Color c1(0.0f, 1.0f, 0.0f, 1.0f);\n    Color c2(0.0f, 0.0f, 1.0f, 1.0f);\n    PointCloud pc({p0, p1, p2}, {n0, n1, n2}, {c0, c1, c2});\n\n    // Minimal and Full String Representation\n    std::string pcstr = pc.str();\n    std::string pcrepr = pc.repr();\n\n    // Copy (duplicates everything except guid)\n    PointCloud pccopy = pc;\n    PointCloud pcother;\n\n    // Copy operators\n    Vector offset(10.0, 20.0, 30.0);\n    PointCloud pc_iadd({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc_iadd += offset;\n    PointCloud pc_isub({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc_isub -= offset;\n    PointCloud pc3({Point(1.0, 2.0, 3.0)}, {}, {});\n    PointCloud pc_add = pc3 + offset;\n    PointCloud pc_sub = pc3 - offset;",
     "checks": [
@@ -74,7 +74,7 @@
     "group": "PointCloud",
     "test_name": "From Coords",
     "passed": true,
-    "time_ms": 0.322,
+    "time_ms": 0.006,
     "line": 69,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include <vector>\n\n    std::vector<double> coords = {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0};\n    std::vector<int> colors = {255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255};\n    std::vector<double> normals = {0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0};\n    PointCloud pc = PointCloud::from_coords(coords, colors, normals);",
     "checks": [
@@ -105,7 +105,7 @@
     "group": "PointCloud",
     "test_name": "Point Count",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 84,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n\n    PointCloud pc({Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(0.0, 1.0, 0.0)}, {}, {});",
     "checks": [
@@ -158,7 +158,7 @@
     "group": "PointCloud",
     "test_name": "Get Point",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 113,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n\n    PointCloud pc({Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)}, {}, {});\n    Point pt = pc.get_point(1);",
     "checks": [
@@ -184,7 +184,7 @@
     "group": "PointCloud",
     "test_name": "Set Point",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 125,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n\n    PointCloud pc({Point(0.0, 0.0, 0.0)}, {}, {});\n    pc.set_point(0, Point(4.0, 5.0, 6.0));",
     "checks": [
@@ -210,7 +210,7 @@
     "group": "PointCloud",
     "test_name": "Add Point",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 137,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n\n    PointCloud pc;\n    pc.add_point(Point(1.0, 2.0, 3.0));",
     "checks": [
@@ -241,7 +241,7 @@
     "group": "PointCloud",
     "test_name": "Get Points",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 150,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n\n    PointCloud pc({Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)}, {}, {});\n    std::vector<Point> points = pc.get_points();",
     "checks": [
@@ -283,7 +283,7 @@
     "group": "PointCloud",
     "test_name": "Get Color",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.004,
     "line": 171,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc({}, {}, {Color(1.0f, 0.0f, 0.0f, 1.0f), Color(0.0f, 1.0f, 0.0f, 1.0f)});\n    Color c = pc.get_color(1);",
     "checks": [
@@ -336,7 +336,7 @@
     "group": "PointCloud",
     "test_name": "Get Colors",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 202,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc({}, {}, {Color(1.0f, 0.0f, 0.0f, 1.0f), Color(0.0f, 1.0f, 0.0f, 1.0f)});\n    std::vector<Color> colors = pc.get_colors();",
     "checks": [
@@ -362,7 +362,7 @@
     "group": "PointCloud",
     "test_name": "Normal Count",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.003,
     "line": 214,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"vector.h\"\n\n    PointCloud pc({}, {Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)}, {});",
     "checks": [
@@ -378,7 +378,7 @@
     "group": "PointCloud",
     "test_name": "Get Normal",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.008,
     "line": 223,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"vector.h\"\n\n    PointCloud pc({}, {Vector(0.0, 0.0, 1.0), Vector(1.0, 0.0, 0.0)}, {});\n    Vector n = pc.get_normal(1);",
     "checks": [
@@ -477,7 +477,7 @@
     "group": "PointCloud",
     "test_name": "Transform",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.005,
     "line": 270,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n\n    PointCloud pc({Point(1.0, 2.0, 3.0)}, {}, {});\n    pc.xform = Xform::translation(10.0, 20.0, 30.0);\n    pc.transform();",
     "checks": [
@@ -534,7 +534,7 @@
     "group": "PointCloud",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 15.026,
+    "time_ms": 18.434,
     "line": 299,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)},\n        {Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)},\n        {Color(1.0f, 0.0f, 0.0f, 1.0f), Color(0.0f, 1.0f, 0.0f, 1.0f)}\n    );\n    pc.name = \"test_pointcloud\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_pointcloud.json\";\n    pc.file_json_dump(fname);\n    PointCloud loaded = PointCloud::file_json_load(fname);",
     "checks": [
@@ -570,7 +570,7 @@
     "group": "PointCloud",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 14.222,
+    "time_ms": 13.14,
     "line": 330,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)},\n        {Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)},\n        {Color(1.0f, 0.0f, 0.0f, 1.0f), Color(0.0f, 1.0f, 0.0f, 1.0f)}\n    );\n    pc.name = \"test_pointcloud\";\n\n    std::string fname = \"serialization/test_pointcloud.bin\";\n    pc.pb_dump(fname);\n    PointCloud loaded = PointCloud::pb_load(fname);",
     "checks": [

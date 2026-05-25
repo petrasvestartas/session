@@ -1,14 +1,13 @@
 // Toggle: true = flat shading (per-face normal), false = smooth shading (interpolated normal)
 const FLAT_SHADING: bool = true;
-// Toggle: true = unlit (raw color only), false = normal shading
-const NO_SHADING: bool = false;
 
 struct Camera {
     view_proj:     mat4x4<f32>,
-    // Camera-space key/fill light directions pre-rotated to world space by the CPU.
-    // Updated every frame so lighting follows the camera (Rhino-style).
     key_light_ws:  vec4<f32>,
     fill_light_ws: vec4<f32>,
+    screen_size:   vec2<f32>,
+    point_size:    f32,
+    flags:         u32,   // bit 0 = unlit, bit 1 = backface highlight
 }
 
 struct Instance {
@@ -56,23 +55,18 @@ fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f
     let flat_n = normalize(cross(dpdy(in.world_pos), dpdx(in.world_pos)));
 
     if (in.flags & 2u) != 0u { discard; }
-    if !front {
-        return vec4<f32>(0.8, 0.1, 0.1, in.color.a);
-    }
-
     if (in.flags & 1u) != 0u {
         return vec4<f32>(1.0, 1.0, 0.0, in.color.a);
     }
 
-    if NO_SHADING {
-        return in.color;
-    }
-
     var n: vec3<f32>;
-    if FLAT_SHADING {
-        n = flat_n;
-    } else {
-        n = normalize(in.normal);
+    let use_smooth = (in.flags & 4u) != 0u;
+    let raw_n = select(flat_n, normalize(in.normal), !FLAT_SHADING || use_smooth);
+    n = select(raw_n, -raw_n, !front);
+
+    if (camera.flags & 1u) != 0u {
+        let base = select(in.color, vec4<f32>(0.8, 0.1, 0.1, in.color.a), !front && (camera.flags & 2u) != 0u);
+        return base;
     }
 
     // Key light: upper-left relative to camera (warm white), follows camera rotation
@@ -91,5 +85,6 @@ fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f
     let hemi      = mix(vec3<f32>(0.18, 0.18, 0.22), vec3<f32>(0.30, 0.29, 0.28), 0.5 + 0.5 * n.y);
 
     let lit = hemi + key + fill + rim;
-    return vec4<f32>(in.color.rgb * lit, in.color.a);
+    let base_rgb = select(in.color.rgb, vec3<f32>(0.8, 0.1, 0.1), !front && (camera.flags & 2u) != 0u);
+    return vec4<f32>(base_rgb * lit, in.color.a);
 }

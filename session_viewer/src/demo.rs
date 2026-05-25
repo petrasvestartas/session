@@ -1,4 +1,4 @@
-use session_rust::{Color, Line, Mesh, Point, PointCloud, Polyline, Session, TreeNode};
+use session_rust::{Color, Line, Mesh, NurbsSurface, Point, PointCloud, Polyline, Session, TreeNode};
 
 fn make_box(cx: f32, cy: f32, cz: f32, r: f32, color: Color, name: &str) -> Mesh {
     let mut m = Mesh::new();
@@ -151,6 +151,65 @@ pub fn make_demo_session() -> Session {
     s.add_point(named_point( 3000.0,     0.0,  500.0, "tetra_cyan",   Color::new(0.1, 0.9, 0.9, 1.0)), Some(&labels));
     s.add_point(named_point(-3000.0,  1500.0, 1000.0, "tetra_orange", Color::new(1.0, 0.4, 0.0, 1.0)), Some(&labels));
     s.add_point(named_point(    0.0, -3000.0, 2000.0, "tetra_lime",   Color::new(0.6, 0.9, 0.2, 1.0)), Some(&labels));
+
+    // ── NURBS surfaces ────────────────────────────────────────────────────────
+    let surfaces = s.add_group("surfaces");
+    let scale = 800.0_f32;
+    let ox = -4500.0_f32;
+    let oy = -4500.0_f32;
+
+    // Canonical bicubic patch from nurbssurface tests, scaled to scene units
+    let ns_pts = vec![
+        Point::new(ox + 0.0*scale, oy + 0.0*scale, 0.0*scale),
+        Point::new(ox + 0.0*scale, oy + 0.75*scale, 2.0*scale),
+        Point::new(ox + 0.0*scale, oy + 4.25*scale, 2.0*scale),
+        Point::new(ox + 0.0*scale, oy + 5.0*scale, 0.0*scale),
+        Point::new(ox + 0.75*scale, oy - 1.0*scale, 2.0*scale),
+        Point::new(ox + 1.25*scale, oy + 1.25*scale, 4.0*scale),
+        Point::new(ox + 1.25*scale, oy + 3.75*scale, 4.0*scale),
+        Point::new(ox + 0.75*scale, oy + 6.0*scale, 2.0*scale),
+        Point::new(ox + 4.25*scale, oy - 1.0*scale, 2.0*scale),
+        Point::new(ox + 3.75*scale, oy + 1.25*scale, 4.0*scale),
+        Point::new(ox + 3.75*scale, oy + 3.75*scale, 4.0*scale),
+        Point::new(ox + 4.25*scale, oy + 6.0*scale, 2.0*scale),
+        Point::new(ox + 5.0*scale, oy + 0.0*scale, 0.0*scale),
+        Point::new(ox + 6.0*scale, oy + 0.75*scale, 2.0*scale),
+        Point::new(ox + 6.0*scale, oy + 4.25*scale, 2.0*scale),
+        Point::new(ox + 5.0*scale, oy + 5.0*scale, 0.0*scale),
+    ];
+    if let Ok(mut ns) = NurbsSurface::create(false, false, 3, 3, 4, 4, &ns_pts) {
+        ns.linecolors.push(Color::new(0.2, 0.75, 0.9, 1.0));
+        ns.set_guid("ns_a".to_string());
+        s.objects.nurbssurfaces.push(ns);
+        s.tree.add(&TreeNode::new("ns_a"), Some(&surfaces));
+    }
+
+    // Second patch offset to +X
+    let ox2 = 4500.0_f32;
+    let ns_pts2 = vec![
+        Point::new(ox2 + 0.0*scale, oy + 0.0*scale, 0.0*scale),
+        Point::new(ox2 + 0.0*scale, oy + 0.75*scale, -2.0*scale),
+        Point::new(ox2 + 0.0*scale, oy + 4.25*scale, -2.0*scale),
+        Point::new(ox2 + 0.0*scale, oy + 5.0*scale, 0.0*scale),
+        Point::new(ox2 + 0.75*scale, oy - 1.0*scale, -2.0*scale),
+        Point::new(ox2 + 1.25*scale, oy + 1.25*scale, -4.0*scale),
+        Point::new(ox2 + 1.25*scale, oy + 3.75*scale, 4.0*scale),
+        Point::new(ox2 + 0.75*scale, oy + 6.0*scale, 2.0*scale),
+        Point::new(ox2 + 4.25*scale, oy - 1.0*scale, 2.0*scale),
+        Point::new(ox2 + 3.75*scale, oy + 1.25*scale, -4.0*scale),
+        Point::new(ox2 + 3.75*scale, oy + 3.75*scale, 4.0*scale),
+        Point::new(ox2 + 4.25*scale, oy + 6.0*scale, -2.0*scale),
+        Point::new(ox2 + 5.0*scale, oy + 0.0*scale, 0.0*scale),
+        Point::new(ox2 + 6.0*scale, oy + 0.75*scale, 2.0*scale),
+        Point::new(ox2 + 6.0*scale, oy + 4.25*scale, -2.0*scale),
+        Point::new(ox2 + 5.0*scale, oy + 5.0*scale, 0.0*scale),
+    ];
+    if let Ok(mut ns) = NurbsSurface::create(false, false, 3, 3, 4, 4, &ns_pts2) {
+        ns.linecolors.push(Color::new(0.9, 0.4, 0.7, 1.0));
+        ns.set_guid("ns_b".to_string());
+        s.objects.nurbssurfaces.push(ns);
+        s.tree.add(&TreeNode::new("ns_b"), Some(&surfaces));
+    }
 
     s
 }

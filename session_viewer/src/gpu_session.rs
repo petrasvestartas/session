@@ -5,9 +5,9 @@ use std::collections::HashMap;
 
 use crate::gpu_adapters::{
     color_to_rgba_f32, color_to_rgba_u8,
-    line_endpoint_glyphs, line_to_segment, mesh_to_vertices, named_point_to_cross_vertices,
-    obb_to_line_vertices, plane_to_mesh_vertices, point_to_vertex,
-    pointcloud_to_point_vertices, polyline_endpoint_glyphs, polyline_to_segments,
+    line_endpoint_glyphs, line_to_segment, mesh_to_edge_vertices, mesh_to_naked_edge_vertices,
+    mesh_to_vertices, named_point_to_cross_vertices, obb_to_line_vertices, plane_to_mesh_vertices,
+    point_to_vertex, pointcloud_to_cloud_points, polyline_endpoint_glyphs, polyline_to_segments,
 };
 use crate::gpu_arena::GpuArena;
 
@@ -120,6 +120,18 @@ pub struct GlyphPoint {
     pub _pad:        [u32; 3],
 }
 
+/// One point-cloud point for the billboard circle pipeline. 32 bytes.
+/// Layout matches cloud.wgsl CloudPoint struct (32 bytes: vec3+u32+vec4+f32+pad3).
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Pod, Zeroable)]
+pub struct CloudPoint {
+    pub position:    [f32; 3],  // offset 0
+    pub instance_id: u32,       // offset 12
+    pub color:       [f32; 4],  // offset 16
+    pub half_size:   f32,       // offset 32  (screen-space px radius)
+    pub _pad:        [u32; 3],  // offset 36
+}
+
 // ── InstanceData ─────────────────────────────────────────────────────────────
 
 /// Per-object GPU data. 96 bytes, 16-byte aligned.
@@ -136,6 +148,7 @@ pub struct InstanceData {
 impl InstanceData {
     pub const FLAG_SELECTED: u32 = 1 << 0;
     pub const FLAG_HIDDEN:   u32 = 1 << 1;
+    pub const FLAG_SMOOTH:   u32 = 1 << 2;
 
     pub fn new(instance_id: u32) -> Self {
         Self {
@@ -236,7 +249,7 @@ pub struct GpuSession {
     pub guid_to_seg:       HashMap<String, std::ops::Range<usize>>,
     pub segments_dirty:    bool,
 
-    // Instanced sphere pipeline (PointCloud → sphere glyphs)
+    // Instanced sphere pipeline (Line/Polyline endpoints → sphere glyphs)
     pub sphere_vbo:        wgpu::Buffer,
     pub sphere_ibo:        wgpu::Buffer,
     pub glyphs_cpu:        Vec<GlyphPoint>,
@@ -244,6 +257,15 @@ pub struct GpuSession {
     pub glyph_sphere_bg:   wgpu::BindGroup,
     pub guid_to_glyph:     HashMap<String, std::ops::Range<usize>>,
     pub glyphs_dirty:      bool,
+
+    // Instanced cloud pipeline (PointCloud → billboard circles)
+    pub clouds_cpu:        Vec<CloudPoint>,
+    pub clouds_gpu:        wgpu::Buffer,
+    pub cloud_bg:          wgpu::BindGroup,
+    pub guid_to_cloud:     HashMap<String, std::ops::Range<usize>>,
+    pub clouds_dirty:      bool,
+    /// Cached tessellated meshes for NurbsSurface picking (ray_cast).
+    pub nurbs_pick_meshes: HashMap<String, session_rust::Mesh>,
 }
 
 impl GpuSession {
@@ -302,6 +324,14 @@ impl GpuSession {
         });
         let glyph_sphere_bg = make_geom_bind_group(device, geom_bgl, &glyphs_gpu);
 
+        let clouds_init = vec![CloudPoint { position: [0.0;3], instance_id: 0, color: [0.0;4], half_size: 5.0, _pad: [0;3] }; 64];
+        let clouds_gpu = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("gpu_session.clouds"),
+            contents: bytemuck::cast_slice(&clouds_init),
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+        });
+        let cloud_bg = make_geom_bind_group(device, geom_bgl, &clouds_gpu);
+
         Self {
             tri, line, point,
             instance_buffer, instance_capacity: DEFAULT_INSTANCE_CAP, instances_cpu: Vec::new(),
@@ -312,6 +342,9 @@ impl GpuSession {
             sphere_vbo, sphere_ibo,
             glyphs_cpu: Vec::new(), glyphs_gpu, glyph_sphere_bg,
             guid_to_glyph: HashMap::new(), glyphs_dirty: false,
+            clouds_cpu: Vec::new(), clouds_gpu, cloud_bg,
+            guid_to_cloud: HashMap::new(), clouds_dirty: false,
+            nurbs_pick_meshes: HashMap::new(),
         }
     }
 
@@ -344,12 +377,40 @@ impl GpuSession {
 
     pub fn add_nurbssurface(&mut self, surface: &session_rust::NurbsSurface, device: &wgpu::Device, queue: &wgpu::Queue) {
         let guid = surface.guid().to_string();
-        let mesh = surface.mesh();
+        let mesh = session_rust::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid::from_u_v(
+            surface.clone(), 24, 24);
         let (vs, is) = mesh_to_vertices(&mesh);
         if vs.is_empty() { return; }
         let instance_id = self.pick.allocate(&guid);
         self.tri.allocate(&guid, &vs, Some(&is), instance_id, device, queue);
-        self.write_instance(instance_id, color_to_rgba_f32(surface.linecolors.get(0).unwrap_or(&session_rust::Color::white())), device, queue);
+        // Boundary edges: 4 iso-curves at domain limits (smooth, not mesh edges)
+        let mut everts: Vec<LineVertex> = Vec::new();
+        let mut einds: Vec<u32> = Vec::new();
+        let black = [0u8, 0, 0, 255];
+        for (dir, t_is_max) in [(0usize, false), (0, true), (1, false), (1, true)] {
+            let t = if let Some((t0, t1)) = surface.domain(dir) {
+                if t_is_max { t1 } else { t0 }
+            } else { continue };
+            if let Some(crv) = surface.iso_curve(dir, t) {
+                let (pts, _) = crv.to_polyline_adaptive(
+                    session_rust::Tolerance::ANGULARDEFLECTION * 0.1, 0.0, 0.0);
+                if pts.len() < 2 { continue; }
+                let base = everts.len() as u32;
+                for p in &pts {
+                    everts.push(LineVertex { position: [p[0], p[1], p[2]], color: black });
+                }
+                for i in 0..(pts.len() as u32 - 1) {
+                    einds.push(base + i);
+                    einds.push(base + i + 1);
+                }
+            }
+        }
+        if !everts.is_empty() {
+            self.line.allocate(&guid, &everts, Some(&einds), instance_id, device, queue);
+        }
+        self.nurbs_pick_meshes.insert(guid.clone(), mesh);
+        let surf_color = color_to_rgba_f32(surface.linecolors.get(0).unwrap_or(&session_rust::Color::white()));
+        self.write_instance_flags(instance_id, surf_color, InstanceData::FLAG_SMOOTH, device, queue);
     }
 
     pub fn add_geometry(&mut self, guid: &str, geom: &session_rust::session::Geometry, device: &wgpu::Device, queue: &wgpu::Queue) {
@@ -395,14 +456,21 @@ impl GpuSession {
                 self.write_instance(instance_id, color_to_rgba_f32(&pl.linecolor), device, queue);
             }
             Geometry::PointCloud(pc) => {
-                let verts = pointcloud_to_point_vertices(pc);
-                if verts.is_empty() { self.pick.release(guid); return; }
-                self.point.allocate(guid, &verts, None, instance_id, device, queue);
+                let pts = pointcloud_to_cloud_points(pc, instance_id);
+                if pts.is_empty() { self.pick.release(guid); return; }
+                let start = self.clouds_cpu.len();
+                self.clouds_cpu.extend(pts);
+                self.guid_to_cloud.insert(guid.to_string(), start..self.clouds_cpu.len());
+                self.clouds_dirty = true;
                 self.write_instance(instance_id, [1.0, 1.0, 1.0, 1.0], device, queue);
             }
             Geometry::Mesh(m) => {
                 let (vs, is) = mesh_to_vertices(m);
                 self.tri.allocate(guid, &vs, Some(&is), instance_id, device, queue);
+                let (wvs, wis) = mesh_to_edge_vertices(m);
+                if !wvs.is_empty() {
+                    self.line.allocate(guid, &wvs, Some(&wis), instance_id, device, queue);
+                }
                 self.write_instance(instance_id, color_to_rgba_f32(m.objectcolor()), device, queue);
             }
             Geometry::Plane(pl) => {
@@ -416,14 +484,39 @@ impl GpuSession {
                 self.write_instance(instance_id, [1.0, 1.0, 1.0, 1.0], device, queue);
             }
             Geometry::BRep(b) => {
-                let m = b.mesh();
-                let (vs, is) = mesh_to_vertices(&m);
+                let bm = b.mesh();
+                let (vs, is) = mesh_to_vertices(&bm);
                 if !vs.is_empty() {
                     self.tri.allocate(guid, &vs, Some(&is), instance_id, device, queue);
-                    self.write_instance(instance_id, color_to_rgba_f32(&b.surfacecolor), device, queue);
-                } else {
-                    self.pick.release(guid);
                 }
+                let edge_color = [0u8, 0, 0, 255];
+                let mut everts: Vec<LineVertex> = Vec::new();
+                let mut einds: Vec<u32> = Vec::new();
+                if !b.m_curves_3d.is_empty() {
+                    for curve in &b.m_curves_3d {
+                        let (pts, _) = curve.to_polyline_adaptive(
+                            session_rust::Tolerance::ANGULARDEFLECTION, 0.0, 0.0);
+                        if pts.len() < 2 { continue; }
+                        let base = everts.len() as u32;
+                        for p in &pts {
+                            everts.push(LineVertex { position: [p[0], p[1], p[2]], color: edge_color });
+                        }
+                        for i in 0..(pts.len() as u32 - 1) {
+                            einds.push(base + i);
+                            einds.push(base + i + 1);
+                        }
+                    }
+                } else {
+                    let (wvs, wis) = mesh_to_naked_edge_vertices(&bm);
+                    everts = wvs;
+                    einds = wis;
+                }
+                if everts.is_empty() && vs.is_empty() { self.pick.release(guid); return; }
+                if !everts.is_empty() {
+                    self.line.allocate(guid, &everts, Some(&einds), instance_id, device, queue);
+                }
+                let surf_color = color_to_rgba_f32(&b.surfacecolor);
+                self.write_instance_flags(instance_id, surf_color, InstanceData::FLAG_SMOOTH, device, queue);
             }
             Geometry::Element(e) => {
                 use session_rust::element::ElementGeometry;
@@ -475,6 +568,14 @@ impl GpuSession {
             }
             self.glyphs_dirty = true;
         }
+        if let Some(r) = self.guid_to_cloud.remove(guid) {
+            let n = r.end - r.start;
+            self.clouds_cpu.drain(r.start..r.end);
+            for range in self.guid_to_cloud.values_mut() {
+                if range.start >= r.start + n { range.start -= n; range.end -= n; }
+            }
+            self.clouds_dirty = true;
+        }
         self.pick.release(guid);
     }
 
@@ -490,15 +591,24 @@ impl GpuSession {
         self.glyphs_cpu.clear();
         self.guid_to_glyph.clear();
         self.glyphs_dirty = true;
+        self.clouds_cpu.clear();
+        self.guid_to_cloud.clear();
+        self.clouds_dirty = true;
+        self.nurbs_pick_meshes.clear();
     }
 
     fn write_instance(&mut self, instance_id: u32, color: [f32; 4], device: &wgpu::Device, queue: &wgpu::Queue) {
+        self.write_instance_flags(instance_id, color, 0, device, queue);
+    }
+
+    fn write_instance_flags(&mut self, instance_id: u32, color: [f32; 4], flags: u32, device: &wgpu::Device, queue: &wgpu::Queue) {
         let id = instance_id as usize;
         if id >= self.instances_cpu.len() {
             self.instances_cpu.resize(id + 1, InstanceData::new(0));
         }
         let mut data = InstanceData::new(instance_id);
         data.color = color;
+        data.flags = flags;
         self.instances_cpu[id] = data;
         if instance_id >= self.instance_capacity {
             self.grow_instance_buffer(instance_id + 1, device, queue);
@@ -591,6 +701,35 @@ impl GpuSession {
         pass.draw_indexed(0..crate::gpu_adapters::N_SPHERE_INDICES, 0, 0..self.glyphs_cpu.len() as u32);
     }
 
+    /// Ray-test cached NurbsSurface tessellations. Returns (guid, hit_point) pairs.
+    pub fn pick_nurbssurfaces(
+        &mut self,
+        origin: &session_rust::Point,
+        direction: &session_rust::Vector,
+    ) -> Vec<(String, session_rust::Point)> {
+        let dir_len = (direction[0]*direction[0] + direction[1]*direction[1] + direction[2]*direction[2]).sqrt();
+        if dir_len <= 0.0 { return Vec::new(); }
+        let du = session_rust::Vector::new(direction[0]/dir_len, direction[1]/dir_len, direction[2]/dir_len);
+        let far = 1e6f32;
+        let end = session_rust::Point::new(origin[0]+du[0]*far, origin[1]+du[1]*far, origin[2]+du[2]*far);
+        let ray = session_rust::Line::from_points(origin, &end);
+        let mut hits = Vec::new();
+        for (guid, mesh) in &mut self.nurbs_pick_meshes {
+            if let Some(p) = mesh.ray_cast_bvh(&ray, 1e-6) {
+                let dx = p[0]-origin[0]; let dy = p[1]-origin[1]; let dz = p[2]-origin[2];
+                let dist = (dx*dx + dy*dy + dz*dz).sqrt();
+                hits.push((guid.clone(), p, dist));
+            }
+        }
+        hits.sort_by(|a,b| a.2.partial_cmp(&b.2).unwrap_or(std::cmp::Ordering::Equal));
+        hits.into_iter().map(|(g,p,_)| (g,p)).collect()
+    }
+
+    pub fn draw_clouds<'a>(&'a self, pass: &mut wgpu::RenderPass<'a>) {
+        if self.clouds_cpu.is_empty() { return; }
+        pass.draw(0..6, 0..self.clouds_cpu.len() as u32);
+    }
+
     pub fn flush_geometry(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, geom_bgl: &wgpu::BindGroupLayout) {
         if self.segments_dirty {
             let needed = (self.segments_cpu.len().max(1) * std::mem::size_of::<CylinderSegment>()) as u64;
@@ -625,6 +764,23 @@ impl GpuSession {
                 queue.write_buffer(&self.glyphs_gpu, 0, bytemuck::cast_slice(&self.glyphs_cpu));
             }
             self.glyphs_dirty = false;
+        }
+        if self.clouds_dirty {
+            let needed = (self.clouds_cpu.len().max(1) * std::mem::size_of::<CloudPoint>()) as u64;
+            if needed > self.clouds_gpu.size() {
+                let new_size = (self.clouds_gpu.size() * 2).max(needed);
+                self.clouds_gpu = device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("gpu_session.clouds"),
+                    size: new_size,
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                });
+                self.cloud_bg = make_geom_bind_group(device, geom_bgl, &self.clouds_gpu);
+            }
+            if !self.clouds_cpu.is_empty() {
+                queue.write_buffer(&self.clouds_gpu, 0, bytemuck::cast_slice(&self.clouds_cpu));
+            }
+            self.clouds_dirty = false;
         }
     }
 }

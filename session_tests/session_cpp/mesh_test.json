@@ -89,7 +89,7 @@
     "group": "Mesh",
     "test_name": "From Polylines",
     "passed": true,
-    "time_ms": 0.123,
+    "time_ms": 0.125,
     "line": 88,
     "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::from_polylines({\n            {\n                {1.28955, 0, 1.127558},\n                {0.85791, 0, 0.225512},\n                {0.64209, -0.866025, -0.225512},\n                {0.85791, -1.732051, 0.225512},\n                {1.458565, -1.732051, 1.127558},\n                {1.50537, -0.866025, 1.578581},\n            },\n            {\n                {0.64209, 0.866025, -0.225512},\n                {0.114274, 0.866025, -0.686294},\n                {-0.00537, 0, -1.578581},\n                {0.21045, -0.866025, -1.127558},\n                {0.64209, -0.866025, -0.225512},\n                {0.85791, 0, 0.225512},\n            },\n            {\n                {1.28955, 1.732051, 1.127558},\n                {0.85791, 1.732051, 0.225512},\n                {0.64209, 0.866025, -0.225512},\n                {0.85791, 0, 0.225512},\n                {1.28955, -0, 1.127558},\n                {1.853404, 0.866025, 1.578581},\n            },\n        }, 0.001);",
     "checks": [
@@ -105,7 +105,7 @@
     "group": "Mesh",
     "test_name": "From Lines",
     "passed": true,
-    "time_ms": 0.128,
+    "time_ms": 0.151,
     "line": 121,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<Line> lines = {\n            Line::from_points(Point(4.948083, -0.149798, 1.00765),\n                              Point(4.395544, -0.996413, 1.196018)),\n            Line::from_points(Point(3.866593, 0.371225, 1.376346),\n                              Point(4.567265, 0.584361, 1.137476)),\n            Line::from_points(Point(3.915298, -0.157402, 1.359741),\n                              Point(3.282977, -0.051356, 1.575309)),\n            Line::from_points(Point(4.286215, -0.224964, 1.23329),\n                              Point(3.607284, -0.987075, 1.464748)),\n            Line::from_points(Point(3.744351, 0.971574, 1.41802),\n                              Point(3.266367, 0.841359, 1.580972)),\n            Line::from_points(Point(4.567265, 0.584361, 1.137476),\n                              Point(4.948083, -0.149798, 1.00765)),\n            Line::from_points(Point(4.395544, -0.996413, 1.196018),\n                              Point(3.607284, -0.987075, 1.464748)),\n            Line::from_points(Point(3.915298, -0.157402, 1.359741),\n                              Point(4.286215, -0.224964, 1.23329)),\n            Line::from_points(Point(3.282977, -0.051356, 1.575309),\n                              Point(3.266367, 0.841359, 1.580972)),\n            Line::from_points(Point(3.744351, 0.971574, 1.41802),\n                              Point(3.866593, 0.371225, 1.376346)),\n        };\n        Mesh mesh = Mesh::from_lines(lines, true);",
     "checks": [
@@ -121,7 +121,7 @@
     "group": "Mesh",
     "test_name": "From Polygon With Holes",
     "passed": true,
-    "time_ms": 0.279,
+    "time_ms": 0.293,
     "line": 151,
     "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::from_polygon_with_holes({\n            {\n                {8.940934, 0.917382, 0.049546},\n                {8.930493, 1.36458, 0.251429},\n                {8.954508, 1.595448, 0.346958},\n                {9.457671, 1.821395, 0.298639},\n                {9.717078, 1.014296, -0.136839},\n                {9.363048, 0.91534, -0.07616},\n                {9.33327, 0.459713, -0.269899},\n                {9.065708, 0.635281, -0.112748},\n            },\n            {\n                {7.494779, -0.556523, -0.178103},\n                {6.542877, 0.148384, 0.416685},\n                {6.967337, 2.119511, 1.167431},\n                {11.204553, 2.961749, 0.289102},\n                {9.658416, 0.465135, -0.363618},\n                {10.247775, -1.032727, -1.203717},\n            },\n            {\n                {7.922105, 0.548716, 0.186877},\n                {7.410178, 0.844297, 0.469625},\n                {7.408889, 1.185147, 0.621527},\n                {7.885956, 1.424645, 0.586947},\n                {8.178727, 1.32996, 0.458299},\n                {8.307609, 0.88254, 0.2213},\n                {7.950364, 0.924872, 0.345738},\n            },\n        }, true);\n\n\n        Mesh mesh_sorted = Mesh::from_polygon_with_holes({\n            {\n                {1, 1, 0},\n                {3, 1, 0},\n                {3, 3, 0},\n                {1, 3, 0},\n            },\n            {\n                {0, 0, 0},\n                {4, 0, 0},\n                {4, 4, 0},\n                {0, 4, 0},\n            },\n        }, true);",
     "checks": [
@@ -142,7 +142,7 @@
     "group": "Mesh",
     "test_name": "Loft",
     "passed": true,
-    "time_ms": 0.621,
+    "time_ms": 0.615,
     "line": 203,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<Polyline> bottom = {\n            Polyline(std::vector<Point>{\n                {13.20069, -0.556523, -0.178103},\n                {12.248787, 0.148384, 0.416685},\n                {12.673247, 2.119511, 1.167431},\n                {16.910464, 2.961749, 0.289102},\n                {15.364327, 0.465135, -0.363618},\n                {15.953685, -1.032727, -1.203717},\n                {13.20069, -0.556523, -0.178103},\n            }),\n            Polyline(std::vector<Point>{\n                {14.646845, 0.917382, 0.049546},\n                {14.636404, 1.36458, 0.251429},\n                {14.660418, 1.595448, 0.346958},\n                {15.163581, 1.821395, 0.298639},\n                {15.422988, 1.014296, -0.136839},\n                {15.068958, 0.91534, -0.07616},\n                {15.03918, 0.459713, -0.269899},\n                {14.771618, 0.635281, -0.112748},\n                {14.646845, 0.917382, 0.049546},\n            }),\n            Polyline(std::vector<Point>{\n                {13.628016, 0.548716, 0.186877},\n                {13.116088, 0.844297, 0.469625},\n                {13.114799, 1.185147, 0.621527},\n                {13.591866, 1.424645, 0.586947},\n                {13.884637, 1.32996, 0.458299},\n                {14.013519, 0.88254, 0.2213},\n                {13.656275, 0.924872, 0.345738},\n                {13.628016, 0.548716, 0.186877},\n            }),\n        };\n        std::vector<Polyline> top = {\n            Polyline(std::vector<Point>{\n                {13.375135, -0.818817, 0.411936},\n                {12.423233, -0.113909, 1.006724},\n                {12.847692, 1.857217, 1.75747},\n                {17.084909, 2.699455, 0.879141},\n                {15.538772, 0.202841, 0.226421},\n                {16.12813, -1.295021, -0.613678},\n                {13.375135, -0.818817, 0.411936},\n            }),\n            Polyline(std::vector<Point>{\n                {14.82129, 0.655088, 0.639585},\n                {14.810849, 1.102286, 0.841468},\n                {14.834864, 1.333154, 0.936997},\n                {15.338026, 1.559101, 0.888678},\n                {15.597433, 0.752002, 0.4532},\n                {15.243404, 0.653046, 0.513879},\n                {15.213626, 0.197419, 0.32014},\n                {14.946063, 0.372987, 0.477291},\n                {14.82129, 0.655088, 0.639585},\n            }),\n            Polyline(std::vector<Point>{\n                {13.802461, 0.286422, 0.776916},\n                {13.290534, 0.582003, 1.059664},\n                {13.289245, 0.922853, 1.211566},\n                {13.766312, 1.162351, 1.176986},\n                {14.059082, 1.067666, 1.048338},\n                {14.187964, 0.620246, 0.811339},\n                {13.83072, 0.662578, 0.935777},\n                {13.802461, 0.286422, 0.776916},\n            }),\n        };\n        Mesh mesh = Mesh::loft(bottom, top, true);\n\n\n        Mesh mesh_no_cap = Mesh::loft(bottom, top, false);",
     "checks": [
@@ -173,7 +173,7 @@
     "group": "Mesh",
     "test_name": "Loft concave with holes and collinear",
     "passed": true,
-    "time_ms": 0.545,
+    "time_ms": 0.509,
     "line": 280,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<Polyline> annen_bot = {\n            Polyline({\n                {2142.008, -530.170, 1172.487},\n                {2142.008, -530.170, -318.768},\n                {2142.008, -318.102, -318.768},\n                {2142.008, -347.792, -414.110},\n                {2142.008, -106.034, -414.110},\n                {2142.008, -135.724, -318.768},\n                {2142.008,  106.034, -318.768},\n                {2142.008,   76.344, -414.110},\n                {2142.008,  318.102, -414.110},\n                {2142.008,  288.412, -318.768},\n                {2142.008,  530.170, -318.768},\n                {2142.008,  530.170, 1172.487},\n                {2142.008, -530.170, 1172.487},\n            }),\n            Polyline({\n                {2142.008, 97.448,  841.097},\n                {2142.008,  0.000,  841.097},\n                {2142.008,  0.000, 1006.792},\n                {2142.008, 97.448, 1006.792},\n                {2142.008, 97.448,  841.097},\n            }),\n            Polyline({\n                {2142.008, 97.448, 178.317},\n                {2142.008,  0.000, 178.317},\n                {2142.008,  0.000, 344.012},\n                {2142.008, 97.448, 344.012},\n                {2142.008, 97.448, 178.317},\n            }),\n        };\n        std::vector<Polyline> annen_top = {\n            Polyline({\n                {2223.416, -530.170, 1172.487},\n                {2223.416, -530.170, -269.141},\n                {2223.416, -318.102, -269.141},\n                {2223.416, -347.792, -364.483},\n                {2223.416, -106.034, -364.483},\n                {2223.416, -135.724, -269.141},\n                {2223.416,  106.034, -269.141},\n                {2223.416,   76.344, -364.483},\n                {2223.416,  318.102, -364.483},\n                {2223.416,  288.412, -269.141},\n                {2223.416,  530.170, -269.141},\n                {2223.416,  530.170, 1172.487},\n                {2223.416, -530.170, 1172.487},\n            }),\n            Polyline({\n                {2223.416, 97.448,  841.097},\n                {2223.416,  0.000,  841.097},\n                {2223.416,  0.000, 1006.792},\n                {2223.416, 97.448, 1006.792},\n                {2223.416, 97.448,  841.097},\n            }),\n            Polyline({\n                {2223.416, 97.448, 178.317},\n                {2223.416,  0.000, 178.317},\n                {2223.416,  0.000, 344.012},\n                {2223.416, 97.448, 344.012},\n                {2223.416, 97.448, 178.317},\n            }),\n        };\n        Mesh annen = Mesh::loft(annen_bot, annen_top, true);\n\n        std::vector<Polyline> col_bot = {\n            Polyline({\n                { 0, 0, 0},\n                { 4, 0, 0},\n                { 7, 0, 0},\n                {12, 0, 0},\n                {12, 5, 0},\n                { 0, 5, 0},\n                { 0, 0, 0},\n            }),\n        };\n        std::vector<Polyline> col_top = {\n            Polyline({\n                { 0, 0, 1.5},\n                { 4, 0, 1.5},\n                { 7, 0, 1.5},\n                {12, 0, 1.5},\n                {12, 5, 1.5},\n                { 0, 5, 1.5},\n                { 0, 0, 1.5},\n            }),\n        };\n        Mesh colmesh = Mesh::loft(col_bot, col_top, true);",
     "checks": [
@@ -224,7 +224,7 @@
     "group": "Mesh",
     "test_name": "From Polygon With Holes Many",
     "passed": true,
-    "time_ms": 1.126,
+    "time_ms": 1.031,
     "line": 380,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<std::vector<std::vector<Point>>> inputs;\n        for (int i = 0; i < 4; ++i) {\n            double x = i * 7.0;\n            inputs.push_back({\n                {\n                    {x, 0, 0},\n                    {x+5, 0, 0},\n                    {x+5, 5, 0},\n                    {x, 5, 0},\n                },\n                {\n                    {x+1, 1, 0},\n                    {x+4, 1, 0},\n                    {x+4, 4, 0},\n                    {x+1, 4, 0},\n                },\n            });\n        }\n        std::vector<Mesh> meshes = Mesh::from_polygon_with_holes_many(inputs);\n\n        std::vector<Mesh> meshes_seq = Mesh::from_polygon_with_holes_many(inputs, false, false);",
     "checks": [
@@ -260,7 +260,7 @@
     "group": "Mesh",
     "test_name": "Loft Many",
     "passed": true,
-    "time_ms": 1.761,
+    "time_ms": 1.473,
     "line": 411,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<std::pair<std::vector<Polyline>, std::vector<Polyline>>> loft_inputs;\n        for (int i = 0; i < 6; ++i) {\n            double x = i * 3.0;\n            Polyline b(std::vector<Point>{\n                {x, 0, 0},\n                {x+1, 0, 0},\n                {x+1, 1, 0},\n                {x, 1, 0},\n                {x, 0, 0}});\n            Polyline t(std::vector<Point>{\n                {x, 0, 1+i*0.5},\n                {x+1, 0, 1+i*0.5},\n                {x+1, 1, 1+i*0.5},\n                {x, 1, 1+i*0.5},\n                {x, 0, 1+i*0.5}});\n            loft_inputs.push_back({{b}, {t}});\n        }\n        std::vector<Mesh> meshes = Mesh::loft_many(loft_inputs);\n\n\n        std::vector<Mesh> meshes_seq = Mesh::loft_many(loft_inputs, true, false);\n",
     "checks": [
@@ -391,7 +391,7 @@
     "group": "Mesh",
     "test_name": "Loft with quads and triangles",
     "passed": true,
-    "time_ms": 2.082,
+    "time_ms": 1.125,
     "line": 463,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<std::vector<Point>> top7 = {\n            {\n                {250, -250, 500},\n                {250, 250, 500},\n                {-250, 250, 500},\n                {-250, -250, 500},\n                {250, -250, 500},\n            },\n            {\n                {-250, 500, 250},\n                {-250, 250, 500},\n                {250, 250, 500},\n                {250, 500, 250},\n                {-250, 500, 250},\n            },\n            {\n                {250, -250, 500},\n                {500, -250, 250},\n                {500, 250, 250},\n                {250, 250, 500},\n                {250, -250, 500},\n            },\n            {\n                {250, 500, 250},\n                {250, 250, 500},\n                {500, 250, 250},\n                {250, 500, 250},\n            },\n            {\n                {-250, 500, 250},\n                {250, 500, 250},\n                {250, 500, -250},\n                {-250, 500, -250},\n                {-250, 500, 250},\n            },\n            {\n                {250, 500, 250},\n                {500, 250, 250},\n                {500, 250, -250},\n                {250, 500, -250},\n                {250, 500, 250},\n            },\n            {\n                {500, -250, 250},\n                {500, -250, -250},\n                {500, 250, -250},\n                {500, 250, 250},\n                {500, -250, 250},\n            },\n        };\n        std::vector<std::vector<Point>> bot7 = {\n            {\n                {270.710678, -250, 550},\n                {270.710678, 265.891862, 550},\n                {265.891862, 270.710678, 550},\n                {-250, 270.710678, 550},\n                {-250, -250, 550},\n                {270.710678, -250, 550},\n            },\n            {\n                {270.710678, -250, 550},\n                {550, -250, 270.710678},\n                {550, 265.891862, 270.710678},\n                {270.710678, 265.891862, 550},\n                {270.710678, -250, 550},\n            },\n            {\n                {-250, 550, 270.710678},\n                {-250, 270.710678, 550},\n                {265.891862, 270.710678, 550},\n                {265.891862, 550, 270.710678},\n                {-250, 550, 270.710678},\n            },\n            {\n                {265.891862, 550, 270.710678},\n                {265.891862, 270.710678, 550},\n                {270.710678, 265.891862, 550},\n                {550, 265.891862, 270.710678},\n                {550, 270.710678, 265.891862},\n                {270.710678, 550, 265.891862},\n                {265.891862, 550, 270.710678},\n            },\n            {\n                {-250, 550, 270.710678},\n                {265.891862, 550, 270.710678},\n                {270.710678, 550, 265.891862},\n                {270.710678, 550, -250},\n                {-250, 550, -250},\n                {-250, 550, 270.710678},\n            },\n            {\n                {270.710678, 550, 265.891862},\n                {550, 270.710678, 265.891862},\n                {550, 270.710678, -250},\n                {270.710678, 550, -250},\n                {270.710678, 550, 265.891862},\n            },\n            {\n                {550, -250, 270.710678},\n                {550, -250, -250},\n                {550, 270.710678, -250},\n                {550, 270.710678, 265.891862},\n                {550, 265.891862, 270.710678},\n                {550, -250, 270.710678},\n            },\n        };\n        auto [panels, adj, top_mesh, bot_mesh] = Mesh::loft_panels(top7, bot7);\n\n        // Color faces: blue=top cap, red=bot cap, gray=quad wall, yellow=tri wall\n        for (size_t i = 0; i < panels.size(); i++) {\n            std::vector<Color> face_colors;\n            face_colors.reserve(panels[i].face_roles.size());\n            for (const auto& [face_key, role] : panels[i].face_roles) {\n                switch (role) {\n                    case LoftFaceRole::TopCap:   face_colors.push_back(Color::blue()); break;\n                    case LoftFaceRole::BotCap:   face_colors.push_back(Color::red());  break;\n                    case LoftFaceRole::TriWall:  face_colors.push_back(Color::yellow()); break;\n                    case LoftFaceRole::QuadWall: face_colors.push_back(Color::grey());break;\n                }\n            }\n            panels[i].mesh.set_facecolors(face_colors);\n        }\n\n        // face centroids labelled with panel index\n        for (size_t i = 0; i < panels.size(); i++) {\n            auto c = panels[i].mesh.centroid();\n            c.name = fmt::format(\"p{}\", i);\n        }\n\n        // adjacency: for each shared edge — text dot at midpoint labelled \"p{i}f{idx}<->p{j}f{idx}\"\n        for (const auto& [i, wi, pj, wj] : adj) {\n            const auto& w = panels[i].wall_faces[wi];\n            auto pt = *panels[i].mesh.face_centroid(w.face_key);\n            pt.name = fmt::format(\"p{} f{} - p{} f{}\", i, w.face_index, pj, panels[pj].wall_faces[wj].face_index);\n        }\n",
     "checks": [
@@ -492,7 +492,7 @@
     "group": "Mesh",
     "test_name": "Boolean Queries",
     "passed": true,
-    "time_ms": 0.177,
+    "time_ms": 0.099,
     "line": 624,
     "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::from_polylines({\n            {\n                {1.28955, 0, 1.127558},\n                {0.85791, 0, 0.225512},\n                {0.64209, -0.866025, -0.225512},\n                {0.85791, -1.732051, 0.225512},\n                {1.458565, -1.732051, 1.127558},\n                {1.50537, -0.866025, 1.578581},\n            },\n            {\n                {0.64209, 0.866025, -0.225512},\n                {0.114274, 0.866025, -0.686294},\n                {-0.00537, 0, -1.578581},\n                {0.21045, -0.866025, -1.127558},\n                {0.64209, -0.866025, -0.225512},\n                {0.85791, 0, 0.225512},\n            },\n            {\n                {1.28955, 1.732051, 1.127558},\n                {0.85791, 1.732051, 0.225512},\n                {0.64209, 0.866025, -0.225512},\n                {0.85791, 0, 0.225512},\n                {1.28955, -0, 1.127558},\n                {1.853404, 0.866025, 1.578581},\n            },\n        }, 0.001);\n\n        size_t v0 = 1;\n        size_t v1 = 2;\n        size_t v2 = 3;\n        size_t f0 = 0;\n\n        bool empty = mesh.is_empty();\n\n\n        bool valid = mesh.is_valid();\n\n        bool closed = mesh.is_closed();\n\n        bool vertex_on_boundary = mesh.is_vertex_on_boundary(v0);\n\n        bool edge_not_on_boundary = mesh.is_edge_on_boundary(v0, v1);\n\n        bool edge_on_boundary = mesh.is_edge_on_boundary(v1, v2);\n\n        bool face_on_boundary = mesh.is_face_on_boundary(f0);",
     "checks": [
@@ -538,7 +538,7 @@
     "group": "Mesh",
     "test_name": "Attributes",
     "passed": true,
-    "time_ms": 0.101,
+    "time_ms": 0.081,
     "line": 682,
     "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n\n        size_t n_vertices = mesh.number_of_vertices();\n\n\n        size_t n_faces = mesh.number_of_faces();\n\n        size_t n_edges = mesh.number_of_edges();\n\n        size_t euler = mesh.euler();\n\n        auto [pts, fidx] = mesh.to_vertices_and_faces();\n\n\n        std::map<size_t, size_t> vertex_to_index = mesh.vertex_index();\n\n        // vertices / faces / edges\n        auto vertices = mesh.vertices();\n\n        auto faces = mesh.faces();\n\n        auto edges = mesh.edges();\n\n\n        // remove one face — box becomes open, check naked\n        mesh.remove_face(mesh.faces()[0]);\n\n        auto ne = mesh.naked_edges(true);\n        auto ni = mesh.naked_edges(false);\n        auto nv = mesh.naked_vertices(true);\n        auto nvi = mesh.naked_vertices(false);\n        auto nf = mesh.naked_faces(true);\n        auto nfi = mesh.naked_faces(false);",
     "checks": [
@@ -884,7 +884,7 @@
     "group": "Mesh",
     "test_name": "Create Dodecahedron",
     "passed": true,
-    "time_ms": 0.394,
+    "time_ms": 0.233,
     "line": 787,
     "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh m = Mesh::create_dodecahedron(2.0);",
     "checks": [
@@ -910,7 +910,7 @@
     "group": "Mesh",
     "test_name": "Vertex and Face Operations",
     "passed": true,
-    "time_ms": 0.375,
+    "time_ms": 0.33,
     "line": 797,
     "code": "        // uncomment #include \"mesh.h\"\n\n        double hx = 0.5, hy = 0.5, hz = 0.5;\n        std::vector<Point> verts = {\n            Point(-hx, -hy, -hz),\n            Point( hx, -hy, -hz),\n            Point( hx,  hy, -hz),\n            Point(-hx,  hy, -hz),\n            Point(-hx, -hy,  hz),\n            Point( hx, -hy,  hz),\n            Point( hx,  hy,  hz),\n            Point(-hx,  hy,  hz),\n        };\n        std::vector<std::vector<size_t>> faces = {\n            {0, 3, 2, 1}, {4, 5, 6, 7}, {0, 1, 5, 4}, {2, 3, 7, 6}, {0, 4, 7, 3}, {1, 2, 6, 5},\n        };\n\n        Mesh mesh = Mesh();\n\n        \n        for (const auto& v : verts) \n            mesh.add_vertex(v);\n    \n        for (const auto& f : faces) \n            mesh.add_face(f);\n\n\n        // remove_vertex(0): removes vertex 0 + 3 adjacent faces (0,2,4)\n        // vertices → [1,2,3,4,5,6,7], faces → [1,3,5]\n        mesh.remove_vertex(0);\n\n        // remove_edge(1,2): removes face 5 [1,2,6,5], faces → [1,3]\n        mesh.remove_edge(1, 2);\n\n        // remove_face(1): removes face 1 [4,5,6,7], faces → [3]\n        mesh.remove_face(1);\n\n        // clear\n        mesh.clear();\n\n        // rebuild\n        for (const auto& v : verts) mesh.add_vertex(v);\n        for (const auto& f : faces) mesh.add_face(f);\n\n        // unweld and weld\n        mesh = mesh.unweld();\n        mesh = mesh.weld(0.001);\n        // face 0: 0 1 2 3, face 1: 4 5 6 7, face 2: 0 3 5 4\n        // face 3: 2 1 7 6, face 4: 0 4 7 1, face 5: 3 2 6 5\n        auto fv0 = *mesh.face_vertices(0); auto fv1 = *mesh.face_vertices(1);\n        auto fv2 = *mesh.face_vertices(2); auto fv3 = *mesh.face_vertices(3);\n        auto fv4 = *mesh.face_vertices(4); auto fv5 = *mesh.face_vertices(5);\n\n        // flip_face(0): face 0 → [3,2,1,0], faces 1-5 unchanged\n        mesh.flip_face(0);\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);\n\n        // unify_winding: face 0 restored to [0,1,2,3], faces 1-5 unchanged\n        mesh.unify_winding();\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);\n\n        // flip: face 0 → [3,2,1,0], face 1 → [7,6,5,4], face 2 → [4,5,3,0]\n        // face 3 → [6,7,1,2], face 4 → [1,7,4,0], face 5 → [5,6,2,3]\n        mesh.flip();\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);\n\n        // orient_outward: face 0 → [0,1,2,3], face 1 → [4,5,6,7], face 2 → [0,3,5,4]\n        // face 3 → [2,1,7,6], face 4 → [0,4,7,1], face 5 → [3,2,6,5]\n        mesh.orient_outward();\n        fv0 = *mesh.face_vertices(0); fv1 = *mesh.face_vertices(1);\n        fv2 = *mesh.face_vertices(2); fv3 = *mesh.face_vertices(3);\n        fv4 = *mesh.face_vertices(4); fv5 = *mesh.face_vertices(5);",
     "checks": [
@@ -1121,7 +1121,7 @@
     "group": "Mesh",
     "test_name": "Connectivity Queries",
     "passed": true,
-    "time_ms": 0.06,
+    "time_ms": 0.053,
     "line": 918,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<Point> pts = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0,1,2,3}, {1,4,2}});\n\n        auto v = mesh.vertices();\n        auto f = mesh.faces();\n\n        // edge edges\n        // edge 1 - 2, edges: 1-0, 1-4, 2-3, 2-4\n        std::optional<std::vector<std::pair<size_t, size_t>>> ee = mesh.edge_edges(1, 2);\n        if (ee){\n\n            size_t u0 = (*ee)[0].first;\n            size_t v0 = (*ee)[0].second;\n            Line l0 = mesh.edge_line(u0, v0).value();\n            Point mid0 = l0.center();\n            mid0.name = \"e\" + std::to_string(u0) + \"-\" + std::to_string(v0);\n\n            size_t u1 = (*ee)[1].first;\n            size_t v1 = (*ee)[1].second;\n            Line l1 = mesh.edge_line(u1, v1).value();\n            Point mid1 = l1.center();\n            mid1.name = \"e\" + std::to_string(u1) + \"-\" + std::to_string(v1);\n\n            size_t u2 = (*ee)[2].first;\n            size_t v2 = (*ee)[2].second;\n            Line l2 = mesh.edge_line(u2, v2).value();\n            Point mid2 = l2.center();\n            mid2.name = \"e\" + std::to_string(u2) + \"-\" + std::to_string(v2);\n\n            size_t u3 = (*ee)[3].first;\n            size_t v3 = (*ee)[3].second;\n            Line l3 = mesh.edge_line(u3, v3).value();\n            Point mid3 = l3.center();\n            mid3.name = \"e\" + std::to_string(u3) + \"-\" + std::to_string(v3);\n\n            std::set<std::pair<size_t, size_t>> ee_set(ee->begin(), ee->end());\n\n        }\n\n        // edge faces\n        // edge 1-2, faces: 0, 1\n        std::optional<std::vector<size_t>> ef = mesh.edge_faces(1, 2);\n        if (ef) {\n            size_t ef0 = (*ef)[0];\n            size_t ef1 = (*ef)[1];\n            Point efp0 = *mesh.face_centroid(ef0);\n            efp0.name = \"f\" + std::to_string(ef0);\n            Point efp1 = *mesh.face_centroid(ef1);\n            efp1.name = \"f\" + std::to_string(ef1);\n\n        }\n\n        // face_edges\n        // face 0, edges: 0-1, 1-2, 2-3, 3-0\n        std::optional<std::vector<std::pair<size_t, size_t>>> fe = mesh.face_edges(f[0]);\n        if (fe) {\n            Line l0 = mesh.edge_line((*fe)[0].first, (*fe)[0].second).value();\n            Line l1 = mesh.edge_line((*fe)[1].first, (*fe)[1].second).value();\n            Line l2 = mesh.edge_line((*fe)[2].first, (*fe)[2].second).value();\n            Line l3 = mesh.edge_line((*fe)[3].first, (*fe)[3].second).value();\n            Point lmid0 = l0.center();\n            lmid0.name = \"e\" + std::to_string((*fe)[0].first) + \"-\" + std::to_string((*fe)[0].second);\n            Point lmid1 = l1.center();\n            lmid1.name = \"e\" + std::to_string((*fe)[1].first) + \"-\" + std::to_string((*fe)[1].second);\n            Point lmid2 = l2.center();\n            lmid2.name = \"e\" + std::to_string((*fe)[2].first) + \"-\" + std::to_string((*fe)[2].second);\n            Point lmid3 = l3.center();\n            lmid3.name = \"e\" + std::to_string((*fe)[3].first) + \"-\" + std::to_string((*fe)[3].second);\n\n        }\n\n        // face_faces\n        // face 0, adjacent faces: 1\n        std::optional<std::vector<size_t>> ff = mesh.face_faces(f[0]);\n        if (ff) {\n            size_t ff0 = (*ff)[0];\n            Point ffp = *mesh.face_centroid(ff0);\n            ffp.name = \"f\" + std::to_string(ff0);\n\n        }\n\n        // face points\n        std::optional<std::vector<Point>> points = mesh.face_points(f[0]);\n        if (points) {\n            size_t pointcount = (*points).size();\n\n        }\n\n        // face polyline\n        std::optional<Polyline> pl = mesh.face_polyline(f[0]);\n        if (pl) {\n            size_t pointcount = (*pl).point_count();\n\n        }\n\n        // face_vertices\n        // face 0 vertices: 0, 1, 2, 3\n        std::optional<std::vector<size_t>> fv = mesh.face_vertices(f[0]);\n        if(fv.has_value()) {\n            size_t fv0 = (*fv)[0];\n            size_t fv1 = (*fv)[1];\n            size_t fv2 = (*fv)[2];\n            size_t fv3 = (*fv)[3];\n            Point p0 = *mesh.vertex_point(fv0);\n            p0.name = std::to_string(fv0);\n            Point p1 = *mesh.vertex_point(fv1);\n            p1.name = std::to_string(fv1);\n            Point p2 = *mesh.vertex_point(fv2);\n            p2.name = std::to_string(fv2);\n            Point p3 = *mesh.vertex_point(fv3);\n            p3.name = std::to_string(fv3);\n\n        }\n    \n        // vertex_edges\n        // vertex 3, edges 1-0, 1-2, 1-4\n        std::optional<std::vector<std::pair<size_t, size_t>>> ve = mesh.vertex_edges(v[1]);\n        if (ve) {\n            Point vp = *mesh.vertex_point(v[1]);\n            vp.name = \"v\" + std::to_string(v[1]);\n\n            Line l0 = mesh.edge_line((*ve)[0].first, (*ve)[0].second).value();\n            Line l1 = mesh.edge_line((*ve)[1].first, (*ve)[1].second).value();\n            Line l2 = mesh.edge_line((*ve)[2].first, (*ve)[2].second).value();\n            Point lmid0 = l0.center();\n            lmid0.name = \"e\" + std::to_string((*ve)[0].first) + \"-\" + std::to_string((*ve)[0].second);\n            Point lmid1 = l1.center();\n            lmid1.name = \"e\" + std::to_string((*ve)[1].first) + \"-\" + std::to_string((*ve)[1].second);\n            Point lmid2 = l2.center();\n            lmid2.name = \"e\" + std::to_string((*ve)[2].first) + \"-\" + std::to_string((*ve)[2].second);\n\n        }\n\n        // vertex_faces\n        std::optional<std::vector<size_t>> vf = mesh.vertex_faces(v[1]);\n        // vertex 3, faces 0, 1\n        if (vf) {\n\n            Point vp = *mesh.vertex_point(v[1]);\n            vp.name = \"v\" + std::to_string(v[1]);\n\n            Point fp0 = *mesh.face_centroid((*vf)[0]);\n            fp0.name = \"f\" + std::to_string((*vf)[0]);\n            Point fp1 = *mesh.face_centroid((*vf)[1]);\n            fp1.name = \"f\" + std::to_string((*vf)[1]);\n\n        }\n\n        // vertex_vertices\n        // vertex 1, neighbors 0, 2, 4\n        std::optional<std::vector<size_t>> vn = mesh.vertex_vertices(v[1]);\n        if (vn) {\n            Point p0 = *mesh.vertex_point(v[1]);\n            p0.name = \"main\" + std::to_string(v[1]); \n\n            Point np0 = *mesh.vertex_point((*vn)[0]);\n            np0.name = std::to_string((*vn)[0]);\n            Point np1 = *mesh.vertex_point((*vn)[1]);\n            np1.name = std::to_string((*vn)[1]);\n            Point np2 = *mesh.vertex_point((*vn)[2]);\n            np2.name = std::to_string((*vn)[2]);\n\n        }",
     "checks": [
@@ -1292,7 +1292,7 @@
     "group": "Mesh",
     "test_name": "Geometric Properties",
     "passed": true,
-    "time_ms": 1.134,
+    "time_ms": 1.159,
     "line": 1126,
     "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_dodecahedron(1.5);\n\n        // area\n        double area = mesh.area();\n\n\n        // centroid\n        Point centroid = mesh.centroid();\n\n        // dihedral angle\n        auto [angles, arcs, points] = mesh.dihedral_angles(0.3);\n\n        for (const auto& [edge, angle] : angles) {\n            double angle_in_degrees = angle;\n        }\n\n        // face area\n        for (size_t f : mesh.faces()) {\n            auto face_area = mesh.face_area(f);\n        }\n        \n        // face centroid\n        std::vector<Point> centroids;\n        for (size_t f : mesh.faces()) \n            centroids.emplace_back(*mesh.face_centroid(f));\n\n\n        // face normal / s\n        std::map<size_t, Vector> face_normals = mesh.face_normals();\n        for (size_t f : mesh.faces()) {\n            auto fn = mesh.face_normal(f);\n        }\n\n\n        // vertex angle in face\n        for (const size_t f : mesh.faces()) {\n            auto fv = *mesh.face_vertices(f);\n            for (const size_t v : fv) {\n                auto angle = mesh.vertex_angle_in_face(v, f);\n            }\n        }\n\n        // vertex normal / s\n        std::map<size_t, Vector> vertex_normals = mesh.vertex_normals();\n        for (const size_t v : mesh.vertices()){\n            auto vn = mesh.vertex_normal(v);\n        }\n\n\n        // vertex normal weighted / s\n        std::map<size_t, Vector> vertex_normals_weighted = mesh.vertex_normals_weighted(NormalWeighting::Angle);\n        for (const size_t v : mesh.vertices()){\n            auto vnw = mesh.vertex_normal_weighted(v, NormalWeighting::Angle);\n        }\n\n\n\n        // volume\n        double volume = mesh.volume();",
     "checks": [
@@ -3028,7 +3028,7 @@
     "group": "Mesh",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.042,
+    "time_ms": 0.044,
     "line": 1269,
     "code": "        // uncomment #include \"mesh.h\"\n\n        std::vector<Point> pts = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0,1,2}});\n        size_t v0 = mesh.vertices()[0];\n\n        // transform() — apply stored xform in-place; xform field unchanged\n        Mesh mesh1 = mesh;\n        mesh1.xform = Xform::translation(0.0, 0.0, 1.0);\n        mesh1.transform();\n\n\n        // transform(const Xform&) — apply given xform in-place; stored xform unchanged\n        Mesh mesh2 = mesh;\n        Xform x = Xform::translation(0.0, 0.0, 1.0);\n        mesh2.transform(x);\n\n        // transformed() — copy with stored xform applied\n        Mesh mesh3 = mesh;\n        mesh3.xform = Xform::translation(0.0, 0.0, 10.0);\n        Mesh mesh3t = mesh3.transformed();\n\n        // transformed(const Xform&) — copy with given xform applied\n        Mesh mesh4 = mesh;\n        x = Xform::translation(0.0, 0.0, 10.0);\n        Mesh mesh4t = mesh4.transformed(x);",
     "checks": [
@@ -3079,7 +3079,7 @@
     "group": "Mesh",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 17.52,
+    "time_ms": 16.971,
     "line": 1310,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include <filesystem>\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"test_mesh\";\n        mesh.xform = Xform::translation(1.0, 2.0, 3.0);\n\n        // JSON object\n        nlohmann::ordered_json json = mesh.jsondump();\n        Mesh loaded_json = Mesh::jsonload(json);\n\n        // String\n        std::string json_string = mesh.file_json_dumps();\n        Mesh loaded_string = Mesh::file_json_loads(json_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.json\").string();\n        mesh.file_json_dump(filename);\n        Mesh loaded_file = Mesh::file_json_load(filename);\n\n\n        // Triangulation roundtrip\n        std::vector<std::vector<Point>> polys = {{\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        }};\n        Mesh pmesh = Mesh::from_polylines(polys, std::nullopt);\n        Mesh loaded_tri = Mesh::jsonload(pmesh.jsondump());\n        size_t fk = pmesh.get_triangulation().begin()->first;\n\n        // Face holes roundtrip\n        Mesh hmesh = Mesh::from_polygon_with_holes(\n            {\n                {\n                    Point(0, 0, 0),\n                    Point(4, 0, 0),\n                    Point(4, 4, 0),\n                    Point(0, 4, 0),\n                },\n                {\n                    Point(1, 1, 0),\n                    Point(3, 1, 0),\n                    Point(3, 3, 0),\n                    Point(1, 3, 0),\n                },\n            }, true);\n        Mesh loaded_holes = Mesh::jsonload(hmesh.jsondump());\n        size_t hfk = hmesh.get_face_holes().begin()->first;",
     "checks": [
@@ -3125,7 +3125,7 @@
     "group": "Mesh",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 15.418,
+    "time_ms": 14.33,
     "line": 1371,
     "code": "        // uncomment #include \"mesh.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include <filesystem>\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.name = \"test_mesh_proto\";\n        mesh.xform = Xform::translation(1.0, 2.0, 3.0);\n\n        // String\n        std::string proto_string = mesh.pb_dumps();\n        Mesh loaded_string = Mesh::pb_loads(proto_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_mesh.bin\").string();\n        mesh.pb_dump(filename);\n        Mesh loaded_file = Mesh::pb_load(filename);\n\n\n        // Triangulation roundtrip\n        std::vector<std::vector<Point>> polys = {{\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n        }};\n        Mesh pmesh = Mesh::from_polylines(polys, std::nullopt);\n        Mesh loaded_tri = Mesh::pb_loads(pmesh.pb_dumps());\n        size_t fk = pmesh.get_triangulation().begin()->first;\n\n        // Face holes roundtrip\n        Mesh hmesh = Mesh::from_polygon_with_holes(\n            {\n                {\n                    Point(0, 0, 0),\n                    Point(4, 0, 0),\n                    Point(4, 4, 0),\n                    Point(0, 4, 0),\n                },\n                {\n                    Point(1, 1, 0),\n                    Point(3, 1, 0),\n                    Point(3, 3, 0),\n                    Point(1, 3, 0),\n                },\n            }, true);\n        Mesh loaded_holes = Mesh::pb_loads(hmesh.pb_dumps());\n        size_t hfk = hmesh.get_face_holes().begin()->first;",
     "checks": [
@@ -3166,7 +3166,7 @@
     "group": "Mesh",
     "test_name": "Edges",
     "passed": true,
-    "time_ms": 0.043,
+    "time_ms": 0.048,
     "line": 1427,
     "code": "        // uncomment #include \"mesh.h\"\n\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        size_t v0 = mesh.vertices()[0];\n        size_t v1 = mesh.vertices()[1];\n        auto edges = mesh.edges();",
     "checks": [
@@ -3187,7 +3187,7 @@
     "group": "Mesh",
     "test_name": "Loft plate_failing 15-vert outer + 4 holes",
     "passed": true,
-    "time_ms": 2.136,
+    "time_ms": 2.11,
     "line": 1439,
     "code": "        std::vector<Polyline> bot_polylines = {\n            Polyline(std::vector<Point>{\n                { 734.392021, -1906.59468,  1101.588031},\n                { 632.396858, -1838.597905,  948.595287},\n                { 624.453132, -1769.270846,  984.70313 },\n                { 113.775484, -1428.81908,   218.686657},\n                { 121.719209, -1498.146139,  182.578814},\n                {  15.607979, -1427.40532,    23.411969},\n                {   0.0,      -1441.0,        -18.0     },\n                {   0.0,      -1893.0,       -357.0     },\n                {  13.416408, -1917.0,       -348.167184},\n                { 104.290124, -1917.0,       -166.419752},\n                { 118.441096, -1964.169906,  -173.495238},\n                { 664.077103, -1964.169906,   917.776777},\n                { 649.926131, -1917.0,        924.852263},\n                { 736.583592, -1917.0,       1098.167184},\n                { 734.392021, -1906.59468,  1101.588031},\n            }),\n            Polyline(std::vector<Point>{\n                { 322.544527, -1917.0,       270.089054},\n                { 213.417326, -1917.0,        51.834651},\n                { 199.266354, -1869.830094,   58.910137},\n                { 308.393555, -1869.830094,  277.16454 },\n                { 322.544527, -1917.0,       270.089054},\n            }),\n            Polyline(std::vector<Point>{\n                { 540.79893,  -1917.0,       706.59786 },\n                { 431.671728, -1917.0,       488.343457},\n                { 417.520757, -1869.830094,  495.418943},\n                { 526.647958, -1869.830094,  713.673346},\n                { 540.79893,  -1917.0,       706.59786 },\n            }),\n            Polyline(std::vector<Point>{\n                { 424.153936, -1667.753669,  660.242619},\n                { 526.289465, -1735.844022,  813.445914},\n                { 530.261328, -1770.507552,  795.391992},\n                { 428.125798, -1702.417199,  642.188697},\n                { 424.153936, -1667.753669,  660.242619},\n            }),\n            Polyline(std::vector<Point>{\n                { 219.882876, -1531.572963,  353.83603 },\n                { 322.018406, -1599.663316,  507.039325},\n                { 325.990269, -1634.326846,  488.985403},\n                { 223.854739, -1566.236493,  335.782108},\n                { 219.882876, -1531.572963,  353.83603 },\n            }),\n        };\n        std::vector<Polyline> top_polylines = {\n            Polyline(std::vector<Point>{\n                { 711.660594, -1906.59468,  1126.880036},\n                { 605.549364, -1835.85386,   967.713191},\n                { 601.577501, -1801.190331,  985.767113},\n                {  90.899853, -1460.738565,  219.75064 },\n                {  94.871715, -1495.402095,  201.696718},\n                {  -9.83197,  -1425.599638,   44.641191},\n                { -25.439949, -1439.194318,    3.229221},\n                { -25.439949, -1893.0,       -337.12504 },\n                { -12.023541, -1917.0,       -328.292224},\n                {  75.988181, -1917.0,       -152.26878 },\n                { 104.290124, -2011.339811,  -166.419752},\n                { 649.926131, -2011.339811,   924.852263},\n                { 621.624188, -1917.0,        939.003234},\n                { 713.852165, -1917.0,       1123.459189},\n                { 711.660594, -1906.59468,  1126.880036},\n            }),\n            Polyline(std::vector<Point>{\n                { 308.393555, -1964.169906,  277.16454 },\n                { 199.266354, -1964.169906,   58.910137},\n                { 185.115382, -1917.0,        65.985623},\n                { 294.242584, -1917.0,       284.240026},\n                { 308.393555, -1964.169906,  277.16454 },\n            }),\n            Polyline(std::vector<Point>{\n                { 526.647958, -1964.169906,  713.673346},\n                { 417.520757, -1964.169906,  495.418943},\n                { 403.369785, -1917.0,       502.494429},\n                { 512.496987, -1917.0,       720.748832},\n                { 526.647958, -1964.169906,  713.673346},\n            }),\n            Polyline(std::vector<Point>{\n                { 401.278305, -1699.673154,  661.306602},\n                { 503.413834, -1767.763507,  814.509897},\n                { 507.385697, -1802.427037,  796.455975},\n                { 405.250167, -1734.336684,  643.25268 },\n                { 401.278305, -1699.673154,  661.306602},\n            }),\n            Polyline(std::vector<Point>{\n                { 197.007245, -1563.492448,  354.900013},\n                { 299.142775, -1631.582801,  508.103307},\n                { 303.114638, -1666.246331,  490.049386},\n                { 200.979108, -1598.155978,  336.846091},\n                { 197.007245, -1563.492448,  354.900013},\n            }),\n        };\n        Mesh m = Mesh::loft(bot_polylines, top_polylines, true, true);\n        printf(\"Loft plate_failing: faces=%zu  vertices=%zu  valid=%d  closed=%d\\n\",\n               m.faces().size(), m.vertices().size(), (int)m.is_valid(), (int)m.is_closed());\n\n        // Write to session pb so it can be inspected in Rhino\n        Session session;\n        session.add_mesh(std::make_shared<Mesh>(m));\n        std::string pb_path = \"C:/Users/Petras/Desktop/plate_failing_loft.pb\";\n        session.pb_dump(pb_path);\n        printf(\"Session written to: %s\\n\", pb_path.c_str());",
     "checks": [
@@ -3203,7 +3203,7 @@
     "group": "Mesh",
     "test_name": "Loft plate_v2 15-vert outer + 3 holes",
     "passed": true,
-    "time_ms": 1.802,
+    "time_ms": 1.7,
     "line": 1547,
     "code": "        std::vector<Polyline> top_polylines = {\n            Polyline(std::vector<Point>{\n                { 734.392021,  -28.40532,  1101.588031},\n                { 630.839301,  -97.440466,  946.258951},\n                { 602.668732,  -21.881034,  974.757956},\n                {  90.636822, -363.235641,  206.710092},\n                { 118.807391, -438.795073,  178.211087},\n                {  15.607979, -507.59468,    23.411969},\n                {  21.213203, -518.0,        21.213203},\n                {1478.786797, -518.0,      1478.786797},\n                {1476.953362, -502.635574, 1488.476681},\n                {1323.309106, -400.20607,  1411.654553},\n                {1323.309106, -350.20607,  1449.154553},\n                { 921.429178,  -82.286119, 1248.214589},\n                { 921.429178, -132.286119, 1210.714589},\n                { 773.046638,  -33.364426, 1136.523319},\n                { 734.392021,  -28.40532,  1101.588031},\n            }),\n            Polyline(std::vector<Point>{\n                {1055.389154, -196.592769, 1296.444577},\n                {1189.34913,  -285.89942,  1363.424565},\n                {1189.34913,  -310.89942,  1344.674565},\n                {1055.389154, -221.592769, 1277.694577},\n                {1055.389154, -196.592769, 1296.444577},\n            }),\n            Polyline(std::vector<Point>{\n                { 411.941252, -196.202593,  653.289308},\n                { 514.347634, -127.931671,  806.898881},\n                { 528.432919, -165.711387,  792.649378},\n                { 426.026537, -233.982309,  639.039805},\n                { 411.941252, -196.202593,  653.289308},\n            }),\n            Polyline(std::vector<Point>{\n                { 207.128489, -332.744435,  346.070162},\n                { 309.53487,  -264.473514,  499.679735},\n                { 323.620155, -302.25323,   485.430233},\n                { 221.213773, -370.524151,  331.82066 },\n                { 207.128489, -332.744435,  346.070162},\n            }),\n        };\n        std::vector<Polyline> bot_polylines = {\n            Polyline(std::vector<Point>{\n                { 717.764591,  -24.335988, 1136.036032},\n                { 607.106921,  -98.107768,  970.049526},\n                { 593.021636,  -60.328052,  984.299029},\n                {  80.989727, -401.682659,  216.251164},\n                {  95.075011, -439.462375,  202.001662},\n                { -28.206905, -521.650319,   17.078787},\n                { -22.601681, -532.055639,   14.880022},\n                {1489.346823, -532.055639, 1526.828525},\n                {1487.513388, -516.691213, 1536.51841 },\n                {1323.309106, -407.221692, 1454.416269},\n                {1323.309106, -382.221692, 1473.166269},\n                { 921.429178, -114.30174,  1272.226305},\n                { 921.429178, -139.30174,  1253.476305},\n                { 756.419209,  -29.295094, 1170.97132 },\n                { 717.764591,  -24.335988, 1136.036032},\n            }),\n            Polyline(std::vector<Point>{\n                {1055.389154, -228.608391, 1320.456293},\n                {1189.34913,  -317.915041, 1387.436281},\n                {1189.34913,  -342.915041, 1368.686281},\n                {1055.389154, -253.608391, 1301.706293},\n                {1055.389154, -228.608391, 1320.456293},\n            }),\n            Polyline(std::vector<Point>{\n                { 402.294157, -234.649611,  662.830381},\n                { 504.700539, -166.37869,   816.439954},\n                { 518.785824, -204.158406,  802.190451},\n                { 416.379442, -272.429327,  648.580878},\n                { 402.294157, -234.649611,  662.830381},\n            }),\n            Polyline(std::vector<Point>{\n                { 197.481393, -371.191453,  355.611235},\n                { 299.887775, -302.920532,  509.220808},\n                { 313.97306,  -340.700248,  494.971305},\n                { 211.566678, -408.971169,  341.361733},\n                { 197.481393, -371.191453,  355.611235},\n            }),\n        };\n        Mesh m = Mesh::loft(top_polylines, bot_polylines, true, true);\n        printf(\"Loft plate_v2: faces=%zu  vertices=%zu  valid=%d  closed=%d\\n\",\n               m.faces().size(), m.vertices().size(), (int)m.is_valid(), (int)m.is_closed());\n\n        Session session;\n        session.add_mesh(std::make_shared<Mesh>(m));\n        std::string pb_path = \"C:/Users/Petras/Desktop/plate_v2_loft.pb\";\n        session.pb_dump(pb_path);\n        printf(\"Session written to: %s\\n\", pb_path.c_str());",
     "checks": [
@@ -3219,7 +3219,7 @@
     "group": "Mesh",
     "test_name": "Loft plate_v3 15-vert outer + 3 holes",
     "passed": true,
-    "time_ms": 1.692,
+    "time_ms": 1.798,
     "line": 1640,
     "code": "        std::vector<Polyline> top_polylines = {\n            Polyline(std::vector<Point>{\n                { 734.392021,  352.59468,  1101.588031},\n                { 618.973111,  275.648741,  928.459666},\n                { 618.973111,  369.988552,  999.214525},\n                { 106.941201,   28.633945,  231.16666 },\n                { 106.941201,  -65.705866,  160.411802},\n                {  15.607979, -126.59468,    23.411969},\n                {  21.213203, -137.0,        21.213203},\n                {1478.786797, -137.0,      1478.786797},\n                {1476.953362, -121.635574, 1488.476681},\n                {1323.309106,  -19.20607,  1411.654553},\n                {1323.309106,   30.79393,  1449.154553},\n                { 921.429178,  298.713881, 1248.214589},\n                { 921.429178,  248.713881, 1210.714589},\n                { 773.046638,  347.635574, 1136.523319},\n                { 734.392021,  352.59468,  1101.588031},\n            }),\n            Polyline(std::vector<Point>{\n                {1055.389154,  184.407231, 1296.444577},\n                {1189.34913,    95.10058,  1363.424565},\n                {1189.34913,    70.10058,  1344.674565},\n                {1055.389154,  159.407231, 1277.694577},\n                {1055.389154,  184.407231, 1296.444577},\n            }),\n            Polyline(std::vector<Point>{\n                { 414.160347,  186.276804,  656.61795 },\n                { 516.566729,  254.547725,  810.227523},\n                { 516.566729,  207.377819,  774.850093},\n                { 414.160347,  139.106898,  621.240521},\n                { 414.160347,  186.276804,  656.61795 },\n            }),\n            Polyline(std::vector<Point>{\n                { 209.347583,   49.734961,  349.398804},\n                { 311.753965,  118.005882,  503.008377},\n                { 311.753965,   70.835977,  467.630948},\n                { 209.347583,    2.565055,  314.021375},\n                { 209.347583,   49.734961,  349.398804},\n            }),\n        };\n        std::vector<Polyline> bot_polylines = {\n            Polyline(std::vector<Point>{\n                { 717.764591,  356.664012, 1136.036032},\n                { 618.973111,  290.803025,  987.848811},\n                { 618.973111,  337.972931, 1023.226241},\n                { 106.941201,   -3.381676,  255.178376},\n                { 106.941201,  -50.551581,  219.800947},\n                { -28.206905, -140.650319,   17.078787},\n                { -22.601681, -151.055639,   14.880022},\n                {1489.346823, -151.055639, 1526.828525},\n                {1487.513388, -135.691213, 1536.51841 },\n                {1323.309106,  -26.221692, 1454.416269},\n                {1323.309106,   -1.221692, 1473.166269},\n                { 921.429178,  266.69826,  1272.226305},\n                { 921.429178,  241.69826,  1253.476305},\n                { 756.419209,  351.704906, 1170.97132 },\n                { 717.764591,  356.664012, 1136.036032},\n            }),\n            Polyline(std::vector<Point>{\n                {1055.389154,  152.391609, 1320.456293},\n                {1189.34913,    63.084959, 1387.436281},\n                {1189.34913,    38.084959, 1368.686281},\n                {1055.389154,  127.391609, 1301.706293},\n                {1055.389154,  152.391609, 1320.456293},\n            }),\n            Polyline(std::vector<Point>{\n                { 414.160347,  154.261182,  680.629666},\n                { 516.566729,  222.532104,  834.239239},\n                { 516.566729,  175.362198,  798.861809},\n                { 414.160347,  107.091277,  645.252236},\n                { 414.160347,  154.261182,  680.629666},\n            }),\n            Polyline(std::vector<Point>{\n                { 209.347583,   17.71934,   373.41052 },\n                { 311.753965,   85.990261,  527.020093},\n                { 311.753965,   38.820356,  491.642664},\n                { 209.347583,  -29.450566,  338.033091},\n                { 209.347583,   17.71934,   373.41052 },\n            }),\n        };\n        Mesh m = Mesh::loft(top_polylines, bot_polylines, true, true);\n        printf(\"Loft plate_v3: faces=%zu  vertices=%zu  valid=%d  closed=%d\\n\",\n               m.faces().size(), m.vertices().size(), (int)m.is_valid(), (int)m.is_closed());\n\n        Session session;\n        session.add_mesh(std::make_shared<Mesh>(m));\n        std::string pb_path = \"C:/Users/Petras/Desktop/plate_v3_loft.pb\";\n        session.pb_dump(pb_path);\n        printf(\"Session written to: %s\\n\", pb_path.c_str());",
     "checks": [
@@ -3235,7 +3235,7 @@
     "group": "Mesh",
     "test_name": "Vertex Neighbors",
     "passed": true,
-    "time_ms": 0.043,
+    "time_ms": 0.038,
     "line": 1733,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        auto n0 = *mesh.vertex_neighbors(0);\n        auto n0v = *mesh.vertex_vertices(0);\n        std::sort(n0.begin(), n0.end());\n        std::sort(n0v.begin(), n0v.end());",
     "checks": [
@@ -3256,7 +3256,7 @@
     "group": "Mesh",
     "test_name": "Vertices On Boundary",
     "passed": true,
-    "time_ms": 0.031,
+    "time_ms": 0.032,
     "line": 1743,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.remove_face(mesh.faces()[0]);",
     "checks": [
@@ -3277,7 +3277,7 @@
     "group": "Mesh",
     "test_name": "Edges On Boundary",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.026,
     "line": 1750,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.remove_face(mesh.faces()[0]);",
     "checks": [
@@ -3298,7 +3298,7 @@
     "group": "Mesh",
     "test_name": "Faces On Boundary",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.049,
     "line": 1757,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.remove_face(mesh.faces()[0]);",
     "checks": [
@@ -3319,7 +3319,7 @@
     "group": "Mesh",
     "test_name": "Halfedge Face",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.032,
     "line": 1764,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        auto f = mesh.halfedge_face({0, 3});\n        mesh.remove_face(0);",
     "checks": [
@@ -3345,7 +3345,7 @@
     "group": "Mesh",
     "test_name": "Halfedge After Before",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.025,
     "line": 1773,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        auto after = mesh.halfedge_after({0, 3});\n        auto before = mesh.halfedge_before({0, 3});",
     "checks": [
@@ -3376,7 +3376,7 @@
     "group": "Mesh",
     "test_name": "Halfedge Loop",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.025,
     "line": 1783,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        auto loop = mesh.halfedge_loop({0, 3});",
     "checks": [
@@ -3397,7 +3397,7 @@
     "group": "Mesh",
     "test_name": "Halfedge Strip",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.027,
     "line": 1790,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        auto strip = mesh.halfedge_strip({0, 3});",
     "checks": [
@@ -3423,7 +3423,7 @@
     "group": "Mesh",
     "test_name": "Vertex Sample",
     "passed": true,
-    "time_ms": 0.031,
+    "time_ms": 0.027,
     "line": 1798,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        auto s = mesh.vertex_sample(3, 42);\n        std::set<size_t> uniq(s.begin(), s.end());\n        auto s2 = mesh.vertex_sample(3, 42);",
     "checks": [
@@ -3449,7 +3449,7 @@
     "group": "Mesh",
     "test_name": "Edge Sample",
     "passed": true,
-    "time_ms": 0.046,
+    "time_ms": 0.037,
     "line": 1808,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        auto s = mesh.edge_sample(2, 7);\n        auto s2 = mesh.edge_sample(2, 7);",
     "checks": [
@@ -3470,7 +3470,7 @@
     "group": "Mesh",
     "test_name": "Face Sample",
     "passed": true,
-    "time_ms": 0.041,
+    "time_ms": 0.025,
     "line": 1816,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        auto s = mesh.face_sample(2, 11);\n        auto s2 = mesh.face_sample(2, 11);",
     "checks": [
@@ -3491,7 +3491,7 @@
     "group": "Mesh",
     "test_name": "Face Center",
     "passed": true,
-    "time_ms": 0.031,
+    "time_ms": 0.023,
     "line": 1824,
     "code": "        Mesh mesh = Mesh::create_box(2.0, 2.0, 2.0);\n        auto c = *mesh.face_center(0);\n        auto cc = *mesh.face_centroid(0);",
     "checks": [
@@ -3507,7 +3507,7 @@
     "group": "Mesh",
     "test_name": "Face Polygon",
     "passed": true,
-    "time_ms": 0.036,
+    "time_ms": 0.033,
     "line": 1831,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        auto poly = *mesh.face_polygon(0);\n        auto pts = poly.get_points();",
     "checks": [
@@ -3528,7 +3528,7 @@
     "group": "Mesh",
     "test_name": "Flip Cycles",
     "passed": true,
-    "time_ms": 0.061,
+    "time_ms": 0.037,
     "line": 1839,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        auto n0 = *mesh.face_normal(0);\n        mesh.flip_cycles();\n        auto n0b = *mesh.face_normal(0);",
     "checks": [
@@ -3554,7 +3554,7 @@
     "group": "Mesh",
     "test_name": "Face Normal Unitized",
     "passed": true,
-    "time_ms": 0.03,
+    "time_ms": 0.022,
     "line": 1849,
     "code": "        Mesh mesh = Mesh::create_box(2.0, 2.0, 2.0);\n        auto nu = *mesh.face_normal_unitized(0, true);\n        auto nn = *mesh.face_normal_unitized(0, false);",
     "checks": [
@@ -3575,7 +3575,7 @@
     "group": "Mesh",
     "test_name": "Default Attributes",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.042,
     "line": 1857,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.update_default_vertex_attributes({{\"is_support\", 0.0}, {\"load_z\", 0.0}});\n        mesh.update_default_face_attributes({{\"stress\", 0.0}});\n        mesh.update_default_edge_attributes({{\"weight\", 1.0}});",
     "checks": [
@@ -3606,7 +3606,7 @@
     "group": "Mesh",
     "test_name": "Vertex Attribute",
     "passed": true,
-    "time_ms": 0.041,
+    "time_ms": 0.042,
     "line": 1868,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.update_default_vertex_attributes({{\"is_support\", 0.0}});\n        mesh.set_vertex_attribute(0, \"is_support\", 1.0);",
     "checks": [
@@ -3627,7 +3627,7 @@
     "group": "Mesh",
     "test_name": "Face Attribute",
     "passed": true,
-    "time_ms": 0.04,
+    "time_ms": 0.036,
     "line": 1876,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.update_default_face_attributes({{\"stress\", 0.0}});\n        mesh.set_face_attribute(0, \"stress\", 2.5);",
     "checks": [
@@ -3648,7 +3648,7 @@
     "group": "Mesh",
     "test_name": "Edge Attribute",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.041,
     "line": 1884,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.update_default_edge_attributes({{\"weight\", 1.0}});\n        mesh.set_edge_attribute({0, 1}, \"weight\", 5.0);",
     "checks": [
@@ -3669,7 +3669,7 @@
     "group": "Mesh",
     "test_name": "Vertices Attribute Bulk",
     "passed": true,
-    "time_ms": 0.026,
+    "time_ms": 0.033,
     "line": 1892,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.update_default_vertex_attributes({{\"is_support\", 0.0}});\n        std::vector<size_t> keys = {0, 1, 2};\n        mesh.set_vertices_attribute(\"is_support\", 1.0, &keys);\n        auto vals = mesh.vertices_attribute(\"is_support\");",
     "checks": [
@@ -3700,7 +3700,7 @@
     "group": "Mesh",
     "test_name": "Vertices Where",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.028,
     "line": 1904,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.update_default_vertex_attributes({{\"is_support\", 0.0}});\n        std::vector<size_t> keys = {0, 2, 4};\n        mesh.set_vertices_attribute(\"is_support\", 1.0, &keys);\n        auto sup = mesh.vertices_where({{\"is_support\", 1.0}});\n        std::sort(sup.begin(), sup.end());",
     "checks": [
@@ -3721,7 +3721,7 @@
     "group": "Mesh",
     "test_name": "Faces Where",
     "passed": true,
-    "time_ms": 0.028,
+    "time_ms": 0.03,
     "line": 1915,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.update_default_face_attributes({{\"tag\", 0.0}});\n        mesh.set_face_attribute(2, \"tag\", 7.0);\n        mesh.set_face_attribute(4, \"tag\", 7.0);\n        auto out = mesh.faces_where({{\"tag\", 7.0}});\n        std::sort(out.begin(), out.end());",
     "checks": [
@@ -3737,7 +3737,7 @@
     "group": "Mesh",
     "test_name": "Edges Where",
     "passed": true,
-    "time_ms": 0.044,
+    "time_ms": 0.034,
     "line": 1925,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.update_default_edge_attributes({{\"weight\", 0.0}});\n        mesh.set_edge_attribute({0, 1}, \"weight\", 3.0);\n        auto out = mesh.edges_where({{\"weight\", 3.0}});",
     "checks": [
@@ -3758,7 +3758,7 @@
     "group": "Mesh",
     "test_name": "Vertices Where Predicate",
     "passed": true,
-    "time_ms": 0.033,
+    "time_ms": 0.05,
     "line": 1934,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.update_default_vertex_attributes({{\"load\", 0.0}});\n        mesh.set_vertex_attribute(0, \"load\", 5.0);\n        mesh.set_vertex_attribute(1, \"load\", 10.0);\n        auto big = mesh.vertices_where_predicate([](size_t, const std::map<std::string, double>& a) {\n            auto it = a.find(\"load\");\n            return it != a.end() && it->second > 4.0;\n        });\n        std::sort(big.begin(), big.end());",
     "checks": [
@@ -3774,7 +3774,7 @@
     "group": "Mesh",
     "test_name": "Faces Where Predicate",
     "passed": true,
-    "time_ms": 0.027,
+    "time_ms": 0.043,
     "line": 1947,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.update_default_face_attributes({{\"area\", 0.0}});\n        mesh.set_face_attribute(0, \"area\", 2.0);\n        mesh.set_face_attribute(3, \"area\", 4.0);\n        auto big = mesh.faces_where_predicate([](size_t, const std::map<std::string, double>& a) {\n            auto it = a.find(\"area\");\n            return it != a.end() && it->second > 1.0;\n        });\n        std::sort(big.begin(), big.end());",
     "checks": [
@@ -3790,7 +3790,7 @@
     "group": "Mesh",
     "test_name": "Edges Where Predicate",
     "passed": true,
-    "time_ms": 0.03,
+    "time_ms": 0.035,
     "line": 1960,
     "code": "        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        mesh.update_default_edge_attributes({{\"weight\", 0.0}});\n        mesh.set_edge_attribute({0, 1}, \"weight\", 5.0);\n        auto big = mesh.edges_where_predicate([](std::pair<size_t, size_t>, const std::map<std::string, double>& a) {\n            auto it = a.find(\"weight\");\n            return it != a.end() && it->second > 1.0;\n        });",
     "checks": [

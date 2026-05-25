@@ -13,7 +13,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.00800000037997961
+    "time_ms": 0.009999999776482582
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 15,
     "passed": true,
     "test_name": "Is Close",
-    "time_ms": 0.006000000052154064
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
@@ -109,7 +109,7 @@
     "line": 60,
     "passed": true,
     "test_name": "Key",
-    "time_ms": 0.007000000216066837
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
@@ -196,7 +196,7 @@
     "line": 113,
     "passed": true,
     "test_name": "Wrap Index",
-    "time_ms": 0.0010000000474974513
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
@@ -237,7 +237,7 @@
     "line": 182,
     "passed": true,
     "test_name": "Count Digits",
-    "time_ms": 0.0020000000949949026
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -258,7 +258,7 @@
     "line": 130,
     "passed": true,
     "test_name": "Triangle Edge By Angle",
-    "time_ms": 0.007000000216066837
+    "time_ms": 0.013000000268220901
   },
   {
     "checks": [
@@ -368,7 +368,7 @@
     "line": 201,
     "passed": true,
     "test_name": "Is Angle Zero",
-    "time_ms": 0.0010000000474974513
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
@@ -389,7 +389,7 @@
     "line": 327,
     "passed": true,
     "test_name": "Temporary",
-    "time_ms": 0.0020000000949949026
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
@@ -489,7 +489,7 @@
     "line": 250,
     "passed": true,
     "test_name": "Key Xy",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.013000000268220901
   },
   {
     "checks": [
@@ -510,7 +510,7 @@
     "line": 313,
     "passed": true,
     "test_name": "Is Vector Close",
-    "time_ms": 0.003000000026077032
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -594,6 +594,6 @@
     "line": 270,
     "passed": true,
     "test_name": "Precision From Tolerance",
-    "time_ms": 0.006000000052154064
+    "time_ms": 0.004999999888241291
   }
 ]

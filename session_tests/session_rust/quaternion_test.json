@@ -23,7 +23,7 @@
     "line": 425,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 14.812000274658203
+    "time_ms": 14.803000450134277
   },
   {
     "checks": [
@@ -70,7 +70,7 @@
     "line": 301,
     "passed": true,
     "test_name": "Normalized",
-    "time_ms": 0.008999999612569809
+    "time_ms": 0.012000000104308128
   },
   {
     "checks": [
@@ -106,7 +106,7 @@
     "line": 147,
     "passed": true,
     "test_name": "From Arc",
-    "time_ms": 0.02500000037252903
+    "time_ms": 0.03400000184774399
   },
   {
     "checks": [
@@ -122,7 +122,7 @@
     "line": 268,
     "passed": true,
     "test_name": "Magnitude",
-    "time_ms": 0.003000000026077032
+    "time_ms": 0.006000000052154064
   },
   {
     "checks": [
@@ -148,7 +148,7 @@
     "line": 376,
     "passed": true,
     "test_name": "Slerp",
-    "time_ms": 0.023000000044703484
+    "time_ms": 0.027000000700354576
   },
   {
     "checks": [
@@ -169,7 +169,7 @@
     "line": 127,
     "passed": true,
     "test_name": "From Axis Angle",
-    "time_ms": 0.003000000026077032
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -240,7 +240,7 @@
     "line": 93,
     "passed": true,
     "test_name": "From Components",
-    "time_ms": 0.013000000268220901
+    "time_ms": 0.0430000014603138
   },
   {
     "checks": [
@@ -266,7 +266,7 @@
     "line": 455,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 12.135000228881836
+    "time_ms": 2.6689999103546143
   },
   {
     "checks": [
@@ -352,7 +352,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.0560000017285347
+    "time_ms": 0.08500000089406967
   },
   {
     "checks": [
@@ -373,7 +373,7 @@
     "line": 177,
     "passed": true,
     "test_name": "From Euler",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.008999999612569809
   },
   {
     "checks": [
@@ -389,7 +389,7 @@
     "line": 285,
     "passed": true,
     "test_name": "Magnitude Squared",
-    "time_ms": 0.003000000026077032
+    "time_ms": 0.007000000216066837
   },
   {
     "checks": [
@@ -415,7 +415,7 @@
     "line": 223,
     "passed": true,
     "test_name": "Rotate Vector",
-    "time_ms": 0.012000000104308128
+    "time_ms": 0.0689999982714653
   },
   {
     "checks": [
@@ -431,7 +431,7 @@
     "line": 360,
     "passed": true,
     "test_name": "Dot",
-    "time_ms": 0.0020000000949949026
+    "time_ms": 0.007000000216066837
   },
   {
     "checks": [
@@ -457,7 +457,7 @@
     "line": 319,
     "passed": true,
     "test_name": "Conjugate",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.012000000104308128
   },
   {
     "checks": [
@@ -483,7 +483,7 @@
     "line": 197,
     "passed": true,
     "test_name": "From Rotation",
-    "time_ms": 0.04399999976158142
+    "time_ms": 0.032999999821186066
   },
   {
     "checks": [
@@ -504,7 +504,7 @@
     "line": 403,
     "passed": true,
     "test_name": "Nlerp",
-    "time_ms": 0.039000000804662704
+    "time_ms": 0.028999999165534973
   },
   {
     "checks": [
@@ -535,7 +535,7 @@
     "line": 339,
     "passed": true,
     "test_name": "Invert",
-    "time_ms": 0.010999999940395355
+    "time_ms": 0.01899999938905239
   },
   {
     "checks": [
@@ -566,6 +566,6 @@
     "line": 245,
     "passed": true,
     "test_name": "Get Rotation",
-    "time_ms": 0.008999999612569809
+    "time_ms": 0.017000000923871994
   }
 ]
