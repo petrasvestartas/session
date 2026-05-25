@@ -1,62 +1,168 @@
 // ============================================================
 // IMPORTS
 // ============================================================
-// Arc = Atomically Reference Counted smart pointer.
-// Lets multiple owners share the same heap value across async code.
-// We use it so the Window can be owned by both the event loop and our State.
+use std::collections::{HashMap, HashSet};
 use std::iter;
+use std::rc::Rc;
+use std::cell::RefCell;
 use std::sync::Arc;
 
-// wasm_bindgen is the bridge between Rust and JavaScript.
-// `prelude::*` imports the most commonly used items:
-//   - #[wasm_bindgen] attribute macro
-//   - JsValue (JavaScript value type)
-//   - UnwrapThrowExt (.unwrap_throw() = like .unwrap() but sends the panic to JS console)
 use wasm_bindgen::prelude::*;
-
-// JsCast lets us cast JavaScript objects to specific types.
-// e.g. cast a generic Element to HtmlCanvasElement.
 use wasm_bindgen::JsCast;
 
-// winit is the cross-platform window/event library.
-// It handles: creating windows, receiving mouse/keyboard events, the event loop.
 use winit::{
-    // ApplicationHandler is a trait we implement to tell winit how to run our app.
     application::ApplicationHandler,
-    // event::* gives us WindowEvent, KeyEvent, ElementState etc.
-    event::*,
-    // ActiveEventLoop: used inside event callbacks to control the loop (exit, create windows).
-    // EventLoop: the main loop that drives the whole application.
+    event::{MouseScrollDelta, *},
     event_loop::{ActiveEventLoop, EventLoop},
-    // KeyCode: physical key identifiers (e.g. KeyCode::Escape).
-    // PhysicalKey: wrapper around KeyCode for physical keyboard keys.
     keyboard::{KeyCode, PhysicalKey},
-    // EventLoopExtWebSys: adds .spawn_app() to EventLoop — required on web because
-    //   the browser already has its own event loop; we can't block it with .run().
-    // WindowAttributesExtWebSys: adds .with_canvas() to WindowAttributes so winit
-    //   uses our HTML <canvas> element instead of creating a new OS window.
     platform::web::{EventLoopExtWebSys, WindowAttributesExtWebSys},
-    // Window: the actual OS/browser window handle.
     window::Window,
 };
 
-// Pipelines for shaders
+mod camera;
 mod pipelines;
-use pipelines::Pipelines;
+mod gpu_arena;
+mod gpu_adapters;
+mod gpu_session;
+mod gumball;
+mod pick;
+use camera::{Camera, CameraController, ProjMode};
+use pipelines::{
+    build_bind_group, create_camera_buffer, create_glyph_bind_group, CameraUniform, Pipelines,
+};
+
+use wgpu::util::DeviceExt;
+use gpu_session::{GpuSession, InstanceData, LineVertex};
+use gumball::{Gumball, HandleKind};
+use pick::screen_to_world_ray;
+use session_rust::session::Geometry;
+use session_rust::{Session, TreeNode, Xform};
+
+mod demo;
+mod text;
+
+fn labels_from_session(session: &Session) -> Vec<text::TextLabel> {
+    session.lookup.iter()
+        .filter_map(|(guid, geom)| {
+            if let Geometry::Point(p) = geom {
+                if !p.name.is_empty() && p.name != "my_point" {
+                    return Some(text::TextLabel {
+                        guid: guid.clone(),
+                        position: [p[0], p[1], p[2]],
+                        text: p.name.clone(),
+                        color: [
+                            (p.pointcolor.r * 255.0) as u8,
+                            (p.pointcolor.g * 255.0) as u8,
+                            (p.pointcolor.b * 255.0) as u8,
+                            255,
+                        ],
+                    });
+                }
+            }
+            None
+        })
+        .collect()
+}
+
+
+/// Column-major 4×4 matrix multiply: out = a * b.
+fn mat4_mul_cm(a: &[[f32; 4]; 4], b: &[[f32; 4]; 4]) -> [[f32; 4]; 4] {
+    let mut out = [[0.0f32; 4]; 4];
+    for c in 0..4 {
+        for row in 0..4 {
+            let mut s = 0.0f32;
+            for k in 0..4 { s += a[k][row] * b[c][k]; }
+            out[c][row] = s;
+        }
+    }
+    out
+}
+
+
+fn create_depth_texture(device: &wgpu::Device, width: u32, height: u32) -> (wgpu::Texture, wgpu::TextureView) {
+    let tex = device.create_texture(&wgpu::TextureDescriptor {
+        label: Some("depth_texture"),
+        size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
+        mip_level_count: 1,
+        sample_count: 1,
+        dimension: wgpu::TextureDimension::D2,
+        format: wgpu::TextureFormat::Depth32Float,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+        view_formats: &[],
+    });
+    let view = tex.create_view(&wgpu::TextureViewDescriptor::default());
+    (tex, view)
+}
+
+
+// ============================================================
+// EGUI TREE HELPERS
+// ============================================================
+fn collect_leaf_guids(node: &Rc<RefCell<TreeNode>>, vmap: &HashMap<String, String>) -> Vec<String> {
+    let borrowed = node.borrow();
+    if vmap.contains_key(&borrowed.name) {
+        return vec![borrowed.name.clone()];
+    }
+    let children = borrowed.children();
+    drop(borrowed);
+    let mut result = Vec::new();
+    for child in &children {
+        result.extend(collect_leaf_guids(child, vmap));
+    }
+    result
+}
+
+fn render_tree_node(
+    ui: &mut egui::Ui,
+    node: &Rc<RefCell<TreeNode>>,
+    vmap: &HashMap<String, String>,
+    selected: &HashSet<String>,
+    hidden: &HashSet<String>,
+    new_sel: &mut Option<(Vec<String>, bool)>,
+    vis_chg: &mut Vec<(String, bool)>,
+) {
+    let name = node.borrow().name.clone();
+    if vmap.contains_key(&name) {
+        let label = vmap.get(&name).cloned().unwrap_or_else(|| name.clone());
+        let is_sel = selected.contains(&name);
+        let mut vis = !hidden.contains(&name);
+        ui.horizontal(|ui| {
+            let resp = ui.selectable_label(is_sel, &label);
+            if resp.clicked() {
+                let shift = ui.ctx().input(|i| i.modifiers.shift);
+                *new_sel = Some((vec![name.clone()], shift));
+            }
+            if ui.checkbox(&mut vis, "").changed() {
+                vis_chg.push((name.clone(), !vis));
+            }
+        });
+    } else {
+        let children = node.borrow().children();
+        let leaf_guids = collect_leaf_guids(node, vmap);
+        let group_vis = leaf_guids.iter().all(|g| !hidden.contains(g));
+        let id = ui.make_persistent_id(&name);
+        egui::collapsing_header::CollapsingState::load_with_default_open(ui.ctx(), id, true)
+            .show_header(ui, |ui| {
+                ui.label(&*name);
+                let mut gv = group_vis;
+                if ui.checkbox(&mut gv, "").changed() {
+                    for g in &leaf_guids {
+                        vis_chg.push((g.clone(), !gv));
+                    }
+                }
+            })
+            .body(|ui| {
+                for child in &children {
+                    render_tree_node(ui, child, vmap, selected, hidden, new_sel, vis_chg);
+                }
+            });
+    }
+}
+
 
 // ============================================================
 // STATE
 // ============================================================
-// State holds all GPU resources needed to render a frame.
-// Right now it only has a Window — in future steps we will add:
-//   - wgpu::Surface   (the drawable surface backed by the canvas)
-//   - wgpu::Device    (the logical GPU — used to create buffers, textures, pipelines)
-//   - wgpu::Queue     (sends commands to the GPU)
-//
-/// This will store the state of our application.
-///
-/// - `Arc`: https://doc.rust-lang.org/std/sync/struct.Arc.html
-/// - `winit::window::Window`: https://docs.rs/winit/0.30/winit/window/struct.Window.html
 pub struct State {
     window: Arc<Window>,
     surface: wgpu::Surface<'static>,
@@ -64,29 +170,41 @@ pub struct State {
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     is_surface_configured: bool,
-    // Current background clear color — updated by mouse position.
     mouse_position: (f64, f64),
     clear_color: wgpu::Color,
     pipelines: Pipelines,
-    // 1 = pipeline_shaded, 2 = pipeline_color; selected by number keys
-    active_pipeline: u8,
+    gpu_session: GpuSession,
+    session: Session,
+    selected_guids: HashSet<String>,
+    pending_pick: Option<(f64, f64)>,
+    camera: Camera,
+    controller: CameraController,
+    camera_buf: wgpu::Buffer,
+    bind_group: wgpu::BindGroup,
+    depth_tex_raw: wgpu::Texture,
+    depth_view: wgpu::TextureView,
+    gumball: Option<Gumball>,
+    gumball_scale: f32,
+    #[allow(dead_code)]
+    gumball_instance_buf: wgpu::Buffer,
+    gumball_bind_group: wgpu::BindGroup,
+    drag_origins: HashMap<String, [[f32; 4]; 4]>,
+    hidden_guids: HashSet<String>,
+    egui_ctx: egui::Context,
+    egui_renderer: egui_wgpu::Renderer,
+    egui_state: egui_winit::State,
+    text_labels: Vec<text::TextLabel>,
+    #[allow(dead_code)]
+    font_atlas_view: wgpu::TextureView,
+    #[allow(dead_code)]
+    font_sampler: wgpu::Sampler,
+    glyph_bind_group: wgpu::BindGroup,
 }
 
 impl State {
-    /// Create a new `State`.
-    // This is async because initializing a wgpu Surface/Device/Queue is async on web.
-    // anyhow::Result lets us return any error type with `?` without defining our own error enum.
-    //
-    /// - `anyhow::Result`: https://docs.rs/anyhow/1.0/anyhow/type.Result.html
-    /// - async fn: https://doc.rust-lang.org/std/keyword.async.html
     pub async fn new(window: Arc<Window>) -> anyhow::Result<Self> {
         let size = window.inner_size();
 
-        // The instance is a handle to our GPU.
-        // Use: get information about graphics card, name, use of backend.
-        // We use it to create Device and Surface.
-        // On web we only use BROWSER_WEBGPU (native WebGPU) with GL (WebGL2) as fallback.
-        // No Vulkan/Metal/DX12 — those are desktop-only backends.
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::BROWSER_WEBGPU | wgpu::Backends::GL,
             flags: Default::default(),
@@ -95,15 +213,11 @@ impl State {
             display: None,
         });
 
-        // Create the surface from the window (which is already backed by our HTML canvas).
-        // A Surface is the thing you draw onto - it represents the connection between wgpu and html canvas.
         let surface = instance.create_surface(window.clone()).unwrap();
 
-        // Request an adapter — a handle to the actual GPU.
-        // No pollster::block_on — we just .await directly since new() is already async.
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::default(), // LowPower or HighPerformance
+                power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
                 force_fallback_adapter: false,
             })
@@ -119,12 +233,8 @@ impl State {
             })
             .await?;
 
-        // Enume how to sync rhe surface with the display.
         let surface_caps = surface.get_capabilities(&adapter);
 
-        // Shader code in this tutorial assumes an sRGB surface texture.
-        // Using a different one will result in all the color coming out darker.
-        // If you want to support non-sRGB surfaces, you will need to change that when drawing to the frame.
         let surface_format = surface_caps
             .formats
             .iter()
@@ -133,172 +243,687 @@ impl State {
             .unwrap_or(surface_caps.formats[0]);
 
         let config = wgpu::SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT, // Texture will be used to write to the screen.
-            format: surface_format, // How surface textures should be stored in memory (e.g. Rgba8UnormSrgb).
-            width: size.width, // Size of texture is equal to the window size, that will be resized later.
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            format: surface_format,
+            width: size.width,
             height: size.height,
-            present_mode: surface_caps.present_modes[0], // If you do not want runtime selection PresentMode::Fifo will cap the display rate at the display's framerate: https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html
+            present_mode: surface_caps.present_modes[0],
             alpha_mode: surface_caps.alpha_modes[0],
-            view_formats: vec![], // A list of TextureFormats that you can use when create TextureViews.
+            view_formats: vec![],
             desired_maximum_frame_latency: 2,
         };
 
-        let pipelines = Pipelines::new(&device, config.format);
+        let depth_format = wgpu::TextureFormat::Depth32Float;
+        let pipelines = Pipelines::new(&device, config.format, Some(depth_format));
 
-        // Initialize all the fields of our State struct and return it.
+        let aspect = size.width as f32 / size.height.max(1) as f32;
+        let camera = Camera::new(aspect);
+        let controller = CameraController::new();
+        let (depth_tex_raw, depth_view) = create_depth_texture(&device, config.width.max(1), config.height.max(1));
+
+        let session = demo::make_demo_session();
+        let mut gpu_session = GpuSession::new(&device);
+        gpu_session.rebuild_from(&session, &device, &queue);
+        let mut session = session;
+        session.invalidate_bvh_cache();
+        let camera_buf = create_camera_buffer(&device);
+        let bind_group = build_bind_group(&device, &pipelines.bind_group_layout, &camera_buf, &gpu_session.instance_buffer);
+
+        let gumball_instance = InstanceData::new(0);
+        let gumball_instance_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("gumball.instance"),
+            contents: bytemuck::bytes_of(&gumball_instance),
+            usage: wgpu::BufferUsages::STORAGE,
+        });
+        let gumball_bind_group = build_bind_group(&device, &pipelines.bind_group_layout, &camera_buf, &gumball_instance_buf);
+
+        let egui_ctx = egui::Context::default();
+        egui_ctx.set_visuals(egui::Visuals::light());
+        let egui_renderer = egui_wgpu::Renderer::new(&device, config.format, egui_wgpu::RendererOptions::default());
+        let egui_state = egui_winit::State::new(
+            egui_ctx.clone(),
+            egui::ViewportId::ROOT,
+            &*window,
+            None,
+            None,
+            None,
+        );
+
+        let text_labels = labels_from_session(&session);
+        let (font_atlas_view, font_sampler) = text::create_font_atlas(&device, &queue);
+        let glyph_bind_group = create_glyph_bind_group(
+            &device,
+            &pipelines.glyph_bgl,
+            &font_atlas_view,
+            &font_sampler,
+        );
+
         Ok(Self {
             surface,
             device,
             queue,
             config,
             is_surface_configured: false,
-            clear_color: wgpu::Color {
-                r: 0.9,
-                g: 0.9,
-                b: 0.9,
-                a: 1.0,
-            },
+            clear_color: wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 },
             window,
             mouse_position: (0.0, 0.0),
             pipelines,
-            active_pipeline: 1,
+            gpu_session,
+            session,
+            selected_guids: HashSet::new(),
+            pending_pick: None,
+            camera,
+            controller,
+            camera_buf,
+            bind_group,
+            depth_tex_raw,
+            depth_view,
+            gumball: None,
+            gumball_scale: 1.0,
+            gumball_instance_buf,
+            gumball_bind_group,
+            drag_origins: HashMap::new(),
+            hidden_guids: HashSet::new(),
+            egui_ctx,
+            egui_renderer,
+            egui_state,
+            text_labels,
+            font_atlas_view,
+            font_sampler,
+            glyph_bind_group,
         })
     }
 
-    /// Called when the window is resized.
-    // We will use width/height later to resize the wgpu Surface.
-    // The underscore prefix (_width, _height) tells Rust we know about these
-    // parameters but are intentionally not using them yet.
-    //
-    /// - Resize event: https://docs.rs/winit/0.30/winit/event/enum.WindowEvent.html#variant.Resized
     pub fn resize(&mut self, width: u32, height: u32) {
-        // Zero-sized surfaces are invalid, so we only resize if both dimensions are > 0.
-        // Note the max supported WebGL is 2048 px. If you have larger display cap the size:
-        //   let max = 2048;
-        //   self.config.width = width.min(max);
-        //   self.config.height = height.min(max);
         if width > 0 && height > 0 {
             self.config.width = width;
             self.config.height = height;
             self.surface.configure(&self.device, &self.config);
             self.is_surface_configured = true;
+            self.camera.aspect = width as f32 / height as f32;
+            let (depth_tex_raw, depth_view) = create_depth_texture(&self.device, width, height);
+            self.depth_tex_raw = depth_tex_raw;
+            self.depth_view = depth_view;
+        }
+    }
+
+    #[allow(dead_code)]
+    fn select_by_guid(&mut self, guid: &str) {
+        let prev: Vec<String> = self.selected_guids.drain().collect();
+        for p in &prev {
+            self.gpu_session.set_flag(p, InstanceData::FLAG_SELECTED, false, &self.queue);
+        }
+        if self.gpu_session.pick.instance_id(guid).is_some() {
+            self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.queue);
+            self.selected_guids.insert(guid.to_string());
+            let origin = self.selected_centroid();
+            self.gumball = Some(Gumball::new(origin));
+        }
+    }
+
+    fn set_selection(&mut self, guids: &[&str]) {
+        let prev: Vec<String> = self.selected_guids.drain().collect();
+        for p in &prev {
+            self.gpu_session.set_flag(p, InstanceData::FLAG_SELECTED, false, &self.queue);
+        }
+        for guid in guids {
+            if self.gpu_session.pick.instance_id(guid).is_some() {
+                self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.queue);
+                self.selected_guids.insert(guid.to_string());
+            }
+        }
+        if !self.selected_guids.is_empty() {
+            let origin = self.selected_centroid();
+            self.gumball = Some(Gumball::new(origin));
+        } else {
+            self.gumball = None;
         }
     }
 
     pub fn update(&mut self) {
-        // Update game logic, animations, etc. here.
-        // This is called once per frame before render().
+        self.controller.update_camera(&mut self.camera);
+        let v = self.camera.view_matrix();
+        let norm3 = |x: f32, y: f32, z: f32| -> [f32; 3] {
+            let l = (x*x + y*y + z*z).sqrt().max(1e-30);
+            [x/l, y/l, z/l]
+        };
+        let right   = norm3(v[0][0], v[1][0], v[2][0]);
+        let up      = norm3(v[0][1], v[1][1], v[2][1]);
+        let forward = norm3(v[0][2], v[1][2], v[2][2]);
+        let cam_to_ws = |r: f32, u: f32, f: f32| -> [f32; 4] {
+            let x = r*right[0] + u*up[0] + f*forward[0];
+            let y = r*right[1] + u*up[1] + f*forward[1];
+            let z = r*right[2] + u*up[2] + f*forward[2];
+            let l = (x*x + y*y + z*z).sqrt().max(1e-30);
+            [x/l, y/l, z/l, 0.0]
+        };
+        let cam = CameraUniform {
+            view_proj:    self.camera.view_proj(),
+            key_light_ws: cam_to_ws(-0.3, 0.8, 0.6),
+            fill_light_ws:cam_to_ws( 0.8,-0.2, 0.5),
+            screen_size:  [self.config.width as f32, self.config.height as f32],
+            _pad2:        [0.0, 0.0],
+        };
+        self.queue.write_buffer(&self.camera_buf, 0, bytemuck::bytes_of(&cam));
+
+        if let Some(gb) = &self.gumball {
+            const INV_MM: f32 = 1000.0;
+            let cp = [
+                self.camera.position[0] * INV_MM,
+                self.camera.position[1] * INV_MM,
+                self.camera.position[2] * INV_MM,
+            ];
+            use session_rust::tolerance::Tolerance;
+            self.gumball_scale = gumball::compute_scale(
+                cp,
+                gb.origin,
+                Tolerance::PI / 3.0,
+                self.config.height as f32,
+            );
+        }
+
+        if let Some((cx, cy)) = self.pending_pick.take() {
+            self.process_pick(cx as f32, cy as f32);
+        }
     }
 
-    /// Request the window to redraw.
-    // In a wgpu app the render loop is not automatic — we must ask the OS/browser
-    // to call us back for the next frame by calling request_redraw().
-    // This triggers a WindowEvent::RedrawRequested in the next event loop tick.
-    //
-    /// - `Window::request_redraw`: https://docs.rs/winit/0.30/winit/window/struct.Window.html#method.request_redraw
+    fn process_pick(&mut self, cx: f32, cy: f32) {
+        let view = self.camera.view_matrix();
+        let proj = self.camera.proj_matrix();
+        let viewport = (self.config.width as f32, self.config.height as f32);
+        let is_ortho = self.camera.proj_mode == ProjMode::Ortho;
+        let ray = screen_to_world_ray(&view, &proj, viewport, (cx, cy), is_ortho);
+
+        let gumball_hit = self.gumball.as_ref()
+            .and_then(|gb| gb.hit_test(ray, self.gumball_scale));
+        if let Some(handle) = gumball_hit {
+            self.drag_origins.clear();
+            for guid in &self.selected_guids {
+                if let Some(iid) = self.gpu_session.pick.instance_id(guid) {
+                    let model = self.gpu_session.instances_cpu[iid as usize].model;
+                    self.drag_origins.insert(guid.clone(), model);
+                }
+            }
+            let origin = self.gumball.as_ref().unwrap().origin;
+            let ds = gumball::begin_drag(handle, ray, origin, self.gumball_scale);
+            self.gumball.as_mut().unwrap().drag = Some(ds);
+            return;
+        }
+
+        log::info!("PICK ray origin=({:.1},{:.1},{:.1}) dir=({:.4},{:.4},{:.4}) vp={}x{}",
+            ray.origin[0], ray.origin[1], ray.origin[2],
+            ray.direction[0], ray.direction[1], ray.direction[2],
+            self.config.width, self.config.height);
+        let pick_radius = self.camera.pick_radius_mm(self.config.height as f32, 8.0);
+        let hits     = pick::pick_by_ray(&mut self.session, ray, pick_radius);
+        log::info!("PICK hits={} guids={:?}", hits.len(),
+            hits.iter().map(|h| h.guid()).collect::<Vec<_>>());
+        let new_guid = hits.iter()
+            .find(|h| !self.hidden_guids.contains(h.guid()))
+            .map(|h| h.guid().to_string());
+        let shift    = self.controller.select_add();
+
+        if shift {
+            if let Some(guid) = new_guid.clone() {
+                if self.selected_guids.contains(&guid) {
+                    self.gpu_session.set_flag(&guid, InstanceData::FLAG_SELECTED, false, &self.queue);
+                    self.selected_guids.remove(&guid);
+                } else {
+                    self.gpu_session.set_flag(&guid, InstanceData::FLAG_SELECTED, true, &self.queue);
+                    self.selected_guids.insert(guid.clone());
+                }
+            }
+        } else {
+            let prev: Vec<String> = self.selected_guids.drain().collect();
+            for p in &prev {
+                self.gpu_session.set_flag(p, InstanceData::FLAG_SELECTED, false, &self.queue);
+            }
+            if let Some(guid) = new_guid.clone() {
+                let was_only = prev.len() == 1 && prev[0] == guid;
+                if !was_only {
+                    self.gpu_session.set_flag(&guid, InstanceData::FLAG_SELECTED, true, &self.queue);
+                    self.selected_guids.insert(guid.clone());
+                }
+            }
+        }
+
+        if !self.selected_guids.is_empty() {
+            let origin = self.selected_centroid();
+            match &mut self.gumball {
+                Some(gb) => gb.set_origin(origin),
+                None     => self.gumball = Some(Gumball::new(origin)),
+            }
+        } else {
+            self.gumball = None;
+        }
+
+    }
+
+
+    /// Center of the AABB union over all selected objects.
+    fn selected_centroid(&self) -> [f32; 3] {
+        let mut mn = [f32::MAX;  3];
+        let mut mx = [f32::MIN; 3];
+        let mut found = false;
+        for guid in &self.selected_guids {
+            if let Some(idx) = self.session.cached_guids.iter().position(|g| g == guid) {
+                if idx < self.session.cached_boxes.len() {
+                    for corner in &self.session.cached_boxes[idx].corners() {
+                        for i in 0..3 {
+                            let v = corner[i] as f32;
+                            if v < mn[i] { mn[i] = v; }
+                            if v > mx[i] { mx[i] = v; }
+                        }
+                    }
+                    found = true;
+                }
+            }
+        }
+        if found { [(mn[0]+mx[0])*0.5, (mn[1]+mx[1])*0.5, (mn[2]+mx[2])*0.5] } else { [0.0; 3] }
+    }
+
+    fn build_ui(&mut self) -> egui::FullOutput {
+        let egui_ctx = self.egui_ctx.clone();
+        let window = Arc::clone(&self.window);
+        let raw_input = self.egui_state.take_egui_input(&window);
+
+        let tree_root = self.session.tree.root();
+        let vmap: HashMap<String, String> = self.session.graph
+            .get_vertices()
+            .into_iter()
+            .map(|v| {
+                let label = if v.attribute.is_empty() { v.name.clone() } else { v.attribute.clone() };
+                (v.name, label)
+            })
+            .collect();
+        let edges = self.session.graph.get_edges();
+        let selected = self.selected_guids.clone();
+        let hidden = self.hidden_guids.clone();
+
+        let mut new_sel: Option<(Vec<String>, bool)> = None;
+        let mut vis_chg: Vec<(String, bool)> = Vec::new();
+
+        let full_output = egui_ctx.run_ui(raw_input, |ui| {
+            egui::Panel::right("panel")
+                .default_size(240.0)
+                .show_inside(ui, |ui| {
+                    egui::CollapsingHeader::new("Tree")
+                        .default_open(true)
+                        .show(ui, |ui| {
+                            if let Some(root) = &tree_root {
+                                for child in &root.borrow().children() {
+                                    render_tree_node(ui, child, &vmap, &selected, &hidden, &mut new_sel, &mut vis_chg);
+                                }
+                            }
+                        });
+                    egui::CollapsingHeader::new("Graph")
+                        .default_open(false)
+                        .show(ui, |ui| {
+                            for (v0, v1) in &edges {
+                                let l0 = vmap.get(v0).map(|s| s.as_str()).unwrap_or(v0.as_str());
+                                let l1 = vmap.get(v1).map(|s| s.as_str()).unwrap_or(v1.as_str());
+                                let both_sel = selected.contains(v0) && selected.contains(v1);
+                                let resp = ui.selectable_label(both_sel, format!("{l0} — {l1}"));
+                                if resp.clicked() {
+                                    let shift = ui.ctx().input(|i| i.modifiers.shift);
+                                    new_sel = Some((vec![v0.clone(), v1.clone()], shift));
+                                }
+                            }
+                        });
+                });
+        });
+
+        if let Some((guids, shift)) = new_sel {
+            if shift {
+                for guid in &guids {
+                    if self.selected_guids.contains(guid) {
+                        self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, false, &self.queue);
+                        self.selected_guids.remove(guid);
+                    } else if self.gpu_session.pick.instance_id(guid).is_some() {
+                        self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.queue);
+                        self.selected_guids.insert(guid.clone());
+                    }
+                }
+            } else {
+                let refs: Vec<&str> = guids.iter().map(|s| s.as_str()).collect();
+                self.set_selection(&refs);
+            }
+            if !self.selected_guids.is_empty() {
+                let origin = self.selected_centroid();
+                match &mut self.gumball {
+                    Some(gb) => gb.set_origin(origin),
+                    None => self.gumball = Some(Gumball::new(origin)),
+                }
+            } else {
+                self.gumball = None;
+            }
+        }
+
+        for (guid, should_hide) in vis_chg {
+            self.gpu_session.set_flag(&guid, InstanceData::FLAG_HIDDEN, should_hide, &self.queue);
+            if should_hide { self.hidden_guids.insert(guid); } else { self.hidden_guids.remove(&guid); }
+        }
+
+        full_output
+    }
+
     pub fn render(&mut self) -> anyhow::Result<()> {
         self.window.request_redraw();
 
-        // We cannot render unless the surface is configured.
         if !self.is_surface_configured {
             return Ok(());
         }
 
-        // get_current_texture() returns CurrentSurfaceTexture enum in wgpu 29.
         let output = match self.surface.get_current_texture() {
             wgpu::CurrentSurfaceTexture::Success(texture) => texture,
-            // Surface slightly out of sync — reconfigure and use frame anyway.
             wgpu::CurrentSurfaceTexture::Suboptimal(texture) => {
                 self.surface.configure(&self.device, &self.config);
                 texture
             }
-            // Surface lost or outdated (e.g. resize race) — reconfigure and skip frame.
             wgpu::CurrentSurfaceTexture::Outdated => {
                 self.surface.configure(&self.device, &self.config);
                 return Ok(());
             }
-            // Frame took too long, hidden, or validation error — skip frame.
             wgpu::CurrentSurfaceTexture::Timeout
             | wgpu::CurrentSurfaceTexture::Occluded
             | wgpu::CurrentSurfaceTexture::Validation => return Ok(()),
-            // GPU lost — unrecoverable.
             wgpu::CurrentSurfaceTexture::Lost => {
                 anyhow::bail!("Lost GPU device");
             }
         };
 
-        // We must create a TextureView to control how the render code interacts with the texture.
-        let view = output
-            .texture
-            .create_view(&wgpu::TextureViewDescriptor::default());
+        let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("Render Encoder"),
+        });
 
-        // We also need to create a CommandEncoder to create the actual commands to send to the GPU.
-        // Most frameworks expect commannds to be stored in a command buffer before being send to GPU.
-        let mut encoder = self
-            .device
-            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                label: Some("Render Encoder"),
-            });
+        // Build text/glyph vertex buffers before opening the geometry pass
+        // (buffers must outlive the render pass that borrows them).
+        let visible_labels: Vec<&text::TextLabel> = self.text_labels.iter()
+            .filter(|l| !self.hidden_guids.contains(&l.guid))
+            .collect();
+        let quad_verts = text::build_label_quads(&visible_labels);
+        let quad_buf = if !quad_verts.is_empty() {
+            Some(self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("text.quads"),
+                contents: bytemuck::cast_slice(&quad_verts),
+                usage: wgpu::BufferUsages::VERTEX,
+            }))
+        } else {
+            None
+        };
+        let glyph_verts = text::build_glyph_quads(&visible_labels);
+        let glyph_buf = if !glyph_verts.is_empty() {
+            Some(self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("text.glyphs"),
+                contents: bytemuck::cast_slice(&glyph_verts),
+                usage: wgpu::BufferUsages::VERTEX,
+            }))
+        } else {
+            None
+        };
 
-        // Now we can actuall clear the screen.
-        // We need encoder to create a RenderPass
-        // We enclose this with curly braces because render_pass borrows encoder mutably.
-        // Sets up one drawing pas on the GPU
+        // Geometry pass → swapchain
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("Render Pass"),
-                color_attachments: &[
-                    // This is what @location(0) in the fragment shader targets
-                    Some(wgpu::RenderPassColorAttachment {
-                        view: &view,
-                        resolve_target: None,
-                        depth_slice: None,
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(self.clear_color),
-                            store: wgpu::StoreOp::Store,
-                        },
+                label: Some("Geometry Pass"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &view,
+                    resolve_target: None,
+                    depth_slice: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(self.clear_color),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &self.depth_view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(1.0),
+                        store: wgpu::StoreOp::Store,
                     }),
-                ],
-                depth_stencil_attachment: None,
+                    stencil_ops: None,
+                }),
                 occlusion_query_set: None,
                 timestamp_writes: None,
                 multiview_mask: None,
             });
 
-            // The actual drawing
-            let pipeline = match self.active_pipeline {
-                2 => &self.pipelines.pipeline_color,
-                _ => &self.pipelines.pipeline_shaded,
-            };
-            render_pass.set_pipeline(pipeline);
-            render_pass.draw(0..3, 0..1); // draw 3 vertices, 1 instance → one triangle
+            render_pass.set_bind_group(0, &self.bind_group, &[]);
+            render_pass.set_pipeline(&self.pipelines.grid);
+            render_pass.draw(0..298, 0..1);
+
+            render_pass.set_bind_group(0, &self.bind_group, &[]);
+            render_pass.set_pipeline(&self.pipelines.mesh);
+            self.gpu_session.draw_meshes(&mut render_pass);
+
+            render_pass.set_pipeline(&self.pipelines.line);
+            self.gpu_session.draw_lines(&mut render_pass);
+
+            render_pass.set_pipeline(&self.pipelines.point);
+            self.gpu_session.draw_points(&mut render_pass);
+
+            // Text background quads — depth-tested, drawn after opaque geometry.
+            if let Some(buf) = &quad_buf {
+                render_pass.set_bind_group(0, &self.bind_group, &[]);
+                render_pass.set_pipeline(&self.pipelines.text);
+                render_pass.set_vertex_buffer(0, buf.slice(..));
+                render_pass.draw(0..quad_verts.len() as u32, 0..1);
+            }
+
+            // Glyph characters — depth-tested, font atlas in group 1.
+            if let Some(buf) = &glyph_buf {
+                render_pass.set_bind_group(0, &self.bind_group, &[]);
+                render_pass.set_bind_group(1, &self.glyph_bind_group, &[]);
+                render_pass.set_pipeline(&self.pipelines.glyph);
+                render_pass.set_vertex_buffer(0, buf.slice(..));
+                render_pass.draw(0..glyph_verts.len() as u32, 0..1);
+            }
         }
 
-        // Tell wgpu to finish the command buffer and submit to the GPU's render queue.
-        self.queue.submit(iter::once(encoder.finish()));
+        // Gumball overlay
+        if let Some(gb) = &self.gumball {
+            let lines = gumball::build_lines(gb.origin, self.gumball_scale, gb.hovered);
+            if !lines.is_empty() {
+                let verts: Vec<LineVertex> = lines.iter().flat_map(|l| [
+                    LineVertex { position: l.a, color: l.color },
+                    LineVertex { position: l.b, color: l.color },
+                ]).collect();
+                let gbuf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("gumball.lines"),
+                    contents: bytemuck::cast_slice(&verts),
+                    usage: wgpu::BufferUsages::VERTEX,
+                });
+                let mut gpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("Gumball Pass"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &view,
+                        resolve_target: None,
+                        depth_slice: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Load,
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                        view: &self.depth_view,
+                        depth_ops: Some(wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(1.0),
+                            store: wgpu::StoreOp::Store,
+                        }),
+                        stencil_ops: None,
+                    }),
+                    occlusion_query_set: None,
+                    timestamp_writes: None,
+                    multiview_mask: None,
+                });
+                gpass.set_bind_group(0, &self.gumball_bind_group, &[]);
+                gpass.set_pipeline(&self.pipelines.gumball);
+                gpass.set_vertex_buffer(0, gbuf.slice(..));
+                gpass.draw(0..verts.len() as u32, 0..1);
+            }
+        }
+
+        // egui pass
+        let full_out = self.build_ui();
+        self.egui_state.handle_platform_output(&self.window, full_out.platform_output);
+        let tris = self.egui_ctx.tessellate(full_out.shapes, full_out.pixels_per_point);
+        let screen = egui_wgpu::ScreenDescriptor {
+            size_in_pixels: [self.config.width, self.config.height],
+            pixels_per_point: full_out.pixels_per_point,
+        };
+        for (id, delta) in &full_out.textures_delta.set {
+            self.egui_renderer.update_texture(&self.device, &self.queue, *id, delta);
+        }
+        let extra_cmds = self.egui_renderer.update_buffers(&self.device, &self.queue, &mut encoder, &tris, &screen);
+        {
+            let epass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("egui Pass"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &view,
+                    resolve_target: None,
+                    depth_slice: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: None,
+                occlusion_query_set: None,
+                timestamp_writes: None,
+                multiview_mask: None,
+            });
+            self.egui_renderer.render(&mut epass.forget_lifetime(), &tris, &screen);
+        }
+        for id in &full_out.textures_delta.free { self.egui_renderer.free_texture(id); }
+
+        self.queue.submit(extra_cmds.into_iter().chain(iter::once(encoder.finish())));
         output.present();
 
         Ok(())
     }
 
-    /// Update clear color based on mouse position.
-    // r = x / width, g = y / height — maps mouse coords to [0, 1] color range.
-    pub fn handle_mouse_moved(&mut self, x: f64, y: f64) {
-        self.mouse_position = (x, y);
+    fn commit_object_transform(&mut self, guid: &str, model: [[f32; 4]; 4]) {
+        let flat = [
+            model[0][0], model[0][1], model[0][2], model[0][3],
+            model[1][0], model[1][1], model[1][2], model[1][3],
+            model[2][0], model[2][1], model[2][2], model[2][3],
+            model[3][0], model[3][1], model[3][2], model[3][3],
+        ];
+        let xf = Xform::from_matrix(flat);
+        if let Some(geom) = self.session.lookup.get_mut(guid) {
+            match geom {
+                Geometry::Mesh(m)        => { m.transform(Some(&xf)); }
+                Geometry::Point(p)       => { p.xform = xf.clone(); p.transform(); }
+                Geometry::Line(l)        => { l.xform = xf.clone(); l.transform(); }
+                Geometry::Polyline(pl)   => { pl.xform = xf.clone(); pl.transform(); }
+                Geometry::Plane(pl)      => { pl.xform = xf.clone(); pl.transform(); }
+                Geometry::PointCloud(pc) => { pc.xform = xf.clone(); pc.transform(); }
+                Geometry::OBB(o)         => { o.xform = xf.clone(); o.transform(); }
+                _ => {}
+            }
+        }
+        self.session.cached_boxes.clear();
+        self.session.cached_guids.clear();
+        self.session.invalidate_bvh_cache();
+        let was_selected = self.gpu_session.pick.instance_id(guid)
+            .and_then(|iid| self.gpu_session.instances_cpu.get(iid as usize))
+            .map_or(false, |inst| inst.flags & InstanceData::FLAG_SELECTED != 0);
+        self.gpu_session.remove(guid);
+        if let Some(geom) = self.session.lookup.remove(guid) {
+            self.gpu_session.add_geometry(guid, &geom, &self.device, &self.queue);
+            self.session.lookup.insert(guid.to_string(), geom);
+        }
+        if was_selected {
+            self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.queue);
+        }
     }
 
-    /// Handle keyboard input.
+    pub fn handle_mouse_button(&mut self, button: MouseButton, pressed: bool) {
+        if button == MouseButton::Left {
+            if !pressed {
+                let was_dragging = self.gumball.as_ref().map_or(false, |gb| gb.drag.is_some());
+                if was_dragging {
+                    if let Some(gb) = &mut self.gumball {
+                        gb.drag = None;
+                    }
+                    let to_commit: Vec<(String, [[f32; 4]; 4])> = self.drag_origins.keys()
+                        .filter_map(|guid| {
+                            self.gpu_session.pick.instance_id(guid).map(|iid| {
+                                (guid.clone(), self.gpu_session.instances_cpu[iid as usize].model)
+                            })
+                        })
+                        .collect();
+                    for (guid, model) in to_commit {
+                        self.commit_object_transform(&guid, model);
+                    }
+                    self.drag_origins.clear();
+                    return;
+                }
+            }
+            if pressed {
+                self.pending_pick = Some(self.mouse_position);
+            }
+        }
+        self.controller.process_mouse_button(button, pressed);
+    }
+
+    pub fn handle_mouse_moved(&mut self, x: f64, y: f64) {
+        let (px, py) = self.mouse_position;
+        self.mouse_position = (x, y);
+
+        let drag_info = self.gumball.as_ref().and_then(|gb| {
+            gb.drag.as_ref().map(|ds| (ds.clone(), gb.origin))
+        });
+        if let Some((ds, origin)) = drag_info {
+            let view = self.camera.view_matrix();
+            let proj = self.camera.proj_matrix();
+            let vp = (self.config.width as f32, self.config.height as f32);
+            let is_ortho = self.camera.proj_mode == ProjMode::Ortho;
+            let ray = screen_to_world_ray(&view, &proj, vp, (x as f32, y as f32), is_ortho);
+            let scale = self.gumball_scale;
+            if let Some(delta) = gumball::update_drag(&ds, ray, origin, scale) {
+                for (guid, orig) in &self.drag_origins {
+                    let new_model = mat4_mul_cm(&delta, orig);
+                    self.gpu_session.update_transform(guid, new_model, &self.queue);
+                }
+                if matches!(ds.handle, HandleKind::TranslateX | HandleKind::TranslateY | HandleKind::TranslateZ) {
+                    if let Some(gb) = &mut self.gumball {
+                        gb.origin = [
+                            ds.drag_start_origin[0] + delta[3][0],
+                            ds.drag_start_origin[1] + delta[3][1],
+                            ds.drag_start_origin[2] + delta[3][2],
+                        ];
+                    }
+                }
+            }
+            return;
+        }
+
+        if self.gumball.is_some() {
+            let view = self.camera.view_matrix();
+            let proj = self.camera.proj_matrix();
+            let vp = (self.config.width as f32, self.config.height as f32);
+            let is_ortho = self.camera.proj_mode == ProjMode::Ortho;
+            let ray = screen_to_world_ray(&view, &proj, vp, (x as f32, y as f32), is_ortho);
+            let scale = self.gumball_scale;
+            if let Some(gb) = &mut self.gumball {
+                gb.hovered = gb.hit_test(ray, scale);
+            }
+        }
+
+        self.controller.process_mouse_move((x - px) as f32, (y - py) as f32);
+    }
+
+    pub fn handle_scroll(&mut self, delta: &MouseScrollDelta) {
+        self.controller.process_scroll(delta);
+    }
+
     pub fn handle_key(&mut self, event_loop: &ActiveEventLoop, code: KeyCode, is_pressed: bool) {
-        //   For a web viewer it makes more sense to use Escape for
-        //   things like:
-        //   - Deselecting objects
-        //   - Closing a modal/panel
-        //   - Exiting fullscreen mode (document.exitFullscreen())
-        match (code, is_pressed) {
-            (KeyCode::Escape, true) => event_loop.exit(),
-            (KeyCode::Digit1, true) => self.active_pipeline = 1,
-            (KeyCode::Digit2, true) => self.active_pipeline = 2,
-            _ => {}
+        if code == KeyCode::Escape && is_pressed {
+            event_loop.exit();
+        } else {
+            self.controller.process_key(code, is_pressed);
         }
     }
 }
@@ -306,20 +931,6 @@ impl State {
 // ============================================================
 // APP
 // ============================================================
-// App is the struct we hand to the winit event loop.
-// It owns the State (once created) and the proxy used to send State from async code.
-//
-// Why Option<State>?
-//   State is created asynchronously inside `resumed`. It doesn't exist yet when
-//   App is constructed, so we store it as Option and fill it in later.
-//
-// Why proxy?
-//   `resumed` is not async, but State::new() is. On web we can't block, so we
-//   spawn an async task and use the proxy to send the finished State back into
-//   the event loop via user_event().
-//
-// We need to tell winit how to use our `State` struct as the application state.
-// The state variable stores State struct as an option.
 pub struct App {
     proxy: Option<winit::event_loop::EventLoopProxy<State>>,
     state: Option<State>,
@@ -328,87 +939,46 @@ pub struct App {
 impl App {
     pub fn new(event_loop: &EventLoop<State>) -> Self {
         Self {
-            // create_proxy() gives us a handle we can use to send custom events
-            // (our State) back into the event loop from an async context.
             proxy: Some(event_loop.create_proxy()),
             state: None,
         }
     }
 
-    // To run all the application we use this as the main entry point.
     pub fn run() -> anyhow::Result<()> {
-        // Route Rust log:: calls to the browser's console (console.log / console.error).
-        // Without this, wgpu errors would be silently swallowed.
         console_log::init_with_level(log::Level::Info).unwrap_throw();
-
-        // Build the winit event loop. `with_user_event()` means the loop can also
-        // receive our custom event type (State) via the proxy — not just OS events.
         let event_loop = EventLoop::with_user_event().build()?;
-
         let app = App::new(&event_loop);
-
-        // spawn_app() hands control to the browser's existing RAF (requestAnimationFrame) loop.
-        // On native we'd use run_app() which blocks the thread — not allowed in a browser.
         event_loop.spawn_app(app);
-
         Ok(())
     }
 }
 
-// ============================================================
-// APPLICATION HANDLER
-// ============================================================
-// ApplicationHandler<State> is a trait from winit.
-// The generic <State> is our custom user-event type — it lets us send a fully
-// constructed State through the proxy into user_event().
-//
-// We must implement at minimum: resumed(), window_event().
-// user_event() is optional but needed because we use the proxy pattern.
 impl ApplicationHandler<State> for App {
-    // resumed() is called by winit when the app is ready to create its window.
-    // On web this happens once the page is loaded and the browser is ready.
-    //
-    // It defines attributes about the window including web.
-    // We use those attributes to create the window.
-    // We create a future that creates our State struct.
-    // On web we run the future asynchronously which sends the results to the user_event function.
-    // The user_event function serves as a landing point for State future.
-    // Resumed isn't async so we need to offload the future and send the results somewhere.
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         const CANVAS_ID: &str = "canvas";
 
-        // Access the browser's window object (JavaScript `window`).
-        // wgpu re-exports web_sys which gives us raw browser API bindings.
         let window = wgpu::web_sys::window().unwrap_throw();
-
-        // Get the HTML document from the browser window.
         let document = window.document().unwrap_throw();
-
-        // Find our <canvas id="canvas"> element in index.html.
         let canvas = document.get_element_by_id(CANVAS_ID).unwrap_throw();
 
-        // Cast the generic Element to HtmlCanvasElement so winit can use it.
-        // unchecked_into() skips the JS instanceof check — safe here because
-        // we know the element is a canvas.
+        {
+            use wasm_bindgen::closure::Closure;
+            use wasm_bindgen::JsCast;
+            let cb = Closure::<dyn Fn(web_sys::Event)>::new(|e: web_sys::Event| {
+                e.prevent_default();
+            });
+            canvas
+                .add_event_listener_with_callback("contextmenu", cb.as_ref().unchecked_ref())
+                .unwrap_throw();
+            cb.forget();
+        }
+
         let html_canvas_element = canvas.unchecked_into();
-
-        // WindowAttributes describes how to create the window.
-        // with_canvas() tells winit to render into our HTML canvas
-        // instead of creating a new browser window.
         let window_attributes = Window::default_attributes().with_canvas(Some(html_canvas_element));
-
-        // Actually create the winit Window backed by our canvas.
-        // Arc wraps it so we can share ownership with the async State::new() future.
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
 
-        // Run the future asynchronously and use the proxy to send results to the event loop.
-        // proxy.take() moves the proxy out of self so we can move it into the async block.
         if let Some(proxy) = self.proxy.take() {
-            // spawn_local runs a future on the browser's microtask queue (like Promise).
-            // We can't use std threads in wasm, so this is how we do async work.
             wasm_bindgen_futures::spawn_local(async move {
-                // Await State::new() — this is where we'll later init the wgpu GPU resources.
-                // send_event() delivers the finished State to user_event() below.
                 assert!(
                     proxy
                         .send_event(State::new(window).await.expect("Unable to create canvas!"))
@@ -418,74 +988,77 @@ impl ApplicationHandler<State> for App {
         }
     }
 
-    // user_event() is called when proxy.send_event(state) delivers our State.
-    // This is the landing point after the async State::new() completes.
-    // This is where proxy.send_event() ends up.
     fn user_event(&mut self, _event_loop: &ActiveEventLoop, mut event: State) {
-        // Immediately request the first frame and sync the size.
         event.window.request_redraw();
         event.resize(
             event.window.inner_size().width,
             event.window.inner_size().height,
         );
-        // Store the fully constructed State — from here on window_event() can use it.
         self.state = Some(event);
     }
 
-    // window_event() is called for every OS/browser event on our window:
-    // mouse moves, key presses, resize, close, redraw requests, etc.
-    //
-    // This is where we can process events such as keyboard inputs, and mouse movements.
-    // As well as other events when the window want to draw or is resized.
-    // We can call the methods we defined on `State` here.
     fn window_event(
         &mut self,
         event_loop: &ActiveEventLoop,
         _window_id: winit::window::WindowId,
         event: WindowEvent,
     ) {
-        // If State hasn't been created yet (still waiting for async), ignore all events.
         let state = match &mut self.state {
             Some(canvas) => canvas,
             None => return,
         };
 
+        // Route event to egui first; skip 3D handling if egui consumed it
+        let window = Arc::clone(&state.window);
+        let egui_resp = state.egui_state.on_window_event(&window, &event);
+        if egui_resp.consumed {
+            match &event {
+                WindowEvent::Resized(s) => state.resize(s.width, s.height),
+                WindowEvent::RedrawRequested => {
+                    state.update();
+                    match state.render() {
+                        Ok(_) => {}
+                        Err(e) => { log::error!("{e}"); event_loop.exit(); }
+                    }
+                }
+                _ => {}
+            }
+            return;
+        }
+
         match event {
-            // User clicked the X button (or pressed Alt+F4 etc.).
             WindowEvent::CloseRequested => event_loop.exit(),
-
-            // Browser window or tab was resized — tell State to resize the GPU surface.
             WindowEvent::Resized(size) => state.resize(size.width, size.height),
-
-            // The browser is ready for us to draw a new frame.
             WindowEvent::RedrawRequested => {
                 state.update();
                 match state.render() {
                     Ok(_) => {}
                     Err(e) => {
-                        // Log the error and exit gracefully
                         log::error!("{e}");
                         event_loop.exit();
                     }
                 }
             }
-
-            // A physical key was pressed or released.
             WindowEvent::KeyboardInput {
                 event: KeyEvent {
                     physical_key: PhysicalKey::Code(code),
                     state: key_state,
-                    ..  // ignore repeat, text, location, etc.
+                    ..
                 },
-                ..  // ignore device_id, is_synthetic
+                ..
             } => state.handle_key(event_loop, code, key_state.is_pressed()),
-
-            // Mouse moved — update the clear color based on cursor position.
             WindowEvent::CursorMoved { position, .. } => {
                 state.handle_mouse_moved(position.x, position.y);
             }
-
-            // Ignore all other events (scroll, focus, etc.) for now.
+            WindowEvent::ModifiersChanged(mods) => {
+                state.controller.process_modifiers(mods.state());
+            }
+            WindowEvent::MouseInput { state: btn_state, button, .. } => {
+                state.handle_mouse_button(button, btn_state.is_pressed());
+            }
+            WindowEvent::MouseWheel { delta, .. } => {
+                state.handle_scroll(&delta);
+            }
             _ => {}
         }
     }
@@ -494,17 +1067,9 @@ impl ApplicationHandler<State> for App {
 // ============================================================
 // WASM ENTRY POINT
 // ============================================================
-// #[wasm_bindgen(start)] marks this function as the entry point called
-// automatically by the browser when the WASM module is loaded.
-// It replaces `fn main()` for web targets.
 #[wasm_bindgen(start)]
 pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
-    // Redirect Rust panics to the browser console with a readable stack trace.
-    // Without this, a panic just shows "unreachable" in the browser with no info.
     console_error_panic_hook::set_once();
-
-    // Start the application. unwrap_throw() converts a Rust panic into a JS exception.
     App::run().map_err(|e| JsValue::from_str(&e.to_string()))?;
-
     Ok(())
 }

@@ -28,7 +28,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.009
+    "time_ms": 0.02199999988079071
   },
   {
     "checks": [
@@ -59,7 +59,7 @@
     "line": 20,
     "passed": true,
     "test_name": "Parameters",
-    "time_ms": 0.003
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
@@ -80,7 +80,7 @@
     "line": 39,
     "passed": true,
     "test_name": "Mesh",
-    "time_ms": 45.358
+    "time_ms": 116.57599639892578
   },
   {
     "checks": [
@@ -101,7 +101,7 @@
     "line": 53,
     "passed": true,
     "test_name": "Torus",
-    "time_ms": 99.112
+    "time_ms": 237.3719940185547
   },
   {
     "checks": [
@@ -122,28 +122,7 @@
     "line": 66,
     "passed": true,
     "test_name": "Cylinder",
-    "time_ms": 4.612
-  },
-  {
-    "checks": [
-      {
-        "code_line": "m.is_valid()",
-        "line": 86,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() == 33",
-        "line": 87,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::primitives::Primitives;\n        use crate::remesh_nurbssurface_adaptive::RemeshNurbsSurfaceAdaptive;\n\n        let s = Primitives::cone_surface(0.0, 0.0, 0.0, 1.0, 5.0);\n        let m = RemeshNurbsSurfaceAdaptive::new(s).mesh();\n",
-    "failures": [],
-    "group": "RemeshNurbsSurfaceAdaptive",
-    "line": 79,
-    "passed": true,
-    "test_name": "Cone",
-    "time_ms": 3.863
+    "time_ms": 9.817000389099121
   },
   {
     "checks": [
@@ -164,7 +143,7 @@
     "line": 92,
     "passed": true,
     "test_name": "Doubly Curved",
-    "time_ms": 95.372
+    "time_ms": 224.32000732421875
   },
   {
     "checks": [
@@ -185,7 +164,7 @@
     "line": 105,
     "passed": true,
     "test_name": "Flat",
-    "time_ms": 13.986
+    "time_ms": 31.000999450683594
   },
   {
     "checks": [
@@ -206,7 +185,7 @@
     "line": 118,
     "passed": true,
     "test_name": "Singular Triangle",
-    "time_ms": 4.75
+    "time_ms": 10.833999633789062
   },
   {
     "checks": [
@@ -227,6 +206,6 @@
     "line": 140,
     "passed": true,
     "test_name": "Double-Curved Triangle",
-    "time_ms": 5.2
+    "time_ms": 12.0649995803833
   }
 ]

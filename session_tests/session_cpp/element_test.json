@@ -3,7 +3,7 @@
     "group": "Element",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.033,
+    "time_ms": 0.07,
     "line": 13,
     "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"brep.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m, \"test_element\");\n\n    auto& geo = e.geometry();\n    std::string name = e.name;\n    const std::string& guid = e.guid();\n    bool dirty = e.is_dirty();\n\n    std::string estr = e.str();\n    std::string erepr = e.repr();\n\n    Element ecopy = e.duplicate();\n\n    Element e2(Mesh(), \"test_element\");\n    Element e3(BRep(), \"other\");",
     "checks": [
@@ -59,7 +59,7 @@
     "group": "Element",
     "test_name": "Session Transformation",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.049,
     "line": 53,
     "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m);\n    Xform xf = Xform::translation(10.0, 20.0, 30.0);\n    e.session_transformation = xf;",
     "checks": [
@@ -80,7 +80,7 @@
     "group": "Element",
     "test_name": "Add Feature",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.025,
     "line": 75,
     "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m);\n\n    auto my_feature = [](Mesh geo) -> Mesh { return geo; };\n    e.add_feature(my_feature);",
     "checks": [
@@ -101,7 +101,7 @@
     "group": "Element",
     "test_name": "AABB",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.051,
     "line": 97,
     "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m);\n    OBB aabb = e.aabb();",
     "checks": [
@@ -127,7 +127,7 @@
     "group": "Element",
     "test_name": "OBB",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.033,
     "line": 119,
     "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m);\n    OBB obb = e.obb();",
     "checks": [
@@ -148,7 +148,7 @@
     "group": "Element",
     "test_name": "Session Geometry",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.039,
     "line": 140,
     "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m);\n    e.session_transformation = Xform::translation(10.0, 0.0, 0.0);\n    auto sg = e.session_geometry();\n\n    auto& mesh = std::get<Mesh>(sg);\n    auto verts_it = mesh.vertex.begin();\n    ++verts_it;",
     "checks": [
@@ -179,7 +179,7 @@
     "group": "Element",
     "test_name": "Reset",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.059,
     "line": 167,
     "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(2, 0, 0),\n            Point(2, 2, 0),\n            Point(0, 2, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m);\n    auto _ = e.aabb();\n    auto _2 = e.point();\n    e.reset();",
     "checks": [
@@ -215,7 +215,7 @@
     "group": "Element",
     "test_name": "Compute Point",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.029,
     "line": 192,
     "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(2, 0, 0),\n            Point(2, 2, 0),\n            Point(0, 2, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m);\n    Point pt = e.point();",
     "checks": [
@@ -241,7 +241,7 @@
     "group": "Element",
     "test_name": "Brep Aabb",
     "passed": true,
-    "time_ms": 0.175,
+    "time_ms": 0.377,
     "line": 213,
     "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"brep.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    BRep b = BRep::create_box(2.0, 3.0, 4.0);\n    Element e(b, \"brep_element\");\n    OBB aabb = e.aabb();\n    Point pt = e.point();",
     "checks": [
@@ -282,7 +282,7 @@
     "group": "Element",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 13.351,
+    "time_ms": 15.083,
     "line": 231,
     "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m, \"json_test\");\n    e.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string fname = \"serialization/test_element.json\";\n    e.file_json_dump(fname);\n    Element loaded = Element::file_json_load(fname);",
     "checks": [
@@ -308,7 +308,7 @@
     "group": "Element",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 10.269,
+    "time_ms": 14.934,
     "line": 257,
     "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"brep.h\"\n    // uncomment #include \"xform.h\"\n    BRep b = BRep::create_box(2.0, 3.0, 4.0);\n    Element e(b, \"proto_test\");\n    e.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string path = \"serialization/test_element.bin\";\n    e.pb_dump(path);\n    Element loaded = Element::pb_load(path);",
     "checks": [
@@ -339,7 +339,7 @@
     "group": "Element",
     "test_name": "Polylines",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.022,
     "line": 279,
     "code": "    Mesh m = Mesh::from_vertices_and_faces(\n        {Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0)},\n        {{0, 1, 2, 3}});\n    Element e(m, \"test_element\");",
     "checks": [

@@ -3,9 +3,9 @@
     "group": "Color",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.083,
+    "time_ms": 0.098,
     "line": 8,
-    "code": "    from session_py import Color\n\n    # Constructor\n    red = Color(255, 0, 0, 255, \"red\")\n\n    # Setters\n    red[0] = 255\n    red[1] = 0\n    red[2] = 0\n    red[3] = 255\n\n    # Getters\n    r = red[0]\n    g = red[1]\n    b = red[2]\n    a = red[3]\n\n    # Minimal and Full String Representation\n    cstr = str(red)\n    crepr = repr(red)\n\n    # Copy (duplicates everything except guid)\n    ccopy = red.duplicate()\n    cother = Color(255, 0, 0, 255, \"red\")",
+    "code": "    from session_py import Color\n\n    # Constructor\n    red = Color(1.0, 0.0, 0.0, 1.0, \"red\")\n\n    # Setters\n    red[0] = 1.0\n    red[1] = 0.0\n    red[2] = 0.0\n    red[3] = 1.0\n\n    # Getters\n    r = red[0]\n    g = red[1]\n    b = red[2]\n    a = red[3]\n\n    # Minimal and Full String Representation\n    cstr = str(red)\n    crepr = repr(red)\n\n    # Copy (duplicates everything except guid)\n    ccopy = red.duplicate()\n    cother = Color(1.0, 0.0, 0.0, 1.0, \"red\")",
     "checks": [
       {
         "line": 35,
@@ -19,22 +19,22 @@
       },
       {
         "line": 37,
-        "code_line": "red[0] == 255",
+        "code_line": "red[0] == 1.0",
         "passed": true
       },
       {
         "line": 38,
-        "code_line": "red[1] == 0",
+        "code_line": "red[1] == 0.0",
         "passed": true
       },
       {
         "line": 39,
-        "code_line": "red[2] == 0",
+        "code_line": "red[2] == 0.0",
         "passed": true
       },
       {
         "line": 40,
-        "code_line": "red[3] == 255",
+        "code_line": "red[3] == 1.0",
         "passed": true
       },
       {
@@ -44,17 +44,17 @@
       },
       {
         "line": 43,
-        "code_line": "r == 255 and g == 0 and b == 0 and a == 255",
+        "code_line": "r == 1.0 and g == 0.0 and b == 0.0 and a == 1.0",
         "passed": true
       },
       {
         "line": 44,
-        "code_line": "cstr == \"255, 0, 0, 255\"",
+        "code_line": "cstr == \"1.0, 0.0, 0.0, 1.0\"",
         "passed": true
       },
       {
         "line": 45,
-        "code_line": "crepr == \"Color(red, 255, 0, 0, 255)\"",
+        "code_line": "crepr == \"Color(red, 1.0, 0.0, 0.0, 1.0)\"",
         "passed": true
       },
       {
@@ -74,9 +74,9 @@
     "group": "Color",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 9.877,
+    "time_ms": 13.783,
     "line": 50,
-    "code": "    from session_py import Color\n    from pathlib import Path\n\n    c = Color(255, 128, 64, 255, \"test_color\")\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   file_json_dumps()    \u2502 str          \u2502 to JSON string\n    #   file_json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   file_json_dump(path) \u2502 file         \u2502 write to file\n    #   file_json_load(path) \u2502 file         \u2502 read from file\n\n    # file_json_dump(fname) / file_json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_color.json\"\n    c.file_json_dump(fname)\n    loaded = Color.file_json_load(fname)",
+    "code": "    from session_py import Color\n    from pathlib import Path\n\n    c = Color(1.0, 0.5, 0.25, 1.0, \"test_color\")\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   file_json_dumps()    \u2502 str          \u2502 to JSON string\n    #   file_json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   file_json_dump(path) \u2502 file         \u2502 write to file\n    #   file_json_load(path) \u2502 file         \u2502 read from file\n\n    # file_json_dump(fname) / file_json_load(fname) - file-based serialization\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_color.json\"\n    c.file_json_dump(fname)\n    loaded = Color.file_json_load(fname)",
     "checks": [
       {
         "line": 69,
@@ -85,22 +85,22 @@
       },
       {
         "line": 70,
-        "code_line": "loaded[0] == 255",
+        "code_line": "loaded[0] == 1.0",
         "passed": true
       },
       {
         "line": 71,
-        "code_line": "loaded[1] == 128",
+        "code_line": "loaded[1] == 0.5",
         "passed": true
       },
       {
         "line": 72,
-        "code_line": "loaded[2] == 64",
+        "code_line": "loaded[2] == 0.25",
         "passed": true
       },
       {
         "line": 73,
-        "code_line": "loaded[3] == 255",
+        "code_line": "loaded[3] == 1.0",
         "passed": true
       }
     ],
@@ -110,9 +110,9 @@
     "group": "Color",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 9.543,
+    "time_ms": 14.896,
     "line": 76,
-    "code": "    from session_py import Color\n    from pathlib import Path\n\n    color = Color(255, 128, 64, 255, \"test_color\")\n\n    #   pb_dumps()      \u2502 bytes        \u2502 to protobuf bytes\n    #   pb_loads(b)     \u2502 bytes        \u2502 from protobuf bytes\n    #   pb_dump(path)   \u2502 file         \u2502 write to file\n    #   pb_load(path)   \u2502 file         \u2502 read from file\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_color.bin\"\n    color.pb_dump(path)\n    loaded = Color.pb_load(path)",
+    "code": "    from session_py import Color\n    from pathlib import Path\n\n    color = Color(1.0, 0.5, 0.25, 1.0, \"test_color\")\n\n    #   pb_dumps()      \u2502 bytes        \u2502 to protobuf bytes\n    #   pb_loads(b)     \u2502 bytes        \u2502 from protobuf bytes\n    #   pb_dump(path)   \u2502 file         \u2502 write to file\n    #   pb_load(path)   \u2502 file         \u2502 read from file\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_color.bin\"\n    color.pb_dump(path)\n    loaded = Color.pb_load(path)",
     "checks": [
       {
         "line": 92,
@@ -121,22 +121,22 @@
       },
       {
         "line": 93,
-        "code_line": "loaded[0] == 255",
+        "code_line": "loaded[0] == 1.0",
         "passed": true
       },
       {
         "line": 94,
-        "code_line": "loaded[1] == 128",
+        "code_line": "loaded[1] == 0.5",
         "passed": true
       },
       {
         "line": 95,
-        "code_line": "loaded[2] == 64",
+        "code_line": "loaded[2] == 0.25",
         "passed": true
       },
       {
         "line": 96,
-        "code_line": "loaded[3] == 255",
+        "code_line": "loaded[3] == 1.0",
         "passed": true
       }
     ],
@@ -146,9 +146,9 @@
     "group": "Color",
     "test_name": "Conversion",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.028,
     "line": 99,
-    "code": "    from session_py import Color\n\n    color = Color(255, 128, 64, 255)\n    flts = color.to_unified_array()\n    ints = Color.from_unified_array(flts)",
+    "code": "    from session_py import Color\n\n    color = Color(1.0, 0.5, 0.25, 1.0)\n    flts = color.to_unified_array()\n    ints = Color.from_unified_array(flts)",
     "checks": [
       {
         "line": 107,
@@ -157,12 +157,12 @@
       },
       {
         "line": 108,
-        "code_line": "TOLERANCE.is_close(flts[1], 0.50196078)",
+        "code_line": "TOLERANCE.is_close(flts[1], 0.5)",
         "passed": true
       },
       {
         "line": 109,
-        "code_line": "TOLERANCE.is_close(flts[2], 0.25098039)",
+        "code_line": "TOLERANCE.is_close(flts[2], 0.25)",
         "passed": true
       },
       {
@@ -182,118 +182,118 @@
     "group": "Color",
     "test_name": "Presets",
     "passed": true,
-    "time_ms": 0.051,
+    "time_ms": 0.11,
     "line": 113,
     "code": "    from session_py import Color\n    \n    white = Color.white()\n    black = Color.black()\n    grey = Color.grey()\n    red = Color.red()\n    orange = Color.orange()\n    yellow = Color.yellow()\n    lime = Color.lime()\n    green = Color.green()\n    mint = Color.mint()\n    cyan = Color.cyan()\n    azure = Color.azure()\n    blue = Color.blue()\n    violet = Color.violet()\n    magenta = Color.magenta()\n    pink = Color.pink()\n    maroon = Color.maroon()\n    brown = Color.brown()\n    olive = Color.olive()\n    teal = Color.teal()\n    navy = Color.navy()\n    purple = Color.purple()\n    silver = Color.silver()",
     "checks": [
       {
         "line": 140,
-        "code_line": "white == Color(255, 255, 255, 255, \"white\")",
+        "code_line": "white == Color(1.0, 1.0, 1.0, 1.0, \"white\")",
         "passed": true
       },
       {
         "line": 141,
-        "code_line": "black == Color(0, 0, 0, 255, \"black\")",
+        "code_line": "black == Color(0.0, 0.0, 0.0, 1.0, \"black\")",
         "passed": true
       },
       {
         "line": 142,
-        "code_line": "grey == Color(128, 128, 128, 255, \"grey\")",
+        "code_line": "grey == Color(0.5, 0.5, 0.5, 1.0, \"grey\")",
         "passed": true
       },
       {
         "line": 143,
-        "code_line": "red == Color(255, 0, 0, 255, \"red\")",
+        "code_line": "red == Color(1.0, 0.0, 0.0, 1.0, \"red\")",
         "passed": true
       },
       {
         "line": 144,
-        "code_line": "orange == Color(255, 128, 0, 255, \"orange\")",
+        "code_line": "orange == Color(1.0, 0.5, 0.0, 1.0, \"orange\")",
         "passed": true
       },
       {
         "line": 145,
-        "code_line": "yellow == Color(255, 255, 0, 255, \"yellow\")",
+        "code_line": "yellow == Color(1.0, 1.0, 0.0, 1.0, \"yellow\")",
         "passed": true
       },
       {
         "line": 146,
-        "code_line": "lime == Color(128, 255, 0, 255, \"lime\")",
+        "code_line": "lime == Color(0.5, 1.0, 0.0, 1.0, \"lime\")",
         "passed": true
       },
       {
         "line": 147,
-        "code_line": "green == Color(0, 255, 0, 255, \"green\")",
+        "code_line": "green == Color(0.0, 1.0, 0.0, 1.0, \"green\")",
         "passed": true
       },
       {
         "line": 148,
-        "code_line": "mint == Color(0, 255, 128, 255, \"mint\")",
+        "code_line": "mint == Color(0.0, 1.0, 0.5, 1.0, \"mint\")",
         "passed": true
       },
       {
         "line": 149,
-        "code_line": "cyan == Color(0, 255, 255, 255, \"cyan\")",
+        "code_line": "cyan == Color(0.0, 1.0, 1.0, 1.0, \"cyan\")",
         "passed": true
       },
       {
         "line": 150,
-        "code_line": "azure == Color(0, 128, 255, 255, \"azure\")",
+        "code_line": "azure == Color(0.0, 0.5, 1.0, 1.0, \"azure\")",
         "passed": true
       },
       {
         "line": 151,
-        "code_line": "blue == Color(0, 0, 255, 255, \"blue\")",
+        "code_line": "blue == Color(0.0, 0.0, 1.0, 1.0, \"blue\")",
         "passed": true
       },
       {
         "line": 152,
-        "code_line": "violet == Color(128, 0, 255, 255, \"violet\")",
+        "code_line": "violet == Color(0.5, 0.0, 1.0, 1.0, \"violet\")",
         "passed": true
       },
       {
         "line": 153,
-        "code_line": "magenta == Color(255, 0, 255, 255, \"magenta\")",
+        "code_line": "magenta == Color(1.0, 0.0, 1.0, 1.0, \"magenta\")",
         "passed": true
       },
       {
         "line": 154,
-        "code_line": "pink == Color(255, 0, 128, 255, \"pink\")",
+        "code_line": "pink == Color(1.0, 0.0, 0.5, 1.0, \"pink\")",
         "passed": true
       },
       {
         "line": 155,
-        "code_line": "maroon == Color(128, 0, 0, 255, \"maroon\")",
+        "code_line": "maroon == Color(0.5, 0.0, 0.0, 1.0, \"maroon\")",
         "passed": true
       },
       {
         "line": 156,
-        "code_line": "brown == Color(128, 64, 0, 255, \"brown\")",
+        "code_line": "brown == Color(0.5, 0.25, 0.0, 1.0, \"brown\")",
         "passed": true
       },
       {
         "line": 157,
-        "code_line": "olive == Color(128, 128, 0, 255, \"olive\")",
+        "code_line": "olive == Color(0.5, 0.5, 0.0, 1.0, \"olive\")",
         "passed": true
       },
       {
         "line": 158,
-        "code_line": "teal == Color(0, 128, 128, 255, \"teal\")",
+        "code_line": "teal == Color(0.0, 0.5, 0.5, 1.0, \"teal\")",
         "passed": true
       },
       {
         "line": 159,
-        "code_line": "navy == Color(0, 0, 128, 255, \"navy\")",
+        "code_line": "navy == Color(0.0, 0.0, 0.5, 1.0, \"navy\")",
         "passed": true
       },
       {
         "line": 160,
-        "code_line": "purple == Color(128, 0, 128, 255, \"purple\")",
+        "code_line": "purple == Color(0.5, 0.0, 0.5, 1.0, \"purple\")",
         "passed": true
       },
       {
         "line": 161,
-        "code_line": "silver == Color(192, 192, 192, 255, \"silver\")",
+        "code_line": "silver == Color(0.75, 0.75, 0.75, 1.0, \"silver\")",
         "passed": true
       }
     ],

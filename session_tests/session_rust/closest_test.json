@@ -58,7 +58,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Line Point",
-    "time_ms": 0.021
+    "time_ms": 0.028999999165534973
   },
   {
     "checks": [
@@ -89,7 +89,7 @@
     "line": 34,
     "passed": true,
     "test_name": "Polyline Point",
-    "time_ms": 0.049
+    "time_ms": 0.04500000178813934
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 57,
     "passed": true,
     "test_name": "Curve Point",
-    "time_ms": 0.339
+    "time_ms": 0.3499999940395355
   },
   {
     "checks": [
@@ -141,7 +141,7 @@
     "line": 82,
     "passed": true,
     "test_name": "Surface Point",
-    "time_ms": 1.07
+    "time_ms": 1.128999948501587
   },
   {
     "checks": [
@@ -167,7 +167,7 @@
     "line": 119,
     "passed": true,
     "test_name": "Mesh Point",
-    "time_ms": 0.517
+    "time_ms": 0.5989999771118164
   },
   {
     "checks": [
@@ -193,7 +193,7 @@
     "line": 137,
     "passed": true,
     "test_name": "Mesh Point AABB",
-    "time_ms": 0.5
+    "time_ms": 0.546999990940094
   },
   {
     "checks": [
@@ -229,7 +229,33 @@
     "line": 155,
     "passed": true,
     "test_name": "Pointcloud Point",
-    "time_ms": 0.02
+    "time_ms": 0.020999999716877937
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pairs.len() == 1",
+        "line": 259,
+        "passed": true
+      },
+      {
+        "code_line": "pairs[0].0 == 0",
+        "line": 260,
+        "passed": true
+      },
+      {
+        "code_line": "pairs[0].1 == 1",
+        "line": 261,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Closest;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        let curves = vec![\n            NurbsCurve::create(false, 1, &[Point::new(0.0, 0.0, 0.0), Point::new(5.0, 0.0, 0.0)]),\n            NurbsCurve::create(false, 1, &[Point::new(5.0, 0.0, 0.0), Point::new(10.0, 0.0, 0.0)]),\n            NurbsCurve::create(false, 1, &[Point::new(100.0, 0.0, 0.0), Point::new(110.0, 0.0, 0.0)]),\n        ];\n\n        let pairs = Closest::nurbscurves_closest(&curves, 0.01);\n",
+    "failures": [],
+    "group": "Closest",
+    "line": 246,
+    "passed": true,
+    "test_name": "Nurbscurves Closest",
+    "time_ms": 0.31299999356269836
   },
   {
     "checks": [
@@ -255,33 +281,7 @@
     "line": 266,
     "passed": true,
     "test_name": "Boxes Closest",
-    "time_ms": 0.021
-  },
-  {
-    "checks": [
-      {
-        "code_line": "pairs.len() == 1",
-        "line": 219,
-        "passed": true
-      },
-      {
-        "code_line": "pairs[0].0 == 0",
-        "line": 220,
-        "passed": true
-      },
-      {
-        "code_line": "pairs[0].1 == 1",
-        "line": 221,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Closest;\n        use crate::Line;\n\n        // 3 lines: first two sharing an endpoint, third far away\n        let lines = vec![\n            Line::new(0.0, 0.0, 0.0, 5.0, 0.0, 0.0),\n            Line::new(5.0, 0.0, 0.0, 10.0, 0.0, 0.0),\n            Line::new(100.0, 0.0, 0.0, 110.0, 0.0, 0.0),\n        ];\n\n        let pairs = Closest::lines_closest(&lines, 0.01);\n",
-    "failures": [],
-    "group": "Closest",
-    "line": 206,
-    "passed": true,
-    "test_name": "Lines Closest",
-    "time_ms": 0.046
+    "time_ms": 0.017999999225139618
   },
   {
     "checks": [
@@ -307,7 +307,7 @@
     "line": 226,
     "passed": true,
     "test_name": "Polylines Closest",
-    "time_ms": 0.055
+    "time_ms": 0.05900000035762787
   },
   {
     "checks": [
@@ -343,32 +343,32 @@
     "line": 180,
     "passed": true,
     "test_name": "Pointcloud Point SpatialKDTree",
-    "time_ms": 0.033
+    "time_ms": 0.03099999949336052
   },
   {
     "checks": [
       {
         "code_line": "pairs.len() == 1",
-        "line": 259,
+        "line": 219,
         "passed": true
       },
       {
         "code_line": "pairs[0].0 == 0",
-        "line": 260,
+        "line": 220,
         "passed": true
       },
       {
         "code_line": "pairs[0].1 == 1",
-        "line": 261,
+        "line": 221,
         "passed": true
       }
     ],
-    "code": "        use crate::Closest;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        let curves = vec![\n            NurbsCurve::create(false, 1, &[Point::new(0.0, 0.0, 0.0), Point::new(5.0, 0.0, 0.0)]),\n            NurbsCurve::create(false, 1, &[Point::new(5.0, 0.0, 0.0), Point::new(10.0, 0.0, 0.0)]),\n            NurbsCurve::create(false, 1, &[Point::new(100.0, 0.0, 0.0), Point::new(110.0, 0.0, 0.0)]),\n        ];\n\n        let pairs = Closest::nurbscurves_closest(&curves, 0.01);\n",
+    "code": "        use crate::Closest;\n        use crate::Line;\n\n        // 3 lines: first two sharing an endpoint, third far away\n        let lines = vec![\n            Line::new(0.0, 0.0, 0.0, 5.0, 0.0, 0.0),\n            Line::new(5.0, 0.0, 0.0, 10.0, 0.0, 0.0),\n            Line::new(100.0, 0.0, 0.0, 110.0, 0.0, 0.0),\n        ];\n\n        let pairs = Closest::lines_closest(&lines, 0.01);\n",
     "failures": [],
     "group": "Closest",
-    "line": 246,
+    "line": 206,
     "passed": true,
-    "test_name": "Nurbscurves Closest",
-    "time_ms": 0.311
+    "test_name": "Lines Closest",
+    "time_ms": 0.03500000014901161
   }
 ]

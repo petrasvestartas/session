@@ -2,7 +2,7 @@
   {
     "checks": [
       {
-        "code_line": "d == f64::INFINITY",
+        "code_line": "d == f32::INFINITY",
         "line": 38,
         "passed": true
       }
@@ -13,7 +13,7 @@
     "line": 30,
     "passed": true,
     "test_name": "Build Empty",
-    "time_ms": 0.008
+    "time_ms": 0.06499999761581421
   },
   {
     "checks": [
@@ -34,7 +34,7 @@
     "line": 43,
     "passed": true,
     "test_name": "Build Single",
-    "time_ms": 0.031
+    "time_ms": 0.11299999803304672
   },
   {
     "checks": [
@@ -50,7 +50,7 @@
     "line": 61,
     "passed": true,
     "test_name": "Build Multiple",
-    "time_ms": 0.068
+    "time_ms": 0.1340000033378601
   },
   {
     "checks": [
@@ -60,13 +60,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Closest;\n        use crate::Mesh;\n        use crate::Point;\n\n        let mut m = Mesh::new();\n        let mut vkeys: Vec<usize> = Vec::new();\n        for i in 0..100 {\n            vkeys.push(m.add_vertex(Point::new(i as f64, 0.0, 0.0), None));\n            vkeys.push(m.add_vertex(Point::new(i as f64 + 0.5, 0.5, 0.0), None));\n            vkeys.push(m.add_vertex(Point::new(i as f64, 0.5, 0.0), None));\n        }\n        for i in 0..100 {\n            m.add_face(vec![vkeys[i*3], vkeys[i*3+1], vkeys[i*3+2]], None);\n        }\n        let (_cp, _fk, d) = Closest::mesh_point_aabb(&m, &Point::new(50.0, 0.0, 0.0));\n",
+    "code": "        use crate::Closest;\n        use crate::Mesh;\n        use crate::Point;\n\n        let mut m = Mesh::new();\n        let mut vkeys: Vec<usize> = Vec::new();\n        for i in 0..100 {\n            vkeys.push(m.add_vertex(Point::new(i as f32, 0.0, 0.0), None));\n            vkeys.push(m.add_vertex(Point::new(i as f32 + 0.5, 0.5, 0.0), None));\n            vkeys.push(m.add_vertex(Point::new(i as f32, 0.5, 0.0), None));\n        }\n        for i in 0..100 {\n            m.add_face(vec![vkeys[i*3], vkeys[i*3+1], vkeys[i*3+2]], None);\n        }\n        let (_cp, _fk, d) = Closest::mesh_point_aabb(&m, &Point::new(50.0, 0.0, 0.0));\n",
     "failures": [],
     "group": "SpatialAABBTree",
     "line": 86,
     "passed": true,
     "test_name": "Node Count",
-    "time_ms": 1.273
+    "time_ms": 2.8469998836517334
   },
   {
     "checks": [
@@ -92,7 +92,7 @@
     "line": 108,
     "passed": true,
     "test_name": "Mesh Point Aabb",
-    "time_ms": 0.232
+    "time_ms": 0.5170000195503235
   },
   {
     "checks": [
@@ -123,38 +123,7 @@
     "line": 124,
     "passed": true,
     "test_name": "Mesh Point Aabb Matches Bvh",
-    "time_ms": 0.185
-  },
-  {
-    "checks": [
-      {
-        "code_line": "pairs.is_empty()",
-        "line": 17,
-        "passed": true
-      },
-      {
-        "code_line": "pairs_near.len() == 1",
-        "line": 23,
-        "passed": true
-      },
-      {
-        "code_line": "pairs_near[0].0 == 0",
-        "line": 24,
-        "passed": true
-      },
-      {
-        "code_line": "pairs_near[0].1 == 1",
-        "line": 25,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::AABB;\n        use crate::Closest;\n\n        // SpatialAABBTree: O(n log n) build, O(log n) cull — prune candidates before exact test\n        let box0 = AABB::new(0.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n        let box1 = AABB::new(5.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n        let box2 = AABB::new(10.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n        let pairs = Closest::boxes_closest(&[box0, box1, box2], 0.0);\n\n\n        let box_a = AABB::new(0.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n        let box_b = AABB::new(1.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n        let pairs_near = Closest::boxes_closest(&[box_a, box_b], 0.0);\n",
-    "failures": [],
-    "group": "SpatialAABBTree",
-    "line": 7,
-    "passed": true,
-    "test_name": "Constructor",
-    "time_ms": 0.009
+    "time_ms": 0.42800000309944153
   },
   {
     "checks": [
@@ -190,6 +159,37 @@
     "line": 142,
     "passed": true,
     "test_name": "Query Aabb",
-    "time_ms": 0.043
+    "time_ms": 0.10100000351667404
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pairs.is_empty()",
+        "line": 17,
+        "passed": true
+      },
+      {
+        "code_line": "pairs_near.len() == 1",
+        "line": 23,
+        "passed": true
+      },
+      {
+        "code_line": "pairs_near[0].0 == 0",
+        "line": 24,
+        "passed": true
+      },
+      {
+        "code_line": "pairs_near[0].1 == 1",
+        "line": 25,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::AABB;\n        use crate::Closest;\n\n        // SpatialAABBTree: O(n log n) build, O(log n) cull — prune candidates before exact test\n        let box0 = AABB::new(0.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n        let box1 = AABB::new(5.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n        let box2 = AABB::new(10.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n        let pairs = Closest::boxes_closest(&[box0, box1, box2], 0.0);\n\n\n        let box_a = AABB::new(0.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n        let box_b = AABB::new(1.0, 0.0, 0.0, 0.5, 0.5, 0.5);\n        let pairs_near = Closest::boxes_closest(&[box_a, box_b], 0.0);\n",
+    "failures": [],
+    "group": "SpatialAABBTree",
+    "line": 7,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.02199999988079071
   }
 ]

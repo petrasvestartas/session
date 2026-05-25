@@ -28,7 +28,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Line Line",
-    "time_ms": 0.022
+    "time_ms": 0.04600000008940697
   },
   {
     "checks": [
@@ -44,7 +44,7 @@
     "line": 25,
     "passed": true,
     "test_name": "Line Line Parallel",
-    "time_ms": 0.01
+    "time_ms": 0.014999999664723873
   },
   {
     "checks": [
@@ -70,7 +70,7 @@
     "line": 39,
     "passed": true,
     "test_name": "Line Line Parameters",
-    "time_ms": 0.01
+    "time_ms": 0.013000000268220901
   },
   {
     "checks": [
@@ -96,7 +96,7 @@
     "line": 56,
     "passed": true,
     "test_name": "Line Line Parameters Endpoints",
-    "time_ms": 0.008
+    "time_ms": 0.014000000432133675
   },
   {
     "checks": [
@@ -117,7 +117,7 @@
     "line": 73,
     "passed": true,
     "test_name": "Line Line Parameters Infinite",
-    "time_ms": 0.011
+    "time_ms": 0.009999999776482582
   },
   {
     "checks": [
@@ -148,7 +148,7 @@
     "line": 89,
     "passed": true,
     "test_name": "Plane Plane",
-    "time_ms": 0.032
+    "time_ms": 0.052000001072883606
   },
   {
     "checks": [
@@ -194,7 +194,7 @@
     "line": 114,
     "passed": true,
     "test_name": "Plane Plane Complex",
-    "time_ms": 0.026
+    "time_ms": 0.03099999949336052
   },
   {
     "checks": [
@@ -225,7 +225,7 @@
     "line": 149,
     "passed": true,
     "test_name": "Line Plane",
-    "time_ms": 0.016
+    "time_ms": 0.029999999329447746
   },
   {
     "checks": [
@@ -241,7 +241,7 @@
     "line": 173,
     "passed": true,
     "test_name": "Line Plane Parallel",
-    "time_ms": 0.007
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
@@ -272,7 +272,7 @@
     "line": 193,
     "passed": true,
     "test_name": "Line Plane Real World",
-    "time_ms": 0.012
+    "time_ms": 0.014000000432133675
   },
   {
     "checks": [
@@ -303,7 +303,7 @@
     "line": 218,
     "passed": true,
     "test_name": "Plane Plane Plane",
-    "time_ms": 0.024
+    "time_ms": 0.02800000086426735
   },
   {
     "checks": [
@@ -319,7 +319,7 @@
     "line": 250,
     "passed": true,
     "test_name": "Plane Plane Plane Parallel",
-    "time_ms": 0.018
+    "time_ms": 0.014999999664723873
   },
   {
     "checks": [
@@ -345,7 +345,7 @@
     "line": 275,
     "passed": true,
     "test_name": "Ray Box",
-    "time_ms": 0.026
+    "time_ms": 0.026000000536441803
   },
   {
     "checks": [
@@ -361,7 +361,7 @@
     "line": 296,
     "passed": true,
     "test_name": "Ray Box Miss",
-    "time_ms": 0.027
+    "time_ms": 0.014000000432133675
   },
   {
     "checks": [
@@ -392,7 +392,7 @@
     "line": 314,
     "passed": true,
     "test_name": "Ray Sphere",
-    "time_ms": 0.017
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
@@ -418,7 +418,7 @@
     "line": 333,
     "passed": true,
     "test_name": "Ray Sphere Tangent",
-    "time_ms": 0.014
+    "time_ms": 0.009999999776482582
   },
   {
     "checks": [
@@ -434,7 +434,7 @@
     "line": 351,
     "passed": true,
     "test_name": "Ray Sphere Miss",
-    "time_ms": 0.026
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -455,7 +455,7 @@
     "line": 366,
     "passed": true,
     "test_name": "Ray Triangle",
-    "time_ms": 0.013
+    "time_ms": 0.02500000037252903
   },
   {
     "checks": [
@@ -471,7 +471,7 @@
     "line": 384,
     "passed": true,
     "test_name": "Ray Triangle Miss",
-    "time_ms": 0.008
+    "time_ms": 0.012000000104308128
   },
   {
     "checks": [
@@ -487,7 +487,7 @@
     "line": 400,
     "passed": true,
     "test_name": "Ray Triangle Parallel",
-    "time_ms": 0.01
+    "time_ms": 0.01600000075995922
   },
   {
     "checks": [
@@ -513,7 +513,7 @@
     "line": 416,
     "passed": true,
     "test_name": "Ray Mesh",
-    "time_ms": 0.286
+    "time_ms": 0.4390000104904175
   },
   {
     "checks": [
@@ -534,7 +534,7 @@
     "line": 448,
     "passed": true,
     "test_name": "Ray Mesh First",
-    "time_ms": 0.232
+    "time_ms": 0.37700000405311584
   },
   {
     "checks": [
@@ -550,7 +550,7 @@
     "line": 479,
     "passed": true,
     "test_name": "Ray Mesh Miss",
-    "time_ms": 0.123
+    "time_ms": 0.22499999403953552
   },
   {
     "checks": [
@@ -576,7 +576,7 @@
     "line": 502,
     "passed": true,
     "test_name": "Ray Mesh Bvh",
-    "time_ms": 0.282
+    "time_ms": 0.5009999871253967
   },
   {
     "checks": [
@@ -597,7 +597,7 @@
     "line": 534,
     "passed": true,
     "test_name": "Ray Mesh Bvh First",
-    "time_ms": 0.344
+    "time_ms": 0.45399999618530273
   },
   {
     "checks": [
@@ -613,7 +613,7 @@
     "line": 565,
     "passed": true,
     "test_name": "Ray Mesh Bvh Miss",
-    "time_ms": 0.129
+    "time_ms": 0.22300000488758087
   },
   {
     "checks": [
@@ -633,13 +633,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let mut polygons: Vec<Vec<Point>> = Vec::new();\n        for i in 0..10 {\n            for j in 0..10 {\n                let x = i as f64;\n                let y = j as f64;\n                polygons.push(vec![\n                    Point::new(x, y, 0.0),\n                    Point::new(x + 1.0, y, 0.0),\n                    Point::new(x + 1.0, y + 1.0, 0.0),\n                    Point::new(x, y + 1.0, 0.0),\n                ]);\n            }\n        }\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(5.5, 5.5, -1.0, 5.5, 5.5, 0.0);\n        let hits_naive = intersection::ray_mesh(&line, &mesh, 1e-6, true);\n        let hits_bvh = intersection::ray_mesh_bvh(&line, &mesh, 1e-6, true);\n        let result_naive = hits_naive.is_some();\n        let result_bvh = hits_bvh.is_some();\n\n        let naive_count = hits_naive.as_ref().map(|h| h.len()).unwrap_or(0);\n        let bvh_count = hits_bvh.as_ref().map(|h| h.len()).unwrap_or(0);\n        if let (Some(hn), Some(hb)) = (&hits_naive, &hits_bvh) {\n        }",
+    "code": "        use crate::intersection;\n        use crate::Line;\n        use crate::Mesh;\n        use crate::Point;\n\n        let mut polygons: Vec<Vec<Point>> = Vec::new();\n        for i in 0..10 {\n            for j in 0..10 {\n                let x = i as f32;\n                let y = j as f32;\n                polygons.push(vec![\n                    Point::new(x, y, 0.0),\n                    Point::new(x + 1.0, y, 0.0),\n                    Point::new(x + 1.0, y + 1.0, 0.0),\n                    Point::new(x, y + 1.0, 0.0),\n                ]);\n            }\n        }\n        let mesh = Mesh::from_polylines(polygons, None);\n        let line = Line::new(5.5, 5.5, -1.0, 5.5, 5.5, 0.0);\n        let hits_naive = intersection::ray_mesh(&line, &mesh, 1e-6, true);\n        let hits_bvh = intersection::ray_mesh_bvh(&line, &mesh, 1e-6, true);\n        let result_naive = hits_naive.is_some();\n        let result_bvh = hits_bvh.is_some();\n\n        let naive_count = hits_naive.as_ref().map(|h| h.len()).unwrap_or(0);\n        let bvh_count = hits_bvh.as_ref().map(|h| h.len()).unwrap_or(0);\n        if let (Some(hn), Some(hb)) = (&hits_naive, &hits_bvh) {\n        }",
     "failures": [],
     "group": "Intersection",
     "line": 588,
     "passed": true,
     "test_name": "Ray Mesh Bvh Vs Naive",
-    "time_ms": 10.079
+    "time_ms": 9.973999977111816
   },
   {
     "checks": [
@@ -690,7 +690,7 @@
     "line": 627,
     "passed": true,
     "test_name": "Ray Box Real World",
-    "time_ms": 0.019
+    "time_ms": 0.01899999938905239
   },
   {
     "checks": [
@@ -741,7 +741,7 @@
     "line": 652,
     "passed": true,
     "test_name": "Ray Sphere Real World",
-    "time_ms": 0.019
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
@@ -772,7 +772,7 @@
     "line": 675,
     "passed": true,
     "test_name": "Ray Triangle Real World",
-    "time_ms": 0.015
+    "time_ms": 0.019999999552965164
   },
   {
     "checks": [
@@ -897,13 +897,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::intersection;\n        use crate::NurbsSurface;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(0.0, 10.0, 0.0),\n            Point::new(10.0, 0.0, 10.0),\n            Point::new(10.0, 10.0, 10.0),\n        ];\n        let srf = NurbsSurface::create(false, false, 1, 1, 2, 2, &pts).unwrap();\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 5.0), Vector::new(0.0, 0.0, 1.0));\n        let curves = intersection::surface_plane(&srf, &plane, None);\n\n        let (t0, t1) = curves[0].domain();\n        for i in 0..=10 {\n            let t = t0 + (t1 - t0) * i as f64 / 10.0;\n            let p = curves[0].point_at(t);\n        }",
+    "code": "        use crate::intersection;\n        use crate::NurbsSurface;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(0.0, 10.0, 0.0),\n            Point::new(10.0, 0.0, 10.0),\n            Point::new(10.0, 10.0, 10.0),\n        ];\n        let srf = NurbsSurface::create(false, false, 1, 1, 2, 2, &pts).unwrap();\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 5.0), Vector::new(0.0, 0.0, 1.0));\n        let curves = intersection::surface_plane(&srf, &plane, None);\n\n        let (t0, t1) = curves[0].domain();\n        for i in 0..=10 {\n            let t = t0 + (t1 - t0) * i as f32 / 10.0;\n            let p = curves[0].point_at(t);\n        }",
     "failures": [],
     "group": "Intersection",
     "line": 696,
     "passed": true,
     "test_name": "Surface Plane",
-    "time_ms": 1.318
+    "time_ms": 1.0729999542236328
   },
   {
     "checks": [
@@ -978,13 +978,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::intersection;\n        use crate::NurbsSurface;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let mut pts = Vec::new();\n        for i in 0..4 {\n            for j in 0..4 {\n                let x = i as f64 * 10.0;\n                let y = j as f64 * 10.0;\n                let z = if (i == 1 || i == 2) && (j == 1 || j == 2) { 10.0 } else { 0.0 };\n                pts.push(Point::new(x, y, z));\n            }\n        }\n        let srf = NurbsSurface::create(false, false, 3, 3, 4, 4, &pts).unwrap();\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 3.0), Vector::new(0.0, 0.0, 1.0));\n        let curves = intersection::surface_plane(&srf, &plane, None);\n\n        let (t0, t1) = curves[0].domain();\n        for i in 0..=10 {\n            let t = t0 + (t1 - t0) * i as f64 / 10.0;\n            let p = curves[0].point_at(t);\n        }",
+    "code": "        use crate::intersection;\n        use crate::NurbsSurface;\n        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let mut pts = Vec::new();\n        for i in 0..4 {\n            for j in 0..4 {\n                let x = i as f32 * 10.0;\n                let y = j as f32 * 10.0;\n                let z = if (i == 1 || i == 2) && (j == 1 || j == 2) { 10.0 } else { 0.0 };\n                pts.push(Point::new(x, y, z));\n            }\n        }\n        let srf = NurbsSurface::create(false, false, 3, 3, 4, 4, &pts).unwrap();\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 3.0), Vector::new(0.0, 0.0, 1.0));\n        let curves = intersection::surface_plane(&srf, &plane, None);\n\n        let (t0, t1) = curves[0].domain();\n        for i in 0..=10 {\n            let t = t0 + (t1 - t0) * i as f32 / 10.0;\n            let p = curves[0].point_at(t);\n        }",
     "failures": [],
     "group": "Intersection",
     "line": 726,
     "passed": true,
     "test_name": "Surface Plane Curved",
-    "time_ms": 6.22
+    "time_ms": 10.269000053405762
   },
   {
     "checks": [
@@ -1000,131 +1000,7 @@
     "line": 759,
     "passed": true,
     "test_name": "Surface Plane Miss",
-    "time_ms": 0.127
-  },
-  {
-    "checks": [
-      {
-        "code_line": "result.is_some()",
-        "line": 900,
-        "passed": true
-      },
-      {
-        "code_line": "poly.len() == 5",
-        "line": 902,
-        "passed": true
-      },
-      {
-        "code_line": "p[2].abs() < 1e-6",
-        "line": 904,
-        "passed": true
-      },
-      {
-        "code_line": "p[2].abs() < 1e-6",
-        "line": 904,
-        "passed": true
-      },
-      {
-        "code_line": "p[2].abs() < 1e-6",
-        "line": 904,
-        "passed": true
-      },
-      {
-        "code_line": "p[2].abs() < 1e-6",
-        "line": 904,
-        "passed": true
-      },
-      {
-        "code_line": "p[2].abs() < 1e-6",
-        "line": 904,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::intersection;\n        use crate::{Line, Plane, Point, Vector};\n\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));\n        // Four edges of a square in XY projected to the plane\n        let l0 = Line::new(-1.0, -1.0, -1.0, -1.0,  1.0, 1.0);\n        let l1 = Line::new( 1.0, -1.0, -1.0,  1.0,  1.0, 1.0);\n        let l2 = Line::new(-1.0, -1.0, -1.0,  1.0, -1.0, 1.0);\n        let l3 = Line::new(-1.0,  1.0, -1.0,  1.0,  1.0, 1.0);\n        let result = intersection::plane_4lines(&plane, &l0, &l1, &l2, &l3);\n\n        let poly = result.unwrap();\n        for p in poly.get_points() {\n        }",
-    "failures": [],
-    "group": "Intersection",
-    "line": 888,
-    "passed": true,
-    "test_name": "Plane 4 Lines",
-    "time_ms": 0.04
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_close(out.start()[0], 0.0)",
-        "line": 1030,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(out.end()[0], 4.0)",
-        "line": 1031,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();",
-    "failures": [],
-    "group": "Intersection",
-    "line": 1018,
-    "passed": true,
-    "test_name": "Polyline Plane To Line",
-    "time_ms": 0.111
-  },
-  {
-    "checks": [
-      {
-        "code_line": "result.is_some()",
-        "line": 942,
-        "passed": true
-      },
-      {
-        "code_line": "pts.len() == 2",
-        "line": 944,
-        "passed": true
-      },
-      {
-        "code_line": "p[0].abs() < 1e-9",
-        "line": 946,
-        "passed": true
-      },
-      {
-        "code_line": "p[0].abs() < 1e-9",
-        "line": 946,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::intersection;\n        use crate::{Plane, Point, Polyline, Vector};\n\n        // Square polyline on z=0 (closed); intersect with plane x=0 (yz-plane)\n        let poly = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n            Point::new(-1.0, -1.0, 0.0), // closed\n        ]);\n\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0));\n        let result = intersection::polyline_plane(&poly, &plane);\n\n        let (pts, _indices) = result.unwrap();\n        for p in &pts {\n        }",
-    "failures": [],
-    "group": "Intersection",
-    "line": 926,
-    "passed": true,
-    "test_name": "Polyline Plane",
-    "time_ms": 0.031
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_close(mag, 4.0)",
-        "line": 1062,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(out[1], 0.0)",
-        "line": 1063,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(out[2], 0.0)",
-        "line": 1064,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::intersection::orthogonal_vector_between_two_plane_pairs;\n        use crate::{Plane, Point, Vector};\n        let pp00 = Plane::xy_plane();\n        let pp10 = Plane::from_point_normal(Point::new(0.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0));\n        let pp11 = Plane::from_point_normal(Point::new(4.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0));\n        let out = orthogonal_vector_between_two_plane_pairs(&pp00, &pp10, &pp11).unwrap();\n        let mag = (out[0]*out[0] + out[1]*out[1] + out[2]*out[2]).sqrt();",
-    "failures": [],
-    "group": "Intersection",
-    "line": 1054,
-    "passed": true,
-    "test_name": "Orthogonal Vector Between Two Plane Pairs",
-    "time_ms": 0.047
+    "time_ms": 0.2070000022649765
   },
   {
     "checks": [
@@ -1155,7 +1031,43 @@
     "line": 1037,
     "passed": true,
     "test_name": "Quad From Line Top Bottom Planes",
-    "time_ms": 0.054
+    "time_ms": 0.11500000208616257
+  },
+  {
+    "checks": [
+      {
+        "code_line": "out.point_count() == 2",
+        "line": 1086,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(out.get_point(0).unwrap()[1], 5.0)",
+        "line": 1087,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(out.get_point(1).unwrap()[1], 5.0)",
+        "line": 1088,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(t_lo, 1.5)",
+        "line": 1091,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(t_hi, 3.5)",
+        "line": 1092,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::intersection::closed_and_open_paths_2d;\n        use crate::{Plane, Point, Polyline};\n        let plate = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(10.0, 0.0, 0.0),\n            Point::new(10.0, 10.0, 0.0),\n            Point::new(0.0, 10.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let joint = Polyline::new(vec![\n            Point::new(-2.0, 5.0, 0.0),\n            Point::new(12.0, 5.0, 0.0),\n        ]);\n        let pln = Plane::xy_plane();\n        let (out, (t0, t1)) = closed_and_open_paths_2d(&plate, &joint, &pln).unwrap();\n        let t_lo = t0.min(t1);\n        let t_hi = t0.max(t1);",
+    "failures": [],
+    "group": "Intersection",
+    "line": 1070,
+    "passed": true,
+    "test_name": "Closed And Open Paths 2D",
+    "time_ms": 0.12999999523162842
   },
   {
     "checks": [
@@ -1211,64 +1123,33 @@
     "line": 837,
     "passed": true,
     "test_name": "Plane 4 Planes Closed",
-    "time_ms": 0.066
+    "time_ms": 0.08799999952316284
   },
   {
     "checks": [
       {
-        "code_line": "(cp[0] - 2.0).abs() < 1e-9",
-        "line": 799,
+        "code_line": "(intersection::remap(5.0, 0.0, 10.0, 0.0, 1.0) - 0.5).abs() < 1e-9",
+        "line": 783,
         "passed": true
       },
       {
-        "code_line": "(cp[1] - 0.0).abs() < 1e-9",
-        "line": 800,
+        "code_line": "(intersection::remap(0.0, 0.0, 10.0, 0.0, 1.0) - 0.0).abs() < 1e-9",
+        "line": 784,
         "passed": true
       },
       {
-        "code_line": "(t - 0.5).abs() < 1e-9",
-        "line": 801,
-        "passed": true
-      },
-      {
-        "code_line": "(cp2[0] - 0.0).abs() < 1e-9",
-        "line": 806,
-        "passed": true
-      },
-      {
-        "code_line": "(t2 - 0.0).abs() < 1e-9",
-        "line": 807,
+        "code_line": "(intersection::remap(10.0, 0.0, 10.0, 0.0, 1.0) - 1.0).abs() < 1e-9",
+        "line": 785,
         "passed": true
       }
     ],
-    "code": "        use crate::intersection;\n        use crate::{Line, Point};\n\n        // Point projects onto segment interior\n        let seg = Line::new(0.0, 0.0, 0.0, 4.0, 0.0, 0.0);\n        let pt = Point::new(2.0, 3.0, 0.0);\n        let (cp, t) = intersection::closest_point_on_segment(&pt, &seg);\n\n\n        // Point projects before segment start → clamped to t=0\n        let pt2 = Point::new(-2.0, 1.0, 0.0);\n        let (cp2, t2) = intersection::closest_point_on_segment(&pt2, &seg);",
+    "code": "        use crate::intersection;",
     "failures": [],
     "group": "Intersection",
-    "line": 790,
+    "line": 781,
     "passed": true,
-    "test_name": "Closest Point On Segment",
-    "time_ms": 0.02
-  },
-  {
-    "checks": [
-      {
-        "code_line": "result.is_some()",
-        "line": 919,
-        "passed": true
-      },
-      {
-        "code_line": "(v[2] - 3.0).abs() < 1e-6",
-        "line": 921,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::intersection;\n        use crate::{Plane, Point, Vector};\n\n        let p0 = Plane::from_point_normal(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));\n        let p1 = Plane::from_point_normal(Point::new(0.0, 0.0, 3.0), Vector::new(0.0, 0.0, 1.0));\n        let dir = Vector::new(0.0, 0.0, 1.0);\n        let result = intersection::scale_vector_to_distance_of_2planes(&dir, &p0, &p1);\n\n        let v = result.unwrap();",
-    "failures": [],
-    "group": "Intersection",
-    "line": 910,
-    "passed": true,
-    "test_name": "Scale Vector To Distance Of 2 Planes",
-    "time_ms": 0.021
+    "test_name": "Remap",
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -1304,43 +1185,157 @@
     "line": 952,
     "passed": true,
     "test_name": "Line Line 3D",
-    "time_ms": 0.013
+    "time_ms": 0.027000000700354576
   },
   {
     "checks": [
       {
-        "code_line": "out.point_count() == 2",
-        "line": 1086,
+        "code_line": "result.is_some()",
+        "line": 900,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(out.get_point(0).unwrap()[1], 5.0)",
-        "line": 1087,
+        "code_line": "poly.len() == 5",
+        "line": 902,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(out.get_point(1).unwrap()[1], 5.0)",
-        "line": 1088,
+        "code_line": "p[2].abs() < 1e-6",
+        "line": 904,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(t_lo, 1.5)",
-        "line": 1091,
+        "code_line": "p[2].abs() < 1e-6",
+        "line": 904,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(t_hi, 3.5)",
-        "line": 1092,
+        "code_line": "p[2].abs() < 1e-6",
+        "line": 904,
+        "passed": true
+      },
+      {
+        "code_line": "p[2].abs() < 1e-6",
+        "line": 904,
+        "passed": true
+      },
+      {
+        "code_line": "p[2].abs() < 1e-6",
+        "line": 904,
         "passed": true
       }
     ],
-    "code": "        use crate::intersection::closed_and_open_paths_2d;\n        use crate::{Plane, Point, Polyline};\n        let plate = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(10.0, 0.0, 0.0),\n            Point::new(10.0, 10.0, 0.0),\n            Point::new(0.0, 10.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let joint = Polyline::new(vec![\n            Point::new(-2.0, 5.0, 0.0),\n            Point::new(12.0, 5.0, 0.0),\n        ]);\n        let pln = Plane::xy_plane();\n        let (out, (t0, t1)) = closed_and_open_paths_2d(&plate, &joint, &pln).unwrap();\n        let t_lo = t0.min(t1);\n        let t_hi = t0.max(t1);",
+    "code": "        use crate::intersection;\n        use crate::{Line, Plane, Point, Vector};\n\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));\n        // Four edges of a square in XY projected to the plane\n        let l0 = Line::new(-1.0, -1.0, -1.0, -1.0,  1.0, 1.0);\n        let l1 = Line::new( 1.0, -1.0, -1.0,  1.0,  1.0, 1.0);\n        let l2 = Line::new(-1.0, -1.0, -1.0,  1.0, -1.0, 1.0);\n        let l3 = Line::new(-1.0,  1.0, -1.0,  1.0,  1.0, 1.0);\n        let result = intersection::plane_4lines(&plane, &l0, &l1, &l2, &l3);\n\n        let poly = result.unwrap();\n        for p in poly.get_points() {\n        }",
     "failures": [],
     "group": "Intersection",
-    "line": 1070,
+    "line": 888,
     "passed": true,
-    "test_name": "Closed And Open Paths 2D",
-    "time_ms": 0.068
+    "test_name": "Plane 4 Lines",
+    "time_ms": 0.028999999165534973
+  },
+  {
+    "checks": [
+      {
+        "code_line": "(cp[0] - 2.0).abs() < 1e-9",
+        "line": 799,
+        "passed": true
+      },
+      {
+        "code_line": "(cp[1] - 0.0).abs() < 1e-9",
+        "line": 800,
+        "passed": true
+      },
+      {
+        "code_line": "(t - 0.5).abs() < 1e-9",
+        "line": 801,
+        "passed": true
+      },
+      {
+        "code_line": "(cp2[0] - 0.0).abs() < 1e-9",
+        "line": 806,
+        "passed": true
+      },
+      {
+        "code_line": "(t2 - 0.0).abs() < 1e-9",
+        "line": 807,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::intersection;\n        use crate::{Line, Point};\n\n        // Point projects onto segment interior\n        let seg = Line::new(0.0, 0.0, 0.0, 4.0, 0.0, 0.0);\n        let pt = Point::new(2.0, 3.0, 0.0);\n        let (cp, t) = intersection::closest_point_on_segment(&pt, &seg);\n\n\n        // Point projects before segment start → clamped to t=0\n        let pt2 = Point::new(-2.0, 1.0, 0.0);\n        let (cp2, t2) = intersection::closest_point_on_segment(&pt2, &seg);",
+    "failures": [],
+    "group": "Intersection",
+    "line": 790,
+    "passed": true,
+    "test_name": "Closest Point On Segment",
+    "time_ms": 0.01600000075995922
+  },
+  {
+    "checks": [
+      {
+        "code_line": "result.is_some()",
+        "line": 919,
+        "passed": true
+      },
+      {
+        "code_line": "(v[2] - 3.0).abs() < 1e-6",
+        "line": 921,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::intersection;\n        use crate::{Plane, Point, Vector};\n\n        let p0 = Plane::from_point_normal(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));\n        let p1 = Plane::from_point_normal(Point::new(0.0, 0.0, 3.0), Vector::new(0.0, 0.0, 1.0));\n        let dir = Vector::new(0.0, 0.0, 1.0);\n        let result = intersection::scale_vector_to_distance_of_2planes(&dir, &p0, &p1);\n\n        let v = result.unwrap();",
+    "failures": [],
+    "group": "Intersection",
+    "line": 910,
+    "passed": true,
+    "test_name": "Scale Vector To Distance Of 2 Planes",
+    "time_ms": 0.027000000700354576
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(out.start()[0], 0.0)",
+        "line": 1030,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(out.end()[0], 4.0)",
+        "line": 1031,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();",
+    "failures": [],
+    "group": "Intersection",
+    "line": 1018,
+    "passed": true,
+    "test_name": "Polyline Plane To Line",
+    "time_ms": 0.03500000014901161
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(mag, 4.0)",
+        "line": 1062,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(out[1], 0.0)",
+        "line": 1063,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(out[2], 0.0)",
+        "line": 1064,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::intersection::orthogonal_vector_between_two_plane_pairs;\n        use crate::{Plane, Point, Vector};\n        let pp00 = Plane::xy_plane();\n        let pp10 = Plane::from_point_normal(Point::new(0.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0));\n        let pp11 = Plane::from_point_normal(Point::new(4.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0));\n        let out = orthogonal_vector_between_two_plane_pairs(&pp00, &pp10, &pp11).unwrap();\n        let mag = (out[0]*out[0] + out[1]*out[1] + out[2]*out[2]).sqrt();",
+    "failures": [],
+    "group": "Intersection",
+    "line": 1054,
+    "passed": true,
+    "test_name": "Orthogonal Vector Between Two Plane Pairs",
+    "time_ms": 0.04699999839067459
   },
   {
     "checks": [
@@ -1361,33 +1356,7 @@
     "line": 867,
     "passed": true,
     "test_name": "Plane 4 Planes Open",
-    "time_ms": 0.064
-  },
-  {
-    "checks": [
-      {
-        "code_line": "(intersection::remap(5.0, 0.0, 10.0, 0.0, 1.0) - 0.5).abs() < 1e-9",
-        "line": 783,
-        "passed": true
-      },
-      {
-        "code_line": "(intersection::remap(0.0, 0.0, 10.0, 0.0, 1.0) - 0.0).abs() < 1e-9",
-        "line": 784,
-        "passed": true
-      },
-      {
-        "code_line": "(intersection::remap(10.0, 0.0, 10.0, 0.0, 1.0) - 1.0).abs() < 1e-9",
-        "line": 785,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::intersection;",
-    "failures": [],
-    "group": "Intersection",
-    "line": 781,
-    "passed": true,
-    "test_name": "Remap",
-    "time_ms": 0.002
+    "time_ms": 0.05900000035762787
   },
   {
     "checks": [
@@ -1423,6 +1392,37 @@
     "line": 812,
     "passed": true,
     "test_name": "Plane Plane Plane Check Parallel",
-    "time_ms": 0.033
+    "time_ms": 0.03099999949336052
+  },
+  {
+    "checks": [
+      {
+        "code_line": "result.is_some()",
+        "line": 942,
+        "passed": true
+      },
+      {
+        "code_line": "pts.len() == 2",
+        "line": 944,
+        "passed": true
+      },
+      {
+        "code_line": "p[0].abs() < 1e-9",
+        "line": 946,
+        "passed": true
+      },
+      {
+        "code_line": "p[0].abs() < 1e-9",
+        "line": 946,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::intersection;\n        use crate::{Plane, Point, Polyline, Vector};\n\n        // Square polyline on z=0 (closed); intersect with plane x=0 (yz-plane)\n        let poly = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n            Point::new(-1.0, -1.0, 0.0), // closed\n        ]);\n\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0));\n        let result = intersection::polyline_plane(&poly, &plane);\n\n        let (pts, _indices) = result.unwrap();\n        for p in &pts {\n        }",
+    "failures": [],
+    "group": "Intersection",
+    "line": 926,
+    "passed": true,
+    "test_name": "Polyline Plane",
+    "time_ms": 0.03700000047683716
   }
 ]

@@ -63,7 +63,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.025
+    "time_ms": 0.04600000008940697
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 64,
     "passed": true,
     "test_name": "Translation",
-    "time_ms": 0.095
+    "time_ms": 0.22200000286102295
   },
   {
     "checks": [
@@ -159,13 +159,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Mesh;\n\n        let s = f64::sqrt(2.0);\n        let xf = Xform::rotation_x(PI / 4.0, false);\n        let mesh = Mesh::create_box(2.0, 2.0, 2.0);\n        let result = mesh.transformed(Some(&xf));",
+    "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Mesh;\n\n        let s = f32::sqrt(2.0);\n        let xf = Xform::rotation_x(PI / 4.0, false);\n        let mesh = Mesh::create_box(2.0, 2.0, 2.0);\n        let result = mesh.transformed(Some(&xf));",
     "failures": [],
     "group": "Xform",
     "line": 84,
     "passed": true,
     "test_name": "Rotation X",
-    "time_ms": 0.067
+    "time_ms": 0.14399999380111694
   },
   {
     "checks": [
@@ -210,13 +210,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Mesh;\n\n        let s = f64::sqrt(2.0);\n        let xf = Xform::rotation_y(PI / 4.0, false);\n        let mesh = Mesh::create_box(2.0, 2.0, 2.0);\n        let result = mesh.transformed(Some(&xf));",
+    "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Mesh;\n\n        let s = f32::sqrt(2.0);\n        let xf = Xform::rotation_y(PI / 4.0, false);\n        let mesh = Mesh::create_box(2.0, 2.0, 2.0);\n        let result = mesh.transformed(Some(&xf));",
     "failures": [],
     "group": "Xform",
     "line": 105,
     "passed": true,
     "test_name": "Rotation Y",
-    "time_ms": 0.061
+    "time_ms": 0.13600000739097595
   },
   {
     "checks": [
@@ -261,13 +261,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Mesh;\n\n        let s = f64::sqrt(2.0);\n        let xf = Xform::rotation_z(PI / 4.0, false);\n        let mesh = Mesh::create_box(2.0, 2.0, 2.0);\n        let result = mesh.transformed(Some(&xf));",
+    "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Mesh;\n\n        let s = f32::sqrt(2.0);\n        let xf = Xform::rotation_z(PI / 4.0, false);\n        let mesh = Mesh::create_box(2.0, 2.0, 2.0);\n        let result = mesh.transformed(Some(&xf));",
     "failures": [],
     "group": "Xform",
     "line": 126,
     "passed": true,
     "test_name": "Rotation Z",
-    "time_ms": 0.06
+    "time_ms": 0.13199999928474426
   },
   {
     "checks": [
@@ -312,13 +312,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Mesh;\n\n        let axis = Vector::new(1.0, 1.0, 1.0);\n        let xf = Xform::rotation(&axis, 2.0 * PI / 4.0, false);\n        let mesh = Mesh::create_box(2.0, 2.0, 2.0);\n        let result = mesh.transformed(Some(&xf));\n        let t = 1.0 / 3.0;\n        let k = 2.0 / f64::sqrt(3.0);",
+    "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Mesh;\n\n        let axis = Vector::new(1.0, 1.0, 1.0);\n        let xf = Xform::rotation(&axis, 2.0 * PI / 4.0, false);\n        let mesh = Mesh::create_box(2.0, 2.0, 2.0);\n        let result = mesh.transformed(Some(&xf));\n        let t = 1.0 / 3.0;\n        let k = 2.0 / f32::sqrt(3.0);",
     "failures": [],
     "group": "Xform",
     "line": 147,
     "passed": true,
     "test_name": "Rotation Axis",
-    "time_ms": 0.064
+    "time_ms": 0.1420000046491623
   },
   {
     "checks": [
@@ -363,13 +363,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Line;\n        use crate::Mesh;\n\n        let s = f64::sqrt(2.0);\n        let line = Line::new(-1.0, -1.0, -1.0, -1.0, -1.0, 1.0);\n        let xf = Xform::rotation_around_line(&line, PI / 4.0, false);\n        let mesh = Mesh::create_box(2.0, 2.0, 2.0);\n        let result = mesh.transformed(Some(&xf));",
+    "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Line;\n        use crate::Mesh;\n\n        let s = f32::sqrt(2.0);\n        let line = Line::new(-1.0, -1.0, -1.0, -1.0, -1.0, 1.0);\n        let xf = Xform::rotation_around_line(&line, PI / 4.0, false);\n        let mesh = Mesh::create_box(2.0, 2.0, 2.0);\n        let result = mesh.transformed(Some(&xf));",
     "failures": [],
     "group": "Xform",
     "line": 171,
     "passed": true,
     "test_name": "Rotation Around Line",
-    "time_ms": 0.068
+    "time_ms": 0.1589999943971634
   },
   {
     "checks": [
@@ -420,7 +420,7 @@
     "line": 194,
     "passed": true,
     "test_name": "Change Basis",
-    "time_ms": 0.067
+    "time_ms": 0.15399999916553497
   },
   {
     "checks": [
@@ -471,7 +471,7 @@
     "line": 223,
     "passed": true,
     "test_name": "Plane To Plane",
-    "time_ms": 0.066
+    "time_ms": 0.15600000321865082
   },
   {
     "checks": [
@@ -522,7 +522,7 @@
     "line": 247,
     "passed": true,
     "test_name": "Scale XYZ",
-    "time_ms": 0.058
+    "time_ms": 0.13600000739097595
   },
   {
     "checks": [
@@ -573,7 +573,7 @@
     "line": 267,
     "passed": true,
     "test_name": "Scale Uniform",
-    "time_ms": 0.058
+    "time_ms": 0.14000000059604645
   },
   {
     "checks": [
@@ -624,7 +624,7 @@
     "line": 288,
     "passed": true,
     "test_name": "Scale Non Uniform",
-    "time_ms": 0.059
+    "time_ms": 0.1469999998807907
   },
   {
     "checks": [
@@ -675,7 +675,7 @@
     "line": 309,
     "passed": true,
     "test_name": "Look At Right Handed",
-    "time_ms": 0.06
+    "time_ms": 0.1459999978542328
   },
   {
     "checks": [
@@ -726,7 +726,7 @@
     "line": 332,
     "passed": true,
     "test_name": "Look To Right Handed",
-    "time_ms": 0.056
+    "time_ms": 0.13699999451637268
   },
   {
     "checks": [
@@ -777,7 +777,7 @@
     "line": 355,
     "passed": true,
     "test_name": "Perspective",
-    "time_ms": 0.056
+    "time_ms": 0.13500000536441803
   },
   {
     "checks": [
@@ -828,7 +828,7 @@
     "line": 378,
     "passed": true,
     "test_name": "Orthographic",
-    "time_ms": 0.058
+    "time_ms": 0.13899999856948853
   },
   {
     "checks": [
@@ -858,13 +858,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Plane;\n        use crate::Polyline;\n\n        let plane = Plane::new(Point::new(0.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let mv = Xform::translation(0.0, 0.0, 1.0);\n        let proj = Xform::project_to_plane(&plane);\n        let xf = &proj * &mv;\n        let tp = |x: f64, y: f64, z: f64| -> Point { let mut p = Point::new(x, y, z); p.xform = xf.clone(); p.transformed() };\n        let outline = Polyline::new(vec![\n            tp(-1.0, -1.0, -1.0),\n            tp(1.0, -1.0, -1.0),\n            tp(1.0, 1.0, -1.0),\n            tp(-1.0, 1.0, -1.0),\n            tp(-1.0, -1.0, -1.0),\n        ]);\n        let pts = outline.get_points();",
+    "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Plane;\n        use crate::Polyline;\n\n        let plane = Plane::new(Point::new(0.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let mv = Xform::translation(0.0, 0.0, 1.0);\n        let proj = Xform::project_to_plane(&plane);\n        let xf = &proj * &mv;\n        let tp = |x: f32, y: f32, z: f32| -> Point { let mut p = Point::new(x, y, z); p.xform = xf.clone(); p.transformed() };\n        let outline = Polyline::new(vec![\n            tp(-1.0, -1.0, -1.0),\n            tp(1.0, -1.0, -1.0),\n            tp(1.0, 1.0, -1.0),\n            tp(-1.0, 1.0, -1.0),\n            tp(-1.0, -1.0, -1.0),\n        ]);\n        let pts = outline.get_points();",
     "failures": [],
     "group": "Xform",
     "line": 400,
     "passed": true,
     "test_name": "Project To Plane",
-    "time_ms": 0.039
+    "time_ms": 0.029999999329447746
   },
   {
     "checks": [
@@ -894,13 +894,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Plane;\n        use crate::Polyline;\n\n        let plane = Plane::new(Point::new(0.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let direction = Vector::new(1.0, 0.0, 1.0);\n        let mv = Xform::translation(0.0, 0.0, 1.0);\n        let proj = Xform::project_to_plane_by_axis(&plane, &direction);\n        let xf = &proj * &mv;\n        let tp = |x: f64, y: f64, z: f64| -> Point { let mut p = Point::new(x, y, z); p.xform = xf.clone(); p.transformed() };\n        let outline = Polyline::new(vec![\n            tp(-1.0, -1.0, 1.0),\n            tp(1.0, -1.0, -1.0),\n            tp(1.0, 1.0, -1.0),\n            tp(-1.0, 1.0, 1.0),\n            tp(-1.0, -1.0, 1.0),\n        ]);\n        let pts = outline.get_points();",
+    "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Plane;\n        use crate::Polyline;\n\n        let plane = Plane::new(Point::new(0.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let direction = Vector::new(1.0, 0.0, 1.0);\n        let mv = Xform::translation(0.0, 0.0, 1.0);\n        let proj = Xform::project_to_plane_by_axis(&plane, &direction);\n        let xf = &proj * &mv;\n        let tp = |x: f32, y: f32, z: f32| -> Point { let mut p = Point::new(x, y, z); p.xform = xf.clone(); p.transformed() };\n        let outline = Polyline::new(vec![\n            tp(-1.0, -1.0, 1.0),\n            tp(1.0, -1.0, -1.0),\n            tp(1.0, 1.0, -1.0),\n            tp(-1.0, 1.0, 1.0),\n            tp(-1.0, -1.0, 1.0),\n        ]);\n        let pts = outline.get_points();",
     "failures": [],
     "group": "Xform",
     "line": 429,
     "passed": true,
     "test_name": "Project To Plane By Axis",
-    "time_ms": 0.011
+    "time_ms": 0.026000000536441803
   },
   {
     "checks": [
@@ -951,205 +951,251 @@
     "line": 459,
     "passed": true,
     "test_name": "Inverse",
-    "time_ms": 0.082
+    "time_ms": 0.1589999943971634
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_point_close(&pt_transformed, &Point::new(11.0, 22.0, 33.0))",
-        "line": 528,
+        "line": 544,
         "passed": true
       },
       {
         "code_line": "v_transformed[0] == 1.0 && v_transformed[1] == 0.0 && v_transformed[2] == 0.0",
-        "line": 529,
+        "line": 545,
         "passed": true
       },
       {
         "code_line": "ln_transformed[0] == 10.0 && ln_transformed[1] == 20.0 && ln_transformed[2] ==\n30.0",
-        "line": 530,
+        "line": 546,
         "passed": true
       },
       {
         "code_line": "ln_transformed[3] == 11.0 && ln_transformed[4] == 20.0 && ln_transformed[5] ==\n30.0",
-        "line": 531,
+        "line": 547,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&pl_transformed.origin(),\n&Point::new(10.0, 20.0, 30.0))",
-        "line": 532,
+        "line": 548,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&pts[0], &Point::new(10.0, 20.0, 30.0))",
-        "line": 533,
+        "line": 549,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&pts[1], &Point::new(11.0, 20.0, 30.0))",
-        "line": 534,
+        "line": 550,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_point_close(&pts[2], &Point::new(11.0, 21.0, 30.0))",
-        "line": 535,
+        "line": 551,
         "passed": true
       }
     ],
     "code": "        use crate::Xform;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Line;\n        use crate::Plane;\n        use crate::Polyline;\n\n        // Simple translation by (10, 20, 30)\n        let t = Xform::translation(10.0, 20.0, 30.0);\n\n        // Transform Point: (1,2,3) -> (11,22,33)\n        let mut pt = Point::new(1.0, 2.0, 3.0);\n        pt.xform = t.clone();\n        let pt_transformed = pt.transformed();\n\n        // Transform Vector: translation should NOT affect vectors\n        let mut v = Vector::new(1.0, 0.0, 0.0);\n        v.xform = t.clone();\n        let v_transformed = v.transformed();\n\n        // Transform Line: (0,0,0)-(1,0,0) -> (10,20,30)-(11,20,30)\n        let mut ln = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n        ln.xform = t.clone();\n        let ln_transformed = ln.transformed();\n\n        // Transform Plane: origin (0,0,0) -> (10,20,30)\n        let mut pl = Plane::new(\n            Point::new(0.0, 0.0, 0.0),\n            Vector::new(1.0, 0.0, 0.0),\n            Vector::new(0.0, 1.0, 0.0),\n        );\n        pl.xform = t.clone();\n        let pl_transformed = pl.transformed();\n\n        // Transform Polyline: 3 points translated\n        let mut poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n        ]);\n        poly.xform = t.clone();\n        let poly_transformed = poly.transformed();\n        let pts = poly_transformed.get_points();\n",
     "failures": [],
     "group": "Xform",
-    "line": 483,
+    "line": 499,
     "passed": true,
     "test_name": "Transform Geometry",
-    "time_ms": 0.019
+    "time_ms": 0.04100000113248825
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"test_xform\"",
-        "line": 550,
+        "line": 566,
         "passed": true
       },
       {
         "code_line": "loaded.guid() == xform.guid()",
-        "line": 551,
+        "line": 567,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[0], 1.0) && TOLERANCE.is_close(loaded.m[1], 0.0)",
-        "line": 552,
+        "line": 568,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[2], 0.0) && TOLERANCE.is_close(loaded.m[3], 0.0)",
-        "line": 553,
+        "line": 569,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[4], 0.0) && TOLERANCE.is_close(loaded.m[5], 1.0)",
-        "line": 554,
+        "line": 570,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[6], 0.0) && TOLERANCE.is_close(loaded.m[7], 0.0)",
-        "line": 555,
+        "line": 571,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[8], 0.0) && TOLERANCE.is_close(loaded.m[9], 0.0)",
-        "line": 556,
+        "line": 572,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[10], 1.0) && TOLERANCE.is_close(loaded.m[11], 0.0)",
-        "line": 557,
+        "line": 573,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[12], 1.0) && TOLERANCE.is_close(loaded.m[13], 2.0)",
-        "line": 558,
+        "line": 574,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[14], 3.0) && TOLERANCE.is_close(loaded.m[15], 1.0)",
-        "line": 559,
+        "line": 575,
         "passed": true
       }
     ],
     "code": "        use crate::Xform;\n\n        let mut xform = Xform::translation(1.0, 2.0, 3.0);\n        xform.name = \"test_xform\".to_string();\n\n        let filename = \"serialization/test_xform.json\";\n        xform.file_json_dump(filename).unwrap();\n        let loaded = Xform::file_json_load(filename).unwrap();\n",
     "failures": [],
     "group": "Xform",
-    "line": 540,
+    "line": 556,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 12.836
+    "time_ms": 14.503000259399414
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == \"test_xform_proto\"",
-        "line": 574,
+        "line": 590,
         "passed": true
       },
       {
         "code_line": "loaded.guid() == xform.guid()",
-        "line": 575,
+        "line": 591,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[0], 1.0) && TOLERANCE.is_close(loaded.m[1], 0.0)",
-        "line": 576,
+        "line": 592,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[2], 0.0) && TOLERANCE.is_close(loaded.m[3], 0.0)",
-        "line": 577,
+        "line": 593,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[4], 0.0) && TOLERANCE.is_close(loaded.m[5], 1.0)",
-        "line": 578,
+        "line": 594,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[6], 0.0) && TOLERANCE.is_close(loaded.m[7], 0.0)",
-        "line": 579,
+        "line": 595,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[8], 0.0) && TOLERANCE.is_close(loaded.m[9], 0.0)",
-        "line": 580,
+        "line": 596,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[10], 1.0) && TOLERANCE.is_close(loaded.m[11], 0.0)",
-        "line": 581,
+        "line": 597,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[12], 1.0) && TOLERANCE.is_close(loaded.m[13], 2.0)",
-        "line": 582,
+        "line": 598,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(loaded.m[14], 3.0) && TOLERANCE.is_close(loaded.m[15], 1.0)",
-        "line": 583,
+        "line": 599,
         "passed": true
       }
     ],
     "code": "        use crate::Xform;\n\n        let mut xform = Xform::translation(1.0, 2.0, 3.0);\n        xform.name = \"test_xform_proto\".to_string();\n\n        let filename = \"serialization/test_xform.bin\";\n        xform.pb_dump(filename);\n        let loaded = Xform::pb_load(filename);\n",
     "failures": [],
     "group": "Xform",
-    "line": 564,
+    "line": 580,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 11.842
+    "time_ms": 13.982999801635742
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(cols[0][0], 1.0)",
+        "line": 488,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(cols[1][1], 1.0)",
+        "line": 489,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(cols[2][2], 1.0)",
+        "line": 490,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(cols[3][3], 1.0)",
+        "line": 491,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(cols[3][0], 1.0)",
+        "line": 492,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(cols[3][1], 2.0)",
+        "line": 493,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(cols[3][2], 3.0)",
+        "line": 494,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Xform;\n\n        let xf = Xform::translation(1.0, 2.0, 3.0);\n        let cols = xf.to_cols();",
+    "failures": [],
+    "group": "Xform",
+    "line": 483,
+    "passed": true,
+    "test_name": "To Cols",
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(xf.m[12], 1.0)",
-        "line": 621,
+        "line": 638,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(xf.m[13], 1.5)",
-        "line": 622,
+        "line": 639,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(xf.m[14], 2.0)",
-        "line": 623,
+        "line": 640,
         "passed": true
       }
     ],
     "code": "        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);",
     "failures": [],
     "group": "Xform",
-    "line": 611,
+    "line": 628,
     "passed": true,
     "test_name": "From Change Of Basis",
-    "time_ms": 0.038
+    "time_ms": 0.04500000178813934
   }
 ]

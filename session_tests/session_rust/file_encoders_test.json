@@ -28,7 +28,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Json Dump Load",
-    "time_ms": 10.757
+    "time_ms": 17.052000045776367
   },
   {
     "checks": [
@@ -54,7 +54,7 @@
     "line": 26,
     "passed": true,
     "test_name": "Json Dumps Loads",
-    "time_ms": 0.252
+    "time_ms": 0.2160000056028366
   },
   {
     "checks": [
@@ -90,7 +90,7 @@
     "line": 44,
     "passed": true,
     "test_name": "Encode Collection Values",
-    "time_ms": 0.247
+    "time_ms": 0.5329999923706055
   },
   {
     "checks": [
@@ -121,7 +121,7 @@
     "line": 65,
     "passed": true,
     "test_name": "Encode Collection Shared Ptr",
-    "time_ms": 0.203
+    "time_ms": 0.4480000138282776
   },
   {
     "checks": [
@@ -147,7 +147,7 @@
     "line": 84,
     "passed": true,
     "test_name": "Decode Collection",
-    "time_ms": 0.16
+    "time_ms": 0.38600000739097595
   },
   {
     "checks": [
@@ -173,7 +173,7 @@
     "line": 102,
     "passed": true,
     "test_name": "Decode Collection Ptr",
-    "time_ms": 0.097
+    "time_ms": 0.20999999344348907
   },
   {
     "checks": [
@@ -199,7 +199,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Nested Collections",
-    "time_ms": 0.19
+    "time_ms": 0.3089999854564667
   },
   {
     "checks": [
@@ -215,7 +215,7 @@
     "line": 138,
     "passed": true,
     "test_name": "Roundtrip File Io",
-    "time_ms": 9.851
+    "time_ms": 17.06100082397461
   },
   {
     "checks": [
@@ -251,7 +251,7 @@
     "line": 159,
     "passed": true,
     "test_name": "Pretty Vs Compact",
-    "time_ms": 0.226
+    "time_ms": 0.3479999899864197
   },
   {
     "checks": [
@@ -276,13 +276,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::file_encoders::{file_json_dumps, file_json_loads};\n\n        let json_str = file_json_dumps(&42i32, false).unwrap();\n        let loaded: i32 = file_json_loads(&json_str).unwrap();\n\n\n        let json_str = file_json_dumps(&3.14f64, false).unwrap();\n        let loaded: f64 = file_json_loads(&json_str).unwrap();\n\n        let json_str = file_json_dumps(&\"hello\", false).unwrap();\n        let loaded: String = file_json_loads(&json_str).unwrap();\n\n        let json_str = file_json_dumps(&true, false).unwrap();\n        let loaded: bool = file_json_loads(&json_str).unwrap();",
+    "code": "        use crate::file_encoders::{file_json_dumps, file_json_loads};\n\n        let json_str = file_json_dumps(&42i32, false).unwrap();\n        let loaded: i32 = file_json_loads(&json_str).unwrap();\n\n\n        let json_str = file_json_dumps(&3.14f32, false).unwrap();\n        let loaded: f32 = file_json_loads(&json_str).unwrap();\n\n        let json_str = file_json_dumps(&\"hello\", false).unwrap();\n        let loaded: String = file_json_loads(&json_str).unwrap();\n\n        let json_str = file_json_dumps(&true, false).unwrap();\n        let loaded: bool = file_json_loads(&json_str).unwrap();",
     "failures": [],
     "group": "FileEncoders",
     "line": 180,
     "passed": true,
     "test_name": "Decode Primitives",
-    "time_ms": 0.018
+    "time_ms": 0.02500000037252903
   },
   {
     "checks": [
@@ -313,7 +313,7 @@
     "line": 203,
     "passed": true,
     "test_name": "Decode List",
-    "time_ms": 0.196
+    "time_ms": 0.37400001287460327
   },
   {
     "checks": [
@@ -339,7 +339,7 @@
     "line": 227,
     "passed": true,
     "test_name": "Decode Dict",
-    "time_ms": 0.096
+    "time_ms": 0.16500000655651093
   },
   {
     "checks": [
@@ -365,7 +365,7 @@
     "line": 250,
     "passed": true,
     "test_name": "List In List In List",
-    "time_ms": 0.026
+    "time_ms": 0.041999999433755875
   },
   {
     "checks": [
@@ -396,7 +396,7 @@
     "line": 264,
     "passed": true,
     "test_name": "Dict Of Lists",
-    "time_ms": 0.234
+    "time_ms": 0.4169999957084656
   },
   {
     "checks": [
@@ -422,12 +422,12 @@
     "line": 290,
     "passed": true,
     "test_name": "List Of Dict",
-    "time_ms": 0.131
+    "time_ms": 0.14000000059604645
   },
   {
     "checks": [
       {
-        "code_line": "crate::tolerance::TOLERANCE.is_close(loaded[\"config\"][\"tolerance\"].as_f64().unwrap(),\n0.001)",
+        "code_line": "crate::tolerance::TOLERANCE.is_close(loaded[\"config\"][\"tolerance\"].as_f64().unwrap()\nas f32, 0.001)",
         "line": 326,
         "passed": true
       },
@@ -453,6 +453,6 @@
     "line": 312,
     "passed": true,
     "test_name": "Dict Of Dicts",
-    "time_ms": 0.21
+    "time_ms": 0.20999999344348907
   }
 ]

@@ -13,7 +13,7 @@
     "line": 8,
     "passed": true,
     "test_name": "Make Clamped Uniform",
-    "time_ms": 0.002
+    "time_ms": 0.007000000216066837
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 20,
     "passed": true,
     "test_name": "Make Periodic Uniform",
-    "time_ms": 0.002
+    "time_ms": 0.004999999888241291
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 32,
     "passed": true,
     "test_name": "Is Clamped",
-    "time_ms": 0.001
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
@@ -66,7 +66,7 @@
     "line": 48,
     "passed": true,
     "test_name": "Reverse",
-    "time_ms": 0.003
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
@@ -82,7 +82,7 @@
     "line": 68,
     "passed": true,
     "test_name": "Find Span",
-    "time_ms": 0.001
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
@@ -98,7 +98,7 @@
     "line": 84,
     "passed": true,
     "test_name": "Solve Tridiagonal",
-    "time_ms": 0.001
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 101,
     "passed": true,
     "test_name": "Compute Parameters",
-    "time_ms": 0.001
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -130,7 +130,7 @@
     "line": 112,
     "passed": true,
     "test_name": "Build Interpolation NurbsKnots",
-    "time_ms": 0.003
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
@@ -146,7 +146,7 @@
     "line": 127,
     "passed": true,
     "test_name": "Evaluation Basis",
-    "time_ms": 0.005
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
@@ -162,7 +162,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Build Fitted NurbsKnots Adaptive",
-    "time_ms": 0.004
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -178,7 +178,7 @@
     "line": 159,
     "passed": true,
     "test_name": "Build Fitted NurbsKnots Periodic Adaptive",
-    "time_ms": 0.002
+    "time_ms": 0.004999999888241291
   },
   {
     "checks": [
@@ -194,6 +194,6 @@
     "line": 172,
     "passed": true,
     "test_name": "Solve Banded SPD",
-    "time_ms": 0.002
+    "time_ms": 0.004000000189989805
   }
 ]
