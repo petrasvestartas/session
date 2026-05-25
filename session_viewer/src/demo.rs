@@ -126,6 +126,19 @@ pub fn make_demo_session() -> Session {
     pt.pointcolor = Color::new(0.3, 1.0, 0.5, 1.0);
     s.add_point(pt, Some(&primitives));
 
+    // Standard (unnamed) points → rendered as GPU dots
+    let dot0 = Point::new(-1800.0, -600.0, 600.0);
+    // dot0.pointcolor = Color::new(1.0, 0.2, 0.2, 1.0);
+    s.add_point(dot0, Some(&primitives));
+
+    let mut dot1 = Point::new(-1600.0, -800.0, 600.0);
+    dot1.pointcolor = Color::new(0.2, 0.5, 1.0, 1.0);
+    s.add_point(dot1, Some(&primitives));
+
+    let mut dot2 = Point::new(-2000.0, -800.0, 600.0);
+    dot2.pointcolor = Color::new(1.0, 0.9, 0.1, 1.0);
+    s.add_point(dot2, Some(&primitives));
+
     // Named points — appear in tree under "labels", rendered as text labels
     s.add_point(named_point(    0.0,  400.0,    0.0, "A", Color::new(1.0, 0.784, 0.392, 1.0)), Some(&labels));
     s.add_point(named_point( -400.0, -267.0,    0.0, "B", Color::new(1.0, 0.784, 0.392, 1.0)), Some(&labels));

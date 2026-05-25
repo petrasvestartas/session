@@ -1,4 +1,4 @@
-use crate::gpu_session::{LineVertex, MeshVertex, PointVertex};
+use crate::gpu_session::{LineVertex, MeshVertex, PointVertex, TemplateVertex};
 use crate::text::{GlyphVertex, TextVertex};
 
 #[repr(C, align(16))]
@@ -30,14 +30,19 @@ impl Default for CameraUniform {
 }
 
 pub struct Pipelines {
-    pub mesh:    wgpu::RenderPipeline,
-    pub line:    wgpu::RenderPipeline,
-    pub point:   wgpu::RenderPipeline,
-    pub grid:    wgpu::RenderPipeline,
-    pub gumball: wgpu::RenderPipeline,
-    pub text:    wgpu::RenderPipeline,
-    pub glyph:   wgpu::RenderPipeline,
+    pub mesh:     wgpu::RenderPipeline,
+    pub line:     wgpu::RenderPipeline,
+    pub point:    wgpu::RenderPipeline,
+    pub grid:     wgpu::RenderPipeline,
+    #[allow(dead_code)]
+    pub gumball:  wgpu::RenderPipeline,
+    pub text:     wgpu::RenderPipeline,
+    pub glyph:    wgpu::RenderPipeline,
+    pub cylinder: wgpu::RenderPipeline,
+    pub cone:     wgpu::RenderPipeline,
+    pub sphere:   wgpu::RenderPipeline,
     pub glyph_bgl: wgpu::BindGroupLayout,
+    pub geom_bgl:  wgpu::BindGroupLayout,
     pub bind_group_layout: wgpu::BindGroupLayout,
 }
 
@@ -49,6 +54,7 @@ impl Pipelines {
     ) -> Self {
         let bgl = build_bind_group_layout(device);
         let glyph_bgl = build_glyph_bind_group_layout(device);
+        let geom_bgl = build_geom_bind_group_layout(device);
         Self {
             mesh: build_pipeline(
                 device, "mesh", include_str!("mesh.wgsl"),
@@ -61,8 +67,8 @@ impl Pipelines {
                 color_format, depth_format, &bgl, false,
             ),
             point: build_pipeline(
-                device, "point", include_str!("line.wgsl"),
-                PointVertex::layout(), wgpu::PrimitiveTopology::PointList,
+                device, "point", include_str!("point.wgsl"),
+                PointVertex::layout(), wgpu::PrimitiveTopology::TriangleList,
                 color_format, depth_format, &bgl, false,
             ),
             grid:    build_grid_pipeline(device, color_format, depth_format, &bgl),
@@ -79,7 +85,20 @@ impl Pipelines {
             glyph: build_glyph_pipeline(
                 device, color_format, depth_format, &bgl, &glyph_bgl,
             ),
+            cylinder: build_instanced_pipeline(
+                device, "cylinder", include_str!("cylinder.wgsl"),
+                color_format, depth_format, &bgl, &geom_bgl,
+            ),
+            cone: build_instanced_pipeline(
+                device, "cone", include_str!("cone.wgsl"),
+                color_format, depth_format, &bgl, &geom_bgl,
+            ),
+            sphere: build_instanced_pipeline(
+                device, "sphere", include_str!("sphere.wgsl"),
+                color_format, depth_format, &bgl, &geom_bgl,
+            ),
             glyph_bgl,
+            geom_bgl,
             bind_group_layout: bgl,
         }
     }
@@ -404,6 +423,83 @@ fn build_glyph_pipeline(
             module: &shader,
             entry_point: Some("vs_main"),
             buffers: &[GlyphVertex::layout()],
+            compilation_options: Default::default(),
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &shader,
+            entry_point: Some("fs_main"),
+            targets: &[Some(wgpu::ColorTargetState {
+                format: color_format,
+                blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+            compilation_options: Default::default(),
+        }),
+        primitive: wgpu::PrimitiveState {
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: None,
+            polygon_mode: wgpu::PolygonMode::Fill,
+            unclipped_depth: false,
+            conservative: false,
+        },
+        depth_stencil,
+        multisample: wgpu::MultisampleState::default(),
+        multiview_mask: None,
+        cache: None,
+    })
+}
+
+pub fn build_geom_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("geom.bgl"),
+        entries: &[wgpu::BindGroupLayoutEntry {
+            binding: 0,
+            visibility: wgpu::ShaderStages::VERTEX,
+            ty: wgpu::BindingType::Buffer {
+                ty: wgpu::BufferBindingType::Storage { read_only: true },
+                has_dynamic_offset: false,
+                min_binding_size: None,
+            },
+            count: None,
+        }],
+    })
+}
+
+/// Instanced pipeline (cylinder/sphere): two bind group layouts, TemplateVertex, TriangleList, depth write.
+fn build_instanced_pipeline(
+    device: &wgpu::Device,
+    label: &str,
+    wgsl: &str,
+    color_format: wgpu::TextureFormat,
+    depth_format: Option<wgpu::TextureFormat>,
+    bgl: &wgpu::BindGroupLayout,
+    geom_bgl: &wgpu::BindGroupLayout,
+) -> wgpu::RenderPipeline {
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some(&format!("{label}.shader")),
+        source: wgpu::ShaderSource::Wgsl(wgsl.into()),
+    });
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some(&format!("{label}.layout")),
+        bind_group_layouts: &[Some(bgl), Some(geom_bgl)],
+        immediate_size: 0,
+    });
+    let depth_stencil = depth_format.map(|fmt| wgpu::DepthStencilState {
+        format: fmt,
+        depth_write_enabled: Some(true),
+        depth_compare: Some(wgpu::CompareFunction::Less),
+        stencil: wgpu::StencilState::default(),
+        bias: wgpu::DepthBiasState::default(),
+    });
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some(label),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState {
+            module: &shader,
+            entry_point: Some("vs_main"),
+            buffers: &[TemplateVertex::layout()],
             compilation_options: Default::default(),
         },
         fragment: Some(wgpu::FragmentState {

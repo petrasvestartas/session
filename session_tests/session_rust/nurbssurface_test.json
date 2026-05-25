@@ -273,7 +273,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 2.9159998893737793
+    "time_ms": 3.2739999294281006
   },
   {
     "checks": [
@@ -588,7 +588,7 @@
     "line": 335,
     "passed": true,
     "test_name": "Domain",
-    "time_ms": 0.01899999938905239
+    "time_ms": 0.017999999225139618
   },
   {
     "checks": [
@@ -1059,7 +1059,7 @@
     "line": 388,
     "passed": true,
     "test_name": "Division",
-    "time_ms": 0.9539999961853027
+    "time_ms": 0.9700000286102295
   },
   {
     "checks": [
@@ -1110,7 +1110,7 @@
     "line": 521,
     "passed": true,
     "test_name": "Evaluation",
-    "time_ms": 0.07000000029802322
+    "time_ms": 0.07100000232458115
   },
   {
     "checks": [
@@ -1201,7 +1201,7 @@
     "line": 582,
     "passed": true,
     "test_name": "Modification",
-    "time_ms": 2.0199999809265137
+    "time_ms": 1.9850000143051147
   },
   {
     "checks": [
@@ -1252,7 +1252,7 @@
     "line": 671,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 0.10599999874830246
+    "time_ms": 0.10499999672174454
   },
   {
     "checks": [
@@ -1318,7 +1318,7 @@
     "line": 731,
     "passed": true,
     "test_name": "Meshing",
-    "time_ms": 291.5580139160156
+    "time_ms": 254.31700134277344
   },
   {
     "checks": [
@@ -1344,7 +1344,7 @@
     "line": 864,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 16.63800048828125
+    "time_ms": 15.100000381469727
   },
   {
     "checks": [
@@ -1365,6 +1365,6 @@
     "line": 914,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 15.842000007629395
+    "time_ms": 12.947999954223633
   }
 ]

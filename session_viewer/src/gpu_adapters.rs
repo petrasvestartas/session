@@ -3,8 +3,14 @@
 //! Free functions (not impl blocks) so they can live in session_viewer
 //! without violating the orphan rule.
 
-use crate::gpu_session::{LineVertex, MeshVertex, PointVertex};
+use crate::gpu_session::{CylinderSegment, GlyphPoint, LineVertex, MeshVertex, PointVertex, TemplateVertex};
 use session_rust::{Color, Line, Mesh, OBB, Plane, Point, PointCloud, Polyline};
+
+#[allow(dead_code)]
+pub const CYLINDER_RADIUS: f32 = 15.0;
+pub const SPHERE_RADIUS:   f32 = 25.0;
+pub const N_CYL_INDICES:   u32 = 144;  // SIDES=12: 12*6 + 12*3 + 12*3
+pub const N_SPHERE_INDICES: u32 = 432; // LONS=12,LATS=6: 12*3 + 5*12*6 + 12*3
 
 // ---------- Named point crosshair ----------
 
@@ -27,57 +33,189 @@ pub fn named_point_to_cross_vertices(p: &Point) -> (Vec<LineVertex>, Vec<u32>) {
 
 // ---------- Point ----------
 
-pub fn point_to_vertex(p: &Point) -> PointVertex {
-    PointVertex {
+pub fn point_to_vertex(p: &Point) -> [PointVertex; 6] {
+    let v = PointVertex {
         position: [p[0], p[1], p[2]],
         color: color_to_rgba_u8(&p.pointcolor),
+    };
+    [v, v, v, v, v, v]
+}
+
+// ---------- Unit cylinder template (GPU-side instancing) ----------
+
+pub fn unit_cylinder_template() -> (Vec<TemplateVertex>, Vec<u32>) {
+    const SIDES: usize = 12;
+    let pi = std::f32::consts::PI;
+    let mut verts: Vec<TemplateVertex> = Vec::with_capacity(50);
+    let mut inds:  Vec<u32>           = Vec::with_capacity(144);
+
+    // Side top ring (indices 0..SIDES): z=0.5, outward radial normals
+    for i in 0..SIDES {
+        let t = i as f32 * 2.0 * pi / SIDES as f32;
+        verts.push(TemplateVertex { position: [t.cos(), t.sin(),  0.5], normal: [t.cos(), t.sin(), 0.0] });
     }
-}
-
-// ---------- Line ----------
-
-pub fn line_to_vertices(l: &Line) -> [LineVertex; 2] {
-    let color = color_to_rgba_u8(&l.linecolor);
-    [
-        LineVertex { position: [l.start()[0], l.start()[1], l.start()[2]], color },
-        LineVertex { position: [l.end()[0], l.end()[1], l.end()[2]], color },
-    ]
-}
-
-// ---------- Polyline ----------
-
-pub fn polyline_to_vertices(pl: &Polyline) -> (Vec<LineVertex>, Vec<u32>) {
-    let color = color_to_rgba_u8(&pl.linecolor);
-    let pts = pl.get_points();
-    let verts: Vec<LineVertex> = pts
-        .iter()
-        .map(|p| LineVertex { position: [p[0], p[1], p[2]], color })
-        .collect();
-    let n = verts.len();
-    let mut inds = Vec::with_capacity(n.saturating_sub(1) * 2);
-    for i in 0..n.saturating_sub(1) {
-        inds.push(i as u32);
-        inds.push((i + 1) as u32);
+    // Side bottom ring (indices SIDES..2*SIDES): z=-0.5
+    for i in 0..SIDES {
+        let t = i as f32 * 2.0 * pi / SIDES as f32;
+        verts.push(TemplateVertex { position: [t.cos(), t.sin(), -0.5], normal: [t.cos(), t.sin(), 0.0] });
+    }
+    // Side quads (CCW from outside)
+    for i in 0..SIDES {
+        let t0 = i as u32;
+        let t1 = ((i + 1) % SIDES) as u32;
+        let b0 = (SIDES + i) as u32;
+        let b1 = (SIDES + (i + 1) % SIDES) as u32;
+        inds.extend_from_slice(&[t0, t1, b0, t1, b1, b0]);
+    }
+    // Top cap: center + rim (z=0.5, +Z normal)
+    let tc = verts.len() as u32;
+    verts.push(TemplateVertex { position: [0.0, 0.0, 0.5], normal: [0.0, 0.0, 1.0] });
+    let tr = verts.len() as u32;
+    for i in 0..SIDES {
+        let t = i as f32 * 2.0 * pi / SIDES as f32;
+        verts.push(TemplateVertex { position: [t.cos(), t.sin(), 0.5], normal: [0.0, 0.0, 1.0] });
+    }
+    for i in 0..SIDES {
+        inds.extend_from_slice(&[tc, tr + i as u32, tr + ((i + 1) % SIDES) as u32]);
+    }
+    // Bottom cap: center + rim (z=-0.5, -Z normal), reversed winding
+    let bc = verts.len() as u32;
+    verts.push(TemplateVertex { position: [0.0, 0.0, -0.5], normal: [0.0, 0.0, -1.0] });
+    let br = verts.len() as u32;
+    for i in 0..SIDES {
+        let t = i as f32 * 2.0 * pi / SIDES as f32;
+        verts.push(TemplateVertex { position: [t.cos(), t.sin(), -0.5], normal: [0.0, 0.0, -1.0] });
+    }
+    for i in 0..SIDES {
+        inds.extend_from_slice(&[bc, br + ((i + 1) % SIDES) as u32, br + i as u32]);
     }
     (verts, inds)
 }
 
-// ---------- PointCloud ----------
+// ---------- Unit sphere template (GPU-side instancing) ----------
 
-pub fn pointcloud_to_vertices(pc: &PointCloud) -> Vec<PointVertex> {
+pub fn unit_sphere_template() -> (Vec<TemplateVertex>, Vec<u32>) {
+    const LONS: usize = 12;
+    const LATS: usize = 6;
+    let pi = std::f32::consts::PI;
+    let mut verts: Vec<TemplateVertex> = Vec::with_capacity(74);
+    let mut inds:  Vec<u32>           = Vec::with_capacity(432);
+
+    verts.push(TemplateVertex { position: [0.0, 0.0, 1.0], normal: [0.0, 0.0, 1.0] });
+    for k in 1..=LATS {
+        let phi = k as f32 * pi / (LATS + 1) as f32;
+        let z = phi.cos();
+        let r = phi.sin();
+        for i in 0..LONS {
+            let t = i as f32 * 2.0 * pi / LONS as f32;
+            let x = r * t.cos();
+            let y = r * t.sin();
+            verts.push(TemplateVertex { position: [x, y, z], normal: [x, y, z] });
+        }
+    }
+    let south = verts.len() as u32;
+    verts.push(TemplateVertex { position: [0.0, 0.0, -1.0], normal: [0.0, 0.0, -1.0] });
+
+    // Top cap
+    for i in 0..LONS {
+        let r0 = 1 + i as u32;
+        let r1 = 1 + ((i + 1) % LONS) as u32;
+        inds.extend_from_slice(&[0, r0, r1]);
+    }
+    // Middle bands
+    for k in 0..(LATS - 1) {
+        let ra = (1 + k * LONS) as u32;
+        let rb = (1 + (k + 1) * LONS) as u32;
+        for i in 0..LONS {
+            let a0 = ra + i as u32;
+            let a1 = ra + ((i + 1) % LONS) as u32;
+            let b0 = rb + i as u32;
+            let b1 = rb + ((i + 1) % LONS) as u32;
+            inds.extend_from_slice(&[a0, a1, b0, a1, b1, b0]);
+        }
+    }
+    // Bottom cap (reversed winding)
+    let lr = (1 + (LATS - 1) * LONS) as u32;
+    for i in 0..LONS {
+        let r0 = lr + i as u32;
+        let r1 = lr + ((i + 1) % LONS) as u32;
+        inds.extend_from_slice(&[south, r1, r0]);
+    }
+    (verts, inds)
+}
+
+// ---------- Line → cylinder segment ----------
+
+pub fn line_to_segment(l: &Line, instance_id: u32) -> CylinderSegment {
+    let s = l.start();
+    let e = l.end();
+    CylinderSegment { p0: [s[0], s[1], s[2]], radius: 0.0, p1: [e[0], e[1], e[2]], instance_id, color: [0.0;4] }
+}
+
+// ---------- Polyline → cylinder segments ----------
+
+pub fn polyline_to_segments(pl: &Polyline, instance_id: u32) -> Vec<CylinderSegment> {
+    let pts = pl.get_points();
+    pts.windows(2).map(|w| CylinderSegment {
+        p0: [w[0][0], w[0][1], w[0][2]],
+        radius: 0.0,
+        p1: [w[1][0], w[1][1], w[1][2]],
+        instance_id,
+        color: [0.0; 4],
+    }).collect()
+}
+
+// ---------- Line / Polyline endpoint spheres ----------
+
+pub fn line_endpoint_glyphs(l: &Line, instance_id: u32) -> Vec<GlyphPoint> {
+    let s = l.start();
+    let e = l.end();
+    vec![
+        GlyphPoint { center: [s[0], s[1], s[2]], radius: CYLINDER_RADIUS, color: [1.0; 4], instance_id, _pad: [0; 3] },
+        GlyphPoint { center: [e[0], e[1], e[2]], radius: CYLINDER_RADIUS, color: [1.0; 4], instance_id, _pad: [0; 3] },
+    ]
+}
+
+pub fn polyline_endpoint_glyphs(pl: &Polyline, instance_id: u32) -> Vec<GlyphPoint> {
+    pl.get_points().iter().map(|p| GlyphPoint {
+        center: [p[0], p[1], p[2]],
+        radius: CYLINDER_RADIUS,
+        color: [1.0; 4],
+        instance_id,
+        _pad: [0; 3],
+    }).collect()
+}
+
+// ---------- PointCloud → sphere glyphs ----------
+
+pub fn pointcloud_to_point_vertices(pc: &PointCloud) -> Vec<PointVertex> {
     let pts = pc.get_points();
     let has_colors = pc.color_count() == pts.len();
-    pts.iter()
-        .enumerate()
-        .map(|(i, p)| {
-            let color = if has_colors {
-                color_to_rgba_u8(&pc.get_color(i))
-            } else {
-                [255, 255, 255, 255]
-            };
-            PointVertex { position: [p[0], p[1], p[2]], color }
-        })
-        .collect()
+    let mut out = Vec::with_capacity(pts.len() * 6);
+    for (i, p) in pts.iter().enumerate() {
+        let c = if has_colors { pc.get_color(i) } else { Color::white() };
+        let v = PointVertex {
+            position: [p[0], p[1], p[2]],
+            color: color_to_rgba_u8(&c),
+        };
+        for _ in 0..6 { out.push(v); }
+    }
+    out
+}
+
+pub fn pointcloud_to_glyphs(pc: &PointCloud, instance_id: u32) -> Vec<GlyphPoint> {
+    let pts = pc.get_points();
+    let has_colors = pc.color_count() == pts.len();
+    pts.iter().enumerate().map(|(i, p)| {
+        let c = if has_colors { pc.get_color(i) } else { Color::white() };
+        GlyphPoint {
+            center: [p[0], p[1], p[2]],
+            radius: SPHERE_RADIUS,
+            color: [c.r, c.g, c.b, c.a],
+            instance_id,
+            _pad: [0; 3],
+        }
+    }).collect()
 }
 
 // ---------- Mesh ----------

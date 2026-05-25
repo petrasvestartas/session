@@ -32,7 +32,7 @@ use pipelines::{
 };
 
 use wgpu::util::DeviceExt;
-use gpu_session::{GpuSession, InstanceData, LineVertex};
+use gpu_session::{GpuSession, InstanceData};
 use gumball::{Gumball, HandleKind};
 use pick::screen_to_world_ray;
 use session_rust::session::Geometry;
@@ -188,6 +188,12 @@ pub struct State {
     #[allow(dead_code)]
     gumball_instance_buf: wgpu::Buffer,
     gumball_bind_group: wgpu::BindGroup,
+    gumball_seg_buf: wgpu::Buffer,
+    gumball_seg_bg: wgpu::BindGroup,
+    gumball_cone_buf: wgpu::Buffer,
+    gumball_cone_bg: wgpu::BindGroup,
+    gumball_glyph_buf: wgpu::Buffer,
+    gumball_glyph_bg: wgpu::BindGroup,
     drag_origins: HashMap<String, [[f32; 4]; 4]>,
     hidden_guids: HashSet<String>,
     egui_ctx: egui::Context,
@@ -262,7 +268,7 @@ impl State {
         let (depth_tex_raw, depth_view) = create_depth_texture(&device, config.width.max(1), config.height.max(1));
 
         let session = demo::make_demo_session();
-        let mut gpu_session = GpuSession::new(&device);
+        let mut gpu_session = GpuSession::new(&device, &pipelines.geom_bgl);
         gpu_session.rebuild_from(&session, &device, &queue);
         let mut session = session;
         session.invalidate_bvh_cache();
@@ -276,6 +282,27 @@ impl State {
             usage: wgpu::BufferUsages::STORAGE,
         });
         let gumball_bind_group = build_bind_group(&device, &pipelines.bind_group_layout, &camera_buf, &gumball_instance_buf);
+        let gumball_seg_buf = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("gumball.segments"),
+            size: 512 * std::mem::size_of::<gpu_session::CylinderSegment>() as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        let gumball_seg_bg = gpu_session::make_geom_bind_group(&device, &pipelines.geom_bgl, &gumball_seg_buf);
+        let gumball_cone_buf = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("gumball.cones"),
+            size: 16 * std::mem::size_of::<gpu_session::CylinderSegment>() as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        let gumball_cone_bg = gpu_session::make_geom_bind_group(&device, &pipelines.geom_bgl, &gumball_cone_buf);
+        let gumball_glyph_buf = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("gumball.glyphs"),
+            size: 16 * std::mem::size_of::<gpu_session::GlyphPoint>() as u64,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        let gumball_glyph_bg = gpu_session::make_geom_bind_group(&device, &pipelines.geom_bgl, &gumball_glyph_buf);
 
         let egui_ctx = egui::Context::default();
         egui_ctx.set_visuals(egui::Visuals::light());
@@ -322,6 +349,12 @@ impl State {
             gumball_scale: 1.0,
             gumball_instance_buf,
             gumball_bind_group,
+            gumball_seg_buf,
+            gumball_seg_bg,
+            gumball_cone_buf,
+            gumball_cone_bg,
+            gumball_glyph_buf,
+            gumball_glyph_bg,
             drag_origins: HashMap::new(),
             hidden_guids: HashSet::new(),
             egui_ctx,
@@ -406,24 +439,35 @@ impl State {
         };
         self.queue.write_buffer(&self.camera_buf, 0, bytemuck::bytes_of(&cam));
 
-        if let Some(gb) = &self.gumball {
-            const INV_MM: f32 = 1000.0;
-            let cp = [
-                self.camera.position[0] * INV_MM,
-                self.camera.position[1] * INV_MM,
-                self.camera.position[2] * INV_MM,
-            ];
-            use session_rust::tolerance::Tolerance;
-            self.gumball_scale = gumball::compute_scale(
-                cp,
-                gb.origin,
-                Tolerance::PI / 3.0,
-                self.config.height as f32,
-            );
-        }
-
         if let Some((cx, cy)) = self.pending_pick.take() {
             self.process_pick(cx as f32, cy as f32);
+        }
+
+        // Compute gumball scale after pick so a newly created gumball gets the
+        // correct size on its first frame.
+        if let Some(gb) = &self.gumball {
+            const VIEWER_TO_MM: f32 = 1000.0;
+            let vp_h = self.config.height as f32;
+            self.gumball_scale = match self.camera.proj_mode {
+                ProjMode::Perspective => {
+                    // Use view-space Z depth of the gumball origin for accuracy
+                    // when the orbit target and gumball are not at the same position.
+                    let vm = self.camera.view_matrix();
+                    let [ox, oy, oz] = gb.origin; // mm; view_matrix includes MM_TO_UNIT
+                    let vz = vm[0][2]*ox + vm[1][2]*oy + vm[2][2]*oz + vm[3][2];
+                    // vz is in viewer units, negative for objects in front of camera
+                    let depth_mm = (-vz).max(0.001) * VIEWER_TO_MM;
+                    use session_rust::tolerance::Tolerance;
+                    let mm_per_px = 2.0 * depth_mm * (Tolerance::PI / 6.0).tan() / vp_h;
+                    gumball::SCREEN_PX * mm_per_px / gumball::ARC_RADIUS
+                }
+                ProjMode::Ortho => {
+                    // ortho_scale is the half-height of the frustum in viewer units
+                    let ortho_h_mm = self.camera.ortho_scale * 2.0 * VIEWER_TO_MM;
+                    let mm_per_px = ortho_h_mm / vp_h;
+                    gumball::SCREEN_PX * mm_per_px / gumball::ARC_RADIUS
+                }
+            };
         }
     }
 
@@ -454,7 +498,8 @@ impl State {
             ray.origin[0], ray.origin[1], ray.origin[2],
             ray.direction[0], ray.direction[1], ray.direction[2],
             self.config.width, self.config.height);
-        let pick_radius = self.camera.pick_radius_mm(self.config.height as f32, 8.0);
+        let pick_radius = self.camera.pick_radius_mm(self.config.height as f32, 8.0)
+            .max(crate::gpu_adapters::SPHERE_RADIUS);
         let hits     = pick::pick_by_ray(&mut self.session, ray, pick_radius);
         log::info!("PICK hits={} guids={:?}", hits.len(),
             hits.iter().map(|h| h.guid()).collect::<Vec<_>>());
@@ -637,6 +682,8 @@ impl State {
             label: Some("Render Encoder"),
         });
 
+        self.gpu_session.flush_geometry(&self.device, &self.queue, &self.pipelines.geom_bgl);
+
         // Build text/glyph vertex buffers before opening the geometry pass
         // (buffers must outlive the render pass that borrows them).
         let visible_labels: Vec<&text::TextLabel> = self.text_labels.iter()
@@ -703,6 +750,16 @@ impl State {
             render_pass.set_pipeline(&self.pipelines.point);
             self.gpu_session.draw_points(&mut render_pass);
 
+            render_pass.set_pipeline(&self.pipelines.cylinder);
+            render_pass.set_bind_group(0, &self.bind_group, &[]);
+            render_pass.set_bind_group(1, &self.gpu_session.segment_bg, &[]);
+            self.gpu_session.draw_cylinders(&mut render_pass);
+
+            render_pass.set_pipeline(&self.pipelines.sphere);
+            render_pass.set_bind_group(0, &self.bind_group, &[]);
+            render_pass.set_bind_group(1, &self.gpu_session.glyph_sphere_bg, &[]);
+            self.gpu_session.draw_spheres(&mut render_pass);
+
             // Text background quads — depth-tested, drawn after opaque geometry.
             if let Some(buf) = &quad_buf {
                 render_pass.set_bind_group(0, &self.bind_group, &[]);
@@ -721,19 +778,76 @@ impl State {
             }
         }
 
-        // Gumball overlay
+        // Gumball overlay — cylinders (shafts+arcs), cones (arrowheads), spheres (handles).
         if let Some(gb) = &self.gumball {
-            let lines = gumball::build_lines(gb.origin, self.gumball_scale, gb.hovered);
-            if !lines.is_empty() {
-                let verts: Vec<LineVertex> = lines.iter().flat_map(|l| [
-                    LineVertex { position: l.a, color: l.color },
-                    LineVertex { position: l.b, color: l.color },
-                ]).collect();
-                let gbuf = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("gumball.lines"),
-                    contents: bytemuck::cast_slice(&verts),
-                    usage: wgpu::BufferUsages::VERTEX,
+            let lines   = gumball::build_lines(gb.origin, self.gumball_scale, gb.hovered);
+            let cones   = gumball::build_cones(gb.origin, self.gumball_scale, gb.hovered);
+            let spheres = gumball::build_spheres(gb.origin, self.gumball_scale, gb.hovered);
+            let segs: Vec<gpu_session::CylinderSegment> = lines.iter().map(|l| {
+                let c = l.color;
+                gpu_session::CylinderSegment {
+                    p0: l.a, radius: l.radius, p1: l.b, instance_id: 0,
+                    color: [c[0] as f32/255.0, c[1] as f32/255.0, c[2] as f32/255.0, c[3] as f32/255.0],
+                }
+            }).collect();
+            let cone_segs: Vec<gpu_session::CylinderSegment> = cones.iter().map(|cn| {
+                let c = cn.color;
+                gpu_session::CylinderSegment {
+                    p0: cn.base, radius: cn.radius, p1: cn.tip, instance_id: 0,
+                    color: [c[0] as f32/255.0, c[1] as f32/255.0, c[2] as f32/255.0, c[3] as f32/255.0],
+                }
+            }).collect();
+            let glyph_pts: Vec<gpu_session::GlyphPoint> = spheres.iter().map(|s| {
+                let c = s.color;
+                gpu_session::GlyphPoint {
+                    center: s.center, radius: s.radius,
+                    color: [c[0] as f32/255.0, c[1] as f32/255.0, c[2] as f32/255.0, c[3] as f32/255.0],
+                    instance_id: 0, _pad: [0; 3],
+                }
+            }).collect();
+            // Upload segment buffer
+            let seg_bytes = bytemuck::cast_slice::<_, u8>(&segs);
+            if seg_bytes.len() as u64 > self.gumball_seg_buf.size() {
+                self.gumball_seg_buf = self.device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("gumball.segments"),
+                    size: seg_bytes.len() as u64 * 2,
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
                 });
+                self.gumball_seg_bg = gpu_session::make_geom_bind_group(
+                    &self.device, &self.pipelines.geom_bgl, &self.gumball_seg_buf,
+                );
+            }
+            self.queue.write_buffer(&self.gumball_seg_buf, 0, seg_bytes);
+            // Upload cone buffer
+            let cone_bytes = bytemuck::cast_slice::<_, u8>(&cone_segs);
+            if cone_bytes.len() as u64 > self.gumball_cone_buf.size() {
+                self.gumball_cone_buf = self.device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("gumball.cones"),
+                    size: cone_bytes.len() as u64 * 2,
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                });
+                self.gumball_cone_bg = gpu_session::make_geom_bind_group(
+                    &self.device, &self.pipelines.geom_bgl, &self.gumball_cone_buf,
+                );
+            }
+            self.queue.write_buffer(&self.gumball_cone_buf, 0, cone_bytes);
+            // Upload glyph buffer
+            let glyph_bytes = bytemuck::cast_slice::<_, u8>(&glyph_pts);
+            if glyph_bytes.len() as u64 > self.gumball_glyph_buf.size() {
+                self.gumball_glyph_buf = self.device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("gumball.glyphs"),
+                    size: glyph_bytes.len() as u64 * 2,
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                });
+                self.gumball_glyph_bg = gpu_session::make_geom_bind_group(
+                    &self.device, &self.pipelines.geom_bgl, &self.gumball_glyph_buf,
+                );
+            }
+            self.queue.write_buffer(&self.gumball_glyph_buf, 0, glyph_bytes);
+            {
                 let mut gpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("Gumball Pass"),
                     color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -758,9 +872,30 @@ impl State {
                     multiview_mask: None,
                 });
                 gpass.set_bind_group(0, &self.gumball_bind_group, &[]);
-                gpass.set_pipeline(&self.pipelines.gumball);
-                gpass.set_vertex_buffer(0, gbuf.slice(..));
-                gpass.draw(0..verts.len() as u32, 0..1);
+                // Draw cylinder shafts + arcs
+                if !segs.is_empty() {
+                    gpass.set_pipeline(&self.pipelines.cylinder);
+                    gpass.set_bind_group(1, &self.gumball_seg_bg, &[]);
+                    gpass.set_vertex_buffer(0, self.gpu_session.cylinder_vbo.slice(..));
+                    gpass.set_index_buffer(self.gpu_session.cylinder_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                    gpass.draw_indexed(0..gpu_adapters::N_CYL_INDICES, 0, 0..segs.len() as u32);
+                }
+                // Draw cone arrowheads
+                if !cone_segs.is_empty() {
+                    gpass.set_pipeline(&self.pipelines.cone);
+                    gpass.set_bind_group(1, &self.gumball_cone_bg, &[]);
+                    gpass.set_vertex_buffer(0, self.gpu_session.cylinder_vbo.slice(..));
+                    gpass.set_index_buffer(self.gpu_session.cylinder_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                    gpass.draw_indexed(0..gpu_adapters::N_CYL_INDICES, 0, 0..cone_segs.len() as u32);
+                }
+                // Draw sphere handles
+                if !glyph_pts.is_empty() {
+                    gpass.set_pipeline(&self.pipelines.sphere);
+                    gpass.set_bind_group(1, &self.gumball_glyph_bg, &[]);
+                    gpass.set_vertex_buffer(0, self.gpu_session.sphere_vbo.slice(..));
+                    gpass.set_index_buffer(self.gpu_session.sphere_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                    gpass.draw_indexed(0..gpu_adapters::N_SPHERE_INDICES, 0, 0..glyph_pts.len() as u32);
+                }
             }
         }
 
@@ -922,9 +1057,43 @@ impl State {
     pub fn handle_key(&mut self, event_loop: &ActiveEventLoop, code: KeyCode, is_pressed: bool) {
         if code == KeyCode::Escape && is_pressed {
             event_loop.exit();
+        } else if code == KeyCode::KeyF && is_pressed {
+            self.fit_view();
         } else {
             self.controller.process_key(code, is_pressed);
         }
+    }
+
+    fn fit_view(&mut self) {
+        if self.selected_guids.is_empty() {
+            self.camera.reset();
+            return;
+        }
+        let mut mn = [f32::MAX; 3];
+        let mut mx = [f32::MIN; 3];
+        let mut found = false;
+        for guid in &self.selected_guids {
+            if let Some(idx) = self.session.cached_guids.iter().position(|g| g == guid) {
+                if idx < self.session.cached_boxes.len() {
+                    for corner in &self.session.cached_boxes[idx].corners() {
+                        for i in 0..3 {
+                            let v = corner[i] as f32;
+                            if v < mn[i] { mn[i] = v; }
+                            if v > mx[i] { mx[i] = v; }
+                        }
+                    }
+                    found = true;
+                }
+            }
+        }
+        if !found { self.camera.reset(); return; }
+        let center = [(mn[0]+mx[0])*0.5, (mn[1]+mx[1])*0.5, (mn[2]+mx[2])*0.5];
+        let half_diag = (
+            (mx[0]-mn[0]).powi(2) +
+            (mx[1]-mn[1]).powi(2) +
+            (mx[2]-mn[2]).powi(2)
+        ).sqrt() * 0.5;
+        self.camera.fit_to_box(center, half_diag.max(50.0));
     }
 }
 

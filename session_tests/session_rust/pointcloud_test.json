@@ -68,7 +68,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.09700000286102295
+    "time_ms": 0.05000000074505806
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 297,
     "passed": true,
     "test_name": "Transform",
-    "time_ms": 0.012000000104308128
+    "time_ms": 0.013000000268220901
   },
   {
     "checks": [
@@ -130,7 +130,7 @@
     "line": 330,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 14.442000389099121
+    "time_ms": 13.998000144958496
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 363,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 13.895000457763672
+    "time_ms": 12.756999969482422
   },
   {
     "checks": [
@@ -203,7 +203,7 @@
     "line": 169,
     "passed": true,
     "test_name": "Color Count",
-    "time_ms": 0.00800000037997961
+    "time_ms": 0.008999999612569809
   },
   {
     "checks": [
@@ -276,7 +276,7 @@
     "line": 231,
     "passed": true,
     "test_name": "Normal Count",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -371,7 +371,7 @@
     "line": 256,
     "passed": true,
     "test_name": "Set Normal",
-    "time_ms": 0.012000000104308128
+    "time_ms": 0.009999999776482582
   },
   {
     "checks": [
@@ -579,7 +579,7 @@
     "line": 313,
     "passed": true,
     "test_name": "Transformed",
-    "time_ms": 0.008999999612569809
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [

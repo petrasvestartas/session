@@ -5,12 +5,12 @@ use crate::pick::Ray;
 
 const ARROW_LEN: f32 = 150.0;
 const ARROW_CAP: f32 = 18.0;
-const ARC_RADIUS: f32 = 120.0;
-const SPHERE_R: f32 = 16.0;
-const ARC_SEGS: usize = 36;
-const PICK_TOL: f32 = 12.0;
+pub const ARC_RADIUS: f32 = 150.0;  // = ARROW_LEN
+const SPHERE_HANDLE_R: f32 = 8.0; // unified radius for all gumball spheres
+const ARC_SEGS: usize = 64;
+const PICK_TOL: f32 = 20.0;
 
-pub const SCREEN_PX: f32 = 160.0;
+pub const SCREEN_PX: f32 = 140.0;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum HandleKind {
@@ -21,12 +21,31 @@ pub enum HandleKind {
     RotateY,
     RotateZ,
     ScaleUniform,
+    ScaleX,
+    ScaleY,
+    ScaleZ,
 }
 
 #[derive(Clone, Copy)]
 pub struct GumballLine {
     pub a: [f32; 3],
     pub b: [f32; 3],
+    pub color: [u8; 4],
+    pub radius: f32,  // cylinder radius in mm
+}
+
+#[derive(Clone, Copy)]
+pub struct GumballCone {
+    pub base: [f32; 3],
+    pub tip: [f32; 3],
+    pub radius: f32,
+    pub color: [u8; 4],
+}
+
+#[derive(Clone, Copy)]
+pub struct GumballSphere {
+    pub center: [f32; 3],
+    pub radius: f32,
     pub color: [u8; 4],
 }
 
@@ -62,28 +81,30 @@ impl Gumball {
     }
 }
 
-pub fn compute_scale(
-    cam_pos_mm: [f32; 3],
-    origin: [f32; 3],
-    fov_y: f32,
-    vp_h: f32,
-) -> f32 {
-    let d = sub3(cam_pos_mm, origin);
-    let dist = len3(d).max(1.0);
-    let world_per_px = 2.0 * dist * (fov_y * 0.5).tan() / vp_h.max(1.0);
-    (SCREEN_PX * world_per_px) / ARC_RADIUS
-}
 
 pub fn hit_test_at(ray: Ray, origin: [f32; 3], scale: f32) -> Option<HandleKind> {
     let tol = PICK_TOL * scale;
     let tol_arc = tol * 0.5;
 
-    if ray_vs_sphere(ray, origin, SPHERE_R * scale) {
+    if ray_vs_sphere(ray, origin, SPHERE_HANDLE_R * scale) {
         return Some(HandleKind::ScaleUniform);
     }
 
+    // Axis-scale spheres: opposite to arrows, at half the arc radius distance
     let mut best_dist = f32::MAX;
     let mut best: Option<HandleKind> = None;
+    for (kind, axis) in [
+        (HandleKind::ScaleX, [1.0f32, 0.0, 0.0]),
+        (HandleKind::ScaleY, [0.0, 1.0, 0.0]),
+        (HandleKind::ScaleZ, [0.0, 0.0, 1.0]),
+    ] {
+        let center = add3(origin, scale3(axis, -ARC_RADIUS * 0.5 * scale));
+        if let Some(d) = ray_vs_sphere_hit(ray, center, SPHERE_HANDLE_R * scale * 2.0) {
+            if d < best_dist { best_dist = d; best = Some(kind); }
+        }
+    }
+    if best.is_some() { return best; }
+
     for (kind, axis) in [
         (HandleKind::TranslateX, [1.0f32, 0.0, 0.0]),
         (HandleKind::TranslateY, [0.0, 1.0, 0.0]),
@@ -145,6 +166,24 @@ pub fn begin_drag(handle: HandleKind, ray: Ray, origin: [f32; 3], _scale: f32) -
             let dist = len3(sub3(p, origin)).max(1e-4);
             DragState { handle, start_world: p, start_angle: 0.0, plane_normal: pn, start_dist: dist, drag_start_origin: origin }
         }
+        HandleKind::ScaleX => {
+            let p = project_ray_on_axis(ray, origin, [1.0, 0.0, 0.0]).unwrap_or(origin);
+            let d = dot3(sub3(p, origin), [1.0, 0.0, 0.0]);
+            let dist = if d < 0.0 { d.min(-1e-4) } else { d.max(1e-4) };
+            DragState { handle, start_world: p, start_angle: 0.0, plane_normal: [1.0, 0.0, 0.0], start_dist: dist, drag_start_origin: origin }
+        }
+        HandleKind::ScaleY => {
+            let p = project_ray_on_axis(ray, origin, [0.0, 1.0, 0.0]).unwrap_or(origin);
+            let d = dot3(sub3(p, origin), [0.0, 1.0, 0.0]);
+            let dist = if d < 0.0 { d.min(-1e-4) } else { d.max(1e-4) };
+            DragState { handle, start_world: p, start_angle: 0.0, plane_normal: [0.0, 1.0, 0.0], start_dist: dist, drag_start_origin: origin }
+        }
+        HandleKind::ScaleZ => {
+            let p = project_ray_on_axis(ray, origin, [0.0, 0.0, 1.0]).unwrap_or(origin);
+            let d = dot3(sub3(p, origin), [0.0, 0.0, 1.0]);
+            let dist = if d < 0.0 { d.min(-1e-4) } else { d.max(1e-4) };
+            DragState { handle, start_world: p, start_angle: 0.0, plane_normal: [0.0, 0.0, 1.0], start_dist: dist, drag_start_origin: origin }
+        }
     }
 }
 
@@ -157,64 +196,94 @@ pub fn update_drag(ds: &DragState, ray: Ray, origin: [f32; 3], _scale: f32) -> O
         HandleKind::RotateY => rotate_drag(ds, ray, origin, [0.0, 1.0, 0.0]),
         HandleKind::RotateZ => rotate_drag(ds, ray, origin, [0.0, 0.0, 1.0]),
         HandleKind::ScaleUniform => scale_drag(ds, ray, origin),
+        HandleKind::ScaleX => scale_axis_drag(ds, ray, origin, [1.0, 0.0, 0.0]),
+        HandleKind::ScaleY => scale_axis_drag(ds, ray, origin, [0.0, 1.0, 0.0]),
+        HandleKind::ScaleZ => scale_axis_drag(ds, ray, origin, [0.0, 0.0, 1.0]),
     }
 }
 
 pub fn build_lines(origin: [f32; 3], scale: f32, hovered: Option<HandleKind>) -> Vec<GumballLine> {
     let mut out = Vec::with_capacity(256);
-    let r = |rgb: [u8; 3], h: HandleKind| -> [u8; 4] {
-        if hovered == Some(h) { [255, 220, 0, 255] } else { [rgb[0], rgb[1], rgb[2], 255] }
+    let col = |rgb: [u8; 3], h: HandleKind| -> [u8; 4] {
+        if hovered == Some(h) { [0, 0, 0, 255] } else { [rgb[0], rgb[1], rgb[2], 255] }
     };
+    let shaft_r = 2.5 * scale;
+    let arc_r   = 2.5 * scale;
 
-    for (axis, rgb, kind) in [
-        ([1.0f32, 0.0, 0.0], [220u8, 60, 60], HandleKind::TranslateX),
-        ([0.0, 1.0, 0.0],    [60, 200, 60],   HandleKind::TranslateY),
-        ([0.0, 0.0, 1.0],    [60, 100, 220],  HandleKind::TranslateZ),
+    for (axis, rgb, t_kind) in [
+        ([1.0f32, 0.0, 0.0], [255u8, 0,   0  ], HandleKind::TranslateX),
+        ([0.0, 1.0, 0.0],    [0,     220, 0  ], HandleKind::TranslateY),
+        ([0.0, 0.0, 1.0],    [0,     80,  255], HandleKind::TranslateZ),
     ] {
-        let col = r(rgb, kind);
+        let t_col = col(rgb, t_kind);
         let tip = add3(origin, scale3(axis, ARROW_LEN * scale));
         let cap = ARROW_CAP * scale;
-        out.push(GumballLine { a: origin, b: tip, color: col });
-        let (pa, pb) = perp_pair(axis);
-        for perp in [pa, pb, scale3(pa, -1.0), scale3(pb, -1.0)] {
-            let base = add3(tip, add3(scale3(axis, -cap), scale3(perp, cap * 0.5)));
-            out.push(GumballLine { a: base, b: tip, color: col });
-        }
+        let shaft_end = add3(tip, scale3(axis, -cap));
+        out.push(GumballLine { a: origin, b: shaft_end, color: t_col, radius: shaft_r });
     }
 
-    for (axis, rgb, kind) in [
-        ([1.0f32, 0.0, 0.0], [220u8, 60, 60], HandleKind::RotateX),
-        ([0.0, 1.0, 0.0],    [60, 200, 60],   HandleKind::RotateY),
-        ([0.0, 0.0, 1.0],    [60, 100, 220],  HandleKind::RotateZ),
+    // Quarter arcs on the side opposite the arrows (negative quadrant).
+    // Arc radius = 0.5 * ARROW_LEN so endpoints mirror scale sphere positions.
+    // Angle ranges derived from perp_pair conventions for each axis:
+    //   RotateX (u=+Z, v=-Y): π/2→π  spans -Y → -Z
+    //   RotateY (u=-Z, v=-X): 0  →π/2 spans -Z → -X
+    //   RotateZ (u=+Y, v=-X): π/2→π  spans -X → -Y
+    let arc_segs = ARC_SEGS / 4;
+    for (axis, rgb, kind, a_start) in [
+        ([1.0f32, 0.0, 0.0], [255u8, 0,   0  ], HandleKind::RotateX, std::f32::consts::FRAC_PI_2),
+        ([0.0, 1.0, 0.0],    [0,     220, 0  ], HandleKind::RotateY, 0.0f32),
+        ([0.0, 0.0, 1.0],    [0,     80,  255], HandleKind::RotateZ, std::f32::consts::FRAC_PI_2),
     ] {
-        let col = r(rgb, kind);
+        let c = col(rgb, kind);
         let rad = ARC_RADIUS * scale;
         let (u, v) = perp_pair(axis);
-        for i in 0..ARC_SEGS {
-            let a0 = std::f32::consts::TAU * i as f32 / ARC_SEGS as f32;
-            let a1 = std::f32::consts::TAU * (i + 1) as f32 / ARC_SEGS as f32;
+        for i in 0..arc_segs {
+            let a0 = a_start + std::f32::consts::FRAC_PI_2 * i as f32 / arc_segs as f32;
+            let a1 = a_start + std::f32::consts::FRAC_PI_2 * (i + 1) as f32 / arc_segs as f32;
             let p0 = add3(origin, add3(scale3(u, rad * a0.cos()), scale3(v, rad * a0.sin())));
             let p1 = add3(origin, add3(scale3(u, rad * a1.cos()), scale3(v, rad * a1.sin())));
-            out.push(GumballLine { a: p0, b: p1, color: col });
+            out.push(GumballLine { a: p0, b: p1, color: c, radius: arc_r });
         }
     }
 
-    let col_sph = r([200, 200, 200], HandleKind::ScaleUniform);
-    let sph_r = SPHERE_R * scale;
-    for (u, v) in [
-        ([1.0f32, 0.0, 0.0], [0.0f32, 1.0, 0.0]),
-        ([1.0, 0.0, 0.0],    [0.0, 0.0, 1.0]),
-        ([0.0, 1.0, 0.0],    [0.0, 0.0, 1.0]),
+    out
+}
+
+pub fn build_cones(origin: [f32; 3], scale: f32, hovered: Option<HandleKind>) -> Vec<GumballCone> {
+    let col = |rgb: [u8; 3], h: HandleKind| -> [u8; 4] {
+        if hovered == Some(h) { [0, 0, 0, 255] } else { [rgb[0], rgb[1], rgb[2], 255] }
+    };
+    let mut out = Vec::with_capacity(3);
+    for (axis, rgb, kind) in [
+        ([1.0f32, 0.0, 0.0], [255u8, 0,   0  ], HandleKind::TranslateX),
+        ([0.0, 1.0, 0.0],    [0,     220, 0  ], HandleKind::TranslateY),
+        ([0.0, 0.0, 1.0],    [0,     80,  255], HandleKind::TranslateZ),
     ] {
-        for i in 0..24 {
-            let a0 = std::f32::consts::TAU * i as f32 / 24.0;
-            let a1 = std::f32::consts::TAU * (i + 1) as f32 / 24.0;
-            let p0 = add3(origin, add3(scale3(u, sph_r * a0.cos()), scale3(v, sph_r * a0.sin())));
-            let p1 = add3(origin, add3(scale3(u, sph_r * a1.cos()), scale3(v, sph_r * a1.sin())));
-            out.push(GumballLine { a: p0, b: p1, color: col_sph });
-        }
+        let tip = add3(origin, scale3(axis, ARROW_LEN * scale));
+        let cap = ARROW_CAP * scale;
+        let base = add3(tip, scale3(axis, -cap));
+        out.push(GumballCone { base, tip, radius: cap * 0.5, color: col(rgb, kind) });
     }
+    out
+}
 
+pub fn build_spheres(origin: [f32; 3], scale: f32, hovered: Option<HandleKind>) -> Vec<GumballSphere> {
+    let col = |rgb: [u8; 3], h: HandleKind| -> [u8; 4] {
+        if hovered == Some(h) { [0, 0, 0, 255] } else { [rgb[0], rgb[1], rgb[2], 255] }
+    };
+    let r = SPHERE_HANDLE_R * scale;
+    let mut out = Vec::with_capacity(4);
+    // Central sphere — white, ScaleUniform
+    out.push(GumballSphere { center: origin, radius: r, color: col([220, 220, 220], HandleKind::ScaleUniform) });
+    // Axis scale spheres: opposite to arrows, at half the arc radius distance
+    for (axis, rgb, kind) in [
+        ([1.0f32, 0.0, 0.0], [255u8, 0,   0  ], HandleKind::ScaleX),
+        ([0.0, 1.0, 0.0],    [0,     220, 0  ], HandleKind::ScaleY),
+        ([0.0, 0.0, 1.0],    [0,     80,  255], HandleKind::ScaleZ),
+    ] {
+        let center = add3(origin, scale3(axis, -ARC_RADIUS * 0.5 * scale));
+        out.push(GumballSphere { center, radius: r, color: col(rgb, kind) });
+    }
     out
 }
 
@@ -249,8 +318,21 @@ fn rotate_drag(ds: &DragState, ray: Ray, origin: [f32; 3], axis: [f32; 3]) -> Op
 fn scale_drag(ds: &DragState, ray: Ray, origin: [f32; 3]) -> Option<[[f32; 4]; 4]> {
     let p = ray_plane_point_n(ray, origin, ds.plane_normal)?;
     let dist = len3(sub3(p, origin)).max(1e-8);
-    let ratio = (dist / ds.start_dist).max(0.01);
+    let ratio = (dist / ds.start_dist).max(0.01).powf(0.25);
     let sc = mat4_scale_uniform(ratio);
+    let tp = mat4_translation(origin[0], origin[1], origin[2]);
+    let tn = mat4_translation(-origin[0], -origin[1], -origin[2]);
+    Some(mat4_mul(&mat4_mul(&tp, &sc), &tn))
+}
+
+fn scale_axis_drag(ds: &DragState, ray: Ray, origin: [f32; 3], axis: [f32; 3]) -> Option<[[f32; 4]; 4]> {
+    let cur = project_ray_on_axis(ray, origin, axis)?;
+    let t = dot3(sub3(cur, origin), axis);
+    let ratio = (t / ds.start_dist).max(0.01).powf(0.5);
+    let sx = 1.0 + axis[0] * (ratio - 1.0);
+    let sy = 1.0 + axis[1] * (ratio - 1.0);
+    let sz = 1.0 + axis[2] * (ratio - 1.0);
+    let sc = mat4_scale_xyz(sx, sy, sz);
     let tp = mat4_translation(origin[0], origin[1], origin[2]);
     let tn = mat4_translation(-origin[0], -origin[1], -origin[2]);
     Some(mat4_mul(&mat4_mul(&tp, &sc), &tn))
@@ -278,10 +360,17 @@ fn ray_vs_arrow(ray: Ray, origin: [f32; 3], axis: [f32; 3], length: f32, tol: f3
 }
 
 fn ray_vs_sphere(ray: Ray, center: [f32; 3], radius: f32) -> bool {
+    ray_vs_sphere_hit(ray, center, radius).is_some()
+}
+
+fn ray_vs_sphere_hit(ray: Ray, center: [f32; 3], radius: f32) -> Option<f32> {
     let oc = sub3(ray.origin, center);
     let b = 2.0 * dot3(oc, ray.direction);
     let c = dot3(oc, oc) - radius * radius;
-    b * b - 4.0 * c >= 0.0
+    let disc = b * b - 4.0 * c;
+    if disc < 0.0 { return None; }
+    let t = (-b - disc.sqrt()) * 0.5;
+    if t < 0.0 { None } else { Some(t) }
 }
 
 fn ray_vs_arc(ray: Ray, origin: [f32; 3], axis: [f32; 3], radius: f32, tol: f32) -> Option<f32> {
@@ -347,10 +436,14 @@ fn mat4_translation(tx: f32, ty: f32, tz: f32) -> [[f32; 4]; 4] {
 }
 
 fn mat4_scale_uniform(s: f32) -> [[f32; 4]; 4] {
+    mat4_scale_xyz(s, s, s)
+}
+
+fn mat4_scale_xyz(sx: f32, sy: f32, sz: f32) -> [[f32; 4]; 4] {
     [
-        [s,   0.0, 0.0, 0.0],
-        [0.0, s,   0.0, 0.0],
-        [0.0, 0.0, s,   0.0],
+        [sx,  0.0, 0.0, 0.0],
+        [0.0, sy,  0.0, 0.0],
+        [0.0, 0.0, sz,  0.0],
         [0.0, 0.0, 0.0, 1.0],
     ]
 }

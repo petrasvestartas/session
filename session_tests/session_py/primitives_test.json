@@ -3,7 +3,7 @@
     "group": "Primitives",
     "test_name": "Mesh Arrow",
     "passed": true,
-    "time_ms": 1.018,
+    "time_ms": 2.46,
     "line": 9,
     "code": "    from session_py import Primitives\n    from session_py import Line\n\n    line = Line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0)\n    m = Primitives.arrow_mesh(line, 1.0)",
     "checks": [
@@ -24,7 +24,7 @@
     "group": "Primitives",
     "test_name": "Mesh Cylinder",
     "passed": true,
-    "time_ms": 0.722,
+    "time_ms": 1.632,
     "line": 21,
     "code": "    from session_py import Primitives\n    from session_py import Line\n\n    line = Line(0.0, 0.0, 0.0, 0.0, 0.0, 8.0)\n    m = Primitives.cylinder_mesh(line, 1.0)",
     "checks": [
@@ -45,7 +45,7 @@
     "group": "Primitives",
     "test_name": "Mesh Edge Pipes",
     "passed": true,
-    "time_ms": 7.241,
+    "time_ms": 12.672,
     "line": 33,
     "code": "    from session_py import Primitives\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Color\n\n    mesh = Mesh()\n    v0 = mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = mesh.add_vertex(Point(1.0, 1.0, 0.0))\n    v3 = mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    mesh.add_face([v0, v1, v2, v3])\n    mesh.linecolors[0] = Color.red()\n\n    pipes = Primitives.edge_pipes(mesh, 0.1)",
     "checks": [
@@ -71,7 +71,7 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Polyline",
     "passed": true,
-    "time_ms": 0.5,
+    "time_ms": 0.939,
     "line": 54,
     "code": "    from session_py import NurbsCurve\n    from session_py import Point\n\n    c = NurbsCurve.create(False, 1, [\n        Point(0, 0, 0),\n        Point(1, 2, 0),\n        Point(2, 0, 0),\n        Point(3, 2, 0),\n        Point(4, 0, 0),\n    ])",
     "checks": [
@@ -112,7 +112,7 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Circle",
     "passed": true,
-    "time_ms": 0.04,
+    "time_ms": 0.058,
     "line": 75,
     "code": "    from session_py import Primitives\n\n    c = Primitives.circle(0.0, 0.0, 0.0, 1.0)",
     "checks": [
@@ -138,7 +138,7 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Ellipse",
     "passed": true,
-    "time_ms": 0.034,
+    "time_ms": 0.038,
     "line": 86,
     "code": "    from session_py import Primitives\n\n    c = Primitives.ellipse(0.0, 0.0, 0.0, 2.0, 1.0)",
     "checks": [
@@ -164,7 +164,7 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Arc",
     "passed": true,
-    "time_ms": 0.049,
+    "time_ms": 0.052,
     "line": 97,
     "code": "    from session_py import Primitives\n    from session_py import Point\n\n    start = Point(0.0, 0.0, 0.0)\n    mid = Point(1.0, 1.0, 0.0)\n    end = Point(2.0, 0.0, 0.0)\n    c = Primitives.arc(start, mid, end)",
     "checks": [
@@ -190,7 +190,7 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Parabola",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.023,
     "line": 112,
     "code": "    from session_py import Primitives\n    from session_py import Point\n\n    p0 = Point(-1.0, 1.0, 0.0)\n    p1 = Point(0.0, 0.0, 0.0)\n    p2 = Point(1.0, 1.0, 0.0)\n    c = Primitives.parabola(p0, p1, p2)",
     "checks": [
@@ -216,7 +216,7 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Hyperbola",
     "passed": true,
-    "time_ms": 0.061,
+    "time_ms": 0.068,
     "line": 127,
     "code": "    from session_py import Primitives\n    from session_py import Point\n\n    center = Point(0.0, 0.0, 0.0)\n    c = Primitives.hyperbola(center, 1.0, 1.0, 1.0)",
     "checks": [
@@ -242,7 +242,7 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Spiral",
     "passed": true,
-    "time_ms": 0.09,
+    "time_ms": 0.085,
     "line": 140,
     "code": "    from session_py import Primitives\n\n    c = Primitives.spiral(1.0, 2.0, 1.0, 5.0)",
     "checks": [
@@ -268,7 +268,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Cylinder",
     "passed": true,
-    "time_ms": 0.272,
+    "time_ms": 0.287,
     "line": 151,
     "code": "    from session_py import Primitives\n\n\n    s = Primitives.cylinder_surface(0.0, 0.0, 0.0, 1.0, 5.0)\n\n\n    p00 = s.point_at(0.0, 0.0)\n\n    p01 = s.point_at(0.0, 1.0)\n\n    pmid = s.point_at(1.0, 0.5)",
     "checks": [
@@ -354,7 +354,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Cone",
     "passed": true,
-    "time_ms": 0.238,
+    "time_ms": 0.227,
     "line": 181,
     "code": "    from session_py import Primitives\n\n\n    s = Primitives.cone_surface(0.0, 0.0, 0.0, 1.0, 5.0)\n\n\n    pbase = s.point_at(0.0, 0.0)\n\n    papex = s.point_at(0.0, 1.0)\n\n    pmid = s.point_at(0.0, 0.5)",
     "checks": [
@@ -440,7 +440,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Sphere",
     "passed": true,
-    "time_ms": 0.518,
+    "time_ms": 0.369,
     "line": 211,
     "code": "    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0.0, 0.0, 0.0, 2.0)\n\n\n    p00 = s.point_at(0.0, 0.0)\n\n    p_top = s.point_at(0.0, 2.0)\n\n    p_eq = s.point_at(0.0, 1.0)\n\n    p_eq2 = s.point_at(1.0, 1.0)",
     "checks": [
@@ -541,7 +541,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Quad Sphere",
     "passed": true,
-    "time_ms": 5.009,
+    "time_ms": 11.97,
     "line": 245,
     "code": "    from session_py import Primitives\n    import math\n\n    R = 5.0\n    faces = Primitives.quad_sphere(0.0, 0.0, 0.0, R)\n\n    for f in range(6):\n\n    max_err = 0.0\n    for f in range(6):\n        for i in range(5):\n            u = i / 4.0\n            for j in range(5):\n                v = j / 4.0\n                p = faces[f].point_at(u, v)\n                dist = math.sqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2])\n                err = abs(dist - R)\n                if err > max_err:\n                    max_err = err",
     "checks": [
@@ -742,7 +742,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Torus",
     "passed": true,
-    "time_ms": 0.505,
+    "time_ms": 0.783,
     "line": 276,
     "code": "    from session_py import Primitives\n\n\n    s = Primitives.torus_surface(0.0, 0.0, 0.0, 3.0, 1.0)\n\n\n    p00 = s.point_at(0.0, 0.0)\n\n    p10 = s.point_at(1.0, 0.0)\n\n    p_top = s.point_at(0.0, 1.0)",
     "checks": [
@@ -828,7 +828,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Ruled",
     "passed": true,
-    "time_ms": 9.139,
+    "time_ms": 15.181,
     "line": 306,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n\n    pts_a = [\n        Point(3.0, 0.0, 0.0),\n        Point(-2.0, 0.0, 5.0),\n    ]\n    pts_b = [\n        Point(3.0, 5.0, 5.0),\n        Point(-2.0, 5.0, 0.0),\n    ]\n    crv_a = NurbsCurve.create(False, 1, pts_a)\n    crv_b = NurbsCurve.create(False, 1, pts_b)\n    srf = Primitives.create_ruled(crv_a, crv_b)\n    _m = srf.mesh()\n\n\n    rd, ruv = srf.divide_by_count(4, 4)\n\n    pts = []\n    for i in range(len(rd)):\n        for j in range(len(rd[i])):\n            pts.append(rd[i][j])\n\n    normals = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            normals.append(srf.normal_at(ruv[i][j][0], ruv[i][j][1]))\n\n    uvs = []\n    for i in range(len(ruv)):\n        for j in range(len(ruv[i])):\n            uvs.append(ruv[i][j])",
     "checks": [
@@ -1154,7 +1154,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Planar",
     "passed": true,
-    "time_ms": 22.408,
+    "time_ms": 42.701,
     "line": 411,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    # Hardcoded expected CVs include create_planar's least-squares fitting\n    # noise. Apple Silicon's libm produces cos/sin values that diverge from\n    # x86 by ~1 ulp; downstream the algorithm amplifies this past the\n    # default 1e-9 tolerance. Loosen for this one test (still well below\n    # the model unit scale).\n    _saved_abs = TOLERANCE.absolute\n    TOLERANCE.absolute = 1e-6\n    try:\n        _test_nurbssurface_planar_body()\n    finally:\n        TOLERANCE.absolute = _saved_abs",
     "checks": [
@@ -1365,7 +1365,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Extrusion",
     "passed": true,
-    "time_ms": 12.289,
+    "time_ms": 24.289,
     "line": 526,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n\n    direction = Vector(0.0, 1.0, 5.0)\n\n    c1 = NurbsCurve.create(False, 1, [\n        Point(13.0, 0.0, 0.0),\n        Point(18.0, 0.0, 0.0),\n    ])\n    s_line = Primitives.create_extrusion(c1, direction)\n    m_line = s_line.mesh()\n\n    c2 = Primitives.circle(24.0, 0.0, 0.0, 3.0)\n    s_circle = Primitives.create_extrusion(c2, direction)\n    m_circle = s_circle.mesh()\n\n    c3 = NurbsCurve.create(False, 2, [\n        Point(30.0, 0.0, 0.0),\n        Point(33.0, 5.0, 0.0),\n        Point(37.0, 0.0, 0.0),\n    ])\n    s_arc = Primitives.create_extrusion(c3, direction)\n    m_arc = s_arc.mesh()\n\n    c4 = NurbsCurve.create(False, 1, [\n        Point(40.0, 3.0, 0.0),\n        Point(45.0, 0.0, 0.0),\n        Point(50.0, 3.0, 0.0),\n        Point(55.0, 0.0, 0.0),\n    ])\n    s_wavy = Primitives.create_extrusion(c4, direction)\n    m_wavy = s_wavy.mesh()",
     "checks": [
@@ -1596,7 +1596,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Loft",
     "passed": true,
-    "time_ms": 3.197,
+    "time_ms": 4.321,
     "line": 612,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    c1 = Primitives.circle(0.0, 0.0, 0.0, 2.0)\n    c2 = Primitives.circle(0.0, 0.0, 2.0, 1.0)\n    c3 = Primitives.circle(0.0, 0.0, 4.0, 1.5)\n    c4 = Primitives.circle(0.0, 0.0, 6.0, 0.8)\n\n    srf = Primitives.create_loft([c1, c2, c3, c4], 3)\n\n\n    open_pts = [\n        [\n            Point(10.0, -12.0, 0.0),\n            Point(10.0, -10.0, 3.0),\n            Point(10.0, -7.0, 3.0),\n            Point(10.0, -5.0, 0.0),\n        ],\n        [\n            Point(5.5, -12.0, 3.5),\n            Point(5.5, -10.0, 1.5),\n            Point(5.5, -7.0, 1.5),\n            Point(5.5, -5.0, 3.5),\n        ],\n        [\n            Point(1.0, -12.0, 0.0),\n            Point(1.0, -10.0, 3.0),\n            Point(1.0, -7.0, 3.0),\n            Point(1.0, -5.0, 0.0),\n        ],\n    ]\n    open_curves = [\n        NurbsCurve.create(False, 3, open_pts[0]),\n        NurbsCurve.create(False, 3, open_pts[1]),\n        NurbsCurve.create(False, 3, open_pts[2]),\n    ]\n    open_srf = Primitives.create_loft(open_curves, 3)",
     "checks": [
@@ -1877,7 +1877,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Revolve",
     "passed": true,
-    "time_ms": 102.263,
+    "time_ms": 193.678,
     "line": 710,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import Vector\n\n    pa = NurbsCurve.create(False, 3, [\n        Point(1.5, 0.0, 0.0),\n        Point(1.5, 0.0, 0.3),\n        Point(0.3, 0.0, 0.5),\n        Point(0.3, 0.0, 2.5),\n        Point(0.2, 0.0, 3.0),\n        Point(2.0, 0.0, 4.5),\n        Point(1.8, 0.0, 5.0),\n    ])\n    s_vase = Primitives.create_revolve(pa, Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0 * PI)\n    m_vase = s_vase.mesh()\n\n    w = math.sqrt(2.0) / 2.0\n    cw = [1.0, w, 1.0, w, 1.0, w, 1.0, w, 1.0]\n    ca = [1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0, 1.0, 1.0]\n    sa = [0.0, 1.0, 1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0]\n    ck = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0]\n    rr = 5.0; r = 1.5; tcx = 14.0\n    pb = NurbsCurve(dimension=3, is_rational=True, order=3, cv_count=9)\n    for i in range(10):\n        pb.set_nurbsknot(i, ck[i])\n    for i in range(9):\n        pb.set_cv_4d(i, (tcx + rr + r * ca[i]) * cw[i], 0.0, r * sa[i] * cw[i], cw[i])\n    s_torus = Primitives.create_revolve(pb, Point(tcx, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0 * PI)\n    m_torus = s_torus.mesh()\n\n    pc = NurbsCurve.create(False, 1, [Point(29.0, 0.0, -0.5), Point(29.0, 0.0, 0.5)])\n    s_elbow = Primitives.create_revolve(pc, Point(26.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), PI / 2.0)\n    m_elbow = s_elbow.mesh()\n\n    sr = 2.0; scx = 36.0\n    pd = NurbsCurve(dimension=3, is_rational=True, order=3, cv_count=5)\n    sk = [0.0, 0.0, 1.0, 1.0, 2.0, 2.0]\n    for i in range(6):\n        pd.set_nurbsknot(i, sk[i])\n    spx = [0.0, sr, sr, sr, 0.0]; spz = [-sr, -sr, 0.0, sr, sr]; spw = [1.0, w, 1.0, w, 1.0]\n    for i in range(5):\n        pd.set_cv_4d(i, (scx + spx[i]) * spw[i], 0.0, spz[i] * spw[i], spw[i])\n    s_sphere = Primitives.create_revolve(pd, Point(scx, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0 * PI)\n    m_sphere = s_sphere.mesh()\n\n    pe = NurbsCurve.create(False, 1, [Point(44.0, 0.0, 3.0), Point(46.0, 0.0, 0.0)])\n    s_cone = Primitives.create_revolve(pe, Point(44.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0), 2.0 * PI)\n    m_cone = s_cone.mesh()",
     "checks": [
@@ -2138,7 +2138,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Sweep",
     "passed": true,
-    "time_ms": 105.292,
+    "time_ms": 179.249,
     "line": 818,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    rail = NurbsCurve.create(False, 2, [\n        Point(0.0, 0.0, 0.0),\n        Point(0.0, 5.0, 0.0),\n        Point(2.0, 9.0, 0.0),\n    ])\n    profile = Primitives.circle(0.0, 0.0, 0.0, 1.0)\n    s_sweep1 = Primitives.create_sweep1(rail, profile)\n    m_sweep1 = s_sweep1.mesh()\n\n    rail1 = NurbsCurve.create(False, 2, [\n        Point(6.0, -1.0, 0.0),\n        Point(7.0, 3.0, 0.0),\n        Point(8.0, 4.0, 0.0),\n    ])\n    rail2 = NurbsCurve.create(False, 2, [\n        Point(10.0, -1.0, 0.0),\n        Point(10.0, 3.0, 0.0),\n        Point(9.0, 4.0, 0.0),\n    ])\n    shape1 = NurbsCurve.create(False, 2, [\n        Point(6.0, -1.0, 0.0),\n        Point(8.0, -1.0, 2.0),\n        Point(10.0, -1.0, 0.0),\n    ])\n    shape2 = NurbsCurve.create(False, 2, [\n        Point(8.0, 4.0, 0.0),\n        Point(8.5, 4.0, 1.5),\n        Point(9.0, 4.0, 0.0),\n    ])\n    s_sweep2 = Primitives.create_sweep2(rail1, rail2, [shape1, shape2])\n    m_sweep2 = s_sweep2.mesh()\n\n    TOLERANCE.absolute = 1e-6\n\n    TOLERANCE.reset()",
     "checks": [
@@ -2274,7 +2274,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Edge",
     "passed": true,
-    "time_ms": 6.076,
+    "time_ms": 9.905,
     "line": 886,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    pts_south = [\n        Point(1.0, 20.569076, 0.0),\n        Point(1.0, 22.569076, 3.0),\n        Point(1.0, 25.569076, 3.0),\n        Point(1.0, 27.569076, 0.0),\n    ]\n    pts_west  = [\n        Point(10.0, 20.569076, 0.0),\n        Point(5.5, 20.569076, 3.5),\n        Point(1.0, 20.569076, 0.0),\n    ]\n    pts_north = [\n        Point(10.0, 20.569076, 0.0),\n        Point(10.0, 22.569076, 3.0),\n        Point(10.0, 25.569076, 3.0),\n        Point(10.0, 27.569076, 0.0),\n    ]\n    pts_east  = [\n        Point(10.0, 27.569076, 0.0),\n        Point(5.5, 27.569076, 3.5),\n        Point(1.0, 27.569076, 0.0),\n    ]\n\n    south = NurbsCurve.create(False, 3, pts_south)\n    west  = NurbsCurve.create(False, 2, pts_west)\n    north = NurbsCurve.create(False, 3, pts_north)\n    east  = NurbsCurve.create(False, 2, pts_east)\n\n    surf = Primitives.create_edge(south, west, north, east)\n    m = surf.mesh()",
     "checks": [
@@ -2375,7 +2375,7 @@
     "group": "Primitives",
     "test_name": "Mesh Quad Mesh",
     "passed": true,
-    "time_ms": 3.671,
+    "time_ms": 4.786,
     "line": 948,
     "code": "    from session_py import Primitives\n\n    cyl = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = Primitives.quad_mesh(cyl, 8, 4)\n\n    sph = Primitives.sphere_surface(0, 0, 0, 3.0)\n    m2 = Primitives.quad_mesh(sph, 8, 4)",
     "checks": [
@@ -2416,7 +2416,7 @@
     "group": "Primitives",
     "test_name": "Mesh Diamond Mesh",
     "passed": true,
-    "time_ms": 2.777,
+    "time_ms": 3.092,
     "line": 965,
     "code": "    from session_py import Primitives\n\n    cyl = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = Primitives.diamond_mesh(cyl, 8, 4)\n\n    sph = Primitives.sphere_surface(0, 0, 0, 3.0)\n    m2 = Primitives.diamond_mesh(sph, 8, 4)",
     "checks": [
@@ -2457,7 +2457,7 @@
     "group": "Primitives",
     "test_name": "Mesh Hex Mesh",
     "passed": true,
-    "time_ms": 5.311,
+    "time_ms": 7.689,
     "line": 982,
     "code": "    from session_py import Primitives\n\n    cyl = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = Primitives.hex_mesh(cyl, 6, 4, 1.0/3.0)\n\n    sph = Primitives.sphere_surface(0, 0, 0, 3.0)\n    m2 = Primitives.hex_mesh(sph, 6, 4, 1.0/3.0)",
     "checks": [
@@ -2498,7 +2498,7 @@
     "group": "Primitives",
     "test_name": "Mesh Cone Subdivisions",
     "passed": true,
-    "time_ms": 5.076,
+    "time_ms": 10.406,
     "line": 1000,
     "code": "    from session_py import Primitives\n\n    cone = Primitives.cone_surface(0, 0, 0, 3.0, 5.0)\n\n    m1 = Primitives.quad_mesh(cone, 8, 4)\n\n    m2 = Primitives.diamond_mesh(cone, 8, 4)\n\n    m3 = Primitives.hex_mesh(cone, 6, 4, 1.0/3.0)",
     "checks": [
@@ -2554,7 +2554,7 @@
     "group": "Primitives",
     "test_name": "Nurbscurve Interpolated",
     "passed": true,
-    "time_ms": 1.099,
+    "time_ms": 1.425,
     "line": 1022,
     "code": "    from session_py import Primitives\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py import nurbsknot\n\n    points = [\n        Point(14, 9, 0),\n        Point(15.342777, 13.734889, 0),\n        Point(21.897914, 32.239195, 0),\n        Point(24.678472, 0.354555, 0),\n        Point(33.813678, 24.76858, 0),\n        Point(39.626394, 15.47249, 0),\n        Point(41, 13, 0),\n    ]\n\n    c = Primitives.create_interpolated(points, nurbsknot.CurveNurbsKnotStyle.Chord)\n\n\n    d0, d1 = c.domain()\n    nurbsknots = c.get_nurbsknots()\n\n\n    pts4 = [\n        Point(0, 0, 0),\n        Point(1, 2, 0),\n        Point(3, 1, 0),\n        Point(5, 3, 0),\n    ]\n    c4 = Primitives.create_interpolated(pts4, nurbsknot.CurveNurbsKnotStyle.Chord)\n    d4_0, d4_1 = c4.domain()",
     "checks": [
@@ -2660,7 +2660,7 @@
     "group": "Primitives",
     "test_name": "Mesh Tetrahedron",
     "passed": true,
-    "time_ms": 0.097,
+    "time_ms": 0.168,
     "line": 1075,
     "code": "    from session_py import Primitives\n\n    m = Primitives.tetrahedron(2.0)",
     "checks": [
@@ -2686,7 +2686,7 @@
     "group": "Primitives",
     "test_name": "Mesh Cube",
     "passed": true,
-    "time_ms": 0.891,
+    "time_ms": 0.633,
     "line": 1085,
     "code": "    from session_py import Primitives\n\n    m = Primitives.cube(2.0)",
     "checks": [
@@ -2712,7 +2712,7 @@
     "group": "Primitives",
     "test_name": "Mesh Octahedron",
     "passed": true,
-    "time_ms": 0.248,
+    "time_ms": 0.103,
     "line": 1095,
     "code": "    from session_py import Primitives\n\n    m = Primitives.octahedron(2.0)",
     "checks": [
@@ -2738,7 +2738,7 @@
     "group": "Primitives",
     "test_name": "Mesh Icosahedron",
     "passed": true,
-    "time_ms": 0.212,
+    "time_ms": 0.361,
     "line": 1105,
     "code": "    from session_py import Primitives\n\n    m = Primitives.icosahedron(2.0)",
     "checks": [
@@ -2764,7 +2764,7 @@
     "group": "Primitives",
     "test_name": "Nurbssurface Wave",
     "passed": true,
-    "time_ms": 0.456,
+    "time_ms": 0.817,
     "line": 1115,
     "code": "    from session_py import Primitives\n\n    srf = Primitives.wave_surface(10.0, 2.0)\n    corner = srf.point_at(0.0, 0.0)",
     "checks": [

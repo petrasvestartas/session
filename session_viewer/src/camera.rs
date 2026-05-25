@@ -251,6 +251,20 @@ impl Camera {
         self.ortho_scale = self.initial_distance;
         self.update_position();
     }
+
+    /// Fit the camera to a sphere defined by a centre (mm) and half-diagonal (mm).
+    /// Keeps current orientation; adjusts target, distance, and ortho_scale.
+    pub fn fit_to_box(&mut self, center_mm: [f32; 3], half_diag_mm: f32) {
+        self.target = [
+            center_mm[0] * MM_TO_UNIT,
+            center_mm[1] * MM_TO_UNIT,
+            center_mm[2] * MM_TO_UNIT,
+        ];
+        let r = (half_diag_mm * MM_TO_UNIT).max(0.001);
+        self.distance    = (r / (Tolerance::PI / 6.0_f32).tan()).clamp(MIN_ZOOM, MAX_ZOOM);
+        self.ortho_scale = (r * 1.2).max(0.001);
+        self.update_position();
+    }
 }
 
 // ============================================================
@@ -363,7 +377,7 @@ impl CameraController {
             KeyCode::KeyS | KeyCode::ArrowDown  => self.amount_down  = v,
             KeyCode::KeyA | KeyCode::ArrowLeft  => self.amount_left  = v,
             KeyCode::KeyD | KeyCode::ArrowRight => self.amount_right = v,
-            KeyCode::KeyC | KeyCode::KeyF => { if pressed { self.reset_pressed = true; } }
+            KeyCode::KeyC => { if pressed { self.reset_pressed = true; } }
             KeyCode::KeyP => { if pressed { self.proj_request = Some(ProjMode::Perspective); } }
             KeyCode::KeyO => { if pressed { self.proj_request = Some(ProjMode::Ortho); } }
             KeyCode::KeyT => { if pressed { self.view_request = Some(NamedView::Top); } }

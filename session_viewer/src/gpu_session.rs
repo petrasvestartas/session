@@ -5,13 +5,13 @@ use std::collections::HashMap;
 
 use crate::gpu_adapters::{
     color_to_rgba_f32, color_to_rgba_u8,
-    line_to_vertices, mesh_to_vertices, named_point_to_cross_vertices,
+    line_endpoint_glyphs, line_to_segment, mesh_to_vertices, named_point_to_cross_vertices,
     obb_to_line_vertices, plane_to_mesh_vertices, point_to_vertex,
-    pointcloud_to_vertices, polyline_to_vertices,
+    pointcloud_to_point_vertices, polyline_endpoint_glyphs, polyline_to_segments,
 };
 use crate::gpu_arena::GpuArena;
 
-// ── Vertex types ─────────────────────────────────────────────────────────────
+// ── Vertex types & instance types ────────────────────────────────────────────
 
 /// Triangle-arena vertex. 28 bytes: position + normal + RGBA8.
 #[repr(C)]
@@ -75,6 +75,49 @@ impl PointVertex {
             attributes: &Self::ATTRIBS,
         }
     }
+}
+
+/// Template vertex for instanced cylinder/sphere geometry. 24 bytes.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Pod, Zeroable)]
+pub struct TemplateVertex {
+    pub position: [f32; 3],
+    pub normal:   [f32; 3],
+}
+
+impl TemplateVertex {
+    pub const ATTRIBS: [wgpu::VertexAttribute; 2] =
+        wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3];
+
+    pub fn layout() -> wgpu::VertexBufferLayout<'static> {
+        wgpu::VertexBufferLayout {
+            array_stride: std::mem::size_of::<Self>() as wgpu::BufferAddress,
+            step_mode: wgpu::VertexStepMode::Vertex,
+            attributes: &Self::ATTRIBS,
+        }
+    }
+}
+
+/// One cylinder segment stored in the GPU segment storage buffer. 32 bytes.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Pod, Zeroable)]
+pub struct CylinderSegment {
+    pub p0:          [f32; 3],
+    pub radius:      f32,       // 0.0 = use shader default CYLINDER_RADIUS
+    pub p1:          [f32; 3],
+    pub instance_id: u32,
+    pub color:       [f32; 4],  // if alpha > 0, overrides inst.tint; else falls back to inst.tint
+}
+
+/// One sphere glyph point stored in the GPU glyph storage buffer. 48 bytes.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Pod, Zeroable)]
+pub struct GlyphPoint {
+    pub center:      [f32; 3],
+    pub radius:      f32,
+    pub color:       [f32; 4],
+    pub instance_id: u32,
+    pub _pad:        [u32; 3],
 }
 
 // ── InstanceData ─────────────────────────────────────────────────────────────
@@ -170,21 +213,44 @@ const DEFAULT_LINE_VERTS: u32 = 4096;
 const DEFAULT_LINE_INDS: u32 = 8192;
 const DEFAULT_POINT_VERTS: u32 = 4096;
 const DEFAULT_INSTANCE_CAP: u32 = 1024;
+const DEFAULT_SEGMENT_CAP: usize = 64;
+const DEFAULT_GLYPH_CAP:   usize = 64;
 
 pub struct GpuSession {
-    pub tri: GpuArena<MeshVertex>,
-    pub line: GpuArena<LineVertex>,
+    pub tri:   GpuArena<MeshVertex>,
+    pub line:  GpuArena<LineVertex>,
     pub point: GpuArena<PointVertex>,
 
-    pub instance_buffer: wgpu::Buffer,
+    pub instance_buffer:   wgpu::Buffer,
     pub instance_capacity: u32,
-    pub instances_cpu: Vec<InstanceData>,
+    pub instances_cpu:     Vec<InstanceData>,
 
     pub pick: PickTable,
+
+    // Instanced cylinder pipeline (Line / Polyline → tubes)
+    pub cylinder_vbo:      wgpu::Buffer,
+    pub cylinder_ibo:      wgpu::Buffer,
+    pub segments_cpu:      Vec<CylinderSegment>,
+    pub segments_gpu:      wgpu::Buffer,
+    pub segment_bg:        wgpu::BindGroup,
+    pub guid_to_seg:       HashMap<String, std::ops::Range<usize>>,
+    pub segments_dirty:    bool,
+
+    // Instanced sphere pipeline (PointCloud → sphere glyphs)
+    pub sphere_vbo:        wgpu::Buffer,
+    pub sphere_ibo:        wgpu::Buffer,
+    pub glyphs_cpu:        Vec<GlyphPoint>,
+    pub glyphs_gpu:        wgpu::Buffer,
+    pub glyph_sphere_bg:   wgpu::BindGroup,
+    pub guid_to_glyph:     HashMap<String, std::ops::Range<usize>>,
+    pub glyphs_dirty:      bool,
 }
 
 impl GpuSession {
-    pub fn new(device: &wgpu::Device) -> Self {
+    pub fn new(device: &wgpu::Device, geom_bgl: &wgpu::BindGroupLayout) -> Self {
+        use wgpu::util::DeviceExt;
+        use crate::gpu_adapters::{unit_cylinder_template, unit_sphere_template};
+
         let tri   = GpuArena::<MeshVertex>::new(device, "gpu_session.tri",   DEFAULT_TRI_VERTS,   DEFAULT_TRI_INDS);
         let line  = GpuArena::<LineVertex>::new(device, "gpu_session.line",  DEFAULT_LINE_VERTS,  DEFAULT_LINE_INDS);
         let point = GpuArena::<PointVertex>::new(device, "gpu_session.point", DEFAULT_POINT_VERTS, 0);
@@ -196,7 +262,57 @@ impl GpuSession {
             mapped_at_creation: false,
         });
 
-        Self { tri, line, point, instance_buffer, instance_capacity: DEFAULT_INSTANCE_CAP, instances_cpu: Vec::new(), pick: PickTable::new() }
+        // Cylinder template
+        let (cyl_v, cyl_i) = unit_cylinder_template();
+        let cylinder_vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("cylinder.template.vbo"),
+            contents: bytemuck::cast_slice(&cyl_v),
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        let cylinder_ibo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("cylinder.template.ibo"),
+            contents: bytemuck::cast_slice(&cyl_i),
+            usage: wgpu::BufferUsages::INDEX,
+        });
+        let seg_init = vec![CylinderSegment { p0: [0.0;3], radius: 0.0, p1: [0.0;3], instance_id: 0, color: [0.0;4] }; DEFAULT_SEGMENT_CAP];
+        let segments_gpu = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("gpu_session.segments"),
+            contents: bytemuck::cast_slice(&seg_init),
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+        });
+        let segment_bg = make_geom_bind_group(device, geom_bgl, &segments_gpu);
+
+        // Sphere template
+        let (sph_v, sph_i) = unit_sphere_template();
+        let sphere_vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("sphere.template.vbo"),
+            contents: bytemuck::cast_slice(&sph_v),
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        let sphere_ibo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("sphere.template.ibo"),
+            contents: bytemuck::cast_slice(&sph_i),
+            usage: wgpu::BufferUsages::INDEX,
+        });
+        let gly_init = vec![GlyphPoint { center: [0.0;3], radius: 0.0, color: [0.0;4], instance_id: 0, _pad: [0;3] }; DEFAULT_GLYPH_CAP];
+        let glyphs_gpu = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("gpu_session.glyphs"),
+            contents: bytemuck::cast_slice(&gly_init),
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+        });
+        let glyph_sphere_bg = make_geom_bind_group(device, geom_bgl, &glyphs_gpu);
+
+        Self {
+            tri, line, point,
+            instance_buffer, instance_capacity: DEFAULT_INSTANCE_CAP, instances_cpu: Vec::new(),
+            pick: PickTable::new(),
+            cylinder_vbo, cylinder_ibo,
+            segments_cpu: Vec::new(), segments_gpu, segment_bg,
+            guid_to_seg: HashMap::new(), segments_dirty: false,
+            sphere_vbo, sphere_ibo,
+            glyphs_cpu: Vec::new(), glyphs_gpu, glyph_sphere_bg,
+            guid_to_glyph: HashMap::new(), glyphs_dirty: false,
+        }
     }
 
     pub fn rebuild_from(&mut self, session: &session_rust::session::Session, device: &wgpu::Device, queue: &wgpu::Queue) {
@@ -248,24 +364,40 @@ impl GpuSession {
                     self.line.allocate(guid, &vs, Some(&is), instance_id, device, queue);
                     self.write_instance(instance_id, color_to_rgba_f32(&p.pointcolor), device, queue);
                 } else {
-                    let v = point_to_vertex(p);
-                    self.point.allocate(guid, &[v], None, instance_id, device, queue);
+                    let vs = point_to_vertex(p);
+                    self.point.allocate(guid, &vs, None, instance_id, device, queue);
                     self.write_instance(instance_id, color_to_rgba_f32(&p.pointcolor), device, queue);
                 }
             }
             Geometry::Line(l) => {
-                let vs = line_to_vertices(l);
-                self.line.allocate(guid, &vs, None, instance_id, device, queue);
+                let seg = line_to_segment(l, instance_id);
+                let seg_start = self.segments_cpu.len();
+                self.segments_cpu.push(seg);
+                self.guid_to_seg.insert(guid.to_string(), seg_start..self.segments_cpu.len());
+                self.segments_dirty = true;
+                let gly_start = self.glyphs_cpu.len();
+                self.glyphs_cpu.extend(line_endpoint_glyphs(l, instance_id));
+                self.guid_to_glyph.insert(guid.to_string(), gly_start..self.glyphs_cpu.len());
+                self.glyphs_dirty = true;
                 self.write_instance(instance_id, color_to_rgba_f32(&l.linecolor), device, queue);
             }
             Geometry::Polyline(pl) => {
-                let (vs, is) = polyline_to_vertices(pl);
-                self.line.allocate(guid, &vs, Some(&is), instance_id, device, queue);
+                let segs = polyline_to_segments(pl, instance_id);
+                if segs.is_empty() { self.pick.release(guid); return; }
+                let seg_start = self.segments_cpu.len();
+                self.segments_cpu.extend(segs);
+                self.guid_to_seg.insert(guid.to_string(), seg_start..self.segments_cpu.len());
+                self.segments_dirty = true;
+                let gly_start = self.glyphs_cpu.len();
+                self.glyphs_cpu.extend(polyline_endpoint_glyphs(pl, instance_id));
+                self.guid_to_glyph.insert(guid.to_string(), gly_start..self.glyphs_cpu.len());
+                self.glyphs_dirty = true;
                 self.write_instance(instance_id, color_to_rgba_f32(&pl.linecolor), device, queue);
             }
             Geometry::PointCloud(pc) => {
-                let vs = pointcloud_to_vertices(pc);
-                self.point.allocate(guid, &vs, None, instance_id, device, queue);
+                let verts = pointcloud_to_point_vertices(pc);
+                if verts.is_empty() { self.pick.release(guid); return; }
+                self.point.allocate(guid, &verts, None, instance_id, device, queue);
                 self.write_instance(instance_id, [1.0, 1.0, 1.0, 1.0], device, queue);
             }
             Geometry::Mesh(m) => {
@@ -327,6 +459,22 @@ impl GpuSession {
         self.tri.free(guid);
         self.line.free(guid);
         self.point.free(guid);
+        if let Some(r) = self.guid_to_seg.remove(guid) {
+            let n = r.end - r.start;
+            self.segments_cpu.drain(r.start..r.end);
+            for range in self.guid_to_seg.values_mut() {
+                if range.start >= r.start + n { range.start -= n; range.end -= n; }
+            }
+            self.segments_dirty = true;
+        }
+        if let Some(r) = self.guid_to_glyph.remove(guid) {
+            let n = r.end - r.start;
+            self.glyphs_cpu.drain(r.start..r.end);
+            for range in self.guid_to_glyph.values_mut() {
+                if range.start >= r.start + n { range.start -= n; range.end -= n; }
+            }
+            self.glyphs_dirty = true;
+        }
         self.pick.release(guid);
     }
 
@@ -336,6 +484,12 @@ impl GpuSession {
         self.point.clear();
         self.pick.clear();
         self.instances_cpu.clear();
+        self.segments_cpu.clear();
+        self.guid_to_seg.clear();
+        self.segments_dirty = true;
+        self.glyphs_cpu.clear();
+        self.guid_to_glyph.clear();
+        self.glyphs_dirty = true;
     }
 
     fn write_instance(&mut self, instance_id: u32, color: [f32; 4], device: &wgpu::Device, queue: &wgpu::Queue) {
@@ -422,4 +576,63 @@ impl GpuSession {
             pass.draw(slot.vertex_range.clone(), slot.instance_id..(slot.instance_id+1));
         }
     }
+
+    pub fn draw_cylinders<'a>(&'a self, pass: &mut wgpu::RenderPass<'a>) {
+        if self.segments_cpu.is_empty() { return; }
+        pass.set_vertex_buffer(0, self.cylinder_vbo.slice(..));
+        pass.set_index_buffer(self.cylinder_ibo.slice(..), wgpu::IndexFormat::Uint32);
+        pass.draw_indexed(0..crate::gpu_adapters::N_CYL_INDICES, 0, 0..self.segments_cpu.len() as u32);
+    }
+
+    pub fn draw_spheres<'a>(&'a self, pass: &mut wgpu::RenderPass<'a>) {
+        if self.glyphs_cpu.is_empty() { return; }
+        pass.set_vertex_buffer(0, self.sphere_vbo.slice(..));
+        pass.set_index_buffer(self.sphere_ibo.slice(..), wgpu::IndexFormat::Uint32);
+        pass.draw_indexed(0..crate::gpu_adapters::N_SPHERE_INDICES, 0, 0..self.glyphs_cpu.len() as u32);
+    }
+
+    pub fn flush_geometry(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, geom_bgl: &wgpu::BindGroupLayout) {
+        if self.segments_dirty {
+            let needed = (self.segments_cpu.len().max(1) * std::mem::size_of::<CylinderSegment>()) as u64;
+            if needed > self.segments_gpu.size() {
+                let new_size = (self.segments_gpu.size() * 2).max(needed);
+                self.segments_gpu = device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("gpu_session.segments"),
+                    size: new_size,
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                });
+                self.segment_bg = make_geom_bind_group(device, geom_bgl, &self.segments_gpu);
+            }
+            if !self.segments_cpu.is_empty() {
+                queue.write_buffer(&self.segments_gpu, 0, bytemuck::cast_slice(&self.segments_cpu));
+            }
+            self.segments_dirty = false;
+        }
+        if self.glyphs_dirty {
+            let needed = (self.glyphs_cpu.len().max(1) * std::mem::size_of::<GlyphPoint>()) as u64;
+            if needed > self.glyphs_gpu.size() {
+                let new_size = (self.glyphs_gpu.size() * 2).max(needed);
+                self.glyphs_gpu = device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("gpu_session.glyphs"),
+                    size: new_size,
+                    usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                });
+                self.glyph_sphere_bg = make_geom_bind_group(device, geom_bgl, &self.glyphs_gpu);
+            }
+            if !self.glyphs_cpu.is_empty() {
+                queue.write_buffer(&self.glyphs_gpu, 0, bytemuck::cast_slice(&self.glyphs_cpu));
+            }
+            self.glyphs_dirty = false;
+        }
+    }
+}
+
+pub fn make_geom_bind_group(device: &wgpu::Device, layout: &wgpu::BindGroupLayout, buf: &wgpu::Buffer) -> wgpu::BindGroup {
+    device.create_bind_group(&wgpu::BindGroupDescriptor {
+        label: Some("geom.bg"),
+        layout,
+        entries: &[wgpu::BindGroupEntry { binding: 0, resource: buf.as_entire_binding() }],
+    })
 }

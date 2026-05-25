@@ -3,7 +3,7 @@
     "group": "Closest",
     "test_name": "Line Point",
     "passed": true,
-    "time_ms": 0.027,
+    "time_ms": 0.011,
     "line": 20,
     "code": "    // uncomment #include \"closest.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"point.h\"\n    Line l(0.0, 0.0, 0.0, 10.0, 0.0, 0.0);\n\n    auto [cp1, t1, d1] = Closest::line_point(l, Point(5.0, 5.0, 0.0));\n\n\n    auto [cp2, t2, d2] = Closest::line_point(l, Point(-5.0, 0.0, 0.0));\n\n    auto [cp3, t3, d3] = Closest::line_point(l, Point(15.0, 0.0, 0.0));",
     "checks": [
@@ -64,7 +64,7 @@
     "group": "Closest",
     "test_name": "Polyline Point",
     "passed": true,
-    "time_ms": 0.029,
+    "time_ms": 0.009,
     "line": 44,
     "code": "    // uncomment #include \"closest.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"polyline.h\"\n    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    });\n\n    auto [cp1, t1, d1] = Closest::polyline_point(pl, Point(5.0, 5.0, 0.0));\n\n\n    auto [cp2, t2, d2] = Closest::polyline_point(pl, Point(10.0, 5.0, 0.0));",
     "checks": [
@@ -95,7 +95,7 @@
     "group": "Closest",
     "test_name": "Curve Point",
     "passed": true,
-    "time_ms": 0.099,
+    "time_ms": 0.091,
     "line": 64,
     "code": "    // uncomment #include \"closest.h\"\n    // uncomment #include \"nurbscurve.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 2.0, 0.0),\n        Point(3.0, 2.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    };\n    NurbsCurve crv = NurbsCurve::create(false, 3, pts);\n\n    auto [t, dist] = Closest::curve_point(crv, Point(2.0, 3.0, 0.0));\n\n    Point cp = crv.point_at(t);\n\n    auto [t2, dist2] = Closest::curve_point(crv, Point(0.0, 0.0, 0.0));",
     "checks": [
@@ -121,7 +121,7 @@
     "group": "Closest",
     "test_name": "Surface Point",
     "passed": true,
-    "time_ms": 0.231,
+    "time_ms": 0.22,
     "line": 86,
     "code": "    // uncomment #include \"closest.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts = {\n        // i=0\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        // i=1\n        Point(0.0, 1.0, 0.0),\n        Point(1.0, 1.0, 1.0),\n        Point(2.0, 1.0, 1.0),\n        Point(3.0, 1.0, 0.0),\n        // i=2\n        Point(0.0, 2.0, 0.0),\n        Point(1.0, 2.0, 1.0),\n        Point(2.0, 2.0, 1.0),\n        Point(3.0, 2.0, 0.0),\n        // i=3\n        Point(0.0, 3.0, 0.0),\n        Point(1.0, 3.0, 0.0),\n        Point(2.0, 3.0, 0.0),\n        Point(3.0, 3.0, 0.0),\n    };\n    NurbsSurface srf = NurbsSurface::create(false, false, 3, 3, 4, 4, pts);\n\n    auto [u, v, dist] = Closest::surface_point(srf, Point(1.5, 1.5, 2.0));\n\n    Point cp = srf.point_at(u, v);\n\n    auto [u2, v2, dist2] = Closest::surface_point(srf, Point(0.0, 0.0, 0.0));",
     "checks": [
@@ -147,7 +147,7 @@
     "group": "Closest",
     "test_name": "Mesh Point",
     "passed": true,
-    "time_ms": 2.485,
+    "time_ms": 1.79,
     "line": 124,
     "code": "    // uncomment #include \"closest.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"primitives.h\"\n    Mesh m = Primitives::cube(2.0);\n\n    auto [cp1, fk1, d1] = Closest::mesh_point(m, Point(0.0, 0.0, 2.0));\n\n\n    auto [cp2, fk2, d2] = Closest::mesh_point(m, Point(1.0, 1.0, 1.0));",
     "checks": [
@@ -173,7 +173,7 @@
     "group": "Closest",
     "test_name": "Mesh Point AABB",
     "passed": true,
-    "time_ms": 1.111,
+    "time_ms": 1.319,
     "line": 140,
     "code": "    // uncomment #include \"closest.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"primitives.h\"\n    Mesh m = Primitives::cube(2.0);\n\n    auto [cp1, fk1, d1] = Closest::mesh_point_aabb(m, Point(0.0, 0.0, 2.0));\n\n\n    auto [cp2, fk2, d2] = Closest::mesh_point_aabb(m, Point(1.0, 1.0, 1.0));",
     "checks": [
@@ -199,7 +199,7 @@
     "group": "Closest",
     "test_name": "Pointcloud Point",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.009,
     "line": 156,
     "code": "    // uncomment #include \"closest.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"pointcloud.h\"\n    PointCloud pc({\n        Point(0.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    }, {}, {});\n\n    auto [cp1, i1, d1] = Closest::pointcloud_point(pc, Point(4.0, 0.0, 0.0));\n\n\n    auto [cp2, i2, d2] = Closest::pointcloud_point(pc, Point(10.0, 10.0, 0.0));",
     "checks": [
@@ -235,7 +235,7 @@
     "group": "Closest",
     "test_name": "Pointcloud Point SpatialKDTree",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.013,
     "line": 178,
     "code": "    // uncomment #include \"closest.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"pointcloud.h\"\n    // SpatialKDTree variant: same result as linear scan, O(log n) query\n    PointCloud pc({\n        Point(0.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    }, {}, {});\n\n    auto [cp1, i1, d1] = Closest::pointcloud_point_kdtree(pc, Point(4.0, 0.0, 0.0));\n\n\n    auto [cp2, i2, d2] = Closest::pointcloud_point_kdtree(pc, Point(10.0, 10.0, 0.0));",
     "checks": [
@@ -297,7 +297,7 @@
     "group": "Closest",
     "test_name": "Polylines Closest",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.019,
     "line": 219,
     "code": "    // uncomment #include \"closest.h\"\n    // uncomment #include \"aabb.h\"\n    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Polyline> pls = {\n        Polyline({Point(0.0, 0.0, 0.0), Point(5.0, 0.0, 0.0)}),\n        Polyline({Point(5.0, 0.0, 0.0), Point(10.0, 0.0, 0.0)}),\n        Polyline({Point(100.0, 0.0, 0.0), Point(110.0, 0.0, 0.0)}),\n    };\n\n    auto pairs = Closest::polylines_closest(pls, 0.01);",
     "checks": [
@@ -323,7 +323,7 @@
     "group": "Closest",
     "test_name": "Nurbscurves Closest",
     "passed": true,
-    "time_ms": 0.094,
+    "time_ms": 0.091,
     "line": 237,
     "code": "    // uncomment #include \"closest.h\"\n    // uncomment #include \"aabb.h\"\n    // uncomment #include \"nurbscurve.h\"\n    // uncomment #include \"point.h\"\n    std::vector<NurbsCurve> curves = {\n        NurbsCurve::create(false, 1, {Point(0.0, 0.0, 0.0), Point(5.0, 0.0, 0.0)}),\n        NurbsCurve::create(false, 1, {Point(5.0, 0.0, 0.0), Point(10.0, 0.0, 0.0)}),\n        NurbsCurve::create(false, 1, {Point(100.0, 0.0, 0.0), Point(110.0, 0.0, 0.0)}),\n    };\n\n    auto pairs = Closest::nurbscurves_closest(curves, 0.01);",
     "checks": [

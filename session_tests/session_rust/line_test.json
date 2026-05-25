@@ -128,7 +128,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.06499999761581421
+    "time_ms": 0.06300000101327896
   },
   {
     "checks": [
@@ -154,7 +154,7 @@
     "line": 116,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.014000000432133675
+    "time_ms": 0.013000000268220901
   },
   {
     "checks": [
@@ -215,7 +215,7 @@
     "line": 132,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 16.30299949645996
+    "time_ms": 13.602999687194824
   },
   {
     "checks": [
@@ -281,7 +281,7 @@
     "line": 173,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 15.899999618530273
+    "time_ms": 11.984000205993652
   },
   {
     "checks": [
@@ -302,7 +302,7 @@
     "line": 209,
     "passed": true,
     "test_name": "Length",
-    "time_ms": 0.006000000052154064
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
@@ -318,7 +318,7 @@
     "line": 222,
     "passed": true,
     "test_name": "To Vector",
-    "time_ms": 0.020999999716877937
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
@@ -349,7 +349,7 @@
     "line": 233,
     "passed": true,
     "test_name": "To Direction",
-    "time_ms": 0.00800000037997961
+    "time_ms": 0.008999999612569809
   },
   {
     "checks": [
@@ -375,7 +375,7 @@
     "line": 247,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.010999999940395355
+    "time_ms": 0.004999999888241291
   },
   {
     "checks": [
@@ -416,7 +416,7 @@
     "line": 262,
     "passed": true,
     "test_name": "Closest Point",
-    "time_ms": 0.00800000037997961
+    "time_ms": 0.006000000052154064
   },
   {
     "checks": [
@@ -530,7 +530,7 @@
     "line": 361,
     "passed": true,
     "test_name": "Extend",
-    "time_ms": 0.012000000104308128
+    "time_ms": 0.009999999776482582
   },
   {
     "checks": [
@@ -551,7 +551,7 @@
     "line": 350,
     "passed": true,
     "test_name": "Overlap Average",
-    "time_ms": 0.04600000008940697
+    "time_ms": 0.041999999433755875
   },
   {
     "checks": [
