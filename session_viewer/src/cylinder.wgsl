@@ -78,6 +78,7 @@ fn vs_main(
 @fragment
 fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
     if (in.flags & 2u) != 0u { discard; }
+    if (in.flags & 8u) != 0u { discard; }
     if (in.flags & 1u) != 0u { return vec4<f32>(1.0, 1.0, 0.0, in.color.a); }
     return in.color;
 }

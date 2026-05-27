@@ -5077,7 +5077,6 @@ window.API_INDEX = {
         "BRep.duplicate",
         "BRep.edge_count",
         "BRep.face_count",
-        "BRep.face_meshes",
         "BRep.find_edge",
         "BRep.find_or_add",
         "BRep.from_nurbscurves",
@@ -5086,7 +5085,6 @@ window.API_INDEX = {
         "BRep.is_solid",
         "BRep.is_valid",
         "BRep.make_cap",
-        "BRep.mesh",
         "BRep.pt3d",
         "BRep.vertex_count"
       ]
@@ -5267,14 +5265,12 @@ window.API_INDEX = {
         "BRep.create_box",
         "BRep.create_cylinder",
         "BRep.create_sphere",
-        "BRep.face_meshes",
         "BRep.find_edge",
         "BRep.from_nurbscurves",
         "BRep.from_polylines",
         "BRep.get_edge",
         "BRep.is_solid",
         "BRep.make_cap",
-        "BRep.mesh",
         "BRep.new",
         "BRep.pt3d"
       ]
@@ -5390,7 +5386,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "create_sphere(radius: f32) -> Self",
-          "code": "pub fn create_sphere(radius: f32) -> Self {\n        use crate::primitives::Primitives;\n        let mut brep = BRep::new();\n        brep.name = \"sphere\".to_string();\n        let srf = Primitives::sphere_surface(0.0, 0.0, 0.0, radius);\n        let dom_u = srf.domain(0).unwrap();\n        let dom_v = srf.domain(1).unwrap();\n        let p_south = Point::new(0.0, 0.0, -radius);\n        let p_north = Point::new(0.0, 0.0, radius);\n        let vi_south = brep.add_vertex(&p_south) as i32;\n        let vi_north = brep.add_vertex(&p_north) as i32;\n        brep.m_topology_vertices.push(BRepVertex { point_index: vi_south, edge_indices: Vec::new() });\n        brep.m_topology_vertices.push(BRepVertex { point_index: vi_north, edge_indices: Vec::new() });\n        let seam_crv = NurbsCurve::create(false, 1, &[p_south, p_north]);\n        let ci_seam = brep.add_curve_3d(&seam_crv) as i32;\n        let ei_seam = brep.add_edge(ci_seam, 0, 1) as i32;\n        let si = brep.add_surface(&srf) as i32;\n        let fi = brep.add_face(si, false) as i32;\n        let li = brep.add_loop(fi, BRepLoopType::Outer) as i32;\n        let c2d_south = NurbsCurve::create(false, 1, &[\n            Point::new(dom_u.0, dom_v.0, 0.0), Point::new(dom_u.1, dom_v.0, 0.0),\n        ]);\n        let ci = brep.add_curve_2d(&c2d_south) as i32;\n        brep.add_trim(ci, -1, li, false, BRepTrimType::Singular);\n        let c2d_sr = NurbsCurve::create(false, 1, &[\n            Point::new(dom_u.1, dom_v.0, 0.0), Point::new(dom_u.1, dom_v.1, 0.0),\n        ]);\n        let ci = brep.add_curve_2d(&c2d_sr) as i32;\n        brep.add_trim(ci, ei_seam, li, false, BRepTrimType::Seam);\n        let c2d_north = NurbsCurve::create(false, 1, &[\n            Point::new(dom_u.1, dom_v.1, 0.0), Point::new(dom_u.0, dom_v.1, 0.0),\n        ]);\n        let ci = brep.add_curve_2d(&c2d_north) as i32;\n        brep.add_trim(ci, -1, li, false, BRepTrimType::Singular);\n        let c2d_sl = NurbsCurve::create(false, 1, &[\n            Point::new(dom_u.0, dom_v.1, 0.0), Point::new(dom_u.0, dom_v.0, 0.0),\n        ]);\n        let ci = brep.add_curve_2d(&c2d_sl) as i32;\n        brep.add_trim(ci, ei_seam, li, true, BRepTrimType::Seam);\n        for ei in 0..brep.m_topology_edges.len() {\n            let sv = brep.m_topology_edges[ei].start_vertex as usize;\n            let ev = brep.m_topology_edges[ei].end_vertex as usize;\n            brep.m_topology_vertices[sv].edge_indices.push(ei as i32);\n            brep.m_topology_vertices[ev].edge_indices.push(ei as i32);\n        }\n        brep\n    }",
+          "code": "pub fn create_sphere(radius: f32) -> Self {\n        use crate::primitives::Primitives;\n        let mut brep = BRep::new();\n        brep.name = \"sphere\".to_string();\n        let srf = Primitives::sphere_surface(0.0, 0.0, 0.0, radius);\n        let dom_u = srf.domain(0).unwrap();\n        let dom_v = srf.domain(1).unwrap();\n        let p_south = Point::new(0.0, 0.0, -radius);\n        let p_north = Point::new(0.0, 0.0, radius);\n        let vi_south = brep.add_vertex(&p_south) as i32;\n        let vi_north = brep.add_vertex(&p_north) as i32;\n        brep.m_topology_vertices.push(BRepVertex { point_index: vi_south, edge_indices: Vec::new() });\n        brep.m_topology_vertices.push(BRepVertex { point_index: vi_north, edge_indices: Vec::new() });\n        let seam_pts: Vec<Point> = {\n            let n = 32;\n            (0..=n).map(|i| {\n                let v = dom_v.0 + i as f32 * (dom_v.1 - dom_v.0) / n as f32;\n                srf.point_at(dom_u.0, v).unwrap_or(Point::new(0.0, 0.0, 0.0))\n            }).collect()\n        };\n        let seam_crv = NurbsCurve::create(false, 1, &seam_pts);\n        let ci_seam = brep.add_curve_3d(&seam_crv) as i32;\n        let ei_seam = brep.add_edge(ci_seam, 0, 1) as i32;\n        let si = brep.add_surface(&srf) as i32;\n        let fi = brep.add_face(si, false) as i32;\n        let li = brep.add_loop(fi, BRepLoopType::Outer) as i32;\n        let c2d_south = NurbsCurve::create(false, 1, &[\n            Point::new(dom_u.0, dom_v.0, 0.0), Point::new(dom_u.1, dom_v.0, 0.0),\n        ]);\n        let ci = brep.add_curve_2d(&c2d_south) as i32;\n        brep.add_trim(ci, -1, li, false, BRepTrimType::Singular);\n        let c2d_sr = NurbsCurve::create(false, 1, &[\n            Point::new(dom_u.1, dom_v.0, 0.0), Point::new(dom_u.1, dom_v.1, 0.0),\n        ]);\n        let ci = brep.add_curve_2d(&c2d_sr) as i32;\n        brep.add_trim(ci, ei_seam, li, false, BRepTrimType::Seam);\n        let c2d_north = NurbsCurve::create(false, 1, &[\n            Point::new(dom_u.1, dom_v.1, 0.0), Point::new(dom_u.0, dom_v.1, 0.0),\n        ]);\n        let ci = brep.add_curve_2d(&c2d_north) as i32;\n        brep.add_trim(ci, -1, li, false, BRepTrimType::Singular);\n        let c2d_sl = NurbsCurve::create(false, 1, &[\n            Point::new(dom_u.0, dom_v.1, 0.0), Point::new(dom_u.0, dom_v.0, 0.0),\n        ]);\n        let ci = brep.add_curve_2d(&c2d_sl) as i32;\n        brep.add_trim(ci, ei_seam, li, true, BRepTrimType::Seam);\n        for ei in 0..brep.m_topology_edges.len() {\n            let sv = brep.m_topology_edges[ei].start_vertex as usize;\n            let ev = brep.m_topology_edges[ei].end_vertex as usize;\n            brep.m_topology_vertices[sv].edge_indices.push(ei as i32);\n            brep.m_topology_vertices[ev].edge_indices.push(ei as i32);\n        }\n        brep\n    }",
           "file": "brep.rs"
         }
       },
@@ -5408,6 +5404,7 @@ window.API_INDEX = {
         "BRep.create_cylinder",
         "BRep.find_edge",
         "BRep.new",
+        "BRep.point_at",
         "BRep.str"
       ]
     },
@@ -5726,17 +5723,14 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "mesh() -> Mesh",
-          "code": "pub fn mesh(&self) -> Mesh {\n        let nf = self.m_faces.len();\n\n        // Phase 1: Classify faces as direct (RemeshNurbsSurfaceGrid) or CDT\n        let mut face_direct = vec![false; nf];\n        for fi in 0..nf {\n            let face = &self.m_faces[fi];\n            if face.surface_index < 0 || face.surface_index as usize >= self.m_surfaces.len() { continue; }\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            let mut has_inner = false;\n            let mut all_linear = true;\n            let mut outer_pts: Vec<Point> = Vec::new();\n            for &li in &face.loop_indices {\n                if li < 0 || li as usize >= self.m_loops.len() { continue; }\n                let bloop = &self.m_loops[li as usize];\n                if bloop.loop_type == BRepLoopType::Inner { has_inner = true; }\n                for &ti in &bloop.trim_indices {\n                    if ti < 0 || ti as usize >= self.m_trims.len() { continue; }\n                    let trim = &self.m_trims[ti as usize];\n                    if trim.curve_2d_index < 0 || trim.curve_2d_index as usize >= self.m_curves_2d.len() { continue; }\n                    let crv = &self.m_curves_2d[trim.curve_2d_index as usize];\n                    if crv.degree() > 1 || crv.is_rational() { all_linear = false; }\n                    if bloop.loop_type == BRepLoopType::Outer && crv.degree() <= 1 && !crv.is_rational() {\n                        for k in 0..crv.cv_count().saturating_sub(1) {\n                            if let Some(p) = crv.get_cv(k) { outer_pts.push(p); }\n                        }\n                    }\n                }\n            }\n            let mut direct = !has_inner && all_linear;\n            if direct && !outer_pts.is_empty() {\n                if let (Some((u0, u1)), Some((v0, v1))) = (srf.domain(0), srf.domain(1)) {\n                    let tol = (u1 - u0).max(v1 - v0) * 0.01;\n                    let mut bb_umin = f32::INFINITY; let mut bb_umax = f32::NEG_INFINITY;\n                    let mut bb_vmin = f32::INFINITY; let mut bb_vmax = f32::NEG_INFINITY;\n                    for p in &outer_pts {\n                        if p[0] < bb_umin { bb_umin = p[0]; }\n                        if p[0] > bb_umax { bb_umax = p[0]; }\n                        if p[1] < bb_vmin { bb_vmin = p[1]; }\n                        if p[1] > bb_vmax { bb_vmax = p[1]; }\n                    }\n                    if (bb_umin - u0).abs() > tol || (bb_umax - u1).abs() > tol ||\n                       (bb_vmin - v0).abs() > tol || (bb_vmax - v1).abs() > tol {\n                        direct = false;\n                    }\n                }\n            }\n            face_direct[fi] = direct;\n        }\n\n        // Phase 2: Mesh direct faces\n        let mut fmesh: Vec<Mesh> = (0..nf).map(|_| Mesh::new()).collect();\n        for fi in 0..nf {\n            if !face_direct[fi] { continue; }\n            let face = &self.m_faces[fi];\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            fmesh[fi] = srf.mesh();\n        }\n\n        // Phase 3: Fan-tessellate CDT faces (outer loop boundary evaluated on surface)\n        for fi in 0..nf {\n            if face_direct[fi] { continue; }\n            let face = &self.m_faces[fi];\n            if face.surface_index < 0 || face.surface_index as usize >= self.m_surfaces.len() { continue; }\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            let mut outer_3d: Vec<Point> = Vec::new();\n            'outer_m: for &li in &face.loop_indices {\n                if li < 0 || li as usize >= self.m_loops.len() { continue; }\n                let bloop = &self.m_loops[li as usize];\n                if bloop.loop_type != BRepLoopType::Outer { continue; }\n                for &ti in &bloop.trim_indices {\n                    if ti < 0 || ti as usize >= self.m_trims.len() { continue; }\n                    let trim = &self.m_trims[ti as usize];\n                    if trim.trim_type == BRepTrimType::Singular { continue; }\n                    if trim.curve_2d_index < 0 || trim.curve_2d_index as usize >= self.m_curves_2d.len() { continue; }\n                    let crv = &self.m_curves_2d[trim.curve_2d_index as usize];\n                    let uv_pts: Vec<Point> = if crv.degree() <= 1 && !crv.is_rational() {\n                        (0..crv.cv_count().saturating_sub(1)).filter_map(|k| crv.get_cv(k)).collect()\n                    } else {\n                        let n = (crv.cv_count() * 4).max(16);\n                        let (pts, _) = crv.divide_by_count(n, true);\n                        pts[..pts.len().saturating_sub(1)].to_vec()\n                    };\n                    for uv in &uv_pts {\n                        if let Some(p3d) = srf.point_at(uv[0], uv[1]) {\n                            outer_3d.push(p3d);\n                        }\n                    }\n                }\n                break 'outer_m;\n            }\n            let n = outer_3d.len();\n            if n < 3 { continue; }\n            let cx: f32 = outer_3d.iter().map(|p| p[0]).sum::<f32>() / n as f32;\n            let cy: f32 = outer_3d.iter().map(|p| p[1]).sum::<f32>() / n as f32;\n            let cz: f32 = outer_3d.iter().map(|p| p[2]).sum::<f32>() / n as f32;\n            let center = Point::new(cx, cy, cz);\n            let mut m = Mesh::new();\n            for i in 0..n {\n                let p0 = outer_3d[i].clone();\n                let p1 = outer_3d[(i + 1) % n].clone();\n                let vk0 = m.add_vertex(p0, None);\n                let vk1 = m.add_vertex(p1, None);\n                let vc = m.add_vertex(center.clone(), None);\n                m.add_face(vec![vk0, vk1, vc], None);\n            }\n            fmesh[fi] = m;\n        }\n\n        // Phase 4: Combine\n        let mut all_polygons: Vec<Vec<Point>> = Vec::new();\n        for fi in 0..nf {\n            let face = &self.m_faces[fi];\n            let fm = &mut fmesh[fi];\n            if fm.face.is_empty() { continue; }\n            if face.reversed {\n                for (_, vd) in fm.vertex.iter_mut() {\n                    if let Some(n) = vd.normal() {\n                        vd.set_normal(-n[0], -n[1], -n[2]);\n                    }\n                }\n            }\n            for (_fk, fverts) in &fm.face {\n                let poly: Vec<Point> = fverts.iter()\n                    .filter_map(|vi| fm.vertex.get(vi).map(|v| Point::new(v.x, v.y, v.z)))\n                    .collect();\n                all_polygons.push(poly);\n            }\n        }\n        Mesh::from_polylines(all_polygons, None)\n    }",
+          "code": "pub fn mesh(&self) -> Mesh {\n        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        let nf = self.m_faces.len();\n\n        // Phase 1: Classify faces as direct (RemeshNurbsSurfaceGrid) or CDT\n        let mut face_direct = vec![false; nf];\n        for fi in 0..nf {\n            let face = &self.m_faces[fi];\n            if face.surface_index < 0 || face.surface_index as usize >= self.m_surfaces.len() { continue; }\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            let mut has_inner = false;\n            let mut all_linear = true;\n            let mut outer_pts: Vec<Point> = Vec::new();\n            for &li in &face.loop_indices {\n                if li < 0 || li as usize >= self.m_loops.len() { continue; }\n                let bloop = &self.m_loops[li as usize];\n                if bloop.loop_type == BRepLoopType::Inner { has_inner = true; }\n                for &ti in &bloop.trim_indices {\n                    if ti < 0 || ti as usize >= self.m_trims.len() { continue; }\n                    let trim = &self.m_trims[ti as usize];\n                    if trim.curve_2d_index < 0 || trim.curve_2d_index as usize >= self.m_curves_2d.len() { continue; }\n                    let crv = &self.m_curves_2d[trim.curve_2d_index as usize];\n                    if crv.degree() > 1 || crv.is_rational() { all_linear = false; }\n                    if bloop.loop_type == BRepLoopType::Outer && crv.degree() <= 1 && !crv.is_rational() {\n                        for k in 0..crv.cv_count().saturating_sub(1) {\n                            if let Some(p) = crv.get_cv(k) { outer_pts.push(p); }\n                        }\n                    }\n                }\n            }\n            let mut direct = !has_inner && all_linear;\n            if direct && !outer_pts.is_empty() {\n                if let (Some((u0, u1)), Some((v0, v1))) = (srf.domain(0), srf.domain(1)) {\n                    let tol = (u1 - u0).max(v1 - v0) * 0.01;\n                    let mut bb_umin = f32::INFINITY; let mut bb_umax = f32::NEG_INFINITY;\n                    let mut bb_vmin = f32::INFINITY; let mut bb_vmax = f32::NEG_INFINITY;\n                    for p in &outer_pts {\n                        if p[0] < bb_umin { bb_umin = p[0]; }\n                        if p[0] > bb_umax { bb_umax = p[0]; }\n                        if p[1] < bb_vmin { bb_vmin = p[1]; }\n                        if p[1] > bb_vmax { bb_vmax = p[1]; }\n                    }\n                    if (bb_umin - u0).abs() > tol || (bb_umax - u1).abs() > tol ||\n                       (bb_vmin - v0).abs() > tol || (bb_vmax - v1).abs() > tol {\n                        direct = false;\n                    }\n                }\n            }\n            face_direct[fi] = direct;\n        }\n\n        // Phase 2: Mesh direct faces\n        let mut fmesh: Vec<Mesh> = (0..nf).map(|_| Mesh::new()).collect();\n        for fi in 0..nf {\n            if !face_direct[fi] { continue; }\n            let face = &self.m_faces[fi];\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            fmesh[fi] = srf.mesh();\n        }\n\n        // Phase 3: Fan-tessellate CDT faces (outer loop boundary evaluated on surface)\n        for fi in 0..nf {\n            if face_direct[fi] { continue; }\n            let face = &self.m_faces[fi];\n            if face.surface_index < 0 || face.surface_index as usize >= self.m_surfaces.len() { continue; }\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            let mut ts = NurbsSurfaceTrimmed::new();\n            ts.m_surface = srf.clone();\n            for &li in &face.loop_indices {\n                if li < 0 || li as usize >= self.m_loops.len() { continue; }\n                let bloop = &self.m_loops[li as usize];\n                let mut loop_pts: Vec<Point> = Vec::new();\n                for &ti in &bloop.trim_indices {\n                    if ti < 0 || ti as usize >= self.m_trims.len() { continue; }\n                    let trim = &self.m_trims[ti as usize];\n                    if trim.trim_type == BRepTrimType::Singular { continue; }\n                    if trim.curve_2d_index < 0 || trim.curve_2d_index as usize >= self.m_curves_2d.len() { continue; }\n                    let crv = &self.m_curves_2d[trim.curve_2d_index as usize];\n                    if crv.degree() <= 1 && !crv.is_rational() {\n                        for k in 0..crv.cv_count().saturating_sub(1) {\n                            if let Some(p) = crv.get_cv(k) { loop_pts.push(p); }\n                        }\n                    } else {\n                        let n = (crv.cv_count() * 4).max(16);\n                        let (pts, _) = crv.divide_by_count(n, false);\n                        for k in 0..pts.len().saturating_sub(1) { loop_pts.push(pts[k].clone()); }\n                    }\n                }\n                if loop_pts.len() >= 3 {\n                    let loop_crv = NurbsCurve::create(true, 1, &loop_pts);\n                    if bloop.loop_type == BRepLoopType::Outer {\n                        ts.m_outer_loop = Some(loop_crv);\n                    } else {\n                        ts.m_inner_loops.push(loop_crv);\n                    }\n                }\n            }\n            fmesh[fi] = ts.mesh();\n        }\n\n        // Phase 4: Combine\n        let mut all_polygons: Vec<Vec<Point>> = Vec::new();\n        for fi in 0..nf {\n            let face = &self.m_faces[fi];\n            let fm = &mut fmesh[fi];\n            if fm.face.is_empty() { continue; }\n            if face.reversed {\n                for (_, vd) in fm.vertex.iter_mut() {\n                    if let Some(n) = vd.normal() {\n                        vd.set_normal(-n[0], -n[1], -n[2]);\n                    }\n                }\n            }\n            for (_fk, fverts) in &fm.face {\n                let poly: Vec<Point> = fverts.iter()\n                    .filter_map(|vi| fm.vertex.get(vi).map(|v| Point::new(v.x, v.y, v.z)))\n                    .collect();\n                all_polygons.push(poly);\n            }\n        }\n        Mesh::from_polylines(all_polygons, None)\n    }",
           "file": "brep.rs"
         }
       },
       "related": [
-        "BRep.add_face",
-        "BRep.add_vertex",
         "BRep.face_meshes",
         "BRep.from_polylines",
-        "BRep.new",
-        "BRep.point_at"
+        "BRep.new"
       ]
     },
     {
@@ -5762,12 +5756,11 @@ window.API_INDEX = {
         "BRep.__jsondump__",
         "BRep.create_box",
         "BRep.create_cylinder",
+        "BRep.create_sphere",
         "BRep.duplicate",
-        "BRep.face_meshes",
         "BRep.from_nurbscurves",
         "BRep.guid",
         "BRep.jsondump",
-        "BRep.mesh",
         "BRep.new",
         "BRep.normal_at",
         "BRep.str",
@@ -37188,13 +37181,14 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.create",
         "NurbsSurfaceTrimmed.create_planar",
         "NurbsSurfaceTrimmed.deep_copy_from",
-        "NurbsSurfaceTrimmed.discretize",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
         "NurbsSurfaceTrimmed.file_json_load",
         "NurbsSurfaceTrimmed.file_json_loads",
         "NurbsSurfaceTrimmed.get_outer_loop",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.jsondump",
@@ -37202,6 +37196,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.new",
         "NurbsSurfaceTrimmed.pb_dumps",
         "NurbsSurfaceTrimmed.pb_loads",
+        "NurbsSurfaceTrimmed.pip",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.set_guid",
@@ -37237,7 +37232,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.create",
         "NurbsSurfaceTrimmed.create_planar",
         "NurbsSurfaceTrimmed.deep_copy_from",
-        "NurbsSurfaceTrimmed.discretize",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
@@ -37245,6 +37239,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.file_json_loads",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.guid",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.jsondump",
@@ -37252,6 +37247,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.new",
         "NurbsSurfaceTrimmed.pb_dumps",
         "NurbsSurfaceTrimmed.pb_loads",
+        "NurbsSurfaceTrimmed.pip",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.set_outer_loop",
@@ -37284,7 +37280,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.create",
         "NurbsSurfaceTrimmed.create_planar",
         "NurbsSurfaceTrimmed.deep_copy_from",
-        "NurbsSurfaceTrimmed.discretize",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
@@ -37292,6 +37288,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.file_json_loads",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.guid",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.jsondump",
@@ -37299,6 +37296,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.new",
         "NurbsSurfaceTrimmed.pb_dumps",
         "NurbsSurfaceTrimmed.pb_loads",
+        "NurbsSurfaceTrimmed.pip",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.set_outer_loop",
@@ -37364,7 +37362,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "create_planar(boundary: &NurbsCurve) -> Option<Self>",
-          "code": "pub fn create_planar(boundary: &NurbsCurve) -> Option<Self> {\n        let srf = Primitives::create_planar(boundary);\n        if !srf.is_valid() { return None; }\n\n        let dom_u = srf.domain(0)?;\n        let dom_v = srf.domain(1)?;\n        let range_u = dom_u.1 - dom_u.0;\n        let range_v = dom_v.1 - dom_v.0;\n\n        let n_samples = 50usize.max(boundary.cv_count() * 4);\n        let (pts3d, _) = boundary.divide_by_count(n_samples, true);\n        let mut uv_pts = Vec::new();\n        for pt in &pts3d {\n            let (u, v, _) = Closest::surface_point(&srf, pt, 0.0, 0.0, 0.0, 0.0);\n            let nu = (u - dom_u.0) / range_u;\n            let nv = (v - dom_v.0) / range_v;\n            uv_pts.push(Point::new(nu, nv, 0.0));\n        }\n\n        let mut ts = Self::new();\n        ts.m_surface = srf;\n        if uv_pts.len() >= 3 {\n            ts.m_outer_loop = Some(NurbsCurve::create(false, 3, &uv_pts));\n        }\n        Some(ts)\n    }",
+          "code": "pub fn create_planar(boundary: &NurbsCurve) -> Option<Self> {\n        let srf = Primitives::create_planar(boundary);\n        if !srf.is_valid() { return None; }\n\n        let dom_u = srf.domain(0)?;\n        let dom_v = srf.domain(1)?;\n        let p00 = srf.point_at(dom_u.0, dom_v.0)?;\n        let p10 = srf.point_at(dom_u.1, dom_v.0)?;\n        let p01 = srf.point_at(dom_u.0, dom_v.1)?;\n        let ux = p10[0]-p00[0]; let uy = p10[1]-p00[1]; let uz = p10[2]-p00[2];\n        let vx = p01[0]-p00[0]; let vy = p01[1]-p00[1]; let vz = p01[2]-p00[2];\n        let u_len2 = ux*ux + uy*uy + uz*uz;\n        let v_len2 = vx*vx + vy*vy + vz*vz;\n        if u_len2 < 1e-28 || v_len2 < 1e-28 { return None; }\n\n        let mut uv_pts: Vec<Point> = Vec::new();\n        if boundary.degree() <= 1 {\n            for i in 0..boundary.cv_count() {\n                if let Some(cv) = boundary.get_cv(i) {\n                    let dx = cv[0]-p00[0]; let dy = cv[1]-p00[1]; let dz = cv[2]-p00[2];\n                    uv_pts.push(Point::new((dx*ux+dy*uy+dz*uz)/u_len2, (dx*vx+dy*vy+dz*vz)/v_len2, 0.0));\n                }\n            }\n        } else {\n            let spans = boundary.get_span_vector();\n            for si in 0..spans.len().saturating_sub(1) {\n                for k in 0..=10i32 {\n                    let t = spans[si] + (spans[si+1]-spans[si]) * k as f32 / 10.0;\n                    let pt = boundary.point_at(t);\n                    let dx = pt[0]-p00[0]; let dy = pt[1]-p00[1]; let dz = pt[2]-p00[2];\n                    let nu = (dx*ux+dy*uy+dz*uz)/u_len2;\n                    let nv = (dx*vx+dy*vy+dz*vz)/v_len2;\n                    let ok = uv_pts.is_empty() || {\n                        let last = uv_pts.last().unwrap();\n                        (nu-last[0]).powi(2) + (nv-last[1]).powi(2) > 1e-24\n                    };\n                    if ok { uv_pts.push(Point::new(nu, nv, 0.0)); }\n                }\n            }\n        }\n\n        let mut ts = Self::new();\n        ts.m_surface = srf;\n        if uv_pts.len() >= 3 {\n            ts.m_outer_loop = Some(NurbsCurve::create(false, 1, &uv_pts));\n        }\n        Some(ts)\n    }",
           "file": "nurbssurface_trimmed.rs"
         }
       },
@@ -37422,7 +37420,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "surface()",
-          "code": "def surface(self):\n\n        return self.m_surface\n\n    def get_outer_loop(self):\n        return self.m_outer_loop\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def is_trimmed(self):\n        return self.m_outer_loop.is_valid()\n\n    def is_valid(self):\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                n = max(crv.cv_count() * 4, 16) if crv.degree() > 1 else max(crv.cv_count() - 1, 4)\n                pts, _ = crv.divide_by_count(n)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]",
+          "code": "def surface(self):\n\n        return self.m_surface\n\n    def get_outer_loop(self):\n        return self.m_outer_loop\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def is_trimmed(self):\n        return self.m_outer_loop.is_valid()\n\n    def is_valid(self):\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                if crv.degree() <= 1:\n                    return [crv.get_cv(i) for i in range(crv.cv_count() - 1)]\n                n = max(crv.cv_count() * 4, 16)\n                pts, _ = crv.divide_by_count(n + 1)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -37453,7 +37451,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.create_planar",
         "NurbsSurfaceTrimmed.deep_copy_from",
         "NurbsSurfaceTrimmed.disc",
-        "NurbsSurfaceTrimmed.discretize",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
@@ -37463,6 +37461,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.guid",
         "NurbsSurfaceTrimmed.inner_loop_count",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.jsondump",
@@ -37472,6 +37471,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.pb_dumps",
         "NurbsSurfaceTrimmed.pb_loads",
+        "NurbsSurfaceTrimmed.pip",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.repr",
@@ -37490,7 +37490,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_outer_loop()",
-          "code": "def get_outer_loop(self):\n\n        return self.m_outer_loop\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def is_trimmed(self):\n        return self.m_outer_loop.is_valid()\n\n    def is_valid(self):\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                n = max(crv.cv_count() * 4, 16) if crv.degree() > 1 else max(crv.cv_count() - 1, 4)\n                pts, _ = crv.divide_by_count(n)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:",
+          "code": "def get_outer_loop(self):\n\n        return self.m_outer_loop\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def is_trimmed(self):\n        return self.m_outer_loop.is_valid()\n\n    def is_valid(self):\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                if crv.degree() <= 1:\n                    return [crv.get_cv(i) for i in range(crv.cv_count() - 1)]\n                n = max(crv.cv_count() * 4, 16)\n                pts, _ = crv.divide_by_count(n + 1)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -37533,7 +37533,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "set_outer_loop(loop)",
-          "code": "def set_outer_loop(self, loop):\n\n        self.m_outer_loop = loop\n\n    def is_trimmed(self):\n        return self.m_outer_loop.is_valid()\n\n    def is_valid(self):\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                n = max(crv.cv_count() * 4, 16) if crv.degree() > 1 else max(crv.cv_count() - 1, 4)\n                pts, _ = crv.divide_by_count(n)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)",
+          "code": "def set_outer_loop(self, loop):\n\n        self.m_outer_loop = loop\n\n    def is_trimmed(self):\n        return self.m_outer_loop.is_valid()\n\n    def is_valid(self):\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                if crv.degree() <= 1:\n                    return [crv.get_cv(i) for i in range(crv.cv_count() - 1)]\n                n = max(crv.cv_count() * 4, 16)\n                pts, _ = crv.divide_by_count(n + 1)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -37576,7 +37576,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_trimmed()",
-          "code": "def is_trimmed(self):\n\n        return self.m_outer_loop.is_valid()\n\n    def is_valid(self):\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                n = max(crv.cv_count() * 4, 16) if crv.degree() > 1 else max(crv.cv_count() - 1, 4)\n                pts, _ = crv.divide_by_count(n)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]",
+          "code": "def is_trimmed(self):\n\n        return self.m_outer_loop.is_valid()\n\n    def is_valid(self):\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                if crv.degree() <= 1:\n                    return [crv.get_cv(i) for i in range(crv.cv_count() - 1)]\n                n = max(crv.cv_count() * 4, 16)\n                pts, _ = crv.divide_by_count(n + 1)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -37635,7 +37635,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_valid()",
-          "code": "def is_valid(self):\n\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                n = max(crv.cv_count() * 4, 16) if crv.degree() > 1 else max(crv.cv_count() - 1, 4)\n                pts, _ = crv.divide_by_count(n)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):",
+          "code": "def is_valid(self):\n\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                if crv.degree() <= 1:\n                    return [crv.get_cv(i) for i in range(crv.cv_count() - 1)]\n                n = max(crv.cv_count() * 4, 16)\n                pts, _ = crv.divide_by_count(n + 1)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -37678,7 +37678,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.surfacecolor",
-        "NurbsSurfaceTrimmed.to_pairs",
         "NurbsSurfaceTrimmed.to_string",
         "NurbsSurfaceTrimmed.transform",
         "NurbsSurfaceTrimmed.transformed",
@@ -37690,7 +37689,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_inner_loop(loop_2d)",
-          "code": "def add_inner_loop(self, loop_2d):\n\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                n = max(crv.cv_count() * 4, 16) if crv.degree() > 1 else max(crv.cv_count() - 1, 4)\n                pts, _ = crv.divide_by_count(n)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]",
+          "code": "def add_inner_loop(self, loop_2d):\n\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                if crv.degree() <= 1:\n                    return [crv.get_cv(i) for i in range(crv.cv_count() - 1)]\n                n = max(crv.cv_count() * 4, 16)\n                pts, _ = crv.divide_by_count(n + 1)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -37733,7 +37732,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_hole(curve_3d)",
-          "code": "def add_hole(self, curve_3d):\n\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                n = max(crv.cv_count() * 4, 16) if crv.degree() > 1 else max(crv.cv_count() - 1, 4)\n                pts, _ = crv.divide_by_count(n)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []",
+          "code": "def add_hole(self, curve_3d):\n\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                if crv.degree() <= 1:\n                    return [crv.get_cv(i) for i in range(crv.cv_count() - 1)]\n                n = max(crv.cv_count() * 4, 16)\n                pts, _ = crv.divide_by_count(n + 1)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -37777,7 +37776,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_holes(curves_3d)",
-          "code": "def add_holes(self, curves_3d):\n\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                n = max(crv.cv_count() * 4, 16) if crv.degree() > 1 else max(crv.cv_count() - 1, 4)\n                pts, _ = crv.divide_by_count(n)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result",
+          "code": "def add_holes(self, curves_3d):\n\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                if crv.degree() <= 1:\n                    return [crv.get_cv(i) for i in range(crv.cv_count() - 1)]\n                n = max(crv.cv_count() * 4, 16)\n                pts, _ = crv.divide_by_count(n + 1)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -37817,7 +37816,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_inner_loop(index)",
-          "code": "def get_inner_loop(self, index):\n\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                n = max(crv.cv_count() * 4, 16) if crv.degree() > 1 else max(crv.cv_count() - 1, 4)\n                pts, _ = crv.divide_by_count(n)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: grid + point-in-polygon discard\n        dom_u = self.m_surface.domain(0)\n        dom_v = self.m_surface.domain(1)\n        range_u = dom_u[1] - dom_u[0]",
+          "code": "def get_inner_loop(self, index):\n\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                if crv.degree() <= 1:\n                    return [crv.get_cv(i) for i in range(crv.cv_count() - 1)]\n                n = max(crv.cv_count() * 4, 16)\n                pts, _ = crv.divide_by_count(n + 1)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: UV grid triangulation with per-vertex parametric normals\n        import numpy as _np",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -37856,7 +37855,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "inner_loop_count()",
-          "code": "def inner_loop_count(self):\n\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                n = max(crv.cv_count() * 4, 16) if crv.degree() > 1 else max(crv.cv_count() - 1, 4)\n                pts, _ = crv.divide_by_count(n)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: grid + point-in-polygon discard\n        dom_u = self.m_surface.domain(0)\n        dom_v = self.m_surface.domain(1)\n        range_u = dom_u[1] - dom_u[0]\n        range_v = dom_v[1] - dom_v[0]\n        if range_u < 1e-15 or range_v < 1e-15:\n            return self.m_surface.mesh()\n        p00 = self.m_surface.point_at(dom_u[0], dom_v[0])\n        p10 = self.m_surface.point_at(dom_u[1], dom_v[0])",
+          "code": "def inner_loop_count(self):\n\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                if crv.degree() <= 1:\n                    return [crv.get_cv(i) for i in range(crv.cv_count() - 1)]\n                n = max(crv.cv_count() * 4, 16)\n                pts, _ = crv.divide_by_count(n + 1)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: UV grid triangulation with per-vertex parametric normals\n        import numpy as _np\n        from .point import Point as _Pt\n        def disc_np(crv):\n            if crv.degree() <= 1:\n                return [(float(crv.get_cv(i)[0]), float(crv.get_cv(i)[1])) for i in range(crv.cv_count() - 1)]\n            n = max(crv.cv_count() * 4, 16)",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -37881,6 +37880,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.disc",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
@@ -37904,7 +37904,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "clear_inner_loops()",
-          "code": "def clear_inner_loops(self):\n\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                n = max(crv.cv_count() * 4, 16) if crv.degree() > 1 else max(crv.cv_count() - 1, 4)\n                pts, _ = crv.divide_by_count(n)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: grid + point-in-polygon discard\n        dom_u = self.m_surface.domain(0)\n        dom_v = self.m_surface.domain(1)\n        range_u = dom_u[1] - dom_u[0]\n        range_v = dom_v[1] - dom_v[0]\n        if range_u < 1e-15 or range_v < 1e-15:\n            return self.m_surface.mesh()\n        p00 = self.m_surface.point_at(dom_u[0], dom_v[0])\n        p10 = self.m_surface.point_at(dom_u[1], dom_v[0])\n        p01 = self.m_surface.point_at(dom_u[0], dom_v[1])\n        u_len = math.sqrt((p10[0]-p00[0])**2+(p10[1]-p00[1])**2+(p10[2]-p00[2])**2)\n        v_len = math.sqrt((p01[0]-p00[0])**2+(p01[1]-p00[1])**2+(p01[2]-p00[2])**2)",
+          "code": "def clear_inner_loops(self):\n\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                if crv.degree() <= 1:\n                    return [crv.get_cv(i) for i in range(crv.cv_count() - 1)]\n                n = max(crv.cv_count() * 4, 16)\n                pts, _ = crv.divide_by_count(n + 1)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: UV grid triangulation with per-vertex parametric normals\n        import numpy as _np\n        from .point import Point as _Pt\n        def disc_np(crv):\n            if crv.degree() <= 1:\n                return [(float(crv.get_cv(i)[0]), float(crv.get_cv(i)[1])) for i in range(crv.cv_count() - 1)]\n            n = max(crv.cv_count() * 4, 16)\n            pts, _ = crv.divide_by_count(n + 1)\n            return [(float(p[0]), float(p[1])) for p in pts[:-1]]\n        border_uv = disc_np(self.m_outer_loop)",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -37924,6 +37924,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_holes",
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.disc",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.inner_loop_count",
@@ -37943,7 +37944,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "point_at(u, v)",
-          "code": "def point_at(self, u, v):\n\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                n = max(crv.cv_count() * 4, 16) if crv.degree() > 1 else max(crv.cv_count() - 1, 4)\n                pts, _ = crv.divide_by_count(n)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: grid + point-in-polygon discard\n        dom_u = self.m_surface.domain(0)\n        dom_v = self.m_surface.domain(1)\n        range_u = dom_u[1] - dom_u[0]\n        range_v = dom_v[1] - dom_v[0]\n        if range_u < 1e-15 or range_v < 1e-15:\n            return self.m_surface.mesh()\n        p00 = self.m_surface.point_at(dom_u[0], dom_v[0])\n        p10 = self.m_surface.point_at(dom_u[1], dom_v[0])\n        p01 = self.m_surface.point_at(dom_u[0], dom_v[1])\n        u_len = math.sqrt((p10[0]-p00[0])**2+(p10[1]-p00[1])**2+(p10[2]-p00[2])**2)\n        v_len = math.sqrt((p01[0]-p00[0])**2+(p01[1]-p00[1])**2+(p01[2]-p00[2])**2)\n        max_dim = max(u_len, v_len)\n        max_edge = max_dim / 10.0 if max_dim > 1e-10 else 0.1\n        nu = max(12, int(math.ceil(u_len / max_edge)) + 1) if u_len > 1e-10 else 12",
+          "code": "def point_at(self, u, v):\n\n        return self.m_surface.point_at(u, v)\n\n    def normal_at(self, u, v):\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                if crv.degree() <= 1:\n                    return [crv.get_cv(i) for i in range(crv.cv_count() - 1)]\n                n = max(crv.cv_count() * 4, 16)\n                pts, _ = crv.divide_by_count(n + 1)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: UV grid triangulation with per-vertex parametric normals\n        import numpy as _np\n        from .point import Point as _Pt\n        def disc_np(crv):\n            if crv.degree() <= 1:\n                return [(float(crv.get_cv(i)[0]), float(crv.get_cv(i)[1])) for i in range(crv.cv_count() - 1)]\n            n = max(crv.cv_count() * 4, 16)\n            pts, _ = crv.divide_by_count(n + 1)\n            return [(float(p[0]), float(p[1])) for p in pts[:-1]]\n        border_uv = disc_np(self.m_outer_loop)\n        holes_uv = [disc_np(inner) for inner in self.m_inner_loops]\n        def pip(px, py, poly):\n            inside = False",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -37967,14 +37968,17 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.create",
         "NurbsSurfaceTrimmed.create_planar",
         "NurbsSurfaceTrimmed.disc",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.guid",
         "NurbsSurfaceTrimmed.inner_loop_count",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.normal_at",
+        "NurbsSurfaceTrimmed.pip",
         "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.surface",
@@ -37988,7 +37992,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "normal_at(u, v)",
-          "code": "def normal_at(self, u, v):\n\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                n = max(crv.cv_count() * 4, 16) if crv.degree() > 1 else max(crv.cv_count() - 1, 4)\n                pts, _ = crv.divide_by_count(n)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: grid + point-in-polygon discard\n        dom_u = self.m_surface.domain(0)\n        dom_v = self.m_surface.domain(1)\n        range_u = dom_u[1] - dom_u[0]\n        range_v = dom_v[1] - dom_v[0]\n        if range_u < 1e-15 or range_v < 1e-15:\n            return self.m_surface.mesh()\n        p00 = self.m_surface.point_at(dom_u[0], dom_v[0])\n        p10 = self.m_surface.point_at(dom_u[1], dom_v[0])\n        p01 = self.m_surface.point_at(dom_u[0], dom_v[1])\n        u_len = math.sqrt((p10[0]-p00[0])**2+(p10[1]-p00[1])**2+(p10[2]-p00[2])**2)\n        v_len = math.sqrt((p01[0]-p00[0])**2+(p01[1]-p00[1])**2+(p01[2]-p00[2])**2)\n        max_dim = max(u_len, v_len)\n        max_edge = max_dim / 10.0 if max_dim > 1e-10 else 0.1\n        nu = max(12, int(math.ceil(u_len / max_edge)) + 1) if u_len > 1e-10 else 12\n        nv = max(12, int(math.ceil(v_len / max_edge)) + 1) if v_len > 1e-10 else 12\n        us = [dom_u[0] + i * range_u / (nu - 1) for i in range(nu)]\n        vs = [dom_v[0] + i * range_v / (nv - 1) for i in range(nv)]",
+          "code": "def normal_at(self, u, v):\n\n        return self.m_surface.normal_at(u, v)\n\n    def mesh(self):\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                if crv.degree() <= 1:\n                    return [crv.get_cv(i) for i in range(crv.cv_count() - 1)]\n                n = max(crv.cv_count() * 4, 16)\n                pts, _ = crv.divide_by_count(n + 1)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: UV grid triangulation with per-vertex parametric normals\n        import numpy as _np\n        from .point import Point as _Pt\n        def disc_np(crv):\n            if crv.degree() <= 1:\n                return [(float(crv.get_cv(i)[0]), float(crv.get_cv(i)[1])) for i in range(crv.cv_count() - 1)]\n            n = max(crv.cv_count() * 4, 16)\n            pts, _ = crv.divide_by_count(n + 1)\n            return [(float(p[0]), float(p[1])) for p in pts[:-1]]\n        border_uv = disc_np(self.m_outer_loop)\n        holes_uv = [disc_np(inner) for inner in self.m_inner_loops]\n        def pip(px, py, poly):\n            inside = False\n            j = len(poly) - 1\n            for i in range(len(poly)):\n                xi, yi = poly[i]; xj, yj = poly[j]",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -38009,12 +38013,15 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.disc",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.inner_loop_count",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.mesh",
+        "NurbsSurfaceTrimmed.pip",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.surface",
@@ -38026,7 +38033,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "mesh()",
-          "code": "def mesh(self):\n\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                n = max(crv.cv_count() * 4, 16) if crv.degree() > 1 else max(crv.cv_count() - 1, 4)\n                pts, _ = crv.divide_by_count(n)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: grid + point-in-polygon discard\n        dom_u = self.m_surface.domain(0)\n        dom_v = self.m_surface.domain(1)\n        range_u = dom_u[1] - dom_u[0]\n        range_v = dom_v[1] - dom_v[0]\n        if range_u < 1e-15 or range_v < 1e-15:\n            return self.m_surface.mesh()\n        p00 = self.m_surface.point_at(dom_u[0], dom_v[0])\n        p10 = self.m_surface.point_at(dom_u[1], dom_v[0])\n        p01 = self.m_surface.point_at(dom_u[0], dom_v[1])\n        u_len = math.sqrt((p10[0]-p00[0])**2+(p10[1]-p00[1])**2+(p10[2]-p00[2])**2)\n        v_len = math.sqrt((p01[0]-p00[0])**2+(p01[1]-p00[1])**2+(p01[2]-p00[2])**2)\n        max_dim = max(u_len, v_len)\n        max_edge = max_dim / 10.0 if max_dim > 1e-10 else 0.1\n        nu = max(12, int(math.ceil(u_len / max_edge)) + 1) if u_len > 1e-10 else 12\n        nv = max(12, int(math.ceil(v_len / max_edge)) + 1) if v_len > 1e-10 else 12\n        us = [dom_u[0] + i * range_u / (nu - 1) for i in range(nu)]\n        vs = [dom_v[0] + i * range_v / (nv - 1) for i in range(nv)]\n        full = Mesh()\n        import numpy as _np\n        from .point import Point as _Pt",
+          "code": "def mesh(self):\n\n        import math\n        from .mesh import Mesh\n        if not self.is_trimmed():\n            return self.m_surface.mesh()\n\n        # Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar():\n            from .remesh_cdt import _cdt_triangulate as _RemeshCDT_cdt\n            def disc(crv):\n                if crv.degree() <= 1:\n                    return [crv.get_cv(i) for i in range(crv.cv_count() - 1)]\n                n = max(crv.cv_count() * 4, 16)\n                pts, _ = crv.divide_by_count(n + 1)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: UV grid triangulation with per-vertex parametric normals\n        import numpy as _np\n        from .point import Point as _Pt\n        def disc_np(crv):\n            if crv.degree() <= 1:\n                return [(float(crv.get_cv(i)[0]), float(crv.get_cv(i)[1])) for i in range(crv.cv_count() - 1)]\n            n = max(crv.cv_count() * 4, 16)\n            pts, _ = crv.divide_by_count(n + 1)\n            return [(float(p[0]), float(p[1])) for p in pts[:-1]]\n        border_uv = disc_np(self.m_outer_loop)\n        holes_uv = [disc_np(inner) for inner in self.m_inner_loops]\n        def pip(px, py, poly):\n            inside = False\n            j = len(poly) - 1\n            for i in range(len(poly)):\n                xi, yi = poly[i]; xj, yj = poly[j]\n                if ((yi > py) != (yj > py)) and (px < (xj - xi) * (py - yi) / (yj - yi + 1e-300) + xi):\n                    inside = not inside\n                j = i",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -38036,7 +38043,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "mesh() -> Mesh",
-          "code": "pub fn mesh(&self) -> Mesh {\n        if !self.is_trimmed() { return self.m_surface.mesh(); }\n\n        // Planar: boundary-conforming ear-clip triangulation\n        if self.m_surface.is_planar(1e-6) {\n            let disc = |crv: &NurbsCurve| -> Vec<Point> {\n                let n = if crv.degree() > 1 { (crv.cv_count() * 4).max(16) } else { (crv.cv_count().saturating_sub(1)).max(4) };\n                let (pts, _) = crv.divide_by_count(n, true);\n                pts\n            };\n            let outer_loop = self.m_outer_loop.as_ref().unwrap();\n            let outer_pts = disc(outer_loop);\n            let hole_pts: Vec<Vec<Point>> = self.m_inner_loops.iter().map(|c| disc(c)).collect();\n            let mut pts3d: Vec<Point> = Vec::new();\n            let mut add_pts = |uv_list: &[Point]| {\n                let mut n = uv_list.len();\n                if n > 1 && (uv_list[0][0]-uv_list[n-1][0]).abs() < 1e-12 &&\n                   (uv_list[0][1]-uv_list[n-1][1]).abs() < 1e-12 { n -= 1; }\n                for i in 0..n {\n                    pts3d.push(self.m_surface.point_at(uv_list[i][0], uv_list[i][1])\n                        .unwrap_or(Point::new(0.0, 0.0, 0.0)));\n                }\n            };\n            add_pts(&outer_pts);\n            for hp in &hole_pts { add_pts(hp); }\n            let strip_close = |pts: &[Point]| -> Vec<Point> {\n                let mut v: Vec<Point> = pts.to_vec();\n                if v.len() > 1 && (v[0][0]-v[v.len()-1][0]).abs() < 1e-12 && (v[0][1]-v[v.len()-1][1]).abs() < 1e-12 { v.pop(); }\n                v\n            };\n            let mut border = strip_close(&outer_pts);\n            let mut holes: Vec<Vec<Point>> = hole_pts.iter().map(|h| strip_close(h)).collect();\n            let area: f32 = (0..border.len()).map(|j| { let k=(j+1)%border.len(); border[j][0]*border[k][1]-border[k][0]*border[j][1] }).sum::<f32>() * 0.5;\n            if area < 0.0 { border.reverse(); }\n            for h in &mut holes {\n                let ha: f32 = (0..h.len()).map(|j| { let k=(j+1)%h.len(); h[j][0]*h[k][1]-h[k][0]*h[j][1] }).sum::<f32>() * 0.5;\n                if ha > 0.0 { h.reverse(); }\n            }\n            let tris = crate::remesh_cdt::cdt_triangulate(&border, &holes);\n            let np = pts3d.len();\n            let mut polygons: Vec<Vec<Point>> = Vec::new();\n            for &(v0, v1, v2) in &tris {\n                if v0 < np && v1 < np && v2 < np {\n                    polygons.push(vec![pts3d[v0].clone(), pts3d[v1].clone(), pts3d[v2].clone()]);\n                }\n            }\n            let mut result = Mesh::from_polylines(polygons, None);\n            let dom_u = self.m_surface.domain(0).unwrap_or((0.0, 1.0));\n            let dom_v = self.m_surface.domain(1).unwrap_or((0.0, 1.0));\n            let nrm = self.m_surface.normal_at((dom_u.0+dom_u.1)/2.0, (dom_v.0+dom_v.1)/2.0);\n            for (_, vd) in result.vertex.iter_mut() {\n                vd.set_normal(nrm[0], nrm[1], nrm[2]);\n            }\n            return result;\n        }\n\n        // Non-planar: grid + point-in-polygon discard\n        let dom_u = self.m_surface.domain(0).unwrap_or((0.0, 1.0));\n        let dom_v = self.m_surface.domain(1).unwrap_or((0.0, 1.0));\n        let range_u = dom_u.1 - dom_u.0;\n        let range_v = dom_v.1 - dom_v.0;\n        if range_u < 1e-15 || range_v < 1e-15 { return self.m_surface.mesh(); }\n        let p00 = self.m_surface.point_at(dom_u.0, dom_v.0).unwrap_or(Point::new(0.0, 0.0, 0.0));\n        let p10 = self.m_surface.point_at(dom_u.1, dom_v.0).unwrap_or(Point::new(0.0, 0.0, 0.0));\n        let p01 = self.m_surface.point_at(dom_u.0, dom_v.1).unwrap_or(Point::new(0.0, 0.0, 0.0));\n        let u_len = ((p10[0]-p00[0]).powi(2)+(p10[1]-p00[1]).powi(2)+(p10[2]-p00[2]).powi(2)).sqrt();\n        let v_len = ((p01[0]-p00[0]).powi(2)+(p01[1]-p00[1]).powi(2)+(p01[2]-p00[2]).powi(2)).sqrt();\n        let max_dim = u_len.max(v_len);\n        let max_edge = if max_dim > 1e-10 { max_dim / 10.0 } else { 0.1 };\n        let nu = if u_len > 1e-10 { 12usize.max((u_len / max_edge).ceil() as usize + 1) } else { 12 };\n        let nv = if v_len > 1e-10 { 12usize.max((v_len / max_edge).ceil() as usize + 1) } else { 12 };\n        let us: Vec<f32> = (0..nu).map(|i| dom_u.0 + i as f32 * range_u / (nu - 1) as f32).collect();\n        let vs: Vec<f32> = (0..nv).map(|j| dom_v.0 + j as f32 * range_v / (nv - 1) as f32).collect();\n        let mut full = Mesh::new();\n        for i in 0..nu {\n            for j in 0..nv {\n                let pt = self.m_surface.point_at(us[i], vs[j]).unwrap_or(Point::new(0.0, 0.0, 0.0));\n                let vk = full.add_vertex(pt, None);\n                full.vertex.get_mut(&vk).unwrap().attributes.insert(\"u\".to_string(), us[i]);\n                full.vertex.get_mut(&vk).unwrap().attributes.insert(\"v\".to_string(), vs[j]);\n            }\n        }\n        for i in 0..nu-1 {\n            for j in 0..nv-1 {\n                let v00 = i * nv + j; let v10 = (i+1) * nv + j;\n                let v01 = i * nv + (j+1); let v11 = (i+1) * nv + (j+1);\n                if (i + j) % 2 == 0 {\n                    full.add_face(vec![v00, v10, v11], None);\n                    full.add_face(vec![v00, v11, v01], None);\n                } else {\n                    full.add_face(vec![v00, v10, v01], None);\n                    full.add_face(vec![v10, v11, v01], None);\n                }\n            }\n        }\n        use crate::polyline::Polyline;\n        let discretize = |crv: &NurbsCurve| -> Polyline {\n            let n = std::cmp::max(crv.cv_count() * 4, 16);\n            let (pts, _) = crv.divide_by_count(n, true);\n            Polyline::new(pts.iter().map(|p| Point::new(p[0], p[1], 0.0)).collect())\n        };\n        let outer_loop = self.m_outer_loop.as_ref().unwrap();\n        let outer_polygon = discretize(outer_loop);\n        let inner_polygons: Vec<Polyline> = self.m_inner_loops.iter().map(|c| discretize(c)).collect();\n        let mut keep_verts = std::collections::HashSet::new();\n        for (&vk, vd) in &full.vertex {\n            let u_raw = vd.attributes.get(\"u\").copied().unwrap_or(0.0);\n            let v_raw = vd.attributes.get(\"v\").copied().unwrap_or(0.0);\n            let pt = Point::new(u_raw, v_raw, 0.0);\n            if !outer_polygon.point_in_polygon_2d(&pt) { continue; }\n            let in_hole = inner_polygons.iter().any(|ip| ip.point_in_polygon_2d(&pt));\n            if !in_hole { keep_verts.insert(vk); }\n        }\n        let mut polygons: Vec<Vec<Point>> = Vec::new();\n        for (_, fverts) in &full.face {\n            if fverts.iter().all(|vi| keep_verts.contains(vi)) {\n                let poly: Vec<Point> = fverts.iter()\n                    .filter_map(|vi| full.vertex.get(vi).map(|v| Point::new(v.x, v.y, v.z)))\n                    .collect();\n                polygons.push(poly);\n            }\n        }\n        let mut result = Mesh::from_polylines(polygons, None);\n        let nv_total = result.vertex.len();\n        let mut vnx = vec![0.0f32; nv_total + 1];\n        let mut vny = vec![0.0f32; nv_total + 1];\n        let mut vnz = vec![0.0f32; nv_total + 1];\n        for (_, vids) in &result.face {\n            if vids.len() < 3 { continue; }\n            let p0 = &result.vertex[&vids[0]];\n            let p1 = &result.vertex[&vids[1]];\n            let p2 = &result.vertex[&vids[2]];\n            let e1x = p1.x - p0.x; let e1y = p1.y - p0.y; let e1z = p1.z - p0.z;\n            let e2x = p2.x - p0.x; let e2y = p2.y - p0.y; let e2z = p2.z - p0.z;\n            let fnx = e1y*e2z - e1z*e2y;\n            let fny = e1z*e2x - e1x*e2z;\n            let fnz = e1x*e2y - e1y*e2x;\n            for &vi in vids { vnx[vi] += fnx; vny[vi] += fny; vnz[vi] += fnz; }\n        }\n        for i in 0..=nv_total {\n            let len = (vnx[i]*vnx[i] + vny[i]*vny[i] + vnz[i]*vnz[i]).sqrt();\n            if len > 1e-15 { vnx[i] /= len; vny[i] /= len; vnz[i] /= len; }\n            if let Some(v) = result.vertex.get_mut(&i) {\n                v.set_normal(vnx[i], vny[i], vnz[i]);\n            }",
+          "code": "pub fn mesh(&self) -> Mesh {\n        if !self.is_trimmed() { return self.m_surface.mesh(); }\n        let planar = self.m_surface.is_planar(1e-6);\n        let disc_loop = |crv: &NurbsCurve| -> Vec<[f64; 2]> {\n            let mut pts: Vec<[f64; 2]> = if crv.degree() <= 1 && !crv.is_rational() {\n                (0..crv.cv_count()).filter_map(|i| crv.get_cv(i)).map(|p| [p[0] as f64, p[1] as f64]).collect()\n            } else {\n                let n = (crv.cv_count() * 4).max(16);\n                let (sampled, _) = crv.divide_by_count(n, false);\n                sampled.iter().map(|p| [p[0] as f64, p[1] as f64]).collect()\n            };\n            while pts.len() > 1 {\n                let dx = pts[0][0] - pts[pts.len()-1][0];\n                let dy = pts[0][1] - pts[pts.len()-1][1];\n                if dx*dx + dy*dy < 1e-20 { pts.pop(); } else { break; }\n            }\n            pts\n        };\n        let outer_uv = disc_loop(self.m_outer_loop.as_ref().unwrap());\n        let hole_uvs: Vec<Vec<[f64;2]>> = self.m_inner_loops.iter().map(|c| disc_loop(c)).collect();\n        if outer_uv.len() < 3 { return self.m_surface.mesh(); }\n        // Fan triangulation for planar, no-hole case\n        if planar && hole_uvs.is_empty() {\n            let n = outer_uv.len();\n            let mut result = Mesh::new();\n            let vks: Vec<(usize, [f32; 2])> = outer_uv.iter().map(|p| {\n                let u = p[0] as f32; let v = p[1] as f32;\n                let p3d = self.m_surface.point_at(u, v).unwrap_or(Point::new(0.0, 0.0, 0.0));\n                (result.add_vertex(p3d, None), [u, v])\n            }).collect();\n            for i in 1..n-1 {\n                result.add_face(vec![vks[0].0, vks[i].0, vks[i+1].0], None);\n            }\n            for (vk, uv) in &vks {\n                let nrm = self.m_surface.normal_at(uv[0], uv[1]);\n                if let Some(vd) = result.vertex.get_mut(vk) { vd.set_normal(nrm[0], nrm[1], nrm[2]); }\n            }\n            return result;\n        }\n        let mut bb_umin = 1e30_f64; let mut bb_vmin = 1e30_f64;\n        let mut bb_umax = -1e30_f64; let mut bb_vmax = -1e30_f64;\n        for p in &outer_uv {\n            if p[0] < bb_umin { bb_umin = p[0]; } if p[1] < bb_vmin { bb_vmin = p[1]; }\n            if p[0] > bb_umax { bb_umax = p[0]; } if p[1] > bb_vmax { bb_vmax = p[1]; }\n        }\n        let point_in_polygon = |u: f64, v: f64, poly: &[[f64;2]]| -> bool {\n            let n = poly.len(); let mut inside = false; let mut j = n - 1;\n            for i in 0..n {\n                let xi = poly[i][0]; let yi = poly[i][1];\n                let xj = poly[j][0]; let yj = poly[j][1];\n                if ((yi > v) != (yj > v)) && (u < (xj-xi)*(v-yi)/(yj-yi)+xi) { inside = !inside; }\n                j = i;\n            }\n            inside\n        };\n        let inside_trim = |u: f64, v: f64| -> bool {\n            if !point_in_polygon(u, v, &outer_uv) { return false; }\n            for h in &hole_uvs { if point_in_polygon(u, v, h) { return false; } }\n            true\n        };\n        let mut dt = crate::nurbssurface_trimmed::Delaunay2D::new(bb_umin, bb_vmin, bb_umax, bb_vmax);\n        {\n            let vis: Vec<i32> = outer_uv.iter().map(|p| dt.insert(p[0], p[1])).collect();\n            for i in 0..vis.len() {\n                let j = (i + 1) % vis.len();\n                if vis[i] >= 0 && vis[j] >= 0 && vis[i] != vis[j] { dt.insert_constraint(vis[i], vis[j]); }\n            }\n        }\n        for h in hole_uvs.iter() {\n            let vis: Vec<i32> = h.iter().map(|p| dt.insert(p[0], p[1])).collect();\n            for i in 0..vis.len() {\n                let j = (i + 1) % vis.len();\n                if vis[i] >= 0 && vis[j] >= 0 && vis[i] != vis[j] { dt.insert_constraint(vis[i], vis[j]); }\n            }\n        }\n        if !planar {\n            let usp: Vec<f64> = self.m_surface.get_span_vector(0).iter().map(|&v| v as f64).collect();\n            let vsp: Vec<f64> = self.m_surface.get_span_vector(1).iter().map(|&v| v as f64).collect();\n            let deg_u = self.m_surface.degree(0);\n            let deg_v = self.m_surface.degree(1);\n            let ns_u = usp.len().saturating_sub(1);\n            let ns_v = vsp.len().saturating_sub(1);\n            let mut bmin = [1e30f32; 3]; let mut bmax = [-1e30f32; 3];\n            for i in 0..self.m_surface.cv_count_dir(Some(0)) {\n                for j in 0..self.m_surface.cv_count_dir(Some(1)) {\n                    if let Some(p) = self.m_surface.get_cv(i, j) {\n                        for k in 0..3 { if p[k] < bmin[k] { bmin[k]=p[k]; } if p[k] > bmax[k] { bmax[k]=p[k]; } }\n                    }\n                }\n            }\n            let bbox_diag = (0..3).map(|k| (bmax[k]-bmin[k]).powi(2)).sum::<f32>().sqrt() as f64;\n            let max_angle_deg = 20.0_f64;\n            let pe00 = self.m_surface.point_at(usp[0] as f32, vsp[0] as f32).unwrap_or(Point::new(0.0,0.0,0.0));\n            let pe10 = self.m_surface.point_at(*usp.last().unwrap() as f32, vsp[0] as f32).unwrap_or(Point::new(0.0,0.0,0.0));\n            let pe01 = self.m_surface.point_at(usp[0] as f32, *vsp.last().unwrap() as f32).unwrap_or(Point::new(0.0,0.0,0.0));\n            let l1 = ((pe10[0]-pe00[0]).powi(2)+(pe10[1]-pe00[1]).powi(2)+(pe10[2]-pe00[2]).powi(2)).sqrt() as f64;\n            let l2 = ((pe01[0]-pe00[0]).powi(2)+(pe01[1]-pe00[1]).powi(2)+(pe01[2]-pe00[2]).powi(2)).sqrt() as f64;\n            let max_dim = l1.max(l2);\n            let max_edge_len = if max_dim > 1e-10 { max_dim / 10.0 } else { 0.0 };\n            let span_subs = |dir: usize, sp: &[f64], osp: &[f64], deg: usize| -> Vec<usize> {\n                let n = sp.len().saturating_sub(1);\n                let mut subs = vec![1usize; n];\n                let s_pos: Vec<f64> = (0..osp.len().saturating_sub(1)).map(|k| (osp[k]+osp[k+1])*0.5).collect();\n                for i in 0..n {\n                    let t0 = sp[i]; let t1 = sp[i+1];\n                    if deg > 1 {\n                        let mut ma = 0.0_f64;\n                        for &s in &s_pos {\n                            let mut ta = 0.0_f64;\n                            let mut pn = [0.0f32; 3];\n                            for k in 0..=4 {\n                                let t = (t0 + k as f64*(t1-t0)/4.0) as f32;\n                                let (su, sv) = if dir==0 { (t, s as f32) } else { (s as f32, t) };\n                                let nrm = self.m_surface.normal_at(su, sv);\n                                if k > 0 {\n                                    let d = (pn[0]*nrm[0]+pn[1]*nrm[1]+pn[2]*nrm[2]).max(-1.0).min(1.0);\n                                    ta += (d.acos() as f64) * 180.0 / std::f64::consts::PI;\n                                }\n                                pn = [nrm[0], nrm[1], nrm[2]];\n                            }\n                            if ta > ma { ma = ta; }\n                        }\n                        subs[i] = 1.max(((ma / max_angle_deg).ceil() as usize).min(24));\n                    }\n                    let chord_tol = bbox_diag * 0.005;\n                    let nc = s_pos.len().min(3);\n                    let mut max_dev = 0.0_f64;\n                    for ci in 0..=nc {\n                        let s = osp[0] + ci as f64*(osp[osp.len()-1]-osp[0])/(nc.max(1) as f64);\n                        let (p0u, p0v) = if dir==0 { (t0 as f32, s as f32) } else { (s as f32, t0 as f32) };\n                        let (p1u, p1v) = if dir==0 { (t1 as f32, s as f32) } else { (s as f32, t1 as f32) };\n                        let pt0 = self.m_surface.point_at(p0u, p0v).unwrap_or(Point::new(0.0,0.0,0.0));\n                        let pt1 = self.m_surface.point_at(p1u, p1v).unwrap_or(Point::new(0.0,0.0,0.0));\n                        for k in 1..=3 {\n                            let frac = k as f64 / 4.0;\n                            let tm = (t0 + frac*(t1-t0)) as f32;\n                            let (pmu, pmv) = if dir==0 { (tm, s as f32) } else { (s as f32, tm) };\n                            let ptm = self.m_s",
           "file": "nurbssurface_trimmed.rs"
         }
       },
@@ -38047,20 +38054,21 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.disc",
-        "NurbsSurfaceTrimmed.discretize",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.inner_loop_count",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.new",
         "NurbsSurfaceTrimmed.normal_at",
+        "NurbsSurfaceTrimmed.pip",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
-        "NurbsSurfaceTrimmed.to_pairs",
-        "NurbsSurfaceTrimmed.to_string"
+        "NurbsSurfaceTrimmed.to_pairs"
       ]
     },
     {
@@ -38068,7 +38076,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "disc(crv)",
-          "code": "def disc(crv):\n\n                n = max(crv.cv_count() * 4, 16) if crv.degree() > 1 else max(crv.cv_count() - 1, 4)\n                pts, _ = crv.divide_by_count(n)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: grid + point-in-polygon discard\n        dom_u = self.m_surface.domain(0)\n        dom_v = self.m_surface.domain(1)\n        range_u = dom_u[1] - dom_u[0]\n        range_v = dom_v[1] - dom_v[0]\n        if range_u < 1e-15 or range_v < 1e-15:\n            return self.m_surface.mesh()\n        p00 = self.m_surface.point_at(dom_u[0], dom_v[0])\n        p10 = self.m_surface.point_at(dom_u[1], dom_v[0])\n        p01 = self.m_surface.point_at(dom_u[0], dom_v[1])\n        u_len = math.sqrt((p10[0]-p00[0])**2+(p10[1]-p00[1])**2+(p10[2]-p00[2])**2)\n        v_len = math.sqrt((p01[0]-p00[0])**2+(p01[1]-p00[1])**2+(p01[2]-p00[2])**2)\n        max_dim = max(u_len, v_len)\n        max_edge = max_dim / 10.0 if max_dim > 1e-10 else 0.1\n        nu = max(12, int(math.ceil(u_len / max_edge)) + 1) if u_len > 1e-10 else 12\n        nv = max(12, int(math.ceil(v_len / max_edge)) + 1) if v_len > 1e-10 else 12\n        us = [dom_u[0] + i * range_u / (nu - 1) for i in range(nu)]\n        vs = [dom_v[0] + i * range_v / (nv - 1) for i in range(nv)]\n        full = Mesh()\n        import numpy as _np\n        from .point import Point as _Pt\n        _us_a = _np.asarray(us, dtype=_np.float64)\n        _vs_a = _np.asarray(vs, dtype=_np.float64)\n        _gu = _np.repeat(_us_a, nv)\n        _gv = _np.tile(_vs_a, nu)\n        _xyz = self.m_surface.batch_point_at(_gu, _gv)\n        for idx in range(nu * nv):\n            vk = full.add_vertex(_Pt(_xyz[idx, 0], _xyz[idx, 1], _xyz[idx, 2]))\n            full.vertex[vk].attributes[\"u\"] = float(_gu[idx])\n            full.vertex[vk].attributes[\"v\"] = float(_gv[idx])",
+          "code": "def disc(crv):\n\n                if crv.degree() <= 1:\n                    return [crv.get_cv(i) for i in range(crv.cv_count() - 1)]\n                n = max(crv.cv_count() * 4, 16)\n                pts, _ = crv.divide_by_count(n + 1)\n                return pts\n            outer_pts = disc(self.m_outer_loop)\n            hole_pts = [disc(inner) for inner in self.m_inner_loops]\n            import numpy as _np\n            from .point import Point as _Pt\n            def _trim_closed(lst):\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: UV grid triangulation with per-vertex parametric normals\n        import numpy as _np\n        from .point import Point as _Pt\n        def disc_np(crv):\n            if crv.degree() <= 1:\n                return [(float(crv.get_cv(i)[0]), float(crv.get_cv(i)[1])) for i in range(crv.cv_count() - 1)]\n            n = max(crv.cv_count() * 4, 16)\n            pts, _ = crv.divide_by_count(n + 1)\n            return [(float(p[0]), float(p[1])) for p in pts[:-1]]\n        border_uv = disc_np(self.m_outer_loop)\n        holes_uv = [disc_np(inner) for inner in self.m_inner_loops]\n        def pip(px, py, poly):\n            inside = False\n            j = len(poly) - 1\n            for i in range(len(poly)):\n                xi, yi = poly[i]; xj, yj = poly[j]\n                if ((yi > py) != (yj > py)) and (px < (xj - xi) * (py - yi) / (yj - yi + 1e-300) + xi):\n                    inside = not inside\n                j = i\n            return inside\n        def inside_trim(pu, pv):\n            if not pip(pu, pv, border_uv): return False\n            for h in holes_uv:\n                if pip(pu, pv, h): return False\n            return True\n        u_min = min(p[0] for p in border_uv); u_max = max(p[0] for p in border_uv)\n        v_min = min(p[1] for p in border_uv); v_max = max(p[1] for p in border_uv)\n        n_grid = 10",
           "file": "nurbssurface_trimmed.py"
         }
       },
@@ -38078,14 +38086,16 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_holes",
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
-        "NurbsSurfaceTrimmed.discretize",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.inner_loop_count",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.normal_at",
+        "NurbsSurfaceTrimmed.pip",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.surface",
@@ -38097,7 +38107,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_trim_closed(lst)",
-          "code": "def _trim_closed(lst):\n\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: grid + point-in-polygon discard\n        dom_u = self.m_surface.domain(0)\n        dom_v = self.m_surface.domain(1)\n        range_u = dom_u[1] - dom_u[0]\n        range_v = dom_v[1] - dom_v[0]\n        if range_u < 1e-15 or range_v < 1e-15:\n            return self.m_surface.mesh()\n        p00 = self.m_surface.point_at(dom_u[0], dom_v[0])\n        p10 = self.m_surface.point_at(dom_u[1], dom_v[0])\n        p01 = self.m_surface.point_at(dom_u[0], dom_v[1])\n        u_len = math.sqrt((p10[0]-p00[0])**2+(p10[1]-p00[1])**2+(p10[2]-p00[2])**2)\n        v_len = math.sqrt((p01[0]-p00[0])**2+(p01[1]-p00[1])**2+(p01[2]-p00[2])**2)\n        max_dim = max(u_len, v_len)\n        max_edge = max_dim / 10.0 if max_dim > 1e-10 else 0.1\n        nu = max(12, int(math.ceil(u_len / max_edge)) + 1) if u_len > 1e-10 else 12\n        nv = max(12, int(math.ceil(v_len / max_edge)) + 1) if v_len > 1e-10 else 12\n        us = [dom_u[0] + i * range_u / (nu - 1) for i in range(nu)]\n        vs = [dom_v[0] + i * range_v / (nv - 1) for i in range(nv)]\n        full = Mesh()\n        import numpy as _np\n        from .point import Point as _Pt\n        _us_a = _np.asarray(us, dtype=_np.float64)\n        _vs_a = _np.asarray(vs, dtype=_np.float64)\n        _gu = _np.repeat(_us_a, nv)\n        _gv = _np.tile(_vs_a, nu)\n        _xyz = self.m_surface.batch_point_at(_gu, _gv)\n        for idx in range(nu * nv):\n            vk = full.add_vertex(_Pt(_xyz[idx, 0], _xyz[idx, 1], _xyz[idx, 2]))\n            full.vertex[vk].attributes[\"u\"] = float(_gu[idx])\n            full.vertex[vk].attributes[\"v\"] = float(_gv[idx])\n        for i in range(nu - 1):\n            for j in range(nv - 1):\n                v00 = i * nv + j\n                v10 = (i + 1) * nv + j\n                v01 = i * nv + (j + 1)\n                v11 = (i + 1) * nv + (j + 1)\n                if (i + j) % 2 == 0:\n                    full.add_face([v00, v10, v11])",
+          "code": "def _trim_closed(lst):\n\n                n = len(lst)\n                if n > 1 and abs(lst[0][0]-lst[n-1][0]) < 1e-12 and abs(lst[0][1]-lst[n-1][1]) < 1e-12:\n                    return lst[:-1]\n                return lst\n            all_uvs = _trim_closed(outer_pts)\n            for hp in hole_pts:\n                all_uvs = all_uvs + _trim_closed(hp)\n            if all_uvs:\n                u_arr = _np.array([p[0] for p in all_uvs], dtype=_np.float64)\n                v_arr = _np.array([p[1] for p in all_uvs], dtype=_np.float64)\n                xyz = self.m_surface.batch_point_at(u_arr, v_arr)\n                pts3d = [_Pt(xyz[i, 0], xyz[i, 1], xyz[i, 2]) for i in range(len(u_arr))]\n            else:\n                pts3d = []\n            def to_pairs(uvs):\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: UV grid triangulation with per-vertex parametric normals\n        import numpy as _np\n        from .point import Point as _Pt\n        def disc_np(crv):\n            if crv.degree() <= 1:\n                return [(float(crv.get_cv(i)[0]), float(crv.get_cv(i)[1])) for i in range(crv.cv_count() - 1)]\n            n = max(crv.cv_count() * 4, 16)\n            pts, _ = crv.divide_by_count(n + 1)\n            return [(float(p[0]), float(p[1])) for p in pts[:-1]]\n        border_uv = disc_np(self.m_outer_loop)\n        holes_uv = [disc_np(inner) for inner in self.m_inner_loops]\n        def pip(px, py, poly):\n            inside = False\n            j = len(poly) - 1\n            for i in range(len(poly)):\n                xi, yi = poly[i]; xj, yj = poly[j]\n                if ((yi > py) != (yj > py)) and (px < (xj - xi) * (py - yi) / (yj - yi + 1e-300) + xi):\n                    inside = not inside\n                j = i\n            return inside\n        def inside_trim(pu, pv):\n            if not pip(pu, pv, border_uv): return False\n            for h in holes_uv:\n                if pip(pu, pv, h): return False\n            return True\n        u_min = min(p[0] for p in border_uv); u_max = max(p[0] for p in border_uv)\n        v_min = min(p[1] for p in border_uv); v_max = max(p[1] for p in border_uv)\n        n_grid = 10\n        us = _np.linspace(u_min, u_max, n_grid + 1)\n        vs = _np.linspace(v_min, v_max, n_grid + 1)\n        uv_grid = [[(float(us[i]), float(vs[j])) for j in range(n_grid + 1)] for i in range(n_grid + 1)]\n        u_flat = _np.array([uv_grid[i][j][0] for i in range(n_grid+1) for j in range(n_grid+1)], dtype=_np.float64)\n        v_flat = _np.array([uv_grid[i][j][1] for i in range(n_grid+1) for j in range(n_grid+1)], dtype=_np.float64)\n        xyz = self.m_surface.batch_point_at(u_flat, v_flat)\n        pts3d_grid = [_Pt(float(xyz[k, 0]), float(xyz[k, 1]), float(xyz[k, 2])) for k in range(len(u_flat))]\n        idx = lambda i, j: i * (n_grid + 1) + j\n        polygons = []\n        uv_per_poly = []",
           "file": "nurbssurface_trimmed.py"
         }
       },
@@ -38107,13 +38117,16 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.disc",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.inner_loop_count",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.normal_at",
+        "NurbsSurfaceTrimmed.pip",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.surface",
@@ -38125,7 +38138,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "to_pairs(uvs)",
-          "code": "def to_pairs(uvs):\n\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: grid + point-in-polygon discard\n        dom_u = self.m_surface.domain(0)\n        dom_v = self.m_surface.domain(1)\n        range_u = dom_u[1] - dom_u[0]\n        range_v = dom_v[1] - dom_v[0]\n        if range_u < 1e-15 or range_v < 1e-15:\n            return self.m_surface.mesh()\n        p00 = self.m_surface.point_at(dom_u[0], dom_v[0])\n        p10 = self.m_surface.point_at(dom_u[1], dom_v[0])\n        p01 = self.m_surface.point_at(dom_u[0], dom_v[1])\n        u_len = math.sqrt((p10[0]-p00[0])**2+(p10[1]-p00[1])**2+(p10[2]-p00[2])**2)\n        v_len = math.sqrt((p01[0]-p00[0])**2+(p01[1]-p00[1])**2+(p01[2]-p00[2])**2)\n        max_dim = max(u_len, v_len)\n        max_edge = max_dim / 10.0 if max_dim > 1e-10 else 0.1\n        nu = max(12, int(math.ceil(u_len / max_edge)) + 1) if u_len > 1e-10 else 12\n        nv = max(12, int(math.ceil(v_len / max_edge)) + 1) if v_len > 1e-10 else 12\n        us = [dom_u[0] + i * range_u / (nu - 1) for i in range(nu)]\n        vs = [dom_v[0] + i * range_v / (nv - 1) for i in range(nv)]\n        full = Mesh()\n        import numpy as _np\n        from .point import Point as _Pt\n        _us_a = _np.asarray(us, dtype=_np.float64)\n        _vs_a = _np.asarray(vs, dtype=_np.float64)\n        _gu = _np.repeat(_us_a, nv)\n        _gv = _np.tile(_vs_a, nu)\n        _xyz = self.m_surface.batch_point_at(_gu, _gv)\n        for idx in range(nu * nv):\n            vk = full.add_vertex(_Pt(_xyz[idx, 0], _xyz[idx, 1], _xyz[idx, 2]))\n            full.vertex[vk].attributes[\"u\"] = float(_gu[idx])\n            full.vertex[vk].attributes[\"v\"] = float(_gv[idx])\n        for i in range(nu - 1):\n            for j in range(nv - 1):\n                v00 = i * nv + j\n                v10 = (i + 1) * nv + j\n                v01 = i * nv + (j + 1)\n                v11 = (i + 1) * nv + (j + 1)\n                if (i + j) % 2 == 0:\n                    full.add_face([v00, v10, v11])\n                    full.add_face([v00, v11, v01])\n                else:\n                    full.add_face([v00, v10, v01])\n                    full.add_face([v10, v11, v01])\n        from .point import Point\n        from .polyline import Polyline\n        def discretize(crv):\n            n = max(crv.cv_count() * 4, 16)\n            pts, _ = crv.divide_by_count(n)\n            return Polyline([Point(p[0], p[1], 0.0) for p in pts])\n        outer_polygon = discretize(self.m_outer_loop)\n        inner_polygons = [discretize(inner) for inner in self.m_inner_loops]\n        keep_verts = set()\n        for vk, vd in full.vertex.items():\n            u_raw = vd.attributes.get(\"u\", 0.0)",
+          "code": "def to_pairs(uvs):\n\n                n = len(uvs)\n                if n > 1 and abs(uvs[0][0]-uvs[n-1][0]) < 1e-12 and abs(uvs[0][1]-uvs[n-1][1]) < 1e-12:\n                    uvs = uvs[:-1]\n                return [(float(p[0]), float(p[1])) for p in uvs]\n            border = to_pairs(outer_pts)\n            holes = [to_pairs(h) for h in hole_pts] if hole_pts else []\n            area = sum(border[j][0]*border[(j+1)%len(border)][1] - border[(j+1)%len(border)][0]*border[j][1]\n                       for j in range(len(border))) * 0.5\n            if area < 0: border.reverse()\n            for h in holes:\n                ha = sum(h[j][0]*h[(j+1)%len(h)][1] - h[(j+1)%len(h)][0]*h[j][1] for j in range(len(h))) * 0.5\n                if ha > 0: h.reverse()\n            tris = _RemeshCDT_cdt(border, holes if holes else None)\n            np_ = len(pts3d)\n            polygons = []\n            for v0, v1, v2 in tris:\n                if 0 <= v0 < np_ and 0 <= v1 < np_ and 0 <= v2 < np_:\n                    polygons.append([pts3d[v0], pts3d[v1], pts3d[v2]])\n            result = Mesh.from_polylines(polygons)\n            dom_u = self.m_surface.domain(0)\n            dom_v = self.m_surface.domain(1)\n            nrm = self.m_surface.normal_at((dom_u[0]+dom_u[1])/2, (dom_v[0]+dom_v[1])/2)\n            for vk in result.vertex:\n                result.vertex[vk].set_normal(nrm[0], nrm[1], nrm[2])\n            return result\n\n        # Non-planar: UV grid triangulation with per-vertex parametric normals\n        import numpy as _np\n        from .point import Point as _Pt\n        def disc_np(crv):\n            if crv.degree() <= 1:\n                return [(float(crv.get_cv(i)[0]), float(crv.get_cv(i)[1])) for i in range(crv.cv_count() - 1)]\n            n = max(crv.cv_count() * 4, 16)\n            pts, _ = crv.divide_by_count(n + 1)\n            return [(float(p[0]), float(p[1])) for p in pts[:-1]]\n        border_uv = disc_np(self.m_outer_loop)\n        holes_uv = [disc_np(inner) for inner in self.m_inner_loops]\n        def pip(px, py, poly):\n            inside = False\n            j = len(poly) - 1\n            for i in range(len(poly)):\n                xi, yi = poly[i]; xj, yj = poly[j]\n                if ((yi > py) != (yj > py)) and (px < (xj - xi) * (py - yi) / (yj - yi + 1e-300) + xi):\n                    inside = not inside\n                j = i\n            return inside\n        def inside_trim(pu, pv):\n            if not pip(pu, pv, border_uv): return False\n            for h in holes_uv:\n                if pip(pu, pv, h): return False\n            return True\n        u_min = min(p[0] for p in border_uv); u_max = max(p[0] for p in border_uv)\n        v_min = min(p[1] for p in border_uv); v_max = max(p[1] for p in border_uv)\n        n_grid = 10\n        us = _np.linspace(u_min, u_max, n_grid + 1)\n        vs = _np.linspace(v_min, v_max, n_grid + 1)\n        uv_grid = [[(float(us[i]), float(vs[j])) for j in range(n_grid + 1)] for i in range(n_grid + 1)]\n        u_flat = _np.array([uv_grid[i][j][0] for i in range(n_grid+1) for j in range(n_grid+1)], dtype=_np.float64)\n        v_flat = _np.array([uv_grid[i][j][1] for i in range(n_grid+1) for j in range(n_grid+1)], dtype=_np.float64)\n        xyz = self.m_surface.batch_point_at(u_flat, v_flat)\n        pts3d_grid = [_Pt(float(xyz[k, 0]), float(xyz[k, 1]), float(xyz[k, 2])) for k in range(len(u_flat))]\n        idx = lambda i, j: i * (n_grid + 1) + j\n        polygons = []\n        uv_per_poly = []\n        for i in range(n_grid):\n            for j in range(n_grid):\n                cx0 = (uv_grid[i][j][0] + uv_grid[i+1][j][0] + uv_grid[i][j+1][0]) / 3\n                cy0 = (uv_grid[i][j][1] + uv_grid[i+1][j][1] + uv_grid[i][j+1][1]) / 3\n                if inside_trim(cx0, cy0):\n                    a, b, c = idx(i, j), idx(i+1, j), idx(i, j+1)\n                    polygons.append([pts3d_grid[a], pts3d_grid[b], pts3d_grid[c]])\n                    uv_per_poly.append([(u_flat[a], v_flat[a]), (u_flat[b], v_flat[b]), (u_flat[c], v_flat[c])])\n                cx1 = (uv_grid[i+1][j][0] + uv_grid[i+1][j+1][0] + uv_grid[i][j+1][0]) / 3\n                cy1 = (uv_grid[i+1][j][1] + uv_grid[i+1][j+1][1] + uv_grid[i][j+1][1]) / 3\n                if inside_trim(cx1, cy1):\n                    a, b, c = idx(i+1, j), idx(i+1, j+1), idx(i, j+1)\n                    polygons.append([pts3d_grid[a], pts3d_grid[b], pts3d_grid[c]])\n                    uv_per_poly.append([(u_flat[a], v_flat[a]), (u_flat[b], v_flat[b]), (u_flat[c], v_flat[c])])\n        if not polygons:",
           "file": "nurbssurface_trimmed.py"
         }
       },
@@ -38136,31 +38149,96 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.disc",
-        "NurbsSurfaceTrimmed.discretize",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.inner_loop_count",
-        "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.normal_at",
+        "NurbsSurfaceTrimmed.pip",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.surface"
       ]
     },
     {
-      "name": "NurbsSurfaceTrimmed.discretize",
+      "name": "NurbsSurfaceTrimmed.disc_np",
       "implementations": {
         "python": {
-          "sig": "discretize(crv)",
-          "code": "def discretize(crv):\n\n            n = max(crv.cv_count() * 4, 16)\n            pts, _ = crv.divide_by_count(n)\n            return Polyline([Point(p[0], p[1], 0.0) for p in pts])\n        outer_polygon = discretize(self.m_outer_loop)\n        inner_polygons = [discretize(inner) for inner in self.m_inner_loops]\n        keep_verts = set()\n        for vk, vd in full.vertex.items():\n            u_raw = vd.attributes.get(\"u\", 0.0)\n            v_raw = vd.attributes.get(\"v\", 0.0)\n            pt = Point(u_raw, v_raw, 0.0)\n            if not outer_polygon.point_in_polygon_2d(pt):\n                continue\n            in_hole = False\n            for ip in inner_polygons:\n                if ip.point_in_polygon_2d(pt):\n                    in_hole = True\n                    break\n            if not in_hole:\n                keep_verts.add(vk)\n        polygons = []\n        for fk, fverts in full.face.items():\n            if all(vi in keep_verts for vi in fverts):\n                polygons.append([full.vertex[vi].position() for vi in fverts])\n        result = Mesh.from_polylines(polygons)\n        max_vkey = max(result.vertex.keys()) if result.vertex else 0\n        vnx = [0.0] * (max_vkey + 1)\n        vny = [0.0] * (max_vkey + 1)\n        vnz = [0.0] * (max_vkey + 1)\n        for fi, vids in result.face.items():\n            if len(vids) < 3:\n                continue\n            p0 = result.vertex[vids[0]]\n            p1 = result.vertex[vids[1]]\n            p2 = result.vertex[vids[2]]\n            e1x, e1y, e1z = p1.x-p0.x, p1.y-p0.y, p1.z-p0.z\n            e2x, e2y, e2z = p2.x-p0.x, p2.y-p0.y, p2.z-p0.z\n            fnx = e1y*e2z - e1z*e2y\n            fny = e1z*e2x - e1x*e2z\n            fnz = e1x*e2y - e1y*e2x\n            for vi in vids:\n                vnx[vi] += fnx; vny[vi] += fny; vnz[vi] += fnz\n        for vk in result.vertex:\n            ln = math.sqrt(vnx[vk]**2 + vny[vk]**2 + vnz[vk]**2)\n            if ln > 1e-15:\n                vnx[vk] /= ln; vny[vk] /= ln; vnz[vk] /= ln\n            result.vertex[vk].set_normal(vnx[vk], vny[vk], vnz[vk])\n        return result\n\n    def transform(self, xf=None):\n        if xf is None:\n            self.m_surface.transform(self.xform)\n            self.xform = Xform.identity()\n        else:\n            self.m_surface.transform(xf)\n\n    def transformed(self):\n        ts = self.duplicate()\n        ts.transform()\n        return ts\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, NurbsSurfaceTrimmed):\n            return False\n        if self.name != other.name:\n            return False\n        if self.width != other.width:\n            return False\n        if self.surfacecolor != other.surfacecolor:\n            return False\n        if self.xform != other.xform:\n            return False\n        if self.m_surface != other.m_surface:\n            return False\n        return True",
+          "sig": "disc_np(crv)",
+          "code": "def disc_np(crv):\n\n            if crv.degree() <= 1:\n                return [(float(crv.get_cv(i)[0]), float(crv.get_cv(i)[1])) for i in range(crv.cv_count() - 1)]\n            n = max(crv.cv_count() * 4, 16)\n            pts, _ = crv.divide_by_count(n + 1)\n            return [(float(p[0]), float(p[1])) for p in pts[:-1]]\n        border_uv = disc_np(self.m_outer_loop)\n        holes_uv = [disc_np(inner) for inner in self.m_inner_loops]\n        def pip(px, py, poly):\n            inside = False\n            j = len(poly) - 1\n            for i in range(len(poly)):\n                xi, yi = poly[i]; xj, yj = poly[j]\n                if ((yi > py) != (yj > py)) and (px < (xj - xi) * (py - yi) / (yj - yi + 1e-300) + xi):\n                    inside = not inside\n                j = i\n            return inside\n        def inside_trim(pu, pv):\n            if not pip(pu, pv, border_uv): return False\n            for h in holes_uv:\n                if pip(pu, pv, h): return False\n            return True\n        u_min = min(p[0] for p in border_uv); u_max = max(p[0] for p in border_uv)\n        v_min = min(p[1] for p in border_uv); v_max = max(p[1] for p in border_uv)\n        n_grid = 10\n        us = _np.linspace(u_min, u_max, n_grid + 1)\n        vs = _np.linspace(v_min, v_max, n_grid + 1)\n        uv_grid = [[(float(us[i]), float(vs[j])) for j in range(n_grid + 1)] for i in range(n_grid + 1)]\n        u_flat = _np.array([uv_grid[i][j][0] for i in range(n_grid+1) for j in range(n_grid+1)], dtype=_np.float64)\n        v_flat = _np.array([uv_grid[i][j][1] for i in range(n_grid+1) for j in range(n_grid+1)], dtype=_np.float64)\n        xyz = self.m_surface.batch_point_at(u_flat, v_flat)\n        pts3d_grid = [_Pt(float(xyz[k, 0]), float(xyz[k, 1]), float(xyz[k, 2])) for k in range(len(u_flat))]\n        idx = lambda i, j: i * (n_grid + 1) + j\n        polygons = []\n        uv_per_poly = []\n        for i in range(n_grid):\n            for j in range(n_grid):\n                cx0 = (uv_grid[i][j][0] + uv_grid[i+1][j][0] + uv_grid[i][j+1][0]) / 3\n                cy0 = (uv_grid[i][j][1] + uv_grid[i+1][j][1] + uv_grid[i][j+1][1]) / 3\n                if inside_trim(cx0, cy0):\n                    a, b, c = idx(i, j), idx(i+1, j), idx(i, j+1)\n                    polygons.append([pts3d_grid[a], pts3d_grid[b], pts3d_grid[c]])\n                    uv_per_poly.append([(u_flat[a], v_flat[a]), (u_flat[b], v_flat[b]), (u_flat[c], v_flat[c])])\n                cx1 = (uv_grid[i+1][j][0] + uv_grid[i+1][j+1][0] + uv_grid[i][j+1][0]) / 3\n                cy1 = (uv_grid[i+1][j][1] + uv_grid[i+1][j+1][1] + uv_grid[i][j+1][1]) / 3\n                if inside_trim(cx1, cy1):\n                    a, b, c = idx(i+1, j), idx(i+1, j+1), idx(i, j+1)\n                    polygons.append([pts3d_grid[a], pts3d_grid[b], pts3d_grid[c]])\n                    uv_per_poly.append([(u_flat[a], v_flat[a]), (u_flat[b], v_flat[b]), (u_flat[c], v_flat[c])])\n        if not polygons:\n            return Mesh()\n        result = Mesh.from_polylines(polygons)\n        pts3d_arr = _np.array([[p[0], p[1], p[2]] for tri in polygons for p in tri], dtype=_np.float64)\n        uv_flat2 = [(u, v) for tri_uv in uv_per_poly for (u, v) in tri_uv]\n        for vk, vd in result.vertex.items():\n            p = vd.position()\n            diffs = pts3d_arr - _np.array([p.x, p.y, p.z])\n            best_i = int(_np.argmin((diffs**2).sum(axis=1)))\n            u_val, v_val = uv_flat2[best_i]\n            nrm = self.m_surface.normal_at(u_val, v_val)\n            vd.set_normal(nrm[0], nrm[1], nrm[2])\n        return result\n\n    def transform(self, xf=None):\n        if xf is None:\n            self.m_surface.transform(self.xform)\n            self.xform = Xform.identity()\n        else:\n            self.m_surface.transform(xf)\n\n    def transformed(self):\n        ts = self.duplicate()\n        ts.transform()\n        return ts\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result",
+          "file": "nurbssurface_trimmed.py"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed._trim_closed",
+        "NurbsSurfaceTrimmed.clear_inner_loops",
+        "NurbsSurfaceTrimmed.disc",
+        "NurbsSurfaceTrimmed.duplicate",
+        "NurbsSurfaceTrimmed.guid",
+        "NurbsSurfaceTrimmed.inner_loop_count",
+        "NurbsSurfaceTrimmed.inside_trim",
+        "NurbsSurfaceTrimmed.mesh",
+        "NurbsSurfaceTrimmed.normal_at",
+        "NurbsSurfaceTrimmed.pip",
+        "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.str",
+        "NurbsSurfaceTrimmed.surface",
+        "NurbsSurfaceTrimmed.to_pairs",
+        "NurbsSurfaceTrimmed.transform",
+        "NurbsSurfaceTrimmed.transformed",
+        "NurbsSurfaceTrimmed.xform"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.pip",
+      "implementations": {
+        "python": {
+          "sig": "pip(px, py, poly)",
+          "code": "def pip(px, py, poly):\n\n            inside = False\n            j = len(poly) - 1\n            for i in range(len(poly)):\n                xi, yi = poly[i]; xj, yj = poly[j]\n                if ((yi > py) != (yj > py)) and (px < (xj - xi) * (py - yi) / (yj - yi + 1e-300) + xi):\n                    inside = not inside\n                j = i\n            return inside\n        def inside_trim(pu, pv):\n            if not pip(pu, pv, border_uv): return False\n            for h in holes_uv:\n                if pip(pu, pv, h): return False\n            return True\n        u_min = min(p[0] for p in border_uv); u_max = max(p[0] for p in border_uv)\n        v_min = min(p[1] for p in border_uv); v_max = max(p[1] for p in border_uv)\n        n_grid = 10\n        us = _np.linspace(u_min, u_max, n_grid + 1)\n        vs = _np.linspace(v_min, v_max, n_grid + 1)\n        uv_grid = [[(float(us[i]), float(vs[j])) for j in range(n_grid + 1)] for i in range(n_grid + 1)]\n        u_flat = _np.array([uv_grid[i][j][0] for i in range(n_grid+1) for j in range(n_grid+1)], dtype=_np.float64)\n        v_flat = _np.array([uv_grid[i][j][1] for i in range(n_grid+1) for j in range(n_grid+1)], dtype=_np.float64)\n        xyz = self.m_surface.batch_point_at(u_flat, v_flat)\n        pts3d_grid = [_Pt(float(xyz[k, 0]), float(xyz[k, 1]), float(xyz[k, 2])) for k in range(len(u_flat))]\n        idx = lambda i, j: i * (n_grid + 1) + j\n        polygons = []\n        uv_per_poly = []\n        for i in range(n_grid):\n            for j in range(n_grid):\n                cx0 = (uv_grid[i][j][0] + uv_grid[i+1][j][0] + uv_grid[i][j+1][0]) / 3\n                cy0 = (uv_grid[i][j][1] + uv_grid[i+1][j][1] + uv_grid[i][j+1][1]) / 3\n                if inside_trim(cx0, cy0):\n                    a, b, c = idx(i, j), idx(i+1, j), idx(i, j+1)\n                    polygons.append([pts3d_grid[a], pts3d_grid[b], pts3d_grid[c]])\n                    uv_per_poly.append([(u_flat[a], v_flat[a]), (u_flat[b], v_flat[b]), (u_flat[c], v_flat[c])])\n                cx1 = (uv_grid[i+1][j][0] + uv_grid[i+1][j+1][0] + uv_grid[i][j+1][0]) / 3\n                cy1 = (uv_grid[i+1][j][1] + uv_grid[i+1][j+1][1] + uv_grid[i][j+1][1]) / 3\n                if inside_trim(cx1, cy1):\n                    a, b, c = idx(i+1, j), idx(i+1, j+1), idx(i, j+1)\n                    polygons.append([pts3d_grid[a], pts3d_grid[b], pts3d_grid[c]])\n                    uv_per_poly.append([(u_flat[a], v_flat[a]), (u_flat[b], v_flat[b]), (u_flat[c], v_flat[c])])\n        if not polygons:\n            return Mesh()\n        result = Mesh.from_polylines(polygons)\n        pts3d_arr = _np.array([[p[0], p[1], p[2]] for tri in polygons for p in tri], dtype=_np.float64)\n        uv_flat2 = [(u, v) for tri_uv in uv_per_poly for (u, v) in tri_uv]\n        for vk, vd in result.vertex.items():\n            p = vd.position()\n            diffs = pts3d_arr - _np.array([p.x, p.y, p.z])\n            best_i = int(_np.argmin((diffs**2).sum(axis=1)))\n            u_val, v_val = uv_flat2[best_i]\n            nrm = self.m_surface.normal_at(u_val, v_val)\n            vd.set_normal(nrm[0], nrm[1], nrm[2])\n        return result\n\n    def transform(self, xf=None):\n        if xf is None:\n            self.m_surface.transform(self.xform)\n            self.xform = Xform.identity()\n        else:\n            self.m_surface.transform(xf)\n\n    def transformed(self):\n        ts = self.duplicate()\n        ts.transform()\n        return ts\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, NurbsSurfaceTrimmed):\n            return False\n        if self.name != other.name:\n            return False\n        if self.width != other.width:\n            return False\n        if self.surfacecolor != other.surfacecolor:",
           "file": "nurbssurface_trimmed.py"
         }
       },
       "related": [
         "NurbsSurfaceTrimmed.__eq__",
+        "NurbsSurfaceTrimmed._trim_closed",
         "NurbsSurfaceTrimmed.disc",
+        "NurbsSurfaceTrimmed.disc_np",
+        "NurbsSurfaceTrimmed.duplicate",
+        "NurbsSurfaceTrimmed.guid",
+        "NurbsSurfaceTrimmed.inside_trim",
+        "NurbsSurfaceTrimmed.mesh",
+        "NurbsSurfaceTrimmed.normal_at",
+        "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.str",
+        "NurbsSurfaceTrimmed.surface",
+        "NurbsSurfaceTrimmed.surfacecolor",
+        "NurbsSurfaceTrimmed.to_pairs",
+        "NurbsSurfaceTrimmed.transform",
+        "NurbsSurfaceTrimmed.transformed",
+        "NurbsSurfaceTrimmed.xform"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.inside_trim",
+      "implementations": {
+        "python": {
+          "sig": "inside_trim(pu, pv)",
+          "code": "def inside_trim(pu, pv):\n\n            if not pip(pu, pv, border_uv): return False\n            for h in holes_uv:\n                if pip(pu, pv, h): return False\n            return True\n        u_min = min(p[0] for p in border_uv); u_max = max(p[0] for p in border_uv)\n        v_min = min(p[1] for p in border_uv); v_max = max(p[1] for p in border_uv)\n        n_grid = 10\n        us = _np.linspace(u_min, u_max, n_grid + 1)\n        vs = _np.linspace(v_min, v_max, n_grid + 1)\n        uv_grid = [[(float(us[i]), float(vs[j])) for j in range(n_grid + 1)] for i in range(n_grid + 1)]\n        u_flat = _np.array([uv_grid[i][j][0] for i in range(n_grid+1) for j in range(n_grid+1)], dtype=_np.float64)\n        v_flat = _np.array([uv_grid[i][j][1] for i in range(n_grid+1) for j in range(n_grid+1)], dtype=_np.float64)\n        xyz = self.m_surface.batch_point_at(u_flat, v_flat)\n        pts3d_grid = [_Pt(float(xyz[k, 0]), float(xyz[k, 1]), float(xyz[k, 2])) for k in range(len(u_flat))]\n        idx = lambda i, j: i * (n_grid + 1) + j\n        polygons = []\n        uv_per_poly = []\n        for i in range(n_grid):\n            for j in range(n_grid):\n                cx0 = (uv_grid[i][j][0] + uv_grid[i+1][j][0] + uv_grid[i][j+1][0]) / 3\n                cy0 = (uv_grid[i][j][1] + uv_grid[i+1][j][1] + uv_grid[i][j+1][1]) / 3\n                if inside_trim(cx0, cy0):\n                    a, b, c = idx(i, j), idx(i+1, j), idx(i, j+1)\n                    polygons.append([pts3d_grid[a], pts3d_grid[b], pts3d_grid[c]])\n                    uv_per_poly.append([(u_flat[a], v_flat[a]), (u_flat[b], v_flat[b]), (u_flat[c], v_flat[c])])\n                cx1 = (uv_grid[i+1][j][0] + uv_grid[i+1][j+1][0] + uv_grid[i][j+1][0]) / 3\n                cy1 = (uv_grid[i+1][j][1] + uv_grid[i+1][j+1][1] + uv_grid[i][j+1][1]) / 3\n                if inside_trim(cx1, cy1):\n                    a, b, c = idx(i+1, j), idx(i+1, j+1), idx(i, j+1)\n                    polygons.append([pts3d_grid[a], pts3d_grid[b], pts3d_grid[c]])\n                    uv_per_poly.append([(u_flat[a], v_flat[a]), (u_flat[b], v_flat[b]), (u_flat[c], v_flat[c])])\n        if not polygons:\n            return Mesh()\n        result = Mesh.from_polylines(polygons)\n        pts3d_arr = _np.array([[p[0], p[1], p[2]] for tri in polygons for p in tri], dtype=_np.float64)\n        uv_flat2 = [(u, v) for tri_uv in uv_per_poly for (u, v) in tri_uv]\n        for vk, vd in result.vertex.items():\n            p = vd.position()\n            diffs = pts3d_arr - _np.array([p.x, p.y, p.z])\n            best_i = int(_np.argmin((diffs**2).sum(axis=1)))\n            u_val, v_val = uv_flat2[best_i]\n            nrm = self.m_surface.normal_at(u_val, v_val)\n            vd.set_normal(nrm[0], nrm[1], nrm[2])\n        return result\n\n    def transform(self, xf=None):\n        if xf is None:\n            self.m_surface.transform(self.xform)\n            self.xform = Xform.identity()\n        else:\n            self.m_surface.transform(xf)\n\n    def transformed(self):\n        ts = self.duplicate()\n        ts.transform()\n        return ts\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, NurbsSurfaceTrimmed):\n            return False\n        if self.name != other.name:\n            return False\n        if self.width != other.width:\n            return False\n        if self.surfacecolor != other.surfacecolor:\n            return False\n        if self.xform != other.xform:\n            return False\n        if self.m_surface != other.m_surface:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)",
+          "file": "nurbssurface_trimmed.py"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed.__eq__",
+        "NurbsSurfaceTrimmed.__ne__",
+        "NurbsSurfaceTrimmed._trim_closed",
+        "NurbsSurfaceTrimmed.disc",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.guid",
         "NurbsSurfaceTrimmed.mesh",
+        "NurbsSurfaceTrimmed.normal_at",
+        "NurbsSurfaceTrimmed.pip",
+        "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.surfacecolor",
@@ -38191,14 +38269,16 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__ne__",
         "NurbsSurfaceTrimmed.__repr__",
         "NurbsSurfaceTrimmed.__str__",
-        "NurbsSurfaceTrimmed.discretize",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.guid",
         "NurbsSurfaceTrimmed.inner_loop_count",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.jsondump",
         "NurbsSurfaceTrimmed.jsonload",
+        "NurbsSurfaceTrimmed.pip",
         "NurbsSurfaceTrimmed.repr",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
@@ -38235,16 +38315,18 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__ne__",
         "NurbsSurfaceTrimmed.__repr__",
         "NurbsSurfaceTrimmed.__str__",
-        "NurbsSurfaceTrimmed.discretize",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_load",
         "NurbsSurfaceTrimmed.guid",
         "NurbsSurfaceTrimmed.inner_loop_count",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.jsondump",
         "NurbsSurfaceTrimmed.jsonload",
+        "NurbsSurfaceTrimmed.pip",
         "NurbsSurfaceTrimmed.repr",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
@@ -38278,17 +38360,19 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__repr__",
         "NurbsSurfaceTrimmed.__str__",
         "NurbsSurfaceTrimmed.create",
-        "NurbsSurfaceTrimmed.discretize",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
         "NurbsSurfaceTrimmed.file_json_load",
         "NurbsSurfaceTrimmed.guid",
         "NurbsSurfaceTrimmed.inner_loop_count",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.jsondump",
         "NurbsSurfaceTrimmed.jsonload",
         "NurbsSurfaceTrimmed.new",
+        "NurbsSurfaceTrimmed.pip",
         "NurbsSurfaceTrimmed.repr",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
@@ -38314,7 +38398,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__ne__",
         "NurbsSurfaceTrimmed.__repr__",
         "NurbsSurfaceTrimmed.__str__",
-        "NurbsSurfaceTrimmed.discretize",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
@@ -38322,10 +38405,12 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.file_json_loads",
         "NurbsSurfaceTrimmed.guid",
         "NurbsSurfaceTrimmed.inner_loop_count",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.jsondump",
         "NurbsSurfaceTrimmed.jsonload",
+        "NurbsSurfaceTrimmed.pip",
         "NurbsSurfaceTrimmed.repr",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
@@ -38358,6 +38443,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.file_json_loads",
         "NurbsSurfaceTrimmed.guid",
         "NurbsSurfaceTrimmed.inner_loop_count",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.jsondump",
@@ -38406,7 +38492,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.jsondump",
         "NurbsSurfaceTrimmed.jsonload",
-        "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.new",
         "NurbsSurfaceTrimmed.pb_dump",
         "NurbsSurfaceTrimmed.pb_dumps",
@@ -77244,13 +77329,14 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__ne__",
         "NurbsSurfaceTrimmed.__repr__",
         "NurbsSurfaceTrimmed.__str__",
-        "NurbsSurfaceTrimmed.discretize",
+        "NurbsSurfaceTrimmed.disc_np",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
         "NurbsSurfaceTrimmed.file_json_load",
         "NurbsSurfaceTrimmed.file_json_loads",
         "NurbsSurfaceTrimmed.guid",
+        "NurbsSurfaceTrimmed.inside_trim",
         "NurbsSurfaceTrimmed.jsondump",
         "NurbsSurfaceTrimmed.jsonload",
         "NurbsSurfaceTrimmed.mesh",
@@ -77259,6 +77345,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.pb_dumps",
         "NurbsSurfaceTrimmed.pb_load",
         "NurbsSurfaceTrimmed.pb_loads",
+        "NurbsSurfaceTrimmed.pip",
         "NurbsSurfaceTrimmed.repr",
         "NurbsSurfaceTrimmed.to_string",
         "NurbsSurfaceTrimmed.transform",
@@ -77328,7 +77415,10 @@ window.API_INDEX = {
           "code": "double Delaunay2D::in_circumcircle(double ax, double ay, double bx, double by,\n                                    double cx, double cy, double dx, double dy) {\n    double adx = ax-dx, ady = ay-dy, bdx = bx-dx, bdy = by-dy, cdx = cx-dx, cdy = cy-dy;\n    return (adx*adx+ady*ady)*(bdx*cdy-cdx*bdy)\n         + (bdx*bdx+bdy*bdy)*(cdx*ady-adx*cdy)\n         + (cdx*cdx+cdy*cdy)*(adx*bdy-bdx*ady);\n}",
           "file": "nurbssurface_trimmed.cpp"
         }
-      }
+      },
+      "related": [
+        "Delaunay2D.insert"
+      ]
     },
     {
       "name": "Delaunay2D.orient2d",
@@ -77340,7 +77430,9 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Delaunay2D.get_triangles"
+        "Delaunay2D.get_triangles",
+        "Delaunay2D.insert",
+        "Delaunay2D.insert_constraint"
       ]
     },
     {
@@ -77401,11 +77493,19 @@ window.API_INDEX = {
           "sig": "int insert(double x, double y)",
           "code": "int Delaunay2D::insert(double x, double y) {\n    int start = locate(x, y, last_found_);\n    if (start >= 0 && triangles[start].alive)\n        for (int k = 0; k < 3; ++k) {\n            int vi2 = triangles[start].v[k];\n            double ddx = vertices[vi2].x-x, ddy = vertices[vi2].y-y;\n            if (ddx*ddx+ddy*ddy < 1e-12) return vi2;\n        }",
           "file": "nurbssurface_trimmed.cpp"
+        },
+        "rust": {
+          "sig": "insert(x: f64, y: f64) -> i32",
+          "code": "pub fn insert(&mut self, x: f64, y: f64) -> i32 {\n        let start = self.locate(x, y, self.last_found);\n        if start >= 0 {\n            let t = &self.triangles[start as usize];\n            for k in 0..3 {\n                let vi2 = t.v[k];\n                let ddx = self.vertices[vi2 as usize].x - x;\n                let ddy = self.vertices[vi2 as usize].y - y;\n                if ddx*ddx + ddy*ddy < 1e-12 { return vi2; }\n            }\n        }\n        let vi = self.vertices.len() as i32;\n        self.vertices.push(Vertex2D { x, y });\n        // BFS to find bad triangles\n        let mut bad: Vec<i32> = Vec::new();\n        let mut visited: std::collections::HashSet<i32> = std::collections::HashSet::new();\n        if start >= 0 { bad.push(start); visited.insert(start); }\n        let mut bfs_front = 0;\n        while bfs_front < bad.len() {\n            let ti = bad[bfs_front]; bfs_front += 1;\n            if !self.triangles[ti as usize].alive { continue; }\n            let [v0,v1,v2] = self.triangles[ti as usize].v;\n            let ax=self.vertices[v0 as usize].x; let ay=self.vertices[v0 as usize].y;\n            let bx=self.vertices[v1 as usize].x; let by=self.vertices[v1 as usize].y;\n            let cx=self.vertices[v2 as usize].x; let cy=self.vertices[v2 as usize].y;\n            let o = Self::orient2d(ax,ay,bx,by,cx,cy);\n            let ic = if o > 0.0 { Self::in_circumcircle(ax,ay,bx,by,cx,cy,x,y) }\n                     else        { Self::in_circumcircle(ax,ay,cx,cy,bx,by,x,y) };\n            if ic > 0.0 {\n                for k in 0..3 {\n                    if self.triangles[ti as usize].constrained[k] { continue; }\n                    let nb = self.triangles[ti as usize].adj[k];\n                    if nb >= 0 && !visited.contains(&nb) { visited.insert(nb); bad.push(nb); }\n                }\n            } else {\n                // mark as not-bad: remove from bad list\n                // handled by only using `bad` entries that stay valid\n            }\n        }\n        // Filter: keep only truly bad triangles\n        let bad: Vec<i32> = bad.into_iter().filter(|&ti| {\n            if !self.triangles[ti as usize].alive { return false; }\n            let [v0,v1,v2] = self.triangles[ti as usize].v;\n            let ax=self.vertices[v0 as usize].x; let ay=self.vertices[v0 as usize].y;\n            let bx=self.vertices[v1 as usize].x; let by=self.vertices[v1 as usize].y;\n            let cx=self.vertices[v2 as usize].x; let cy=self.vertices[v2 as usize].y;\n            let o = Self::orient2d(ax,ay,bx,by,cx,cy);\n            let ic = if o > 0.0 { Self::in_circumcircle(ax,ay,bx,by,cx,cy,x,y) }\n                     else        { Self::in_circumcircle(ax,ay,cx,cy,bx,by,x,y) };\n            ic > 0.0\n        }).collect();\n        if bad.is_empty() { self.vertices.pop(); return -1; }\n        // Collect cavity boundary edges\n        let bad_set: std::collections::HashSet<i32> = bad.iter().copied().collect();\n        let mut polygon: Vec<(i32, i32, bool)> = Vec::new();\n        for &ti in &bad {\n            let t = &self.triangles[ti as usize];\n            for k in 0..3 {\n                let nb = t.adj[k];\n                if nb < 0 || !bad_set.contains(&nb) {\n                    polygon.push((t.v[(k+1)%3], t.v[(k+2)%3], t.constrained[k]));\n                }\n            }\n        }\n        for &ti in &bad { self.unregister_edges(ti); self.triangles[ti as usize].alive = false; }\n        for (e0, e1, constr) in polygon {\n            let o = Self::orient2d(self.vertices[vi as usize].x, self.vertices[vi as usize].y,\n                                   self.vertices[e0 as usize].x, self.vertices[e0 as usize].y,\n                                   self.vertices[e1 as usize].x, self.vertices[e1 as usize].y);\n            if o.abs() < 1e-20 { continue; }\n            let new_ti = self.triangles.len() as i32;\n            let (va, vb) = if o > 0.0 { (e0, e1) } else { (e1, e0) };\n            self.triangles.push(Triangle { v: [vi, va, vb], adj: [-1,-1,-1], constrained: [constr, false, false], alive: true });\n            self.register_edges(new_ti);\n        }\n        self.last_found = self.triangles.len() as i32 - 1;\n        vi\n    }",
+          "file": "nurbssurface_trimmed.rs"
         }
       },
       "related": [
+        "Delaunay2D.in_circumcircle",
         "Delaunay2D.insert_constraint",
-        "Delaunay2D.locate"
+        "Delaunay2D.locate",
+        "Delaunay2D.new",
+        "Delaunay2D.orient2d"
       ]
     },
     {
@@ -77415,10 +77515,17 @@ window.API_INDEX = {
           "sig": "void insert_constraint(int v0, int v1)",
           "code": "void Delaunay2D::insert_constraint(int v0, int v1) {\n    if (v0 == v1) return;\n    for (int ti = 0; ti < (int)triangles.size(); ++ti) {\n        if (!triangles[ti].alive) continue;\n        for (int k = 0; k < 3; ++k) {\n            int e0=triangles[ti].v[(k+1)%3], e1=triangles[ti].v[(k+2)%3];\n            if ((e0==v0&&e1==v1)||(e0==v1&&e1==v0)) {\n                triangles[ti].constrained[k] = true;\n                int nb = triangles[ti].adj[k];\n                if (nb>=0&&triangles[nb].alive)\n                    for (int kk=0;kk<3;++kk)\n                        if (triangles[nb].adj[kk]==ti) { triangles[nb].constrained[kk]=true; break; }",
           "file": "nurbssurface_trimmed.cpp"
+        },
+        "rust": {
+          "sig": "insert_constraint(v0: i32, v1: i32)",
+          "code": "pub fn insert_constraint(&mut self, v0: i32, v1: i32) {\n        if v0 == v1 { return; }\n        // Check if edge already exists directly\n        for ti in 0..self.triangles.len() {\n            if !self.triangles[ti].alive { continue; }\n            for k in 0..3 {\n                let e0 = self.triangles[ti].v[(k+1)%3];\n                let e1 = self.triangles[ti].v[(k+2)%3];\n                if (e0==v0&&e1==v1)||(e0==v1&&e1==v0) {\n                    self.triangles[ti].constrained[k] = true;\n                    let nb = self.triangles[ti].adj[k];\n                    if nb >= 0 && (nb as usize) < self.triangles.len() && self.triangles[nb as usize].alive {\n                        for kk in 0..3 {\n                            if self.triangles[nb as usize].adj[kk] == ti as i32 {\n                                self.triangles[nb as usize].constrained[kk] = true; break;\n                            }\n                        }\n                    }\n                    return;\n                }\n            }\n        }\n        // Find start triangle containing v0\n        let mut start_ti = -1i32;\n        'find: for i in (0..self.triangles.len()).rev() {\n            if !self.triangles[i].alive { continue; }\n            for k in 0..3 { if self.triangles[i].v[k] == v0 { start_ti = i as i32; break 'find; } }\n        }\n        if start_ti < 0 { return; }\n        let ax = self.vertices[v0 as usize].x; let ay = self.vertices[v0 as usize].y;\n        let bx = self.vertices[v1 as usize].x; let by = self.vertices[v1 as usize].y;\n        let mut ivl = -1i32; let mut ivr = -1i32; let mut it = -1i32;\n        {\n            let mut ti = start_ti;\n            let guard = self.triangles.len() as i32 + 4;\n            let mut g = 0;\n            loop {\n                if g > guard || !self.triangles[ti as usize].alive { break; }\n                g += 1;\n                let mut k_v0 = -1i32;\n                for i in 0..3 { if self.triangles[ti as usize].v[i] == v0 { k_v0 = i as i32; break; } }\n                if k_v0 < 0 { break; }\n                let k = k_v0 as usize;\n                let ip2 = self.triangles[ti as usize].v[(k+1)%3];\n                let ip1 = self.triangles[ti as usize].v[(k+2)%3];\n                let op2 = Self::orient2d(ax,ay,bx,by,self.vertices[ip2 as usize].x,self.vertices[ip2 as usize].y);\n                let op1 = Self::orient2d(ax,ay,bx,by,self.vertices[ip1 as usize].x,self.vertices[ip1 as usize].y);\n                if op2 < 0.0 && op1 >= 0.0 { ivl = ip1; ivr = ip2; it = ti; break; }\n                let next = self.triangles[ti as usize].adj[(k+1)%3];\n                if next < 0 || !((next as usize) < self.triangles.len()) || !self.triangles[next as usize].alive { break; }\n                if next == start_ti { break; }\n                ti = next;\n            }\n        }\n        if it < 0 { return; }\n        let mut poly_l: Vec<i32> = vec![v0, ivl];\n        let mut poly_r: Vec<i32> = vec![v0, ivr];\n        let mut intersected: Vec<i32> = vec![it];\n        let mut iv = v0;\n        let mut cur_it = it;\n        let guard = self.triangles.len() as i32 * 2 + 8;\n        let mut g = 0;\n        let tri_has = |ti: i32, v: i32| -> bool {\n            self.triangles[ti as usize].v[0]==v || self.triangles[ti as usize].v[1]==v || self.triangles[ti as usize].v[2]==v\n        };\n        while !tri_has(cur_it, v1) && g < guard {\n            g += 1;\n            let mut k_iv = -1i32;\n            for i in 0..3 { if self.triangles[cur_it as usize].v[i] == iv { k_iv = i as i32; break; } }\n            if k_iv < 0 { break; }\n            let i_topo = self.triangles[cur_it as usize].adj[k_iv as usize];\n            if i_topo < 0 || !self.triangles[i_topo as usize].alive { break; }\n            let mut i_vopo = -1i32;\n            for k in 0..3 { if self.triangles[i_topo as usize].adj[k] == cur_it { i_vopo = self.triangles[i_topo as usize].v[k]; break; } }\n            if i_vopo < 0 { break; }\n            let o = Self::orient2d(ax,ay,bx,by,self.vertices[i_vopo as usize].x,self.vertices[i_vopo as usize].y);\n            if o < 0.0 {\n                if i_vopo != v1 { poly_r.push(i_vopo); }\n                iv = ivr; ivr = i_vopo;\n            } else {\n                if i_vopo != v1 { poly_l.push(i_vopo); }\n                iv = ivl; ivl = i_vopo;\n            }\n            intersected.push(i_topo); cur_it = i_topo;\n        }\n        poly_l.push(v1); poly_r.push(v1);\n        let _first_new = self.triangles.len() as i32;\n        for &ti in &intersected { self.unregister_edges(ti); self.triangles[ti as usize].alive = false; }\n        let mut new_tris: Vec<(i32,i32,i32)> = Vec::new();\n        { let apex = v1; for i in 0..poly_l.len().saturating_sub(2) { new_tris.push((apex, poly_l[i+1], poly_l[i])); } }\n        { let apex = v0; for i in 1..poly_r.len().saturating_sub(1) { new_tris.push((apex, poly_r[i], poly_r[i+1])); } }\n        for (pa, pb, pc) in new_tris {\n            let o = Self::orient2d(self.vertices[pa as usize].x,self.vertices[pa as usize].y,\n                                   self.vertices[pb as usize].x,self.vertices[pb as usize].y,\n                                   self.vertices[pc as usize].x,self.vertices[pc as usize].y);\n            if o.abs() < 1e-20 { continue; }\n            let new_ti = self.triangles.len() as i32;\n            let (vb, vc) = if o > 0.0 { (pb, pc) } else { (pc, pb) };\n            self.triangles.push(Triangle { v: [pa, vb, vc], adj: [-1,-1,-1], constrained: [false;3], alive: true });\n            self.register_edges(new_ti);\n        }\n        // Mark constrained flag on the new shared edge\n        for ti in 0..self.triangles.len() {\n            if !self.triangles[ti].alive { continue; }\n            for k in 0..3 {\n                let e0 = self.triangles[ti].v[(k+1)%3];\n                let e1 = self.triangles[ti].v[(k+2)%3];\n                if (e0==v0&&e1==v1)||(e0==v1&&e1==v0) { self.triangles[ti].constrained[k] = true; }\n            }\n        }\n    }",
+          "file": "nurbssurface_trimmed.rs"
         }
       },
       "related": [
-        "Delaunay2D.insert"
+        "Delaunay2D.insert",
+        "Delaunay2D.new",
+        "Delaunay2D.orient2d"
       ]
     },
     {
@@ -77428,6 +77535,11 @@ window.API_INDEX = {
           "sig": "void cleanup()",
           "code": "void Delaunay2D::cleanup() {\n    for (auto& tri : triangles) {\n        if (!tri.alive) continue;\n        for (int k=0;k<3;++k)\n            if (tri.v[k]==super_v[0]||tri.v[k]==super_v[1]||tri.v[k]==super_v[2])\n                { unregister_triangle_edges((int)(&tri-&triangles[0])); tri.alive=false; break; }",
           "file": "nurbssurface_trimmed.cpp"
+        },
+        "rust": {
+          "sig": "cleanup()",
+          "code": "pub fn cleanup(&mut self) {\n        let sv = self.super_v;\n        for ti in 0..self.triangles.len() {\n            if !self.triangles[ti].alive { continue; }\n            for k in 0..3 {\n                if self.triangles[ti].v[k] == sv[0] || self.triangles[ti].v[k] == sv[1] || self.triangles[ti].v[k] == sv[2] {\n                    self.unregister_edges(ti as i32);\n                    self.triangles[ti].alive = false;\n                    break;\n                }\n            }\n        }\n        self.last_found = 0;\n        for i in 0..self.triangles.len() { if self.triangles[i].alive { self.last_found = i as i32; break; } }\n    }",
+          "file": "nurbssurface_trimmed.rs"
         }
       },
       "related": [
@@ -77442,9 +77554,15 @@ window.API_INDEX = {
           "sig": "std::vector<std::array<int,3>> get_triangles()",
           "code": "std::vector<std::array<int,3>> Delaunay2D::get_triangles() const {\n    std::vector<std::array<int,3>> result;\n    for (const auto& tri : triangles) {\n        if (!tri.alive) continue;\n        double o=orient2d(vertices[tri.v[0]].x,vertices[tri.v[0]].y,\n                          vertices[tri.v[1]].x,vertices[tri.v[1]].y,\n                          vertices[tri.v[2]].x,vertices[tri.v[2]].y);\n        result.push_back(o>0 ? std::array<int,3>{tri.v[0],tri.v[1],tri.v[2]}",
           "file": "nurbssurface_trimmed.cpp"
+        },
+        "rust": {
+          "sig": "get_triangles() -> Vec<[i32; 3]>",
+          "code": "pub fn get_triangles(&self) -> Vec<[i32; 3]> {\n        let mut result = Vec::new();\n        for t in &self.triangles {\n            if !t.alive { continue; }\n            let [a, b, c] = [t.v[0], t.v[1], t.v[2]];\n            let o = Self::orient2d(self.vertices[a as usize].x, self.vertices[a as usize].y,\n                                   self.vertices[b as usize].x, self.vertices[b as usize].y,\n                                   self.vertices[c as usize].x, self.vertices[c as usize].y);\n            result.push(if o > 0.0 { [a, b, c] } else { [a, c, b] });\n        }\n        result\n    }",
+          "file": "nurbssurface_trimmed.rs"
         }
       },
       "related": [
+        "Delaunay2D.new",
         "Delaunay2D.orient2d"
       ]
     },
@@ -82879,16 +82997,13 @@ window.API_INDEX = {
       "implementations": {
         "rust": {
           "sig": "face_meshes() -> Vec<Mesh>",
-          "code": "pub fn face_meshes(&self) -> Vec<Mesh> {\n        let nf = self.m_faces.len();\n\n        // Phase 1: classify\n        let mut face_direct = vec![false; nf];\n        for fi in 0..nf {\n            let face = &self.m_faces[fi];\n            if face.surface_index < 0 || face.surface_index as usize >= self.m_surfaces.len() { continue; }\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            let mut has_inner = false;\n            let mut all_linear = true;\n            let mut outer_pts: Vec<Point> = Vec::new();\n            for &li in &face.loop_indices {\n                if li < 0 || li as usize >= self.m_loops.len() { continue; }\n                let bloop = &self.m_loops[li as usize];\n                if bloop.loop_type == BRepLoopType::Inner { has_inner = true; }\n                for &ti in &bloop.trim_indices {\n                    if ti < 0 || ti as usize >= self.m_trims.len() { continue; }\n                    let trim = &self.m_trims[ti as usize];\n                    if trim.curve_2d_index < 0 || trim.curve_2d_index as usize >= self.m_curves_2d.len() { continue; }\n                    let crv = &self.m_curves_2d[trim.curve_2d_index as usize];\n                    if crv.degree() > 1 || crv.is_rational() { all_linear = false; }\n                    if bloop.loop_type == BRepLoopType::Outer && crv.degree() <= 1 && !crv.is_rational() {\n                        for k in 0..crv.cv_count().saturating_sub(1) {\n                            if let Some(p) = crv.get_cv(k) { outer_pts.push(p); }\n                        }\n                    }\n                }\n            }\n            let mut direct = !has_inner && all_linear;\n            if direct && !outer_pts.is_empty() {\n                if let (Some((u0, u1)), Some((v0, v1))) = (srf.domain(0), srf.domain(1)) {\n                    let tol = (u1 - u0).max(v1 - v0) * 0.01;\n                    let mut bb_umin = f32::INFINITY; let mut bb_umax = f32::NEG_INFINITY;\n                    let mut bb_vmin = f32::INFINITY; let mut bb_vmax = f32::NEG_INFINITY;\n                    for p in &outer_pts {\n                        if p[0] < bb_umin { bb_umin = p[0]; }\n                        if p[0] > bb_umax { bb_umax = p[0]; }\n                        if p[1] < bb_vmin { bb_vmin = p[1]; }\n                        if p[1] > bb_vmax { bb_vmax = p[1]; }\n                    }\n                    if (bb_umin - u0).abs() > tol || (bb_umax - u1).abs() > tol ||\n                       (bb_vmin - v0).abs() > tol || (bb_vmax - v1).abs() > tol {\n                        direct = false;\n                    }\n                }\n            }\n            face_direct[fi] = direct;\n        }\n\n        // Phase 2: direct faces\n        let mut fmesh: Vec<Mesh> = (0..nf).map(|_| Mesh::new()).collect();\n        for fi in 0..nf {\n            if !face_direct[fi] { continue; }\n            let face = &self.m_faces[fi];\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            fmesh[fi] = srf.mesh();\n        }\n\n        // Phase 3: Fan-tessellate CDT faces (outer loop boundary evaluated on surface)\n        for fi in 0..nf {\n            if face_direct[fi] { continue; }\n            let face = &self.m_faces[fi];\n            if face.surface_index < 0 || face.surface_index as usize >= self.m_surfaces.len() { continue; }\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            let mut outer_3d: Vec<Point> = Vec::new();\n            'outer_f: for &li in &face.loop_indices {\n                if li < 0 || li as usize >= self.m_loops.len() { continue; }\n                let bloop = &self.m_loops[li as usize];\n                if bloop.loop_type != BRepLoopType::Outer { continue; }\n                for &ti in &bloop.trim_indices {\n                    if ti < 0 || ti as usize >= self.m_trims.len() { continue; }\n                    let trim = &self.m_trims[ti as usize];\n                    if trim.trim_type == BRepTrimType::Singular { continue; }\n                    if trim.curve_2d_index < 0 || trim.curve_2d_index as usize >= self.m_curves_2d.len() { continue; }\n                    let crv = &self.m_curves_2d[trim.curve_2d_index as usize];\n                    let uv_pts: Vec<Point> = if crv.degree() <= 1 && !crv.is_rational() {\n                        (0..crv.cv_count().saturating_sub(1)).filter_map(|k| crv.get_cv(k)).collect()\n                    } else {\n                        let n = (crv.cv_count() * 4).max(16);\n                        let (pts, _) = crv.divide_by_count(n, true);\n                        pts[..pts.len().saturating_sub(1)].to_vec()\n                    };\n                    for uv in &uv_pts {\n                        if let Some(p3d) = srf.point_at(uv[0], uv[1]) {\n                            outer_3d.push(p3d);\n                        }\n                    }\n                }\n                break 'outer_f;\n            }\n            let n = outer_3d.len();\n            if n < 3 { continue; }\n            let cx: f32 = outer_3d.iter().map(|p| p[0]).sum::<f32>() / n as f32;\n            let cy: f32 = outer_3d.iter().map(|p| p[1]).sum::<f32>() / n as f32;\n            let cz: f32 = outer_3d.iter().map(|p| p[2]).sum::<f32>() / n as f32;\n            let center = Point::new(cx, cy, cz);\n            let mut m = Mesh::new();\n            for i in 0..n {\n                let p0 = outer_3d[i].clone();\n                let p1 = outer_3d[(i + 1) % n].clone();\n                let vk0 = m.add_vertex(p0, None);\n                let vk1 = m.add_vertex(p1, None);\n                let vc = m.add_vertex(center.clone(), None);\n                m.add_face(vec![vk0, vk1, vc], None);\n            }\n            fmesh[fi] = m;\n        }\n\n        // Apply reversed flag\n        for fi in 0..nf {\n            let face = &self.m_faces[fi];\n            if face.reversed {\n                for (_, vd) in fmesh[fi].vertex.iter_mut() {\n                    if let Some(n) = vd.normal() {\n                        vd.set_normal(-n[0], -n[1], -n[2]);\n                    }\n                }\n            }\n        }\n\n        fmesh\n    }",
+          "code": "pub fn face_meshes(&self) -> Vec<Mesh> {\n        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        let nf = self.m_faces.len();\n\n        // Phase 1: classify\n        let mut face_direct = vec![false; nf];\n        for fi in 0..nf {\n            let face = &self.m_faces[fi];\n            if face.surface_index < 0 || face.surface_index as usize >= self.m_surfaces.len() { continue; }\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            let mut has_inner = false;\n            let mut all_linear = true;\n            let mut outer_pts: Vec<Point> = Vec::new();\n            for &li in &face.loop_indices {\n                if li < 0 || li as usize >= self.m_loops.len() { continue; }\n                let bloop = &self.m_loops[li as usize];\n                if bloop.loop_type == BRepLoopType::Inner { has_inner = true; }\n                for &ti in &bloop.trim_indices {\n                    if ti < 0 || ti as usize >= self.m_trims.len() { continue; }\n                    let trim = &self.m_trims[ti as usize];\n                    if trim.curve_2d_index < 0 || trim.curve_2d_index as usize >= self.m_curves_2d.len() { continue; }\n                    let crv = &self.m_curves_2d[trim.curve_2d_index as usize];\n                    if crv.degree() > 1 || crv.is_rational() { all_linear = false; }\n                    if bloop.loop_type == BRepLoopType::Outer && crv.degree() <= 1 && !crv.is_rational() {\n                        for k in 0..crv.cv_count().saturating_sub(1) {\n                            if let Some(p) = crv.get_cv(k) { outer_pts.push(p); }\n                        }\n                    }\n                }\n            }\n            let mut direct = !has_inner && all_linear;\n            if direct && !outer_pts.is_empty() {\n                if let (Some((u0, u1)), Some((v0, v1))) = (srf.domain(0), srf.domain(1)) {\n                    let tol = (u1 - u0).max(v1 - v0) * 0.01;\n                    let mut bb_umin = f32::INFINITY; let mut bb_umax = f32::NEG_INFINITY;\n                    let mut bb_vmin = f32::INFINITY; let mut bb_vmax = f32::NEG_INFINITY;\n                    for p in &outer_pts {\n                        if p[0] < bb_umin { bb_umin = p[0]; }\n                        if p[0] > bb_umax { bb_umax = p[0]; }\n                        if p[1] < bb_vmin { bb_vmin = p[1]; }\n                        if p[1] > bb_vmax { bb_vmax = p[1]; }\n                    }\n                    if (bb_umin - u0).abs() > tol || (bb_umax - u1).abs() > tol ||\n                       (bb_vmin - v0).abs() > tol || (bb_vmax - v1).abs() > tol {\n                        direct = false;\n                    }\n                }\n            }\n            face_direct[fi] = direct;\n        }\n\n        // Phase 2: direct faces\n        let mut fmesh: Vec<Mesh> = (0..nf).map(|_| Mesh::new()).collect();\n        for fi in 0..nf {\n            if !face_direct[fi] { continue; }\n            let face = &self.m_faces[fi];\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            fmesh[fi] = srf.mesh();\n        }\n\n        // Phase 3: Mesh CDT faces via NurbsSurfaceTrimmed (Bowyer-Watson CDT)\n        for fi in 0..nf {\n            if face_direct[fi] { continue; }\n            let face = &self.m_faces[fi];\n            if face.surface_index < 0 || face.surface_index as usize >= self.m_surfaces.len() { continue; }\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            let mut ts = NurbsSurfaceTrimmed::new();\n            ts.m_surface = srf.clone();\n            for &li in &face.loop_indices {\n                if li < 0 || li as usize >= self.m_loops.len() { continue; }\n                let bloop = &self.m_loops[li as usize];\n                let mut loop_pts: Vec<Point> = Vec::new();\n                for &ti in &bloop.trim_indices {\n                    if ti < 0 || ti as usize >= self.m_trims.len() { continue; }\n                    let trim = &self.m_trims[ti as usize];\n                    if trim.trim_type == BRepTrimType::Singular { continue; }\n                    if trim.curve_2d_index < 0 || trim.curve_2d_index as usize >= self.m_curves_2d.len() { continue; }\n                    let crv = &self.m_curves_2d[trim.curve_2d_index as usize];\n                    if crv.degree() <= 1 && !crv.is_rational() {\n                        for k in 0..crv.cv_count().saturating_sub(1) {\n                            if let Some(p) = crv.get_cv(k) { loop_pts.push(p); }\n                        }\n                    } else {\n                        let n = (crv.cv_count() * 4).max(16);\n                        let (pts, _) = crv.divide_by_count(n, false);\n                        for k in 0..pts.len().saturating_sub(1) { loop_pts.push(pts[k].clone()); }\n                    }\n                }\n                if loop_pts.len() >= 3 {\n                    let loop_crv = NurbsCurve::create(true, 1, &loop_pts);\n                    if bloop.loop_type == BRepLoopType::Outer {\n                        ts.m_outer_loop = Some(loop_crv);\n                    } else {\n                        ts.m_inner_loops.push(loop_crv);\n                    }\n                }\n            }\n            fmesh[fi] = ts.mesh();\n        }\n\n        // Apply reversed flag\n        for fi in 0..nf {\n            let face = &self.m_faces[fi];\n            if face.reversed {\n                for (_, vd) in fmesh[fi].vertex.iter_mut() {\n                    if let Some(n) = vd.normal() {\n                        vd.set_normal(-n[0], -n[1], -n[2]);\n                    }\n                }\n            }\n        }\n\n        fmesh\n    }",
           "file": "brep.rs"
         }
       },
       "related": [
-        "BRep.add_face",
-        "BRep.add_vertex",
         "BRep.mesh",
-        "BRep.new",
-        "BRep.point_at"
+        "BRep.new"
       ]
     },
     {
@@ -84451,6 +84566,21 @@ window.API_INDEX = {
         "NurbsSurface.guid",
         "NurbsSurface.pb_dumps",
         "NurbsSurface.pb_loads"
+      ]
+    },
+    {
+      "name": "Delaunay2D.new",
+      "implementations": {
+        "rust": {
+          "sig": "new(xmin: f64, ymin: f64, xmax: f64, ymax: f64) -> Self",
+          "code": "pub fn new(xmin: f64, ymin: f64, xmax: f64, ymax: f64) -> Self {\n        let dx = xmax-xmin; let dy = ymax-ymin; let d = dx.max(dy);\n        let cx = (xmin+xmax)*0.5; let cy = (ymin+ymax)*0.5; let scale = 20.0;\n        let mut dt = Delaunay2D {\n            vertices: Vec::new(),\n            triangles: Vec::new(),\n            super_v: [-1; 3],\n            edge_map: std::collections::HashMap::new(),\n            last_found: 0,\n        };\n        dt.vertices.push(Vertex2D { x: cx-scale*d, y: cy-scale*d });\n        dt.vertices.push(Vertex2D { x: cx+scale*d, y: cy-scale*d });\n        dt.vertices.push(Vertex2D { x: cx,          y: cy+scale*d });\n        dt.super_v = [0, 1, 2];\n        dt.triangles.push(Triangle { v: [0,1,2], adj: [-1,-1,-1], constrained: [false;3], alive: true });\n        dt.register_edges(0);\n        dt\n    }",
+          "file": "nurbssurface_trimmed.rs"
+        }
+      },
+      "related": [
+        "Delaunay2D.get_triangles",
+        "Delaunay2D.insert",
+        "Delaunay2D.insert_constraint"
       ]
     },
     {
@@ -92854,7 +92984,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor\")",
-          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Planar\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_planar);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Hole\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_hole);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\n// TODO(f32-followup): re-enable after NurbsSurfaceTrimmed::mesh under f32\n// (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Planar\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_planar);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Hole\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_hole);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
           "file": "nurbssurface_trimmed_test.rs"
         }
       }
@@ -92874,7 +93004,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Planar\")",
-          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Planar\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_planar);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Hole\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_hole);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\n// TODO(f32-followup): re-enable after NurbsSurfaceTrimmed::mesh under f32\n// (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Planar\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_planar);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Hole\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_hole);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
           "file": "nurbssurface_trimmed_test.rs"
         }
       }
@@ -92894,7 +93024,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Hole\")",
-          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Hole\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_hole);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\n// TODO(f32-followup): re-enable after NurbsSurfaceTrimmed::mesh under f32\n// (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Hole\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_hole);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
           "file": "nurbssurface_trimmed_test.rs"
         }
       }
@@ -92914,7 +93044,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\")",
-          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\n// TODO(f32-followup): re-enable after NurbsSurfaceTrimmed::mesh under f32\n// (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
           "file": "nurbssurface_trimmed_test.rs"
         }
       }
@@ -92934,7 +93064,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\")",
-          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\n// TODO(f32-followup): re-enable after NurbsSurfaceTrimmed::mesh under f32\n// (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
           "file": "nurbssurface_trimmed_test.rs"
         }
       }
@@ -92954,7 +93084,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\")",
-          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\n// TODO(f32-followup): re-enable after NurbsSurfaceTrimmed::mesh under f32\n// (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
           "file": "nurbssurface_trimmed_test.rs"
         }
       }
@@ -92969,7 +93099,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"NurbsSurfaceTrimmed\", \"Mesh\")",
-          "code": "@MINI_TEST(\"NurbsSurfaceTrimmed\", \"Mesh\")\ndef test_nurbssurface_trimmed_mesh():\n    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.nurbssurface_trimmed import NurbsSurfaceTrimmed\n\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(6, 0, 0))\n    srf.set_cv(0, 1, Point(0, 6, 0))\n    srf.set_cv(1, 1, Point(6, 6, 0))\n\n    outer = NurbsCurve.create(True, 1, [\n        Point(0.05, 0.05, 0), Point(0.95, 0.05, 0),\n        Point(0.95, 0.95, 0), Point(0.05, 0.95, 0),\n    ])\n\n    ts = NurbsSurfaceTrimmed.create(srf, outer)\n    m = ts.mesh()\n\n    MINI_CHECK(not m.is_empty())\n    MINI_CHECK(m.number_of_vertices() > 0)\n    MINI_CHECK(m.number_of_faces() > 0)",
+          "code": "@MINI_TEST(\"NurbsSurfaceTrimmed\", \"Mesh\")\ndef test_nurbssurface_trimmed_mesh():\n    import math\n    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.nurbssurface_trimmed import NurbsSurfaceTrimmed\n\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(6, 0, 0))\n    srf.set_cv(0, 1, Point(0, 6, 0))\n    srf.set_cv(1, 1, Point(6, 6, 0))\n    outer = NurbsCurve.create(True, 1, [\n        Point(0.05, 0.05, 0), Point(0.95, 0.05, 0),\n        Point(0.95, 0.95, 0), Point(0.05, 0.95, 0),\n    ])\n    ts = NurbsSurfaceTrimmed.create(srf, outer)\n    m = ts.mesh()\n    MINI_CHECK(not m.is_empty())\n    MINI_CHECK(m.number_of_vertices() >= 4)\n    MINI_CHECK(m.number_of_faces() >= 2)\n    for vd in m.vertex.values():\n        nx = vd.attributes.get(\"nx\", 0.0)\n        ny = vd.attributes.get(\"ny\", 0.0)\n        nz = vd.attributes.get(\"nz\", 0.0)\n        MINI_CHECK(math.sqrt(nx*nx + ny*ny + nz*nz) > 0.5)\n\n    bnd = NurbsCurve.create(True, 1, [\n        Point(0, 0, 0), Point(6, 0, 0), Point(6, 6, 0), Point(0, 6, 0),\n    ])\n    ts_hole = NurbsSurfaceTrimmed.create_planar(bnd)\n    ts_hole.add_hole(NurbsCurve.create(True, 1, [\n        Point(2, 2, 0), Point(4, 2, 0), Point(4, 4, 0), Point(2, 4, 0),\n    ]))\n    mh = ts_hole.mesh()\n    MINI_CHECK(not mh.is_empty())\n    MINI_CHECK(mh.number_of_faces() >= 2)\n\n    n = 8\n    pts = []\n    for i in range(n):\n        for j in range(n):\n            x, y = float(i), float(j)\n            r2 = (x - 1.5)**2 + (y - 1.5)**2\n            z = 5.0 * math.exp(-r2) + 0.3 * math.sin(math.pi*x/7.0) * math.sin(math.pi*y/7.0)\n            pts.append(Point(x, y, z))\n    bump_srf = NurbsSurface.create(False, False, 3, 3, n, n, pts)\n    bump_outer = NurbsCurve.create(True, 1, [\n        Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0),\n    ])\n    ts_bump = NurbsSurfaceTrimmed.create(bump_srf, bump_outer)\n    mb = ts_bump.mesh()\n    MINI_CHECK(not mb.is_empty())\n    MINI_CHECK(mb.number_of_vertices() >= 20)\n    MINI_CHECK(mb.number_of_faces() >= 30)\n    for vd in mb.vertex.values():\n        nx = vd.attributes.get(\"nx\", 0.0)\n        ny = vd.attributes.get(\"ny\", 0.0)\n        nz = vd.attributes.get(\"nz\", 0.0)\n        MINI_CHECK(math.sqrt(nx*nx + ny*ny + nz*nz) > 0.5)",
           "file": "nurbssurface_trimmed_test.py"
         },
         "rust": {
@@ -100364,11 +100494,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
+        "n",
+        "points",
         "into",
         "circle",
-        "n",
         "subdivide",
-        "points",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -100382,11 +100512,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "subdivide",
-        "length",
-        "ellipse",
         "by",
         "arc",
+        "length",
+        "subdivide",
+        "ellipse",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -100401,8 +100531,8 @@ window.API_INDEX = {
       "title": "Arc Through 3 Points",
       "tags": [
         "through",
-        "points",
         "arc",
+        "points",
         "nurbscurve",
         "primitives",
         "point"
@@ -100416,12 +100546,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "from",
-        "polyline",
         "curve",
-        "points",
-        "adaptive",
+        "polyline",
         "open",
+        "adaptive",
+        "points",
+        "from",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -100436,10 +100566,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
+        "curve",
         "evaluation",
         "at",
         "parameter",
-        "curve",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -100458,10 +100588,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "along",
         "frames",
-        "curve",
         "length",
+        "curve",
+        "along",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -100483,9 +100613,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "ellipse",
-        "frames",
         "perpendicular",
+        "frames",
+        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -100506,10 +100636,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "evaluate",
-        "surface",
-        "point",
         "cylinder",
+        "surface",
+        "evaluate",
+        "point",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -100524,10 +100654,10 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "vertices",
-        "from",
         "and",
         "faces",
+        "vertices",
+        "from",
         "mesh",
         "add_vertex",
         "add_face",
@@ -100661,17 +100791,29 @@ window.API_INDEX = {
       ],
       "summary": "RemeshNurbsSurfaceGrid geometry class"
     },
-    "GeometryFileDecoder": {
+    "GlobalSessionConfig": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
+      "summary": "GlobalSessionConfig geometry class"
     },
     "GeometryFileEncoder": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
+    },
+    "CurveNurbsKnotStyle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
+    },
+    "GeometryFileDecoder": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
     },
     "NurbsSurfaceTrimmed": {
       "composition": [],
@@ -100684,18 +100826,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "NurbsSurfaceTrimmed geometry class"
-    },
-    "GlobalSessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "GlobalSessionConfig geometry class"
-    },
-    "CurveNurbsKnotStyle": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
     },
     "TriangulateResult": {
       "composition": [],
@@ -100724,14 +100854,6 @@ window.API_INDEX = {
       ],
       "summary": "BooleanPolyline geometry class"
     },
-    "SpatialAABBTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB"
-      ],
-      "summary": "SpatialAABBTree geometry class"
-    },
     "GlobalTolerance": {
       "composition": [],
       "factories": [],
@@ -100741,6 +100863,14 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "GlobalTolerance geometry class"
+    },
+    "SpatialAABBTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB"
+      ],
+      "summary": "SpatialAABBTree geometry class"
     },
     "ElementSchoring": {
       "composition": [],
@@ -100753,14 +100883,6 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "VIntersectNode geometry class"
-    },
-    "ToleranceGuard": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tolerance"
-      ],
-      "summary": "ToleranceGuard geometry class"
     },
     "SpatialBVHNode": {
       "composition": [],
@@ -100780,11 +100902,28 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_PartitionVars geometry class"
     },
+    "ToleranceGuard": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Tolerance"
+      ],
+      "summary": "ToleranceGuard geometry class"
+    },
     "SessionConfig": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "SessionConfig geometry class"
+    },
+    "SpatialKDTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "_Node"
+      ],
+      "summary": "KD-tree for point-to-point nearest-neighbor queries."
     },
     "ElementColumn": {
       "composition": [],
@@ -100798,15 +100937,6 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "ElementColumn geometry class"
-    },
-    "SpatialKDTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "_Node"
-      ],
-      "summary": "KD-tree for point-to-point nearest-neighbor queries."
     },
     "NurbsSurface": {
       "composition": [
@@ -100829,6 +100959,27 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
+    "BRepTrimType": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "BRep",
+        "BRepLoopType",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRepTrimType geometry class"
+    },
+    "ScanlineHeap": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "ScanlineHeap geometry class"
+    },
     "Intersection": {
       "composition": [
         "Element",
@@ -100848,11 +100999,11 @@ window.API_INDEX = {
       ],
       "summary": "Intersection geometry class"
     },
-    "VattiScratch": {
+    "SpatialRTree": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VattiScratch geometry class"
+      "summary": "SpatialRTree geometry class"
     },
     "ElementPlate": {
       "composition": [],
@@ -100869,38 +101020,17 @@ window.API_INDEX = {
       ],
       "summary": "ElementPlate geometry class"
     },
-    "BRepTrimType": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "BRep",
-        "BRepLoopType",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRepTrimType geometry class"
-    },
-    "VLocalMinima": {
+    "BRepLoopType": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VLocalMinima geometry class"
+      "summary": "BRepLoopType geometry class"
     },
-    "ScanlineHeap": {
+    "VattiScratch": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "ScanlineHeap geometry class"
-    },
-    "SpatialRTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SpatialRTree geometry class"
+      "summary": "VattiScratch geometry class"
     },
     "LoftWallFace": {
       "composition": [],
@@ -100908,11 +101038,11 @@ window.API_INDEX = {
       "uses": [],
       "summary": "LoftWallFace geometry class"
     },
-    "BRepLoopType": {
+    "VLocalMinima": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepLoopType geometry class"
+      "summary": "VLocalMinima geometry class"
     },
     "session_cpp": {
       "composition": [],
@@ -100921,12 +101051,6 @@ window.API_INDEX = {
         "Point"
       ],
       "summary": "session_cpp geometry class"
-    },
-    "LoftAdjPair": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftAdjPair geometry class"
     },
     "ElementBeam": {
       "composition": [],
@@ -100941,30 +101065,27 @@ window.API_INDEX = {
       ],
       "summary": "ElementBeam geometry class"
     },
-    "PointCloud": {
-      "composition": [
-        "Color",
-        "Xform"
-      ],
-      "factories": [
-        "AABB",
-        "OBB"
-      ],
-      "uses": [
-        "Point",
-        "Vector"
-      ],
-      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
+    "LoftAdjPair": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftAdjPair geometry class"
     },
-    "Quaternion": {
+    "Primitives": {
       "composition": [
+        "CurveNurbsKnotStyle",
+        "NurbsCurve",
         "Vector"
       ],
       "factories": [],
       "uses": [
-        "Plane"
+        "Line",
+        "Mesh",
+        "NurbsSurface",
+        "Point",
+        "Xform"
       ],
-      "summary": "A quaternion for 3D rotations (scalar + vector)."
+      "summary": "Static factory methods for creating NURBS curve primitives."
     },
     "NurbsCurve": {
       "composition": [
@@ -100987,6 +101108,42 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
+    "Quaternion": {
+      "composition": [
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Plane"
+      ],
+      "summary": "A quaternion for 3D rotations (scalar + vector)."
+    },
+    "PointCloud": {
+      "composition": [
+        "Color",
+        "Xform"
+      ],
+      "factories": [
+        "AABB",
+        "OBB"
+      ],
+      "uses": [
+        "Point",
+        "Vector"
+      ],
+      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
+    },
+    "Reciprocal": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Line",
+        "Mesh",
+        "Plane",
+        "ReciprocalResult"
+      ],
+      "summary": "Reciprocal geometry class"
+    },
     "MeshOffset": {
       "composition": [],
       "factories": [],
@@ -100996,39 +101153,6 @@ window.API_INDEX = {
         "Point"
       ],
       "summary": "MeshOffset geometry class"
-    },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "Vertex data containing position and attributes."
-    },
-    "ConvexHull": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Point"
-      ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
-    },
-    "Primitives": {
-      "composition": [
-        "CurveNurbsKnotStyle",
-        "NurbsCurve",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsSurface",
-        "Point",
-        "Xform"
-      ],
-      "summary": "Static factory methods for creating NURBS curve primitives."
     },
     "BRepVertex": {
       "composition": [],
@@ -101042,16 +101166,14 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Delaunay2D geometry class"
     },
-    "Reciprocal": {
+    "ConvexHull": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Line",
         "Mesh",
-        "Plane",
-        "ReciprocalResult"
+        "Point"
       ],
-      "summary": "Reciprocal geometry class"
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
     },
     "SpatialBVH": {
       "composition": [],
@@ -101066,6 +101188,14 @@ window.API_INDEX = {
       ],
       "summary": "Boundary Volume Hierarchy for spatial acceleration."
     },
+    "VertexData": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "Vertex data containing position and attributes."
+    },
     "FlatMap64": {
       "composition": [],
       "factories": [],
@@ -101076,11 +101206,27 @@ window.API_INDEX = {
       ],
       "summary": "FlatMap64 geometry class"
     },
-    "LoftPanel": {
+    "Tolerance": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "ToleranceGuard",
+        "Vector"
+      ],
+      "summary": "Tolerance settings for geometric operations."
+    },
+    "_Delaunay": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "LoftPanel geometry class"
+      "summary": "_Delaunay geometry class"
+    },
+    "Component": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Component geometry class"
     },
     "ColorMode": {
       "composition": [],
@@ -101098,27 +101244,17 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
-    "Component": {
+    "LoftPanel": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Component geometry class"
+      "summary": "LoftPanel geometry class"
     },
     "VHorzJoin": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VHorzJoin geometry class"
-    },
-    "Tolerance": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "ToleranceGuard",
-        "Vector"
-      ],
-      "summary": "Tolerance settings for geometric operations."
     },
     "RemeshCDT": {
       "composition": [],
@@ -101129,37 +101265,23 @@ window.API_INDEX = {
       ],
       "summary": "RemeshCDT geometry class"
     },
-    "_Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay geometry class"
-    },
     "BRepLoop": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepLoop geometry class"
     },
-    "BRepFace": {
+    "BRepTrim": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepFace geometry class"
+      "summary": "BRepTrim geometry class"
     },
-    "Geometry": {
+    "BRepEdge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Geometry geometry class"
-    },
-    "TreeNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tree"
-      ],
-      "summary": "A node of a tree data structure."
+      "summary": "BRepEdge geometry class"
     },
     "VHorzSeg": {
       "composition": [],
@@ -101200,17 +101322,52 @@ window.API_INDEX = {
       ],
       "summary": "Delaunay geometry class"
     },
-    "BRepEdge": {
+    "Geometry": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepEdge geometry class"
+      "summary": "Geometry geometry class"
     },
-    "BRepTrim": {
+    "TreeNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Tree"
+      ],
+      "summary": "A node of a tree data structure."
+    },
+    "BRepFace": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepTrim geometry class"
+      "summary": "BRepFace geometry class"
+    },
+    "Objects": {
+      "composition": [
+        "BRep",
+        "Component",
+        "Element",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "factories": [],
+      "uses": [
+        "session_cpp"
+      ],
+      "summary": "A collection of all geometry objects."
+    },
+    "VOutRec": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutRec geometry class"
     },
     "_Branch": {
       "composition": [],
@@ -101218,20 +101375,34 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_Branch geometry class"
     },
-    "Closest": {
+    "Dataset": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Dataset geometry class"
+    },
+    "Default": {
       "composition": [],
       "factories": [],
       "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
       ],
-      "summary": "Static methods for finding closest points between geometry objects."
+      "summary": "Default geometry class"
+    },
+    "VVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VVertex geometry class"
+    },
+    "VActive": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VActive geometry class"
     },
     "Session": {
       "composition": [
@@ -101261,17 +101432,20 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "VActive": {
+    "Closest": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "VActive geometry class"
-    },
-    "Dataset": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Dataset geometry class"
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Static methods for finding closest points between geometry objects."
     },
     "Element": {
       "composition": [
@@ -101291,49 +101465,11 @@ window.API_INDEX = {
       ],
       "summary": "Element geometry class"
     },
-    "Default": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "Default geometry class"
-    },
-    "VVertex": {
+    "RayHit": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VVertex geometry class"
-    },
-    "VOutRec": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutRec geometry class"
-    },
-    "Objects": {
-      "composition": [
-        "BRep",
-        "Component",
-        "Element",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "A collection of all geometry objects."
+      "summary": "RayHit geometry class"
     },
     "BIVec2": {
       "composition": [],
@@ -101341,17 +101477,14 @@ window.API_INDEX = {
       "uses": [],
       "summary": "BIVec2 geometry class"
     },
-    "VOutPt": {
+    "Vertex": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "VOutPt geometry class"
-    },
-    "RayHit": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RayHit geometry class"
+      "uses": [
+        "Graph",
+        "session_cpp"
+      ],
+      "summary": "A graph vertex with a unique identifier and attribute string."
     },
     "Vector": {
       "composition": [],
@@ -101367,53 +101500,17 @@ window.API_INDEX = {
       ],
       "summary": "A 3D vector with visual properties."
     },
+    "VOutPt": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutPt geometry class"
+    },
     "Matrix": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Matrix geometry class"
-    },
-    "Vertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Graph",
-        "session_cpp"
-      ],
-      "summary": "A graph vertex with a unique identifier and attribute string."
-    },
-    "Color": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "An index-based 0.0-1.0 color with RGBA values."
-    },
-    "Graph": {
-      "composition": [
-        "Edge"
-      ],
-      "factories": [],
-      "uses": [
-        "Vertex"
-      ],
-      "summary": "A graph data structure with string-only vertices and attributes."
-    },
-    "Xform": {
-      "composition": [
-        "Point",
-        "Vector"
-      ],
-      "factories": [
-        "Element"
-      ],
-      "uses": [
-        "Line",
-        "Plane",
-        "Polyline"
-      ],
-      "summary": "Xform geometry class"
     },
     "Point": {
       "composition": [],
@@ -101443,17 +101540,36 @@ window.API_INDEX = {
       ],
       "summary": "A 3D plane defined by origin and coordinate axes."
     },
+    "Graph": {
+      "composition": [
+        "Edge"
+      ],
+      "factories": [],
+      "uses": [
+        "Vertex"
+      ],
+      "summary": "A graph data structure with string-only vertices and attributes."
+    },
     "_Edge": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Edge geometry class"
     },
-    "_Rect": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Rect geometry class"
+    "Xform": {
+      "composition": [
+        "Point",
+        "Vector"
+      ],
+      "factories": [
+        "Element"
+      ],
+      "uses": [
+        "Line",
+        "Plane",
+        "Polyline"
+      ],
+      "summary": "Xform geometry class"
     },
     "_Node": {
       "composition": [],
@@ -101461,36 +101577,25 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_Node geometry class"
     },
-    "Line": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Mesh",
-        "OBB"
-      ],
+    "Color": {
+      "composition": [],
+      "factories": [],
       "uses": [
-        "Vector",
         "session_cpp"
       ],
-      "summary": "A 3D line segment with visual properties."
+      "summary": "An index-based 0.0-1.0 color with RGBA values."
     },
-    "Edge": {
+    "_Rect": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
+      "summary": "_Rect geometry class"
     },
-    "Tree": {
-      "composition": [
-        "Color",
-        "TreeNode"
-      ],
+    "_Tri": {
+      "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
+      "summary": "_Tri geometry class"
     },
     "Mesh": {
       "composition": [
@@ -101520,34 +101625,6 @@ window.API_INDEX = {
       ],
       "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
-    "_P64": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_P64 geometry class"
-    },
-    "AABB": {
-      "composition": [],
-      "factories": [
-        "OBB"
-      ],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Axis-aligned bounding box (center + half-size)."
-    },
-    "_Tri": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Tri geometry class"
-    },
     "BRep": {
       "composition": [
         "BRepEdge",
@@ -101572,11 +101649,58 @@ window.API_INDEX = {
       ],
       "summary": "BRep geometry class"
     },
-    "_V2": {
+    "Tree": {
+      "composition": [
+        "Color",
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A hierarchical data structure with parent-child relationships."
+    },
+    "Line": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Mesh",
+        "OBB"
+      ],
+      "uses": [
+        "Vector",
+        "session_cpp"
+      ],
+      "summary": "A 3D line segment with visual properties."
+    },
+    "AABB": {
+      "composition": [],
+      "factories": [
+        "OBB"
+      ],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Axis-aligned bounding box (center + half-size)."
+    },
+    "Edge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_V2 geometry class"
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
+    "_P64": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_P64 geometry class"
     },
     "OBB": {
       "composition": [
@@ -101599,6 +101723,12 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
+    },
+    "_V2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],
@@ -104621,8 +104751,14 @@ window.API_INDEX = {
     "to_pairs": [
       "NurbsSurfaceTrimmed.to_pairs"
     ],
-    "discretize": [
-      "NurbsSurfaceTrimmed.discretize"
+    "disc_np": [
+      "NurbsSurfaceTrimmed.disc_np"
+    ],
+    "pip": [
+      "NurbsSurfaceTrimmed.pip"
+    ],
+    "inside_trim": [
+      "NurbsSurfaceTrimmed.inside_trim"
     ],
     "from_plane": [
       "OBB.from_plane"
@@ -107114,6 +107250,7 @@ window.API_INDEX = {
       "Mesh.new",
       "NurbsCurve.new",
       "NurbsSurface.new",
+      "Delaunay2D.new",
       "NurbsSurfaceTrimmed.new",
       "OBB.new",
       "Objects.new",
@@ -107866,9 +108003,9 @@ window.API_INDEX = {
     },
     "NurbsSurfaceTrimmed": {
       "cpp": 33,
-      "python": 43,
+      "python": 45,
       "rust": 34,
-      "gaps": 26,
+      "gaps": 28,
       "present_in": [
         "cpp",
         "python",
@@ -108337,10 +108474,11 @@ window.API_INDEX = {
     "Delaunay2D": {
       "cpp": 11,
       "python": 0,
-      "rust": 0,
-      "gaps": 11,
+      "rust": 5,
+      "gaps": 12,
       "present_in": [
-        "cpp"
+        "cpp",
+        "rust"
       ],
       "status": "TODO"
     },

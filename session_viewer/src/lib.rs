@@ -112,6 +112,29 @@ fn create_msaa_texture(device: &wgpu::Device, width: u32, height: u32, format: w
 // ============================================================
 // EGUI TREE HELPERS
 // ============================================================
+fn collect_group_leaf_guids(session: &Session, group_name: &str) -> Vec<String> {
+    let Some(root) = session.tree.root() else { return vec![]; };
+    for child in root.borrow().children() {
+        if child.borrow().name == group_name {
+            return collect_tree_leaf_guids_from_lookup(&child, session);
+        }
+    }
+    vec![]
+}
+
+fn collect_tree_leaf_guids_from_lookup(node: &Rc<RefCell<TreeNode>>, session: &Session) -> Vec<String> {
+    let name = node.borrow().name.clone();
+    if session.lookup.contains_key(&name) {
+        return vec![name];
+    }
+    let children = node.borrow().children();
+    let mut out = vec![];
+    for c in &children {
+        out.extend(collect_tree_leaf_guids_from_lookup(c, session));
+    }
+    out
+}
+
 fn collect_leaf_guids(node: &Rc<RefCell<TreeNode>>, vmap: &HashMap<String, String>) -> Vec<String> {
     let borrowed = node.borrow();
     if vmap.contains_key(&borrowed.name) {
@@ -154,10 +177,15 @@ fn render_tree_node(
         let children = node.borrow().children();
         let leaf_guids = collect_leaf_guids(node, vmap);
         let group_vis = leaf_guids.iter().all(|g| !hidden.contains(g));
-        let id = ui.make_persistent_id(&name);
-        egui::collapsing_header::CollapsingState::load_with_default_open(ui.ctx(), id, true)
+        let id = ui.make_persistent_id(node.borrow().guid());
+        egui::collapsing_header::CollapsingState::load_with_default_open(ui.ctx(), id, false)
             .show_header(ui, |ui| {
-                ui.label(&*name);
+                let is_group_sel = !leaf_guids.is_empty() && leaf_guids.iter().all(|g| selected.contains(g));
+                let resp = ui.selectable_label(is_group_sel, &*name);
+                if resp.clicked() {
+                    let shift = ui.ctx().input(|i| i.modifiers.shift);
+                    *new_sel = Some((leaf_guids.clone(), shift));
+                }
                 let mut gv = group_vis;
                 if ui.checkbox(&mut gv, "").changed() {
                     for g in &leaf_guids {
@@ -211,6 +239,7 @@ pub struct State {
     gumball_glyph_bg: wgpu::BindGroup,
     drag_origins: HashMap<String, [[f32; 4]; 4]>,
     hidden_guids: HashSet<String>,
+    glyphs_hidden_guids: HashSet<String>,
     line_thickness: f32,
     shading_enabled: bool,
     backface_highlight: bool,
@@ -292,7 +321,7 @@ impl State {
         let (depth_tex_raw, depth_view) = create_depth_texture(&device, w, h, MSAA_SAMPLES);
         let msaa_view = create_msaa_texture(&device, w, h, config.format, MSAA_SAMPLES);
 
-        let (session, demo_cones) = demo::make_demo_scene();
+        let (session, demo_cones) = demo::active_scene();
         let mut gpu_session = GpuSession::new(&device, &pipelines.geom_bgl);
         gpu_session.rebuild_from(&session, &device, &queue);
         if !demo_cones.is_empty() {
@@ -387,7 +416,8 @@ impl State {
             gumball_glyph_bg,
             drag_origins: HashMap::new(),
             hidden_guids: HashSet::new(),
-            line_thickness: 5.0,
+            glyphs_hidden_guids: HashSet::new(),
+            line_thickness: 2.0,
             shading_enabled: true,
             backface_highlight: true,
             egui_ctx,
@@ -402,6 +432,18 @@ impl State {
             cmd_counter: 0,
         };
         state.apply_thickness();
+        // Auto-hide edges and vertex glyphs for FloorModel meshes
+        let floor_guids = collect_group_leaf_guids(&state.session, "FloorModel");
+        for guid in &floor_guids {
+            state.gpu_session.set_flag(guid, InstanceData::FLAG_GLYPHS_HIDDEN, true, &state.queue);
+            state.glyphs_hidden_guids.insert(guid.clone());
+        }
+        // Auto-hide endpoint glyphs for FloorPolylines (too many endpoints)
+        let floor_poly_guids = collect_group_leaf_guids(&state.session, "FloorPolylines");
+        for guid in &floor_poly_guids {
+            state.gpu_session.set_flag(guid, InstanceData::FLAG_GLYPHS_HIDDEN, true, &state.queue);
+            state.glyphs_hidden_guids.insert(guid.clone());
+        }
         Ok(state)
     }
 
@@ -795,6 +837,8 @@ impl State {
                 self.gpu_session.rebuild_from(&self.session, &self.device, &self.queue);
                 self.selected_guids.clear();
                 self.hidden_guids.clear();
+
+                self.glyphs_hidden_guids.clear();
                 self.gumball = None;
                 self.text_labels.clear();
                 "scene cleared".to_string()
@@ -816,29 +860,41 @@ impl State {
         let raw_input = self.egui_state.take_egui_input(&window);
 
         let tree_root = self.session.tree.root();
-        let mut vmap: HashMap<String, String> = self.session.graph
-            .get_vertices()
-            .into_iter()
-            .map(|v| {
-                let label = if v.attribute.is_empty() { v.name.clone() } else { v.attribute.clone() };
-                (v.name, label)
+        use session_rust::session::Geometry;
+        fn geom_name(g: &Geometry) -> &str {
+            match g {
+                Geometry::Point(x)      => &x.name,
+                Geometry::Line(x)       => &x.name,
+                Geometry::Polyline(x)   => &x.name,
+                Geometry::PointCloud(x) => &x.name,
+                Geometry::Mesh(x)       => &x.name,
+                Geometry::Plane(x)      => &x.name,
+                Geometry::OBB(x)        => &x.name,
+                Geometry::BRep(x)       => &x.name,
+                Geometry::Element(x)    => &x.name,
+            }
+        }
+        let mut vmap: HashMap<String, String> = self.session.lookup
+            .iter()
+            .map(|(guid, geom)| {
+                let name = geom_name(geom);
+                let label = if name.is_empty() { guid.clone() } else { name.to_string() };
+                (guid.clone(), label)
             })
             .collect();
-        for guid in self.session.lookup.keys() {
-            vmap.entry(guid.clone()).or_insert_with(|| guid.clone());
-        }
         for ns in &self.session.objects.nurbssurfaces {
             let g = ns.guid().to_string();
-            vmap.entry(g.clone()).or_insert_with(|| g.clone());
+            let label = if ns.name.is_empty() { g.clone() } else { ns.name.clone() };
+            vmap.entry(g).or_insert(label);
         }
         for nc in &self.session.objects.nurbscurves {
             let g = nc.guid().to_string();
-            vmap.entry(g.clone()).or_insert_with(|| g.clone());
+            let label = if nc.name.is_empty() { g.clone() } else { nc.name.clone() };
+            vmap.entry(g).or_insert(label);
         }
         let edges = self.session.graph.get_edges();
         let selected = self.selected_guids.clone();
         let hidden = self.hidden_guids.clone();
-
         let mut new_sel: Option<(Vec<String>, bool)> = None;
         let mut vis_chg: Vec<(String, bool)> = Vec::new();
         let line_thickness = self.line_thickness;
@@ -1001,6 +1057,7 @@ impl State {
                 if let Some(geom) = self.session.lookup.get(guid) {
                     self.gpu_session.add_geometry(guid, geom, &self.device, &self.queue);
                 }
+                self.reapply_visibility_flags(guid);
             }
         }
 
@@ -1043,7 +1100,8 @@ impl State {
             | wgpu::CurrentSurfaceTexture::Occluded
             | wgpu::CurrentSurfaceTexture::Validation => return Ok(()),
             wgpu::CurrentSurfaceTexture::Lost => {
-                anyhow::bail!("Lost GPU device");
+                self.surface.configure(&self.device, &self.config);
+                return Ok(());
             }
         };
 
@@ -1343,6 +1401,16 @@ impl State {
         Ok(())
     }
 
+    fn reapply_visibility_flags(&mut self, guid: &str) {
+        if self.hidden_guids.contains(guid) {
+            self.gpu_session.set_flag(guid, InstanceData::FLAG_HIDDEN, true, &self.queue);
+        }
+
+        if self.glyphs_hidden_guids.contains(guid) {
+            self.gpu_session.set_flag(guid, InstanceData::FLAG_GLYPHS_HIDDEN, true, &self.queue);
+        }
+    }
+
     fn commit_object_transform(&mut self, guid: &str, model: [[f32; 4]; 4]) {
         let flat = [
             model[0][0], model[0][1], model[0][2], model[0][3],
@@ -1420,6 +1488,7 @@ impl State {
         if was_selected {
             self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.queue);
         }
+        self.reapply_visibility_flags(guid);
         self.apply_thickness();
         self.text_labels = labels_from_session(&self.session);
     }
@@ -1519,13 +1588,30 @@ impl State {
     }
 
     fn fit_view(&mut self) {
-        if self.selected_guids.is_empty() {
-            self.camera.reset();
-            return;
-        }
         let mut mn = [f32::MAX; 3];
         let mut mx = [f32::MIN; 3];
         let mut found = false;
+        if self.selected_guids.is_empty() {
+            for bbox in &self.session.cached_boxes {
+                for corner in &bbox.corners() {
+                    for i in 0..3 {
+                        let v = corner[i] as f32;
+                        if v < mn[i] { mn[i] = v; }
+                        if v > mx[i] { mx[i] = v; }
+                    }
+                    found = true;
+                }
+            }
+            if !found { self.camera.reset(); return; }
+            let center = [(mn[0]+mx[0])*0.5, (mn[1]+mx[1])*0.5, (mn[2]+mx[2])*0.5];
+            let half_diag = (
+                (mx[0]-mn[0]).powi(2) +
+                (mx[1]-mn[1]).powi(2) +
+                (mx[2]-mn[2]).powi(2)
+            ).sqrt() * 0.5;
+            self.camera.fit_to_box(center, half_diag.max(50.0));
+            return;
+        }
         for guid in &self.selected_guids {
             if let Some(idx) = self.session.cached_guids.iter().position(|g| g == guid) {
                 if idx < self.session.cached_boxes.len() {

@@ -69,20 +69,20 @@ fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f
         return base;
     }
 
-    // Key light: upper-left relative to camera (warm white), follows camera rotation
+    // Key light
     let key_diff  = max(dot(n, camera.key_light_ws.xyz), 0.0);
-    let key       = vec3<f32>(1.00, 0.96, 0.88) * key_diff * 0.65;
+    let key       = vec3<f32>(1.0, 1.0, 1.0) * key_diff * 0.65;
 
-    // Fill light: lower-right relative to camera (cool blue), follows camera rotation
+    // Fill light
     let fill_diff = max(dot(n, camera.fill_light_ws.xyz), 0.0);
-    let fill      = vec3<f32>(0.55, 0.65, 0.90) * fill_diff * 0.30;
+    let fill      = vec3<f32>(1.0, 1.0, 1.0) * fill_diff * 0.30;
 
-    // Rim: silhouette from behind — fixed back-light in world space (+Y bias)
+    // Rim
     let rim_diff  = pow(max(dot(n, normalize(vec3<f32>(0.0, 0.5, -1.0))), 0.0), 4.0);
-    let rim       = vec3<f32>(0.40, 0.55, 1.00) * rim_diff * 0.20;
+    let rim       = vec3<f32>(1.0, 1.0, 1.0) * rim_diff * 0.20;
 
-    // Hemisphere ambient: warm sky above, cool ground below (world Y)
-    let hemi      = mix(vec3<f32>(0.18, 0.18, 0.22), vec3<f32>(0.30, 0.29, 0.28), 0.5 + 0.5 * n.y);
+    // Hemisphere ambient: neutral grey
+    let hemi      = mix(vec3<f32>(0.18, 0.18, 0.18), vec3<f32>(0.28, 0.28, 0.28), 0.5 + 0.5 * n.y);
 
     let lit = hemi + key + fill + rim;
     let base_rgb = select(in.color.rgb, vec3<f32>(0.8, 0.1, 0.1), !front && (camera.flags & 2u) != 0u);

@@ -300,7 +300,7 @@ pub fn mesh_edges_to_segments(m: &Mesh, instance_id: u32) -> Vec<CylinderSegment
         let vb = m.vertex.get(b)?;
         Some(CylinderSegment {
             p0: [va.x, va.y, va.z], radius: 0.0,
-            p1: [vb.x, vb.y, vb.z], instance_id, color: [0.0, 0.0, 0.0, 1.0],
+            p1: [vb.x, vb.y, vb.z], instance_id, color: [0.0; 4],
         })
     }).collect()
 }
@@ -313,8 +313,32 @@ pub fn mesh_naked_edges_to_segments(m: &Mesh, instance_id: u32) -> Vec<CylinderS
         let vb = m.vertex.get(b)?;
         Some(CylinderSegment {
             p0: [va.x, va.y, va.z], radius: 0.0,
-            p1: [vb.x, vb.y, vb.z], instance_id, color: [0.0, 0.0, 0.0, 1.0],
+            p1: [vb.x, vb.y, vb.z], instance_id, color: [0.0; 4],
         })
+    }).collect()
+}
+
+/// Edges whose adjacent faces exceed `angle_deg` dihedral angle.
+/// Boundary edges (one adjacent face = None) are always included.
+pub fn mesh_crease_edges_to_segments(m: &Mesh, instance_id: u32, angle_deg: f32) -> Vec<CylinderSegment> {
+    let threshold = angle_deg.to_radians();
+    m.edges().iter().filter_map(|(a, b)| {
+        let face_ab = m.halfedge.get(a).and_then(|h| h.get(b)).copied().flatten();
+        let face_ba = m.halfedge.get(b).and_then(|h| h.get(a)).copied().flatten();
+        let keep = match (face_ab, face_ba) {
+            (None, _) | (_, None) => true,
+            (Some(fa), Some(fb)) => {
+                let na = m.face_normal(fa)?;
+                let nb = m.face_normal(fb)?;
+                let dot = (na[0]*nb[0] + na[1]*nb[1] + na[2]*nb[2]).clamp(-1.0, 1.0);
+                dot.acos() > threshold
+            }
+        };
+        if !keep { return None; }
+        let va = m.vertex.get(a)?;
+        let vb = m.vertex.get(b)?;
+        Some(CylinderSegment { p0: [va.x, va.y, va.z], radius: 0.0,
+            p1: [vb.x, vb.y, vb.z], instance_id, color: [0.0, 0.0, 0.0, 1.0] })
     }).collect()
 }
 
@@ -326,7 +350,7 @@ pub fn pts_to_segments(pts: &[session_rust::Point], instance_id: u32) -> Vec<Cyl
         let p1 = [w[1][0], w[1][1], w[1][2]];
         let dist2 = (p1[0]-p0[0]).powi(2) + (p1[1]-p0[1]).powi(2) + (p1[2]-p0[2]).powi(2);
         if dist2 < 1e-6 { return None; }
-        Some(CylinderSegment { p0, radius: 0.0, p1, instance_id, color: [0.0, 0.0, 0.0, 1.0] })
+        Some(CylinderSegment { p0, radius: 0.0, p1, instance_id, color: [0.0; 4] })
     }).collect()
 }
 

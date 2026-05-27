@@ -18,7 +18,7 @@
     "line": 221,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 13.456000328063965
+    "time_ms": 15.722000122070312
   },
   {
     "checks": [
@@ -44,23 +44,54 @@
     "line": 328,
     "passed": true,
     "test_name": "Leaves",
-    "time_ms": 0.012000000104308128
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
       {
-        "code_line": "t.nodes().len() == 2",
-        "line": 288,
+        "code_line": "guids.len() == 2",
+        "line": 461,
+        "passed": true
+      },
+      {
+        "code_line": "guids[0] == a.borrow().guid()",
+        "line": 462,
+        "passed": true
+      },
+      {
+        "code_line": "guids[1] == b.borrow().guid()",
+        "line": 463,
         "passed": true
       }
     ],
-    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n\n        let mut t = Tree::new(\"t\");\n        let root = TreeNode::new(\"root\");\n        let child = TreeNode::new(\"child\");\n        t.add(&root, None);\n        t.add(&child, Some(&root));\n",
+    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n\n        let mut t = Tree::new(\"t\");\n        let root = TreeNode::new(\"root\");\n        let a = TreeNode::new(\"a\");\n        let b = TreeNode::new(\"b\");\n        t.add(&root, None);\n        t.add(&a, Some(&root));\n        t.add(&b, Some(&root));\n        let root_guid = root.borrow().guid().to_string();\n\n        let guids = t.get_children_guids(&root_guid);\n",
     "failures": [],
     "group": "Tree",
-    "line": 278,
+    "line": 446,
     "passed": true,
-    "test_name": "Add",
-    "time_ms": 0.003000000026077032
+    "test_name": "Get Children Guids",
+    "time_ms": 0.004999999888241291
+  },
+  {
+    "checks": [
+      {
+        "code_line": "found.is_some() && found.unwrap().borrow().name == \"target\"",
+        "line": 382,
+        "passed": true
+      },
+      {
+        "code_line": "t.get_node_by_name(\"missing\").is_none()",
+        "line": 383,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n\n        let mut t = Tree::new(\"t\");\n        let root = TreeNode::new(\"root\");\n        let child = TreeNode::new(\"target\");\n        t.add(&root, None);\n        t.add(&child, Some(&root));\n\n        let found = t.get_node_by_name(\"target\");\n",
+    "failures": [],
+    "group": "Tree",
+    "line": 370,
+    "passed": true,
+    "test_name": "Get Node By Name",
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
@@ -91,91 +122,7 @@
     "line": 201,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.012000000104308128
-  },
-  {
-    "checks": [
-      {
-        "code_line": "t.root().is_some()",
-        "line": 272,
-        "passed": true
-      },
-      {
-        "code_line": "t.root().unwrap().borrow().name == \"root\"",
-        "line": 273,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n\n        let mut t = Tree::new(\"t\");\n        let root = TreeNode::new(\"root\");\n        t.add(&root, None);\n",
-    "failures": [],
-    "group": "Tree",
-    "line": 264,
-    "passed": true,
-    "test_name": "Root",
-    "time_ms": 0.0020000000949949026
-  },
-  {
-    "checks": [
-      {
-        "code_line": "found.is_some() && found.unwrap().borrow().name == \"target\"",
-        "line": 382,
-        "passed": true
-      },
-      {
-        "code_line": "t.get_node_by_name(\"missing\").is_none()",
-        "line": 383,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n\n        let mut t = Tree::new(\"t\");\n        let root = TreeNode::new(\"root\");\n        let child = TreeNode::new(\"target\");\n        t.add(&root, None);\n        t.add(&child, Some(&root));\n\n        let found = t.get_node_by_name(\"target\");\n",
-    "failures": [],
-    "group": "Tree",
-    "line": 370,
-    "passed": true,
-    "test_name": "Get Node By Name",
-    "time_ms": 0.004999999888241291
-  },
-  {
-    "checks": [
-      {
-        "code_line": "all_nodes.len() == 2",
-        "line": 305,
-        "passed": true
-      },
-      {
-        "code_line": "all_nodes[0].borrow().name == \"root\"",
-        "line": 306,
-        "passed": true
-      },
-      {
-        "code_line": "all_nodes[1].borrow().name == \"child\"",
-        "line": 307,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n\n        let mut t = Tree::new(\"t\");\n        let root = TreeNode::new(\"root\");\n        let child = TreeNode::new(\"child\");\n        t.add(&root, None);\n        t.add(&child, Some(&root));\n\n        let all_nodes = t.nodes();\n",
-    "failures": [],
-    "group": "Tree",
-    "line": 293,
-    "passed": true,
-    "test_name": "Nodes",
-    "time_ms": 0.004000000189989805
-  },
-  {
-    "checks": [
-      {
-        "code_line": "t.nodes().len() == 1",
-        "line": 323,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n\n        let mut t = Tree::new(\"t\");\n        let root = TreeNode::new(\"root\");\n        let child = TreeNode::new(\"child\");\n        t.add(&root, None);\n        t.add(&child, Some(&root));\n        t.remove(&child);\n",
-    "failures": [],
-    "group": "Tree",
-    "line": 312,
-    "passed": true,
-    "test_name": "Remove",
-    "time_ms": 0.012000000104308128
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
@@ -196,7 +143,7 @@
     "line": 425,
     "passed": true,
     "test_name": "Add Child By Guid",
-    "time_ms": 0.012000000104308128
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -217,7 +164,65 @@
     "line": 246,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 13.333999633789062
+    "time_ms": 13.980999946594238
+  },
+  {
+    "checks": [
+      {
+        "code_line": "t.nodes().len() == 1",
+        "line": 323,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n\n        let mut t = Tree::new(\"t\");\n        let root = TreeNode::new(\"root\");\n        let child = TreeNode::new(\"child\");\n        t.add(&root, None);\n        t.add(&child, Some(&root));\n        t.remove(&child);\n",
+    "failures": [],
+    "group": "Tree",
+    "line": 312,
+    "passed": true,
+    "test_name": "Remove",
+    "time_ms": 0.004000000189989805
+  },
+  {
+    "checks": [
+      {
+        "code_line": "t.root().is_some()",
+        "line": 272,
+        "passed": true
+      },
+      {
+        "code_line": "t.root().unwrap().borrow().name == \"root\"",
+        "line": 273,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n\n        let mut t = Tree::new(\"t\");\n        let root = TreeNode::new(\"root\");\n        t.add(&root, None);\n",
+    "failures": [],
+    "group": "Tree",
+    "line": 264,
+    "passed": true,
+    "test_name": "Root",
+    "time_ms": 0.0
+  },
+  {
+    "checks": [
+      {
+        "code_line": "preorder.len() == 3 && preorder[0].borrow().name == \"root\"",
+        "line": 364,
+        "passed": true
+      },
+      {
+        "code_line": "bfs.len() == 3 && bfs[0].borrow().name == \"root\"",
+        "line": 365,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n\n        let mut t = Tree::new(\"t\");\n        let root = TreeNode::new(\"root\");\n        let a = TreeNode::new(\"a\");\n        let b = TreeNode::new(\"b\");\n        t.add(&root, None);\n        t.add(&a, Some(&root));\n        t.add(&b, Some(&root));\n\n        let preorder = t.traverse(\"depthfirst\", \"preorder\");\n        let bfs = t.traverse(\"breadthfirst\", \"preorder\");\n",
+    "failures": [],
+    "group": "Tree",
+    "line": 349,
+    "passed": true,
+    "test_name": "Traverse",
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
@@ -243,33 +248,23 @@
     "line": 407,
     "passed": true,
     "test_name": "Find Node By Guid",
-    "time_ms": 0.014000000432133675
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
       {
-        "code_line": "guids.len() == 2",
-        "line": 461,
-        "passed": true
-      },
-      {
-        "code_line": "guids[0] == a.borrow().guid()",
-        "line": 462,
-        "passed": true
-      },
-      {
-        "code_line": "guids[1] == b.borrow().guid()",
-        "line": 463,
+        "code_line": "t.nodes().len() == 2",
+        "line": 288,
         "passed": true
       }
     ],
-    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n\n        let mut t = Tree::new(\"t\");\n        let root = TreeNode::new(\"root\");\n        let a = TreeNode::new(\"a\");\n        let b = TreeNode::new(\"b\");\n        t.add(&root, None);\n        t.add(&a, Some(&root));\n        t.add(&b, Some(&root));\n        let root_guid = root.borrow().guid().to_string();\n\n        let guids = t.get_children_guids(&root_guid);\n",
+    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n\n        let mut t = Tree::new(\"t\");\n        let root = TreeNode::new(\"root\");\n        let child = TreeNode::new(\"child\");\n        t.add(&root, None);\n        t.add(&child, Some(&root));\n",
     "failures": [],
     "group": "Tree",
-    "line": 446,
+    "line": 278,
     "passed": true,
-    "test_name": "Get Children Guids",
-    "time_ms": 0.017999999225139618
+    "test_name": "Add",
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -285,28 +280,33 @@
     "line": 388,
     "passed": true,
     "test_name": "Get Nodes By Name",
-    "time_ms": 0.007000000216066837
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
       {
-        "code_line": "preorder.len() == 3 && preorder[0].borrow().name == \"root\"",
-        "line": 364,
+        "code_line": "all_nodes.len() == 2",
+        "line": 305,
         "passed": true
       },
       {
-        "code_line": "bfs.len() == 3 && bfs[0].borrow().name == \"root\"",
-        "line": 365,
+        "code_line": "all_nodes[0].borrow().name == \"root\"",
+        "line": 306,
+        "passed": true
+      },
+      {
+        "code_line": "all_nodes[1].borrow().name == \"child\"",
+        "line": 307,
         "passed": true
       }
     ],
-    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n\n        let mut t = Tree::new(\"t\");\n        let root = TreeNode::new(\"root\");\n        let a = TreeNode::new(\"a\");\n        let b = TreeNode::new(\"b\");\n        t.add(&root, None);\n        t.add(&a, Some(&root));\n        t.add(&b, Some(&root));\n\n        let preorder = t.traverse(\"depthfirst\", \"preorder\");\n        let bfs = t.traverse(\"breadthfirst\", \"preorder\");\n",
+    "code": "        use crate::tree::Tree;\n        use crate::TreeNode;\n\n        let mut t = Tree::new(\"t\");\n        let root = TreeNode::new(\"root\");\n        let child = TreeNode::new(\"child\");\n        t.add(&root, None);\n        t.add(&child, Some(&root));\n\n        let all_nodes = t.nodes();\n",
     "failures": [],
     "group": "Tree",
-    "line": 349,
+    "line": 293,
     "passed": true,
-    "test_name": "Traverse",
-    "time_ms": 0.008999999612569809
+    "test_name": "Nodes",
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -332,7 +332,49 @@
     "line": 32,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 13.776000022888184
+    "time_ms": 13.888999938964844
+  },
+  {
+    "checks": [
+      {
+        "code_line": "n.borrow().is_root()",
+        "line": 81,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tree::TreeNode;\n\n        let n = TreeNode::new(\"standalone\");\n",
+    "failures": [],
+    "group": "TreeNode",
+    "line": 76,
+    "passed": true,
+    "test_name": "Tree",
+    "time_ms": 0.0010000000474974513
+  },
+  {
+    "checks": [
+      {
+        "code_line": "desc.len() == 2",
+        "line": 156,
+        "passed": true
+      },
+      {
+        "code_line": "desc[0].borrow().name == \"mid\"",
+        "line": 157,
+        "passed": true
+      },
+      {
+        "code_line": "desc[1].borrow().name == \"leaf\"",
+        "line": 158,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tree::TreeNode;\n\n        let root = TreeNode::new(\"root\");\n        let mid = TreeNode::new(\"mid\");\n        let leaf = TreeNode::new(\"leaf\");\n        root.borrow_mut().add(&mid);\n        mid.borrow_mut().add(&leaf);\n\n        let desc = root.borrow().descendants();\n",
+    "failures": [],
+    "group": "TreeNode",
+    "line": 145,
+    "passed": true,
+    "test_name": "Descendants",
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
@@ -353,80 +395,7 @@
     "line": 86,
     "passed": true,
     "test_name": "Add",
-    "time_ms": 0.003000000026077032
-  },
-  {
-    "checks": [
-      {
-        "code_line": "anc.len() == 2",
-        "line": 138,
-        "passed": true
-      },
-      {
-        "code_line": "anc[0].borrow().name == \"mid\"",
-        "line": 139,
-        "passed": true
-      },
-      {
-        "code_line": "anc[1].borrow().name == \"root\"",
-        "line": 140,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tree::TreeNode;\n\n        let root = TreeNode::new(\"root\");\n        let mid = TreeNode::new(\"mid\");\n        let leaf = TreeNode::new(\"leaf\");\n        root.borrow_mut().add(&mid);\n        mid.borrow_mut().add(&leaf);\n\n        let anc = leaf.borrow().ancestors();\n",
-    "failures": [],
-    "group": "TreeNode",
-    "line": 127,
-    "passed": true,
-    "test_name": "Ancestors",
-    "time_ms": 0.004000000189989805
-  },
-  {
-    "checks": [
-      {
-        "code_line": "root.borrow().parent().is_none()",
-        "line": 121,
-        "passed": true
-      },
-      {
-        "code_line": "child.borrow().parent().is_some()",
-        "line": 122,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tree::TreeNode;\n\n        let root = TreeNode::new(\"root\");\n        let child = TreeNode::new(\"child\");\n        root.borrow_mut().add(&child);\n",
-    "failures": [],
-    "group": "TreeNode",
-    "line": 114,
-    "passed": true,
-    "test_name": "Parent",
-    "time_ms": 0.0020000000949949026
-  },
-  {
-    "checks": [
-      {
-        "code_line": "kids.len() == 2",
-        "line": 174,
-        "passed": true
-      },
-      {
-        "code_line": "kids[0].borrow().name == \"c1\"",
-        "line": 175,
-        "passed": true
-      },
-      {
-        "code_line": "kids[1].borrow().name == \"c2\"",
-        "line": 176,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tree::TreeNode;\n\n        let parent = TreeNode::new(\"parent\");\n        let c1 = TreeNode::new(\"c1\");\n        let c2 = TreeNode::new(\"c2\");\n        parent.borrow_mut().add(&c1);\n        parent.borrow_mut().add(&c2);\n\n        let kids = parent.borrow().children();\n",
-    "failures": [],
-    "group": "TreeNode",
-    "line": 163,
-    "passed": true,
-    "test_name": "Children",
-    "time_ms": 0.004000000189989805
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -472,48 +441,48 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.014000000432133675
-  },
-  {
-    "checks": [
-      {
-        "code_line": "removed",
-        "line": 107,
-        "passed": true
-      },
-      {
-        "code_line": "parent.borrow().children().is_empty()",
-        "line": 108,
-        "passed": true
-      },
-      {
-        "code_line": "child.borrow().parent().is_none()",
-        "line": 109,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tree::TreeNode;\n\n        let parent = TreeNode::new(\"parent\");\n        let child = TreeNode::new(\"child\");\n        parent.borrow_mut().add(&child);\n        let removed = parent.borrow_mut().remove(&child);\n",
-    "failures": [],
-    "group": "TreeNode",
-    "line": 99,
-    "passed": true,
-    "test_name": "Remove",
     "time_ms": 0.004999999888241291
   },
   {
     "checks": [
       {
-        "code_line": "n.borrow().is_root()",
-        "line": 81,
+        "code_line": "child.borrow().is_leaf()",
+        "line": 70,
+        "passed": true
+      },
+      {
+        "code_line": "!parent.borrow().is_leaf()",
+        "line": 71,
         "passed": true
       }
     ],
-    "code": "        use crate::tree::TreeNode;\n\n        let n = TreeNode::new(\"standalone\");\n",
+    "code": "        use crate::tree::TreeNode;\n\n        let parent = TreeNode::new(\"parent\");\n        let child = TreeNode::new(\"child\");\n        parent.borrow_mut().add(&child);\n",
     "failures": [],
     "group": "TreeNode",
-    "line": 76,
+    "line": 63,
     "passed": true,
-    "test_name": "Tree",
+    "test_name": "Is Leaf",
+    "time_ms": 0.0010000000474974513
+  },
+  {
+    "checks": [
+      {
+        "code_line": "root.borrow().is_root()",
+        "line": 57,
+        "passed": true
+      },
+      {
+        "code_line": "!child.borrow().is_root()",
+        "line": 58,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tree::TreeNode;\n\n        let root = TreeNode::new(\"root\");\n        let child = TreeNode::new(\"child\");\n        root.borrow_mut().add(&child);\n",
+    "failures": [],
+    "group": "TreeNode",
+    "line": 50,
+    "passed": true,
+    "test_name": "Is Root",
     "time_ms": 0.0010000000474974513
   },
   {
@@ -540,74 +509,105 @@
     "line": 181,
     "passed": true,
     "test_name": "Traverse",
-    "time_ms": 0.012000000104308128
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
       {
-        "code_line": "root.borrow().is_root()",
-        "line": 57,
+        "code_line": "kids.len() == 2",
+        "line": 174,
         "passed": true
       },
       {
-        "code_line": "!child.borrow().is_root()",
-        "line": 58,
+        "code_line": "kids[0].borrow().name == \"c1\"",
+        "line": 175,
+        "passed": true
+      },
+      {
+        "code_line": "kids[1].borrow().name == \"c2\"",
+        "line": 176,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tree::TreeNode;\n\n        let parent = TreeNode::new(\"parent\");\n        let c1 = TreeNode::new(\"c1\");\n        let c2 = TreeNode::new(\"c2\");\n        parent.borrow_mut().add(&c1);\n        parent.borrow_mut().add(&c2);\n\n        let kids = parent.borrow().children();\n",
+    "failures": [],
+    "group": "TreeNode",
+    "line": 163,
+    "passed": true,
+    "test_name": "Children",
+    "time_ms": 0.0010000000474974513
+  },
+  {
+    "checks": [
+      {
+        "code_line": "root.borrow().parent().is_none()",
+        "line": 121,
+        "passed": true
+      },
+      {
+        "code_line": "child.borrow().parent().is_some()",
+        "line": 122,
         "passed": true
       }
     ],
     "code": "        use crate::tree::TreeNode;\n\n        let root = TreeNode::new(\"root\");\n        let child = TreeNode::new(\"child\");\n        root.borrow_mut().add(&child);\n",
     "failures": [],
     "group": "TreeNode",
-    "line": 50,
+    "line": 114,
     "passed": true,
-    "test_name": "Is Root",
+    "test_name": "Parent",
+    "time_ms": 0.0010000000474974513
+  },
+  {
+    "checks": [
+      {
+        "code_line": "removed",
+        "line": 107,
+        "passed": true
+      },
+      {
+        "code_line": "parent.borrow().children().is_empty()",
+        "line": 108,
+        "passed": true
+      },
+      {
+        "code_line": "child.borrow().parent().is_none()",
+        "line": 109,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tree::TreeNode;\n\n        let parent = TreeNode::new(\"parent\");\n        let child = TreeNode::new(\"child\");\n        parent.borrow_mut().add(&child);\n        let removed = parent.borrow_mut().remove(&child);\n",
+    "failures": [],
+    "group": "TreeNode",
+    "line": 99,
+    "passed": true,
+    "test_name": "Remove",
     "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
       {
-        "code_line": "desc.len() == 2",
-        "line": 156,
+        "code_line": "anc.len() == 2",
+        "line": 138,
         "passed": true
       },
       {
-        "code_line": "desc[0].borrow().name == \"mid\"",
-        "line": 157,
+        "code_line": "anc[0].borrow().name == \"mid\"",
+        "line": 139,
         "passed": true
       },
       {
-        "code_line": "desc[1].borrow().name == \"leaf\"",
-        "line": 158,
+        "code_line": "anc[1].borrow().name == \"root\"",
+        "line": 140,
         "passed": true
       }
     ],
-    "code": "        use crate::tree::TreeNode;\n\n        let root = TreeNode::new(\"root\");\n        let mid = TreeNode::new(\"mid\");\n        let leaf = TreeNode::new(\"leaf\");\n        root.borrow_mut().add(&mid);\n        mid.borrow_mut().add(&leaf);\n\n        let desc = root.borrow().descendants();\n",
+    "code": "        use crate::tree::TreeNode;\n\n        let root = TreeNode::new(\"root\");\n        let mid = TreeNode::new(\"mid\");\n        let leaf = TreeNode::new(\"leaf\");\n        root.borrow_mut().add(&mid);\n        mid.borrow_mut().add(&leaf);\n\n        let anc = leaf.borrow().ancestors();\n",
     "failures": [],
     "group": "TreeNode",
-    "line": 145,
+    "line": 127,
     "passed": true,
-    "test_name": "Descendants",
-    "time_ms": 0.004000000189989805
-  },
-  {
-    "checks": [
-      {
-        "code_line": "child.borrow().is_leaf()",
-        "line": 70,
-        "passed": true
-      },
-      {
-        "code_line": "!parent.borrow().is_leaf()",
-        "line": 71,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tree::TreeNode;\n\n        let parent = TreeNode::new(\"parent\");\n        let child = TreeNode::new(\"child\");\n        parent.borrow_mut().add(&child);\n",
-    "failures": [],
-    "group": "TreeNode",
-    "line": 63,
-    "passed": true,
-    "test_name": "Is Leaf",
-    "time_ms": 0.0020000000949949026
+    "test_name": "Ancestors",
+    "time_ms": 0.0010000000474974513
   }
 ]

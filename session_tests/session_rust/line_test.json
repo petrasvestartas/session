@@ -128,7 +128,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.04600000008940697
+    "time_ms": 0.050999999046325684
   },
   {
     "checks": [
@@ -154,7 +154,7 @@
     "line": 116,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.008999999612569809
+    "time_ms": 0.010999999940395355
   },
   {
     "checks": [
@@ -215,7 +215,7 @@
     "line": 132,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 14.065999984741211
+    "time_ms": 14.170999526977539
   },
   {
     "checks": [
@@ -281,7 +281,7 @@
     "line": 173,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 12.305000305175781
+    "time_ms": 13.442000389099121
   },
   {
     "checks": [
@@ -302,7 +302,7 @@
     "line": 209,
     "passed": true,
     "test_name": "Length",
-    "time_ms": 0.004000000189989805
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -318,7 +318,7 @@
     "line": 222,
     "passed": true,
     "test_name": "To Vector",
-    "time_ms": 0.003000000026077032
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -349,7 +349,7 @@
     "line": 233,
     "passed": true,
     "test_name": "To Direction",
-    "time_ms": 0.004000000189989805
+    "time_ms": 0.004999999888241291
   },
   {
     "checks": [
@@ -375,7 +375,7 @@
     "line": 247,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -416,7 +416,7 @@
     "line": 262,
     "passed": true,
     "test_name": "Closest Point",
-    "time_ms": 0.007000000216066837
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -442,7 +442,7 @@
     "line": 284,
     "passed": true,
     "test_name": "Start End Center",
-    "time_ms": 0.004000000189989805
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
@@ -458,7 +458,7 @@
     "line": 299,
     "passed": true,
     "test_name": "Fit Points",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.004999999888241291
   },
   {
     "checks": [
@@ -509,7 +509,7 @@
     "line": 316,
     "passed": true,
     "test_name": "Subdivide",
-    "time_ms": 0.010999999940395355
+    "time_ms": 0.004999999888241291
   },
   {
     "checks": [
@@ -530,28 +530,7 @@
     "line": 361,
     "passed": true,
     "test_name": "Extend",
-    "time_ms": 0.03799999877810478
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_close(out.start()[0], 5.0)",
-        "line": 355,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(out.end()[0], 10.0)",
-        "line": 356,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::{Line, Point};\n        let l0 = Line::from_points(&Point::new(0.0, 0.0, 0.0), &Point::new(10.0, 0.0, 0.0));\n        let l1 = Line::from_points(&Point::new(5.0, 0.0, 0.0), &Point::new(15.0, 0.0, 0.0));\n        let out = l0.overlap_average(&l1).unwrap();",
-    "failures": [],
-    "group": "Line",
-    "line": 350,
-    "passed": true,
-    "test_name": "Overlap Average",
-    "time_ms": 0.020999999716877937
+    "time_ms": 0.006000000052154064
   },
   {
     "checks": [
@@ -572,6 +551,27 @@
     "line": 339,
     "passed": true,
     "test_name": "Overlap",
-    "time_ms": 0.010999999940395355
+    "time_ms": 0.012000000104308128
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(out.start()[0], 5.0)",
+        "line": 355,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(out.end()[0], 10.0)",
+        "line": 356,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{Line, Point};\n        let l0 = Line::from_points(&Point::new(0.0, 0.0, 0.0), &Point::new(10.0, 0.0, 0.0));\n        let l1 = Line::from_points(&Point::new(5.0, 0.0, 0.0), &Point::new(15.0, 0.0, 0.0));\n        let out = l0.overlap_average(&l1).unwrap();",
+    "failures": [],
+    "group": "Line",
+    "line": 350,
+    "passed": true,
+    "test_name": "Overlap Average",
+    "time_ms": 0.014000000432133675
   }
 ]

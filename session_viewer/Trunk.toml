@@ -1,2 +1,9 @@
 [build]
 no_sri = true
+
+[watch]
+watch = ["src", "Cargo.toml", "index.html", "../session_rust/src"]
+enable_cooldown = true
+
+[serve]
+port = 8769

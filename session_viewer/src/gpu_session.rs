@@ -6,7 +6,8 @@ use std::collections::HashMap;
 use crate::gpu_adapters::{
     color_to_rgba_f32,
     line_endpoint_glyphs, line_to_segment,
-    mesh_edges_to_segments, mesh_naked_edges_to_segments, mesh_to_vertices, mesh_vertex_glyphs,
+    mesh_crease_edges_to_segments, mesh_edges_to_segments, mesh_naked_edges_to_segments,
+    mesh_to_vertices, mesh_vertex_glyphs,
     named_point_to_cross_vertices, obb_to_line_vertices, plane_to_axis_segments, plane_origin_glyph,
     point_to_vertex, pointcloud_to_cloud_points, pts_to_segments,
     polyline_endpoint_glyphs, polyline_to_segments,
@@ -148,9 +149,11 @@ pub struct InstanceData {
 }
 
 impl InstanceData {
-    pub const FLAG_SELECTED: u32 = 1 << 0;
-    pub const FLAG_HIDDEN:   u32 = 1 << 1;
-    pub const FLAG_SMOOTH:   u32 = 1 << 2;
+    pub const FLAG_SELECTED:      u32 = 1 << 0;
+    pub const FLAG_HIDDEN:        u32 = 1 << 1;
+    pub const FLAG_SMOOTH:        u32 = 1 << 2;
+    pub const FLAG_EDGES_HIDDEN:  u32 = 1 << 3;
+    pub const FLAG_GLYPHS_HIDDEN: u32 = 1 << 4;
 
     pub fn new(instance_id: u32) -> Self {
         Self {
@@ -476,6 +479,10 @@ impl GpuSession {
             }
         }
         if !edge_segs.is_empty() {
+            if let Some(lc) = surface.linecolors.get(0) {
+                let c = color_to_rgba_f32(lc);
+                for seg in &mut edge_segs { seg.color = c; }
+            }
             let seg_start = self.segments_cpu.len();
             self.segments_cpu.extend(edge_segs);
             self.guid_to_seg.insert(guid.clone(), seg_start..self.segments_cpu.len());
@@ -484,7 +491,7 @@ impl GpuSession {
         mesh.ensure_triangle_bvh();
         self.nurbs_pick_meshes.insert(guid.clone(), mesh);
         self.nurbs_surfaces.insert(guid.clone(), surface.clone());
-        let surf_color = color_to_rgba_f32(surface.linecolors.get(0).unwrap_or(&session_rust::Color::white()));
+        let surf_color = color_to_rgba_f32(surface.facecolors.get(0).unwrap_or(&session_rust::Color::white()));
         self.write_instance_flags(instance_id, surf_color, InstanceData::FLAG_SMOOTH, device, queue);
     }
 
@@ -542,7 +549,11 @@ impl GpuSession {
             Geometry::Mesh(m) => {
                 let (vs, is) = mesh_to_vertices(m);
                 self.tri.allocate(guid, &vs, Some(&is), instance_id, device, queue);
-                let segs = mesh_edges_to_segments(m, instance_id);
+                let segs = if m.crease_angle_deg > 0.0 {
+                    mesh_crease_edges_to_segments(m, instance_id, m.crease_angle_deg)
+                } else {
+                    mesh_edges_to_segments(m, instance_id)
+                };
                 if !segs.is_empty() {
                     let seg_start = self.segments_cpu.len();
                     self.segments_cpu.extend(segs);
@@ -555,7 +566,8 @@ impl GpuSession {
                     self.guid_to_glyph.insert(guid.to_string(), gly_start..self.glyphs_cpu.len());
                     self.glyphs_dirty = true;
                 }
-                self.write_instance(instance_id, color_to_rgba_f32(m.objectcolor()), device, queue);
+                let edge_flag = if m.crease_angle_deg > 0.0 { 0 } else { InstanceData::FLAG_EDGES_HIDDEN };
+                self.write_instance_flags(instance_id, color_to_rgba_f32(m.objectcolor()), edge_flag | InstanceData::FLAG_GLYPHS_HIDDEN, device, queue);
             }
             Geometry::Plane(pl) => {
                 let segs = plane_to_axis_segments(pl, self.plane_scale, instance_id);

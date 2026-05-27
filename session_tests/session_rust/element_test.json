@@ -53,7 +53,7 @@
     "line": 10,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.1850000023841858
+    "time_ms": 0.06400000303983688
   },
   {
     "checks": [
@@ -74,7 +74,7 @@
     "line": 52,
     "passed": true,
     "test_name": "Session Transformation",
-    "time_ms": 0.050999999046325684
+    "time_ms": 0.012000000104308128
   },
   {
     "checks": [
@@ -95,7 +95,7 @@
     "line": 77,
     "passed": true,
     "test_name": "Add Feature",
-    "time_ms": 0.04500000178813934
+    "time_ms": 0.010999999940395355
   },
   {
     "checks": [
@@ -121,7 +121,7 @@
     "line": 102,
     "passed": true,
     "test_name": "AABB",
-    "time_ms": 0.08500000089406967
+    "time_ms": 0.03700000047683716
   },
   {
     "checks": [
@@ -142,7 +142,7 @@
     "line": 126,
     "passed": true,
     "test_name": "OBB",
-    "time_ms": 0.054999999701976776
+    "time_ms": 0.01600000075995922
   },
   {
     "checks": [
@@ -168,7 +168,7 @@
     "line": 149,
     "passed": true,
     "test_name": "Session Geometry",
-    "time_ms": 0.07100000232458115
+    "time_ms": 0.02199999988079071
   },
   {
     "checks": [
@@ -204,7 +204,7 @@
     "line": 180,
     "passed": true,
     "test_name": "Reset",
-    "time_ms": 0.07000000029802322
+    "time_ms": 0.020999999716877937
   },
   {
     "checks": [
@@ -230,7 +230,7 @@
     "line": 208,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.04500000178813934
+    "time_ms": 0.013000000268220901
   },
   {
     "checks": [
@@ -271,7 +271,7 @@
     "line": 232,
     "passed": true,
     "test_name": "Brep Aabb",
-    "time_ms": 0.37400001287460327
+    "time_ms": 0.17599999904632568
   },
   {
     "checks": [
@@ -297,7 +297,7 @@
     "line": 251,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 14.8100004196167
+    "time_ms": 13.946999549865723
   },
   {
     "checks": [
@@ -328,7 +328,7 @@
     "line": 282,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 16.85300064086914
+    "time_ms": 12.390000343322754
   },
   {
     "checks": [
@@ -359,6 +359,6 @@
     "line": 309,
     "passed": true,
     "test_name": "Polylines",
-    "time_ms": 0.07599999755620956
+    "time_ms": 0.01899999938905239
   }
 ]

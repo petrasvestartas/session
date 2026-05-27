@@ -88,7 +88,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.03799999877810478
+    "time_ms": 0.017000000923871994
   },
   {
     "checks": [
@@ -139,7 +139,7 @@
     "line": 83,
     "passed": true,
     "test_name": "Collision",
-    "time_ms": 0.012000000104308128
+    "time_ms": 0.007000000216066837
   },
   {
     "checks": [
@@ -165,7 +165,7 @@
     "line": 103,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.01600000075995922
+    "time_ms": 0.009999999776482582
   },
   {
     "checks": [
@@ -211,7 +211,7 @@
     "line": 127,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 17.201000213623047
+    "time_ms": 14.625
   },
   {
     "checks": [
@@ -257,7 +257,7 @@
     "line": 162,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 10.958000183105469
+    "time_ms": 9.187999725341797
   },
   {
     "checks": [
@@ -333,53 +333,7 @@
     "line": 194,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 0.024000000208616257
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_close(box_.half_size[0], 1.0)",
-        "line": 312,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(box_.half_size[1], 1.5)",
-        "line": 313,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(box_.half_size[2], 2.0)",
-        "line": 314,
-        "passed": true
-      },
-      {
-        "code_line": "box_.center == Point::new(0.0, 0.0, 0.0)",
-        "line": 315,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(bb.half_size[0], 1.0)",
-        "line": 325,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(bb.half_size[1], 1.5)",
-        "line": 326,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(bb.x_axis[0], 1.0)",
-        "line": 327,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::OBB;\n        use crate::Plane;\n        use crate::Point;\n\n        let plane = Plane::xy_plane();\n        let box_ = OBB::from_plane(&plane, 2.0, 3.0, 4.0);\n\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ];\n        let bb = OBB::from_points_with_plane(&pts, &plane, 0.0);\n",
-    "failures": [],
-    "group": "OBB",
-    "line": 304,
-    "passed": true,
-    "test_name": "From Plane",
-    "time_ms": 0.03400000184774399
+    "time_ms": 0.012000000104308128
   },
   {
     "checks": [
@@ -425,7 +379,53 @@
     "line": 332,
     "passed": true,
     "test_name": "Two Rectangles",
-    "time_ms": 0.013000000268220901
+    "time_ms": 0.004999999888241291
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(box_.half_size[0], 1.0)",
+        "line": 312,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(box_.half_size[1], 1.5)",
+        "line": 313,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(box_.half_size[2], 2.0)",
+        "line": 314,
+        "passed": true
+      },
+      {
+        "code_line": "box_.center == Point::new(0.0, 0.0, 0.0)",
+        "line": 315,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(bb.half_size[0], 1.0)",
+        "line": 325,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(bb.half_size[1], 1.5)",
+        "line": 326,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(bb.x_axis[0], 1.0)",
+        "line": 327,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::OBB;\n        use crate::Plane;\n        use crate::Point;\n\n        let plane = Plane::xy_plane();\n        let box_ = OBB::from_plane(&plane, 2.0, 3.0, 4.0);\n\n\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ];\n        let bb = OBB::from_points_with_plane(&pts, &plane, 0.0);\n",
+    "failures": [],
+    "group": "OBB",
+    "line": 304,
+    "passed": true,
+    "test_name": "From Plane",
+    "time_ms": 0.017999999225139618
   },
   {
     "checks": [
@@ -491,6 +491,6 @@
     "line": 226,
     "passed": true,
     "test_name": "From Geometry",
-    "time_ms": 0.9419999718666077
+    "time_ms": 0.2460000067949295
   }
 ]
