@@ -5077,6 +5077,7 @@ window.API_INDEX = {
         "BRep.duplicate",
         "BRep.edge_count",
         "BRep.face_count",
+        "BRep.face_meshes",
         "BRep.find_edge",
         "BRep.find_or_add",
         "BRep.from_nurbscurves",
@@ -5085,6 +5086,7 @@ window.API_INDEX = {
         "BRep.is_solid",
         "BRep.is_valid",
         "BRep.make_cap",
+        "BRep.mesh",
         "BRep.pt3d",
         "BRep.vertex_count"
       ]
@@ -5265,12 +5267,14 @@ window.API_INDEX = {
         "BRep.create_box",
         "BRep.create_cylinder",
         "BRep.create_sphere",
+        "BRep.face_meshes",
         "BRep.find_edge",
         "BRep.from_nurbscurves",
         "BRep.from_polylines",
         "BRep.get_edge",
         "BRep.is_solid",
         "BRep.make_cap",
+        "BRep.mesh",
         "BRep.new",
         "BRep.pt3d"
       ]
@@ -5722,13 +5726,17 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "mesh() -> Mesh",
-          "code": "pub fn mesh(&self) -> Mesh {\n        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        let nf = self.m_faces.len();\n\n        // Phase 1: Classify faces as direct (RemeshNurbsSurfaceGrid) or CDT\n        let mut face_direct = vec![false; nf];\n        for fi in 0..nf {\n            let face = &self.m_faces[fi];\n            if face.surface_index < 0 || face.surface_index as usize >= self.m_surfaces.len() { continue; }\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            let mut has_inner = false;\n            let mut all_linear = true;\n            let mut outer_pts: Vec<Point> = Vec::new();\n            for &li in &face.loop_indices {\n                if li < 0 || li as usize >= self.m_loops.len() { continue; }\n                let bloop = &self.m_loops[li as usize];\n                if bloop.loop_type == BRepLoopType::Inner { has_inner = true; }\n                for &ti in &bloop.trim_indices {\n                    if ti < 0 || ti as usize >= self.m_trims.len() { continue; }\n                    let trim = &self.m_trims[ti as usize];\n                    if trim.curve_2d_index < 0 || trim.curve_2d_index as usize >= self.m_curves_2d.len() { continue; }\n                    let crv = &self.m_curves_2d[trim.curve_2d_index as usize];\n                    if crv.degree() > 1 || crv.is_rational() { all_linear = false; }\n                    if bloop.loop_type == BRepLoopType::Outer && crv.degree() <= 1 && !crv.is_rational() {\n                        for k in 0..crv.cv_count().saturating_sub(1) {\n                            if let Some(p) = crv.get_cv(k) { outer_pts.push(p); }\n                        }\n                    }\n                }\n            }\n            let mut direct = !has_inner && all_linear;\n            if direct && !outer_pts.is_empty() {\n                if let (Some((u0, u1)), Some((v0, v1))) = (srf.domain(0), srf.domain(1)) {\n                    let tol = (u1 - u0).max(v1 - v0) * 0.01;\n                    let mut bb_umin = f32::INFINITY; let mut bb_umax = f32::NEG_INFINITY;\n                    let mut bb_vmin = f32::INFINITY; let mut bb_vmax = f32::NEG_INFINITY;\n                    for p in &outer_pts {\n                        if p[0] < bb_umin { bb_umin = p[0]; }\n                        if p[0] > bb_umax { bb_umax = p[0]; }\n                        if p[1] < bb_vmin { bb_vmin = p[1]; }\n                        if p[1] > bb_vmax { bb_vmax = p[1]; }\n                    }\n                    if (bb_umin - u0).abs() > tol || (bb_umax - u1).abs() > tol ||\n                       (bb_vmin - v0).abs() > tol || (bb_vmax - v1).abs() > tol {\n                        direct = false;\n                    }\n                }\n            }\n            face_direct[fi] = direct;\n        }\n\n        // Phase 2: Mesh direct faces\n        let mut fmesh: Vec<Mesh> = (0..nf).map(|_| Mesh::new()).collect();\n        for fi in 0..nf {\n            if !face_direct[fi] { continue; }\n            let face = &self.m_faces[fi];\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            fmesh[fi] = srf.mesh();\n        }\n\n        // Phase 3: Mesh CDT faces\n        for fi in 0..nf {\n            if face_direct[fi] { continue; }\n            let face = &self.m_faces[fi];\n            if face.surface_index < 0 || face.surface_index as usize >= self.m_surfaces.len() { continue; }\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            let mut ts = NurbsSurfaceTrimmed::new();\n            ts.m_surface = srf.clone();\n            for &li in &face.loop_indices {\n                if li < 0 || li as usize >= self.m_loops.len() { continue; }\n                let bloop = &self.m_loops[li as usize];\n                let mut loop_pts = Vec::new();\n                for &ti in &bloop.trim_indices {\n                    if ti < 0 || ti as usize >= self.m_trims.len() { continue; }\n                    let trim = &self.m_trims[ti as usize];\n                    if trim.curve_2d_index < 0 || trim.curve_2d_index as usize >= self.m_curves_2d.len() { continue; }\n                    let crv = &self.m_curves_2d[trim.curve_2d_index as usize];\n                    if crv.degree() <= 1 && !crv.is_rational() {\n                        for k in 0..crv.cv_count().saturating_sub(1) {\n                            if let Some(p) = crv.get_cv(k) { loop_pts.push(p); }\n                        }\n                    } else {\n                        let n = (crv.cv_count() * 4).max(16);\n                        let (pts, _) = crv.divide_by_count(n, true);\n                        for k in 0..pts.len().saturating_sub(1) {\n                            loop_pts.push(pts[k].clone());\n                        }\n                    }\n                }\n                if loop_pts.len() >= 3 {\n                    let loop_crv = NurbsCurve::create(true, 1, &loop_pts);\n                    if bloop.loop_type == BRepLoopType::Outer {\n                        ts.m_outer_loop = Some(loop_crv);\n                    } else {\n                        ts.m_inner_loops.push(loop_crv);\n                    }\n                }\n            }\n            fmesh[fi] = ts.mesh();\n        }\n\n        // Phase 4: Combine\n        let mut all_polygons: Vec<Vec<Point>> = Vec::new();\n        for fi in 0..nf {\n            let face = &self.m_faces[fi];\n            let fm = &mut fmesh[fi];\n            if fm.face.is_empty() { continue; }\n            if face.reversed {\n                for (_, vd) in fm.vertex.iter_mut() {\n                    if let Some(n) = vd.normal() {\n                        vd.set_normal(-n[0], -n[1], -n[2]);\n                    }\n                }\n            }\n            for (_fk, fverts) in &fm.face {\n                let poly: Vec<Point> = fverts.iter()\n                    .filter_map(|vi| fm.vertex.get(vi).map(|v| Point::new(v.x, v.y, v.z)))\n                    .collect();\n                all_polygons.push(poly);\n            }\n        }\n        Mesh::from_polylines(all_polygons, None)\n    }",
+          "code": "pub fn mesh(&self) -> Mesh {\n        let nf = self.m_faces.len();\n\n        // Phase 1: Classify faces as direct (RemeshNurbsSurfaceGrid) or CDT\n        let mut face_direct = vec![false; nf];\n        for fi in 0..nf {\n            let face = &self.m_faces[fi];\n            if face.surface_index < 0 || face.surface_index as usize >= self.m_surfaces.len() { continue; }\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            let mut has_inner = false;\n            let mut all_linear = true;\n            let mut outer_pts: Vec<Point> = Vec::new();\n            for &li in &face.loop_indices {\n                if li < 0 || li as usize >= self.m_loops.len() { continue; }\n                let bloop = &self.m_loops[li as usize];\n                if bloop.loop_type == BRepLoopType::Inner { has_inner = true; }\n                for &ti in &bloop.trim_indices {\n                    if ti < 0 || ti as usize >= self.m_trims.len() { continue; }\n                    let trim = &self.m_trims[ti as usize];\n                    if trim.curve_2d_index < 0 || trim.curve_2d_index as usize >= self.m_curves_2d.len() { continue; }\n                    let crv = &self.m_curves_2d[trim.curve_2d_index as usize];\n                    if crv.degree() > 1 || crv.is_rational() { all_linear = false; }\n                    if bloop.loop_type == BRepLoopType::Outer && crv.degree() <= 1 && !crv.is_rational() {\n                        for k in 0..crv.cv_count().saturating_sub(1) {\n                            if let Some(p) = crv.get_cv(k) { outer_pts.push(p); }\n                        }\n                    }\n                }\n            }\n            let mut direct = !has_inner && all_linear;\n            if direct && !outer_pts.is_empty() {\n                if let (Some((u0, u1)), Some((v0, v1))) = (srf.domain(0), srf.domain(1)) {\n                    let tol = (u1 - u0).max(v1 - v0) * 0.01;\n                    let mut bb_umin = f32::INFINITY; let mut bb_umax = f32::NEG_INFINITY;\n                    let mut bb_vmin = f32::INFINITY; let mut bb_vmax = f32::NEG_INFINITY;\n                    for p in &outer_pts {\n                        if p[0] < bb_umin { bb_umin = p[0]; }\n                        if p[0] > bb_umax { bb_umax = p[0]; }\n                        if p[1] < bb_vmin { bb_vmin = p[1]; }\n                        if p[1] > bb_vmax { bb_vmax = p[1]; }\n                    }\n                    if (bb_umin - u0).abs() > tol || (bb_umax - u1).abs() > tol ||\n                       (bb_vmin - v0).abs() > tol || (bb_vmax - v1).abs() > tol {\n                        direct = false;\n                    }\n                }\n            }\n            face_direct[fi] = direct;\n        }\n\n        // Phase 2: Mesh direct faces\n        let mut fmesh: Vec<Mesh> = (0..nf).map(|_| Mesh::new()).collect();\n        for fi in 0..nf {\n            if !face_direct[fi] { continue; }\n            let face = &self.m_faces[fi];\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            fmesh[fi] = srf.mesh();\n        }\n\n        // Phase 3: Fan-tessellate CDT faces (outer loop boundary evaluated on surface)\n        for fi in 0..nf {\n            if face_direct[fi] { continue; }\n            let face = &self.m_faces[fi];\n            if face.surface_index < 0 || face.surface_index as usize >= self.m_surfaces.len() { continue; }\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            let mut outer_3d: Vec<Point> = Vec::new();\n            'outer_m: for &li in &face.loop_indices {\n                if li < 0 || li as usize >= self.m_loops.len() { continue; }\n                let bloop = &self.m_loops[li as usize];\n                if bloop.loop_type != BRepLoopType::Outer { continue; }\n                for &ti in &bloop.trim_indices {\n                    if ti < 0 || ti as usize >= self.m_trims.len() { continue; }\n                    let trim = &self.m_trims[ti as usize];\n                    if trim.trim_type == BRepTrimType::Singular { continue; }\n                    if trim.curve_2d_index < 0 || trim.curve_2d_index as usize >= self.m_curves_2d.len() { continue; }\n                    let crv = &self.m_curves_2d[trim.curve_2d_index as usize];\n                    let uv_pts: Vec<Point> = if crv.degree() <= 1 && !crv.is_rational() {\n                        (0..crv.cv_count().saturating_sub(1)).filter_map(|k| crv.get_cv(k)).collect()\n                    } else {\n                        let n = (crv.cv_count() * 4).max(16);\n                        let (pts, _) = crv.divide_by_count(n, true);\n                        pts[..pts.len().saturating_sub(1)].to_vec()\n                    };\n                    for uv in &uv_pts {\n                        if let Some(p3d) = srf.point_at(uv[0], uv[1]) {\n                            outer_3d.push(p3d);\n                        }\n                    }\n                }\n                break 'outer_m;\n            }\n            let n = outer_3d.len();\n            if n < 3 { continue; }\n            let cx: f32 = outer_3d.iter().map(|p| p[0]).sum::<f32>() / n as f32;\n            let cy: f32 = outer_3d.iter().map(|p| p[1]).sum::<f32>() / n as f32;\n            let cz: f32 = outer_3d.iter().map(|p| p[2]).sum::<f32>() / n as f32;\n            let center = Point::new(cx, cy, cz);\n            let mut m = Mesh::new();\n            for i in 0..n {\n                let p0 = outer_3d[i].clone();\n                let p1 = outer_3d[(i + 1) % n].clone();\n                let vk0 = m.add_vertex(p0, None);\n                let vk1 = m.add_vertex(p1, None);\n                let vc = m.add_vertex(center.clone(), None);\n                m.add_face(vec![vk0, vk1, vc], None);\n            }\n            fmesh[fi] = m;\n        }\n\n        // Phase 4: Combine\n        let mut all_polygons: Vec<Vec<Point>> = Vec::new();\n        for fi in 0..nf {\n            let face = &self.m_faces[fi];\n            let fm = &mut fmesh[fi];\n            if fm.face.is_empty() { continue; }\n            if face.reversed {\n                for (_, vd) in fm.vertex.iter_mut() {\n                    if let Some(n) = vd.normal() {\n                        vd.set_normal(-n[0], -n[1], -n[2]);\n                    }\n                }\n            }\n            for (_fk, fverts) in &fm.face {\n                let poly: Vec<Point> = fverts.iter()\n                    .filter_map(|vi| fm.vertex.get(vi).map(|v| Point::new(v.x, v.y, v.z)))\n                    .collect();\n                all_polygons.push(poly);\n            }\n        }\n        Mesh::from_polylines(all_polygons, None)\n    }",
           "file": "brep.rs"
         }
       },
       "related": [
+        "BRep.add_face",
+        "BRep.add_vertex",
+        "BRep.face_meshes",
         "BRep.from_polylines",
-        "BRep.new"
+        "BRep.new",
+        "BRep.point_at"
       ]
     },
     {
@@ -5755,9 +5763,11 @@ window.API_INDEX = {
         "BRep.create_box",
         "BRep.create_cylinder",
         "BRep.duplicate",
+        "BRep.face_meshes",
         "BRep.from_nurbscurves",
         "BRep.guid",
         "BRep.jsondump",
+        "BRep.mesh",
         "BRep.new",
         "BRep.normal_at",
         "BRep.str",
@@ -21295,6 +21305,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.centroid",
         "Mesh.edges",
+        "Mesh.ensure_triangle_bvh",
         "Mesh.face_centroid",
         "Mesh.face_edges",
         "Mesh.faces",
@@ -21698,6 +21709,7 @@ window.API_INDEX = {
         "Mesh.edges_where",
         "Mesh.edges_where_predicate",
         "Mesh.edsq",
+        "Mesh.ensure_triangle_bvh",
         "Mesh.euler",
         "Mesh.face_area",
         "Mesh.face_attribute",
@@ -21845,6 +21857,7 @@ window.API_INDEX = {
         "Mesh.edges_where",
         "Mesh.edges_where_predicate",
         "Mesh.edsq",
+        "Mesh.ensure_triangle_bvh",
         "Mesh.euler",
         "Mesh.face_area",
         "Mesh.face_attribute",
@@ -22355,6 +22368,7 @@ window.API_INDEX = {
         "Mesh.clear_triangle_bvh",
         "Mesh.edge_faces",
         "Mesh.edges",
+        "Mesh.ensure_triangle_bvh",
         "Mesh.euler",
         "Mesh.facecolors",
         "Mesh.faces",
@@ -26094,6 +26108,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.__jsondump__",
         "Mesh.build_triangle_bvh",
+        "Mesh.ensure_triangle_bvh",
         "Mesh.face_vertices",
         "Mesh.faces",
         "Mesh.jsondump",
@@ -27557,7 +27572,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "is_closed() -> bool",
-          "code": "pub fn is_closed(&self) -> bool {\n        if !self.is_valid() {\n            return false;\n        }\n\n        let start = self.point_at_start();\n        let end = self.point_at_end();\n\n        start.distance(&end, None) < Tolerance::ZERO_TOLERANCE\n    }",
+          "code": "pub fn is_closed(&self) -> bool {\n        if !self.is_valid() {\n            return false;\n        }\n\n        let start = self.point_at_start();\n        let end = self.point_at_end();\n\n        start.distance(&end, None) < Tolerance::ABSOLUTE\n    }",
           "file": "nurbscurve.rs"
         }
       },
@@ -30045,7 +30060,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "to_polyline_adaptive(\n        ,\n        angle_tolerance: f32,\n        min_edge_length: f32,\n        max_edge_length: f32,\n    ) -> (Vec<Point>, Vec<f32>)",
-          "code": "pub fn to_polyline_adaptive(\n        &self,\n        angle_tolerance: f32,\n        min_edge_length: f32,\n        max_edge_length: f32,\n    ) -> (Vec<Point>, Vec<f32>) {\n        let mut points = Vec::new();\n        let mut params = Vec::new();\n\n        if !self.is_valid() {\n            return (points, params);\n        }\n\n        let angle_tol = if angle_tolerance <= 0.0 { 0.1 } else { angle_tolerance };\n\n        let (t0, t1) = self.domain();\n        let curve_len = self.length(Some(1e-6));\n\n        let max_len = if max_edge_length <= 0.0 { curve_len / 10.0 } else { max_edge_length };\n        let mut min_len = if min_edge_length <= 0.0 { curve_len / 1000.0 } else { min_edge_length };\n        if min_len > max_len {\n            min_len = max_len * 0.1;\n        }\n\n        // Collect (param, point) pairs, then sort by param\n        let mut samples: Vec<(f32, Point)> = Vec::new();\n        samples.push((t0, self.point_at(t0)));\n        samples.push((t1, self.point_at(t1)));\n\n        // Work queue: segments to potentially subdivide (ta, tb)\n        let mut work_queue: Vec<(f32, f32)> = Vec::new();\n        work_queue.push((t0, t1));\n\n        const MAX_ITERATIONS: i32 = 10000;\n        let mut iterations = 0;\n\n        while !work_queue.is_empty() && iterations < MAX_ITERATIONS {\n            iterations += 1;\n            let (ta, tb) = work_queue.pop().unwrap();\n\n            let pa = self.point_at(ta);\n            let pb = self.point_at(tb);\n            let chord_length = pa.distance(&pb, None);\n\n            if chord_length < min_len {\n                continue;\n            }\n\n            let tm = (ta + tb) * 0.5;\n            let pm = self.point_at(tm);\n\n            // Check deviation: distance from midpoint to chord\n            let chord = Vector::new(pb[0] - pa[0], pb[1] - pa[1], pb[2] - pa[2]);\n            let to_mid = Vector::new(pm[0] - pa[0], pm[1] - pa[1], pm[2] - pa[2]);\n            let chord_len_sq = chord.dot(&chord);\n            let mut deviation = 0.0;\n\n            if chord_len_sq > 1e-20 {\n                let proj = to_mid.dot(&chord) / chord_len_sq;\n                let projected = Point::new(\n                    pa[0] + proj * chord[0],\n                    pa[1] + proj * chord[1],\n                    pa[2] + proj * chord[2],\n                );\n                deviation = pm.distance(&projected, None);\n            }\n\n            // Convert angle tolerance to approximate deviation tolerance\n            // For small angles: deviation \u00e2\u2030\u02c6 chord_length * sin(angle/2) \u00e2\u2030\u02c6 chord_length * angle/2\n            let deviation_tolerance = chord_length * angle_tol * 0.5;\n\n            let need_subdivide = (deviation > deviation_tolerance) || (chord_length > max_len);\n\n            if need_subdivide {\n                samples.push((tm, pm));\n                work_queue.push((ta, tm));\n                work_queue.push((tm, tb));\n            }\n        }\n\n        // Sort by parameter\n        samples.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());\n\n        // Extract results\n        for (t, p) in samples {\n            points.push(p);\n            params.push(t);\n        }\n\n        (points, params)\n    }",
+          "code": "pub fn to_polyline_adaptive(\n        &self,\n        angle_tolerance: f32,\n        min_edge_length: f32,\n        max_edge_length: f32,\n    ) -> (Vec<Point>, Vec<f32>) {\n        let mut points = Vec::new();\n        let mut params = Vec::new();\n\n        if !self.is_valid() {\n            return (points, params);\n        }\n\n        let angle_tol = if angle_tolerance <= 0.0 { 0.1 } else { angle_tolerance };\n\n        let (t0, t1) = self.domain();\n        let curve_len = self.length(Some(1e-6));\n\n        let max_len = if max_edge_length <= 0.0 { curve_len / 10.0 } else { max_edge_length };\n        let mut min_len = if min_edge_length <= 0.0 { curve_len / 1000.0 } else { min_edge_length };\n        if min_len > max_len {\n            min_len = max_len * 0.1;\n        }\n\n        // Collect (param, point) pairs, then sort by param\n        let mut samples: Vec<(f32, Point)> = Vec::new();\n        samples.push((t0, self.point_at(t0)));\n        samples.push((t1, self.point_at(t1)));\n\n        // Work queue: segments to potentially subdivide (ta, tb)\n        let mut work_queue: Vec<(f32, f32)> = Vec::new();\n        work_queue.push((t0, t1));\n\n        // Closed curves: start == end, so the initial (t0,t1) chord has zero length\n        // and the adaptive loop skips it. Force-subdivide into thirds to bootstrap.\n        if self.point_at(t0).distance(&self.point_at(t1), None) < 1e-6 && curve_len > max_len {\n            let span = (t1 - t0) / 3.0;\n            let tm1 = t0 + span;\n            let tm2 = t0 + 2.0 * span;\n            samples.push((tm1, self.point_at(tm1)));\n            samples.push((tm2, self.point_at(tm2)));\n            work_queue.clear();\n            work_queue.push((t0, tm1));\n            work_queue.push((tm1, tm2));\n            work_queue.push((tm2, t1));\n        }\n\n        const MAX_ITERATIONS: i32 = 10000;\n        let mut iterations = 0;\n\n        while !work_queue.is_empty() && iterations < MAX_ITERATIONS {\n            iterations += 1;\n            let (ta, tb) = work_queue.pop().unwrap();\n\n            let pa = self.point_at(ta);\n            let pb = self.point_at(tb);\n            let chord_length = pa.distance(&pb, None);\n\n            if chord_length < min_len {\n                continue;\n            }\n\n            let tm = (ta + tb) * 0.5;\n            let pm = self.point_at(tm);\n\n            // Check deviation: distance from midpoint to chord\n            let chord = Vector::new(pb[0] - pa[0], pb[1] - pa[1], pb[2] - pa[2]);\n            let to_mid = Vector::new(pm[0] - pa[0], pm[1] - pa[1], pm[2] - pa[2]);\n            let chord_len_sq = chord.dot(&chord);\n            let mut deviation = 0.0;\n\n            if chord_len_sq > 1e-20 {\n                let proj = to_mid.dot(&chord) / chord_len_sq;\n                let projected = Point::new(\n                    pa[0] + proj * chord[0],\n                    pa[1] + proj * chord[1],\n                    pa[2] + proj * chord[2],\n                );\n                deviation = pm.distance(&projected, None);\n            }\n\n            // Convert angle tolerance to approximate deviation tolerance\n            // For small angles: deviation \u00e2\u2030\u02c6 chord_length * sin(angle/2) \u00e2\u2030\u02c6 chord_length * angle/2\n            let deviation_tolerance = chord_length * angle_tol * 0.5;\n\n            let need_subdivide = (deviation > deviation_tolerance) || (chord_length > max_len);\n\n            if need_subdivide {\n                samples.push((tm, pm));\n                work_queue.push((ta, tm));\n                work_queue.push((tm, tb));\n            }\n        }\n\n        // Sort by parameter\n        samples.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());\n\n        // Extract results\n        for (t, p) in samples {\n            points.push(p);\n            params.push(t);\n        }\n\n        (points, params)\n    }",
           "file": "nurbscurve.rs"
         }
       },
@@ -30055,7 +30070,8 @@ window.API_INDEX = {
         "NurbsCurve.is_valid",
         "NurbsCurve.length",
         "NurbsCurve.new",
-        "NurbsCurve.point_at"
+        "NurbsCurve.point_at",
+        "NurbsCurve.str"
       ]
     },
     {
@@ -33229,6 +33245,7 @@ window.API_INDEX = {
         "NurbsSurface.order",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
+        "NurbsSurface.ray_intersect",
         "NurbsSurface.reverse",
         "NurbsSurface.set_domain",
         "NurbsSurface.set_nurbsknot",
@@ -33630,6 +33647,7 @@ window.API_INDEX = {
         "NurbsSurface.is_valid_nurbsknot_vector",
         "NurbsSurface.new",
         "NurbsSurface.order",
+        "NurbsSurface.ray_intersect",
         "NurbsSurface.str"
       ]
     },
@@ -34840,6 +34858,7 @@ window.API_INDEX = {
         "NurbsSurface.new",
         "NurbsSurface.nurbsknot",
         "NurbsSurface.order",
+        "NurbsSurface.ray_intersect",
         "NurbsSurface.set_domain"
       ]
     },
@@ -35051,6 +35070,7 @@ window.API_INDEX = {
         "NurbsSurface.nurbsknot",
         "NurbsSurface.order",
         "NurbsSurface.point_at_corner",
+        "NurbsSurface.ray_intersect",
         "NurbsSurface.weight"
       ]
     },
@@ -35223,6 +35243,7 @@ window.API_INDEX = {
         "NurbsSurface.normal_at",
         "NurbsSurface.order",
         "NurbsSurface.point_at_corner",
+        "NurbsSurface.ray_intersect",
         "NurbsSurface.transform",
         "NurbsSurface.weight",
         "NurbsSurface.xform"
@@ -35711,7 +35732,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "mesh() -> Mesh",
-          "code": "pub fn mesh(&self) -> Mesh {\n        if let Some(ref m) = self.m_mesh {\n            return m.clone();\n        }\n        let usp = self.get_span_vector(0);\n        let vsp = self.get_span_vector(1);\n        if usp.len() < 2 || vsp.len() < 2 {\n            return Mesh::new();\n        }\n        if self.is_planar(1e-6) {\n            let mut result = Mesh::new();\n            let p00 = self.point_at_corner(0, 0).unwrap_or(Point::new(0.0, 0.0, 0.0));\n            let p10 = self.point_at_corner(1, 0).unwrap_or(Point::new(0.0, 0.0, 0.0));\n            let p11 = self.point_at_corner(1, 1).unwrap_or(Point::new(0.0, 0.0, 0.0));\n            let p01 = self.point_at_corner(0, 1).unwrap_or(Point::new(0.0, 0.0, 0.0));\n            let d2 = (p00[0]-p01[0]).powi(2) + (p00[1]-p01[1]).powi(2) + (p00[2]-p01[2]).powi(2);\n            let normal;\n            if d2 < 1e-20 {\n                let v0 = result.add_vertex(p00.clone(), None);\n                let v1 = result.add_vertex(p10.clone(), None);\n                let v2 = result.add_vertex(p11.clone(), None);\n                result.add_face(vec![v0, v1, v2], None);\n                let e1 = Vector::new(p10[0]-p00[0], p10[1]-p00[1], p10[2]-p00[2]);\n                let e2 = Vector::new(p11[0]-p00[0], p11[1]-p00[1], p11[2]-p00[2]);\n                normal = e1.cross(&e2);\n            } else {\n                let v0 = result.add_vertex(p00.clone(), None);\n                let v1 = result.add_vertex(p10.clone(), None);\n                let v2 = result.add_vertex(p11.clone(), None);\n                let v3 = result.add_vertex(p01.clone(), None);\n                result.add_face(vec![v0, v1, v2], None);\n                result.add_face(vec![v0, v2, v3], None);\n                let derivs = self.evaluate(0.5, 0.5, 1);\n                normal = if derivs.len() >= 3 { derivs[1].cross(&derivs[2]) } else { Vector::new(0.0, 0.0, 1.0) };\n            }\n            let nlen = normal.magnitude();\n            let n = if nlen > 1e-15 { &normal * (1.0 / nlen) } else { normal };\n            for (_, v) in result.vertex.iter_mut() {\n                v.set_normal(n[0], n[1], n[2]);\n            }\n            return result;\n        }\n        self.mesh_grid()\n    }",
+          "code": "pub fn mesh(&self) -> Mesh {\n        if let Some(ref m) = self.m_mesh {\n            return m.clone();\n        }\n        let usp = self.get_span_vector(0);\n        let vsp = self.get_span_vector(1);\n        if usp.len() < 2 || vsp.len() < 2 {\n            return Mesh::new();\n        }\n        if self.is_planar(1e-6) {\n            let mut result = Mesh::new();\n            let p00 = self.point_at_corner(0, 0).unwrap_or(Point::new(0.0, 0.0, 0.0));\n            let p10 = self.point_at_corner(1, 0).unwrap_or(Point::new(0.0, 0.0, 0.0));\n            let p11 = self.point_at_corner(1, 1).unwrap_or(Point::new(0.0, 0.0, 0.0));\n            let p01 = self.point_at_corner(0, 1).unwrap_or(Point::new(0.0, 0.0, 0.0));\n            let d2 = (p00[0]-p01[0]).powi(2) + (p00[1]-p01[1]).powi(2) + (p00[2]-p01[2]).powi(2);\n            let normal;\n            if d2 < 1e-20 {\n                let v0 = result.add_vertex(p00.clone(), None);\n                let v1 = result.add_vertex(p10.clone(), None);\n                let v2 = result.add_vertex(p11.clone(), None);\n                result.add_face(vec![v0, v1, v2], None);\n                let e1 = Vector::new(p10[0]-p00[0], p10[1]-p00[1], p10[2]-p00[2]);\n                let e2 = Vector::new(p11[0]-p00[0], p11[1]-p00[1], p11[2]-p00[2]);\n                normal = e1.cross(&e2);\n            } else {\n                let v0 = result.add_vertex(p00.clone(), None);\n                let v1 = result.add_vertex(p10.clone(), None);\n                let v2 = result.add_vertex(p11.clone(), None);\n                let v3 = result.add_vertex(p01.clone(), None);\n                result.add_face(vec![v0, v1, v2], None);\n                result.add_face(vec![v0, v2, v3], None);\n                let derivs = self.evaluate(0.5, 0.5, 1);\n                normal = if derivs.len() >= 3 { derivs[2].cross(&derivs[1]) } else { Vector::new(0.0, 0.0, 1.0) };\n            }\n            let nlen = normal.magnitude();\n            let n = if nlen > 1e-15 { &normal * (1.0 / nlen) } else { normal };\n            for (_, v) in result.vertex.iter_mut() {\n                v.set_normal(n[0], n[1], n[2]);\n            }\n            return result;\n        }\n        self.mesh_grid()\n    }",
           "file": "nurbssurface.rs"
         }
       },
@@ -36640,7 +36661,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "iso_curve(dir: usize, c: f32) -> Option<NurbsCurve>",
-          "code": "pub fn iso_curve(&self, dir: usize, c: f32) -> Option<NurbsCurve> {\n        if dir >= 2 || !self.is_valid() {\n            return None;\n        }\n\n        // Create output curve\n        let mut nurbs_crv = NurbsCurve::default();\n        nurbs_crv.m_dim = self.m_dim;\n        nurbs_crv.m_is_rat = self.m_is_rat;\n        nurbs_crv.m_order = self.m_order[dir];\n        nurbs_crv.m_cv_count = self.m_cv_count[dir];\n        \n        let cv_size = if self.m_is_rat { self.m_dim + 1 } else { self.m_dim };\n        nurbs_crv.m_cv_stride = cv_size;\n        \n        // Allocate nurbsknot vector\n        let nurbsknot_count = nurbs_crv.m_order + nurbs_crv.m_cv_count - 2;\n        nurbs_crv.m_nurbsknot = vec![0.0; nurbsknot_count];\n        \n        // Copy nurbsknot vector for varying direction\n        for i in 0..nurbsknot_count {\n            nurbs_crv.m_nurbsknot[i] = self.m_nurbsknot[dir][i];\n        }\n        \n        // Allocate CV array\n        nurbs_crv.m_cv = vec![0.0; cv_size * nurbs_crv.m_cv_count];\n        \n        // Find span in constant direction\n        let mut span_index = self.find_span(1 - dir, c);\n        if span_index < 0 {\n            span_index = 0;\n        } else if span_index as usize > self.m_cv_count[1 - dir] - self.m_order[1 - dir] {\n            span_index = (self.m_cv_count[1 - dir] - self.m_order[1 - dir]) as isize;\n        }\n        let span_index = span_index as usize;\n        \n        // Compute basis functions in constant direction\n        let basis = self.basis_functions(1 - dir, span_index, c);\n        \n        // Evaluate CVs for isocurve\n        for i in 0..nurbs_crv.m_cv_count {\n            let mut cv_sum = vec![0.0; cv_size];\n            \n            for k in 0..self.m_order[1 - dir] {\n                let (row, col) = if dir == 0 {\n                    // iso-u: v varies, u is constant at c\n                    (span_index + k, i)\n                } else {\n                    // iso-v: u varies, v is constant at c\n                    (i, span_index + k)\n                };\n                \n                if let Some(cv_ptr) = self.cv(row, col) {\n                    for m in 0..cv_size {\n                        cv_sum[m] += basis[k] * cv_ptr[m];\n                    }\n                }\n            }\n            \n            // Set CV in curve\n            let cv_index = i * nurbs_crv.m_cv_stride;\n            for m in 0..cv_size {\n                nurbs_crv.m_cv[cv_index + m] = cv_sum[m];\n            }\n        }\n        \n        Some(nurbs_crv)\n    }",
+          "code": "pub fn iso_curve(&self, dir: usize, c: f32) -> Option<NurbsCurve> {\n        if dir >= 2 || !self.is_valid() {\n            return None;\n        }\n\n        // Create output curve\n        let mut nurbs_crv = NurbsCurve::default();\n        nurbs_crv.m_dim = self.m_dim;\n        nurbs_crv.m_is_rat = self.m_is_rat;\n        nurbs_crv.m_order = self.m_order[dir];\n        nurbs_crv.m_cv_count = self.m_cv_count[dir];\n        \n        let cv_size = if self.m_is_rat { self.m_dim + 1 } else { self.m_dim };\n        nurbs_crv.m_cv_stride = cv_size;\n        \n        // Allocate nurbsknot vector\n        let nurbsknot_count = nurbs_crv.m_order + nurbs_crv.m_cv_count - 2;\n        nurbs_crv.m_nurbsknot = vec![0.0; nurbsknot_count];\n        \n        // Copy nurbsknot vector for varying direction\n        for i in 0..nurbsknot_count {\n            nurbs_crv.m_nurbsknot[i] = self.m_nurbsknot[dir][i];\n        }\n        \n        // Allocate CV array\n        nurbs_crv.m_cv = vec![0.0; cv_size * nurbs_crv.m_cv_count];\n        \n        // Find span in constant direction\n        let mut span_index = self.find_span(1 - dir, c);\n        if span_index < 0 {\n            span_index = 0;\n        } else if span_index as usize > self.m_cv_count[1 - dir] - self.m_order[1 - dir] {\n            span_index = (self.m_cv_count[1 - dir] - self.m_order[1 - dir]) as isize;\n        }\n        let span_index = span_index as usize;\n        \n        // Compute basis functions in constant direction\n        let basis = self.basis_functions(1 - dir, span_index, c);\n        \n        // Evaluate CVs for isocurve\n        for i in 0..nurbs_crv.m_cv_count {\n            let mut cv_sum = vec![0.0; cv_size];\n            \n            for k in 0..self.m_order[1 - dir] {\n                let (row, col) = if dir == 0 {\n                    // u-direction curve at fixed v=c: blend over v (span+k), iterate u (i)\n                    (i, span_index + k)\n                } else {\n                    // v-direction curve at fixed u=c: blend over u (span+k), iterate v (i)\n                    (span_index + k, i)\n                };\n                \n                if let Some(cv_ptr) = self.cv(row, col) {\n                    for m in 0..cv_size {\n                        cv_sum[m] += basis[k] * cv_ptr[m];\n                    }\n                }\n            }\n            \n            // Set CV in curve\n            let cv_index = i * nurbs_crv.m_cv_stride;\n            for m in 0..cv_size {\n                nurbs_crv.m_cv[cv_index + m] = cv_sum[m];\n            }\n        }\n        \n        Some(nurbs_crv)\n    }",
           "file": "nurbssurface.rs"
         }
       },
@@ -58552,7 +58573,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "ray_cast(\n        ,\n        origin: &Point,\n        direction: &crate::Vector,\n        tolerance: f32,\n    ) -> Vec<RayHit>",
-          "code": "pub fn ray_cast(\n        &mut self,\n        origin: &Point,\n        direction: &crate::Vector,\n        tolerance: f32,\n    ) -> Vec<RayHit> {\n        let dir_len = direction.magnitude();\n        if dir_len <= 0.0 {\n            return Vec::new();\n        }\n        let dir_unit = crate::Vector::new(\n            direction[0] / dir_len,\n            direction[1] / dir_len,\n            direction[2] / dir_len,\n        );\n\n        let far = 1e6f32;\n        let ray_end = Point::new(\n            origin[0] + dir_unit[0] * far,\n            origin[1] + dir_unit[1] * far,\n            origin[2] + dir_unit[2] * far,\n        );\n        let ray_line = Line::from_points(origin, &ray_end);\n\n        // Use cached SpatialBVH for ray casting\n        if self.bvh_cache_dirty || self.cached_ray_bvh.is_none() {\n            self.rebuild_ray_bvh_cache();\n            self.bvh_cache_dirty = false;\n        }\n        let bvh = match &self.cached_ray_bvh {\n            Some(b) => b,\n            None => return Vec::new(),\n        };\n\n        let mut candidates: Vec<usize> = Vec::new();\n        bvh.ray_cast(origin, &dir_unit, &mut candidates, true);\n\n        // Thin geometry (Line/Polyline/Point/PointCloud) has near-degenerate BVH\n        // boxes (inflated by only 0.001mm) so the ray rarely hits them. Always add\n        // them as candidates so the line_line / point distance tests run.\n        for (idx, guid) in self.cached_guids.iter().enumerate() {\n            if let Some(geom) = self.lookup.get(guid) {\n                match geom {\n                    Geometry::Line(_) | Geometry::Polyline(_)\n                    | Geometry::Point(_) | Geometry::PointCloud(_) => {\n                        if !candidates.contains(&idx) {\n                            candidates.push(idx);\n                        }\n                    }\n                    _ => {}\n                }\n            }\n        }\n\n        let mut hits_all: Vec<RayHit> = Vec::new();\n\n        for idx in candidates {\n            if idx >= self.cached_guids.len() {\n                continue;\n            }\n            let guid = self.cached_guids[idx].clone();\n            let geom = match self.lookup.get_mut(&guid) {\n                Some(g) => g,\n                None => continue,\n            };\n\n            let mut hit_point: Option<Point> = None;\n\n            match geom {\n                Geometry::OBB(bb) => {\n                    if let Some(pts) = crate::intersection::ray_box(&ray_line, bb, 0.0, far) {\n                        if !pts.is_empty() {\n                            hit_point = Some(pts[0].clone());\n                        }\n                    }\n                }\n                Geometry::Plane(pl) => {\n                    if let Some(p) = crate::intersection::line_plane(&ray_line, pl, true) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Line(l) => {\n                    if let Some(p) =\n                        crate::intersection::line_line(&ray_line, l, tolerance)\n                    {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Polyline(pl) => {\n                    let mut best_t = f32::INFINITY;\n                    let mut best_p: Option<Point> = None;\n                    let pl_points = pl.get_points();\n                    if pl_points.len() >= 2 {\n                        for i in 0..(pl_points.len() - 1) {\n                            let seg = Line::from_points(&pl_points[i], &pl_points[i + 1]);\n                            if let Some(p) = crate::intersection::line_line(\n                                &ray_line,\n                                &seg,\n                                tolerance,\n                            ) {\n                                let dx = p[0] - origin[0];\n                                let dy = p[1] - origin[1];\n                                let dz = p[2] - origin[2];\n                                let t = dx * dir_unit[0] + dy * dir_unit[1] + dz * dir_unit[2];\n                                if t >= 0.0 && t < best_t {\n                                    best_t = t;\n                                    best_p = Some(p);\n                                }\n                            }\n                        }\n                    }\n                    if let Some(p) = best_p {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Mesh(m) => {\n                    if let Some(p) = m.ray_cast_bvh(&ray_line, 1e-6) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Point(p) => {\n                    let vx = p[0] - origin[0];\n                    let vy = p[1] - origin[1];\n                    let vz = p[2] - origin[2];\n                    let cross_x = vy * dir_unit[2] - vz * dir_unit[1];\n                    let cross_y = vz * dir_unit[0] - vx * dir_unit[2];\n                    let cross_z = vx * dir_unit[1] - vy * dir_unit[0];\n                    let dist = (cross_x * cross_x + cross_y * cross_y + cross_z * cross_z).sqrt();\n                    if dist <= tolerance {\n                        let t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2];\n                        if t >= 0.0 {\n                            let hp = Point::new(\n                                origin[0] + dir_unit[0] * t,\n                                origin[1] + dir_unit[1] * t,\n                                origin[2] + dir_unit[2] * t,\n                            );\n                            hit_point = Some(hp);\n                        }\n                    }\n                }\n                Geometry::PointCloud(pc) => {\n                    let pts = pc.get_points();\n                    let mut best_t = f32::INFINITY;\n                    let mut best_p: Option<Point> = None;\n                    for p in &pts {\n                        let vx = p[0] - origin[0];\n                        let vy = p[1] - origin[1];\n                        let vz = p[2] - origin[2];\n                        let cross_x = vy * dir_unit[2] - vz * dir_unit[1];\n                        let cross_y = vz * dir_unit[0] - vx * dir_unit[2];\n                        let cross_z = vx * dir_unit[1] - vy * dir_unit[0];\n                        let dist = (cross_x * cross_x + cross_y * cross_y + cross_z * cross_z).sqrt();\n                        if dist <= tolerance {\n                            let t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2];\n                            if t >= 0.0 && t < best_t {\n                                best_t = t;\n                                best_p = Some(Point::new(\n                                    origin[0] + dir_unit[0] * t,\n                                    origin[1] + dir_unit[1] * t,\n                                    origin[2] + dir_unit[2] * t,\n                                ));\n                            }\n                        }\n                    }\n                    if let Some(p) = best_p {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::BRep(b) => {\n                    let mut bm = b.mesh();\n                    if let Some(p) = bm.ray_cast_bvh(&ray_line, 1e-6) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Element(_) => {}\n            }\n\n            if let Some(hp) = hit_point {\n                let dx = hp[0] - origin[0];\n                let dy = hp[1] - origin[1];\n                let dz = hp[2] - origin[2];\n                let forward = dx * dir_unit[0] + dy * dir_unit[1] + dz * dir_unit[2];\n                if forward >= 0.0 {\n                    let dist = (dx * dx + dy * dy + dz * dz).sqrt();\n                    let guid_lock = std::sync::OnceLock::new();\n                    let _ = guid_lock.set(guid.clone());\n                    hits_all.push(RayHit {\n                        guid: guid_lock,",
+          "code": "pub fn ray_cast(\n        &mut self,\n        origin: &Point,\n        direction: &crate::Vector,\n        tolerance: f32,\n    ) -> Vec<RayHit> {\n        let dir_len = direction.magnitude();\n        if dir_len <= 0.0 {\n            return Vec::new();\n        }\n        let dir_unit = crate::Vector::new(\n            direction[0] / dir_len,\n            direction[1] / dir_len,\n            direction[2] / dir_len,\n        );\n\n        let far = 1e6f32;\n        let ray_end = Point::new(\n            origin[0] + dir_unit[0] * far,\n            origin[1] + dir_unit[1] * far,\n            origin[2] + dir_unit[2] * far,\n        );\n        let ray_line = Line::from_points(origin, &ray_end);\n\n        // Use cached SpatialBVH for ray casting\n        if self.bvh_cache_dirty || self.cached_ray_bvh.is_none() {\n            self.rebuild_ray_bvh_cache();\n            self.bvh_cache_dirty = false;\n        }\n        let bvh = match &self.cached_ray_bvh {\n            Some(b) => b,\n            None => return Vec::new(),\n        };\n\n        let mut candidates: Vec<usize> = Vec::new();\n        bvh.ray_cast(origin, &dir_unit, &mut candidates, true);\n\n        // Thin geometry (Line/Polyline/Point/PointCloud) has near-degenerate BVH\n        // boxes (inflated by only 0.001mm) so the ray rarely hits them. Always add\n        // them as candidates so the line_line / point distance tests run.\n        for (idx, guid) in self.cached_guids.iter().enumerate() {\n            if let Some(geom) = self.lookup.get(guid) {\n                match geom {\n                    Geometry::Line(_) | Geometry::Polyline(_)\n                    | Geometry::Point(_) | Geometry::PointCloud(_) => {\n                        if !candidates.contains(&idx) {\n                            candidates.push(idx);\n                        }\n                    }\n                    _ => {}\n                }\n            }\n        }\n\n        let mut hits_all: Vec<RayHit> = Vec::new();\n\n        for idx in candidates {\n            if idx >= self.cached_guids.len() {\n                continue;\n            }\n            let guid = self.cached_guids[idx].clone();\n            let geom = match self.lookup.get_mut(&guid) {\n                Some(g) => g,\n                None => continue,\n            };\n\n            let mut hit_point: Option<Point> = None;\n\n            match geom {\n                Geometry::OBB(bb) => {\n                    if let Some(pts) = crate::intersection::ray_box(&ray_line, bb, 0.0, far) {\n                        if !pts.is_empty() {\n                            hit_point = Some(pts[0].clone());\n                        }\n                    }\n                }\n                Geometry::Plane(pl) => {\n                    if let Some(p) = crate::intersection::line_plane(&ray_line, pl, true) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Line(l) => {\n                    if let Some(p) =\n                        crate::intersection::line_line(&ray_line, l, tolerance)\n                    {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Polyline(pl) => {\n                    let mut best_t = f32::INFINITY;\n                    let mut best_p: Option<Point> = None;\n                    let pl_points = pl.get_points();\n                    if pl_points.len() >= 2 {\n                        for i in 0..(pl_points.len() - 1) {\n                            let seg = Line::from_points(&pl_points[i], &pl_points[i + 1]);\n                            if let Some(p) = crate::intersection::line_line(\n                                &ray_line,\n                                &seg,\n                                tolerance,\n                            ) {\n                                let dx = p[0] - origin[0];\n                                let dy = p[1] - origin[1];\n                                let dz = p[2] - origin[2];\n                                let t = dx * dir_unit[0] + dy * dir_unit[1] + dz * dir_unit[2];\n                                if t >= 0.0 && t < best_t {\n                                    best_t = t;\n                                    best_p = Some(p);\n                                }\n                            }\n                        }\n                    }\n                    if let Some(p) = best_p {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Mesh(m) => {\n                    if let Some(p) = m.ray_cast_bvh(&ray_line, 1e-6) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Point(p) => {\n                    let vx = p[0] - origin[0];\n                    let vy = p[1] - origin[1];\n                    let vz = p[2] - origin[2];\n                    let cross_x = vy * dir_unit[2] - vz * dir_unit[1];\n                    let cross_y = vz * dir_unit[0] - vx * dir_unit[2];\n                    let cross_z = vx * dir_unit[1] - vy * dir_unit[0];\n                    let dist = (cross_x * cross_x + cross_y * cross_y + cross_z * cross_z).sqrt();\n                    if dist <= tolerance {\n                        let t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2];\n                        if t >= 0.0 {\n                            let hp = Point::new(\n                                origin[0] + dir_unit[0] * t,\n                                origin[1] + dir_unit[1] * t,\n                                origin[2] + dir_unit[2] * t,\n                            );\n                            hit_point = Some(hp);\n                        }\n                    }\n                }\n                Geometry::PointCloud(pc) => {\n                    let pts = pc.get_points();\n                    let mut best_t = f32::INFINITY;\n                    let mut best_p: Option<Point> = None;\n                    for p in &pts {\n                        let vx = p[0] - origin[0];\n                        let vy = p[1] - origin[1];\n                        let vz = p[2] - origin[2];\n                        let cross_x = vy * dir_unit[2] - vz * dir_unit[1];\n                        let cross_y = vz * dir_unit[0] - vx * dir_unit[2];\n                        let cross_z = vx * dir_unit[1] - vy * dir_unit[0];\n                        let dist = (cross_x * cross_x + cross_y * cross_y + cross_z * cross_z).sqrt();\n                        if dist <= tolerance {\n                            let t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2];\n                            if t >= 0.0 && t < best_t {\n                                best_t = t;\n                                best_p = Some(Point::new(\n                                    origin[0] + dir_unit[0] * t,\n                                    origin[1] + dir_unit[1] * t,\n                                    origin[2] + dir_unit[2] * t,\n                                ));\n                            }\n                        }\n                    }\n                    if let Some(p) = best_p {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::BRep(_) => {\n                    // BRep tessellation is expensive (re-tessellates every call).\n                    // Viewers must use pre-cached tessellations with pre-built BVH.\n                    // hit_point stays None \u00e2\u20ac\u201d callers handle BReps separately.\n                }\n                Geometry::Element(_) => {}\n            }\n\n            if let Some(hp) = hit_point {\n                let dx = hp[0] - origin[0];\n                let dy = hp[1] - origin[1];\n                let dz = hp[2] - origin[2];\n                let forward = dx * dir_unit[0] + dy * dir_unit[1] + dz * dir_unit[2];\n                if forward >= 0.0 {\n                    let dist = (dx * dx + dy * dy + dz * dz).sqrt();\n                    let guid_lock = std::sync::OnceLock::new();\n                    let _ = guid_lock.set(guid.clone());\n                    h",
           "file": "session.rs"
         }
       },
@@ -75967,6 +75988,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.build_triangle_aabb_tree",
         "Mesh.clear",
+        "Mesh.ensure_triangle_bvh",
         "Mesh.faces",
         "Mesh.find",
         "Mesh.to_vertices_and_faces",
@@ -76464,6 +76486,7 @@ window.API_INDEX = {
         "NurbsCurve.span_count",
         "NurbsCurve.split",
         "NurbsCurve.swap_coordinates",
+        "NurbsCurve.to_polyline_adaptive",
         "NurbsCurve.to_protobuf",
         "NurbsCurve.transform",
         "NurbsCurve.transformed",
@@ -82815,6 +82838,7 @@ window.API_INDEX = {
         "BRep.create_cylinder",
         "BRep.create_sphere",
         "BRep.duplicate",
+        "BRep.face_meshes",
         "BRep.file_json_load",
         "BRep.file_json_loads",
         "BRep.find_or_add",
@@ -82848,6 +82872,23 @@ window.API_INDEX = {
         "BRep.guid",
         "BRep.pb_dumps",
         "BRep.pb_loads"
+      ]
+    },
+    {
+      "name": "BRep.face_meshes",
+      "implementations": {
+        "rust": {
+          "sig": "face_meshes() -> Vec<Mesh>",
+          "code": "pub fn face_meshes(&self) -> Vec<Mesh> {\n        let nf = self.m_faces.len();\n\n        // Phase 1: classify\n        let mut face_direct = vec![false; nf];\n        for fi in 0..nf {\n            let face = &self.m_faces[fi];\n            if face.surface_index < 0 || face.surface_index as usize >= self.m_surfaces.len() { continue; }\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            let mut has_inner = false;\n            let mut all_linear = true;\n            let mut outer_pts: Vec<Point> = Vec::new();\n            for &li in &face.loop_indices {\n                if li < 0 || li as usize >= self.m_loops.len() { continue; }\n                let bloop = &self.m_loops[li as usize];\n                if bloop.loop_type == BRepLoopType::Inner { has_inner = true; }\n                for &ti in &bloop.trim_indices {\n                    if ti < 0 || ti as usize >= self.m_trims.len() { continue; }\n                    let trim = &self.m_trims[ti as usize];\n                    if trim.curve_2d_index < 0 || trim.curve_2d_index as usize >= self.m_curves_2d.len() { continue; }\n                    let crv = &self.m_curves_2d[trim.curve_2d_index as usize];\n                    if crv.degree() > 1 || crv.is_rational() { all_linear = false; }\n                    if bloop.loop_type == BRepLoopType::Outer && crv.degree() <= 1 && !crv.is_rational() {\n                        for k in 0..crv.cv_count().saturating_sub(1) {\n                            if let Some(p) = crv.get_cv(k) { outer_pts.push(p); }\n                        }\n                    }\n                }\n            }\n            let mut direct = !has_inner && all_linear;\n            if direct && !outer_pts.is_empty() {\n                if let (Some((u0, u1)), Some((v0, v1))) = (srf.domain(0), srf.domain(1)) {\n                    let tol = (u1 - u0).max(v1 - v0) * 0.01;\n                    let mut bb_umin = f32::INFINITY; let mut bb_umax = f32::NEG_INFINITY;\n                    let mut bb_vmin = f32::INFINITY; let mut bb_vmax = f32::NEG_INFINITY;\n                    for p in &outer_pts {\n                        if p[0] < bb_umin { bb_umin = p[0]; }\n                        if p[0] > bb_umax { bb_umax = p[0]; }\n                        if p[1] < bb_vmin { bb_vmin = p[1]; }\n                        if p[1] > bb_vmax { bb_vmax = p[1]; }\n                    }\n                    if (bb_umin - u0).abs() > tol || (bb_umax - u1).abs() > tol ||\n                       (bb_vmin - v0).abs() > tol || (bb_vmax - v1).abs() > tol {\n                        direct = false;\n                    }\n                }\n            }\n            face_direct[fi] = direct;\n        }\n\n        // Phase 2: direct faces\n        let mut fmesh: Vec<Mesh> = (0..nf).map(|_| Mesh::new()).collect();\n        for fi in 0..nf {\n            if !face_direct[fi] { continue; }\n            let face = &self.m_faces[fi];\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            fmesh[fi] = srf.mesh();\n        }\n\n        // Phase 3: Fan-tessellate CDT faces (outer loop boundary evaluated on surface)\n        for fi in 0..nf {\n            if face_direct[fi] { continue; }\n            let face = &self.m_faces[fi];\n            if face.surface_index < 0 || face.surface_index as usize >= self.m_surfaces.len() { continue; }\n            let srf = &self.m_surfaces[face.surface_index as usize];\n            let mut outer_3d: Vec<Point> = Vec::new();\n            'outer_f: for &li in &face.loop_indices {\n                if li < 0 || li as usize >= self.m_loops.len() { continue; }\n                let bloop = &self.m_loops[li as usize];\n                if bloop.loop_type != BRepLoopType::Outer { continue; }\n                for &ti in &bloop.trim_indices {\n                    if ti < 0 || ti as usize >= self.m_trims.len() { continue; }\n                    let trim = &self.m_trims[ti as usize];\n                    if trim.trim_type == BRepTrimType::Singular { continue; }\n                    if trim.curve_2d_index < 0 || trim.curve_2d_index as usize >= self.m_curves_2d.len() { continue; }\n                    let crv = &self.m_curves_2d[trim.curve_2d_index as usize];\n                    let uv_pts: Vec<Point> = if crv.degree() <= 1 && !crv.is_rational() {\n                        (0..crv.cv_count().saturating_sub(1)).filter_map(|k| crv.get_cv(k)).collect()\n                    } else {\n                        let n = (crv.cv_count() * 4).max(16);\n                        let (pts, _) = crv.divide_by_count(n, true);\n                        pts[..pts.len().saturating_sub(1)].to_vec()\n                    };\n                    for uv in &uv_pts {\n                        if let Some(p3d) = srf.point_at(uv[0], uv[1]) {\n                            outer_3d.push(p3d);\n                        }\n                    }\n                }\n                break 'outer_f;\n            }\n            let n = outer_3d.len();\n            if n < 3 { continue; }\n            let cx: f32 = outer_3d.iter().map(|p| p[0]).sum::<f32>() / n as f32;\n            let cy: f32 = outer_3d.iter().map(|p| p[1]).sum::<f32>() / n as f32;\n            let cz: f32 = outer_3d.iter().map(|p| p[2]).sum::<f32>() / n as f32;\n            let center = Point::new(cx, cy, cz);\n            let mut m = Mesh::new();\n            for i in 0..n {\n                let p0 = outer_3d[i].clone();\n                let p1 = outer_3d[(i + 1) % n].clone();\n                let vk0 = m.add_vertex(p0, None);\n                let vk1 = m.add_vertex(p1, None);\n                let vc = m.add_vertex(center.clone(), None);\n                m.add_face(vec![vk0, vk1, vc], None);\n            }\n            fmesh[fi] = m;\n        }\n\n        // Apply reversed flag\n        for fi in 0..nf {\n            let face = &self.m_faces[fi];\n            if face.reversed {\n                for (_, vd) in fmesh[fi].vertex.iter_mut() {\n                    if let Some(n) = vd.normal() {\n                        vd.set_normal(-n[0], -n[1], -n[2]);\n                    }\n                }\n            }\n        }\n\n        fmesh\n    }",
+          "file": "brep.rs"
+        }
+      },
+      "related": [
+        "BRep.add_face",
+        "BRep.add_vertex",
+        "BRep.mesh",
+        "BRep.new",
+        "BRep.point_at"
       ]
     },
     {
@@ -83841,6 +83882,7 @@ window.API_INDEX = {
         "Mesh.edge_attribute",
         "Mesh.edge_edges",
         "Mesh.edges",
+        "Mesh.ensure_triangle_bvh",
         "Mesh.face_area",
         "Mesh.face_attribute",
         "Mesh.face_centroid",
@@ -83990,6 +84032,26 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Mesh.ensure_triangle_bvh",
+      "implementations": {
+        "rust": {
+          "sig": "ensure_triangle_bvh()",
+          "code": "pub fn ensure_triangle_bvh(&mut self) {\n        if self.tri_bvh.is_some() && !self.tri_tris.is_empty() && !self.tri_vertices.is_empty() {\n            return;\n        }\n\n        let (vertices, faces) = self.to_vertices_and_faces();\n        let mut vertex_keys: Vec<usize> = self.vertex.keys().cloned().collect();\n        vertex_keys.sort();\n        let vkey_to_idx: HashMap<usize, usize> = vertex_keys.iter().enumerate().map(|(i, &k)| (k, i)).collect();\n        let mut face_keys: Vec<usize> = self.face.keys().cloned().collect();\n        face_keys.sort();\n        let mut tris: Vec<[usize; 3]> = Vec::new();\n        let mut tri_boxes: Vec<OBB> = Vec::new();\n\n        for (fi, face) in faces.iter().enumerate() {\n            if face.len() < 3 {\n                continue;\n            }\n            if face.len() >= 5 && fi < face_keys.len() {\n                let fk = face_keys[fi];\n                if let Some(stored) = self.triangulation.get(&fk) {\n                    for t in stored {\n                        let i0 = vkey_to_idx[&t[0]];\n                        let i1 = vkey_to_idx[&t[1]];\n                        let i2 = vkey_to_idx[&t[2]];\n                        tris.push([i0, i1, i2]);\n                        let pts = [vertices[i0].clone(), vertices[i1].clone(), vertices[i2].clone()];\n                        tri_boxes.push(OBB::from_points(&pts, 0.0));\n                    }\n                    continue;\n                }\n            }\n            let v0 = face[0];\n            for i in 1..(face.len() - 1) {\n                let t = [v0, face[i], face[i + 1]];\n                tris.push(t);\n                let pts = [vertices[t[0]].clone(), vertices[t[1]].clone(), vertices[t[2]].clone()];\n                tri_boxes.push(OBB::from_points(&pts, 0.0));\n            }\n        }\n\n        if tris.is_empty() {\n            self.tri_bvh = None;\n            self.tri_tris.clear();\n            self.tri_vertices = vertices; // keep for consistency\n            return;\n        }\n\n        let world_size = SpatialBVH::compute_world_size(&tri_boxes);\n        let bvh = SpatialBVH::from_boxes(&tri_boxes, world_size);\n        self.tri_vertices = vertices;\n        self.tri_tris = tris;\n        self.tri_bvh = Some(bvh);\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.build_triangle_bvh",
+        "Mesh.clear",
+        "Mesh.faces",
+        "Mesh.is_empty",
+        "Mesh.new",
+        "Mesh.ray_cast_bvh",
+        "Mesh.to_vertices_and_faces",
+        "Mesh.vertices"
+      ]
+    },
+    {
       "name": "Mesh.ray_cast_bvh",
       "implementations": {
         "rust": {
@@ -83999,6 +84061,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.ensure_triangle_bvh",
         "Mesh.is_empty",
         "Mesh.new",
         "Mesh.triangle_bvh_ray_cast",
@@ -84288,6 +84351,7 @@ window.API_INDEX = {
         "NurbsSurface.pb_loads",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
+        "NurbsSurface.ray_intersect",
         "NurbsSurface.reverse",
         "NurbsSurface.set_weight",
         "NurbsSurface.str",
@@ -84335,6 +84399,24 @@ window.API_INDEX = {
         "NurbsSurface.str",
         "NurbsSurface.swap_coordinates",
         "NurbsSurface.zero_cvs"
+      ]
+    },
+    {
+      "name": "NurbsSurface.ray_intersect",
+      "implementations": {
+        "rust": {
+          "sig": "ray_intersect(ray: &Line, tolerance: f32) -> Vec<Point>",
+          "code": "pub fn ray_intersect(&self, ray: &Line, tolerance: f32) -> Vec<Point> {\n        if !self.is_valid() { return Vec::new(); }\n        let usp = self.get_span_vector(0);\n        let vsp = self.get_span_vector(1);\n        if usp.len() < 2 || vsp.len() < 2 { return Vec::new(); }\n\n        let s = ray.start();\n        let e = ray.end();\n        let ox = s[0]; let oy = s[1]; let oz = s[2];\n        let ex = e[0]; let ey = e[1]; let ez = e[2];\n        let dxr = ex - ox; let dyr = ey - oy; let dzr = ez - oz;\n        let dlen = (dxr*dxr + dyr*dyr + dzr*dzr).sqrt();\n        if dlen < 1e-14 { return Vec::new(); }\n        let dx = dxr / dlen; let dy = dyr / dlen; let dz = dzr / dlen;\n\n        let tol2 = (tolerance * tolerance).max(1e-10_f32);\n        let max_iter = 50;\n        let mut results: Vec<(f32, f32)> = Vec::new();\n\n        // Seed Newton-Raphson from midpoints of each span cell\n        for i in 0..usp.len()-1 {\n            for j in 0..vsp.len()-1 {\n                let mut u = (usp[i] + usp[i+1]) * 0.5;\n                let mut v = (vsp[j] + vsp[j+1]) * 0.5;\n                let (u0, u1) = (usp[0], *usp.last().unwrap());\n                let (v0, v1) = (vsp[0], *vsp.last().unwrap());\n\n                let mut converged = false;\n                for _ in 0..max_iter {\n                    let d = self.evaluate(u, v, 1);\n                    if d.len() < 3 { break; }\n                    let (px, py, pz) = (d[0][0], d[0][1], d[0][2]);\n                    let (dsu_x, dsu_y, dsu_z) = (d[1][0], d[1][1], d[1][2]);\n                    let (dsv_x, dsv_y, dsv_z) = (d[2][0], d[2][1], d[2][2]);\n\n                    // Residual: F = S(u,v) - (o + t*d), but we absorb t into Newton\n                    // Jacobian J = [dS/du | dS/dv | -d]\n                    // Solve J * [du, dv, dt]^T = -(S - o - t*d)\n                    // We don't track t explicitly; project residual onto ray direction\n                    // Project point onto ray to get t:\n                    let wx = px - ox; let wy = py - oy; let wz = pz - oz;\n                    let t_est = wx*dx + wy*dy + wz*dz;\n                    let rx = px - (ox + t_est*dx);\n                    let ry = py - (oy + t_est*dy);\n                    let rz = pz - (oz + t_est*dz);\n                    let res2 = rx*rx + ry*ry + rz*rz;\n                    if res2 < tol2 { converged = true; break; }\n\n                    // 2-equation reduced system: minimize distance from ray\n                    // F1 = dS/du \u00c2\u00b7 (S - o - t*d) = 0\n                    // F2 = dS/dv \u00c2\u00b7 (S - o - t*d) = 0\n                    // S - o - t*d: use full ray (t_est)\n                    let fx = px - (ox + t_est*dx);\n                    let fy = py - (oy + t_est*dy);\n                    let fz = pz - (oz + t_est*dz);\n                    let f1 = dsu_x*fx + dsu_y*fy + dsu_z*fz;\n                    let f2 = dsv_x*fx + dsv_y*fy + dsv_z*fz;\n\n                    // Jacobian of [F1,F2] w.r.t. [u,v]:\n                    // dF1/du = |dS/du|^2 (approx, ignoring d^2S/du^2 term)\n                    // dF1/dv = dS/du . dS/dv\n                    // dF2/du = dS/dv . dS/du\n                    // dF2/dv = |dS/dv|^2\n                    let j11 = dsu_x*dsu_x + dsu_y*dsu_y + dsu_z*dsu_z;\n                    let j12 = dsu_x*dsv_x + dsu_y*dsv_y + dsu_z*dsv_z;\n                    let j21 = j12;\n                    let j22 = dsv_x*dsv_x + dsv_y*dsv_y + dsv_z*dsv_z;\n                    let det = j11*j22 - j12*j21;\n                    if det.abs() < 1e-20 { break; }\n                    let du = -(j22*f1 - j12*f2) / det;\n                    let dv = -(j11*f2 - j21*f1) / det;\n                    u = (u + du).clamp(u0, u1);\n                    v = (v + dv).clamp(v0, v1);\n                }\n\n                if converged {\n                    // Check t > 0 (in front of camera)\n                    if let Some(p) = self.point_at(u, v) {\n                        let wx = p[0] - ox; let wy = p[1] - oy; let wz = p[2] - oz;\n                        let t = wx*dx + wy*dy + wz*dz;\n                        if t > tolerance {\n                            // Deduplicate by (u,v) proximity\n                            let dup = results.iter().any(|(ru, rv)| (ru-u).abs() < 1e-4 && (rv-v).abs() < 1e-4);\n                            if !dup {\n                                results.push((u, v));\n                            }\n                        }\n                    }\n                }\n            }\n        }\n\n        results.iter().filter_map(|(u, v)| self.point_at(*u, *v)).collect()\n    }",
+          "file": "nurbssurface.rs"
+        }
+      },
+      "related": [
+        "NurbsSurface.duplicate",
+        "NurbsSurface.evaluate",
+        "NurbsSurface.get_span_vector",
+        "NurbsSurface.is_valid",
+        "NurbsSurface.new",
+        "NurbsSurface.point_at"
       ]
     },
     {
@@ -100282,11 +100364,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "points",
-        "circle",
         "into",
-        "subdivide",
+        "circle",
         "n",
+        "subdivide",
+        "points",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -100300,11 +100382,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "arc",
-        "ellipse",
-        "length",
         "subdivide",
+        "length",
+        "ellipse",
         "by",
+        "arc",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -100318,9 +100400,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "arc",
-        "points",
         "through",
+        "points",
+        "arc",
         "nurbscurve",
         "primitives",
         "point"
@@ -100334,12 +100416,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
+        "from",
+        "polyline",
         "curve",
         "points",
-        "from",
         "adaptive",
         "open",
-        "polyline",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -100355,9 +100437,9 @@ window.API_INDEX = {
       "title": "Curve Evaluation at Parameter",
       "tags": [
         "evaluation",
-        "curve",
         "at",
         "parameter",
+        "curve",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -100376,10 +100458,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "length",
+        "along",
         "frames",
         "curve",
-        "along",
+        "length",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -100401,9 +100483,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "ellipse",
         "frames",
         "perpendicular",
-        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -100424,8 +100506,8 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "surface",
         "evaluate",
+        "surface",
         "point",
         "cylinder",
         "point_at",
@@ -100442,11 +100524,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
+        "vertices",
         "from",
         "and",
-        "vertices",
-        "mesh",
         "faces",
+        "mesh",
         "add_vertex",
         "add_face",
         "vertex"
@@ -100579,12 +100661,6 @@ window.API_INDEX = {
       ],
       "summary": "RemeshNurbsSurfaceGrid geometry class"
     },
-    "GlobalSessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "GlobalSessionConfig geometry class"
-    },
     "GeometryFileDecoder": {
       "composition": [],
       "factories": [],
@@ -100597,12 +100673,6 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
     },
-    "CurveNurbsKnotStyle": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
-    },
     "NurbsSurfaceTrimmed": {
       "composition": [],
       "factories": [],
@@ -100614,6 +100684,18 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "NurbsSurfaceTrimmed geometry class"
+    },
+    "GlobalSessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "GlobalSessionConfig geometry class"
+    },
+    "CurveNurbsKnotStyle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
     },
     "TriangulateResult": {
       "composition": [],
@@ -100634,16 +100716,6 @@ window.API_INDEX = {
       "uses": [],
       "summary": "ReciprocalResult geometry class"
     },
-    "GlobalTolerance": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "Tolerance",
-        "Vector"
-      ],
-      "summary": "GlobalTolerance geometry class"
-    },
     "BooleanPolyline": {
       "composition": [],
       "factories": [],
@@ -100660,17 +100732,35 @@ window.API_INDEX = {
       ],
       "summary": "SpatialAABBTree geometry class"
     },
+    "GlobalTolerance": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "Tolerance",
+        "Vector"
+      ],
+      "summary": "GlobalTolerance geometry class"
+    },
     "ElementSchoring": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
     },
-    "_PartitionVars": {
+    "VIntersectNode": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_PartitionVars geometry class"
+      "summary": "VIntersectNode geometry class"
+    },
+    "ToleranceGuard": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Tolerance"
+      ],
+      "summary": "ToleranceGuard geometry class"
     },
     "SpatialBVHNode": {
       "composition": [],
@@ -100684,28 +100774,17 @@ window.API_INDEX = {
       ],
       "summary": "A node in the SpatialBVH tree."
     },
-    "ToleranceGuard": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tolerance"
-      ],
-      "summary": "ToleranceGuard geometry class"
-    },
-    "VIntersectNode": {
+    "_PartitionVars": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VIntersectNode geometry class"
+      "summary": "_PartitionVars geometry class"
     },
-    "SpatialKDTree": {
+    "SessionConfig": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Point",
-        "_Node"
-      ],
-      "summary": "KD-tree for point-to-point nearest-neighbor queries."
+      "uses": [],
+      "summary": "SessionConfig geometry class"
     },
     "ElementColumn": {
       "composition": [],
@@ -100720,23 +100799,14 @@ window.API_INDEX = {
       ],
       "summary": "ElementColumn geometry class"
     },
-    "SessionConfig": {
+    "SpatialKDTree": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "SessionConfig geometry class"
-    },
-    "SpatialRTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SpatialRTree geometry class"
-    },
-    "VattiScratch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VattiScratch geometry class"
+      "uses": [
+        "Point",
+        "_Node"
+      ],
+      "summary": "KD-tree for point-to-point nearest-neighbor queries."
     },
     "NurbsSurface": {
       "composition": [
@@ -100751,6 +100821,7 @@ window.API_INDEX = {
         "RemeshNurbsSurfaceGrid"
       ],
       "uses": [
+        "Line",
         "NurbsCurve",
         "Plane",
         "Vector",
@@ -100777,38 +100848,11 @@ window.API_INDEX = {
       ],
       "summary": "Intersection geometry class"
     },
-    "BRepTrimType": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "BRep",
-        "BRepLoopType",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRepTrimType geometry class"
-    },
-    "BRepLoopType": {
+    "VattiScratch": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepLoopType geometry class"
-    },
-    "ScanlineHeap": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "ScanlineHeap geometry class"
-    },
-    "LoftWallFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftWallFace geometry class"
+      "summary": "VattiScratch geometry class"
     },
     "ElementPlate": {
       "composition": [],
@@ -100825,11 +100869,50 @@ window.API_INDEX = {
       ],
       "summary": "ElementPlate geometry class"
     },
+    "BRepTrimType": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "BRep",
+        "BRepLoopType",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRepTrimType geometry class"
+    },
     "VLocalMinima": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VLocalMinima geometry class"
+    },
+    "ScanlineHeap": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "ScanlineHeap geometry class"
+    },
+    "SpatialRTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SpatialRTree geometry class"
+    },
+    "LoftWallFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftWallFace geometry class"
+    },
+    "BRepLoopType": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoopType geometry class"
     },
     "session_cpp": {
       "composition": [],
@@ -100858,54 +100941,6 @@ window.API_INDEX = {
       ],
       "summary": "ElementBeam geometry class"
     },
-    "Reciprocal": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "Plane",
-        "ReciprocalResult"
-      ],
-      "summary": "Reciprocal geometry class"
-    },
-    "Primitives": {
-      "composition": [
-        "CurveNurbsKnotStyle",
-        "NurbsCurve",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsSurface",
-        "Point",
-        "Xform"
-      ],
-      "summary": "Static factory methods for creating NURBS curve primitives."
-    },
-    "Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Delaunay2D geometry class"
-    },
-    "BRepVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepVertex geometry class"
-    },
-    "ConvexHull": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Point"
-      ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
-    },
     "PointCloud": {
       "composition": [
         "Color",
@@ -100921,24 +100956,6 @@ window.API_INDEX = {
       ],
       "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
     },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "Vertex data containing position and attributes."
-    },
-    "MeshOffset": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Plane",
-        "Point"
-      ],
-      "summary": "MeshOffset geometry class"
-    },
     "Quaternion": {
       "composition": [
         "Vector"
@@ -100948,19 +100965,6 @@ window.API_INDEX = {
         "Plane"
       ],
       "summary": "A quaternion for 3D rotations (scalar + vector)."
-    },
-    "SpatialBVH": {
-      "composition": [],
-      "factories": [
-        "SpatialBVHNode"
-      ],
-      "uses": [
-        "AABB",
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
     },
     "NurbsCurve": {
       "composition": [
@@ -100983,6 +100987,101 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
+    "MeshOffset": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Plane",
+        "Point"
+      ],
+      "summary": "MeshOffset geometry class"
+    },
+    "VertexData": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "Vertex data containing position and attributes."
+    },
+    "ConvexHull": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Point"
+      ],
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+    },
+    "Primitives": {
+      "composition": [
+        "CurveNurbsKnotStyle",
+        "NurbsCurve",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsSurface",
+        "Point",
+        "Xform"
+      ],
+      "summary": "Static factory methods for creating NURBS curve primitives."
+    },
+    "BRepVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepVertex geometry class"
+    },
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
+    },
+    "Reciprocal": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Line",
+        "Mesh",
+        "Plane",
+        "ReciprocalResult"
+      ],
+      "summary": "Reciprocal geometry class"
+    },
+    "SpatialBVH": {
+      "composition": [],
+      "factories": [
+        "SpatialBVHNode"
+      ],
+      "uses": [
+        "AABB",
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
+    },
+    "FlatMap64": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Delaunay2D",
+        "Point",
+        "Vector"
+      ],
+      "summary": "FlatMap64 geometry class"
+    },
+    "LoftPanel": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftPanel geometry class"
+    },
     "ColorMode": {
       "composition": [],
       "factories": [],
@@ -100998,28 +101097,6 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "ColorMode geometry class"
-    },
-    "_Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay geometry class"
-    },
-    "LoftPanel": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftPanel geometry class"
-    },
-    "FlatMap64": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Delaunay2D",
-        "Point",
-        "Vector"
-      ],
-      "summary": "FlatMap64 geometry class"
     },
     "Component": {
       "composition": [],
@@ -101052,17 +101129,43 @@ window.API_INDEX = {
       ],
       "summary": "RemeshCDT geometry class"
     },
+    "_Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay geometry class"
+    },
     "BRepLoop": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepLoop geometry class"
     },
+    "BRepFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepFace geometry class"
+    },
     "Geometry": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Geometry geometry class"
+    },
+    "TreeNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Tree"
+      ],
+      "summary": "A node of a tree data structure."
+    },
+    "VHorzSeg": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzSeg geometry class"
     },
     "Polyline": {
       "composition": [
@@ -101097,11 +101200,11 @@ window.API_INDEX = {
       ],
       "summary": "Delaunay geometry class"
     },
-    "VHorzSeg": {
+    "BRepEdge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VHorzSeg geometry class"
+      "summary": "BRepEdge geometry class"
     },
     "BRepTrim": {
       "composition": [],
@@ -101109,60 +101212,11 @@ window.API_INDEX = {
       "uses": [],
       "summary": "BRepTrim geometry class"
     },
-    "BRepEdge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
-    },
-    "BRepFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepFace geometry class"
-    },
-    "TreeNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tree"
-      ],
-      "summary": "A node of a tree data structure."
-    },
-    "Default": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "Default geometry class"
-    },
-    "VOutRec": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutRec geometry class"
-    },
     "_Branch": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Branch geometry class"
-    },
-    "VActive": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VActive geometry class"
-    },
-    "VVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VVertex geometry class"
     },
     "Closest": {
       "composition": [],
@@ -101178,33 +101232,6 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "Static methods for finding closest points between geometry objects."
-    },
-    "Objects": {
-      "composition": [
-        "BRep",
-        "Component",
-        "Element",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "A collection of all geometry objects."
-    },
-    "Dataset": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Dataset geometry class"
     },
     "Session": {
       "composition": [
@@ -101234,6 +101261,18 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
+    "VActive": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VActive geometry class"
+    },
+    "Dataset": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Dataset geometry class"
+    },
     "Element": {
       "composition": [
         "Line",
@@ -101252,17 +101291,49 @@ window.API_INDEX = {
       ],
       "summary": "Element geometry class"
     },
-    "VOutPt": {
+    "Default": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "VOutPt geometry class"
+      "uses": [
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "Default geometry class"
     },
-    "Matrix": {
+    "VVertex": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Matrix geometry class"
+      "summary": "VVertex geometry class"
+    },
+    "VOutRec": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutRec geometry class"
+    },
+    "Objects": {
+      "composition": [
+        "BRep",
+        "Component",
+        "Element",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "factories": [],
+      "uses": [
+        "session_cpp"
+      ],
+      "summary": "A collection of all geometry objects."
     },
     "BIVec2": {
       "composition": [],
@@ -101270,14 +101341,11 @@ window.API_INDEX = {
       "uses": [],
       "summary": "BIVec2 geometry class"
     },
-    "Vertex": {
+    "VOutPt": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Graph",
-        "session_cpp"
-      ],
-      "summary": "A graph vertex with a unique identifier and attribute string."
+      "uses": [],
+      "summary": "VOutPt geometry class"
     },
     "RayHit": {
       "composition": [],
@@ -101299,11 +101367,53 @@ window.API_INDEX = {
       ],
       "summary": "A 3D vector with visual properties."
     },
-    "_Rect": {
+    "Matrix": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Rect geometry class"
+      "summary": "Matrix geometry class"
+    },
+    "Vertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Graph",
+        "session_cpp"
+      ],
+      "summary": "A graph vertex with a unique identifier and attribute string."
+    },
+    "Color": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "session_cpp"
+      ],
+      "summary": "An index-based 0.0-1.0 color with RGBA values."
+    },
+    "Graph": {
+      "composition": [
+        "Edge"
+      ],
+      "factories": [],
+      "uses": [
+        "Vertex"
+      ],
+      "summary": "A graph data structure with string-only vertices and attributes."
+    },
+    "Xform": {
+      "composition": [
+        "Point",
+        "Vector"
+      ],
+      "factories": [
+        "Element"
+      ],
+      "uses": [
+        "Line",
+        "Plane",
+        "Polyline"
+      ],
+      "summary": "Xform geometry class"
     },
     "Point": {
       "composition": [],
@@ -101339,99 +101449,17 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_Edge geometry class"
     },
-    "Xform": {
-      "composition": [
-        "Point",
-        "Vector"
-      ],
-      "factories": [
-        "Element"
-      ],
-      "uses": [
-        "Line",
-        "Plane",
-        "Polyline"
-      ],
-      "summary": "Xform geometry class"
+    "_Rect": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Rect geometry class"
     },
     "_Node": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Node geometry class"
-    },
-    "Graph": {
-      "composition": [
-        "Edge"
-      ],
-      "factories": [],
-      "uses": [
-        "Vertex"
-      ],
-      "summary": "A graph data structure with string-only vertices and attributes."
-    },
-    "Color": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "An index-based 0.0-1.0 color with RGBA values."
-    },
-    "BRep": {
-      "composition": [
-        "BRepEdge",
-        "BRepFace",
-        "BRepLoop",
-        "BRepLoopType",
-        "BRepTrim",
-        "BRepTrimType",
-        "BRepVertex",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point"
-      ],
-      "factories": [
-        "BRepTrimType",
-        "Element"
-      ],
-      "uses": [
-        "Mesh",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRep geometry class"
-    },
-    "Tree": {
-      "composition": [
-        "Color",
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
-    },
-    "Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
-    },
-    "AABB": {
-      "composition": [],
-      "factories": [
-        "OBB"
-      ],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Axis-aligned bounding box (center + half-size)."
     },
     "Line": {
       "composition": [
@@ -101449,17 +101477,20 @@ window.API_INDEX = {
       ],
       "summary": "A 3D line segment with visual properties."
     },
-    "_P64": {
+    "Edge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_P64 geometry class"
+      "summary": "A graph edge connecting two vertices with an attribute string."
     },
-    "_Tri": {
-      "composition": [],
+    "Tree": {
+      "composition": [
+        "Color",
+        "TreeNode"
+      ],
       "factories": [],
       "uses": [],
-      "summary": "_Tri geometry class"
+      "summary": "A hierarchical data structure with parent-child relationships."
     },
     "Mesh": {
       "composition": [
@@ -101488,6 +101519,58 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "A halfedge mesh data structure for representing polygonal surfaces."
+    },
+    "_P64": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_P64 geometry class"
+    },
+    "AABB": {
+      "composition": [],
+      "factories": [
+        "OBB"
+      ],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Axis-aligned bounding box (center + half-size)."
+    },
+    "_Tri": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Tri geometry class"
+    },
+    "BRep": {
+      "composition": [
+        "BRepEdge",
+        "BRepFace",
+        "BRepLoop",
+        "BRepLoopType",
+        "BRepTrim",
+        "BRepTrimType",
+        "BRepVertex",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point"
+      ],
+      "factories": [
+        "BRepTrimType",
+        "Element"
+      ],
+      "uses": [
+        "Mesh",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRep geometry class"
     },
     "_V2": {
       "composition": [],
@@ -107083,6 +107166,9 @@ window.API_INDEX = {
       "Vector.set_guid",
       "Xform.set_guid"
     ],
+    "face_meshes": [
+      "BRep.face_meshes"
+    ],
     "to_float_array": [
       "Color.to_float_array"
     ],
@@ -107173,6 +107259,9 @@ window.API_INDEX = {
     "clone_with_new_guid": [
       "Mesh.clone_with_new_guid"
     ],
+    "ensure_triangle_bvh": [
+      "Mesh.ensure_triangle_bvh"
+    ],
     "ray_cast_bvh": [
       "Mesh.ray_cast_bvh"
     ],
@@ -107199,6 +107288,9 @@ window.API_INDEX = {
     ],
     "cv_mut": [
       "NurbsSurface.cv_mut"
+    ],
+    "ray_intersect": [
+      "NurbsSurface.ray_intersect"
     ],
     "transform_self": [
       "NurbsSurface.transform_self",
@@ -107482,8 +107574,8 @@ window.API_INDEX = {
     "BRep": {
       "cpp": 38,
       "python": 51,
-      "rust": 38,
-      "gaps": 27,
+      "rust": 39,
+      "gaps": 28,
       "present_in": [
         "cpp",
         "python",
@@ -107716,8 +107808,8 @@ window.API_INDEX = {
     "Mesh": {
       "cpp": 124,
       "python": 153,
-      "rust": 110,
-      "gaps": 111,
+      "rust": 111,
+      "gaps": 112,
       "present_in": [
         "cpp",
         "python",
@@ -107763,8 +107855,8 @@ window.API_INDEX = {
     "NurbsSurface": {
       "cpp": 77,
       "python": 104,
-      "rust": 78,
-      "gaps": 50,
+      "rust": 79,
+      "gaps": 51,
       "present_in": [
         "cpp",
         "python",

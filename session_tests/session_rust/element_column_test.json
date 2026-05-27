@@ -63,7 +63,7 @@
     "line": 10,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.36800000071525574
+    "time_ms": 0.375
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 39,
     "passed": true,
     "test_name": "Setters",
-    "time_ms": 0.43299999833106995
+    "time_ms": 0.4399999976158142
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 55,
     "passed": true,
     "test_name": "Center Line",
-    "time_ms": 0.10899999737739563
+    "time_ms": 0.1120000034570694
   },
   {
     "checks": [
@@ -131,7 +131,7 @@
     "line": 67,
     "passed": true,
     "test_name": "Extend",
-    "time_ms": 0.2199999988079071
+    "time_ms": 0.2160000056028366
   },
   {
     "checks": [
@@ -157,7 +157,7 @@
     "line": 78,
     "passed": true,
     "test_name": "AABB",
-    "time_ms": 0.15000000596046448
+    "time_ms": 0.2029999941587448
   },
   {
     "checks": [
@@ -183,7 +183,7 @@
     "line": 91,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.12999999523162842
+    "time_ms": 0.15700000524520874
   },
   {
     "checks": [
@@ -204,7 +204,7 @@
     "line": 104,
     "passed": true,
     "test_name": "Session Geometry",
-    "time_ms": 0.14300000667572021
+    "time_ms": 0.1509999930858612
   },
   {
     "checks": [
@@ -235,7 +235,7 @@
     "line": 121,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 15.581000328063965
+    "time_ms": 15.958999633789062
   },
   {
     "checks": [
@@ -266,7 +266,7 @@
     "line": 140,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 13.152999877929688
+    "time_ms": 13.088000297546387
   },
   {
     "checks": [
@@ -312,7 +312,7 @@
     "line": 163,
     "passed": true,
     "test_name": "Polylines",
-    "time_ms": 0.1899999976158142
+    "time_ms": 0.1940000057220459
   },
   {
     "checks": [
@@ -338,7 +338,7 @@
     "line": 173,
     "passed": true,
     "test_name": "Planes",
-    "time_ms": 0.1509999930858612
+    "time_ms": 0.15299999713897705
   },
   {
     "checks": [
@@ -354,7 +354,7 @@
     "line": 184,
     "passed": true,
     "test_name": "Edge Vectors",
-    "time_ms": 0.12200000137090683
+    "time_ms": 0.125
   },
   {
     "checks": [
@@ -375,6 +375,6 @@
     "line": 193,
     "passed": true,
     "test_name": "Axis",
-    "time_ms": 0.1120000034570694
+    "time_ms": 0.11400000005960464
   }
 ]

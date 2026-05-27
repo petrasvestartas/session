@@ -58,7 +58,7 @@
     "line": 10,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.46299999952316284
+    "time_ms": 0.47699999809265137
   },
   {
     "checks": [
@@ -84,7 +84,7 @@
     "line": 45,
     "passed": true,
     "test_name": "Default Polygon",
-    "time_ms": 0.1379999965429306
+    "time_ms": 0.14300000667572021
   },
   {
     "checks": [
@@ -110,7 +110,7 @@
     "line": 57,
     "passed": true,
     "test_name": "Setters",
-    "time_ms": 0.3709999918937683
+    "time_ms": 0.37400001287460327
   },
   {
     "checks": [
@@ -131,7 +131,7 @@
     "line": 77,
     "passed": true,
     "test_name": "Mesh Topology",
-    "time_ms": 0.13600000739097595
+    "time_ms": 0.1340000033378601
   },
   {
     "checks": [
@@ -157,7 +157,7 @@
     "line": 97,
     "passed": true,
     "test_name": "AABB",
-    "time_ms": 0.24699999392032623
+    "time_ms": 0.1679999977350235
   },
   {
     "checks": [
@@ -183,7 +183,7 @@
     "line": 117,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.1860000044107437
+    "time_ms": 0.14300000667572021
   },
   {
     "checks": [
@@ -204,7 +204,7 @@
     "line": 137,
     "passed": true,
     "test_name": "Triangle Polygon",
-    "time_ms": 0.11400000005960464
+    "time_ms": 0.10400000214576721
   },
   {
     "checks": [
@@ -235,7 +235,7 @@
     "line": 156,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 15.220000267028809
+    "time_ms": 16.326000213623047
   },
   {
     "checks": [
@@ -266,7 +266,7 @@
     "line": 182,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 13.006999969482422
+    "time_ms": 13.460000038146973
   },
   {
     "checks": [
@@ -312,7 +312,7 @@
     "line": 208,
     "passed": true,
     "test_name": "From Top Bottom",
-    "time_ms": 0.2540000081062317
+    "time_ms": 0.257999986410141
   },
   {
     "checks": [
@@ -358,7 +358,7 @@
     "line": 232,
     "passed": true,
     "test_name": "Polylines",
-    "time_ms": 0.21199999749660492
+    "time_ms": 0.23199999332427979
   },
   {
     "checks": [
@@ -384,7 +384,7 @@
     "line": 246,
     "passed": true,
     "test_name": "Planes",
-    "time_ms": 0.2540000081062317
+    "time_ms": 0.20100000500679016
   },
   {
     "checks": [
@@ -420,7 +420,7 @@
     "line": 259,
     "passed": true,
     "test_name": "Edge Vectors",
-    "time_ms": 0.16899999976158142
+    "time_ms": 0.1379999965429306
   },
   {
     "checks": [
@@ -451,7 +451,7 @@
     "line": 274,
     "passed": true,
     "test_name": "Axis",
-    "time_ms": 0.1379999965429306
+    "time_ms": 0.1340000033378601
   },
   {
     "checks": [
@@ -518,7 +518,7 @@
     "line": 300,
     "passed": true,
     "test_name": "J Mf",
-    "time_ms": 0.14300000667572021
+    "time_ms": 0.12800000607967377
   },
   {
     "checks": [
@@ -539,7 +539,7 @@
     "line": 317,
     "passed": true,
     "test_name": "Key",
-    "time_ms": 0.1940000057220459
+    "time_ms": 0.125
   },
   {
     "checks": [
@@ -565,7 +565,7 @@
     "line": 327,
     "passed": true,
     "test_name": "Component Plane",
-    "time_ms": 0.15299999713897705
+    "time_ms": 0.12999999523162842
   },
   {
     "checks": [
@@ -601,7 +601,7 @@
     "line": 342,
     "passed": true,
     "test_name": "Json Roundtrip Joinery",
-    "time_ms": 15.755999565124512
+    "time_ms": 19.673999786376953
   },
   {
     "checks": [
@@ -642,6 +642,6 @@
     "line": 368,
     "passed": true,
     "test_name": "Protobuf Roundtrip Joinery",
-    "time_ms": 13.331999778747559
+    "time_ms": 14.503000259399414
   }
 ]

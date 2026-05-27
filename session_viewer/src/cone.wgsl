@@ -1,7 +1,10 @@
-const CYLINDER_RADIUS: f32 = 15.0;
-
 struct Camera {
-    view_proj: mat4x4<f32>,
+    view_proj:   mat4x4<f32>,
+    _kl:         vec4<f32>,
+    _fl:         vec4<f32>,
+    _screen:     vec2<f32>,
+    point_size:  f32,
+    _flags:      u32,
 }
 
 struct Instance {
@@ -62,7 +65,7 @@ fn vs_main(
     let dv   = mp1 - mp0;
     let len  = length(dv);
     let rot  = rotation_z_to(dv / max(len, 1e-6));
-    let r    = select(CYLINDER_RADIUS, seg.radius, seg.radius > 0.0);
+    let r    = select(camera.point_size * 3.0, seg.radius, seg.radius > 0.0);
     // taper: 1.0 at base (lp.z = -0.5), 0.0 at tip (lp.z = +0.5)
     let taper = 0.5 - lp.z;
     let scaled    = vec3<f32>(lp.x * r * taper, lp.y * r * taper, lp.z * len);

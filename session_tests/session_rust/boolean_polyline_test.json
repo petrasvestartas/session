@@ -38,7 +38,7 @@
     "line": 12,
     "passed": true,
     "test_name": "Overlapping Squares",
-    "time_ms": 0.18199999630451202
+    "time_ms": 0.2370000034570694
   },
   {
     "checks": [
@@ -79,7 +79,7 @@
     "line": 87,
     "passed": true,
     "test_name": "L Shape Vs Rectangle",
-    "time_ms": 0.1080000028014183
+    "time_ms": 0.11599999666213989
   },
   {
     "checks": [
@@ -120,7 +120,7 @@
     "line": 60,
     "passed": true,
     "test_name": "Star Vs Circle",
-    "time_ms": 0.37299999594688416
+    "time_ms": 0.3709999918937683
   },
   {
     "checks": [
@@ -161,7 +161,7 @@
     "line": 187,
     "passed": true,
     "test_name": "Cross Shape",
-    "time_ms": 0.08399999886751175
+    "time_ms": 0.09300000220537186
   },
   {
     "checks": [
@@ -202,7 +202,7 @@
     "line": 35,
     "passed": true,
     "test_name": "Circle Vs Rectangle",
-    "time_ms": 0.30799999833106995
+    "time_ms": 0.3269999921321869
   },
   {
     "checks": [
@@ -243,7 +243,7 @@
     "line": 262,
     "passed": true,
     "test_name": "Large Coords Auto Scale",
-    "time_ms": 0.07199999690055847
+    "time_ms": 0.07400000095367432
   },
   {
     "checks": [
@@ -284,7 +284,7 @@
     "line": 137,
     "passed": true,
     "test_name": "Diamond Vs Triangle",
-    "time_ms": 0.30000001192092896
+    "time_ms": 0.08399999886751175
   },
   {
     "checks": [
@@ -325,7 +325,7 @@
     "line": 235,
     "passed": true,
     "test_name": "Two Large Circles 1000",
-    "time_ms": 7.191999912261963
+    "time_ms": 7.947999954223633
   },
   {
     "checks": [
@@ -366,7 +366,7 @@
     "line": 210,
     "passed": true,
     "test_name": "Concave Arrow Vs Circle",
-    "time_ms": 0.4189999997615814
+    "time_ms": 0.4230000078678131
   },
   {
     "checks": [
@@ -407,7 +407,7 @@
     "line": 110,
     "passed": true,
     "test_name": "Two Large Circles",
-    "time_ms": 2.3580000400543213
+    "time_ms": 2.2809998989105225
   },
   {
     "checks": [
@@ -448,6 +448,6 @@
     "line": 160,
     "passed": true,
     "test_name": "Star Vs Star",
-    "time_ms": 0.23399999737739563
+    "time_ms": 0.24199999868869781
   }
 ]

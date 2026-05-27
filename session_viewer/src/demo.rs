@@ -1,215 +1,67 @@
-use session_rust::{Color, Line, Mesh, NurbsSurface, Point, PointCloud, Polyline, Session, TreeNode};
+use session_rust::{
+    BRep, Color, Session, TreeNode, Xform,
+};
+use session_rust::primitives::Primitives;
 
-fn make_box(cx: f32, cy: f32, cz: f32, r: f32, color: Color, name: &str) -> Mesh {
-    let mut m = Mesh::new();
-    m.name = name.to_string();
-    let pts = [
-        Point::new(cx-r, cy-r, cz-r), Point::new(cx+r, cy-r, cz-r),
-        Point::new(cx+r, cy+r, cz-r), Point::new(cx-r, cy+r, cz-r),
-        Point::new(cx-r, cy-r, cz+r), Point::new(cx+r, cy-r, cz+r),
-        Point::new(cx+r, cy+r, cz+r), Point::new(cx-r, cy+r, cz+r),
-    ];
-    let v: Vec<_> = pts.iter().map(|p| m.add_vertex(p.clone(), None)).collect();
-    for f in &[[0,3,2,1],[4,5,6,7],[0,1,5,4],[2,3,7,6],[0,4,7,3],[1,2,6,5]] {
-        m.add_face(vec![v[f[0]], v[f[1]], v[f[2]], v[f[3]]], None);
-    }
-    m.set_objectcolor(color);
-    m
-}
+use crate::gpu_session::CylinderSegment;
 
-fn make_tetra(cx: f32, cy: f32, cz: f32, r: f32, color: Color, name: &str) -> Mesh {
-    let mut m = Mesh::new();
-    m.name = name.to_string();
-    let a = m.add_vertex(Point::new(cx,     cy+r,  cz),    None);
-    let b = m.add_vertex(Point::new(cx-r,   cy-r,  cz-r),  None);
-    let c = m.add_vertex(Point::new(cx+r,   cy-r,  cz-r),  None);
-    let d = m.add_vertex(Point::new(cx,     cy-r,  cz+r),  None);
-    m.add_face(vec![a,c,b], None);
-    m.add_face(vec![a,d,c], None);
-    m.add_face(vec![a,b,d], None);
-    m.add_face(vec![b,c,d], None);
-    m.set_objectcolor(color);
-    m
-}
+const COL: f32 = 1_500.0;
 
-fn named_point(x: f32, y: f32, z: f32, name: &str, color: Color) -> Point {
-    let mut p = Point::with_name(x, y, z, name);
-    p.pointcolor = color;
-    p
-}
-
-pub fn make_demo_session() -> Session {
+pub fn make_demo_scene() -> (Session, Vec<CylinderSegment>) {
     let mut s = Session::new("demo");
+    let demo_cones: Vec<CylinderSegment> = Vec::new();
 
-    let ground     = s.add_group("ground");
-    let boxes      = s.add_group("boxes");
-    let tetras     = s.add_group("tetrahedra");
-    let labels     = s.add_group("labels");
-    let primitives = s.add_group("primitives");
-
-    // Ground triangle
-    let mut tri = Mesh::new();
-    tri.name = "triangle".to_string();
-    let a = tri.add_vertex(Point::new(    0.0,  400.0, 0.0), None);
-    let b = tri.add_vertex(Point::new( -400.0, -267.0, 0.0), None);
-    let c = tri.add_vertex(Point::new(  400.0, -267.0, 0.0), None);
-    tri.add_face(vec![a, b, c], None);
-    tri.set_objectcolor(Color::new(1.0, 0.549, 0.0, 1.0));
-    s.add_mesh(tri, Some(&ground));
-
-    // Sub-group: small boxes nested under boxes
-    let small = TreeNode::new("small_boxes");
-    s.tree.add(&small, Some(&boxes));
-    s.add_mesh(make_box( -600.0,  600.0, 200.0, 120.0, Color::new(0.3, 0.9, 0.6, 1.0), "box_small_a"), Some(&small));
-    s.add_mesh(make_box(  600.0,  600.0, 200.0, 120.0, Color::new(0.9, 0.3, 0.6, 1.0), "box_small_b"), Some(&small));
-    s.add_mesh(make_box(    0.0, -600.0, 200.0, 120.0, Color::new(0.6, 0.6, 0.2, 1.0), "box_small_c"), Some(&small));
-
-    // Boxes
-    let n0 = s.add_mesh(make_box( 2000.0,  2000.0,  1000.0, 400.0, Color::new(0.2, 0.6, 1.0, 1.0), "box_blue"),   Some(&boxes));
-    let n1 = s.add_mesh(make_box(-2500.0,  1000.0,  2000.0, 350.0, Color::new(0.2, 0.8, 0.3, 1.0), "box_green"),  Some(&boxes));
-    let n2 = s.add_mesh(make_box( 1000.0, -2000.0,  1500.0, 500.0, Color::new(0.9, 0.2, 0.2, 1.0), "box_red"),    Some(&boxes));
-    let n3 = s.add_mesh(make_box(-1500.0, -1500.0, -1000.0, 300.0, Color::new(0.8, 0.2, 0.8, 1.0), "box_purple"), Some(&boxes));
-    let n4 = s.add_mesh(make_box(    0.0,  2500.0,  2500.0, 450.0, Color::new(0.9, 0.8, 0.1, 1.0), "box_yellow"), Some(&boxes));
-
-    // Tetrahedra
-    let n5 = s.add_mesh(make_tetra( 3000.0,     0.0,  500.0, 600.0, Color::new(0.1, 0.9, 0.9, 1.0), "tetra_cyan"),   Some(&tetras));
-    let n6 = s.add_mesh(make_tetra(-3000.0,  1500.0, 1000.0, 500.0, Color::new(1.0, 0.4, 0.0, 1.0), "tetra_orange"), Some(&tetras));
-    let n7 = s.add_mesh(make_tetra(    0.0, -3000.0, 2000.0, 550.0, Color::new(0.6, 0.9, 0.2, 1.0), "tetra_lime"),   Some(&tetras));
-
-    // Graph edges
-    let g0 = n0.borrow().name.clone();
-    let g1 = n1.borrow().name.clone();
-    let g2 = n2.borrow().name.clone();
-    let g3 = n3.borrow().name.clone();
-    let g4 = n4.borrow().name.clone();
-    let g5 = n5.borrow().name.clone();
-    let g6 = n6.borrow().name.clone();
-    let g7 = n7.borrow().name.clone();
-
-    s.add_edge(&g0, &g5, "neighbor"); // box_blue   — tetra_cyan
-    s.add_edge(&g1, &g6, "neighbor"); // box_green  — tetra_orange
-    s.add_edge(&g2, &g7, "neighbor"); // box_red    — tetra_lime
-    s.add_edge(&g3, &g4, "adjacent"); // box_purple — box_yellow
-
-    // Primitives group: line, polyline, point cloud, standalone point
-    let mut ln = Line::from_points(
-        &Point::new(-800.0, 1200.0, 600.0),
-        &Point::new( 800.0, 1200.0, 600.0),
-    );
-    ln.name = "line_h".to_string();
-    ln.linecolor = Color::new(1.0, 0.5, 0.0, 1.0);
-    s.add_line(ln, Some(&primitives));
-
-    let mut pl = Polyline::new(vec![
-        Point::new(-400.0,  -800.0,  800.0),
-        Point::new(   0.0,  -600.0, 1200.0),
-        Point::new( 400.0,  -800.0,  800.0),
-        Point::new(   0.0, -1000.0,  400.0),
-    ]);
-    pl.name = "polyline_z".to_string();
-    pl.linecolor = Color::new(0.4, 0.8, 1.0, 1.0);
-    s.add_polyline(pl, Some(&primitives));
-
-    let mut pc = PointCloud::new(vec![], vec![], vec![]);
-    pc.name = "cloud_a".to_string();
-    pc.add_point(&Point::new(-200.0, 2800.0, 300.0));
-    pc.add_point(&Point::new(   0.0, 2800.0, 500.0));
-    pc.add_point(&Point::new( 200.0, 2800.0, 300.0));
-    pc.add_point(&Point::new(   0.0, 2600.0, 500.0));
-    pc.add_color(&Color::new(0.9, 0.3, 0.9, 1.0));
-    pc.add_color(&Color::new(0.9, 0.3, 0.9, 1.0));
-    pc.add_color(&Color::new(0.9, 0.3, 0.9, 1.0));
-    pc.add_color(&Color::new(0.9, 0.3, 0.9, 1.0));
-    s.add_pointcloud(pc, Some(&primitives));
-
-    let mut pt = Point::with_name(-1800.0, -800.0, 600.0, "pt_standalone");
-    pt.pointcolor = Color::new(0.3, 1.0, 0.5, 1.0);
-    s.add_point(pt, Some(&primitives));
-
-    // Standard (unnamed) points → rendered as GPU dots
-    let dot0 = Point::new(-1800.0, -600.0, 600.0);
-    // dot0.pointcolor = Color::new(1.0, 0.2, 0.2, 1.0);
-    s.add_point(dot0, Some(&primitives));
-
-    let mut dot1 = Point::new(-1600.0, -800.0, 600.0);
-    dot1.pointcolor = Color::new(0.2, 0.5, 1.0, 1.0);
-    s.add_point(dot1, Some(&primitives));
-
-    let mut dot2 = Point::new(-2000.0, -800.0, 600.0);
-    dot2.pointcolor = Color::new(1.0, 0.9, 0.1, 1.0);
-    s.add_point(dot2, Some(&primitives));
-
-    // Named points — appear in tree under "labels", rendered as text labels
-    s.add_point(named_point(    0.0,  400.0,    0.0, "A", Color::new(1.0, 0.784, 0.392, 1.0)), Some(&labels));
-    s.add_point(named_point( -400.0, -267.0,    0.0, "B", Color::new(1.0, 0.784, 0.392, 1.0)), Some(&labels));
-    s.add_point(named_point(  400.0, -267.0,    0.0, "C", Color::new(1.0, 0.784, 0.392, 1.0)), Some(&labels));
-    s.add_point(named_point( 2000.0,  2000.0, 1000.0, "box_blue",    Color::new(0.2, 0.6, 1.0, 1.0)), Some(&labels));
-    s.add_point(named_point(-2500.0,  1000.0, 2000.0, "box_green",   Color::new(0.2, 0.8, 0.3, 1.0)), Some(&labels));
-    s.add_point(named_point( 1000.0, -2000.0, 1500.0, "box_red",     Color::new(0.9, 0.2, 0.2, 1.0)), Some(&labels));
-    s.add_point(named_point(-1500.0, -1500.0,-1000.0, "box_purple",  Color::new(0.8, 0.2, 0.8, 1.0)), Some(&labels));
-    s.add_point(named_point(    0.0,  2500.0, 2500.0, "box_yellow",  Color::new(0.9, 0.8, 0.1, 1.0)), Some(&labels));
-    s.add_point(named_point( 3000.0,     0.0,  500.0, "tetra_cyan",   Color::new(0.1, 0.9, 0.9, 1.0)), Some(&labels));
-    s.add_point(named_point(-3000.0,  1500.0, 1000.0, "tetra_orange", Color::new(1.0, 0.4, 0.0, 1.0)), Some(&labels));
-    s.add_point(named_point(    0.0, -3000.0, 2000.0, "tetra_lime",   Color::new(0.6, 0.9, 0.2, 1.0)), Some(&labels));
-
-    // ── NURBS surfaces ────────────────────────────────────────────────────────
-    let surfaces = s.add_group("surfaces");
-    let scale = 800.0_f32;
-    let ox = -4500.0_f32;
-    let oy = -4500.0_f32;
-
-    // Canonical bicubic patch from nurbssurface tests, scaled to scene units
-    let ns_pts = vec![
-        Point::new(ox + 0.0*scale, oy + 0.0*scale, 0.0*scale),
-        Point::new(ox + 0.0*scale, oy + 0.75*scale, 2.0*scale),
-        Point::new(ox + 0.0*scale, oy + 4.25*scale, 2.0*scale),
-        Point::new(ox + 0.0*scale, oy + 5.0*scale, 0.0*scale),
-        Point::new(ox + 0.75*scale, oy - 1.0*scale, 2.0*scale),
-        Point::new(ox + 1.25*scale, oy + 1.25*scale, 4.0*scale),
-        Point::new(ox + 1.25*scale, oy + 3.75*scale, 4.0*scale),
-        Point::new(ox + 0.75*scale, oy + 6.0*scale, 2.0*scale),
-        Point::new(ox + 4.25*scale, oy - 1.0*scale, 2.0*scale),
-        Point::new(ox + 3.75*scale, oy + 1.25*scale, 4.0*scale),
-        Point::new(ox + 3.75*scale, oy + 3.75*scale, 4.0*scale),
-        Point::new(ox + 4.25*scale, oy + 6.0*scale, 2.0*scale),
-        Point::new(ox + 5.0*scale, oy + 0.0*scale, 0.0*scale),
-        Point::new(ox + 6.0*scale, oy + 0.75*scale, 2.0*scale),
-        Point::new(ox + 6.0*scale, oy + 4.25*scale, 2.0*scale),
-        Point::new(ox + 5.0*scale, oy + 5.0*scale, 0.0*scale),
-    ];
-    if let Ok(mut ns) = NurbsSurface::create(false, false, 3, 3, 4, 4, &ns_pts) {
-        ns.linecolors.push(Color::new(0.2, 0.75, 0.9, 1.0));
-        ns.set_guid("ns_a".to_string());
-        s.objects.nurbssurfaces.push(ns);
-        s.tree.add(&TreeNode::new("ns_a"), Some(&surfaces));
+    // Row 0 — BRep
+    let g_brep = s.add_group("BRep");
+    {
+        let mut b = BRep::create_box(1_000.0, 800.0, 600.0);
+        b.name = "brep_box".to_string();
+        b.xform = Xform::translation(0.0 * COL, 0.0, 0.0);
+        b.surfacecolor = Color::new(0.3, 0.6, 1.0, 1.0);
+        s.add_brep(b, Some(&g_brep));
+    }
+    {
+        let mut b = BRep::create_cylinder(400.0, 800.0);
+        b.name = "brep_cylinder".to_string();
+        b.xform = Xform::translation(2.0 * COL, 0.0, 0.0);
+        b.surfacecolor = Color::new(0.9, 0.5, 0.2, 1.0);
+        s.add_brep(b, Some(&g_brep));
+    }
+    {
+        let mut b = BRep::create_sphere(500.0);
+        b.name = "brep_sphere".to_string();
+        b.xform = Xform::translation(4.0 * COL, 0.0, 0.0);
+        b.surfacecolor = Color::new(0.35, 0.85, 0.45, 1.0);
+        s.add_brep(b, Some(&g_brep));
     }
 
-    // Second patch offset to +X
-    let ox2 = 4500.0_f32;
-    let ns_pts2 = vec![
-        Point::new(ox2 + 0.0*scale, oy + 0.0*scale, 0.0*scale),
-        Point::new(ox2 + 0.0*scale, oy + 0.75*scale, -2.0*scale),
-        Point::new(ox2 + 0.0*scale, oy + 4.25*scale, -2.0*scale),
-        Point::new(ox2 + 0.0*scale, oy + 5.0*scale, 0.0*scale),
-        Point::new(ox2 + 0.75*scale, oy - 1.0*scale, -2.0*scale),
-        Point::new(ox2 + 1.25*scale, oy + 1.25*scale, -4.0*scale),
-        Point::new(ox2 + 1.25*scale, oy + 3.75*scale, 4.0*scale),
-        Point::new(ox2 + 0.75*scale, oy + 6.0*scale, 2.0*scale),
-        Point::new(ox2 + 4.25*scale, oy - 1.0*scale, 2.0*scale),
-        Point::new(ox2 + 3.75*scale, oy + 1.25*scale, -4.0*scale),
-        Point::new(ox2 + 3.75*scale, oy + 3.75*scale, 4.0*scale),
-        Point::new(ox2 + 4.25*scale, oy + 6.0*scale, -2.0*scale),
-        Point::new(ox2 + 5.0*scale, oy + 0.0*scale, 0.0*scale),
-        Point::new(ox2 + 6.0*scale, oy + 0.75*scale, 2.0*scale),
-        Point::new(ox2 + 6.0*scale, oy + 4.25*scale, -2.0*scale),
-        Point::new(ox2 + 5.0*scale, oy + 5.0*scale, 0.0*scale),
-    ];
-    if let Ok(mut ns) = NurbsSurface::create(false, false, 3, 3, 4, 4, &ns_pts2) {
-        ns.linecolors.push(Color::new(0.9, 0.4, 0.7, 1.0));
-        ns.set_guid("ns_b".to_string());
+    // Row 1 — NurbsSurface
+    let g_ns = s.add_group("NurbsSurface");
+    let ns_y = 1.0 * COL;
+    {
+        let mut ns = Primitives::cylinder_surface(0.0 * COL, ns_y, 0.0, 400.0, 800.0);
+        ns.name = "ns_cylinder".to_string();
+        ns.set_guid("ns_cylinder".to_string());
+        ns.linecolors.push(Color::new(0.9, 0.5, 0.2, 1.0));
         s.objects.nurbssurfaces.push(ns);
-        s.tree.add(&TreeNode::new("ns_b"), Some(&surfaces));
+        s.tree.add(&TreeNode::new("ns_cylinder"), Some(&g_ns));
+    }
+    {
+        let mut ns = Primitives::cone_surface(2.0 * COL, ns_y, 0.0, 400.0, 800.0);
+        ns.name = "ns_cone".to_string();
+        ns.set_guid("ns_cone".to_string());
+        ns.linecolors.push(Color::new(0.3, 0.6, 1.0, 1.0));
+        s.objects.nurbssurfaces.push(ns);
+        s.tree.add(&TreeNode::new("ns_cone"), Some(&g_ns));
+    }
+    {
+        let mut ns = Primitives::sphere_surface(4.0 * COL, ns_y + 500.0, 0.0, 500.0);
+        ns.name = "ns_sphere".to_string();
+        ns.set_guid("ns_sphere".to_string());
+        ns.linecolors.push(Color::new(0.35, 0.85, 0.45, 1.0));
+        s.objects.nurbssurfaces.push(ns);
+        s.tree.add(&TreeNode::new("ns_sphere"), Some(&g_ns));
     }
 
-    s
+    (s, demo_cones)
 }

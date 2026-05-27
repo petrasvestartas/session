@@ -36,7 +36,7 @@ use gpu_session::{GpuSession, InstanceData};
 use gumball::{Gumball, HandleKind};
 use pick::screen_to_world_ray;
 use session_rust::session::Geometry;
-use session_rust::{Session, TreeNode, Xform};
+use session_rust::{BRep, Color, Line, Point, Polyline, Primitives, Session, TreeNode, Xform};
 
 mod demo;
 mod text;
@@ -223,6 +223,9 @@ pub struct State {
     #[allow(dead_code)]
     font_sampler: wgpu::Sampler,
     glyph_bind_group: wgpu::BindGroup,
+    cmd_input: String,
+    cmd_log: Vec<String>,
+    cmd_counter: u32,
 }
 
 impl State {
@@ -289,9 +292,13 @@ impl State {
         let (depth_tex_raw, depth_view) = create_depth_texture(&device, w, h, MSAA_SAMPLES);
         let msaa_view = create_msaa_texture(&device, w, h, config.format, MSAA_SAMPLES);
 
-        let session = demo::make_demo_session();
+        let (session, demo_cones) = demo::make_demo_scene();
         let mut gpu_session = GpuSession::new(&device, &pipelines.geom_bgl);
         gpu_session.rebuild_from(&session, &device, &queue);
+        if !demo_cones.is_empty() {
+            gpu_session.cones_cpu.extend(demo_cones);
+            gpu_session.cones_dirty = true;
+        }
         let mut session = session;
         session.invalidate_bvh_cache();
         let camera_buf = create_camera_buffer(&device);
@@ -347,7 +354,7 @@ impl State {
             &font_sampler,
         );
 
-        Ok(Self {
+        let mut state = Self {
             surface,
             device,
             queue,
@@ -380,7 +387,7 @@ impl State {
             gumball_glyph_bg,
             drag_origins: HashMap::new(),
             hidden_guids: HashSet::new(),
-            line_thickness: gpu_adapters::CYLINDER_RADIUS,
+            line_thickness: 5.0,
             shading_enabled: true,
             backface_highlight: true,
             egui_ctx,
@@ -390,7 +397,12 @@ impl State {
             font_atlas_view,
             font_sampler,
             glyph_bind_group,
-        })
+            cmd_input: String::new(),
+            cmd_log: Vec::new(),
+            cmd_counter: 0,
+        };
+        state.apply_thickness();
+        Ok(state)
     }
 
     pub fn resize(&mut self, width: u32, height: u32) {
@@ -522,23 +534,25 @@ impl State {
             return;
         }
 
-        log::info!("PICK ray origin=({:.1},{:.1},{:.1}) dir=({:.4},{:.4},{:.4}) vp={}x{}",
-            ray.origin[0], ray.origin[1], ray.origin[2],
-            ray.direction[0], ray.direction[1], ray.direction[2],
-            self.config.width, self.config.height);
         let pick_radius = self.camera.pick_radius_mm(self.config.height as f32, 8.0)
             .max(crate::gpu_adapters::SPHERE_RADIUS);
         let hits     = pick::pick_by_ray(&mut self.session, ray, pick_radius);
-        // Also test NurbsSurface tessellations (not in session.lookup).
         let origin_pt  = session_rust::Point::new(ray.origin[0], ray.origin[1], ray.origin[2]);
         let dir_vec    = session_rust::Vector::new(ray.direction[0], ray.direction[1], ray.direction[2]);
         let nurbs_hits = self.gpu_session.pick_nurbssurfaces(&origin_pt, &dir_vec);
-        log::info!("PICK hits={} nurbs_hits={} guids={:?}", hits.len(), nurbs_hits.len(),
-            hits.iter().map(|h| h.guid()).collect::<Vec<_>>());
+        let brep_hits  = self.gpu_session.pick_breps(&origin_pt, &dir_vec);
+        let nc_hits    = self.gpu_session.pick_nurbscurves(&origin_pt, &dir_vec, pick_radius);
+        log::info!("PICK hits={} nurbs={} brep={} nc={}", hits.len(), nurbs_hits.len(), brep_hits.len(), nc_hits.len());
         let new_guid = hits.iter()
             .find(|h| !self.hidden_guids.contains(h.guid()))
             .map(|h| h.guid().to_string())
             .or_else(|| nurbs_hits.iter()
+                .find(|(g,_)| !self.hidden_guids.contains(g.as_str()))
+                .map(|(g,_)| g.clone()))
+            .or_else(|| brep_hits.iter()
+                .find(|(g,_)| !self.hidden_guids.contains(g.as_str()))
+                .map(|(g,_)| g.clone()))
+            .or_else(|| nc_hits.iter()
                 .find(|(g,_)| !self.hidden_guids.contains(g.as_str()))
                 .map(|(g,_)| g.clone()));
         let shift    = self.controller.select_add();
@@ -598,12 +612,33 @@ impl State {
                     found = true;
                 }
             } else if let Some(mesh) = self.gpu_session.nurbs_pick_meshes.get(guid) {
-                // NurbsSurface not in session.lookup — use vertex AABB from tessellation.
                 for key in mesh.vertex.keys() {
                     let v = &mesh.vertex[key];
                     for (i, c) in [v.x, v.y, v.z].iter().enumerate() {
                         if *c < mn[i] { mn[i] = *c; }
                         if *c > mx[i] { mx[i] = *c; }
+                    }
+                    found = true;
+                }
+            } else if let Some((mesh, xf)) = self.gpu_session.brep_pick_meshes.get(guid) {
+                // BRep local-space mesh transformed by xf to world space.
+                for key in mesh.vertex.keys() {
+                    let v = &mesh.vertex[key];
+                    let wx = xf[0][0]*v.x + xf[1][0]*v.y + xf[2][0]*v.z + xf[3][0];
+                    let wy = xf[0][1]*v.x + xf[1][1]*v.y + xf[2][1]*v.z + xf[3][1];
+                    let wz = xf[0][2]*v.x + xf[1][2]*v.y + xf[2][2]*v.z + xf[3][2];
+                    for (i, c) in [wx, wy, wz].iter().enumerate() {
+                        if *c < mn[i] { mn[i] = *c; }
+                        if *c > mx[i] { mx[i] = *c; }
+                    }
+                    found = true;
+                }
+            } else if let Some(pts) = self.gpu_session.nc_pick_pts.get(guid) {
+                // NurbsCurve — use polyline AABB.
+                for p in pts {
+                    for i in 0..3 {
+                        if p[i] < mn[i] { mn[i] = p[i]; }
+                        if p[i] > mx[i] { mx[i] = p[i]; }
                     }
                     found = true;
                 }
@@ -613,19 +648,166 @@ impl State {
     }
 
     fn apply_thickness(&mut self) {
-        let t = self.line_thickness;
-        for seg in &mut self.gpu_session.segments_cpu {
-            seg.radius = t;
+        // Thickness is driven by camera.point_size uploaded every frame — no CPU work needed.
+    }
+
+    fn execute_command(&mut self, cmd: &str) -> String {
+        let parts: Vec<&str> = cmd.split_whitespace().collect();
+        if parts.is_empty() { return String::new(); }
+
+        fn p(parts: &[&str], i: usize, default: f32) -> f32 {
+            parts.get(i).and_then(|s| s.parse().ok()).unwrap_or(default)
         }
-        self.gpu_session.segments_dirty = true;
-        for glyph in &mut self.gpu_session.glyphs_cpu {
-            glyph.radius = t;
+
+        match parts[0].to_lowercase().as_str() {
+            "box" => {
+                let sx = p(&parts, 1, 100.0);
+                let sy = p(&parts, 2, sx);
+                let sz = p(&parts, 3, sx);
+                let mut b = BRep::create_box(sx, sy, sz);
+                let name = format!("box_{}", self.cmd_counter);
+                self.cmd_counter += 1;
+                b.name = name.clone();
+                let guid = b.guid().to_string();
+                self.session.add_brep(b, None);
+                if let Some(geom) = self.session.lookup.get(&guid) {
+                    self.gpu_session.add_geometry(&guid, geom, &self.device, &self.queue);
+                }
+                format!("+ {name}  ({sx}×{sy}×{sz} mm)")
+            }
+            "sphere" => {
+                let r = p(&parts, 1, 50.0);
+                let mut b = BRep::create_sphere(r);
+                let name = format!("sphere_{}", self.cmd_counter);
+                self.cmd_counter += 1;
+                b.name = name.clone();
+                let guid = b.guid().to_string();
+                self.session.add_brep(b, None);
+                if let Some(geom) = self.session.lookup.get(&guid) {
+                    self.gpu_session.add_geometry(&guid, geom, &self.device, &self.queue);
+                }
+                format!("+ {name}  (r={r} mm)")
+            }
+            "cylinder" | "cyl" => {
+                let r = p(&parts, 1, 30.0);
+                let h = p(&parts, 2, 80.0);
+                let mut b = BRep::create_cylinder(r, h);
+                let name = format!("cyl_{}", self.cmd_counter);
+                self.cmd_counter += 1;
+                b.name = name.clone();
+                let guid = b.guid().to_string();
+                self.session.add_brep(b, None);
+                if let Some(geom) = self.session.lookup.get(&guid) {
+                    self.gpu_session.add_geometry(&guid, geom, &self.device, &self.queue);
+                }
+                format!("+ {name}  (r={r} h={h} mm)")
+            }
+            "cone" => {
+                let r = p(&parts, 1, 30.0);
+                let h = p(&parts, 2, 80.0);
+                let name = format!("cone_{}", self.cmd_counter);
+                self.cmd_counter += 1;
+                let mut ns = Primitives::cone_surface(0.0, 0.0, 0.0, r, h);
+                ns.name = name.clone();
+                ns.set_guid(name.clone());
+                self.gpu_session.add_nurbssurface(&ns, &self.device, &self.queue);
+                let node = TreeNode::new(ns.guid());
+                self.session.tree.add(&node, None);
+                self.session.objects.nurbssurfaces.push(ns);
+                format!("+ {name}  (r={r} h={h} mm)")
+            }
+            "torus" => {
+                let big_r = p(&parts, 1, 50.0);
+                let small_r = p(&parts, 2, 15.0);
+                let name = format!("torus_{}", self.cmd_counter);
+                self.cmd_counter += 1;
+                let mut ns = Primitives::torus_surface(0.0, 0.0, 0.0, big_r, small_r);
+                ns.name = name.clone();
+                ns.set_guid(name.clone());
+                self.gpu_session.add_nurbssurface(&ns, &self.device, &self.queue);
+                let node = TreeNode::new(ns.guid());
+                self.session.tree.add(&node, None);
+                self.session.objects.nurbssurfaces.push(ns);
+                format!("+ {name}  (R={big_r} r={small_r} mm)")
+            }
+            "point" | "pt" => {
+                let x = p(&parts, 1, 0.0);
+                let y = p(&parts, 2, 0.0);
+                let z = p(&parts, 3, 0.0);
+                let mut pt = Point::new(x, y, z);
+                let name = format!("pt_{}", self.cmd_counter);
+                self.cmd_counter += 1;
+                pt.name = name.clone();
+                pt.pointcolor = Color::new(1.0, 0.8, 0.2, 1.0);
+                let guid = pt.guid().to_string();
+                self.session.add_point(pt, None);
+                if let Some(geom) = self.session.lookup.get(&guid) {
+                    self.gpu_session.add_geometry(&guid, geom, &self.device, &self.queue);
+                }
+                format!("+ {name}  ({x}, {y}, {z})")
+            }
+            "line" | "ln" => {
+                let x0 = p(&parts, 1, 0.0); let y0 = p(&parts, 2, 0.0); let z0 = p(&parts, 3, 0.0);
+                let x1 = p(&parts, 4, 100.0); let y1 = p(&parts, 5, 0.0); let z1 = p(&parts, 6, 0.0);
+                let name = format!("line_{}", self.cmd_counter);
+                self.cmd_counter += 1;
+                let mut l = Line::from_points(&Point::new(x0, y0, z0), &Point::new(x1, y1, z1));
+                l.name = name.clone();
+                let guid = l.guid().to_string();
+                self.session.add_line(l, None);
+                if let Some(geom) = self.session.lookup.get(&guid) {
+                    self.gpu_session.add_geometry(&guid, geom, &self.device, &self.queue);
+                }
+                format!("+ {name}  ({x0},{y0},{z0})→({x1},{y1},{z1})")
+            }
+            "polyline" | "poly" => {
+                let n = p(&parts, 1, 4.0).round() as usize;
+                let r = p(&parts, 2, 50.0);
+                let n = n.max(3);
+                let name = format!("poly_{}", self.cmd_counter);
+                self.cmd_counter += 1;
+                let pts: Vec<Point> = (0..=n).map(|i| {
+                    let a = std::f32::consts::TAU * i as f32 / n as f32;
+                    Point::new(r * a.cos(), r * a.sin(), 0.0)
+                }).collect();
+                let mut pl = Polyline::new(pts);
+                pl.name = name.clone();
+                pl.linecolor = Color::new(0.4, 0.9, 1.0, 1.0);
+                let guid = pl.guid().to_string();
+                self.session.add_polyline(pl, None);
+                if let Some(geom) = self.session.lookup.get(&guid) {
+                    self.gpu_session.add_geometry(&guid, geom, &self.device, &self.queue);
+                }
+                format!("+ {name}  ({n}-gon, r={r} mm)")
+            }
+            "del" | "delete" | "rm" => {
+                let guids: Vec<String> = self.selected_guids.drain().collect();
+                let n = guids.len();
+                for guid in &guids {
+                    self.gpu_session.remove(guid);
+                    self.session.lookup.remove(guid);
+                }
+                self.gumball = None;
+                format!("deleted {n} object(s)")
+            }
+            "clear" => {
+                self.session = Session::new("viewer");
+                self.gpu_session.rebuild_from(&self.session, &self.device, &self.queue);
+                self.selected_guids.clear();
+                self.hidden_guids.clear();
+                self.gumball = None;
+                self.text_labels.clear();
+                "scene cleared".to_string()
+            }
+            "fit" | "f" => {
+                self.fit_view();
+                "fit".to_string()
+            }
+            "help" | "?" => {
+                "box [sx sy sz]  sphere [r]  cyl [r h]  cone [r h]  torus [R r]\npoint [x y z]  line [x0 y0 z0 x1 y1 z1]  poly [n r]\ndel  clear  fit".to_string()
+            }
+            other => format!("unknown: '{other}'  (type 'help')"),
         }
-        self.gpu_session.glyphs_dirty = true;
-        for pt in &mut self.gpu_session.clouds_cpu {
-            pt.half_size = t / 3.0;
-        }
-        self.gpu_session.clouds_dirty = true;
     }
 
     fn build_ui(&mut self) -> egui::FullOutput {
@@ -634,7 +816,7 @@ impl State {
         let raw_input = self.egui_state.take_egui_input(&window);
 
         let tree_root = self.session.tree.root();
-        let vmap: HashMap<String, String> = self.session.graph
+        let mut vmap: HashMap<String, String> = self.session.graph
             .get_vertices()
             .into_iter()
             .map(|v| {
@@ -642,6 +824,17 @@ impl State {
                 (v.name, label)
             })
             .collect();
+        for guid in self.session.lookup.keys() {
+            vmap.entry(guid.clone()).or_insert_with(|| guid.clone());
+        }
+        for ns in &self.session.objects.nurbssurfaces {
+            let g = ns.guid().to_string();
+            vmap.entry(g.clone()).or_insert_with(|| g.clone());
+        }
+        for nc in &self.session.objects.nurbscurves {
+            let g = nc.guid().to_string();
+            vmap.entry(g.clone()).or_insert_with(|| g.clone());
+        }
         let edges = self.session.graph.get_edges();
         let selected = self.selected_guids.clone();
         let hidden = self.hidden_guids.clone();
@@ -650,11 +843,53 @@ impl State {
         let mut vis_chg: Vec<(String, bool)> = Vec::new();
         let line_thickness = self.line_thickness;
         let mut new_line_thickness: Option<f32> = None;
+        let plane_scale = self.gpu_session.plane_scale;
+        let mut new_plane_scale: Option<f32> = None;
+
+        let cmd_log_snap = self.cmd_log.clone();
+        let mut cmd_input_buf = self.cmd_input.clone();
+        let mut cmd_submitted: Option<String> = None;
 
         let full_output = egui_ctx.run_ui(raw_input, |ui| {
+            egui::Panel::bottom("cli")
+                .min_size(28.0)
+                .max_size(120.0)
+                .show_inside(ui, |ui| {
+                    if !cmd_log_snap.is_empty() {
+                        egui::ScrollArea::vertical()
+                            .id_salt("cli_log")
+                            .max_height(90.0)
+                            .stick_to_bottom(true)
+                            .show(ui, |ui| {
+                                for line in &cmd_log_snap {
+                                    ui.monospace(line);
+                                }
+                            });
+                        ui.separator();
+                    }
+                    ui.horizontal(|ui| {
+                        ui.label(egui::RichText::new(">").monospace()
+                            .color(egui::Color32::from_rgb(80, 200, 120)));
+                        let resp = ui.add(
+                            egui::TextEdit::singleline(&mut cmd_input_buf)
+                                .desired_width(f32::INFINITY)
+                                .font(egui::TextStyle::Monospace)
+                                .hint_text("box 100  sphere 50  cyl 30 80  cone  torus  point  line  poly  del  clear  fit  help"),
+                        );
+                        if resp.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+                            let s = cmd_input_buf.trim().to_string();
+                            if !s.is_empty() {
+                                cmd_submitted = Some(s);
+                                cmd_input_buf = String::new();
+                            }
+                            resp.request_focus();
+                        }
+                    });
+                });
             egui::Panel::right("panel")
                 .default_size(240.0)
                 .show_inside(ui, |ui| {
+                    egui::ScrollArea::vertical().show(ui, |ui| {
                     egui::CollapsingHeader::new("Tree")
                         .default_open(true)
                         .show(ui, |ui| {
@@ -688,6 +923,12 @@ impl State {
                                     new_line_thickness = Some(lt);
                                 }
                                 ui.end_row();
+                                ui.label("Plane Scale");
+                                let mut ps = plane_scale;
+                                if ui.add(egui::Slider::new(&mut ps, 10.0..=2000.0).suffix(" mm")).changed() {
+                                    new_plane_scale = Some(ps);
+                                }
+                                ui.end_row();
                             });
                         });
                     egui::CollapsingHeader::new("Shortcuts")
@@ -713,6 +954,7 @@ impl State {
                                 }
                             });
                         });
+                    }); // ScrollArea
                 });
         });
 
@@ -748,6 +990,34 @@ impl State {
         }
 
         if let Some(t) = new_line_thickness { self.line_thickness = t; self.apply_thickness(); }
+
+        if let Some(s) = new_plane_scale {
+            self.gpu_session.plane_scale = s;
+            let plane_guids: Vec<String> = self.session.lookup.iter()
+                .filter_map(|(g, geom)| if matches!(geom, session_rust::Geometry::Plane(_)) { Some(g.clone()) } else { None })
+                .collect();
+            for guid in &plane_guids {
+                self.gpu_session.remove(guid);
+                if let Some(geom) = self.session.lookup.get(guid) {
+                    self.gpu_session.add_geometry(guid, geom, &self.device, &self.queue);
+                }
+            }
+        }
+
+        self.cmd_input = cmd_input_buf;
+        if let Some(cmd) = cmd_submitted {
+            self.cmd_log.push(format!("> {cmd}"));
+            let result = self.execute_command(&cmd);
+            if !result.is_empty() {
+                for line in result.lines() {
+                    self.cmd_log.push(line.to_string());
+                }
+            }
+            if self.cmd_log.len() > 200 {
+                let drain = self.cmd_log.len() - 200;
+                self.cmd_log.drain(0..drain);
+            }
+        }
 
         full_output
     }
@@ -789,7 +1059,7 @@ impl State {
         let visible_labels: Vec<&text::TextLabel> = self.text_labels.iter()
             .filter(|l| !self.hidden_guids.contains(&l.guid))
             .collect();
-        let quad_verts = text::build_label_quads(&visible_labels);
+        let quad_verts = text::build_label_quads(&visible_labels, &self.selected_guids);
         let quad_buf = if !quad_verts.is_empty() {
             Some(self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                 label: Some("text.quads"),
@@ -864,6 +1134,16 @@ impl State {
             render_pass.set_bind_group(0, &self.bind_group, &[]);
             render_pass.set_bind_group(1, &self.gpu_session.cloud_bg, &[]);
             self.gpu_session.draw_clouds(&mut render_pass);
+
+            let nc = self.gpu_session.cones_cpu.len() as u32;
+            if nc > 0 {
+                render_pass.set_pipeline(&self.pipelines.cone);
+                render_pass.set_bind_group(0, &self.bind_group, &[]);
+                render_pass.set_bind_group(1, &self.gpu_session.cone_bg, &[]);
+                render_pass.set_vertex_buffer(0, self.gpu_session.cylinder_vbo.slice(..));
+                render_pass.set_index_buffer(self.gpu_session.cylinder_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                render_pass.draw_indexed(0..gpu_adapters::N_CYL_INDICES, 0, 0..nc);
+            }
 
             // Text background quads — depth-tested, drawn after opaque geometry.
             if let Some(buf) = &quad_buf {
@@ -1080,6 +1360,7 @@ impl State {
                 Geometry::Plane(pl)      => { pl.xform = xf.clone(); pl.transform(); }
                 Geometry::PointCloud(pc) => { pc.xform = xf.clone(); pc.transform(); }
                 Geometry::OBB(o)         => { o.xform = xf.clone(); o.transform(); }
+                Geometry::BRep(b)        => { b.xform = xf.clone(); }
                 _ => {}
             }
         }
@@ -1108,6 +1389,24 @@ impl State {
             if was_selected {
                 self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.queue);
             }
+            self.apply_thickness();
+            return;
+        }
+        // BRep: xform was updated in the match above; only the GPU model matrix needs
+        // updating — no re-tessellation required.
+        if matches!(self.session.lookup.get(guid), Some(Geometry::BRep(_))) {
+            let was_selected = self.gpu_session.pick.instance_id(guid)
+                .and_then(|iid| self.gpu_session.instances_cpu.get(iid as usize))
+                .map_or(false, |inst| inst.flags & InstanceData::FLAG_SELECTED != 0);
+            self.gpu_session.update_transform(guid, model, &self.queue);
+            if let Some((_, xf)) = self.gpu_session.brep_pick_meshes.get_mut(guid) {
+                *xf = model;
+            }
+            if was_selected {
+                self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.queue);
+            }
+            self.apply_thickness();
+            self.text_labels = labels_from_session(&self.session);
             return;
         }
         let was_selected = self.gpu_session.pick.instance_id(guid)
@@ -1121,6 +1420,7 @@ impl State {
         if was_selected {
             self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.queue);
         }
+        self.apply_thickness();
         self.text_labels = labels_from_session(&self.session);
     }
 
@@ -1235,6 +1535,35 @@ impl State {
                             if v < mn[i] { mn[i] = v; }
                             if v > mx[i] { mx[i] = v; }
                         }
+                    }
+                    found = true;
+                }
+            } else if let Some(mesh) = self.gpu_session.nurbs_pick_meshes.get(guid) {
+                for key in mesh.vertex.keys() {
+                    let v = &mesh.vertex[key];
+                    for (i, c) in [v.x, v.y, v.z].iter().enumerate() {
+                        if *c < mn[i] { mn[i] = *c; }
+                        if *c > mx[i] { mx[i] = *c; }
+                    }
+                    found = true;
+                }
+            } else if let Some((mesh, xf)) = self.gpu_session.brep_pick_meshes.get(guid) {
+                for key in mesh.vertex.keys() {
+                    let v = &mesh.vertex[key];
+                    let wx = xf[0][0]*v.x + xf[1][0]*v.y + xf[2][0]*v.z + xf[3][0];
+                    let wy = xf[0][1]*v.x + xf[1][1]*v.y + xf[2][1]*v.z + xf[3][1];
+                    let wz = xf[0][2]*v.x + xf[1][2]*v.y + xf[2][2]*v.z + xf[3][2];
+                    for (i, c) in [wx, wy, wz].iter().enumerate() {
+                        if *c < mn[i] { mn[i] = *c; }
+                        if *c > mx[i] { mx[i] = *c; }
+                    }
+                    found = true;
+                }
+            } else if let Some(pts) = self.gpu_session.nc_pick_pts.get(guid) {
+                for p in pts {
+                    for i in 0..3 {
+                        if p[i] < mn[i] { mn[i] = p[i]; }
+                        if p[i] > mx[i] { mx[i] = p[i]; }
                     }
                     found = true;
                 }

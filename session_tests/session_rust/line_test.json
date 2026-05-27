@@ -128,7 +128,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.12399999797344208
+    "time_ms": 0.04600000008940697
   },
   {
     "checks": [
@@ -154,7 +154,7 @@
     "line": 116,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.023000000044703484
+    "time_ms": 0.008999999612569809
   },
   {
     "checks": [
@@ -215,7 +215,7 @@
     "line": 132,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 15.315999984741211
+    "time_ms": 14.065999984741211
   },
   {
     "checks": [
@@ -281,7 +281,7 @@
     "line": 173,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 12.935999870300293
+    "time_ms": 12.305000305175781
   },
   {
     "checks": [
@@ -302,7 +302,7 @@
     "line": 209,
     "passed": true,
     "test_name": "Length",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -318,7 +318,7 @@
     "line": 222,
     "passed": true,
     "test_name": "To Vector",
-    "time_ms": 0.008999999612569809
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
@@ -349,7 +349,7 @@
     "line": 233,
     "passed": true,
     "test_name": "To Direction",
-    "time_ms": 0.008999999612569809
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -375,7 +375,7 @@
     "line": 247,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.007000000216066837
+    "time_ms": 0.004999999888241291
   },
   {
     "checks": [
@@ -416,7 +416,7 @@
     "line": 262,
     "passed": true,
     "test_name": "Closest Point",
-    "time_ms": 0.006000000052154064
+    "time_ms": 0.007000000216066837
   },
   {
     "checks": [
@@ -458,7 +458,7 @@
     "line": 299,
     "passed": true,
     "test_name": "Fit Points",
-    "time_ms": 0.010999999940395355
+    "time_ms": 0.009999999776482582
   },
   {
     "checks": [
@@ -509,7 +509,7 @@
     "line": 316,
     "passed": true,
     "test_name": "Subdivide",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.010999999940395355
   },
   {
     "checks": [
@@ -530,7 +530,7 @@
     "line": 361,
     "passed": true,
     "test_name": "Extend",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.03799999877810478
   },
   {
     "checks": [
@@ -551,7 +551,7 @@
     "line": 350,
     "passed": true,
     "test_name": "Overlap Average",
-    "time_ms": 0.057999998331069946
+    "time_ms": 0.020999999716877937
   },
   {
     "checks": [

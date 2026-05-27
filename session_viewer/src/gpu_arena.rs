@@ -67,14 +67,14 @@ impl<V: Pod> GpuArena<V> {
         let vbo = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some(&format!("{label}.vbo")),
             size: (capacity_verts as u64) * (std::mem::size_of::<V>() as u64),
-            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC,
             mapped_at_creation: false,
         });
         let ibo = with_indices.then(|| {
             device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some(&format!("{label}.ibo")),
                 size: (capacity_inds as u64) * (std::mem::size_of::<u32>() as u64),
-                usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
+                usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC,
                 mapped_at_creation: false,
             })
         });

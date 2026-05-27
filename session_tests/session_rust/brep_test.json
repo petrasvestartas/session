@@ -53,7 +53,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.08799999952316284
+    "time_ms": 0.06800000369548798
   },
   {
     "checks": [
@@ -135,7 +135,7 @@
     "line": 43,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 0.2150000035762787
+    "time_ms": 0.21299999952316284
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 62,
     "passed": true,
     "test_name": "Add Face",
-    "time_ms": 0.019999999552965164
+    "time_ms": 0.020999999716877937
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 94,
     "passed": true,
     "test_name": "Mesh",
-    "time_ms": 1.13100004196167
+    "time_ms": 1.1430000066757202
   },
   {
     "checks": [
@@ -208,7 +208,7 @@
     "line": 107,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.23100000619888306
+    "time_ms": 0.23999999463558197
   },
   {
     "checks": [
@@ -229,7 +229,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Is Solid",
-    "time_ms": 0.2070000022649765
+    "time_ms": 0.19699999690055847
   },
   {
     "checks": [
@@ -255,7 +255,7 @@
     "line": 143,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.3720000088214874
+    "time_ms": 0.3580000102519989
   },
   {
     "checks": [
@@ -276,7 +276,7 @@
     "line": 161,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 28.78700065612793
+    "time_ms": 30.3439998626709
   },
   {
     "checks": [
@@ -317,7 +317,7 @@
     "line": 229,
     "passed": true,
     "test_name": "Create Cylinder",
-    "time_ms": 287.0989990234375
+    "time_ms": 148.88299560546875
   },
   {
     "checks": [
@@ -358,7 +358,7 @@
     "line": 245,
     "passed": true,
     "test_name": "Create Sphere",
-    "time_ms": 16.702999114990234
+    "time_ms": 16.368000030517578
   },
   {
     "checks": [
@@ -389,7 +389,7 @@
     "line": 337,
     "passed": true,
     "test_name": "From Nurbscurves",
-    "time_ms": 200.92100524902344
+    "time_ms": 108.1729965209961
   },
   {
     "checks": [
@@ -410,7 +410,7 @@
     "line": 203,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 19.981000900268555
+    "time_ms": 18.86400032043457
   },
   {
     "checks": [
@@ -451,6 +451,6 @@
     "line": 187,
     "passed": true,
     "test_name": "Create Block With Hole",
-    "time_ms": 313.29400634765625
+    "time_ms": 3.9839999675750732
   }
 ]

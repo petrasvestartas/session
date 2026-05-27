@@ -13,7 +13,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 15,
     "passed": true,
     "test_name": "Is Close",
-    "time_ms": 0.00800000037997961
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 24,
     "passed": true,
     "test_name": "Is Positive",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -61,7 +61,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Is Negative",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -93,7 +93,7 @@
     "line": 51,
     "passed": true,
     "test_name": "Format Number",
-    "time_ms": 0.00800000037997961
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -160,7 +160,7 @@
     "line": 69,
     "passed": true,
     "test_name": "Runtime Modification",
-    "time_ms": 0.00800000037997961
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -196,7 +196,7 @@
     "line": 113,
     "passed": true,
     "test_name": "Wrap Index",
-    "time_ms": 0.0020000000949949026
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -237,7 +237,7 @@
     "line": 182,
     "passed": true,
     "test_name": "Count Digits",
-    "time_ms": 0.004000000189989805
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -258,7 +258,7 @@
     "line": 130,
     "passed": true,
     "test_name": "Triangle Edge By Angle",
-    "time_ms": 0.013000000268220901
+    "time_ms": 0.012000000104308128
   },
   {
     "checks": [
@@ -305,7 +305,7 @@
     "line": 224,
     "passed": true,
     "test_name": "Is Point Close",
-    "time_ms": 0.004000000189989805
+    "time_ms": 0.004999999888241291
   },
   {
     "checks": [
@@ -368,7 +368,7 @@
     "line": 201,
     "passed": true,
     "test_name": "Is Angle Zero",
-    "time_ms": 0.0020000000949949026
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -452,7 +452,7 @@
     "line": 259,
     "passed": true,
     "test_name": "Round To",
-    "time_ms": 0.0020000000949949026
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -489,7 +489,7 @@
     "line": 250,
     "passed": true,
     "test_name": "Key Xy",
-    "time_ms": 0.013000000268220901
+    "time_ms": 0.004999999888241291
   },
   {
     "checks": [
@@ -510,7 +510,7 @@
     "line": 313,
     "passed": true,
     "test_name": "Is Vector Close",
-    "time_ms": 0.004000000189989805
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [

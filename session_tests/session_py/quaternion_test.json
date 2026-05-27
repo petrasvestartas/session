@@ -3,7 +3,7 @@
     "group": "Quaternion",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.551,
+    "time_ms": 0.537,
     "line": 8,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    # FUNCTION: Quaternion constructors and operators\n    # WHAT: Create quaternions and access components, copy them, and combine\n    #       them with arithmetic. Multiplication composes rotations:\n    #       q3 = q2 * q1 means \"apply q1 first, then q2\".\n    # WHEN TO USE: You will rarely call the raw constructor directly. The\n    #       factories (from_axis_angle, from_arc, from_euler) are what you\n    #       reach for in practice. The * operator is what chains rotations.\n    # TEST: Exercises default ctor, indexing, duplicate, equality, +, -, *, neg.\n\n    # Default constructor (identity)\n    q0 = Quaternion()\n\n    # Constructor with arguments\n    q = Quaternion.from_components(2.0, Vector(1.0, 0.0, 0.0))\n\n    # Setters\n    q[0] = 5.0\n    q[1] = 0.0\n    q[2] = 1.0\n    q[3] = 0.0\n\n    # Getters\n    s_val = q[0]\n    x = q[1]\n    y = q[2]\n    z = q[3]\n\n    # Minimal and Full String Representation\n    qstr = str(q)\n    qrepr = repr(q)\n\n    # Copy (duplicates everything except guid)\n    qcopy = q.duplicate()\n    qother = Quaternion.from_components(2.0, Vector(1.0, 0.0, 0.0))\n\n    # Copy operators\n    qrot = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    qmul = qrot * qrot\n    qscaled = Quaternion.identity() * 2.0\n    a = Quaternion.from_components(1.0, Vector(0.0, 0.0, 0.0))\n    b = Quaternion.from_components(0.0, Vector(0.0, 0.0, 1.0))\n    qsum = a + b\n    qdiff = qrot - qrot\n    qneg = -Quaternion.identity()",
     "checks": [
@@ -89,7 +89,7 @@
     "group": "Quaternion",
     "test_name": "Identity",
     "passed": true,
-    "time_ms": 0.041,
+    "time_ms": 0.056,
     "line": 75,
     "code": "    from session_py import Quaternion\n\n    # FUNCTION: Quaternion::identity()\n    # WHAT: The \"do nothing\" rotation. Rotating any vector by identity returns\n    #       it unchanged. Equivalent to (scalar=1, vector=(0,0,0)).\n    # WHEN TO USE: As the starting orientation of an object that has not been\n    #       rotated yet, or as the start point of an interpolation like slerp.\n\n    q = Quaternion.identity()",
     "checks": [
@@ -120,7 +120,7 @@
     "group": "Quaternion",
     "test_name": "From Components",
     "passed": true,
-    "time_ms": 0.182,
+    "time_ms": 0.272,
     "line": 93,
     "code": "    import math\n    from session_py import Quaternion\n    from session_py import Vector\n\n    # q = s + xi + yj + zk: first arg is scalar, second arg is (i,j,k) coefficients (NOT a rotation axis).\n    q = Quaternion.from_components(2.0, Vector(1.0, 2.0, 3.0))\n\n\n    # Geometric meaning of (s, v): a rotation by `angle` around `axis`.\n    # to_axis_angle() extracts these \u2014 for q=(2,(1,2,3)):\n    #   axis  = (1,2,3)/sqrt(14)\n    #   angle = 2*acos(2/sqrt(18)) \u2248 2.1617 rad \u2248 123.85\u00b0\n    axis, angle = q.to_axis_angle()\n    sqrt14 = math.sqrt(14.0)\n\n    # Round-trip: from_axis_angle(to_axis_angle(q)) == q.normalized()\n    q_round = Quaternion.from_axis_angle(axis, angle)\n    qn = q.normalized()",
     "checks": [
@@ -191,7 +191,7 @@
     "group": "Quaternion",
     "test_name": "From Axis Angle",
     "passed": true,
-    "time_ms": 0.033,
+    "time_ms": 0.045,
     "line": 127,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n    import math\n\n    # FUNCTION: Quaternion::from_axis_angle(axis, angle)\n    # WHAT: Build a unit quaternion that rotates by `angle` radians around `axis`.\n    #       This is the geometric meaning most people expect.\n    # WHEN TO USE: The everyday rotation builder. Anytime you can describe the\n    #       rotation as \"spin by N radians around this direction\" - turning a\n    #       wheel, opening a door, orbiting a camera - this is the constructor.\n    # TEST: 90 deg around Z. scalar=cos(45 deg), z=sin(45 deg).\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)",
     "checks": [
@@ -212,7 +212,7 @@
     "group": "Quaternion",
     "test_name": "From Arc",
     "passed": true,
-    "time_ms": 0.087,
+    "time_ms": 0.19,
     "line": 147,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    # FUNCTION: Quaternion::from_arc(src, dst)\n    # WHAT: Build the shortest rotation that maps direction `src` to direction\n    #       `dst`. The rotation axis is perpendicular to both vectors.\n    # WHEN TO USE: Look-at logic (point a camera at a target), aligning a\n    #       model's forward axis with a desired direction, snapping one face\n    #       normal to another.\n    # TEST: Rotate (1,0,0) to (0,1,0); also handles the 180 deg flip case.\n\n    src = Vector(1.0, 0.0, 0.0)\n    dst = Vector(0.0, 1.0, 0.0)\n    q = Quaternion.from_arc(src, dst)\n    rotated = q.rotate_vector(src)\n\n    src2 = Vector(1.0, 0.0, 0.0)\n    dst2 = Vector(-1.0, 0.0, 0.0)\n    q2 = Quaternion.from_arc(src2, dst2)\n    rot = q2.rotate_vector(src2)",
     "checks": [
@@ -248,7 +248,7 @@
     "group": "Quaternion",
     "test_name": "From Euler",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.05,
     "line": 176,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    # FUNCTION: Quaternion::from_euler(x, y, z)\n    # WHAT: Build a quaternion from three Euler angles (XYZ convention).\n    # WHEN TO USE: Only at I/O boundaries (importing pitch/yaw/roll, UI input).\n    # AVOID WHEN: Composing many rotations - Euler angles suffer from gimbal\n    #       lock. Store/compose as quaternions, convert to Euler only to save.\n    # TEST: Euler (0, 0, PI/2) equals from_axis_angle(Z, PI/2).\n\n    q_euler = Quaternion.from_euler(0.0, 0.0, PI / 2.0)\n    q_axis = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)",
     "checks": [
@@ -269,7 +269,7 @@
     "group": "Quaternion",
     "test_name": "From Rotation",
     "passed": true,
-    "time_ms": 0.073,
+    "time_ms": 0.142,
     "line": 195,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n    from session_py import Plane\n    from session_py import Point\n\n    # FUNCTION: Quaternion::from_rotation(plane_a, plane_b)\n    # WHAT: Build the quaternion that maps the basis of plane_a onto the basis\n    #       of plane_b. Equivalent to \"rotate a's frame to match b's frame\".\n    # WHEN TO USE: CAD assembly - aligning two parts by matching their\n    #       reference planes; transferring a local frame between objects;\n    #       expressing the relative rotation between two coordinate systems.\n    # TEST: Maps the world XY plane to a 90-deg-rotated frame; checks x_axis.\n\n    plane_a = Plane(Point(0.0, 0.0, 0.0), Vector(1.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0))\n    plane_b = Plane(Point(0.0, 0.0, 0.0), Vector(0.0, 1.0, 0.0), Vector(-1.0, 0.0, 0.0))\n    q = Quaternion.from_rotation(plane_a, plane_b)\n    rotated_x = q.rotate_vector(plane_a.x_axis)",
     "checks": [
@@ -295,7 +295,7 @@
     "group": "Quaternion",
     "test_name": "Rotate Vector",
     "passed": true,
-    "time_ms": 0.07,
+    "time_ms": 0.064,
     "line": 220,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    # FUNCTION: q.rotate_vector(v)\n    # WHAT: Apply this rotation to a 3D vector and return the rotated vector.\n    #       Mathematically: q * v_pure * q.conjugate(), where v_pure = (0, v).\n    # WHEN TO USE: You have a quaternion orientation and need to know where a\n    #       specific direction points after the rotation - the camera's\n    #       forward axis, a bone's tip, the normal of a rotated face.\n    # TEST: Rotating X by 90 deg around Z gives Y.\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    rotated = q.rotate_vector(Vector(1.0, 0.0, 0.0))",
     "checks": [
@@ -321,7 +321,7 @@
     "group": "Quaternion",
     "test_name": "Get Rotation",
     "passed": true,
-    "time_ms": 0.102,
+    "time_ms": 0.104,
     "line": 241,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    # FUNCTION: q.get_rotation()\n    # WHAT: Apply this rotation to the world XY plane and return the resulting\n    #       Plane. Equivalent to a Plane whose axes are the rotated X, Y, Z.\n    # WHEN TO USE: Visualize a quaternion as a frame, or convert a stored\n    #       quaternion into a Plane for frame-based APIs in the rest of the\n    #       kernel. Inverse of from_rotation(xy_plane(), result).\n    # TEST: 90 deg around Z gives a frame whose x_axis = Y, y_axis = -X.\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    p = q.get_rotation()",
     "checks": [
@@ -352,7 +352,7 @@
     "group": "Quaternion",
     "test_name": "Magnitude",
     "passed": true,
-    "time_ms": 0.032,
+    "time_ms": 0.046,
     "line": 263,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    # FUNCTION: q.magnitude()\n    # WHAT: 4D length sqrt(s^2 + x^2 + y^2 + z^2). Always 1 for a valid\n    #       rotation quaternion (unit quaternion).\n    # WHEN TO USE: Debug assertions (\"is this still unit?\"), or before calling\n    #       normalized() to decide whether normalization is needed.\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 4.0)",
     "checks": [
@@ -368,7 +368,7 @@
     "group": "Quaternion",
     "test_name": "Magnitude Squared",
     "passed": true,
-    "time_ms": 0.029,
+    "time_ms": 0.032,
     "line": 279,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    # FUNCTION: q.magnitude_squared()\n    # WHAT: Same as magnitude() but skips the sqrt. Cheaper.\n    # WHEN TO USE: Comparing relative magnitudes, or in distance-based\n    #       similarity checks where the absolute value isn't needed.\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 4.0)",
     "checks": [
@@ -384,7 +384,7 @@
     "group": "Quaternion",
     "test_name": "Normalized",
     "passed": true,
-    "time_ms": 0.057,
+    "time_ms": 0.072,
     "line": 294,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    # FUNCTION: q.normalized()\n    # WHAT: Return a unit-length copy of this quaternion (divides by magnitude).\n    # WHEN TO USE: Periodically after composing many rotations in a loop -\n    #       floating-point drift slowly makes a quaternion non-unit, and a\n    #       non-unit quaternion no longer represents a valid rotation.\n\n    q = Quaternion.from_components(2.0, Vector(0.0, 0.0, 2.0))\n    n = q.normalized()",
     "checks": [
@@ -400,7 +400,7 @@
     "group": "Quaternion",
     "test_name": "Conjugate",
     "passed": true,
-    "time_ms": 0.059,
+    "time_ms": 0.091,
     "line": 311,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    # FUNCTION: q.conjugate()\n    # WHAT: Flip the sign of the vector part: (s, v) -> (s, -v). For UNIT\n    #       quaternions this equals the inverse - the opposite rotation.\n    # WHEN TO USE: When you need the inverse rotation AND you know the\n    #       quaternion is unit-length. Cheaper than invert() (no division).\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 4.0)\n    r = q.conjugate()",
     "checks": [
@@ -426,7 +426,7 @@
     "group": "Quaternion",
     "test_name": "Invert",
     "passed": true,
-    "time_ms": 0.076,
+    "time_ms": 0.105,
     "line": 330,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    # FUNCTION: q.invert()\n    # WHAT: True multiplicative inverse: conjugate / magnitude_squared. Works\n    #       for non-unit quaternions too.\n    # WHEN TO USE: When you need q^-1 and you are NOT sure the quaternion is\n    #       unit. q * q.invert() always equals identity by definition.\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 3.0)\n    result = q * q.invert()",
     "checks": [
@@ -457,7 +457,7 @@
     "group": "Quaternion",
     "test_name": "Dot",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.03,
     "line": 350,
     "code": "    from session_py import Quaternion\n\n    # FUNCTION: q1.dot(q2)\n    # WHAT: Algebraic 4D dot product s1*s2 + x1*x2 + y1*y2 + z1*z2. NOT a\n    #       geometric operation - just the dot product of the 4 components.\n    # WHEN TO USE: Inside slerp implementations, or as a similarity measure\n    #       between two unit quaternions (1 = same, 0 = 90 deg apart).\n\n    q = Quaternion.identity()",
     "checks": [
@@ -473,7 +473,7 @@
     "group": "Quaternion",
     "test_name": "Slerp",
     "passed": true,
-    "time_ms": 0.136,
+    "time_ms": 0.132,
     "line": 365,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    # FUNCTION: q1.slerp(q2, t)\n    # WHAT: Spherical Linear intERPolation. Smoothly blends q1 -> q2 along the\n    #       shortest great-circle path on S^3. Constant angular velocity.\n    # WHEN TO USE: High-quality animation between two orientations - camera\n    #       transitions, character bones, anything where smoothness matters\n    #       more than raw speed.\n    # TEST: Midpoint of slerp(identity, 90 deg) is 45 deg.\n\n    q1 = Quaternion.identity()\n    q2 = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    mid = q1.slerp(q2, 0.5)\n    expected = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 4.0)\n\n    q3 = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), 0.001)\n    mid2 = q1.slerp(q3, 0.5)\n    half = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), 0.0005)",
     "checks": [
@@ -499,7 +499,7 @@
     "group": "Quaternion",
     "test_name": "Nlerp",
     "passed": true,
-    "time_ms": 0.089,
+    "time_ms": 0.073,
     "line": 391,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n\n    # FUNCTION: q1.nlerp(q2, t)\n    # WHAT: Normalized Linear intERPolation. Cheaper than slerp but the\n    #       angular velocity isn't perfectly uniform. Often \"good enough\".\n    # WHEN TO USE: Real-time loops where every microsecond matters and the\n    #       visual difference from slerp is negligible (game animation,\n    #       crowd systems, particle orientations).\n\n    q1 = Quaternion.identity()\n    q2 = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    r0 = q1.nlerp(q2, 0.0)\n    r1 = q1.nlerp(q2, 1.0)",
     "checks": [
@@ -520,7 +520,7 @@
     "group": "Quaternion",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 16.985,
+    "time_ms": 15.2,
     "line": 412,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n    from pathlib import Path\n\n    # FUNCTION: q.file_json_dump / Quaternion::file_json_load\n    # WHAT: Write a quaternion to a JSON file, read it back.\n    # WHEN TO USE: Human-readable persistence and debugging, or when sharing\n    #       data with tools that consume JSON.\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    q.name = \"test_quaternion\"\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   file_json_dumps()    \u2502 str          \u2502 to JSON string\n    #   file_json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   file_json_dump(path) \u2502 file         \u2502 write to file\n    #   file_json_load(path) \u2502 file         \u2502 read from file\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_quaternion.json\"\n    q.file_json_dump(fname)\n    loaded = Quaternion.file_json_load(fname)",
     "checks": [
@@ -546,7 +546,7 @@
     "group": "Quaternion",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 4.565,
+    "time_ms": 15.643,
     "line": 442,
     "code": "    from session_py import Quaternion\n    from session_py import Vector\n    from pathlib import Path\n\n    # FUNCTION: q.pb_dump / Quaternion::pb_load\n    # WHAT: Write a quaternion to a binary protobuf file, read it back.\n    # WHEN TO USE: Compact storage, network protocols, or any pipeline that\n    #       needs the smallest serialized footprint and the fastest IO.\n\n    q = Quaternion.from_axis_angle(Vector(0.0, 0.0, 1.0), PI / 2.0)\n    q.name = \"test_quaternion\"\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_quaternion.bin\"\n    q.pb_dump(path)\n    loaded = Quaternion.pb_load(path)",
     "checks": [

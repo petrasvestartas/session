@@ -1,5 +1,10 @@
 struct Camera {
-    view_proj: mat4x4<f32>,
+    view_proj:   mat4x4<f32>,
+    _kl:         vec4<f32>,
+    _fl:         vec4<f32>,
+    _screen:     vec2<f32>,
+    point_size:  f32,
+    _flags:      u32,
 }
 
 struct Instance {
@@ -42,7 +47,8 @@ fn vs_main(
     // Apply model to center only so radius is invariant to scale transforms.
     let world_center = (inst.model * vec4<f32>(g.center, 1.0)).xyz;
     var out: VsOut;
-    out.clip_pos = camera.view_proj * vec4<f32>(lp * g.radius + world_center, 1.0);
+    let r = select(camera.point_size * 3.0, g.radius, g.radius > 0.0);
+    out.clip_pos = camera.view_proj * vec4<f32>(lp * r + world_center, 1.0);
     out.color    = g.color * inst.tint;
     out.flags    = inst.flags;
     return out;

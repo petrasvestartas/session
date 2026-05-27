@@ -54,7 +54,8 @@
       "Read(//tmp/**)",
       "Bash(./build/Release/main_6.exe)",
       "mcp__session-api__search_api",
-      "Bash(\"C:/Users/petrasv/.rhinocode/py39-rh8/python.exe\" session_rhino/test_step_brep.py)"
+      "Bash(\"C:/Users/petrasv/.rhinocode/py39-rh8/python.exe\" session_rhino/test_step_brep.py)",
+      "Bash(git push:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -77,20 +77,25 @@ pub const ATLAS_HEIGHT: u32 = 96;  // 6 rows × 16px
 // Label is centered on the 3D point — offsets are symmetric around 0.
 const LABEL_PAD_X: f32 = 6.0;     // left/right padding inside bg rect
 const LABEL_PAD_Y: f32 = 2.0;     // top/bottom padding inside bg rect
+const GLYPH_Y_OFFSET: f32 = -2.0; // shift glyphs down so cap-height is visually centred in bg rect
 
 // ── background quad builder ────────────────────────────────────────────────────
 
 /// Build black semi-transparent background quads for `labels`.
 /// Returns 6 `TextVertex` per label (two triangles).
-pub fn build_label_quads(labels: &[&TextLabel]) -> Vec<TextVertex> {
+pub fn build_label_quads(labels: &[&TextLabel], selected: &std::collections::HashSet<String>) -> Vec<TextVertex> {
     let mut verts = Vec::with_capacity(labels.len() * 6);
     for label in labels {
-        let color = [
-            label.color[0] as f32 / 255.0,
-            label.color[1] as f32 / 255.0,
-            label.color[2] as f32 / 255.0,
-            1.0_f32,
-        ];
+        let color = if selected.contains(&label.guid) {
+            [1.0, 1.0, 0.0, 1.0]
+        } else {
+            [
+                label.color[0] as f32 / 255.0,
+                label.color[1] as f32 / 255.0,
+                label.color[2] as f32 / 255.0,
+                1.0_f32,
+            ]
+        };
         let w = LABEL_PAD_X + label.text.len() as f32 * CHAR_W + LABEL_PAD_X;
         let h = LABEL_PAD_Y + CHAR_H + LABEL_PAD_Y;
         let x0 = -w * 0.5;
@@ -141,8 +146,8 @@ pub fn build_glyph_quads(labels: &[&TextLabel]) -> Vec<GlyphVertex> {
             let text_w = label.text.len() as f32 * CHAR_W;
             let x0 = -text_w * 0.5 + ci as f32 * CHAR_W;
             let x1 = x0 + CHAR_W;
-            let y0 = -CHAR_H * 0.5;   // bottom of glyph
-            let y1 =  CHAR_H * 0.5;   // top of glyph
+            let y0 = -CHAR_H * 0.5 + GLYPH_Y_OFFSET;
+            let y1 =  CHAR_H * 0.5 + GLYPH_Y_OFFSET;
             // y1 (screen-top) maps to v0 (atlas-top); y0 (screen-bot) maps to v1 (atlas-bot)
             for &[px, py, pu, pv] in &[
                 [x0, y0, u0, v1],

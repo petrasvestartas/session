@@ -48,7 +48,7 @@
     "line": 168,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.03099999949336052
+    "time_ms": 0.03400000184774399
   },
   {
     "checks": [
@@ -84,7 +84,7 @@
     "line": 208,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 13.743000030517578
+    "time_ms": 13.128000259399414
   },
   {
     "checks": [
@@ -120,7 +120,7 @@
     "line": 231,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 13.543999671936035
+    "time_ms": 12.692000389099121
   },
   {
     "checks": [
@@ -156,7 +156,7 @@
     "line": 250,
     "passed": true,
     "test_name": "Conversion",
-    "time_ms": 0.007000000216066837
+    "time_ms": 0.009999999776482582
   },
   {
     "checks": [
@@ -387,6 +387,6 @@
     "line": 266,
     "passed": true,
     "test_name": "Presets",
-    "time_ms": 0.03400000184774399
+    "time_ms": 0.035999998450279236
   }
 ]

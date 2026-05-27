@@ -348,7 +348,7 @@ fn ray_vs_arrow(ray: Ray, origin: [f32; 3], axis: [f32; 3], length: f32, tol: f3
     let (s, tc) = if denom.abs() < 1e-8 {
         (0.0f32, dd)
     } else {
-        let s = ((b * e - dd) / denom).clamp(0.0, length);
+        let s = ((e - b * dd) / denom).clamp(0.0, length);
         let tc = b * s - dd;
         (s, tc)
     };

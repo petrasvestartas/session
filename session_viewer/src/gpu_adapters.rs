@@ -169,20 +169,21 @@ pub fn polyline_to_segments(pl: &Polyline, instance_id: u32) -> Vec<CylinderSegm
 
 pub fn line_endpoint_glyphs(l: &Line, instance_id: u32) -> Vec<GlyphPoint> {
     let s = l.start();
-    let e = l.end();
-    vec![
-        GlyphPoint { center: [s[0], s[1], s[2]], radius: CYLINDER_RADIUS, color: [1.0; 4], instance_id, _pad: [0; 3] },
-        GlyphPoint { center: [e[0], e[1], e[2]], radius: CYLINDER_RADIUS, color: [1.0; 4], instance_id, _pad: [0; 3] },
-    ]
+    vec![GlyphPoint { center: [s[0], s[1], s[2]], radius: 0.0, color: [1.0; 4], instance_id, _pad: [0; 3] }]
 }
 
 pub fn polyline_endpoint_glyphs(pl: &Polyline, instance_id: u32) -> Vec<GlyphPoint> {
-    pl.get_points().iter().map(|p| GlyphPoint {
-        center: [p[0], p[1], p[2]],
-        radius: CYLINDER_RADIUS,
-        color: [1.0; 4],
-        instance_id,
-        _pad: [0; 3],
+    let pts = pl.get_points();
+    if pts.is_empty() { return Vec::new(); }
+    vec![
+        GlyphPoint { center: [pts[0][0], pts[0][1], pts[0][2]], radius: 0.0, color: [1.0; 4], instance_id, _pad: [0; 3] },
+        GlyphPoint { center: [pts[pts.len()-1][0], pts[pts.len()-1][1], pts[pts.len()-1][2]], radius: 0.0, color: [1.0; 4], instance_id, _pad: [0; 3] },
+    ]
+}
+
+pub fn mesh_vertex_glyphs(m: &Mesh, instance_id: u32) -> Vec<GlyphPoint> {
+    m.vertex.iter().map(|(_, v)| GlyphPoint {
+        center: [v.x, v.y, v.z], radius: 0.0, color: [1.0; 4], instance_id, _pad: [0; 3],
     }).collect()
 }
 
@@ -242,18 +243,20 @@ pub fn mesh_to_vertices(m: &Mesh) -> (Vec<MeshVertex>, Vec<u32>) {
     face_keys.sort_unstable();
     for fk in face_keys {
         if let Some(tris) = m.triangulation.get(&fk) {
-            for tri in tris {
-                if let (Some(&a), Some(&b), Some(&c)) = (
-                    key_to_idx.get(&tri[0]),
-                    key_to_idx.get(&tri[1]),
-                    key_to_idx.get(&tri[2]),
-                ) {
-                    inds.push(a);
-                    inds.push(b);
-                    inds.push(c);
+            if !tris.is_empty() {
+                for tri in tris {
+                    if let (Some(&a), Some(&b), Some(&c)) = (
+                        key_to_idx.get(&tri[0]),
+                        key_to_idx.get(&tri[1]),
+                        key_to_idx.get(&tri[2]),
+                    ) {
+                        inds.push(a);
+                        inds.push(b);
+                        inds.push(c);
+                    }
                 }
+                continue;
             }
-            continue;
         }
         let verts_of_face = &m.face[&fk];
         if verts_of_face.len() < 3 {
@@ -278,102 +281,121 @@ pub fn mesh_to_vertices(m: &Mesh) -> (Vec<MeshVertex>, Vec<u32>) {
         }
     }
 
-    if !any_attr_normal {
+    if any_attr_normal {
+        patch_zero_normals(&mut verts, &inds);
+    } else {
         compute_vertex_normals_in_place(&mut verts, &inds);
     }
 
     (verts, inds)
 }
 
-/// Builds a LineList wireframe from all unique edges of a mesh.
-/// Color is the mesh objectcolor darkened 40% so wireframe is visually distinct.
-pub fn mesh_to_edge_vertices(m: &Mesh) -> (Vec<LineVertex>, Vec<u32>) {
-    let mut keys: Vec<usize> = m.vertex.keys().copied().collect();
-    keys.sort_unstable();
-    let key_to_idx: std::collections::HashMap<usize, u32> = keys
-        .iter().enumerate().map(|(i, &k)| (k, i as u32)).collect();
 
-    let wire_rgba = [0u8, 0, 0, 255];
 
-    let verts: Vec<LineVertex> = keys.iter().map(|k| {
-        let v = &m.vertex[k];
-        LineVertex { position: [v.x, v.y, v.z], color: wire_rgba }
-    }).collect();
-
+/// All unique polygon edges of a mesh as cylinder segments (thickness-controllable).
+pub fn mesh_edges_to_segments(m: &Mesh, instance_id: u32) -> Vec<CylinderSegment> {
     let edges = m.edges();
-    let mut inds: Vec<u32> = Vec::with_capacity(edges.len() * 2);
-    for (a, b) in &edges {
-        if let (Some(&ia), Some(&ib)) = (key_to_idx.get(a), key_to_idx.get(b)) {
-            inds.push(ia);
-            inds.push(ib);
-        }
-    }
-
-    (verts, inds)
+    edges.iter().filter_map(|(a, b)| {
+        let va = m.vertex.get(a)?;
+        let vb = m.vertex.get(b)?;
+        Some(CylinderSegment {
+            p0: [va.x, va.y, va.z], radius: 0.0,
+            p1: [vb.x, vb.y, vb.z], instance_id, color: [0.0, 0.0, 0.0, 1.0],
+        })
+    }).collect()
 }
 
-/// Builds a LineList wireframe from only the naked (boundary) edges of a mesh.
-pub fn mesh_to_naked_edge_vertices(m: &Mesh) -> (Vec<LineVertex>, Vec<u32>) {
-    let mut keys: Vec<usize> = m.vertex.keys().copied().collect();
-    keys.sort_unstable();
-    let key_to_idx: std::collections::HashMap<usize, u32> = keys
-        .iter().enumerate().map(|(i, &k)| (k, i as u32)).collect();
-    let wire_rgba = [0u8, 0, 0, 255];
-    let verts: Vec<LineVertex> = keys.iter().map(|k| {
-        let v = &m.vertex[k];
-        LineVertex { position: [v.x, v.y, v.z], color: wire_rgba }
-    }).collect();
+/// Boundary (naked) edges of a mesh as cylinder segments.
+pub fn mesh_naked_edges_to_segments(m: &Mesh, instance_id: u32) -> Vec<CylinderSegment> {
     let edges = m.naked_edges(true);
-    let mut inds: Vec<u32> = Vec::with_capacity(edges.len() * 2);
-    for (a, b) in &edges {
-        if let (Some(&ia), Some(&ib)) = (key_to_idx.get(a), key_to_idx.get(b)) {
-            inds.push(ia);
-            inds.push(ib);
-        }
-    }
-    (verts, inds)
+    edges.iter().filter_map(|(a, b)| {
+        let va = m.vertex.get(a)?;
+        let vb = m.vertex.get(b)?;
+        Some(CylinderSegment {
+            p0: [va.x, va.y, va.z], radius: 0.0,
+            p1: [vb.x, vb.y, vb.z], instance_id, color: [0.0, 0.0, 0.0, 1.0],
+        })
+    }).collect()
+}
+
+/// A sequence of points (polyline) as cylinder segments.
+/// Filters out zero-length segments (degenerate tessellation artefacts).
+pub fn pts_to_segments(pts: &[session_rust::Point], instance_id: u32) -> Vec<CylinderSegment> {
+    pts.windows(2).filter_map(|w| {
+        let p0 = [w[0][0], w[0][1], w[0][2]];
+        let p1 = [w[1][0], w[1][1], w[1][2]];
+        let dist2 = (p1[0]-p0[0]).powi(2) + (p1[1]-p0[1]).powi(2) + (p1[2]-p0[2]).powi(2);
+        if dist2 < 1e-6 { return None; }
+        Some(CylinderSegment { p0, radius: 0.0, p1, instance_id, color: [0.0, 0.0, 0.0, 1.0] })
+    }).collect()
+}
+
+fn face_normal(a: [f32; 3], b: [f32; 3], c: [f32; 3]) -> [f32; 3] {
+    let ab = [b[0]-a[0], b[1]-a[1], b[2]-a[2]];
+    let ac = [c[0]-a[0], c[1]-a[1], c[2]-a[2]];
+    let nx = ab[1]*ac[2] - ab[2]*ac[1];
+    let ny = ab[2]*ac[0] - ab[0]*ac[2];
+    let nz = ab[0]*ac[1] - ab[1]*ac[0];
+    [nx, ny, nz]
+}
+
+fn normalize3(n: [f32; 3]) -> [f32; 3] {
+    let len = (n[0]*n[0] + n[1]*n[1] + n[2]*n[2]).sqrt();
+    if len > 1e-12 { [n[0]/len, n[1]/len, n[2]/len] } else { [0.0, 0.0, 1.0] }
 }
 
 fn compute_vertex_normals_in_place(verts: &mut [MeshVertex], inds: &[u32]) {
-    for v in verts.iter_mut() {
-        v.normal = [0.0, 0.0, 0.0];
-    }
-    let mut i = 0;
-    while i + 2 < inds.len() {
-        let ia = inds[i] as usize;
-        let ib = inds[i + 1] as usize;
-        let ic = inds[i + 2] as usize;
-        i += 3;
-        if ia >= verts.len() || ib >= verts.len() || ic >= verts.len() {
-            continue;
-        }
-        let a = verts[ia].position;
-        let b = verts[ib].position;
-        let c = verts[ic].position;
-        let ab = [b[0]-a[0], b[1]-a[1], b[2]-a[2]];
-        let ac = [c[0]-a[0], c[1]-a[1], c[2]-a[2]];
-        let nx = ab[1]*ac[2] - ab[2]*ac[1];
-        let ny = ab[2]*ac[0] - ab[0]*ac[2];
-        let nz = ab[0]*ac[1] - ab[1]*ac[0];
+    for v in verts.iter_mut() { v.normal = [0.0, 0.0, 0.0]; }
+    let nt = inds.len() / 3;
+    let nv = verts.len();
+    for ti in 0..nt {
+        let ia = inds[ti*3] as usize;
+        let ib = inds[ti*3+1] as usize;
+        let ic = inds[ti*3+2] as usize;
+        if ia >= nv || ib >= nv || ic >= nv { continue; }
+        let n = face_normal(verts[ia].position, verts[ib].position, verts[ic].position);
         for &idx in &[ia, ib, ic] {
-            verts[idx].normal[0] += nx;
-            verts[idx].normal[1] += ny;
-            verts[idx].normal[2] += nz;
+            verts[idx].normal[0] += n[0];
+            verts[idx].normal[1] += n[1];
+            verts[idx].normal[2] += n[2];
         }
     }
-    for v in verts.iter_mut() {
+    for v in verts.iter_mut() { v.normal = normalize3(v.normal); }
+}
+
+/// Patch any zero-length stored normals (e.g. at degenerate surface poles) with
+/// face-averaged normals so they don't render as black artefacts.
+fn patch_zero_normals(verts: &mut [MeshVertex], inds: &[u32]) {
+    let nv = verts.len();
+    let zero: Vec<bool> = verts.iter().map(|v| {
         let n = v.normal;
-        let len = (n[0]*n[0] + n[1]*n[1] + n[2]*n[2]).sqrt();
-        v.normal = if len > 1e-12 {
-            [n[0]/len, n[1]/len, n[2]/len]
-        } else {
-            [0.0, 0.0, 1.0]
-        };
+        n[0]*n[0] + n[1]*n[1] + n[2]*n[2] < 1e-10
+    }).collect();
+    if !zero.iter().any(|&z| z) { return; }
+    let nt = inds.len() / 3;
+    for ti in 0..nt {
+        let ia = inds[ti*3] as usize;
+        let ib = inds[ti*3+1] as usize;
+        let ic = inds[ti*3+2] as usize;
+        if ia >= nv || ib >= nv || ic >= nv { continue; }
+        if !zero[ia] && !zero[ib] && !zero[ic] { continue; }
+        let n = face_normal(verts[ia].position, verts[ib].position, verts[ic].position);
+        for &idx in &[ia, ib, ic] {
+            if zero[idx] {
+                verts[idx].normal[0] += n[0];
+                verts[idx].normal[1] += n[1];
+                verts[idx].normal[2] += n[2];
+            }
+        }
+    }
+    for (i, v) in verts.iter_mut().enumerate() {
+        if zero[i] { v.normal = normalize3(v.normal); }
     }
 }
 
 // ---------- Plane ----------
 
+#[allow(dead_code)]
 pub fn plane_to_mesh_vertices(pl: &Plane, size: f32) -> (Vec<MeshVertex>, Vec<u32>) {
     let o = pl.origin();
     let x = pl.x_axis();
@@ -393,6 +415,30 @@ pub fn plane_to_mesh_vertices(pl: &Plane, size: f32) -> (Vec<MeshVertex>, Vec<u3
     let verts = vec![mk(-h,-h), mk(h,-h), mk(h,h), mk(-h,h)];
     let inds = vec![0u32, 1, 2, 0, 2, 3];
     (verts, inds)
+}
+
+pub fn plane_to_axis_segments(pl: &Plane, scale: f32, instance_id: u32) -> Vec<CylinderSegment> {
+    let o = pl.origin();
+    let x = pl.x_axis();
+    let y = pl.y_axis();
+    let z = pl.z_axis();
+    vec![
+        CylinderSegment { p0: [o[0], o[1], o[2]], radius: 0.0,
+            p1: [o[0]+x[0]*scale, o[1]+x[1]*scale, o[2]+x[2]*scale],
+            instance_id, color: [1.0, 0.2, 0.2, 1.0] },
+        CylinderSegment { p0: [o[0], o[1], o[2]], radius: 0.0,
+            p1: [o[0]+y[0]*scale, o[1]+y[1]*scale, o[2]+y[2]*scale],
+            instance_id, color: [0.2, 1.0, 0.2, 1.0] },
+        CylinderSegment { p0: [o[0], o[1], o[2]], radius: 0.0,
+            p1: [o[0]+z[0]*scale, o[1]+z[1]*scale, o[2]+z[2]*scale],
+            instance_id, color: [0.3, 0.6, 1.0, 1.0] },
+    ]
+}
+
+pub fn plane_origin_glyph(pl: &Plane, instance_id: u32) -> GlyphPoint {
+    let o = pl.origin();
+    GlyphPoint { center: [o[0], o[1], o[2]], radius: 0.0,
+        color: [1.0, 1.0, 1.0, 1.0], instance_id, _pad: [0; 3] }
 }
 
 // ---------- OBB ----------

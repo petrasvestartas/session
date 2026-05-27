@@ -3,7 +3,7 @@
     "group": "Reciprocal",
     "test_name": "from_mesh",
     "passed": true,
-    "time_ms": 8.448,
+    "time_ms": 5.907,
     "line": 6,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py.reciprocal import Reciprocal\n\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(2, 0, 0),\n        Point(0, 1, 0),\n        Point(1, 1, 0),\n        Point(2, 1, 0),\n        Point(0, 2, 0),\n        Point(1, 2, 0),\n        Point(2, 2, 0),\n    ]\n    faces = [\n        [0, 1, 4, 3],\n        [1, 2, 5, 4],\n        [3, 4, 7, 6],\n        [4, 5, 8, 7],\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, faces)\n    r = Reciprocal.from_mesh(mesh, 0.7, 1.4, True, 1.0)\n    ne = mesh.number_of_edges()",
     "checks": [

@@ -19,7 +19,7 @@
     "group": "NurbsKnot",
     "test_name": "Make Periodic Uniform",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 25,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // 0 1 2 3 4 5 6\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots = nurbsknot::make_periodic_uniform(order, cv_count);",
     "checks": [
@@ -72,7 +72,7 @@
     "group": "NurbsKnot",
     "test_name": "Find Span",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 71,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots_clamped = nurbsknot::make_clamped_uniform(order, cv_count);\n    //   - 0.5 falls in span [0, 1] -> index 0\n    //   - 1.5 falls in span [1, 2] -> index 1\n    int spancount0 = nurbsknot::find_span(order, cv_count, nurbsknots_clamped, 0.5);\n    int spancount1 = nurbsknot::find_span(order, cv_count, nurbsknots_clamped, 1.5);",
     "checks": [

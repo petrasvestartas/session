@@ -59,7 +59,7 @@ fn vs_main(
     let inst   = instances[pt.instance_id];
     let corner = CORNERS[vid % 6u];
     let clip   = camera.view_proj * (inst.model * vec4<f32>(pt.position, 1.0));
-    let ndc_off = corner * pt.half_size * 2.0 / camera.screen_size * clip.w;
+    let ndc_off = corner * camera.point_size * 2.0 / camera.screen_size * clip.w;
     var out: VsOut;
     out.clip_pos = vec4<f32>(clip.xy + ndc_off, clip.zw);
     out.color    = pt.color;
