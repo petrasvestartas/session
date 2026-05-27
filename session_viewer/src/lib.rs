@@ -149,14 +149,68 @@ fn collect_leaf_guids(node: &Rc<RefCell<TreeNode>>, vmap: &HashMap<String, Strin
     result
 }
 
+/// Collect all leaf GUIDs under a tree node (checks session.lookup + nurbs/nc objects).
+fn collect_group_leaves(node: &Rc<RefCell<TreeNode>>, session: &Session) -> Vec<String> {
+    let name = node.borrow().name.clone();
+    if session.lookup.contains_key(&name)
+        || session.objects.nurbssurfaces.iter().any(|n| n.guid() == name)
+        || session.objects.nurbscurves.iter().any(|n| n.guid() == name)
+    {
+        return vec![name];
+    }
+    let children = node.borrow().children();
+    let mut result = Vec::new();
+    for child in &children {
+        result.extend(collect_group_leaves(child, session));
+    }
+    result
+}
+
+/// DFS: find innermost locked group ancestor containing `target` guid.
+/// Returns Some(Some(node)) = found with a locked ancestor, Some(None) = found but no lock, None = not found.
+fn find_locked_ancestor_impl(
+    node: &Rc<RefCell<TreeNode>>,
+    target: &str,
+    group_locked: &HashSet<String>,
+    session: &Session,
+    current_locked: Option<Rc<RefCell<TreeNode>>>,
+) -> Option<Option<Rc<RefCell<TreeNode>>>> {
+    let name = node.borrow().name.clone();
+    let is_leaf = session.lookup.contains_key(&name)
+        || session.objects.nurbssurfaces.iter().any(|n| n.guid() == name)
+        || session.objects.nurbscurves.iter().any(|n| n.guid() == name);
+    if is_leaf {
+        return if name == target { Some(current_locked) } else { None };
+    }
+    let new_locked = if group_locked.contains(&name) { Some(node.clone()) } else { current_locked };
+    let children = node.borrow().children();
+    for child in &children {
+        if let Some(r) = find_locked_ancestor_impl(child, target, group_locked, session, new_locked.clone()) {
+            return Some(r);
+        }
+    }
+    None
+}
+
+fn locked_group_for_guid(
+    root: &Rc<RefCell<TreeNode>>,
+    target: &str,
+    group_locked: &HashSet<String>,
+    session: &Session,
+) -> Option<Rc<RefCell<TreeNode>>> {
+    find_locked_ancestor_impl(root, target, group_locked, session, None).flatten()
+}
+
 fn render_tree_node(
     ui: &mut egui::Ui,
     node: &Rc<RefCell<TreeNode>>,
     vmap: &HashMap<String, String>,
     selected: &HashSet<String>,
     hidden: &HashSet<String>,
+    locked: &HashSet<String>,
     new_sel: &mut Option<(Vec<String>, bool)>,
     vis_chg: &mut Vec<(String, bool)>,
+    lock_chg: &mut Vec<(String, bool)>,
 ) {
     let name = node.borrow().name.clone();
     if vmap.contains_key(&name) {
@@ -169,7 +223,7 @@ fn render_tree_node(
                 let shift = ui.ctx().input(|i| i.modifiers.shift);
                 *new_sel = Some((vec![name.clone()], shift));
             }
-            if ui.checkbox(&mut vis, "").changed() {
+            if ui.toggle_value(&mut vis, "V").on_hover_text("Visibility").changed() {
                 vis_chg.push((name.clone(), !vis));
             }
         });
@@ -187,20 +241,68 @@ fn render_tree_node(
                     *new_sel = Some((leaf_guids.clone(), shift));
                 }
                 let mut gv = group_vis;
-                if ui.checkbox(&mut gv, "").changed() {
+                if ui.toggle_value(&mut gv, "V").on_hover_text("Visibility").changed() {
                     for g in &leaf_guids {
                         vis_chg.push((g.clone(), !gv));
                     }
                 }
+                let mut lk = locked.contains(&name);
+                if ui.toggle_value(&mut lk, "G").on_hover_text("Group lock: select together").changed() {
+                    lock_chg.push((name.clone(), lk));
+                }
             })
             .body(|ui| {
                 for child in &children {
-                    render_tree_node(ui, child, vmap, selected, hidden, new_sel, vis_chg);
+                    render_tree_node(ui, child, vmap, selected, hidden, locked, new_sel, vis_chg, lock_chg);
                 }
             });
     }
 }
 
+
+fn is_geom_leaf(name: &str, session: &Session) -> bool {
+    session.lookup.contains_key(name)
+        || session.objects.nurbssurfaces.iter().any(|n| n.guid() == name)
+        || session.objects.nurbscurves.iter().any(|n| n.guid() == name)
+}
+
+/// True if every child of `node` is either a geometry leaf or a group whose
+/// own children are all geometry leaves (at most 2 levels deep total).
+fn is_shallow_element(node: &Rc<RefCell<TreeNode>>, session: &Session) -> bool {
+    let children = node.borrow().children();
+    if children.is_empty() { return false; }
+    children.iter().all(|child| {
+        let cn = child.borrow().name.clone();
+        if is_geom_leaf(&cn, session) { return true; }
+        // Child is a sub-group — accept only if all ITS children are leaves
+        let grandchildren = child.borrow().children();
+        !grandchildren.is_empty() && grandchildren.iter().all(|gc| {
+            is_geom_leaf(&gc.borrow().name.clone(), session)
+        })
+    })
+}
+
+/// Auto-lock groups at the element level: the first group in each branch
+/// whose entire subtree is geometry (with at most one intermediate group level).
+fn auto_lock_leaf_groups(node: &Rc<RefCell<TreeNode>>, session: &Session, group_locked: &mut HashSet<String>) {
+    let name = node.borrow().name.clone();
+    if is_geom_leaf(&name, session) { return; }
+    let children = node.borrow().children();
+    // Count total geometry descendants
+    let leaf_count: usize = children.iter().map(|c| {
+        let cn = c.borrow().name.clone();
+        if is_geom_leaf(&cn, session) { 1 }
+        else { c.borrow().children().iter().filter(|gc| is_geom_leaf(&gc.borrow().name.clone(), session)).count() }
+    }).sum();
+    if leaf_count >= 2 && is_shallow_element(node, session) {
+        group_locked.insert(name);
+        // Don't recurse — children/sub-groups are covered by this lock
+    } else {
+        for child in &children {
+            auto_lock_leaf_groups(child, session, group_locked);
+        }
+    }
+}
 
 // ============================================================
 // STATE
@@ -239,6 +341,7 @@ pub struct State {
     gumball_glyph_bg: wgpu::BindGroup,
     drag_origins: HashMap<String, [[f32; 4]; 4]>,
     hidden_guids: HashSet<String>,
+    group_locked: HashSet<String>,
     glyphs_hidden_guids: HashSet<String>,
     line_thickness: f32,
     shading_enabled: bool,
@@ -416,6 +519,7 @@ impl State {
             gumball_glyph_bg,
             drag_origins: HashMap::new(),
             hidden_guids: HashSet::new(),
+            group_locked: HashSet::new(),
             glyphs_hidden_guids: HashSet::new(),
             line_thickness: 2.0,
             shading_enabled: true,
@@ -432,6 +536,10 @@ impl State {
             cmd_counter: 0,
         };
         state.apply_thickness();
+        // Auto-lock atomic element groups (mesh + polylines) for joint movement
+        if let Some(root) = state.session.tree.root() {
+            auto_lock_leaf_groups(&root, &state.session, &mut state.group_locked);
+        }
         // Auto-hide edges and vertex glyphs for FloorModel meshes
         let floor_guids = collect_group_leaf_guids(&state.session, "FloorModel");
         for guid in &floor_guids {
@@ -513,7 +621,7 @@ impl State {
         };
         let cam = CameraUniform {
             view_proj:    self.camera.view_proj(),
-            key_light_ws: cam_to_ws(-0.3, 0.8, 0.6),
+            key_light_ws: { let kl = cam_to_ws(-0.3, 0.8, 0.6); let oh = if self.camera.proj_mode == ProjMode::Ortho { self.camera.ortho_scale * 1000.0 } else { 0.0_f32 }; [kl[0], kl[1], kl[2], oh] },
             fill_light_ws:cam_to_ws( 0.8,-0.2, 0.5),
             screen_size:  [self.config.width as f32, self.config.height as f32],
             point_size:   self.line_thickness / 3.0,
@@ -585,9 +693,30 @@ impl State {
         let brep_hits  = self.gpu_session.pick_breps(&origin_pt, &dir_vec);
         let nc_hits    = self.gpu_session.pick_nurbscurves(&origin_pt, &dir_vec, pick_radius);
         log::info!("PICK hits={} nurbs={} brep={} nc={}", hits.len(), nurbs_hits.len(), brep_hits.len(), nc_hits.len());
-        let new_guid = hits.iter()
-            .find(|h| !self.hidden_guids.contains(h.guid()))
-            .map(|h| h.guid().to_string())
+
+        // Prefer solid geometry (Mesh/OBB) over thin geometry (Line/Polyline/Point)
+        // when both are hit at similar depth. Thin geometry only wins if it is
+        // clearly closer (by more than pick_radius) than any solid hit.
+        let first_solid = hits.iter().find(|h| {
+            !self.hidden_guids.contains(h.guid()) && matches!(
+                self.session.lookup.get(h.guid()),
+                Some(Geometry::Mesh(_)) | Some(Geometry::OBB(_))
+            )
+        });
+        let first_any = hits.iter().find(|h| !self.hidden_guids.contains(h.guid()));
+        let from_session = match (first_solid, first_any) {
+            (Some(solid), Some(any)) if solid.guid() != any.guid() => {
+                if any.distance + pick_radius < solid.distance {
+                    Some(any.guid().to_string())
+                } else {
+                    Some(solid.guid().to_string())
+                }
+            }
+            (_, Some(h)) => Some(h.guid().to_string()),
+            _ => None,
+        };
+
+        let new_guid = from_session
             .or_else(|| nurbs_hits.iter()
                 .find(|(g,_)| !self.hidden_guids.contains(g.as_str()))
                 .map(|(g,_)| g.clone()))
@@ -597,15 +726,28 @@ impl State {
             .or_else(|| nc_hits.iter()
                 .find(|(g,_)| !self.hidden_guids.contains(g.as_str()))
                 .map(|(g,_)| g.clone()));
-        let shift    = self.controller.select_add();
+        // Expand single picked guid to its locked group (if any)
+        let pick_guids: Vec<String> = if let (Some(guid), Some(root)) = (&new_guid, self.session.tree.root()) {
+            if let Some(locked_node) = locked_group_for_guid(&root, guid, &self.group_locked, &self.session) {
+                collect_group_leaves(&locked_node, &self.session)
+            } else {
+                vec![guid.clone()]
+            }
+        } else if let Some(guid) = &new_guid {
+            vec![guid.clone()]
+        } else {
+            vec![]
+        };
 
+        let shift = self.controller.select_add();
         if shift {
-            if let Some(guid) = new_guid.clone() {
-                if self.selected_guids.contains(&guid) {
-                    self.gpu_session.set_flag(&guid, InstanceData::FLAG_SELECTED, false, &self.queue);
-                    self.selected_guids.remove(&guid);
+            let all_sel = !pick_guids.is_empty() && pick_guids.iter().all(|g| self.selected_guids.contains(g));
+            for guid in &pick_guids {
+                if all_sel {
+                    self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, false, &self.queue);
+                    self.selected_guids.remove(guid);
                 } else {
-                    self.gpu_session.set_flag(&guid, InstanceData::FLAG_SELECTED, true, &self.queue);
+                    self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.queue);
                     self.selected_guids.insert(guid.clone());
                 }
             }
@@ -614,11 +756,14 @@ impl State {
             for p in &prev {
                 self.gpu_session.set_flag(p, InstanceData::FLAG_SELECTED, false, &self.queue);
             }
-            if let Some(guid) = new_guid.clone() {
-                let was_only = prev.len() == 1 && prev[0] == guid;
-                if !was_only {
-                    self.gpu_session.set_flag(&guid, InstanceData::FLAG_SELECTED, true, &self.queue);
-                    self.selected_guids.insert(guid.clone());
+            if !pick_guids.is_empty() {
+                let reclick = pick_guids.len() == prev.len()
+                    && pick_guids.iter().all(|g| prev.contains(g));
+                if !reclick {
+                    for guid in &pick_guids {
+                        self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.queue);
+                        self.selected_guids.insert(guid.clone());
+                    }
                 }
             }
         }
@@ -895,8 +1040,10 @@ impl State {
         let edges = self.session.graph.get_edges();
         let selected = self.selected_guids.clone();
         let hidden = self.hidden_guids.clone();
+        let locked = self.group_locked.clone();
         let mut new_sel: Option<(Vec<String>, bool)> = None;
         let mut vis_chg: Vec<(String, bool)> = Vec::new();
+        let mut lock_chg: Vec<(String, bool)> = Vec::new();
         let line_thickness = self.line_thickness;
         let mut new_line_thickness: Option<f32> = None;
         let plane_scale = self.gpu_session.plane_scale;
@@ -951,7 +1098,7 @@ impl State {
                         .show(ui, |ui| {
                             if let Some(root) = &tree_root {
                                 for child in &root.borrow().children() {
-                                    render_tree_node(ui, child, &vmap, &selected, &hidden, &mut new_sel, &mut vis_chg);
+                                    render_tree_node(ui, child, &vmap, &selected, &hidden, &locked, &mut new_sel, &mut vis_chg, &mut lock_chg);
                                 }
                             }
                         });
@@ -1043,6 +1190,9 @@ impl State {
         for (guid, should_hide) in vis_chg {
             self.gpu_session.set_flag(&guid, InstanceData::FLAG_HIDDEN, should_hide, &self.queue);
             if should_hide { self.hidden_guids.insert(guid); } else { self.hidden_guids.remove(&guid); }
+        }
+        for (name, should_lock) in lock_chg {
+            if should_lock { self.group_locked.insert(name); } else { self.group_locked.remove(&name); }
         }
 
         if let Some(t) = new_line_thickness { self.line_thickness = t; self.apply_thickness(); }

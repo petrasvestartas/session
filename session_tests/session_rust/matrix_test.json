@@ -2,38 +2,59 @@
   {
     "checks": [
       {
-        "code_line": "x.is_some()",
-        "line": 172,
+        "code_line": "b[(0, 0)] == 2.0 && b[(0, 1)] == 4.0 && b[(1, 0)] == 6.0 && b[(1, 1)] == 8.0",
+        "line": 93,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(x[(0, 0)], 1.0)",
-        "line": 177,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(x[(1, 0)], 3.0)",
-        "line": 178,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(residual_0, 5.0)",
-        "line": 179,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(residual_1, 10.0)",
-        "line": 180,
+        "code_line": "c[(0, 0)] == 3.0 && c[(1, 1)] == 12.0",
+        "line": 94,
         "passed": true
       }
     ],
-    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(2, 2, vec![2.0, 1.0, 1.0, 3.0]);\n        let b = Matrix::from_vec(2, 1, vec![5.0, 10.0]);\n        let x = a.solve(&b);\n        // 2x+y=5, x+3y=10 → x=1, y=3\n\n        let x = x.unwrap();\n        let residual_0 = 2.0 * x[(0, 0)] + 1.0 * x[(1, 0)];\n        let residual_1 = 1.0 * x[(0, 0)] + 3.0 * x[(1, 0)];\n",
+    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(2, 2, vec![1.0, 2.0, 3.0, 4.0]);\n        let b = a.scale(2.0);\n        let c = a.scale(3.0);\n",
     "failures": [],
     "group": "Matrix",
-    "line": 165,
+    "line": 87,
     "passed": true,
-    "test_name": "Solve",
-    "time_ms": 0.013000000268220901
+    "test_name": "Scale",
+    "time_ms": 0.01600000075995922
+  },
+  {
+    "checks": [
+      {
+        "code_line": "sq1",
+        "line": 50,
+        "passed": true
+      },
+      {
+        "code_line": "!sq2",
+        "line": 51,
+        "passed": true
+      },
+      {
+        "code_line": "sym1",
+        "line": 52,
+        "passed": true
+      },
+      {
+        "code_line": "!sym2",
+        "line": 53,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(tr, 3.0)",
+        "line": 54,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Matrix;\n        let m1 = Matrix::identity(3);\n        let m2 = Matrix::zeros(2, 3);\n        let m3 = Matrix::from_vec(3, 3, vec![1.0, 2.0, 3.0, 2.0, 5.0, 6.0, 3.0, 6.0, 9.0]);\n        let m4 = Matrix::from_vec(2, 2, vec![1.0, 2.0, 3.0, 4.0]);\n        let sq1 = m1.is_square();\n        let sq2 = m2.is_square();\n        let sym1 = m3.is_symmetric();\n        let sym2 = m4.is_symmetric();\n        let tr = m1.trace();\n",
+    "failures": [],
+    "group": "Matrix",
+    "line": 38,
+    "passed": true,
+    "test_name": "Properties",
+    "time_ms": 0.014000000432133675
   },
   {
     "checks": [
@@ -59,7 +80,7 @@
     "line": 59,
     "passed": true,
     "test_name": "Add",
-    "time_ms": 0.004000000189989805
+    "time_ms": 0.009999999776482582
   },
   {
     "checks": [
@@ -85,7 +106,7 @@
     "line": 115,
     "passed": true,
     "test_name": "Transpose",
-    "time_ms": 0.0010000000474974513
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
@@ -111,33 +132,74 @@
     "line": 73,
     "passed": true,
     "test_name": "Subtract",
-    "time_ms": 0.0020000000949949026
+    "time_ms": 0.008999999612569809
   },
   {
     "checks": [
       {
-        "code_line": "a.rank() == 3",
-        "line": 290,
+        "code_line": "loaded.name == \"test_matrix_proto\"",
+        "line": 321,
         "passed": true
       },
       {
-        "code_line": "b.rank() == 2",
-        "line": 291,
+        "code_line": "loaded.rows == 2 && loaded.cols == 3",
+        "line": 322,
         "passed": true
       },
       {
-        "code_line": "c.rank() == 0",
-        "line": 292,
+        "code_line": "TOLERANCE.is_close(loaded[(0, 0)], 1.0)",
+        "line": 323,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded[(1, 2)], 6.0)",
+        "line": 324,
         "passed": true
       }
     ],
-    "code": "        use crate::Matrix;\n        let a = Matrix::identity(3);\n        let b = Matrix::from_vec(3, 3, vec![1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0]);\n        let c = Matrix::zeros(3, 3);\n",
+    "code": "        use crate::Matrix;\n        let mut a = Matrix::from_vec(2, 3, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);\n        a.name = \"test_matrix_proto\".to_string();\n        let filename = \"serialization/test_matrix.bin\";\n        a.pb_dump(filename);\n        let loaded = Matrix::pb_load(filename);\n",
     "failures": [],
     "group": "Matrix",
-    "line": 284,
+    "line": 313,
     "passed": true,
-    "test_name": "Rank",
-    "time_ms": 0.0010000000474974513
+    "test_name": "Protobuf Roundtrip",
+    "time_ms": 14.401000022888184
+  },
+  {
+    "checks": [
+      {
+        "code_line": "c.rows == 2 && c.cols == 2",
+        "line": 106,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(c[(0, 0)], 58.0) && TOLERANCE.is_close(c[(0, 1)], 64.0)",
+        "line": 107,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(c[(1, 0)], 139.0)",
+        "line": 108,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(c[(1, 1)], 154.0)",
+        "line": 109,
+        "passed": true
+      },
+      {
+        "code_line": "c == d",
+        "line": 110,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(2, 3, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);\n        let b = Matrix::from_vec(3, 2, vec![7.0, 8.0, 9.0, 10.0, 11.0, 12.0]);\n        let c = a.multiply(&b);\n        let d = a.clone() * b;\n",
+    "failures": [],
+    "group": "Matrix",
+    "line": 99,
+    "passed": true,
+    "test_name": "Multiply",
+    "time_ms": 0.014000000432133675
   },
   {
     "checks": [
@@ -183,125 +245,95 @@
     "line": 203,
     "passed": true,
     "test_name": "Qr Decompose",
-    "time_ms": 0.004000000189989805
+    "time_ms": 0.03099999949336052
   },
   {
     "checks": [
       {
-        "code_line": "sq1",
-        "line": 50,
+        "code_line": "TOLERANCE.is_close(nf, 30.0f32.sqrt())",
+        "line": 277,
         "passed": true
       },
       {
-        "code_line": "!sq2",
-        "line": 51,
+        "code_line": "TOLERANCE.is_close(n1, 6.0)",
+        "line": 278,
         "passed": true
       },
       {
-        "code_line": "sym1",
-        "line": 52,
-        "passed": true
-      },
-      {
-        "code_line": "!sym2",
-        "line": 53,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(tr, 3.0)",
-        "line": 54,
+        "code_line": "TOLERANCE.is_close(ni, 7.0)",
+        "line": 279,
         "passed": true
       }
     ],
-    "code": "        use crate::Matrix;\n        let m1 = Matrix::identity(3);\n        let m2 = Matrix::zeros(2, 3);\n        let m3 = Matrix::from_vec(3, 3, vec![1.0, 2.0, 3.0, 2.0, 5.0, 6.0, 3.0, 6.0, 9.0]);\n        let m4 = Matrix::from_vec(2, 2, vec![1.0, 2.0, 3.0, 4.0]);\n        let sq1 = m1.is_square();\n        let sq2 = m2.is_square();\n        let sym1 = m3.is_symmetric();\n        let sym2 = m4.is_symmetric();\n        let tr = m1.trace();\n",
+    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(2, 2, vec![1.0, -2.0, 3.0, -4.0]);\n        let nf = a.norm_frobenius();\n        let n1 = a.norm_1();\n        let ni = a.norm_inf();\n",
     "failures": [],
     "group": "Matrix",
-    "line": 38,
+    "line": 270,
     "passed": true,
-    "test_name": "Properties",
-    "time_ms": 0.0010000000474974513
+    "test_name": "Norms",
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
       {
-        "code_line": "l.is_some()",
-        "line": 227,
+        "code_line": "loaded.name == \"test_matrix\"",
+        "line": 305,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(llt[(0, 0)], 4.0) && TOLERANCE.is_close(llt[(0, 1)], 2.0)",
-        "line": 234,
+        "code_line": "loaded.rows == 2 && loaded.cols == 3",
+        "line": 306,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(llt[(1, 0)], 2.0) && TOLERANCE.is_close(llt[(1, 1)], 5.0)",
-        "line": 235,
+        "code_line": "TOLERANCE.is_close(loaded[(0, 0)], 1.0)",
+        "line": 307,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(llt[(2, 2)], 6.0)",
-        "line": 236,
-        "passed": true
-      },
-      {
-        "code_line": "l_none.is_none()",
-        "line": 237,
+        "code_line": "TOLERANCE.is_close(loaded[(1, 2)], 6.0)",
+        "line": 308,
         "passed": true
       }
     ],
-    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(3, 3, vec![4.0, 2.0, 2.0, 2.0, 5.0, 3.0, 2.0, 3.0, 6.0]);\n        let l = a.cholesky();\n\n        let l = l.unwrap();\n        let lt = l.transpose();\n        let llt = l.multiply(&lt);\n        let not_spd = Matrix::from_vec(2, 2, vec![1.0, 2.0, 2.0, 1.0]);\n        let l_none = not_spd.cholesky();\n",
+    "code": "        use crate::Matrix;\n        let mut a = Matrix::from_vec(2, 3, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);\n        a.name = \"test_matrix\".to_string();\n        let filename = \"serialization/test_matrix.json\";\n        a.file_json_dump(filename).unwrap();\n        let loaded = Matrix::file_json_load(filename).unwrap();\n",
     "failures": [],
     "group": "Matrix",
-    "line": 222,
+    "line": 297,
     "passed": true,
-    "test_name": "Cholesky",
-    "time_ms": 0.003000000026077032
+    "test_name": "Json Roundtrip",
+    "time_ms": 13.48900032043457
   },
   {
     "checks": [
       {
-        "code_line": "l.rows == 3 && u.cols == 3",
-        "line": 192,
+        "code_line": "sv.len() == 3",
+        "line": 262,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(pa[(0, 0)], lu[(0, 0)])",
-        "line": 193,
+        "code_line": "TOLERANCE.is_close(sv[0], 3.0)",
+        "line": 263,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(pa[(0, 1)], lu[(0, 1)])",
-        "line": 194,
+        "code_line": "TOLERANCE.is_close(sv[1], 2.0)",
+        "line": 264,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(pa[(1, 0)], lu[(1, 0)])",
-        "line": 195,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pa[(2, 2)], lu[(2, 2)])",
-        "line": 196,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(l[(0, 1)], 0.0) && TOLERANCE.is_close(l[(0, 2)], 0.0)",
-        "line": 197,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(l[(1, 2)], 0.0)",
-        "line": 198,
+        "code_line": "TOLERANCE.is_close(sv[2], 1.0)",
+        "line": 265,
         "passed": true
       }
     ],
-    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(3, 3, vec![2.0, 1.0, 1.0, 4.0, 3.0, 3.0, 8.0, 7.0, 9.0]);\n        let (l, u, p) = a.lu_decompose();\n        let pa = p.multiply(&a);\n        let lu = l.multiply(&u);\n",
+    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(3, 3, vec![1.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 3.0]);\n        let (_u, mut sv, _vt) = a.svd();\n        sv.sort_by(|a, b| b.partial_cmp(a).unwrap_or(std::cmp::Ordering::Equal));\n",
     "failures": [],
     "group": "Matrix",
-    "line": 185,
+    "line": 256,
     "passed": true,
-    "test_name": "Lu Decompose",
-    "time_ms": 0.003000000026077032
+    "test_name": "Svd",
+    "time_ms": 0.04699999839067459
   },
   {
     "checks": [
@@ -332,7 +364,7 @@
     "line": 127,
     "passed": true,
     "test_name": "Determinant",
-    "time_ms": 0.0010000000474974513
+    "time_ms": 0.010999999940395355
   },
   {
     "checks": [
@@ -398,152 +430,156 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.017999999225139618
+    "time_ms": 0.04100000113248825
   },
   {
     "checks": [
       {
-        "code_line": "b[(0, 0)] == 2.0 && b[(0, 1)] == 4.0 && b[(1, 0)] == 6.0 && b[(1, 1)] == 8.0",
-        "line": 93,
+        "code_line": "evs.len() == 3",
+        "line": 248,
         "passed": true
       },
       {
-        "code_line": "c[(0, 0)] == 3.0 && c[(1, 1)] == 12.0",
-        "line": 94,
+        "code_line": "TOLERANCE.is_close(evs[0], 1.0)",
+        "line": 249,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(evs[1], 2.0)",
+        "line": 250,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(evs[2], 3.0)",
+        "line": 251,
         "passed": true
       }
     ],
-    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(2, 2, vec![1.0, 2.0, 3.0, 4.0]);\n        let b = a.scale(2.0);\n        let c = a.scale(3.0);\n",
+    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(3, 3, vec![3.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 2.0]);\n        let mut evs = a.eigenvalues();\n        evs.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));\n",
     "failures": [],
     "group": "Matrix",
-    "line": 87,
+    "line": 242,
     "passed": true,
-    "test_name": "Scale",
-    "time_ms": 0.0010000000474974513
+    "test_name": "Eigenvalues",
+    "time_ms": 0.02199999988079071
   },
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(nf, 30.0f32.sqrt())",
-        "line": 277,
+        "code_line": "l.rows == 3 && u.cols == 3",
+        "line": 192,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(n1, 6.0)",
-        "line": 278,
+        "code_line": "TOLERANCE.is_close(pa[(0, 0)], lu[(0, 0)])",
+        "line": 193,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(ni, 7.0)",
-        "line": 279,
+        "code_line": "TOLERANCE.is_close(pa[(0, 1)], lu[(0, 1)])",
+        "line": 194,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pa[(1, 0)], lu[(1, 0)])",
+        "line": 195,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pa[(2, 2)], lu[(2, 2)])",
+        "line": 196,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(l[(0, 1)], 0.0) && TOLERANCE.is_close(l[(0, 2)], 0.0)",
+        "line": 197,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(l[(1, 2)], 0.0)",
+        "line": 198,
         "passed": true
       }
     ],
-    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(2, 2, vec![1.0, -2.0, 3.0, -4.0]);\n        let nf = a.norm_frobenius();\n        let n1 = a.norm_1();\n        let ni = a.norm_inf();\n",
+    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(3, 3, vec![2.0, 1.0, 1.0, 4.0, 3.0, 3.0, 8.0, 7.0, 9.0]);\n        let (l, u, p) = a.lu_decompose();\n        let pa = p.multiply(&a);\n        let lu = l.multiply(&u);\n",
     "failures": [],
     "group": "Matrix",
-    "line": 270,
+    "line": 185,
     "passed": true,
-    "test_name": "Norms",
-    "time_ms": 0.0
+    "test_name": "Lu Decompose",
+    "time_ms": 0.009999999776482582
   },
   {
     "checks": [
       {
-        "code_line": "c.rows == 2 && c.cols == 2",
-        "line": 106,
+        "code_line": "x.is_some()",
+        "line": 172,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(c[(0, 0)], 58.0) && TOLERANCE.is_close(c[(0, 1)], 64.0)",
-        "line": 107,
+        "code_line": "TOLERANCE.is_close(x[(0, 0)], 1.0)",
+        "line": 177,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(c[(1, 0)], 139.0)",
-        "line": 108,
+        "code_line": "TOLERANCE.is_close(x[(1, 0)], 3.0)",
+        "line": 178,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(c[(1, 1)], 154.0)",
-        "line": 109,
+        "code_line": "TOLERANCE.is_close(residual_0, 5.0)",
+        "line": 179,
         "passed": true
       },
       {
-        "code_line": "c == d",
-        "line": 110,
+        "code_line": "TOLERANCE.is_close(residual_1, 10.0)",
+        "line": 180,
         "passed": true
       }
     ],
-    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(2, 3, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);\n        let b = Matrix::from_vec(3, 2, vec![7.0, 8.0, 9.0, 10.0, 11.0, 12.0]);\n        let c = a.multiply(&b);\n        let d = a.clone() * b;\n",
+    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(2, 2, vec![2.0, 1.0, 1.0, 3.0]);\n        let b = Matrix::from_vec(2, 1, vec![5.0, 10.0]);\n        let x = a.solve(&b);\n        // 2x+y=5, x+3y=10 → x=1, y=3\n\n        let x = x.unwrap();\n        let residual_0 = 2.0 * x[(0, 0)] + 1.0 * x[(1, 0)];\n        let residual_1 = 1.0 * x[(0, 0)] + 3.0 * x[(1, 0)];\n",
     "failures": [],
     "group": "Matrix",
-    "line": 99,
+    "line": 165,
     "passed": true,
-    "test_name": "Multiply",
-    "time_ms": 0.0020000000949949026
+    "test_name": "Solve",
+    "time_ms": 0.009999999776482582
   },
   {
     "checks": [
       {
-        "code_line": "loaded.name == \"test_matrix_proto\"",
-        "line": 321,
+        "code_line": "l.is_some()",
+        "line": 227,
         "passed": true
       },
       {
-        "code_line": "loaded.rows == 2 && loaded.cols == 3",
-        "line": 322,
+        "code_line": "TOLERANCE.is_close(llt[(0, 0)], 4.0) && TOLERANCE.is_close(llt[(0, 1)], 2.0)",
+        "line": 234,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(loaded[(0, 0)], 1.0)",
-        "line": 323,
+        "code_line": "TOLERANCE.is_close(llt[(1, 0)], 2.0) && TOLERANCE.is_close(llt[(1, 1)], 5.0)",
+        "line": 235,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(loaded[(1, 2)], 6.0)",
-        "line": 324,
+        "code_line": "TOLERANCE.is_close(llt[(2, 2)], 6.0)",
+        "line": 236,
+        "passed": true
+      },
+      {
+        "code_line": "l_none.is_none()",
+        "line": 237,
         "passed": true
       }
     ],
-    "code": "        use crate::Matrix;\n        let mut a = Matrix::from_vec(2, 3, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);\n        a.name = \"test_matrix_proto\".to_string();\n        let filename = \"serialization/test_matrix.bin\";\n        a.pb_dump(filename);\n        let loaded = Matrix::pb_load(filename);\n",
+    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(3, 3, vec![4.0, 2.0, 2.0, 2.0, 5.0, 3.0, 2.0, 3.0, 6.0]);\n        let l = a.cholesky();\n\n        let l = l.unwrap();\n        let lt = l.transpose();\n        let llt = l.multiply(&lt);\n        let not_spd = Matrix::from_vec(2, 2, vec![1.0, 2.0, 2.0, 1.0]);\n        let l_none = not_spd.cholesky();\n",
     "failures": [],
     "group": "Matrix",
-    "line": 313,
+    "line": 222,
     "passed": true,
-    "test_name": "Protobuf Roundtrip",
-    "time_ms": 14.029000282287598
-  },
-  {
-    "checks": [
-      {
-        "code_line": "sv.len() == 3",
-        "line": 262,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(sv[0], 3.0)",
-        "line": 263,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(sv[1], 2.0)",
-        "line": 264,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(sv[2], 1.0)",
-        "line": 265,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(3, 3, vec![1.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 3.0]);\n        let (_u, mut sv, _vt) = a.svd();\n        sv.sort_by(|a, b| b.partial_cmp(a).unwrap_or(std::cmp::Ordering::Equal));\n",
-    "failures": [],
-    "group": "Matrix",
-    "line": 256,
-    "passed": true,
-    "test_name": "Svd",
-    "time_ms": 0.008999999612569809
+    "test_name": "Cholesky",
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
@@ -604,68 +640,32 @@
     "line": 142,
     "passed": true,
     "test_name": "Inverse",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.035999998450279236
   },
   {
     "checks": [
       {
-        "code_line": "evs.len() == 3",
-        "line": 248,
+        "code_line": "a.rank() == 3",
+        "line": 290,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(evs[0], 1.0)",
-        "line": 249,
+        "code_line": "b.rank() == 2",
+        "line": 291,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(evs[1], 2.0)",
-        "line": 250,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(evs[2], 3.0)",
-        "line": 251,
+        "code_line": "c.rank() == 0",
+        "line": 292,
         "passed": true
       }
     ],
-    "code": "        use crate::Matrix;\n        let a = Matrix::from_vec(3, 3, vec![3.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 2.0]);\n        let mut evs = a.eigenvalues();\n        evs.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));\n",
+    "code": "        use crate::Matrix;\n        let a = Matrix::identity(3);\n        let b = Matrix::from_vec(3, 3, vec![1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0]);\n        let c = Matrix::zeros(3, 3);\n",
     "failures": [],
     "group": "Matrix",
-    "line": 242,
+    "line": 284,
     "passed": true,
-    "test_name": "Eigenvalues",
+    "test_name": "Rank",
     "time_ms": 0.003000000026077032
-  },
-  {
-    "checks": [
-      {
-        "code_line": "loaded.name == \"test_matrix\"",
-        "line": 305,
-        "passed": true
-      },
-      {
-        "code_line": "loaded.rows == 2 && loaded.cols == 3",
-        "line": 306,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(loaded[(0, 0)], 1.0)",
-        "line": 307,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(loaded[(1, 2)], 6.0)",
-        "line": 308,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Matrix;\n        let mut a = Matrix::from_vec(2, 3, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);\n        a.name = \"test_matrix\".to_string();\n        let filename = \"serialization/test_matrix.json\";\n        a.file_json_dump(filename).unwrap();\n        let loaded = Matrix::file_json_load(filename).unwrap();\n",
-    "failures": [],
-    "group": "Matrix",
-    "line": 297,
-    "passed": true,
-    "test_name": "Json Roundtrip",
-    "time_ms": 13.666999816894531
   }
 ]

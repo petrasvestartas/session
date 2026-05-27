@@ -88,7 +88,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.02199999988079071
+    "time_ms": 0.032999999821186066
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 82,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.004000000189989805
+    "time_ms": 0.008999999612569809
   },
   {
     "checks": [
@@ -170,7 +170,7 @@
     "line": 98,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 12.211999893188477
+    "time_ms": 17.02199935913086
   },
   {
     "checks": [
@@ -226,7 +226,7 @@
     "line": 129,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 13.23900032043457
+    "time_ms": 13.831999778747559
   },
   {
     "checks": [
@@ -247,7 +247,7 @@
     "line": 155,
     "passed": true,
     "test_name": "Is Ccw",
-    "time_ms": 0.0020000000949949026
+    "time_ms": 0.004999999888241291
   },
   {
     "checks": [
@@ -263,7 +263,7 @@
     "line": 172,
     "passed": true,
     "test_name": "Mid Point",
-    "time_ms": 0.0010000000474974513
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
@@ -279,7 +279,7 @@
     "line": 184,
     "passed": true,
     "test_name": "Distance",
-    "time_ms": 0.0010000000474974513
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
@@ -295,7 +295,7 @@
     "line": 197,
     "passed": true,
     "test_name": "Squared Distance",
-    "time_ms": 0.0010000000474974513
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
@@ -311,7 +311,7 @@
     "line": 210,
     "passed": true,
     "test_name": "Area",
-    "time_ms": 0.003000000026077032
+    "time_ms": 0.007000000216066837
   },
   {
     "checks": [
@@ -337,7 +337,7 @@
     "line": 224,
     "passed": true,
     "test_name": "Centroid Quad",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.013000000268220901
   },
   {
     "checks": [
@@ -363,7 +363,7 @@
     "line": 241,
     "passed": true,
     "test_name": "Centroid",
-    "time_ms": 0.0020000000949949026
+    "time_ms": 0.006000000052154064
   },
   {
     "checks": [
@@ -379,6 +379,6 @@
     "line": 257,
     "passed": true,
     "test_name": "Dihedral Angle Deg",
-    "time_ms": 0.004000000189989805
+    "time_ms": 0.00800000037997961
   }
 ]

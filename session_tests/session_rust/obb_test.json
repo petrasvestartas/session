@@ -88,7 +88,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.017000000923871994
+    "time_ms": 0.07699999958276749
   },
   {
     "checks": [
@@ -139,7 +139,7 @@
     "line": 83,
     "passed": true,
     "test_name": "Collision",
-    "time_ms": 0.007000000216066837
+    "time_ms": 0.017000000923871994
   },
   {
     "checks": [
@@ -165,7 +165,7 @@
     "line": 103,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.02199999988079071
   },
   {
     "checks": [
@@ -211,7 +211,7 @@
     "line": 127,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 14.625
+    "time_ms": 19.224000930786133
   },
   {
     "checks": [
@@ -257,7 +257,7 @@
     "line": 162,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 9.187999725341797
+    "time_ms": 14.77299976348877
   },
   {
     "checks": [
@@ -333,53 +333,7 @@
     "line": 194,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 0.012000000104308128
-  },
-  {
-    "checks": [
-      {
-        "code_line": "rects.len() == 10",
-        "line": 347,
-        "passed": true
-      },
-      {
-        "code_line": "rects[0] == Point::new(3.0, 5.0, -1.0)",
-        "line": 348,
-        "passed": true
-      },
-      {
-        "code_line": "rects[2] == Point::new(-1.0, -1.0, -1.0)",
-        "line": 349,
-        "passed": true
-      },
-      {
-        "code_line": "rects[4] == rects[0]",
-        "line": 350,
-        "passed": true
-      },
-      {
-        "code_line": "rects[5] == Point::new(3.0, 5.0, 7.0)",
-        "line": 351,
-        "passed": true
-      },
-      {
-        "code_line": "rects[7] == Point::new(-1.0, -1.0, 7.0)",
-        "line": 352,
-        "passed": true
-      },
-      {
-        "code_line": "rects[9] == rects[5]",
-        "line": 353,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::OBB;\n        use crate::Point;\n        use crate::Vector;\n\n        let bb = OBB::new(\n            Point::new(1.0, 2.0, 3.0),\n            Vector::new(1.0, 0.0, 0.0),\n            Vector::new(0.0, 1.0, 0.0),\n            Vector::new(0.0, 0.0, 1.0),\n            Vector::new(2.0, 3.0, 4.0),\n        );\n        let rects = bb.two_rectangles();\n\n        // bottom rect (z=-4 offset): corners at z=-1; top rect (z=+4 offset): corners at z=7",
-    "failures": [],
-    "group": "OBB",
-    "line": 332,
-    "passed": true,
-    "test_name": "Two Rectangles",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.04399999976158142
   },
   {
     "checks": [
@@ -425,7 +379,53 @@
     "line": 304,
     "passed": true,
     "test_name": "From Plane",
-    "time_ms": 0.017999999225139618
+    "time_ms": 0.03400000184774399
+  },
+  {
+    "checks": [
+      {
+        "code_line": "rects.len() == 10",
+        "line": 347,
+        "passed": true
+      },
+      {
+        "code_line": "rects[0] == Point::new(3.0, 5.0, -1.0)",
+        "line": 348,
+        "passed": true
+      },
+      {
+        "code_line": "rects[2] == Point::new(-1.0, -1.0, -1.0)",
+        "line": 349,
+        "passed": true
+      },
+      {
+        "code_line": "rects[4] == rects[0]",
+        "line": 350,
+        "passed": true
+      },
+      {
+        "code_line": "rects[5] == Point::new(3.0, 5.0, 7.0)",
+        "line": 351,
+        "passed": true
+      },
+      {
+        "code_line": "rects[7] == Point::new(-1.0, -1.0, 7.0)",
+        "line": 352,
+        "passed": true
+      },
+      {
+        "code_line": "rects[9] == rects[5]",
+        "line": 353,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::OBB;\n        use crate::Point;\n        use crate::Vector;\n\n        let bb = OBB::new(\n            Point::new(1.0, 2.0, 3.0),\n            Vector::new(1.0, 0.0, 0.0),\n            Vector::new(0.0, 1.0, 0.0),\n            Vector::new(0.0, 0.0, 1.0),\n            Vector::new(2.0, 3.0, 4.0),\n        );\n        let rects = bb.two_rectangles();\n\n        // bottom rect (z=-4 offset): corners at z=-1; top rect (z=+4 offset): corners at z=7",
+    "failures": [],
+    "group": "OBB",
+    "line": 332,
+    "passed": true,
+    "test_name": "Two Rectangles",
+    "time_ms": 0.013000000268220901
   },
   {
     "checks": [
@@ -491,6 +491,6 @@
     "line": 226,
     "passed": true,
     "test_name": "From Geometry",
-    "time_ms": 0.2460000067949295
+    "time_ms": 1.1039999723434448
   }
 ]

@@ -65,7 +65,13 @@ fn vs_main(
     let dv   = mp1 - mp0;
     let len  = length(dv);
     let rot  = rotation_z_to(dv / max(len, 1e-6));
-    let r    = select(camera.point_size * 3.0, seg.radius, seg.radius > 0.0);
+    // Per-vertex depth: lp.z=-0.5 → mp0, lp.z=+0.5 → mp1.
+    // Scale radius so the cylinder projects to a constant screen-pixel width.
+    // _kl.w > 0 → ortho (= ortho half-height mm); == 0 → perspective (use clip.w depth).
+    let axis_pt      = mp0 + dv * (lp.z + 0.5);
+    let pt_clip      = camera.view_proj * vec4<f32>(axis_pt, 1.0);
+    let depth_factor = select(pt_clip.w * 577.35, camera._kl.w, camera._kl.w > 0.0);
+    let r    = select(camera.point_size * 3.0 * depth_factor / camera._screen.y, seg.radius, seg.radius > 0.0);
     let scaled    = vec3<f32>(lp.x * r, lp.y * r, lp.z * len);
     let world_pos = rot * scaled + (mp0 + mp1) * 0.5;
     var out: VsOut;

@@ -38043,7 +38043,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "mesh() -> Mesh",
-          "code": "pub fn mesh(&self) -> Mesh {\n        if !self.is_trimmed() { return self.m_surface.mesh(); }\n        let planar = self.m_surface.is_planar(1e-6);\n        let disc_loop = |crv: &NurbsCurve| -> Vec<[f64; 2]> {\n            let mut pts: Vec<[f64; 2]> = if crv.degree() <= 1 && !crv.is_rational() {\n                (0..crv.cv_count()).filter_map(|i| crv.get_cv(i)).map(|p| [p[0] as f64, p[1] as f64]).collect()\n            } else {\n                let n = (crv.cv_count() * 4).max(16);\n                let (sampled, _) = crv.divide_by_count(n, false);\n                sampled.iter().map(|p| [p[0] as f64, p[1] as f64]).collect()\n            };\n            while pts.len() > 1 {\n                let dx = pts[0][0] - pts[pts.len()-1][0];\n                let dy = pts[0][1] - pts[pts.len()-1][1];\n                if dx*dx + dy*dy < 1e-20 { pts.pop(); } else { break; }\n            }\n            pts\n        };\n        let outer_uv = disc_loop(self.m_outer_loop.as_ref().unwrap());\n        let hole_uvs: Vec<Vec<[f64;2]>> = self.m_inner_loops.iter().map(|c| disc_loop(c)).collect();\n        if outer_uv.len() < 3 { return self.m_surface.mesh(); }\n        // Fan triangulation for planar, no-hole case\n        if planar && hole_uvs.is_empty() {\n            let n = outer_uv.len();\n            let mut result = Mesh::new();\n            let vks: Vec<(usize, [f32; 2])> = outer_uv.iter().map(|p| {\n                let u = p[0] as f32; let v = p[1] as f32;\n                let p3d = self.m_surface.point_at(u, v).unwrap_or(Point::new(0.0, 0.0, 0.0));\n                (result.add_vertex(p3d, None), [u, v])\n            }).collect();\n            for i in 1..n-1 {\n                result.add_face(vec![vks[0].0, vks[i].0, vks[i+1].0], None);\n            }\n            for (vk, uv) in &vks {\n                let nrm = self.m_surface.normal_at(uv[0], uv[1]);\n                if let Some(vd) = result.vertex.get_mut(vk) { vd.set_normal(nrm[0], nrm[1], nrm[2]); }\n            }\n            return result;\n        }\n        let mut bb_umin = 1e30_f64; let mut bb_vmin = 1e30_f64;\n        let mut bb_umax = -1e30_f64; let mut bb_vmax = -1e30_f64;\n        for p in &outer_uv {\n            if p[0] < bb_umin { bb_umin = p[0]; } if p[1] < bb_vmin { bb_vmin = p[1]; }\n            if p[0] > bb_umax { bb_umax = p[0]; } if p[1] > bb_vmax { bb_vmax = p[1]; }\n        }\n        let point_in_polygon = |u: f64, v: f64, poly: &[[f64;2]]| -> bool {\n            let n = poly.len(); let mut inside = false; let mut j = n - 1;\n            for i in 0..n {\n                let xi = poly[i][0]; let yi = poly[i][1];\n                let xj = poly[j][0]; let yj = poly[j][1];\n                if ((yi > v) != (yj > v)) && (u < (xj-xi)*(v-yi)/(yj-yi)+xi) { inside = !inside; }\n                j = i;\n            }\n            inside\n        };\n        let inside_trim = |u: f64, v: f64| -> bool {\n            if !point_in_polygon(u, v, &outer_uv) { return false; }\n            for h in &hole_uvs { if point_in_polygon(u, v, h) { return false; } }\n            true\n        };\n        let mut dt = crate::nurbssurface_trimmed::Delaunay2D::new(bb_umin, bb_vmin, bb_umax, bb_vmax);\n        {\n            let vis: Vec<i32> = outer_uv.iter().map(|p| dt.insert(p[0], p[1])).collect();\n            for i in 0..vis.len() {\n                let j = (i + 1) % vis.len();\n                if vis[i] >= 0 && vis[j] >= 0 && vis[i] != vis[j] { dt.insert_constraint(vis[i], vis[j]); }\n            }\n        }\n        for h in hole_uvs.iter() {\n            let vis: Vec<i32> = h.iter().map(|p| dt.insert(p[0], p[1])).collect();\n            for i in 0..vis.len() {\n                let j = (i + 1) % vis.len();\n                if vis[i] >= 0 && vis[j] >= 0 && vis[i] != vis[j] { dt.insert_constraint(vis[i], vis[j]); }\n            }\n        }\n        if !planar {\n            let usp: Vec<f64> = self.m_surface.get_span_vector(0).iter().map(|&v| v as f64).collect();\n            let vsp: Vec<f64> = self.m_surface.get_span_vector(1).iter().map(|&v| v as f64).collect();\n            let deg_u = self.m_surface.degree(0);\n            let deg_v = self.m_surface.degree(1);\n            let ns_u = usp.len().saturating_sub(1);\n            let ns_v = vsp.len().saturating_sub(1);\n            let mut bmin = [1e30f32; 3]; let mut bmax = [-1e30f32; 3];\n            for i in 0..self.m_surface.cv_count_dir(Some(0)) {\n                for j in 0..self.m_surface.cv_count_dir(Some(1)) {\n                    if let Some(p) = self.m_surface.get_cv(i, j) {\n                        for k in 0..3 { if p[k] < bmin[k] { bmin[k]=p[k]; } if p[k] > bmax[k] { bmax[k]=p[k]; } }\n                    }\n                }\n            }\n            let bbox_diag = (0..3).map(|k| (bmax[k]-bmin[k]).powi(2)).sum::<f32>().sqrt() as f64;\n            let max_angle_deg = 20.0_f64;\n            let pe00 = self.m_surface.point_at(usp[0] as f32, vsp[0] as f32).unwrap_or(Point::new(0.0,0.0,0.0));\n            let pe10 = self.m_surface.point_at(*usp.last().unwrap() as f32, vsp[0] as f32).unwrap_or(Point::new(0.0,0.0,0.0));\n            let pe01 = self.m_surface.point_at(usp[0] as f32, *vsp.last().unwrap() as f32).unwrap_or(Point::new(0.0,0.0,0.0));\n            let l1 = ((pe10[0]-pe00[0]).powi(2)+(pe10[1]-pe00[1]).powi(2)+(pe10[2]-pe00[2]).powi(2)).sqrt() as f64;\n            let l2 = ((pe01[0]-pe00[0]).powi(2)+(pe01[1]-pe00[1]).powi(2)+(pe01[2]-pe00[2]).powi(2)).sqrt() as f64;\n            let max_dim = l1.max(l2);\n            let max_edge_len = if max_dim > 1e-10 { max_dim / 10.0 } else { 0.0 };\n            let span_subs = |dir: usize, sp: &[f64], osp: &[f64], deg: usize| -> Vec<usize> {\n                let n = sp.len().saturating_sub(1);\n                let mut subs = vec![1usize; n];\n                let s_pos: Vec<f64> = (0..osp.len().saturating_sub(1)).map(|k| (osp[k]+osp[k+1])*0.5).collect();\n                for i in 0..n {\n                    let t0 = sp[i]; let t1 = sp[i+1];\n                    if deg > 1 {\n                        let mut ma = 0.0_f64;\n                        for &s in &s_pos {\n                            let mut ta = 0.0_f64;\n                            let mut pn = [0.0f32; 3];\n                            for k in 0..=4 {\n                                let t = (t0 + k as f64*(t1-t0)/4.0) as f32;\n                                let (su, sv) = if dir==0 { (t, s as f32) } else { (s as f32, t) };\n                                let nrm = self.m_surface.normal_at(su, sv);\n                                if k > 0 {\n                                    let d = (pn[0]*nrm[0]+pn[1]*nrm[1]+pn[2]*nrm[2]).max(-1.0).min(1.0);\n                                    ta += (d.acos() as f64) * 180.0 / std::f64::consts::PI;\n                                }\n                                pn = [nrm[0], nrm[1], nrm[2]];\n                            }\n                            if ta > ma { ma = ta; }\n                        }\n                        subs[i] = 1.max(((ma / max_angle_deg).ceil() as usize).min(24));\n                    }\n                    let chord_tol = bbox_diag * 0.005;\n                    let nc = s_pos.len().min(3);\n                    let mut max_dev = 0.0_f64;\n                    for ci in 0..=nc {\n                        let s = osp[0] + ci as f64*(osp[osp.len()-1]-osp[0])/(nc.max(1) as f64);\n                        let (p0u, p0v) = if dir==0 { (t0 as f32, s as f32) } else { (s as f32, t0 as f32) };\n                        let (p1u, p1v) = if dir==0 { (t1 as f32, s as f32) } else { (s as f32, t1 as f32) };\n                        let pt0 = self.m_surface.point_at(p0u, p0v).unwrap_or(Point::new(0.0,0.0,0.0));\n                        let pt1 = self.m_surface.point_at(p1u, p1v).unwrap_or(Point::new(0.0,0.0,0.0));\n                        for k in 1..=3 {\n                            let frac = k as f64 / 4.0;\n                            let tm = (t0 + frac*(t1-t0)) as f32;\n                            let (pmu, pmv) = if dir==0 { (tm, s as f32) } else { (s as f32, tm) };\n                            let ptm = self.m_s",
+          "code": "pub fn mesh(&self) -> Mesh {\n        if !self.is_trimmed() { return self.m_surface.mesh(); }\n        let planar = self.m_surface.is_planar(1e-6);\n        let disc_loop = |crv: &NurbsCurve| -> Vec<[f64; 2]> {\n            let mut pts: Vec<[f64; 2]> = if crv.degree() <= 1 && !crv.is_rational() {\n                (0..crv.cv_count()).filter_map(|i| crv.get_cv(i)).map(|p| [p[0] as f64, p[1] as f64]).collect()\n            } else {\n                let n = (crv.cv_count() * 4).max(16);\n                let (sampled, _) = crv.divide_by_count(n, false);\n                sampled.iter().map(|p| [p[0] as f64, p[1] as f64]).collect()\n            };\n            while pts.len() > 1 {\n                let dx = pts[0][0] - pts[pts.len()-1][0];\n                let dy = pts[0][1] - pts[pts.len()-1][1];\n                if dx*dx + dy*dy < 1e-20 { pts.pop(); } else { break; }\n            }\n            pts\n        };\n        let outer_uv = disc_loop(self.m_outer_loop.as_ref().unwrap());\n        let hole_uvs: Vec<Vec<[f64;2]>> = self.m_inner_loops.iter().map(|c| disc_loop(c)).collect();\n        if outer_uv.len() < 3 { return self.m_surface.mesh(); }\n        let mut bb_umin = 1e30_f64; let mut bb_vmin = 1e30_f64;\n        let mut bb_umax = -1e30_f64; let mut bb_vmax = -1e30_f64;\n        for p in &outer_uv {\n            if p[0] < bb_umin { bb_umin = p[0]; } if p[1] < bb_vmin { bb_vmin = p[1]; }\n            if p[0] > bb_umax { bb_umax = p[0]; } if p[1] > bb_vmax { bb_vmax = p[1]; }\n        }\n        let point_in_polygon = |u: f64, v: f64, poly: &[[f64;2]]| -> bool {\n            let n = poly.len(); let mut inside = false; let mut j = n - 1;\n            for i in 0..n {\n                let xi = poly[i][0]; let yi = poly[i][1];\n                let xj = poly[j][0]; let yj = poly[j][1];\n                if ((yi > v) != (yj > v)) && (u < (xj-xi)*(v-yi)/(yj-yi)+xi) { inside = !inside; }\n                j = i;\n            }\n            inside\n        };\n        let inside_trim = |u: f64, v: f64| -> bool {\n            if !point_in_polygon(u, v, &outer_uv) { return false; }\n            for h in &hole_uvs { if point_in_polygon(u, v, h) { return false; } }\n            true\n        };\n        if planar {\n            use crate::remesh_cdt::cdt_triangulate;\n            let signed_area = |pts: &[[f64; 2]]| -> f64 {\n                let n = pts.len();\n                let mut a = 0.0_f64;\n                for i in 0..n {\n                    let j = (i + 1) % n;\n                    a += pts[i][0] * pts[j][1] - pts[j][0] * pts[i][1];\n                }\n                a * 0.5\n            };\n            let mut border_uv = outer_uv.clone();\n            if signed_area(&border_uv) < 0.0 { border_uv.reverse(); }\n            let mut holes_uv = hole_uvs.clone();\n            for h in &mut holes_uv {\n                if signed_area(h) > 0.0 { h.reverse(); }\n            }\n            let border_pts: Vec<Point> = border_uv.iter().map(|p| Point::new(p[0] as f32, p[1] as f32, 0.0)).collect();\n            let holes_pts: Vec<Vec<Point>> = holes_uv.iter().map(|h| h.iter().map(|p| Point::new(p[0] as f32, p[1] as f32, 0.0)).collect()).collect();\n            let tris = cdt_triangulate(&border_pts, &holes_pts);\n            if tris.is_empty() { return self.m_surface.mesh(); }\n            let mut flat_uv: Vec<[f32; 2]> = border_uv.iter().map(|p| [p[0] as f32, p[1] as f32]).collect();\n            for h in &holes_uv { flat_uv.extend(h.iter().map(|p| [p[0] as f32, p[1] as f32])); }\n            let mut result = Mesh::new();\n            let mut vert_map: Vec<Option<usize>> = vec![None; flat_uv.len()];\n            for &(a, b, c) in &tris {\n                for &vi in &[a, b, c] {\n                    if vert_map[vi].is_none() {\n                        let u = flat_uv[vi][0];\n                        let v = flat_uv[vi][1];\n                        let p3d = self.m_surface.point_at(u, v).unwrap_or(Point::new(0.0, 0.0, 0.0));\n                        vert_map[vi] = Some(result.add_vertex(p3d, None));\n                    }\n                }\n            }\n            for &(a, b, c) in &tris {\n                let v0 = vert_map[a].unwrap();\n                let v1 = vert_map[b].unwrap();\n                let v2 = vert_map[c].unwrap();\n                if v0 == v1 || v1 == v2 || v2 == v0 { continue; }\n                result.add_face(vec![v0, v1, v2], None);\n            }\n            let dom_u = self.m_surface.domain(0).unwrap_or((0.0, 1.0));\n            let dom_v = self.m_surface.domain(1).unwrap_or((0.0, 1.0));\n            let nrm = self.m_surface.normal_at((dom_u.0 + dom_u.1) / 2.0, (dom_v.0 + dom_v.1) / 2.0);\n            for (_, vd) in result.vertex.iter_mut() { vd.set_normal(nrm[0], nrm[1], nrm[2]); }\n            return result;\n        }\n        let mut dt = crate::nurbssurface_trimmed::Delaunay2D::new(bb_umin, bb_vmin, bb_umax, bb_vmax);\n        {\n            let vis: Vec<i32> = outer_uv.iter().map(|p| dt.insert(p[0], p[1])).collect();\n            for i in 0..vis.len() {\n                let j = (i + 1) % vis.len();\n                if vis[i] >= 0 && vis[j] >= 0 && vis[i] != vis[j] { dt.insert_constraint(vis[i], vis[j]); }\n            }\n        }\n        for h in hole_uvs.iter() {\n            let vis: Vec<i32> = h.iter().map(|p| dt.insert(p[0], p[1])).collect();\n            for i in 0..vis.len() {\n                let j = (i + 1) % vis.len();\n                if vis[i] >= 0 && vis[j] >= 0 && vis[i] != vis[j] { dt.insert_constraint(vis[i], vis[j]); }\n            }\n        }\n        if !planar {\n            let usp: Vec<f64> = self.m_surface.get_span_vector(0).iter().map(|&v| v as f64).collect();\n            let vsp: Vec<f64> = self.m_surface.get_span_vector(1).iter().map(|&v| v as f64).collect();\n            let deg_u = self.m_surface.degree(0);\n            let deg_v = self.m_surface.degree(1);\n            let ns_u = usp.len().saturating_sub(1);\n            let ns_v = vsp.len().saturating_sub(1);\n            let mut bmin = [1e30f32; 3]; let mut bmax = [-1e30f32; 3];\n            for i in 0..self.m_surface.cv_count_dir(Some(0)) {\n                for j in 0..self.m_surface.cv_count_dir(Some(1)) {\n                    if let Some(p) = self.m_surface.get_cv(i, j) {\n                        for k in 0..3 { if p[k] < bmin[k] { bmin[k]=p[k]; } if p[k] > bmax[k] { bmax[k]=p[k]; } }\n                    }\n                }\n            }\n            let bbox_diag = (0..3).map(|k| (bmax[k]-bmin[k]).powi(2)).sum::<f32>().sqrt() as f64;\n            let max_angle_deg = 20.0_f64;\n            let pe00 = self.m_surface.point_at(usp[0] as f32, vsp[0] as f32).unwrap_or(Point::new(0.0,0.0,0.0));\n            let pe10 = self.m_surface.point_at(*usp.last().unwrap() as f32, vsp[0] as f32).unwrap_or(Point::new(0.0,0.0,0.0));\n            let pe01 = self.m_surface.point_at(usp[0] as f32, *vsp.last().unwrap() as f32).unwrap_or(Point::new(0.0,0.0,0.0));\n            let l1 = ((pe10[0]-pe00[0]).powi(2)+(pe10[1]-pe00[1]).powi(2)+(pe10[2]-pe00[2]).powi(2)).sqrt() as f64;\n            let l2 = ((pe01[0]-pe00[0]).powi(2)+(pe01[1]-pe00[1]).powi(2)+(pe01[2]-pe00[2]).powi(2)).sqrt() as f64;\n            let max_dim = l1.max(l2);\n            let max_edge_len = if max_dim > 1e-10 { max_dim / 10.0 } else { 0.0 };\n            let span_subs = |dir: usize, sp: &[f64], osp: &[f64], deg: usize| -> Vec<usize> {\n                let n = sp.len().saturating_sub(1);\n                let mut subs = vec![1usize; n];\n                let s_pos: Vec<f64> = (0..osp.len().saturating_sub(1)).map(|k| (osp[k]+osp[k+1])*0.5).collect();\n                for i in 0..n {\n                    let t0 = sp[i]; let t1 = sp[i+1];\n                    if deg > 1 {\n                        let mut ma = 0.0_f64;\n                        for &s in &s_pos {\n                            let mut ta = 0.0_f64;\n                            let mut pn = [0.0f32; 3];\n                            for k in 0..=4 {\n                                let t = (t0 + k as f64*(t1-t0)/4.0) as f32;\n                                let (su, sv) = if d",
           "file": "nurbssurface_trimmed.rs"
         }
       },
@@ -58670,6 +58670,7 @@ window.API_INDEX = {
         "Session.guid",
         "Session.new",
         "Session.point_hit",
+        "Session.ray_cast_nearest",
         "Session.rebuild_ray_bvh_cache",
         "Session.str"
       ]
@@ -83980,7 +83981,7 @@ window.API_INDEX = {
       "implementations": {
         "rust": {
           "sig": "new() -> Self",
-          "code": "pub fn new() -> Self {\n        let mut default_vertex_attributes = HashMap::new();\n        default_vertex_attributes.insert(\"x\".to_string(), 0.0);\n        default_vertex_attributes.insert(\"y\".to_string(), 0.0);\n        default_vertex_attributes.insert(\"z\".to_string(), 0.0);\n\n        Mesh {\n            halfedge: HashMap::new(),\n            vertex: HashMap::new(),\n            face: HashMap::new(),\n            facedata: HashMap::new(),\n            edgedata: HashMap::new(),\n            default_vertex_attributes,\n            default_face_attributes: HashMap::new(),\n            default_edge_attributes: HashMap::new(),\n            triangulation: HashMap::new(),\n            face_holes: HashMap::new(),\n            max_vertex: 0,\n            max_face: 0,\n            guid: std::sync::OnceLock::new(),\n            name: \"my_mesh\".to_string(),\n            pointcolors: Vec::new(),\n            facecolors: Vec::new(),\n            linecolors: Vec::new(),\n            widths: Vec::new(),\n            objectcolor: Color::white(),\n            color_mode: ColorMode::OBJECTCOLOR,\n            xform: Xform::identity(),\n            tri_bvh: None,\n            tri_tris: Vec::new(),\n            tri_vertices: Vec::new(),\n        }\n    }",
+          "code": "pub fn new() -> Self {\n        let mut default_vertex_attributes = HashMap::new();\n        default_vertex_attributes.insert(\"x\".to_string(), 0.0);\n        default_vertex_attributes.insert(\"y\".to_string(), 0.0);\n        default_vertex_attributes.insert(\"z\".to_string(), 0.0);\n\n        Mesh {\n            halfedge: HashMap::new(),\n            vertex: HashMap::new(),\n            face: HashMap::new(),\n            facedata: HashMap::new(),\n            edgedata: HashMap::new(),\n            default_vertex_attributes,\n            default_face_attributes: HashMap::new(),\n            default_edge_attributes: HashMap::new(),\n            triangulation: HashMap::new(),\n            face_holes: HashMap::new(),\n            max_vertex: 0,\n            max_face: 0,\n            guid: std::sync::OnceLock::new(),\n            name: \"my_mesh\".to_string(),\n            pointcolors: Vec::new(),\n            facecolors: Vec::new(),\n            linecolors: Vec::new(),\n            widths: Vec::new(),\n            objectcolor: Color::white(),\n            color_mode: ColorMode::OBJECTCOLOR,\n            xform: Xform::identity(),\n            tri_bvh: None,\n            tri_tris: Vec::new(),\n            tri_vertices: Vec::new(),\n            crease_angle_deg: 0.0,\n        }\n    }",
           "file": "mesh.rs"
         }
       },
@@ -85535,7 +85536,22 @@ window.API_INDEX = {
         "Session.pb_dumps",
         "Session.pb_loads",
         "Session.ray_cast",
+        "Session.ray_cast_nearest",
         "Session.str"
+      ]
+    },
+    {
+      "name": "Session.ray_cast_nearest",
+      "implementations": {
+        "rust": {
+          "sig": "ray_cast_nearest(\n        ,\n        origin: &Point,\n        direction: &crate::Vector,\n        tolerance: f32,\n    ) -> Vec<RayHit>",
+          "code": "pub fn ray_cast_nearest(\n        &mut self,\n        origin: &Point,\n        direction: &crate::Vector,\n        tolerance: f32,\n    ) -> Vec<RayHit> {\n        let hits_all = self.ray_cast(origin, direction, tolerance);\n        if hits_all.is_empty() { return Vec::new(); }\n        let min_d = hits_all[0].distance;\n        hits_all.into_iter().filter(|h| (h.distance - min_d).abs() <= tolerance).collect()\n    }",
+          "file": "session.rs"
+        }
+      },
+      "related": [
+        "Session.new",
+        "Session.ray_cast"
       ]
     },
     {
@@ -93094,12 +93110,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"NurbsSurfaceTrimmed\", \"Mesh\")",
-          "code": "MINI_TEST(\"NurbsSurfaceTrimmed\", \"Mesh\") {\n        // uncomment #include \"nurbssurface_trimmed.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"mesh.h\"\n\n        NurbsSurface srf;\n        srf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n        srf.set_cv(0, 0, Point(0, 0, 0));\n        srf.set_cv(1, 0, Point(6, 0, 0));\n        srf.set_cv(0, 1, Point(0, 6, 0));\n        srf.set_cv(1, 1, Point(6, 6, 0));\n\n        // Untrimmed mesh\n        Mesh m_full = srf.mesh();\n\n        // Trimmed mesh (smaller outer boundary)\n        NurbsCurve outer = NurbsCurve::create(true, 1, {\n            Point(0.1, 0.1, 0),\n            Point(0.9, 0.1, 0),\n            Point(0.9, 0.9, 0),\n            Point(0.1, 0.9, 0),\n        });\n        NurbsSurfaceTrimmed ts = NurbsSurfaceTrimmed::create(srf, outer);\n        Mesh m = ts.mesh();\n\n        // Trimmed with hole\n        NurbsCurve hole = NurbsCurve::create(true, 1, {\n            Point(0.3, 0.3, 0),\n            Point(0.7, 0.3, 0),\n            Point(0.7, 0.7, 0),\n            Point(0.3, 0.7, 0),\n        });\n        NurbsSurfaceTrimmed ts_hole = NurbsSurfaceTrimmed::create(srf, outer);\n        ts_hole.add_inner_loop(hole);\n        Mesh m_hole = ts_hole.mesh();\n\n        MINI_CHECK(!m.is_empty());\n        MINI_CHECK(m.number_of_vertices() > 0);\n        MINI_CHECK(m.number_of_faces() > 0);\n        MINI_CHECK(m.number_of_faces() > 0);\n        MINI_CHECK(m_hole.number_of_faces() > 0);\n    }",
+          "code": "MINI_TEST(\"NurbsSurfaceTrimmed\", \"Mesh\") {\n        // uncomment #include \"nurbssurface_trimmed.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"mesh.h\"\n\n        NurbsSurface srf;\n        srf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n        srf.set_cv(0, 0, Point(0, 0, 0));\n        srf.set_cv(1, 0, Point(6, 0, 0));\n        srf.set_cv(0, 1, Point(0, 6, 0));\n        srf.set_cv(1, 1, Point(6, 6, 0));\n\n        // Untrimmed mesh\n        Mesh m_full = srf.mesh();\n\n        // Trimmed mesh (smaller outer boundary)\n        NurbsCurve outer = NurbsCurve::create(true, 1, {\n            Point(0.1, 0.1, 0),\n            Point(0.9, 0.1, 0),\n            Point(0.9, 0.9, 0),\n            Point(0.1, 0.9, 0),\n        });\n        NurbsSurfaceTrimmed ts = NurbsSurfaceTrimmed::create(srf, outer);\n        Mesh m = ts.mesh();\n\n        // Trimmed with hole\n        NurbsCurve hole = NurbsCurve::create(true, 1, {\n            Point(0.3, 0.3, 0),\n            Point(0.7, 0.3, 0),\n            Point(0.7, 0.7, 0),\n            Point(0.3, 0.7, 0),\n        });\n        NurbsSurfaceTrimmed ts_hole = NurbsSurfaceTrimmed::create(srf, outer);\n        ts_hole.add_inner_loop(hole);\n        Mesh m_hole = ts_hole.mesh();\n\n        MINI_CHECK(!m.is_empty());\n        MINI_CHECK(m.number_of_vertices() > 0);\n        MINI_CHECK(m.number_of_faces() > 0);\n        MINI_CHECK(m.number_of_faces() > 0);\n        MINI_CHECK(m_hole.number_of_faces() > 0);\n\n        // Planar circle (rational NURBS outer loop)\n        double cw = std::sqrt(2.0) / 2.0;\n        double ccx[9] = {1, 1, 0, -1, -1, -1, 0, 1, 1};\n        double ccy[9] = {0, 1, 1, 1, 0, -1, -1, -1, 0};\n        double cwt[9] = {1, cw, 1, cw, 1, cw, 1, cw, 1};\n        NurbsCurve circle_loop(3, true, 3, 9);\n        circle_loop.m_nurbsknot = {0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0};\n        for (int i = 0; i < 9; ++i)\n            circle_loop.set_cv_4d(i, (0.5 + 0.5*ccx[i])*cwt[i], (0.5 + 0.5*ccy[i])*cwt[i], 0.0, cwt[i]);\n        NurbsSurfaceTrimmed ts_circ = NurbsSurfaceTrimmed::create(srf, circle_loop);\n        Mesh mc = ts_circ.mesh();\n        MINI_CHECK(!mc.is_empty());\n        MINI_CHECK(mc.number_of_vertices() >= 30);\n        MINI_CHECK(mc.number_of_faces() >= 30);\n        for (const auto& [vk, vd] : mc.vertex) {\n            double nx = 0, ny = 0, nz = 0;\n            auto it = vd.attributes.find(\"nx\"); if (it != vd.attributes.end()) nx = it->second;\n            it = vd.attributes.find(\"ny\"); if (it != vd.attributes.end()) ny = it->second;\n            it = vd.attributes.find(\"nz\"); if (it != vd.attributes.end()) nz = it->second;\n            MINI_CHECK(std::sqrt(nx*nx + ny*ny + nz*nz) > 0.5);\n        }\n    }",
           "file": "nurbssurface_trimmed_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"NurbsSurfaceTrimmed\", \"Mesh\")",
-          "code": "@MINI_TEST(\"NurbsSurfaceTrimmed\", \"Mesh\")\ndef test_nurbssurface_trimmed_mesh():\n    import math\n    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.nurbssurface_trimmed import NurbsSurfaceTrimmed\n\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(6, 0, 0))\n    srf.set_cv(0, 1, Point(0, 6, 0))\n    srf.set_cv(1, 1, Point(6, 6, 0))\n    outer = NurbsCurve.create(True, 1, [\n        Point(0.05, 0.05, 0), Point(0.95, 0.05, 0),\n        Point(0.95, 0.95, 0), Point(0.05, 0.95, 0),\n    ])\n    ts = NurbsSurfaceTrimmed.create(srf, outer)\n    m = ts.mesh()\n    MINI_CHECK(not m.is_empty())\n    MINI_CHECK(m.number_of_vertices() >= 4)\n    MINI_CHECK(m.number_of_faces() >= 2)\n    for vd in m.vertex.values():\n        nx = vd.attributes.get(\"nx\", 0.0)\n        ny = vd.attributes.get(\"ny\", 0.0)\n        nz = vd.attributes.get(\"nz\", 0.0)\n        MINI_CHECK(math.sqrt(nx*nx + ny*ny + nz*nz) > 0.5)\n\n    bnd = NurbsCurve.create(True, 1, [\n        Point(0, 0, 0), Point(6, 0, 0), Point(6, 6, 0), Point(0, 6, 0),\n    ])\n    ts_hole = NurbsSurfaceTrimmed.create_planar(bnd)\n    ts_hole.add_hole(NurbsCurve.create(True, 1, [\n        Point(2, 2, 0), Point(4, 2, 0), Point(4, 4, 0), Point(2, 4, 0),\n    ]))\n    mh = ts_hole.mesh()\n    MINI_CHECK(not mh.is_empty())\n    MINI_CHECK(mh.number_of_faces() >= 2)\n\n    n = 8\n    pts = []\n    for i in range(n):\n        for j in range(n):\n            x, y = float(i), float(j)\n            r2 = (x - 1.5)**2 + (y - 1.5)**2\n            z = 5.0 * math.exp(-r2) + 0.3 * math.sin(math.pi*x/7.0) * math.sin(math.pi*y/7.0)\n            pts.append(Point(x, y, z))\n    bump_srf = NurbsSurface.create(False, False, 3, 3, n, n, pts)\n    bump_outer = NurbsCurve.create(True, 1, [\n        Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0),\n    ])\n    ts_bump = NurbsSurfaceTrimmed.create(bump_srf, bump_outer)\n    mb = ts_bump.mesh()\n    MINI_CHECK(not mb.is_empty())\n    MINI_CHECK(mb.number_of_vertices() >= 20)\n    MINI_CHECK(mb.number_of_faces() >= 30)\n    for vd in mb.vertex.values():\n        nx = vd.attributes.get(\"nx\", 0.0)\n        ny = vd.attributes.get(\"ny\", 0.0)\n        nz = vd.attributes.get(\"nz\", 0.0)\n        MINI_CHECK(math.sqrt(nx*nx + ny*ny + nz*nz) > 0.5)",
+          "code": "@MINI_TEST(\"NurbsSurfaceTrimmed\", \"Mesh\")\ndef test_nurbssurface_trimmed_mesh():\n    import math\n    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.nurbssurface_trimmed import NurbsSurfaceTrimmed\n\n    srf = NurbsSurface.create_raw(3, False, 2, 2, 2, 2, False, False, 1.0, 1.0)\n    srf.set_cv(0, 0, Point(0, 0, 0))\n    srf.set_cv(1, 0, Point(6, 0, 0))\n    srf.set_cv(0, 1, Point(0, 6, 0))\n    srf.set_cv(1, 1, Point(6, 6, 0))\n    outer = NurbsCurve.create(True, 1, [\n        Point(0.05, 0.05, 0), Point(0.95, 0.05, 0),\n        Point(0.95, 0.95, 0), Point(0.05, 0.95, 0),\n    ])\n    ts = NurbsSurfaceTrimmed.create(srf, outer)\n    m = ts.mesh()\n    MINI_CHECK(not m.is_empty())\n    MINI_CHECK(m.number_of_vertices() >= 4)\n    MINI_CHECK(m.number_of_faces() >= 2)\n    for vd in m.vertex.values():\n        nx = vd.attributes.get(\"nx\", 0.0)\n        ny = vd.attributes.get(\"ny\", 0.0)\n        nz = vd.attributes.get(\"nz\", 0.0)\n        MINI_CHECK(math.sqrt(nx*nx + ny*ny + nz*nz) > 0.5)\n\n    bnd = NurbsCurve.create(True, 1, [\n        Point(0, 0, 0), Point(6, 0, 0), Point(6, 6, 0), Point(0, 6, 0),\n    ])\n    ts_hole = NurbsSurfaceTrimmed.create_planar(bnd)\n    ts_hole.add_hole(NurbsCurve.create(True, 1, [\n        Point(2, 2, 0), Point(4, 2, 0), Point(4, 4, 0), Point(2, 4, 0),\n    ]))\n    mh = ts_hole.mesh()\n    MINI_CHECK(not mh.is_empty())\n    MINI_CHECK(mh.number_of_faces() >= 2)\n\n    cw = math.sqrt(2.0) / 2.0\n    ccx = [1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0, 1.0, 1.0]\n    ccy = [0.0, 1.0, 1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0]\n    cwt = [1.0, cw, 1.0, cw, 1.0, cw, 1.0, cw, 1.0]\n    import numpy as _np\n    circle_loop = NurbsCurve(dimension=3, is_rational=True, order=3, cv_count=9)\n    circle_loop.m_nurbsknot = _np.array([0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0], dtype=_np.float64)\n    for i in range(9):\n        circle_loop.set_cv_4d(i, (0.5 + 0.5 * ccx[i]) * cwt[i], (0.5 + 0.5 * ccy[i]) * cwt[i], 0.0, cwt[i])\n    ts_circ = NurbsSurfaceTrimmed.create(srf, circle_loop)\n    mc = ts_circ.mesh()\n    MINI_CHECK(not mc.is_empty())\n    MINI_CHECK(mc.number_of_vertices() >= 30)\n    MINI_CHECK(mc.number_of_faces() >= 30)\n    for vd in mc.vertex.values():\n        nx = vd.attributes.get(\"nx\", 0.0)\n        ny = vd.attributes.get(\"ny\", 0.0)\n        nz = vd.attributes.get(\"nz\", 0.0)\n        MINI_CHECK(math.sqrt(nx*nx + ny*ny + nz*nz) > 0.5)\n\n    n = 8\n    pts = []\n    for i in range(n):\n        for j in range(n):\n            x, y = float(i), float(j)\n            r2 = (x - 1.5)**2 + (y - 1.5)**2\n            z = 5.0 * math.exp(-r2) + 0.3 * math.sin(math.pi*x/7.0) * math.sin(math.pi*y/7.0)\n            pts.append(Point(x, y, z))\n    bump_srf = NurbsSurface.create(False, False, 3, 3, n, n, pts)\n    bump_outer = NurbsCurve.create(True, 1, [\n        Point(0, 0, 0), Point(1, 0, 0), Point(1, 1, 0), Point(0, 1, 0),\n    ])\n    ts_bump = NurbsSurfaceTrimmed.create(bump_srf, bump_outer)\n    mb = ts_bump.mesh()\n    MINI_CHECK(not mb.is_empty())\n    MINI_CHECK(mb.number_of_vertices() >= 20)\n    MINI_CHECK(mb.number_of_faces() >= 30)\n    for vd in mb.vertex.values():\n        nx = vd.attributes.get(\"nx\", 0.0)\n        ny = vd.attributes.get(\"ny\", 0.0)\n        nz = vd.attributes.get(\"nz\", 0.0)\n        MINI_CHECK(math.sqrt(nx*nx + ny*ny + nz*nz) > 0.5)",
           "file": "nurbssurface_trimmed_test.py"
         },
         "rust": {
@@ -100494,11 +100510,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "n",
+        "subdivide",
         "points",
+        "n",
         "into",
         "circle",
-        "subdivide",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -100512,11 +100528,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "by",
-        "arc",
         "length",
         "subdivide",
         "ellipse",
+        "by",
+        "arc",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -100530,9 +100546,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "through",
         "arc",
         "points",
+        "through",
         "nurbscurve",
         "primitives",
         "point"
@@ -100546,12 +100562,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "curve",
-        "polyline",
+        "from",
         "open",
         "adaptive",
         "points",
-        "from",
+        "polyline",
+        "curve",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -100566,8 +100582,8 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "curve",
         "evaluation",
+        "curve",
         "at",
         "parameter",
         "set_domain",
@@ -100588,9 +100604,9 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
+        "curve",
         "frames",
         "length",
-        "curve",
         "along",
         "divide_by_count",
         "frame_at",
@@ -100613,9 +100629,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "ellipse",
         "perpendicular",
         "frames",
-        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -100636,10 +100652,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "cylinder",
         "surface",
         "evaluate",
         "point",
+        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -100654,11 +100670,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "and",
-        "faces",
-        "vertices",
         "from",
+        "vertices",
+        "and",
         "mesh",
+        "faces",
         "add_vertex",
         "add_face",
         "vertex"
@@ -100791,18 +100807,6 @@ window.API_INDEX = {
       ],
       "summary": "RemeshNurbsSurfaceGrid geometry class"
     },
-    "GlobalSessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "GlobalSessionConfig geometry class"
-    },
-    "GeometryFileEncoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
-    },
     "CurveNurbsKnotStyle": {
       "composition": [],
       "factories": [],
@@ -100814,6 +100818,18 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
+    },
+    "GeometryFileEncoder": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
+    },
+    "GlobalSessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "GlobalSessionConfig geometry class"
     },
     "NurbsSurfaceTrimmed": {
       "composition": [],
@@ -100846,6 +100862,12 @@ window.API_INDEX = {
       "uses": [],
       "summary": "ReciprocalResult geometry class"
     },
+    "ElementSchoring": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
+    },
     "BooleanPolyline": {
       "composition": [],
       "factories": [],
@@ -100872,17 +100894,13 @@ window.API_INDEX = {
       ],
       "summary": "SpatialAABBTree geometry class"
     },
-    "ElementSchoring": {
+    "ToleranceGuard": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
-    },
-    "VIntersectNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VIntersectNode geometry class"
+      "uses": [
+        "Tolerance"
+      ],
+      "summary": "ToleranceGuard geometry class"
     },
     "SpatialBVHNode": {
       "composition": [],
@@ -100902,19 +100920,11 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_PartitionVars geometry class"
     },
-    "ToleranceGuard": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tolerance"
-      ],
-      "summary": "ToleranceGuard geometry class"
-    },
-    "SessionConfig": {
+    "VIntersectNode": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "SessionConfig geometry class"
+      "summary": "VIntersectNode geometry class"
     },
     "SpatialKDTree": {
       "composition": [],
@@ -100924,6 +100934,12 @@ window.API_INDEX = {
         "_Node"
       ],
       "summary": "KD-tree for point-to-point nearest-neighbor queries."
+    },
+    "SessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SessionConfig geometry class"
     },
     "ElementColumn": {
       "composition": [],
@@ -100937,6 +100953,27 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "ElementColumn geometry class"
+    },
+    "ElementPlate": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "ElementPlate geometry class"
+    },
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
     },
     "NurbsSurface": {
       "composition": [
@@ -100959,6 +100996,12 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
+    "SpatialRTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SpatialRTree geometry class"
+    },
     "BRepTrimType": {
       "composition": [],
       "factories": [],
@@ -100974,11 +101017,11 @@ window.API_INDEX = {
       ],
       "summary": "BRepTrimType geometry class"
     },
-    "ScanlineHeap": {
+    "VattiScratch": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "ScanlineHeap geometry class"
+      "summary": "VattiScratch geometry class"
     },
     "Intersection": {
       "composition": [
@@ -100999,38 +101042,11 @@ window.API_INDEX = {
       ],
       "summary": "Intersection geometry class"
     },
-    "SpatialRTree": {
+    "ScanlineHeap": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "SpatialRTree geometry class"
-    },
-    "ElementPlate": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "ElementPlate geometry class"
-    },
-    "BRepLoopType": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoopType geometry class"
-    },
-    "VattiScratch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VattiScratch geometry class"
+      "summary": "ScanlineHeap geometry class"
     },
     "LoftWallFace": {
       "composition": [],
@@ -101038,19 +101054,11 @@ window.API_INDEX = {
       "uses": [],
       "summary": "LoftWallFace geometry class"
     },
-    "VLocalMinima": {
+    "BRepLoopType": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VLocalMinima geometry class"
-    },
-    "session_cpp": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "session_cpp geometry class"
+      "summary": "BRepLoopType geometry class"
     },
     "ElementBeam": {
       "composition": [],
@@ -101065,11 +101073,61 @@ window.API_INDEX = {
       ],
       "summary": "ElementBeam geometry class"
     },
+    "session_cpp": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "session_cpp geometry class"
+    },
     "LoftAdjPair": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "LoftAdjPair geometry class"
+    },
+    "ConvexHull": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Point"
+      ],
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+    },
+    "PointCloud": {
+      "composition": [
+        "Color",
+        "Xform"
+      ],
+      "factories": [
+        "AABB",
+        "OBB"
+      ],
+      "uses": [
+        "Point",
+        "Vector"
+      ],
+      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
+    },
+    "VertexData": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "Vertex data containing position and attributes."
+    },
+    "Quaternion": {
+      "composition": [
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Plane"
+      ],
+      "summary": "A quaternion for 3D rotations (scalar + vector)."
     },
     "Primitives": {
       "composition": [
@@ -101086,6 +101144,41 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "Static factory methods for creating NURBS curve primitives."
+    },
+    "MeshOffset": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Plane",
+        "Point"
+      ],
+      "summary": "MeshOffset geometry class"
+    },
+    "SpatialBVH": {
+      "composition": [],
+      "factories": [
+        "SpatialBVHNode"
+      ],
+      "uses": [
+        "AABB",
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
+    },
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
+    },
+    "BRepVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepVertex geometry class"
     },
     "NurbsCurve": {
       "composition": [
@@ -101108,31 +101201,6 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
-    "Quaternion": {
-      "composition": [
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Plane"
-      ],
-      "summary": "A quaternion for 3D rotations (scalar + vector)."
-    },
-    "PointCloud": {
-      "composition": [
-        "Color",
-        "Xform"
-      ],
-      "factories": [
-        "AABB",
-        "OBB"
-      ],
-      "uses": [
-        "Point",
-        "Vector"
-      ],
-      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
-    },
     "Reciprocal": {
       "composition": [],
       "factories": [],
@@ -101144,58 +101212,6 @@ window.API_INDEX = {
       ],
       "summary": "Reciprocal geometry class"
     },
-    "MeshOffset": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Plane",
-        "Point"
-      ],
-      "summary": "MeshOffset geometry class"
-    },
-    "BRepVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepVertex geometry class"
-    },
-    "Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Delaunay2D geometry class"
-    },
-    "ConvexHull": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Point"
-      ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
-    },
-    "SpatialBVH": {
-      "composition": [],
-      "factories": [
-        "SpatialBVHNode"
-      ],
-      "uses": [
-        "AABB",
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
-    },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "Vertex data containing position and attributes."
-    },
     "FlatMap64": {
       "composition": [],
       "factories": [],
@@ -101206,6 +101222,27 @@ window.API_INDEX = {
       ],
       "summary": "FlatMap64 geometry class"
     },
+    "VHorzJoin": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzJoin geometry class"
+    },
+    "RemeshCDT": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Polyline"
+      ],
+      "summary": "RemeshCDT geometry class"
+    },
+    "_Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay geometry class"
+    },
     "Tolerance": {
       "composition": [],
       "factories": [],
@@ -101215,18 +101252,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "Tolerance settings for geometric operations."
-    },
-    "_Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay geometry class"
-    },
-    "Component": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Component geometry class"
     },
     "ColorMode": {
       "composition": [],
@@ -101244,26 +101269,25 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
+    "Component": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Component geometry class"
+    },
     "LoftPanel": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "LoftPanel geometry class"
     },
-    "VHorzJoin": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzJoin geometry class"
-    },
-    "RemeshCDT": {
+    "TreeNode": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Mesh",
-        "Polyline"
+        "Tree"
       ],
-      "summary": "RemeshCDT geometry class"
+      "summary": "A node of a tree data structure."
     },
     "BRepLoop": {
       "composition": [],
@@ -101271,23 +101295,26 @@ window.API_INDEX = {
       "uses": [],
       "summary": "BRepLoop geometry class"
     },
-    "BRepTrim": {
+    "Geometry": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepTrim geometry class"
+      "summary": "Geometry geometry class"
     },
-    "BRepEdge": {
+    "Delaunay": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
+      "uses": [
+        "Edge",
+        "TriangulateResult"
+      ],
+      "summary": "Delaunay geometry class"
     },
-    "VHorzSeg": {
+    "BRepFace": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VHorzSeg geometry class"
+      "summary": "BRepFace geometry class"
     },
     "Polyline": {
       "composition": [
@@ -101313,34 +101340,23 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Edge",
-        "TriangulateResult"
-      ],
-      "summary": "Delaunay geometry class"
-    },
-    "Geometry": {
+    "BRepTrim": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Geometry geometry class"
+      "summary": "BRepTrim geometry class"
     },
-    "TreeNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tree"
-      ],
-      "summary": "A node of a tree data structure."
-    },
-    "BRepFace": {
+    "BRepEdge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepFace geometry class"
+      "summary": "BRepEdge geometry class"
+    },
+    "VHorzSeg": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzSeg geometry class"
     },
     "Objects": {
       "composition": [
@@ -101363,23 +101379,56 @@ window.API_INDEX = {
       ],
       "summary": "A collection of all geometry objects."
     },
-    "VOutRec": {
-      "composition": [],
+    "Element": {
+      "composition": [
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
       "factories": [],
-      "uses": [],
-      "summary": "VOutRec geometry class"
-    },
-    "_Branch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Branch geometry class"
+      "uses": [
+        "AABB",
+        "BRep",
+        "Xform"
+      ],
+      "summary": "Element geometry class"
     },
     "Dataset": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Dataset geometry class"
+    },
+    "VOutRec": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutRec geometry class"
+    },
+    "VActive": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VActive geometry class"
+    },
+    "Closest": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Static methods for finding closest points between geometry objects."
     },
     "Default": {
       "composition": [],
@@ -101392,17 +101441,11 @@ window.API_INDEX = {
       ],
       "summary": "Default geometry class"
     },
-    "VVertex": {
+    "_Branch": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VVertex geometry class"
-    },
-    "VActive": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VActive geometry class"
+      "summary": "_Branch geometry class"
     },
     "Session": {
       "composition": [
@@ -101432,50 +101475,23 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "Closest": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Static methods for finding closest points between geometry objects."
-    },
-    "Element": {
-      "composition": [
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "BRep",
-        "Xform"
-      ],
-      "summary": "Element geometry class"
-    },
-    "RayHit": {
+    "VVertex": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "RayHit geometry class"
+      "summary": "VVertex geometry class"
     },
     "BIVec2": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BIVec2 geometry class"
+    },
+    "RayHit": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "RayHit geometry class"
     },
     "Vertex": {
       "composition": [],
@@ -101485,6 +101501,12 @@ window.API_INDEX = {
         "session_cpp"
       ],
       "summary": "A graph vertex with a unique identifier and attribute string."
+    },
+    "VOutPt": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutPt geometry class"
     },
     "Vector": {
       "composition": [],
@@ -101500,45 +101522,11 @@ window.API_INDEX = {
       ],
       "summary": "A 3D vector with visual properties."
     },
-    "VOutPt": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutPt geometry class"
-    },
     "Matrix": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Matrix geometry class"
-    },
-    "Point": {
-      "composition": [],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Vector"
-      ],
-      "uses": [],
-      "summary": "A 3D point with visual properties."
-    },
-    "Plane": {
-      "composition": [],
-      "factories": [
-        "OBB",
-        "Quaternion"
-      ],
-      "uses": [
-        "Point",
-        "Polyline",
-        "Vector",
-        "session_cpp"
-      ],
-      "summary": "A 3D plane defined by origin and coordinate axes."
     },
     "Graph": {
       "composition": [
@@ -101555,6 +101543,20 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "_Edge geometry class"
+    },
+    "_Rect": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Rect geometry class"
+    },
+    "Color": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "session_cpp"
+      ],
+      "summary": "An index-based 0.0-1.0 color with RGBA values."
     },
     "Xform": {
       "composition": [
@@ -101577,25 +101579,84 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_Node geometry class"
     },
-    "Color": {
+    "Plane": {
       "composition": [],
-      "factories": [],
+      "factories": [
+        "OBB",
+        "Quaternion"
+      ],
       "uses": [
+        "Point",
+        "Polyline",
+        "Vector",
         "session_cpp"
       ],
-      "summary": "An index-based 0.0-1.0 color with RGBA values."
+      "summary": "A 3D plane defined by origin and coordinate axes."
     },
-    "_Rect": {
+    "Point": {
       "composition": [],
-      "factories": [],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Vector"
+      ],
       "uses": [],
-      "summary": "_Rect geometry class"
+      "summary": "A 3D point with visual properties."
     },
     "_Tri": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Tri geometry class"
+    },
+    "_P64": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_P64 geometry class"
+    },
+    "Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
+    "Tree": {
+      "composition": [
+        "Color",
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A hierarchical data structure with parent-child relationships."
+    },
+    "BRep": {
+      "composition": [
+        "BRepEdge",
+        "BRepFace",
+        "BRepLoop",
+        "BRepLoopType",
+        "BRepTrim",
+        "BRepTrimType",
+        "BRepVertex",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point"
+      ],
+      "factories": [
+        "BRepTrimType",
+        "Element"
+      ],
+      "uses": [
+        "Mesh",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRep geometry class"
     },
     "Mesh": {
       "composition": [
@@ -101625,55 +101686,6 @@ window.API_INDEX = {
       ],
       "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
-    "BRep": {
-      "composition": [
-        "BRepEdge",
-        "BRepFace",
-        "BRepLoop",
-        "BRepLoopType",
-        "BRepTrim",
-        "BRepTrimType",
-        "BRepVertex",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point"
-      ],
-      "factories": [
-        "BRepTrimType",
-        "Element"
-      ],
-      "uses": [
-        "Mesh",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRep geometry class"
-    },
-    "Tree": {
-      "composition": [
-        "Color",
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
-    },
-    "Line": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Mesh",
-        "OBB"
-      ],
-      "uses": [
-        "Vector",
-        "session_cpp"
-      ],
-      "summary": "A 3D line segment with visual properties."
-    },
     "AABB": {
       "composition": [],
       "factories": [
@@ -101690,17 +101702,21 @@ window.API_INDEX = {
       ],
       "summary": "Axis-aligned bounding box (center + half-size)."
     },
-    "Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
-    },
-    "_P64": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_P64 geometry class"
+    "Line": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Mesh",
+        "OBB"
+      ],
+      "uses": [
+        "Vector",
+        "session_cpp"
+      ],
+      "summary": "A 3D line segment with visual properties."
     },
     "OBB": {
       "composition": [
@@ -107481,6 +107497,9 @@ window.API_INDEX = {
     "remesh_nurbssurface_grid": [
       "RemeshNurbsSurfaceGrid.remesh_nurbssurface_grid"
     ],
+    "ray_cast_nearest": [
+      "Session.ray_cast_nearest"
+    ],
     "explode_mesh_faces": [
       "GlobalSessionConfig.explode_mesh_faces"
     ],
@@ -108219,8 +108238,8 @@ window.API_INDEX = {
     "Session": {
       "cpp": 47,
       "python": 44,
-      "rust": 38,
-      "gaps": 25,
+      "rust": 39,
+      "gaps": 26,
       "present_in": [
         "cpp",
         "python",

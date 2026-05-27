@@ -13,7 +13,95 @@
     "line": 16,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 14.131999969482422
+    "time_ms": 15.74899959564209
+  },
+  {
+    "checks": [
+      {
+        "code_line": "obj.name == \"my_objects\"",
+        "line": 9,
+        "passed": true
+      },
+      {
+        "code_line": "!obj.guid().is_empty()",
+        "line": 10,
+        "passed": true
+      },
+      {
+        "code_line": "!obj.to_string().is_empty()",
+        "line": 11,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Objects;\n        let obj = Objects::new();\n",
+    "failures": [],
+    "group": "Objects",
+    "line": 5,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.10400000214576721
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded.components.len() == 1",
+        "line": 123,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.components[0].type_name == \"FloorBuilder\"",
+        "line": 124,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.components[0].guid == original_guid",
+        "line": 125,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.components[0].extra[\"size\"] == serde_json::json!(3000)",
+        "line": 126,
+        "passed": true
+      }
+    ],
+    "code": "        // Custom fields are serialised as a JSON string inside the proto message\n        // and reconstructed into a HashMap on load — all values survive.\n        use crate::{Objects, Component};\n\n        let mut extra = std::collections::HashMap::new();\n        extra.insert(\"size\".to_string(),   serde_json::json!(3000));\n        extra.insert(\"height\".to_string(), serde_json::json!(650));\n\n        let original_guid = uuid::Uuid::new_v4().to_string();\n        let c = Component {\n            type_name: \"FloorBuilder\".to_string(),\n            guid:       original_guid.clone(),\n            name:       \"floor_builder\".to_string(),\n            extra,\n        };\n\n        let mut original = Objects::new();\n        original.components.push(c);\n\n        original.pb_dump(\"serialization/test_objects_component.bin\");\n        let loaded = Objects::pb_load(\"serialization/test_objects_component.bin\");\n",
+    "failures": [],
+    "group": "Objects",
+    "line": 100,
+    "passed": true,
+    "test_name": "Component Protobuf Roundtrip",
+    "time_ms": 13.708000183105469
+  },
+  {
+    "checks": [
+      {
+        "code_line": "c.type_name == \"FloorBuilder\"",
+        "line": 57,
+        "passed": true
+      },
+      {
+        "code_line": "c.name == \"floor_builder\"",
+        "line": 58,
+        "passed": true
+      },
+      {
+        "code_line": "!c.guid.is_empty()",
+        "line": 59,
+        "passed": true
+      },
+      {
+        "code_line": "c.extra[\"size\"] == serde_json::json!(3000)",
+        "line": 60,
+        "passed": true
+      }
+    ],
+    "code": "        // Component is a generic envelope for custom domain objects.\n        // type_name identifies the class; extra holds all custom fields as JSON.\n        use crate::Component;\n\n        let mut extra = std::collections::HashMap::new();\n        extra.insert(\"size\".to_string(),   serde_json::json!(3000));\n        extra.insert(\"height\".to_string(), serde_json::json!(650));\n\n        let c = Component {\n            type_name: \"FloorBuilder\".to_string(),\n            guid:       uuid::Uuid::new_v4().to_string(),\n            name:       \"floor_builder\".to_string(),\n            extra,\n        };\n",
+    "failures": [],
+    "group": "Objects",
+    "line": 41,
+    "passed": true,
+    "test_name": "Component Constructor",
+    "time_ms": 0.014000000432133675
   },
   {
     "checks": [
@@ -49,95 +137,7 @@
     "line": 65,
     "passed": true,
     "test_name": "Component Json Roundtrip",
-    "time_ms": 14.517999649047852
-  },
-  {
-    "checks": [
-      {
-        "code_line": "loaded.components.len() == 1",
-        "line": 123,
-        "passed": true
-      },
-      {
-        "code_line": "loaded.components[0].type_name == \"FloorBuilder\"",
-        "line": 124,
-        "passed": true
-      },
-      {
-        "code_line": "loaded.components[0].guid == original_guid",
-        "line": 125,
-        "passed": true
-      },
-      {
-        "code_line": "loaded.components[0].extra[\"size\"] == serde_json::json!(3000)",
-        "line": 126,
-        "passed": true
-      }
-    ],
-    "code": "        // Custom fields are serialised as a JSON string inside the proto message\n        // and reconstructed into a HashMap on load — all values survive.\n        use crate::{Objects, Component};\n\n        let mut extra = std::collections::HashMap::new();\n        extra.insert(\"size\".to_string(),   serde_json::json!(3000));\n        extra.insert(\"height\".to_string(), serde_json::json!(650));\n\n        let original_guid = uuid::Uuid::new_v4().to_string();\n        let c = Component {\n            type_name: \"FloorBuilder\".to_string(),\n            guid:       original_guid.clone(),\n            name:       \"floor_builder\".to_string(),\n            extra,\n        };\n\n        let mut original = Objects::new();\n        original.components.push(c);\n\n        original.pb_dump(\"serialization/test_objects_component.bin\");\n        let loaded = Objects::pb_load(\"serialization/test_objects_component.bin\");\n",
-    "failures": [],
-    "group": "Objects",
-    "line": 100,
-    "passed": true,
-    "test_name": "Component Protobuf Roundtrip",
-    "time_ms": 14.67300033569336
-  },
-  {
-    "checks": [
-      {
-        "code_line": "c.type_name == \"FloorBuilder\"",
-        "line": 57,
-        "passed": true
-      },
-      {
-        "code_line": "c.name == \"floor_builder\"",
-        "line": 58,
-        "passed": true
-      },
-      {
-        "code_line": "!c.guid.is_empty()",
-        "line": 59,
-        "passed": true
-      },
-      {
-        "code_line": "c.extra[\"size\"] == serde_json::json!(3000)",
-        "line": 60,
-        "passed": true
-      }
-    ],
-    "code": "        // Component is a generic envelope for custom domain objects.\n        // type_name identifies the class; extra holds all custom fields as JSON.\n        use crate::Component;\n\n        let mut extra = std::collections::HashMap::new();\n        extra.insert(\"size\".to_string(),   serde_json::json!(3000));\n        extra.insert(\"height\".to_string(), serde_json::json!(650));\n\n        let c = Component {\n            type_name: \"FloorBuilder\".to_string(),\n            guid:       uuid::Uuid::new_v4().to_string(),\n            name:       \"floor_builder\".to_string(),\n            extra,\n        };\n",
-    "failures": [],
-    "group": "Objects",
-    "line": 41,
-    "passed": true,
-    "test_name": "Component Constructor",
-    "time_ms": 0.0020000000949949026
-  },
-  {
-    "checks": [
-      {
-        "code_line": "obj.name == \"my_objects\"",
-        "line": 9,
-        "passed": true
-      },
-      {
-        "code_line": "!obj.guid().is_empty()",
-        "line": 10,
-        "passed": true
-      },
-      {
-        "code_line": "!obj.to_string().is_empty()",
-        "line": 11,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Objects;\n        let obj = Objects::new();\n",
-    "failures": [],
-    "group": "Objects",
-    "line": 5,
-    "passed": true,
-    "test_name": "Constructor",
-    "time_ms": 0.0010000000474974513
+    "time_ms": 13.756999969482422
   },
   {
     "checks": [
@@ -153,6 +153,6 @@
     "line": 29,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 14.62399959564209
+    "time_ms": 13.701000213623047
   }
 ]
