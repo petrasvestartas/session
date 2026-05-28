@@ -1,3 +1,9 @@
+use crate::State;
+use crate::camera::ProjMode;
+use crate::gumball;
+use crate::pick::{self, screen_to_world_ray};
+use crate::tree_ui::{collect_group_leaves, locked_group_for_guid};
+
 impl State {
 
     pub(crate) fn process_box_select(&mut self, x0: f32, y0: f32, x1: f32, y1: f32) {
@@ -128,7 +134,7 @@ impl State {
         self.set_selection(&refs);
     }
 
-    fn process_pick(&mut self, cx: f32, cy: f32) {
+    pub(crate) fn process_pick(&mut self, cx: f32, cy: f32) {
         let view = self.scene.camera.view_matrix();
         let proj = self.scene.camera.proj_matrix();
         let viewport = (self.gpu.config.width as f32, self.gpu.config.height as f32);

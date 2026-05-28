@@ -1,10 +1,15 @@
+use crate::State;
+use crate::undo_state::UndoAction;
+use session_rust::session::Geometry;
+use session_rust::{BRep, Color, Line, Point, Polyline, Primitives, Session, TreeNode};
+
 impl State {
 
-    fn apply_thickness(&mut self) {
+    pub(crate) fn apply_thickness(&mut self) {
         // Thickness is driven by camera.point_size uploaded every frame — no CPU work needed.
     }
 
-    fn execute_command(&mut self, cmd: &str) -> String {
+    pub(crate) fn execute_command(&mut self, cmd: &str) -> String {
         let parts: Vec<&str> = cmd.split_whitespace().collect();
         if parts.is_empty() { return String::new(); }
 

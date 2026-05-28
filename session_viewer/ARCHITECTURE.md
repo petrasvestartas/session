@@ -229,9 +229,9 @@ lines is a split candidate.
 | `shaders/*.wgsl` | 721 | 10 WGSL shaders (already foldered ✓) | done |
 
 ### Structural issues beyond size
-- **`include!` is not modularity.** The seven `state_*.rs` files are textually pasted into `lib.rs`'s
-  single `impl State`, so they share one scope, have no `pub`/private discipline, can't be unit-tested
-  in isolation, and produce confusing error spans. Splitting reduced *file size* but not *coupling*.
+- ~~**`include!` is not modularity.**~~ ✅ Fixed (step 4): the seven `state_*.rs` are now real `mod`s
+  with their own imports and `pub(crate)` cross-module methods — proper module boundaries, no shared
+  scope. (They still sit at the crate root; grouping them under `app/`/`ui/` is step 5.)
 - **No engine/app separation.** `State::new` hardcodes `demo::active_scene()`, the group names
   `"FloorModel"`/`"FloorPolylines"`, and app-specific auto-hide rules. The reusable viewer engine
   (GPU, pipelines, camera, picking, gumball, render loop) can't be embedded with a different scene
@@ -308,9 +308,12 @@ define it in `state.rs`, put method `impl`s in submodules of the crate root.
    `include_str!` paths became `../../shaders/…` (relative to the new file location). The crate root
    keeps the old names via `use engine::gpu as gpu_session;` and `use engine::pipelines;` so no other
    call site changed.
-4. Convert `state_*.rs` `include!`s into real `app/` submodules with `impl crate::State`.
-5. Pull `engine/` out so it has no app references; move `demo.rs` + CLI + group conventions to `app/`.
-   Also move `gpu_adapters.rs`/`gpu_arena.rs`/`gpu_instance_groups.rs` under `engine/gpu/`.
+4. ✅ Converted the 7 `include!("state_*.rs")` into real `mod`s with `impl crate::State`, per-module
+   `use` headers, and `pub(crate)` on cross-module methods. `include!` is fully eliminated. (They
+   live at the crate root for now; the `app/` grouping below is step 5.)
+5. Pull `engine/` out so it has no app references; move `demo.rs` + CLI + group conventions to `app/`,
+   the `state_*.rs` modules under `app/`, the `ui` (build_ui/tree) under `ui/`. Also move
+   `gpu_adapters.rs`/`gpu_arena.rs`/`gpu_instance_groups.rs` under `engine/gpu/`.
 6. (Optional) extract `engine/` into its own crate once the boundary is clean.
 
 Remaining files > ~300 lines (next split candidates): `lib.rs` 550, `gpu_adapters.rs` 493,

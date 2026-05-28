@@ -1,5 +1,12 @@
+use std::collections::HashMap;
+use std::sync::Arc;
+use crate::State;
+use crate::gpu_session::InstanceData;
+use crate::gumball::Gumball;
+use crate::tree_ui::{self, populate_leaf_cache, render_tree_node};
+
 impl State {
-    fn build_ui(&mut self) -> egui::FullOutput {
+    pub(crate) fn build_ui(&mut self) -> egui::FullOutput {
         let egui_ctx = self.shell.egui_ctx.clone();
         let window = Arc::clone(&self.window);
         let raw_input = self.shell.egui_state.take_egui_input(&window);

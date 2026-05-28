@@ -1,3 +1,7 @@
+use crate::State;
+use crate::gpu_session::InstanceData;
+use crate::undo_state::{GeomSnapshot, UndoAction};
+
 impl State {
     pub fn undo(&mut self) {
         if let Some(action) = self.hist.undo_stack.pop() {
@@ -13,7 +17,7 @@ impl State {
         }
     }
 
-    fn apply_undo(&mut self, action: &UndoAction) {
+    pub(crate) fn apply_undo(&mut self, action: &UndoAction) {
         match action {
             UndoAction::AddLookup { guid, .. } => {
                 self.scene.gpu_session.remove(guid);
@@ -74,7 +78,7 @@ impl State {
         }
     }
 
-    fn apply_redo(&mut self, action: &UndoAction) {
+    pub(crate) fn apply_redo(&mut self, action: &UndoAction) {
         match action {
             UndoAction::AddLookup { guid, geom } => {
                 self.scene.session.lookup.insert(guid.clone(), geom.clone());

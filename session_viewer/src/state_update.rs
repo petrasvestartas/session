@@ -1,6 +1,12 @@
+use crate::State;
+use crate::camera::ProjMode;
+use crate::gpu_session::InstanceData;
+use crate::gumball::{self, Gumball};
+use crate::pipelines::CameraUniform;
+
 impl State {
     #[allow(dead_code)]
-    fn select_by_guid(&mut self, guid: &str) {
+    pub(crate) fn select_by_guid(&mut self, guid: &str) {
         let prev: Vec<String> = self.scene.selected_guids.drain().collect();
         for p in &prev {
             self.scene.gpu_session.set_flag(p, InstanceData::FLAG_SELECTED, false, &self.gpu.queue);
@@ -13,7 +19,7 @@ impl State {
         }
     }
 
-    fn set_selection(&mut self, guids: &[&str]) {
+    pub(crate) fn set_selection(&mut self, guids: &[&str]) {
         let prev: Vec<String> = self.scene.selected_guids.drain().collect();
         for p in &prev {
             self.scene.gpu_session.set_flag(p, InstanceData::FLAG_SELECTED, false, &self.gpu.queue);

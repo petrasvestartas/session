@@ -107,7 +107,7 @@ fn trimmed_cdt_demo(s: &mut Session) {
     }
 
     // Row 2 — TrimmedNurbsSurface CDT fix
-    // Flat bilinear surface + UV trim loop → CDT mesh via sweep-line (robust for circles)
+    // Flat bilinear surface + UV trim loop → CDT mesh via Bowyer-Watson Delaunay2D (matches C++)
     let g_ts = TreeNode::new("TrimmedNurbsSurface");
     s.add(&g_ts, Some(&cdt_root));
     let ts_y = 2.0 * COL;
@@ -130,7 +130,7 @@ fn trimmed_cdt_demo(s: &mut Session) {
         NurbsCurve::create(true, 1, &pts)
     };
 
-    // Rational NURBS circle in UV space — the case that was broken with Bowyer-Watson CDT
+    // Rational NURBS circle in UV space — sampled via divide_by_count (f32-safe finite-diff step)
     let uv_circle = || -> NurbsCurve {
         let cw = (2.0_f32).sqrt() / 2.0;
         let ccx = [1.0f32, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0, 1.0, 1.0];

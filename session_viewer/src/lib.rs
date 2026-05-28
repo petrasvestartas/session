@@ -23,7 +23,6 @@
 // IMPORTS
 // ============================================================
 use std::collections::{HashMap, HashSet};
-use std::iter;
 use std::sync::Arc;
 
 use wasm_bindgen::prelude::*;
@@ -31,7 +30,7 @@ use wasm_bindgen::JsCast;
 
 use winit::{
     application::ApplicationHandler,
-    event::{MouseScrollDelta, *},
+    event::*,
     event_loop::{ActiveEventLoop, EventLoop},
     keyboard::{KeyCode, PhysicalKey},
     platform::web::{EventLoopExtWebSys, WindowAttributesExtWebSys},
@@ -46,25 +45,20 @@ mod gpu_instance_groups;
 mod gumball;
 mod pick;
 use engine::gpu as gpu_session;
-use camera::{Camera, CameraController, ProjMode};
+use camera::{Camera, CameraController};
 use engine::pipelines::{
-    self, build_bind_group, create_camera_buffer, create_glyph_bind_group, CameraUniform, Pipelines,
+    self, build_bind_group, create_camera_buffer, create_glyph_bind_group, Pipelines,
 };
 
 use wgpu::util::DeviceExt;
 use gpu_session::{GpuSession, InstanceData};
-use gumball::{Gumball, HandleKind};
-use pick::screen_to_world_ray;
 use session_rust::session::Geometry;
-use session_rust::{BRep, Color, Line, Point, Polyline, Primitives, Session, TreeNode, Xform};
+use session_rust::Session;
 
 mod demo;
 mod text;
 mod tree_ui;
-use tree_ui::{
-    auto_lock_leaf_groups, collect_group_leaf_guids, collect_group_leaves,
-    locked_group_for_guid, populate_leaf_cache, render_tree_node,
-};
+use tree_ui::{auto_lock_leaf_groups, collect_group_leaf_guids};
 
 mod gpu_ctx;
 mod scene_state;
@@ -74,10 +68,10 @@ mod shell_state;
 use gpu_ctx::{GpuCtx, create_depth_texture, create_msaa_texture};
 use scene_state::SceneState;
 use gumball_state::GumballState;
-use undo_state::{UndoState, UndoAction, GeomSnapshot};
+use undo_state::UndoState;
 use shell_state::ShellState;
 
-fn labels_from_session(session: &Session) -> Vec<text::TextLabel> {
+pub(crate) fn labels_from_session(session: &Session) -> Vec<text::TextLabel> {
     session.lookup.iter()
         .filter_map(|(guid, geom)| {
             if let Geometry::Point(p) = geom {
@@ -102,7 +96,7 @@ fn labels_from_session(session: &Session) -> Vec<text::TextLabel> {
 
 
 /// Column-major 4×4 matrix multiply: out = a * b.
-fn mat4_mul_cm(a: &[[f32; 4]; 4], b: &[[f32; 4]; 4]) -> [[f32; 4]; 4] {
+pub(crate) fn mat4_mul_cm(a: &[[f32; 4]; 4], b: &[[f32; 4]; 4]) -> [[f32; 4]; 4] {
     let mut out = [[0.0f32; 4]; 4];
     for c in 0..4 {
         for row in 0..4 {
@@ -375,13 +369,13 @@ impl State {
     }
 }
 
-include!("state_update.rs");     // select_by_guid, set_selection, update
-include!("state_pick.rs");       // process_pick, selected_centroid
-include!("state_cmd.rs");        // apply_thickness, execute_command
-include!("state_ui.rs");         // build_ui
-include!("state_render.rs");     // render
-include!("state_interaction.rs"); // reapply_visibility, commit_transform, handle_*, fit_view
-include!("state_undo.rs");       // undo, redo
+mod state_update;                // select_by_guid, set_selection, update
+mod state_pick;                  // process_pick, selected_centroid
+mod state_cmd;                   // apply_thickness, execute_command
+mod state_ui;                    // build_ui
+mod state_render;                // render
+mod state_interaction;           // reapply_visibility, commit_transform, handle_*, fit_view
+mod state_undo;                  // undo, redo
 
 
 // ============================================================

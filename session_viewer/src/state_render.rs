@@ -1,3 +1,8 @@
+use std::iter;
+use crate::State;
+use crate::{gpu_adapters, gpu_session, gumball, text};
+use wgpu::util::DeviceExt;
+
 impl State {
     pub fn render(&mut self) -> anyhow::Result<()> {
         self.window.request_redraw();

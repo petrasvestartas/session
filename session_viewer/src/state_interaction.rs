@@ -1,6 +1,18 @@
+use crate::{labels_from_session, mat4_mul_cm, State};
+use crate::camera::ProjMode;
+use crate::gpu_session::InstanceData;
+use crate::gumball::{self, HandleKind};
+use crate::pick::screen_to_world_ray;
+use crate::undo_state::UndoAction;
+use session_rust::session::Geometry;
+use session_rust::Xform;
+use winit::event::{MouseButton, MouseScrollDelta};
+use winit::event_loop::ActiveEventLoop;
+use winit::keyboard::KeyCode;
+
 impl State {
 
-    fn reapply_visibility_flags(&mut self, guid: &str) {
+    pub(crate) fn reapply_visibility_flags(&mut self, guid: &str) {
         if self.scene.hidden_guids.contains(guid) {
             self.scene.gpu_session.set_flag(guid, InstanceData::FLAG_HIDDEN, true, &self.gpu.queue);
         }
@@ -10,7 +22,7 @@ impl State {
         }
     }
 
-    fn reapply_color_overrides(&mut self, guid: &str) {
+    pub(crate) fn reapply_color_overrides(&mut self, guid: &str) {
         if let Some(&color) = self.scene.face_color_overrides.get(guid) {
             self.scene.gpu_session.set_face_color(guid, color, &self.gpu.queue);
         }
@@ -19,7 +31,7 @@ impl State {
         }
     }
 
-    fn commit_object_transform(&mut self, guid: &str, model: [[f32; 4]; 4]) {
+    pub(crate) fn commit_object_transform(&mut self, guid: &str, model: [[f32; 4]; 4]) {
         let flat = [
             model[0][0], model[0][1], model[0][2], model[0][3],
             model[1][0], model[1][1], model[1][2], model[1][3],
@@ -265,7 +277,7 @@ impl State {
         }
     }
 
-    fn fit_view(&mut self) {
+    pub(crate) fn fit_view(&mut self) {
         let mut mn = [f32::MAX; 3];
         let mut mx = [f32::MIN; 3];
         let mut found = false;
