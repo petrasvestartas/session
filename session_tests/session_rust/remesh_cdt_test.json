@@ -13,7 +13,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Triangulate",
-    "time_ms": 0.32199999690055847
+    "time_ms": 0.3529999852180481
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 37,
     "passed": true,
     "test_name": "Triangle",
-    "time_ms": 0.1340000033378601
+    "time_ms": 0.1420000046491623
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 54,
     "passed": true,
     "test_name": "Rectangle",
-    "time_ms": 0.12399999797344208
+    "time_ms": 0.12700000405311584
   },
   {
     "checks": [
@@ -61,7 +61,7 @@
     "line": 72,
     "passed": true,
     "test_name": "L-shape",
-    "time_ms": 0.1599999964237213
+    "time_ms": 0.3059999942779541
   },
   {
     "checks": [
@@ -77,7 +77,7 @@
     "line": 92,
     "passed": true,
     "test_name": "U-shape",
-    "time_ms": 0.2290000021457672
+    "time_ms": 0.23100000619888306
   },
   {
     "checks": [
@@ -93,7 +93,7 @@
     "line": 114,
     "passed": true,
     "test_name": "Octagon",
-    "time_ms": 0.3449999988079071
+    "time_ms": 0.22200000286102295
   },
   {
     "checks": [
@@ -109,7 +109,7 @@
     "line": 128,
     "passed": true,
     "test_name": "Rectangle with rectangle hole",
-    "time_ms": 0.23199999332427979
+    "time_ms": 0.23999999463558197
   },
   {
     "checks": [
@@ -125,7 +125,7 @@
     "line": 152,
     "passed": true,
     "test_name": "Duplicate vertices",
-    "time_ms": 0.15000000596046448
+    "time_ms": 0.16200000047683716
   },
   {
     "checks": [
@@ -141,7 +141,7 @@
     "line": 172,
     "passed": true,
     "test_name": "Tilted rectangle with rectangle hole",
-    "time_ms": 0.2290000021457672
+    "time_ms": 0.2549999952316284
   },
   {
     "checks": [
@@ -157,7 +157,7 @@
     "line": 197,
     "passed": true,
     "test_name": "Irregular tilted polyline.",
-    "time_ms": 1.069000005722046
+    "time_ms": 1.0700000524520874
   },
   {
     "checks": [
@@ -173,6 +173,6 @@
     "line": 259,
     "passed": true,
     "test_name": "Irregular tilted polyline with holes.",
-    "time_ms": 2.253000020980835
+    "time_ms": 2.1459999084472656
   }
 ]

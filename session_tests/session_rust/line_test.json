@@ -128,7 +128,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.07100000232458115
+    "time_ms": 0.09300000220537186
   },
   {
     "checks": [
@@ -154,7 +154,7 @@
     "line": 116,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.010999999940395355
+    "time_ms": 0.012000000104308128
   },
   {
     "checks": [
@@ -215,7 +215,7 @@
     "line": 132,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 14.428999900817871
+    "time_ms": 14.880000114440918
   },
   {
     "checks": [
@@ -281,7 +281,7 @@
     "line": 173,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 13.116000175476074
+    "time_ms": 13.645000457763672
   },
   {
     "checks": [
@@ -302,7 +302,7 @@
     "line": 209,
     "passed": true,
     "test_name": "Length",
-    "time_ms": 0.007000000216066837
+    "time_ms": 0.006000000052154064
   },
   {
     "checks": [
@@ -318,7 +318,7 @@
     "line": 222,
     "passed": true,
     "test_name": "To Vector",
-    "time_ms": 0.007000000216066837
+    "time_ms": 0.004999999888241291
   },
   {
     "checks": [
@@ -442,7 +442,7 @@
     "line": 284,
     "passed": true,
     "test_name": "Start End Center",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -509,7 +509,7 @@
     "line": 316,
     "passed": true,
     "test_name": "Subdivide",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.014000000432133675
   },
   {
     "checks": [
@@ -530,7 +530,7 @@
     "line": 361,
     "passed": true,
     "test_name": "Extend",
-    "time_ms": 0.019999999552965164
+    "time_ms": 0.020999999716877937
   },
   {
     "checks": [
@@ -551,7 +551,7 @@
     "line": 350,
     "passed": true,
     "test_name": "Overlap Average",
-    "time_ms": 0.04399999976158142
+    "time_ms": 0.03500000014901161
   },
   {
     "checks": [

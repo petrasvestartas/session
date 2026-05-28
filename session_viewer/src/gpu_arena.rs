@@ -287,6 +287,11 @@ impl<V: Pod> GpuArena<V> {
         self.slots.iter()
     }
 
+    /// Returns the ArenaSlot for `guid`. Used by draw_instance_groups to read vertex/index ranges.
+    pub fn slot(&self, guid: &str) -> Option<&ArenaSlot> {
+        self.slots.get(guid)
+    }
+
     pub fn clear(&mut self) {
         self.slots.clear();
         self.free_verts.clear();

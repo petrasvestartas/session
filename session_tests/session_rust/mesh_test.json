@@ -83,7 +83,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.1899999976158142
+    "time_ms": 0.1889999955892563
   },
   {
     "checks": [
@@ -99,7 +99,7 @@
     "line": 80,
     "passed": true,
     "test_name": "From Polylines",
-    "time_ms": 0.34700000286102295
+    "time_ms": 0.33000001311302185
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 116,
     "passed": true,
     "test_name": "From Lines",
-    "time_ms": 0.503000020980835
+    "time_ms": 0.40299999713897705
   },
   {
     "checks": [
@@ -136,7 +136,7 @@
     "line": 150,
     "passed": true,
     "test_name": "From Polygon With Holes",
-    "time_ms": 0.828000009059906
+    "time_ms": 0.8330000042915344
   },
   {
     "checks": [
@@ -167,7 +167,7 @@
     "line": 205,
     "passed": true,
     "test_name": "Loft",
-    "time_ms": 3.1619999408721924
+    "time_ms": 2.5810000896453857
   },
   {
     "checks": [
@@ -218,7 +218,7 @@
     "line": 286,
     "passed": true,
     "test_name": "Loft concave with holes and collinear",
-    "time_ms": 2.128999948501587
+    "time_ms": 2.1500000953674316
   },
   {
     "checks": [
@@ -254,7 +254,7 @@
     "line": 390,
     "passed": true,
     "test_name": "From Polygon With Holes Many",
-    "time_ms": 3.450000047683716
+    "time_ms": 3.9579999446868896
   },
   {
     "checks": [
@@ -385,7 +385,7 @@
     "line": 424,
     "passed": true,
     "test_name": "Loft Many",
-    "time_ms": 3.1689999103546143
+    "time_ms": 2.940000057220459
   },
   {
     "checks": [
@@ -431,7 +431,7 @@
     "line": 642,
     "passed": true,
     "test_name": "Boolean Queries",
-    "time_ms": 0.3190000057220459
+    "time_ms": 0.3799999952316284
   },
   {
     "checks": [
@@ -777,7 +777,7 @@
     "line": 702,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.4050000011920929
+    "time_ms": 0.4429999887943268
   },
   {
     "checks": [
@@ -803,7 +803,7 @@
     "line": 820,
     "passed": true,
     "test_name": "Create Dodecahedron",
-    "time_ms": 0.9940000176429749
+    "time_ms": 0.8379999995231628
   },
   {
     "checks": [
@@ -1014,7 +1014,7 @@
     "line": 832,
     "passed": true,
     "test_name": "Vertex and Face Operations",
-    "time_ms": 1.2669999599456787
+    "time_ms": 1.309000015258789
   },
   {
     "checks": [
@@ -1185,7 +1185,7 @@
     "line": 956,
     "passed": true,
     "test_name": "Connectivity Queries",
-    "time_ms": 0.2370000034570694
+    "time_ms": 0.23899999260902405
   },
   {
     "checks": [
@@ -2301,7 +2301,7 @@
     "line": 1144,
     "passed": true,
     "test_name": "Geometric Properties",
-    "time_ms": 5.21999979019165
+    "time_ms": 5.210999965667725
   },
   {
     "checks": [
@@ -2352,7 +2352,7 @@
     "line": 1289,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.11900000274181366
+    "time_ms": 0.11500000208616257
   },
   {
     "checks": [
@@ -2398,7 +2398,7 @@
     "line": 1334,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 17.965999603271484
+    "time_ms": 19.770000457763672
   },
   {
     "checks": [
@@ -2439,7 +2439,7 @@
     "line": 1398,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 15.664999961853027
+    "time_ms": 18.1200008392334
   },
   {
     "checks": [
@@ -2455,7 +2455,7 @@
     "line": 1456,
     "passed": true,
     "test_name": "Loft plate_failing 15-vert outer + 3 holes",
-    "time_ms": 1.8559999465942383
+    "time_ms": 1.8669999837875366
   },
   {
     "checks": [
@@ -2556,7 +2556,7 @@
     "line": 479,
     "passed": true,
     "test_name": "Loft with quads and triangles",
-    "time_ms": 3.816999912261963
+    "time_ms": 3.697999954223633
   },
   {
     "checks": [
@@ -2572,7 +2572,7 @@
     "line": 1505,
     "passed": true,
     "test_name": "Loft plate_v2 15-vert outer + 3 holes",
-    "time_ms": 2.3410000801086426
+    "time_ms": 2.4700000286102295
   },
   {
     "checks": [
@@ -2593,6 +2593,6 @@
     "line": 806,
     "passed": true,
     "test_name": "Edges",
-    "time_ms": 0.16899999976158142
+    "time_ms": 0.18199999630451202
   }
 ]

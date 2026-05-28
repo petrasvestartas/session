@@ -29,7 +29,7 @@
     "line": 20,
     "passed": true,
     "test_name": "Make Periodic Uniform",
-    "time_ms": 0.0010000000474974513
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 32,
     "passed": true,
     "test_name": "Is Clamped",
-    "time_ms": 0.00800000037997961
+    "time_ms": 0.008999999612569809
   },
   {
     "checks": [
@@ -82,7 +82,7 @@
     "line": 68,
     "passed": true,
     "test_name": "Find Span",
-    "time_ms": 0.004000000189989805
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
@@ -130,7 +130,7 @@
     "line": 112,
     "passed": true,
     "test_name": "Build Interpolation NurbsKnots",
-    "time_ms": 0.0020000000949949026
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -162,7 +162,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Build Fitted NurbsKnots Adaptive",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -194,6 +194,6 @@
     "line": 172,
     "passed": true,
     "test_name": "Solve Banded SPD",
-    "time_ms": 0.004000000189989805
+    "time_ms": 0.003000000026077032
   }
 ]

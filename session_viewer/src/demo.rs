@@ -40,7 +40,9 @@ fn merge_tree_node(
     }
 }
 
-use crate::gpu_session::CylinderSegment;
+use crate::gpu_session::{CylinderSegment, GpuSession};
+use crate::gpu_instance_groups::TemplateKey;
+use crate::gpu_adapters::mesh_to_vertices;
 
 const COL: f32 = 1_500.0;
 
@@ -315,4 +317,21 @@ fn make_floor_scene() -> (Session, Vec<CylinderSegment>) {
     let mut s = Session::new("floor");
     compas_tf_demo(&mut s);
     (s, Vec::new())
+}
+
+// ── Demo C: GPU instancing — 100 boxes, 1 draw call ──────────────────────────
+// Called from State::new() after gpu_session.rebuild_from(), not from active_scene().
+pub fn instancing_demo(gpu_session: &mut GpuSession, device: &wgpu::Device, queue: &wgpu::Queue) {
+    let (verts, inds) = mesh_to_vertices(&BRep::create_box(100.0, 100.0, 100.0).mesh());
+    let key = TemplateKey::new("demo_box");
+    gpu_session.register_template_mesh(&key, &verts, &inds, device, queue);
+    for row in 0..10u32 {
+        for col in 0..10u32 {
+            let tx = col as f32 * 200.0;
+            let ty = row as f32 * 200.0;
+            let model = [[1.,0.,0.,0.],[0.,1.,0.,0.],[0.,0.,1.,0.],[tx,ty,0.,1.]];
+            let color = [col as f32 / 9.0, row as f32 / 9.0, 0.5, 1.0];
+            gpu_session.add_instance(&key, &format!("box_{row}_{col}"), model, color, 0, device, queue);
+        }
+    }
 }

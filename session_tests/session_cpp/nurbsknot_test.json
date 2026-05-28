@@ -35,7 +35,7 @@
     "group": "NurbsKnot",
     "test_name": "Is Clamped",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.001,
     "line": 35,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // 0 0 0 1 2 2 2\n    // 0 1 2 3 4 5 6\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots_periodic = nurbsknot::make_periodic_uniform(order, cv_count);\n    std::vector<double> nurbsknots_clamped = nurbsknot::make_clamped_uniform(order, cv_count);\n    bool is_not_clamped = nurbsknot::is_clamped(order, cv_count, nurbsknots_periodic);\n    bool is_clamped = nurbsknot::is_clamped(order, cv_count, nurbsknots_clamped);",
     "checks": [

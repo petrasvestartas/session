@@ -68,7 +68,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.04500000178813934
+    "time_ms": 0.04399999976158142
   },
   {
     "checks": [
@@ -130,7 +130,7 @@
     "line": 330,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 14.701000213623047
+    "time_ms": 15.736000061035156
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 363,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 14.253000259399414
+    "time_ms": 16.722999572753906
   },
   {
     "checks": [
@@ -187,7 +187,7 @@
     "line": 99,
     "passed": true,
     "test_name": "Is Empty",
-    "time_ms": 0.01899999938905239
+    "time_ms": 0.019999999552965164
   },
   {
     "checks": [
@@ -260,7 +260,7 @@
     "line": 61,
     "passed": true,
     "test_name": "From Coords",
-    "time_ms": 0.006000000052154064
+    "time_ms": 0.007000000216066837
   },
   {
     "checks": [
@@ -276,7 +276,7 @@
     "line": 231,
     "passed": true,
     "test_name": "Normal Count",
-    "time_ms": 0.004000000189989805
+    "time_ms": 0.006000000052154064
   },
   {
     "checks": [
@@ -313,7 +313,7 @@
     "line": 77,
     "passed": true,
     "test_name": "Point Count",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.007000000216066837
   },
   {
     "checks": [
@@ -345,7 +345,7 @@
     "line": 180,
     "passed": true,
     "test_name": "Get Color",
-    "time_ms": 0.003000000026077032
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -371,7 +371,7 @@
     "line": 256,
     "passed": true,
     "test_name": "Set Normal",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.012000000104308128
   },
   {
     "checks": [
@@ -402,7 +402,7 @@
     "line": 140,
     "passed": true,
     "test_name": "Add Point",
-    "time_ms": 0.008999999612569809
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
@@ -418,7 +418,7 @@
     "line": 192,
     "passed": true,
     "test_name": "Set Color",
-    "time_ms": 0.007000000216066837
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -444,7 +444,7 @@
     "line": 242,
     "passed": true,
     "test_name": "Get Normal",
-    "time_ms": 0.007000000216066837
+    "time_ms": 0.004999999888241291
   },
   {
     "checks": [
@@ -548,7 +548,7 @@
     "line": 217,
     "passed": true,
     "test_name": "Get Colors",
-    "time_ms": 0.00800000037997961
+    "time_ms": 0.004999999888241291
   },
   {
     "checks": [
@@ -579,7 +579,7 @@
     "line": 313,
     "passed": true,
     "test_name": "Transformed",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
