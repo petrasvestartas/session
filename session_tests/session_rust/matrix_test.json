@@ -54,7 +54,7 @@
     "line": 38,
     "passed": true,
     "test_name": "Properties",
-    "time_ms": 0.014999999664723873
+    "time_ms": 0.014000000432133675
   },
   {
     "checks": [
@@ -80,7 +80,7 @@
     "line": 59,
     "passed": true,
     "test_name": "Add",
-    "time_ms": 0.012000000104308128
+    "time_ms": 0.010999999940395355
   },
   {
     "checks": [
@@ -163,7 +163,7 @@
     "line": 313,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 14.585000038146973
+    "time_ms": 14.524999618530273
   },
   {
     "checks": [
@@ -199,7 +199,7 @@
     "line": 99,
     "passed": true,
     "test_name": "Multiply",
-    "time_ms": 0.010999999940395355
+    "time_ms": 0.012000000104308128
   },
   {
     "checks": [
@@ -302,7 +302,7 @@
     "line": 297,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 10.163999557495117
+    "time_ms": 14.487000465393066
   },
   {
     "checks": [
@@ -430,7 +430,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.04500000178813934
+    "time_ms": 0.05000000074505806
   },
   {
     "checks": [
@@ -461,7 +461,7 @@
     "line": 242,
     "passed": true,
     "test_name": "Eigenvalues",
-    "time_ms": 0.019999999552965164
+    "time_ms": 0.01600000075995922
   },
   {
     "checks": [
@@ -507,7 +507,7 @@
     "line": 185,
     "passed": true,
     "test_name": "Lu Decompose",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.008999999612569809
   },
   {
     "checks": [
@@ -543,7 +543,7 @@
     "line": 165,
     "passed": true,
     "test_name": "Solve",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.014000000432133675
   },
   {
     "checks": [
@@ -640,7 +640,7 @@
     "line": 142,
     "passed": true,
     "test_name": "Inverse",
-    "time_ms": 0.054999999701976776
+    "time_ms": 0.019999999552965164
   },
   {
     "checks": [

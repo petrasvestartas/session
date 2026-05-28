@@ -18,7 +18,7 @@
     "line": 221,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 14.890999794006348
+    "time_ms": 14.970999717712402
   },
   {
     "checks": [
@@ -44,7 +44,7 @@
     "line": 328,
     "passed": true,
     "test_name": "Leaves",
-    "time_ms": 0.017000000923871994
+    "time_ms": 0.02199999988079071
   },
   {
     "checks": [
@@ -60,7 +60,7 @@
     "line": 278,
     "passed": true,
     "test_name": "Add",
-    "time_ms": 0.006000000052154064
+    "time_ms": 0.007000000216066837
   },
   {
     "checks": [
@@ -112,7 +112,7 @@
     "line": 264,
     "passed": true,
     "test_name": "Root",
-    "time_ms": 0.003000000026077032
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
@@ -133,7 +133,7 @@
     "line": 370,
     "passed": true,
     "test_name": "Get Node By Name",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.008999999612569809
   },
   {
     "checks": [
@@ -175,7 +175,7 @@
     "line": 312,
     "passed": true,
     "test_name": "Remove",
-    "time_ms": 0.014000000432133675
+    "time_ms": 0.013000000268220901
   },
   {
     "checks": [
@@ -196,7 +196,7 @@
     "line": 425,
     "passed": true,
     "test_name": "Add Child By Guid",
-    "time_ms": 0.012000000104308128
+    "time_ms": 0.03200000151991844
   },
   {
     "checks": [
@@ -217,7 +217,7 @@
     "line": 246,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 14.272000312805176
+    "time_ms": 13.197999954223633
   },
   {
     "checks": [
@@ -243,7 +243,7 @@
     "line": 407,
     "passed": true,
     "test_name": "Find Node By Guid",
-    "time_ms": 0.02800000086426735
+    "time_ms": 0.017000000923871994
   },
   {
     "checks": [
@@ -269,7 +269,7 @@
     "line": 446,
     "passed": true,
     "test_name": "Get Children Guids",
-    "time_ms": 0.039000000804662704
+    "time_ms": 0.017999999225139618
   },
   {
     "checks": [
@@ -285,7 +285,7 @@
     "line": 388,
     "passed": true,
     "test_name": "Get Nodes By Name",
-    "time_ms": 0.014999999664723873
+    "time_ms": 0.007000000216066837
   },
   {
     "checks": [
@@ -306,7 +306,7 @@
     "line": 349,
     "passed": true,
     "test_name": "Traverse",
-    "time_ms": 0.027000000700354576
+    "time_ms": 0.014999999664723873
   },
   {
     "checks": [
@@ -332,7 +332,7 @@
     "line": 32,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 16.013999938964844
+    "time_ms": 14.119000434875488
   },
   {
     "checks": [
@@ -353,7 +353,7 @@
     "line": 86,
     "passed": true,
     "test_name": "Add",
-    "time_ms": 0.004000000189989805
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
@@ -379,7 +379,7 @@
     "line": 127,
     "passed": true,
     "test_name": "Ancestors",
-    "time_ms": 0.020999999716877937
+    "time_ms": 0.023000000044703484
   },
   {
     "checks": [
@@ -400,7 +400,7 @@
     "line": 114,
     "passed": true,
     "test_name": "Parent",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.003000000026077032
   },
   {
     "checks": [
@@ -426,7 +426,7 @@
     "line": 163,
     "passed": true,
     "test_name": "Children",
-    "time_ms": 0.020999999716877937
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
@@ -472,7 +472,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.019999999552965164
+    "time_ms": 0.014999999664723873
   },
   {
     "checks": [
@@ -498,7 +498,7 @@
     "line": 99,
     "passed": true,
     "test_name": "Remove",
-    "time_ms": 0.00800000037997961
+    "time_ms": 0.006000000052154064
   },
   {
     "checks": [
@@ -514,7 +514,7 @@
     "line": 76,
     "passed": true,
     "test_name": "Tree",
-    "time_ms": 0.0020000000949949026
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -540,7 +540,7 @@
     "line": 181,
     "passed": true,
     "test_name": "Traverse",
-    "time_ms": 0.014000000432133675
+    "time_ms": 0.012000000104308128
   },
   {
     "checks": [

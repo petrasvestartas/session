@@ -23,7 +23,7 @@
     "line": 425,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 15.39799976348877
+    "time_ms": 14.729000091552734
   },
   {
     "checks": [
@@ -54,7 +54,7 @@
     "line": 74,
     "passed": true,
     "test_name": "Identity",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.010999999940395355
   },
   {
     "checks": [
@@ -70,7 +70,7 @@
     "line": 301,
     "passed": true,
     "test_name": "Normalized",
-    "time_ms": 0.010999999940395355
+    "time_ms": 0.014000000432133675
   },
   {
     "checks": [
@@ -240,7 +240,7 @@
     "line": 93,
     "passed": true,
     "test_name": "From Components",
-    "time_ms": 0.01600000075995922
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
@@ -266,7 +266,7 @@
     "line": 455,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 13.463000297546387
+    "time_ms": 13.76099967956543
   },
   {
     "checks": [
@@ -352,7 +352,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.04500000178813934
+    "time_ms": 0.05400000140070915
   },
   {
     "checks": [
@@ -457,7 +457,7 @@
     "line": 319,
     "passed": true,
     "test_name": "Conjugate",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.013000000268220901
   },
   {
     "checks": [
@@ -504,7 +504,7 @@
     "line": 403,
     "passed": true,
     "test_name": "Nlerp",
-    "time_ms": 0.014000000432133675
+    "time_ms": 0.014999999664723873
   },
   {
     "checks": [
@@ -535,7 +535,7 @@
     "line": 339,
     "passed": true,
     "test_name": "Invert",
-    "time_ms": 0.008999999612569809
+    "time_ms": 0.014999999664723873
   },
   {
     "checks": [

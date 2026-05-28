@@ -13,7 +13,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.008999999612569809
+    "time_ms": 0.007000000216066837
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 15,
     "passed": true,
     "test_name": "Is Close",
-    "time_ms": 0.003000000026077032
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 24,
     "passed": true,
     "test_name": "Is Positive",
-    "time_ms": 0.03799999877810478
+    "time_ms": 0.004999999888241291
   },
   {
     "checks": [
@@ -61,7 +61,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Is Negative",
-    "time_ms": 0.0020000000949949026
+    "time_ms": 0.0010000000474974513
   },
   {
     "checks": [
@@ -93,7 +93,7 @@
     "line": 51,
     "passed": true,
     "test_name": "Format Number",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.004000000189989805
   },
   {
     "checks": [
@@ -258,7 +258,7 @@
     "line": 130,
     "passed": true,
     "test_name": "Triangle Edge By Angle",
-    "time_ms": 0.008999999612569809
+    "time_ms": 0.25200000405311584
   },
   {
     "checks": [
@@ -284,7 +284,7 @@
     "line": 169,
     "passed": true,
     "test_name": "To Degrees",
-    "time_ms": 0.0010000000474974513
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
@@ -368,7 +368,7 @@
     "line": 201,
     "passed": true,
     "test_name": "Is Angle Zero",
-    "time_ms": 0.0010000000474974513
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
@@ -489,7 +489,7 @@
     "line": 250,
     "passed": true,
     "test_name": "Key Xy",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
@@ -557,7 +557,7 @@
     "line": 238,
     "passed": true,
     "test_name": "Is Allclose",
-    "time_ms": 0.0020000000949949026
+    "time_ms": 0.004999999888241291
   },
   {
     "checks": [

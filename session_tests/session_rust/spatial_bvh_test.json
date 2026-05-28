@@ -33,7 +33,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Expand Bits",
-    "time_ms": 0.017000000923871994
+    "time_ms": 0.01899999938905239
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 46,
     "passed": true,
     "test_name": "Morton Code Origin",
-    "time_ms": 0.007000000216066837
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
@@ -117,7 +117,7 @@
     "line": 79,
     "passed": true,
     "test_name": "Node Creation",
-    "time_ms": 0.007000000216066837
+    "time_ms": 0.00800000037997961
   },
   {
     "checks": [
@@ -169,7 +169,7 @@
     "line": 102,
     "passed": true,
     "test_name": "Creation",
-    "time_ms": 0.003000000026077032
+    "time_ms": 0.0020000000949949026
   },
   {
     "checks": [
@@ -185,7 +185,7 @@
     "line": 114,
     "passed": true,
     "test_name": "Build Empty",
-    "time_ms": 0.00800000037997961
+    "time_ms": 0.007000000216066837
   },
   {
     "checks": [
@@ -201,7 +201,7 @@
     "line": 124,
     "passed": true,
     "test_name": "Build Single",
-    "time_ms": 0.03400000184774399
+    "time_ms": 0.03500000014901161
   },
   {
     "checks": [
@@ -222,7 +222,7 @@
     "line": 142,
     "passed": true,
     "test_name": "Build Multiple",
-    "time_ms": 0.10599999874830246
+    "time_ms": 0.04899999871850014
   },
   {
     "checks": [
@@ -243,7 +243,7 @@
     "line": 164,
     "passed": true,
     "test_name": "Aabb Intersect",
-    "time_ms": 0.019999999552965164
+    "time_ms": 0.009999999776482582
   },
   {
     "checks": [
@@ -274,7 +274,7 @@
     "line": 183,
     "passed": true,
     "test_name": "Check All Collisions",
-    "time_ms": 0.0729999989271164
+    "time_ms": 0.0430000014603138
   },
   {
     "checks": [
@@ -295,7 +295,7 @@
     "line": 207,
     "passed": true,
     "test_name": "Merge Aabb",
-    "time_ms": 0.02500000037252903
+    "time_ms": 0.012000000104308128
   },
   {
     "checks": [
@@ -516,7 +516,7 @@
     "line": 224,
     "passed": true,
     "test_name": "Fixed 100 Boxes",
-    "time_ms": 0.9169999957084656
+    "time_ms": 0.5220000147819519
   },
   {
     "checks": [
@@ -537,7 +537,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.0560000017285347
+    "time_ms": 0.04899999871850014
   },
   {
     "checks": [
@@ -568,7 +568,7 @@
     "line": 358,
     "passed": true,
     "test_name": "Nearest Neighbors",
-    "time_ms": 0.04600000008940697
+    "time_ms": 0.08399999886751175
   },
   {
     "checks": [
@@ -604,6 +604,6 @@
     "line": 386,
     "passed": true,
     "test_name": "Query Aabb",
-    "time_ms": 0.05400000140070915
+    "time_ms": 0.06599999964237213
   }
 ]

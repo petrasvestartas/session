@@ -18,7 +18,7 @@
     "line": 25,
     "passed": true,
     "test_name": "Nearest",
-    "time_ms": 0.014000000432133675
+    "time_ms": 0.01600000075995922
   },
   {
     "checks": [
@@ -44,7 +44,7 @@
     "line": 73,
     "passed": true,
     "test_name": "Radius Search",
-    "time_ms": 0.017000000923871994
+    "time_ms": 0.028999999165534973
   },
   {
     "checks": [
@@ -75,7 +75,7 @@
     "line": 48,
     "passed": true,
     "test_name": "Nearest K",
-    "time_ms": 0.023000000044703484
+    "time_ms": 0.017000000923871994
   },
   {
     "checks": [
@@ -96,6 +96,6 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.00800000037997961
+    "time_ms": 0.007000000216066837
   }
 ]

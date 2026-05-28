@@ -1,10 +1,10 @@
 impl State {
     fn build_ui(&mut self) -> egui::FullOutput {
-        let egui_ctx = self.egui_ctx.clone();
+        let egui_ctx = self.shell.egui_ctx.clone();
         let window = Arc::clone(&self.window);
-        let raw_input = self.egui_state.take_egui_input(&window);
+        let raw_input = self.shell.egui_state.take_egui_input(&window);
 
-        let tree_root = self.session.tree.root();
+        let tree_root = self.scene.session.tree.root();
         use session_rust::session::Geometry;
         fn geom_name(g: &Geometry) -> &str {
             match g {
@@ -19,7 +19,7 @@ impl State {
                 Geometry::Element(x)    => &x.name,
             }
         }
-        let mut vmap: HashMap<String, String> = self.session.lookup
+        let mut vmap: HashMap<String, String> = self.scene.session.lookup
             .iter()
             .map(|(guid, geom)| {
                 let name = geom_name(geom);
@@ -27,43 +27,43 @@ impl State {
                 (guid.clone(), label)
             })
             .collect();
-        for ns in &self.session.objects.nurbssurfaces {
+        for ns in &self.scene.session.objects.nurbssurfaces {
             let g = ns.guid().to_string();
             let label = if ns.name.is_empty() { g.clone() } else { ns.name.clone() };
             vmap.entry(g).or_insert(label);
         }
-        for nc in &self.session.objects.nurbscurves {
+        for nc in &self.scene.session.objects.nurbscurves {
             let g = nc.guid().to_string();
             let label = if nc.name.is_empty() { g.clone() } else { nc.name.clone() };
             vmap.entry(g).or_insert(label);
         }
-        if self.leaf_cache_dirty {
-            self.leaf_guid_cache.clear();
-            self.leaf_cache_dirty = false;
+        if self.scene.leaf_cache_dirty {
+            self.scene.leaf_guid_cache.clear();
+            self.scene.leaf_cache_dirty = false;
         }
         if let Some(root) = &tree_root {
-            populate_leaf_cache(root, &vmap, &mut self.leaf_guid_cache);
+            populate_leaf_cache(root, &vmap, &mut self.scene.leaf_guid_cache);
         }
-        let leaf_cache = self.leaf_guid_cache.clone();
+        let leaf_cache = self.scene.leaf_guid_cache.clone();
 
-        let edges = self.session.graph.get_edges();
-        let selected = self.selected_guids.clone();
-        let hidden = self.hidden_guids.clone();
-        let locked = self.group_locked.clone();
+        let edges = self.scene.session.graph.get_edges();
+        let selected = self.scene.selected_guids.clone();
+        let hidden = self.scene.hidden_guids.clone();
+        let locked = self.scene.group_locked.clone();
         let mut new_sel: Option<(Vec<String>, bool)> = None;
         let mut vis_chg: Vec<(String, bool)> = Vec::new();
         let mut lock_chg: Vec<(String, bool)> = Vec::new();
-        let line_thickness = self.line_thickness;
+        let line_thickness = self.scene.line_thickness;
         let mut new_line_thickness: Option<f32> = None;
-        let plane_scale = self.gpu_session.plane_scale;
+        let plane_scale = self.scene.gpu_session.plane_scale;
         let mut new_plane_scale: Option<f32> = None;
 
-        let cmd_log_snap = self.cmd_log.clone();
-        let mut cmd_input_buf = self.cmd_input.clone();
+        let cmd_log_snap = self.shell.cmd_log.clone();
+        let mut cmd_input_buf = self.shell.cmd_input.clone();
         let mut cmd_submitted: Option<String> = None;
-        let cmd_history_snap = self.cmd_history.clone();
-        let mut cmd_history_idx_buf = self.cmd_history_idx;
-        let mut cmd_history_saved_buf = self.cmd_history_saved.clone();
+        let cmd_history_snap = self.shell.cmd_history.clone();
+        let mut cmd_history_idx_buf = self.shell.cmd_history_idx;
+        let mut cmd_history_saved_buf = self.shell.cmd_history_saved.clone();
 
         const CMDS: &[(&str, &str)] = &[
             ("box",      "sx sy sz"),
@@ -251,6 +251,8 @@ impl State {
                                     ("Shift+LMB",    "add to selection"),
                                     ("Q",            "toggle shading"),
                                     ("E",            "toggle back-face color"),
+                                    ("Ctrl+Z",       "undo"),
+                                    ("Ctrl+U",       "redo"),
                                 ] {
                                     ui.monospace(*key);
                                     ui.label(*action);
@@ -265,72 +267,72 @@ impl State {
         if let Some((guids, shift)) = new_sel {
             if shift {
                 for guid in &guids {
-                    if self.selected_guids.contains(guid) {
-                        self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, false, &self.queue);
-                        self.selected_guids.remove(guid);
-                    } else if self.gpu_session.pick.instance_id(guid).is_some() {
-                        self.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.queue);
-                        self.selected_guids.insert(guid.clone());
+                    if self.scene.selected_guids.contains(guid) {
+                        self.scene.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, false, &self.gpu.queue);
+                        self.scene.selected_guids.remove(guid);
+                    } else if self.scene.gpu_session.pick.instance_id(guid).is_some() {
+                        self.scene.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.gpu.queue);
+                        self.scene.selected_guids.insert(guid.clone());
                     }
                 }
             } else {
                 let refs: Vec<&str> = guids.iter().map(|s| s.as_str()).collect();
                 self.set_selection(&refs);
             }
-            if !self.selected_guids.is_empty() {
+            if !self.scene.selected_guids.is_empty() {
                 let origin = self.selected_centroid();
-                match &mut self.gumball {
+                match &mut self.gb.gumball {
                     Some(gb) => gb.set_origin(origin),
-                    None => self.gumball = Some(Gumball::new(origin)),
+                    None => self.gb.gumball = Some(Gumball::new(origin)),
                 }
             } else {
-                self.gumball = None;
+                self.gb.gumball = None;
             }
         }
 
         for (guid, should_hide) in vis_chg {
-            self.gpu_session.set_flag(&guid, InstanceData::FLAG_HIDDEN, should_hide, &self.queue);
-            if should_hide { self.hidden_guids.insert(guid); } else { self.hidden_guids.remove(&guid); }
+            self.scene.gpu_session.set_flag(&guid, InstanceData::FLAG_HIDDEN, should_hide, &self.gpu.queue);
+            if should_hide { self.scene.hidden_guids.insert(guid); } else { self.scene.hidden_guids.remove(&guid); }
         }
         for (name, should_lock) in lock_chg {
-            if should_lock { self.group_locked.insert(name); } else { self.group_locked.remove(&name); }
+            if should_lock { self.scene.group_locked.insert(name); } else { self.scene.group_locked.remove(&name); }
         }
 
-        if let Some(t) = new_line_thickness { self.line_thickness = t; self.apply_thickness(); }
+        if let Some(t) = new_line_thickness { self.scene.line_thickness = t; self.apply_thickness(); }
 
         if let Some(s) = new_plane_scale {
-            self.gpu_session.plane_scale = s;
-            let plane_guids: Vec<String> = self.session.lookup.iter()
+            self.scene.gpu_session.plane_scale = s;
+            let plane_guids: Vec<String> = self.scene.session.lookup.iter()
                 .filter_map(|(g, geom)| if matches!(geom, session_rust::Geometry::Plane(_)) { Some(g.clone()) } else { None })
                 .collect();
             for guid in &plane_guids {
-                self.gpu_session.remove(guid);
-                if let Some(geom) = self.session.lookup.get(guid) {
-                    self.gpu_session.add_geometry(guid, geom, &self.device, &self.queue);
+                self.scene.gpu_session.remove(guid);
+                if let Some(geom) = self.scene.session.lookup.get(guid) {
+                    self.scene.gpu_session.add_geometry(guid, geom, &self.gpu.device, &self.gpu.queue);
                 }
                 self.reapply_visibility_flags(guid);
             }
         }
 
-        self.cmd_input = cmd_input_buf;
-        self.cmd_history_idx = cmd_history_idx_buf;
-        self.cmd_history_saved = cmd_history_saved_buf;
+        self.shell.cmd_input = cmd_input_buf;
+        self.shell.cmd_history_idx = cmd_history_idx_buf;
+        self.shell.cmd_history_saved = cmd_history_saved_buf;
         if let Some(cmd) = cmd_submitted {
-            if self.cmd_history.last().map(|s| s.as_str()) != Some(cmd.as_str()) {
-                self.cmd_history.push(cmd.clone());
+            if self.shell.cmd_history.last().map(|s| s.as_str()) != Some(cmd.as_str()) {
+                self.shell.cmd_history.push(cmd.clone());
             }
-            self.cmd_history_idx = None;
-            self.cmd_history_saved = String::new();
-            self.cmd_log.push(format!("> {cmd}"));
+            self.shell.cmd_history_idx = None;
+            self.shell.cmd_history_saved = String::new();
+            self.shell.cmd_log.push(format!("> {cmd}"));
             let result = self.execute_command(&cmd);
             if !result.is_empty() {
                 for line in result.lines() {
-                    self.cmd_log.push(line.to_string());
+                    self.shell.cmd_log.push(line.to_string());
                 }
             }
-            if self.cmd_log.len() > 200 {
-                let drain = self.cmd_log.len() - 200;
-                self.cmd_log.drain(0..drain);
+            if self.shell.cmd_log.len() > 200 {
+                let drain = self.shell.cmd_log.len() - 200;
+                self.shell.cmd_log.drain(0..drain);
             }
         }
 

@@ -1,3 +1,24 @@
+//  session_viewer layer stack
+//
+//  ┌──────────────────────────────────────────────────┐
+//  │  ShellState  (shell)   egui + CLI                │
+//  ├──────────────────────────────────────────────────┤
+//  │  UndoState   (hist)    undo/redo action stacks   │
+//  ├──────────────────────────────────────────────────┤
+//  │  GumballState (gb)     select gizmo + GPU bufs   │
+//  ├──────────────────────────────────────────────────┤
+//  │  SceneState  (scene)   geometry + camera + pick  │
+//  ├──────────────────────────────────────────────────┤
+//  │  GpuCtx      (gpu)     device/queue/tex/pipelines│
+//  └──────────────────────────────────────────────────┘
+//
+//  Render order each frame:
+//    1. scene.gpu_session.flush → geometry pass (MSAA)
+//    2. gb.gumball.is_some()   → gumball pass (MSAA)
+//    3. shell.build_ui()       → egui pass (swapchain)
+//
+//  To isolate a broken layer: comment out its render step — the others survive.
+
 // ============================================================
 // IMPORTS
 // ============================================================
@@ -45,6 +66,17 @@ use tree_ui::{
     locked_group_for_guid, populate_leaf_cache, render_tree_node,
 };
 
+mod gpu_ctx;
+mod scene_state;
+mod gumball_state;
+mod undo_state;
+mod shell_state;
+use gpu_ctx::{GpuCtx, create_depth_texture, create_msaa_texture};
+use scene_state::SceneState;
+use gumball_state::GumballState;
+use undo_state::{UndoState, UndoAction};
+use shell_state::ShellState;
+
 fn labels_from_session(session: &Session) -> Vec<text::TextLabel> {
     session.lookup.iter()
         .filter_map(|(guid, geom)| {
@@ -83,97 +115,19 @@ fn mat4_mul_cm(a: &[[f32; 4]; 4], b: &[[f32; 4]; 4]) -> [[f32; 4]; 4] {
 }
 
 
-fn create_depth_texture(device: &wgpu::Device, width: u32, height: u32, sample_count: u32) -> (wgpu::Texture, wgpu::TextureView) {
-    let tex = device.create_texture(&wgpu::TextureDescriptor {
-        label: Some("depth_texture"),
-        size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
-        mip_level_count: 1,
-        sample_count,
-        dimension: wgpu::TextureDimension::D2,
-        format: wgpu::TextureFormat::Depth32Float,
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-        view_formats: &[],
-    });
-    let view = tex.create_view(&wgpu::TextureViewDescriptor::default());
-    (tex, view)
-}
-
-fn create_msaa_texture(device: &wgpu::Device, width: u32, height: u32, format: wgpu::TextureFormat, sample_count: u32) -> wgpu::TextureView {
-    let tex = device.create_texture(&wgpu::TextureDescriptor {
-        label: Some("msaa_texture"),
-        size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
-        mip_level_count: 1,
-        sample_count,
-        dimension: wgpu::TextureDimension::D2,
-        format,
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-        view_formats: &[],
-    });
-    tex.create_view(&wgpu::TextureViewDescriptor::default())
-}
-
 
 // ============================================================
 // STATE
 // ============================================================
 pub struct State {
     window: Arc<Window>,
-    surface: wgpu::Surface<'static>,
-    device: wgpu::Device,
-    queue: wgpu::Queue,
-    config: wgpu::SurfaceConfiguration,
-    is_surface_configured: bool,
-    mouse_position: (f64, f64),
-    clear_color: wgpu::Color,
-    pipelines: Pipelines,
-    gpu_session: GpuSession,
-    session: Session,
-    selected_guids: HashSet<String>,
-    pending_pick: Option<(f64, f64)>,
-    camera: Camera,
-    controller: CameraController,
-    camera_buf: wgpu::Buffer,
-    bind_group: wgpu::BindGroup,
-    depth_tex_raw: wgpu::Texture,
-    depth_view: wgpu::TextureView,
-    msaa_view: wgpu::TextureView,
-    gumball: Option<Gumball>,
-    gumball_scale: f32,
-    #[allow(dead_code)]
-    gumball_instance_buf: wgpu::Buffer,
-    gumball_bind_group: wgpu::BindGroup,
-    gumball_seg_buf: wgpu::Buffer,
-    gumball_seg_bg: wgpu::BindGroup,
-    gumball_cone_buf: wgpu::Buffer,
-    gumball_cone_bg: wgpu::BindGroup,
-    gumball_glyph_buf: wgpu::Buffer,
-    gumball_glyph_bg: wgpu::BindGroup,
-    drag_origins: HashMap<String, [[f32; 4]; 4]>,
-    hidden_guids: HashSet<String>,
-    group_locked: HashSet<String>,
-    geom_guid_set: HashSet<String>,
-    leaf_guid_cache: HashMap<String, Vec<String>>,
-    leaf_cache_dirty: bool,
-    glyphs_hidden_guids: HashSet<String>,
-    line_thickness: f32,
-    shading_enabled: bool,
-    backface_highlight: bool,
-    egui_ctx: egui::Context,
-    egui_renderer: egui_wgpu::Renderer,
-    egui_state: egui_winit::State,
-    text_labels: Vec<text::TextLabel>,
-    #[allow(dead_code)]
-    font_atlas_view: wgpu::TextureView,
-    #[allow(dead_code)]
-    font_sampler: wgpu::Sampler,
-    glyph_bind_group: wgpu::BindGroup,
-    cmd_input: String,
-    cmd_log: Vec<String>,
-    cmd_counter: u32,
-    cmd_history: Vec<String>,
-    cmd_history_idx: Option<usize>,
-    cmd_history_saved: String,
+    pub gpu: GpuCtx,
+    pub scene: SceneState,
+    pub gb: GumballState,
+    pub hist: UndoState,
+    pub shell: ShellState,
 }
+
 
 impl State {
     pub async fn new(window: Arc<Window>) -> anyhow::Result<Self> {
@@ -306,29 +260,52 @@ impl State {
             &font_sampler,
         );
 
-        let mut state = Self {
+        // ── GpuCtx ────────────────────────────────────────────
+        let gpu = GpuCtx {
             surface,
             device,
             queue,
             config,
             is_surface_configured: false,
             clear_color: wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 },
-            window,
-            mouse_position: (0.0, 0.0),
             pipelines,
-            gpu_session,
-            session,
-            selected_guids: HashSet::new(),
-            pending_pick: None,
-            camera,
-            controller,
             camera_buf,
             bind_group,
             depth_tex_raw,
             depth_view,
             msaa_view,
+            font_atlas_view,
+            font_sampler,
+            glyph_bind_group,
+        };
+
+        // ── SceneState ────────────────────────────────────────
+        let scene = SceneState {
+            gpu_session,
+            session,
+            selected_guids: HashSet::new(),
+            hidden_guids: HashSet::new(),
+            glyphs_hidden_guids: HashSet::new(),
+            group_locked: HashSet::new(),
+            geom_guid_set,
+            leaf_guid_cache: HashMap::new(),
+            leaf_cache_dirty: false,
+            camera,
+            controller,
+            key_mods: winit::keyboard::ModifiersState::empty(),
+            line_thickness: 2.0,
+            shading_enabled: true,
+            backface_highlight: true,
+            pending_pick: None,
+            mouse_position: (0.0, 0.0),
+            text_labels,
+        };
+
+        // ── GumballState ──────────────────────────────────────
+        let gb = GumballState {
             gumball: None,
             gumball_scale: 1.0,
+            drag_origins: HashMap::new(),
             gumball_instance_buf,
             gumball_bind_group,
             gumball_seg_buf,
@@ -337,23 +314,13 @@ impl State {
             gumball_cone_bg,
             gumball_glyph_buf,
             gumball_glyph_bg,
-            drag_origins: HashMap::new(),
-            hidden_guids: HashSet::new(),
-            group_locked: HashSet::new(),
-            geom_guid_set,
-            leaf_guid_cache: HashMap::new(),
-            leaf_cache_dirty: false,
-            glyphs_hidden_guids: HashSet::new(),
-            line_thickness: 2.0,
-            shading_enabled: true,
-            backface_highlight: true,
+        };
+
+        // ── ShellState ────────────────────────────────────────
+        let shell = ShellState {
             egui_ctx,
             egui_renderer,
             egui_state,
-            text_labels,
-            font_atlas_view,
-            font_sampler,
-            glyph_bind_group,
             cmd_input: String::new(),
             cmd_log: Vec::new(),
             cmd_counter: 0,
@@ -361,37 +328,32 @@ impl State {
             cmd_history_idx: None,
             cmd_history_saved: String::new(),
         };
+
+        let mut state = Self { window, gpu, scene, gb, hist: UndoState::new(), shell };
         state.apply_thickness();
         // Auto-lock atomic element groups (mesh + polylines) for joint movement
-        if let Some(root) = state.session.tree.root() {
-            auto_lock_leaf_groups(&root, &state.geom_guid_set, &mut state.group_locked);
+        if let Some(root) = state.scene.session.tree.root() {
+            auto_lock_leaf_groups(&root, &state.scene.geom_guid_set, &mut state.scene.group_locked);
         }
         // Auto-hide edges and vertex glyphs for FloorModel meshes
-        let floor_guids = collect_group_leaf_guids(&state.session, "FloorModel");
+        let floor_guids = collect_group_leaf_guids(&state.scene.session, "FloorModel");
         for guid in &floor_guids {
-            state.gpu_session.set_flag(guid, InstanceData::FLAG_GLYPHS_HIDDEN, true, &state.queue);
-            state.glyphs_hidden_guids.insert(guid.clone());
+            state.scene.gpu_session.set_flag(guid, InstanceData::FLAG_GLYPHS_HIDDEN, true, &state.gpu.queue);
+            state.scene.glyphs_hidden_guids.insert(guid.clone());
         }
         // Auto-hide endpoint glyphs for FloorPolylines (too many endpoints)
-        let floor_poly_guids = collect_group_leaf_guids(&state.session, "FloorPolylines");
+        let floor_poly_guids = collect_group_leaf_guids(&state.scene.session, "FloorPolylines");
         for guid in &floor_poly_guids {
-            state.gpu_session.set_flag(guid, InstanceData::FLAG_GLYPHS_HIDDEN, true, &state.queue);
-            state.glyphs_hidden_guids.insert(guid.clone());
+            state.scene.gpu_session.set_flag(guid, InstanceData::FLAG_GLYPHS_HIDDEN, true, &state.gpu.queue);
+            state.scene.glyphs_hidden_guids.insert(guid.clone());
         }
         Ok(state)
     }
 
     pub fn resize(&mut self, width: u32, height: u32) {
         if width > 0 && height > 0 {
-            self.config.width = width;
-            self.config.height = height;
-            self.surface.configure(&self.device, &self.config);
-            self.is_surface_configured = true;
-            self.camera.aspect = width as f32 / height as f32;
-            let (depth_tex_raw, depth_view) = create_depth_texture(&self.device, width, height, 4);
-            self.depth_tex_raw = depth_tex_raw;
-            self.depth_view = depth_view;
-            self.msaa_view = create_msaa_texture(&self.device, width, height, self.config.format, 4);
+            self.gpu.resize(width, height);
+            self.scene.camera.aspect = width as f32 / height as f32;
         }
     }
 }
@@ -402,6 +364,7 @@ include!("state_cmd.rs");        // apply_thickness, execute_command
 include!("state_ui.rs");         // build_ui
 include!("state_render.rs");     // render
 include!("state_interaction.rs"); // reapply_visibility, commit_transform, handle_*, fit_view
+include!("state_undo.rs");       // undo, redo
 
 
 // ============================================================
@@ -486,7 +449,7 @@ impl ApplicationHandler<State> for App {
 
         // Route event to egui first; skip 3D handling if egui consumed it
         let window = Arc::clone(&state.window);
-        let egui_resp = state.egui_state.on_window_event(&window, &event);
+        let egui_resp = state.shell.egui_state.on_window_event(&window, &event);
         if egui_resp.consumed {
             match &event {
                 WindowEvent::Resized(s) => state.resize(s.width, s.height),
@@ -527,7 +490,8 @@ impl ApplicationHandler<State> for App {
                 state.handle_mouse_moved(position.x, position.y);
             }
             WindowEvent::ModifiersChanged(mods) => {
-                state.controller.process_modifiers(mods.state());
+                state.scene.controller.process_modifiers(mods.state());
+                state.scene.key_mods = mods.state();
             }
             WindowEvent::MouseInput { state: btn_state, button, .. } => {
                 state.handle_mouse_button(button, btn_state.is_pressed());
