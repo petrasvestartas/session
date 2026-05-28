@@ -6,6 +6,10 @@ pub struct GumballState {
     pub gumball: Option<Gumball>,
     pub gumball_scale: f32,
     pub drag_origins: HashMap<String, [[f32; 4]; 4]>,
+    /// Geometry snapshot taken at drag-start for non-BRep objects so undo can restore exact state.
+    pub drag_geom_snapshots: HashMap<String, session_rust::session::Geometry>,
+    /// NurbsSurface snapshot taken at drag-start for NURBS objects.
+    pub drag_nurbs_snapshots: HashMap<String, session_rust::NurbsSurface>,
     #[allow(dead_code)]
     pub gumball_instance_buf: wgpu::Buffer,
     pub gumball_bind_group: wgpu::BindGroup,

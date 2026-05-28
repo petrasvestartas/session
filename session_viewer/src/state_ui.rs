@@ -49,14 +49,26 @@ impl State {
         let edges = self.scene.session.graph.get_edges();
         let selected = self.scene.selected_guids.clone();
         let hidden = self.scene.hidden_guids.clone();
-        let locked = self.scene.group_locked.clone();
+        let group_locked = self.scene.group_locked.clone();
+        let transform_locked = self.scene.transform_locked.clone();
+        let face_colors = self.scene.face_color_overrides.clone();
+        let pt_colors   = self.scene.point_color_overrides.clone();
+        let box_select_snap = self.scene.box_select;
         let mut new_sel: Option<(Vec<String>, bool)> = None;
         let mut vis_chg: Vec<(String, bool)> = Vec::new();
         let mut lock_chg: Vec<(String, bool)> = Vec::new();
+        let mut transform_lock_chg: Vec<(String, bool)> = Vec::new();
+        let mut face_color_chg: Vec<(String, Option<[f32; 4]>)> = Vec::new();
+        let mut pt_color_chg:   Vec<(String, Option<[f32; 4]>)> = Vec::new();
+        let mut tree_search_buf = self.shell.tree_search.clone();
         let line_thickness = self.scene.line_thickness;
         let mut new_line_thickness: Option<f32> = None;
         let plane_scale = self.scene.gpu_session.plane_scale;
         let mut new_plane_scale: Option<f32> = None;
+        let can_undo = !self.hist.undo_stack.is_empty();
+        let can_redo = !self.hist.redo_stack.is_empty();
+        let mut do_undo = false;
+        let mut do_redo = false;
 
         let cmd_log_snap = self.shell.cmd_log.clone();
         let mut cmd_input_buf = self.shell.cmd_input.clone();
@@ -191,21 +203,63 @@ impl State {
                     });
                 });
             egui::Panel::right("panel")
-                .default_size(240.0)
+                .default_size(400.0)
                 .show_inside(ui, |ui| {
                     egui::ScrollArea::vertical().show(ui, |ui| {
+                    ui.horizontal(|ui| {
+                        let arrow = |s: &str| egui::Button::new(egui::RichText::new(s).size(18.0)).min_size(egui::vec2(28.0, 24.0));
+                        if ui.add_enabled(can_undo, arrow("↶")).on_hover_text("Undo (Ctrl+Z)").clicked() { do_undo = true; }
+                        if ui.add_enabled(can_redo, arrow("↷")).on_hover_text("Redo (Ctrl+U)").clicked() { do_redo = true; }
+                    });
+                    ui.separator();
                     egui::CollapsingHeader::new("Tree")
                         .default_open(true)
                         .show(ui, |ui| {
+                            // Search bar
+                            ui.horizontal(|ui| {
+                                ui.add(egui::TextEdit::singleline(&mut tree_search_buf)
+                                    .hint_text("search…")
+                                    .desired_width(f32::INFINITY));
+                            });
+                            // Column headers
+                            let hdr_img = |src: egui::ImageSource<'static>| {
+                                egui::Image::new(src).fit_to_exact_size(egui::vec2(14.0, 14.0))
+                            };
+                            ui.horizontal(|ui| {
+                                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                                    ui.add_sized([tree_ui::ICON_W, tree_ui::ROW_H],
+                                        hdr_img(egui::include_image!("../assets/group.svg")))
+                                        .on_hover_text("Group lock");
+                                    ui.separator();
+                                    ui.add_sized([tree_ui::ICON_W, tree_ui::ROW_H],
+                                        hdr_img(egui::include_image!("../assets/lightbulb.svg")))
+                                        .on_hover_text("Visibility");
+                                    ui.separator();
+                                    ui.add_sized([tree_ui::ICON_W, tree_ui::ROW_H],
+                                        hdr_img(egui::include_image!("../assets/pointlinecolor.svg")))
+                                        .on_hover_text("Point/line color");
+                                    ui.separator();
+                                    ui.add_sized([tree_ui::ICON_W, tree_ui::ROW_H],
+                                        hdr_img(egui::include_image!("../assets/facecolor.svg")))
+                                        .on_hover_text("Face color");
+                                    ui.separator();
+                                    ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
+                                        ui.label(egui::RichText::new("Name").color(egui::Color32::from_gray(130)));
+                                    });
+                                });
+                            });
+                            ui.separator();
+                            let search_lc = tree_search_buf.to_lowercase();
                             if let Some(root) = &tree_root {
                                 for child in &root.borrow().children() {
-                                    render_tree_node(ui, child, &vmap, &selected, &hidden, &locked, &mut new_sel, &mut vis_chg, &mut lock_chg, &leaf_cache);
+                                    render_tree_node(ui, child, &vmap, &selected, &hidden, &group_locked, &transform_locked, &face_colors, &pt_colors, &mut new_sel, &mut vis_chg, &mut lock_chg, &mut transform_lock_chg, &mut face_color_chg, &mut pt_color_chg, &leaf_cache, &search_lc, 0);
                                 }
                             }
                         });
                     egui::CollapsingHeader::new("Graph")
                         .default_open(false)
                         .show(ui, |ui| {
+                            ui.visuals_mut().selection.bg_fill = egui::Color32::from_gray(180);
                             for (v0, v1) in &edges {
                                 let l0 = vmap.get(v0).map(|s| s.as_str()).unwrap_or(v0.as_str());
                                 let l1 = vmap.get(v1).map(|s| s.as_str()).unwrap_or(v1.as_str());
@@ -248,6 +302,7 @@ impl State {
                                     ("P / O",        "perspective / ortho"),
                                     ("T/B/L/R",      "named views"),
                                     ("LMB",          "select"),
+                                    ("LMB drag",     "box select"),
                                     ("Shift+LMB",    "add to selection"),
                                     ("Q",            "toggle shading"),
                                     ("E",            "toggle back-face color"),
@@ -262,7 +317,30 @@ impl State {
                         });
                     }); // ScrollArea
                 });
+
+            // Box select overlay
+            if let Some(((x0, y0), (x1, y1))) = box_select_snap {
+                let ppp = ui.ctx().pixels_per_point();
+                let painter = ui.ctx().layer_painter(egui::LayerId::new(
+                    egui::Order::Foreground, egui::Id::new("box_sel")));
+                let is_crossing = x1 < x0;
+                let min = egui::pos2(x0.min(x1) as f32 / ppp, y0.min(y1) as f32 / ppp);
+                let max = egui::pos2(x0.max(x1) as f32 / ppp, y0.max(y1) as f32 / ppp);
+                let rect = egui::Rect::from_min_max(min, max);
+                let (fill, stroke_col) = if is_crossing {
+                    (egui::Color32::from_rgba_unmultiplied(180, 180, 180, 25),
+                     egui::Color32::from_rgba_unmultiplied(200, 200, 200, 220))
+                } else {
+                    (egui::Color32::from_rgba_unmultiplied(180, 180, 180, 25),
+                     egui::Color32::from_rgba_unmultiplied(200, 200, 200, 220))
+                };
+                painter.rect_filled(rect, 0.0, fill);
+                painter.rect_stroke(rect, 0.0, egui::Stroke::new(1.0, stroke_col), egui::StrokeKind::Outside);
+            }
         });
+
+        if do_undo { self.undo(); }
+        if do_redo { self.redo(); }
 
         if let Some((guids, shift)) = new_sel {
             if shift {
@@ -297,6 +375,46 @@ impl State {
         for (name, should_lock) in lock_chg {
             if should_lock { self.scene.group_locked.insert(name); } else { self.scene.group_locked.remove(&name); }
         }
+        for (name, should_lock) in transform_lock_chg {
+            if should_lock { self.scene.transform_locked.insert(name); } else { self.scene.transform_locked.remove(&name); }
+        }
+
+        for (node_name, new_color) in face_color_chg {
+            let leaves: Vec<String> = self.scene.leaf_guid_cache.get(&node_name)
+                .cloned()
+                .unwrap_or_else(|| vec![node_name.clone()]);
+            if let Some(color) = new_color {
+                self.scene.face_color_overrides.insert(node_name, color);
+                for g in &leaves {
+                    self.scene.face_color_overrides.insert(g.clone(), color);
+                    self.scene.gpu_session.set_face_color(g, color, &self.gpu.queue);
+                }
+            } else {
+                self.scene.face_color_overrides.remove(&node_name);
+                for g in &leaves {
+                    self.scene.face_color_overrides.remove(g);
+                    self.scene.gpu_session.reset_color(g, &self.gpu.queue);
+                }
+            }
+        }
+        for (node_name, new_color) in pt_color_chg {
+            let leaves: Vec<String> = self.scene.leaf_guid_cache.get(&node_name)
+                .cloned()
+                .unwrap_or_else(|| vec![node_name.clone()]);
+            if let Some(color) = new_color {
+                self.scene.point_color_overrides.insert(node_name, color);
+                for g in &leaves {
+                    self.scene.point_color_overrides.insert(g.clone(), color);
+                    self.scene.gpu_session.set_color(g, color, &self.gpu.queue);
+                }
+            } else {
+                self.scene.point_color_overrides.remove(&node_name);
+                for g in &leaves {
+                    self.scene.point_color_overrides.remove(g);
+                    self.scene.gpu_session.reset_color(g, &self.gpu.queue);
+                }
+            }
+        }
 
         if let Some(t) = new_line_thickness { self.scene.line_thickness = t; self.apply_thickness(); }
 
@@ -317,6 +435,7 @@ impl State {
         self.shell.cmd_input = cmd_input_buf;
         self.shell.cmd_history_idx = cmd_history_idx_buf;
         self.shell.cmd_history_saved = cmd_history_saved_buf;
+        self.shell.tree_search = tree_search_buf;
         if let Some(cmd) = cmd_submitted {
             if self.shell.cmd_history.last().map(|s| s.as_str()) != Some(cmd.as_str()) {
                 self.shell.cmd_history.push(cmd.clone());

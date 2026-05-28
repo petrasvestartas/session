@@ -40,9 +40,35 @@ impl State {
                 }
                 self.scene.leaf_cache_dirty = true;
             }
-            UndoAction::Transform { objects } => {
+            UndoAction::Transform { objects, snapshots, .. } => {
                 for (guid, before, _after) in objects {
-                    self.commit_object_transform(guid, *before);
+                    let was_selected = self.scene.gpu_session.pick.instance_id(guid)
+                        .and_then(|iid| self.scene.gpu_session.instances_cpu.get(iid as usize))
+                        .map_or(false, |inst| inst.flags & InstanceData::FLAG_SELECTED != 0);
+                    match snapshots.get(guid) {
+                        Some(GeomSnapshot::Geom(geom)) => {
+                            self.scene.gpu_session.remove(guid);
+                            self.scene.session.lookup.insert(guid.clone(), geom.clone());
+                            self.scene.gpu_session.add_geometry(guid, geom, &self.gpu.device, &self.gpu.queue);
+                        }
+                        Some(GeomSnapshot::Nurbs(ns)) => {
+                            self.scene.gpu_session.remove(guid);
+                            if let Some(slot) = self.scene.session.objects.nurbssurfaces.iter_mut().find(|n| n.guid() == guid) {
+                                *slot = ns.clone();
+                            }
+                            self.scene.gpu_session.add_nurbssurface(ns, &self.gpu.device, &self.gpu.queue);
+                        }
+                        None => {
+                            self.commit_object_transform(guid, *before);
+                        }
+                    }
+                    if was_selected {
+                        self.scene.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.gpu.queue);
+                    }
+                }
+                if !self.scene.selected_guids.is_empty() {
+                    let origin = self.selected_centroid();
+                    if let Some(gb) = &mut self.gb.gumball { gb.set_origin(origin); }
                 }
             }
         }
@@ -74,9 +100,35 @@ impl State {
                 self.scene.leaf_cache_dirty = true;
                 if self.scene.selected_guids.is_empty() { self.gb.gumball = None; }
             }
-            UndoAction::Transform { objects } => {
+            UndoAction::Transform { objects, snapshots_after, .. } => {
                 for (guid, _before, after) in objects {
-                    self.commit_object_transform(guid, *after);
+                    let was_selected = self.scene.gpu_session.pick.instance_id(guid)
+                        .and_then(|iid| self.scene.gpu_session.instances_cpu.get(iid as usize))
+                        .map_or(false, |inst| inst.flags & InstanceData::FLAG_SELECTED != 0);
+                    match snapshots_after.get(guid) {
+                        Some(GeomSnapshot::Geom(geom)) => {
+                            self.scene.gpu_session.remove(guid);
+                            self.scene.session.lookup.insert(guid.clone(), geom.clone());
+                            self.scene.gpu_session.add_geometry(guid, geom, &self.gpu.device, &self.gpu.queue);
+                        }
+                        Some(GeomSnapshot::Nurbs(ns)) => {
+                            self.scene.gpu_session.remove(guid);
+                            if let Some(slot) = self.scene.session.objects.nurbssurfaces.iter_mut().find(|n| n.guid() == guid) {
+                                *slot = ns.clone();
+                            }
+                            self.scene.gpu_session.add_nurbssurface(ns, &self.gpu.device, &self.gpu.queue);
+                        }
+                        None => {
+                            self.commit_object_transform(guid, *after);
+                        }
+                    }
+                    if was_selected {
+                        self.scene.gpu_session.set_flag(guid, InstanceData::FLAG_SELECTED, true, &self.gpu.queue);
+                    }
+                }
+                if !self.scene.selected_guids.is_empty() {
+                    let origin = self.selected_centroid();
+                    if let Some(gb) = &mut self.gb.gumball { gb.set_origin(origin); }
                 }
             }
         }

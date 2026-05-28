@@ -298,6 +298,13 @@ fn compas_tf_demo(s: &mut Session) {
     for child in &floor_root.borrow().children() {
         merge_tree_node(child, &floor_group, &floor_group, PROMOTE, s, &floor);
     }
+    for (u, v) in floor.graph.get_edges() {
+        let attr = floor.graph.edges.get(&u)
+            .and_then(|nb| nb.get(&v))
+            .map(|e| e.attribute.as_str())
+            .unwrap_or("");
+        s.add_edge(&u, &v, attr);
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

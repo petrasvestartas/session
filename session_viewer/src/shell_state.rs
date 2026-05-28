@@ -8,4 +8,5 @@ pub struct ShellState {
     pub cmd_history: Vec<String>,
     pub cmd_history_idx: Option<usize>,
     pub cmd_history_saved: String,
+    pub tree_search: String,
 }

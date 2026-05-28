@@ -39,16 +39,16 @@ use winit::{
 };
 
 mod camera;
-mod pipelines;
+mod engine;
 mod gpu_arena;
 mod gpu_adapters;
-mod gpu_session;
 mod gpu_instance_groups;
 mod gumball;
 mod pick;
+use engine::gpu as gpu_session;
 use camera::{Camera, CameraController, ProjMode};
-use pipelines::{
-    build_bind_group, create_camera_buffer, create_glyph_bind_group, CameraUniform, Pipelines,
+use engine::pipelines::{
+    self, build_bind_group, create_camera_buffer, create_glyph_bind_group, CameraUniform, Pipelines,
 };
 
 use wgpu::util::DeviceExt;
@@ -74,7 +74,7 @@ mod shell_state;
 use gpu_ctx::{GpuCtx, create_depth_texture, create_msaa_texture};
 use scene_state::SceneState;
 use gumball_state::GumballState;
-use undo_state::{UndoState, UndoAction};
+use undo_state::{UndoState, UndoAction, GeomSnapshot};
 use shell_state::ShellState;
 
 fn labels_from_session(session: &Session) -> Vec<text::TextLabel> {
@@ -236,7 +236,15 @@ impl State {
         let gumball_glyph_bg = gpu_session::make_geom_bind_group(&device, &pipelines.geom_bgl, &gumball_glyph_buf);
 
         let egui_ctx = egui::Context::default();
-        egui_ctx.set_visuals(egui::Visuals::light());
+        {
+            let mut vis = egui::Visuals::light();
+            vis.selection.bg_fill = egui::Color32::BLACK;
+            vis.selection.stroke  = egui::Stroke::new(1.0, egui::Color32::WHITE);
+            vis.override_text_color = Some(egui::Color32::BLACK);
+            vis.indent_has_left_vline = false;
+            egui_ctx.set_visuals(vis);
+        }
+        egui_extras::install_image_loaders(&egui_ctx);
         let egui_renderer = egui_wgpu::Renderer::new(&device, config.format, egui_wgpu::RendererOptions::default());
         let egui_state = egui_winit::State::new(
             egui_ctx.clone(),
@@ -287,16 +295,22 @@ impl State {
             hidden_guids: HashSet::new(),
             glyphs_hidden_guids: HashSet::new(),
             group_locked: HashSet::new(),
+            transform_locked: HashSet::new(),
             geom_guid_set,
             leaf_guid_cache: HashMap::new(),
             leaf_cache_dirty: false,
+            face_color_overrides: HashMap::new(),
+            point_color_overrides: HashMap::new(),
             camera,
             controller,
             key_mods: winit::keyboard::ModifiersState::empty(),
+            ctrl_down: false,
             line_thickness: 2.0,
             shading_enabled: true,
             backface_highlight: true,
             pending_pick: None,
+            box_select_start: None,
+            box_select: None,
             mouse_position: (0.0, 0.0),
             text_labels,
         };
@@ -306,6 +320,8 @@ impl State {
             gumball: None,
             gumball_scale: 1.0,
             drag_origins: HashMap::new(),
+            drag_geom_snapshots: HashMap::new(),
+            drag_nurbs_snapshots: HashMap::new(),
             gumball_instance_buf,
             gumball_bind_group,
             gumball_seg_buf,
@@ -327,6 +343,7 @@ impl State {
             cmd_history: Vec::new(),
             cmd_history_idx: None,
             cmd_history_saved: String::new(),
+            tree_search: String::new(),
         };
 
         let mut state = Self { window, gpu, scene, gb, hist: UndoState::new(), shell };
@@ -446,6 +463,24 @@ impl ApplicationHandler<State> for App {
             Some(canvas) => canvas,
             None => return,
         };
+
+        // Undo/redo: intercept before egui sees the event so CLI text focus doesn't block it
+        if let WindowEvent::KeyboardInput {
+            event: KeyEvent { physical_key: PhysicalKey::Code(code), state: key_state, .. }, ..
+        } = &event {
+            // Track Ctrl from key events directly: ModifiersChanged is unreliable on web.
+            if matches!(code, KeyCode::ControlLeft | KeyCode::ControlRight) {
+                state.scene.ctrl_down = key_state.is_pressed();
+            }
+            let ctrl = state.scene.ctrl_down || state.scene.key_mods.control_key();
+            if key_state.is_pressed() && ctrl {
+                if *code == KeyCode::KeyZ {
+                    state.undo(); return;
+                } else if *code == KeyCode::KeyU {
+                    state.redo(); return;
+                }
+            }
+        }
 
         // Route event to egui first; skip 3D handling if egui consumed it
         let window = Arc::clone(&state.window);

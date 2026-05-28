@@ -8,12 +8,13 @@ struct Camera {
 }
 
 struct Instance {
-    model: mat4x4<f32>,
-    tint: vec4<f32>,
+    model:     mat4x4<f32>,
+    tint:      vec4<f32>,
+    face_tint: vec4<f32>,
     object_id: u32,
-    flags: u32,
-    _pad0: u32,
-    _pad1: u32,
+    flags:     u32,
+    _pad0:     u32,
+    _pad1:     u32,
 }
 
 @group(0) @binding(0) var<uniform> camera: Camera;

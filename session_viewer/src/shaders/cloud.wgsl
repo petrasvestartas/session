@@ -14,6 +14,7 @@ struct Camera {
 struct Instance {
     model:     mat4x4<f32>,
     tint:      vec4<f32>,
+    face_tint: vec4<f32>,
     object_id: u32,
     flags:     u32,
     _pad0:     u32,

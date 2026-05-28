@@ -11,12 +11,13 @@ struct Camera {
 }
 
 struct Instance {
-    model: mat4x4<f32>,
-    tint: vec4<f32>,
-    object_id: u32,
-    flags: u32,
-    _pad0: u32,
-    _pad1: u32,
+    model:      mat4x4<f32>,
+    tint:       vec4<f32>,
+    face_tint:  vec4<f32>,
+    object_id:  u32,
+    flags:      u32,
+    _pad0:      u32,
+    _pad1:      u32,
 }
 
 @group(0) @binding(0) var<uniform> camera: Camera;
@@ -44,7 +45,7 @@ fn vs_main(in: VsIn, @builtin(instance_index) iid: u32) -> VsOut {
     out.clip_pos  = camera.view_proj * world;
     out.world_pos = world.xyz;
     out.normal    = normalize((inst.model * vec4<f32>(in.normal, 0.0)).xyz);
-    out.color     = in.color * inst.tint;
+    out.color     = in.color * inst.face_tint;
     out.flags     = inst.flags;
     return out;
 }

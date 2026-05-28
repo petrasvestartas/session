@@ -10,6 +10,7 @@ struct Camera {
 struct Instance {
     model:     mat4x4<f32>,
     tint:      vec4<f32>,
+    face_tint: vec4<f32>,
     object_id: u32,
     flags:     u32,
     _pad0:     u32,
@@ -76,7 +77,8 @@ fn vs_main(
     let world_pos = rot * scaled + (mp0 + mp1) * 0.5;
     var out: VsOut;
     out.clip_pos = camera.view_proj * vec4<f32>(world_pos, 1.0);
-    out.color    = select(inst.tint, seg.color, seg.color.a > 0.0);
+    let seg_col  = select(inst.tint, seg.color, seg.color.a > 0.0);
+    out.color    = select(seg_col, inst.tint, (inst.flags & 32u) != 0u);
     out.flags    = inst.flags;
     return out;
 }
