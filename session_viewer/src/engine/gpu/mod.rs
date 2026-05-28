@@ -5,6 +5,10 @@
 //! `geometry` (CPU→GPU builders), `edit` (per-object mutations), `instancing` (template
 //! instancing API), `draw` (render-pass draw calls), `pick` (ray-cast picking).
 
+pub mod adapters;
+pub mod arena;
+pub mod instance_groups;
+
 mod draw;
 mod edit;
 mod geometry;

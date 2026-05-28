@@ -39,12 +39,12 @@ use winit::{
 
 mod camera;
 mod engine;
-mod gpu_arena;
-mod gpu_adapters;
-mod gpu_instance_groups;
 mod gumball;
 mod pick;
 use engine::gpu as gpu_session;
+use engine::gpu::adapters as gpu_adapters;
+use engine::gpu::arena as gpu_arena;
+use engine::gpu::instance_groups as gpu_instance_groups;
 use camera::{Camera, CameraController};
 use engine::pipelines::{
     self, build_bind_group, create_camera_buffer, create_glyph_bind_group, Pipelines,

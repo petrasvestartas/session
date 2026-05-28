@@ -311,9 +311,10 @@ define it in `state.rs`, put method `impl`s in submodules of the crate root.
 4. ✅ Converted the 7 `include!("state_*.rs")` into real `mod`s with `impl crate::State`, per-module
    `use` headers, and `pub(crate)` on cross-module methods. `include!` is fully eliminated. (They
    live at the crate root for now; the `app/` grouping below is step 5.)
-5. Pull `engine/` out so it has no app references; move `demo.rs` + CLI + group conventions to `app/`,
-   the `state_*.rs` modules under `app/`, the `ui` (build_ui/tree) under `ui/`. Also move
-   `gpu_adapters.rs`/`gpu_arena.rs`/`gpu_instance_groups.rs` under `engine/gpu/`.
+5. ◐ Partly done: `gpu_adapters`/`gpu_arena`/`gpu_instance_groups` moved under `engine/gpu/`
+   (as `adapters.rs`/`arena.rs`/`instance_groups.rs`) — all GPU + pipeline code now lives in
+   `engine/`. Still TODO: move `demo.rs` + CLI + group conventions to `app/`, the `state_*.rs`
+   modules under `app/`, build_ui/tree under `ui/`, and remove demo-scene coupling from `State::new`.
 6. (Optional) extract `engine/` into its own crate once the boundary is clean.
 
 Remaining files > ~300 lines (next split candidates): `lib.rs` 550, `gpu_adapters.rs` 493,
