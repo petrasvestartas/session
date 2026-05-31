@@ -26,6 +26,25 @@ pub enum HandleKind {
     ScaleZ,
 }
 
+impl HandleKind {
+    /// (action, axis, unit) labels for the numeric-entry popup.
+    /// `axis` is "" for uniform scale.
+    pub fn labels(self) -> (&'static str, &'static str, &'static str) {
+        match self {
+            HandleKind::TranslateX => ("Move", "X", "mm"),
+            HandleKind::TranslateY => ("Move", "Y", "mm"),
+            HandleKind::TranslateZ => ("Move", "Z", "mm"),
+            HandleKind::RotateX => ("Rotate", "X", "deg"),
+            HandleKind::RotateY => ("Rotate", "Y", "deg"),
+            HandleKind::RotateZ => ("Rotate", "Z", "deg"),
+            HandleKind::ScaleUniform => ("Scale", "", "factor"),
+            HandleKind::ScaleX => ("Scale", "X", "factor"),
+            HandleKind::ScaleY => ("Scale", "Y", "factor"),
+            HandleKind::ScaleZ => ("Scale", "Z", "factor"),
+        }
+    }
+}
+
 #[derive(Clone, Copy)]
 pub struct GumballLine {
     pub a: [f32; 3],
@@ -199,6 +218,32 @@ pub fn update_drag(ds: &DragState, ray: Ray, origin: [f32; 3], _scale: f32) -> O
         HandleKind::ScaleX => scale_axis_drag(ds, ray, origin, [1.0, 0.0, 0.0]),
         HandleKind::ScaleY => scale_axis_drag(ds, ray, origin, [0.0, 1.0, 0.0]),
         HandleKind::ScaleZ => scale_axis_drag(ds, ray, origin, [0.0, 0.0, 1.0]),
+    }
+}
+
+/// Build the transform delta for a typed numeric value entered via the popup.
+/// Relative semantics, matching the drag feel:
+///   Translate{X,Y,Z} → move `value` mm along the axis.
+///   Rotate{X,Y,Z}    → rotate `value` degrees about the axis (through `origin`).
+///   ScaleUniform     → multiply all axes by `value`.
+///   Scale{X,Y,Z}     → multiply the axis by `value` (through `origin`).
+pub fn manual_delta(handle: HandleKind, value: f32, origin: [f32; 3]) -> [[f32; 4]; 4] {
+    let tp = mat4_translation(origin[0], origin[1], origin[2]);
+    let tn = mat4_translation(-origin[0], -origin[1], -origin[2]);
+    let about = |m: [[f32; 4]; 4]| mat4_mul(&mat4_mul(&tp, &m), &tn);
+    match handle {
+        HandleKind::TranslateX => mat4_translation(value, 0.0, 0.0),
+        HandleKind::TranslateY => mat4_translation(0.0, value, 0.0),
+        HandleKind::TranslateZ => mat4_translation(0.0, 0.0, value),
+        HandleKind::RotateX => about(mat4_rot_axis([1.0, 0.0, 0.0], value.to_radians())),
+        HandleKind::RotateY => about(mat4_rot_axis([0.0, 1.0, 0.0], value.to_radians())),
+        HandleKind::RotateZ => about(mat4_rot_axis([0.0, 0.0, 1.0], value.to_radians())),
+        // Clamp to the same 0.01 floor the drag paths use so a typed 0 or negative
+        // factor can never bake a singular/mirroring matrix into the geometry.
+        HandleKind::ScaleUniform => about(mat4_scale_uniform(value.max(0.01))),
+        HandleKind::ScaleX => about(mat4_scale_xyz(value.max(0.01), 1.0, 1.0)),
+        HandleKind::ScaleY => about(mat4_scale_xyz(1.0, value.max(0.01), 1.0)),
+        HandleKind::ScaleZ => about(mat4_scale_xyz(1.0, 1.0, value.max(0.01))),
     }
 }
 

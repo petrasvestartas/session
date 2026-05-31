@@ -1,6 +1,6 @@
 use crate::State;
 use crate::gpu_session::InstanceData;
-use crate::undo_state::{GeomSnapshot, UndoAction};
+use crate::undo_state::{GeomSnapshot, UndoAction, replace_or_push_nurbs, replace_or_push_nurbscurve};
 
 impl State {
     pub fn undo(&mut self) {
@@ -36,13 +36,41 @@ impl State {
                 self.scene.selected_guids.remove(&guid);
                 if self.scene.selected_guids.is_empty() { self.gb.gumball = None; }
             }
-            UndoAction::RemoveObjects { objects } => {
+            UndoAction::AddNurbsCurve { nc } => {
+                let guid = nc.guid().to_string();
+                self.scene.gpu_session.remove(&guid);
+                self.scene.session.objects.nurbscurves.retain(|n| n.guid() != guid);
+                self.scene.geom_guid_set.remove(&guid);
+                self.scene.leaf_cache_dirty = true;
+                self.scene.selected_guids.remove(&guid);
+                if self.scene.selected_guids.is_empty() { self.gb.gumball = None; }
+            }
+            UndoAction::RemoveObjects { objects, nurbs, curves } => {
                 for (guid, geom) in objects {
                     self.scene.session.lookup.insert(guid.clone(), geom.clone());
                     self.scene.gpu_session.add_geometry(guid, geom, &self.gpu.device, &self.gpu.queue);
                     self.scene.geom_guid_set.insert(guid.clone());
                 }
+                for ns in nurbs {
+                    let guid = ns.guid().to_string();
+                    self.scene.gpu_session.add_nurbssurface(ns, &self.gpu.device, &self.gpu.queue);
+                    replace_or_push_nurbs(&mut self.scene.session.objects.nurbssurfaces, ns.clone());
+                    self.scene.geom_guid_set.insert(guid);
+                }
+                for nc in curves {
+                    let guid = nc.guid().to_string();
+                    self.scene.gpu_session.add_nurbscurve(nc, &self.gpu.device, &self.gpu.queue);
+                    replace_or_push_nurbscurve(&mut self.scene.session.objects.nurbscurves, nc.clone());
+                    self.scene.geom_guid_set.insert(guid);
+                }
                 self.scene.leaf_cache_dirty = true;
+                // `del` cleared the selection; undo restores it so you land back where you were.
+                let restored: Vec<String> = objects.iter().map(|(g, _)| g.clone())
+                    .chain(nurbs.iter().map(|n| n.guid().to_string()))
+                    .chain(curves.iter().map(|n| n.guid().to_string()))
+                    .collect();
+                let refs: Vec<&str> = restored.iter().map(|s| s.as_str()).collect();
+                self.set_selection(&refs);
             }
             UndoAction::Transform { objects, snapshots, .. } => {
                 for (guid, before, _after) in objects {
@@ -75,6 +103,9 @@ impl State {
                     if let Some(gb) = &mut self.gb.gumball { gb.set_origin(origin); }
                 }
             }
+            UndoAction::EditGeom { guid, before, .. } => {
+                self.restore_edit_snapshot(guid, before);
+            }
         }
     }
 
@@ -90,16 +121,38 @@ impl State {
                 let ns_clone = ns.clone();
                 let guid = ns_clone.guid().to_string();
                 self.scene.gpu_session.add_nurbssurface(&ns_clone, &self.gpu.device, &self.gpu.queue);
-                self.scene.session.objects.nurbssurfaces.push(ns_clone);
+                replace_or_push_nurbs(&mut self.scene.session.objects.nurbssurfaces, ns_clone);
                 self.scene.geom_guid_set.insert(guid);
                 self.scene.leaf_cache_dirty = true;
             }
-            UndoAction::RemoveObjects { objects } => {
+            UndoAction::AddNurbsCurve { nc } => {
+                let nc_clone = nc.clone();
+                let guid = nc_clone.guid().to_string();
+                self.scene.gpu_session.add_nurbscurve(&nc_clone, &self.gpu.device, &self.gpu.queue);
+                replace_or_push_nurbscurve(&mut self.scene.session.objects.nurbscurves, nc_clone);
+                self.scene.geom_guid_set.insert(guid);
+                self.scene.leaf_cache_dirty = true;
+            }
+            UndoAction::RemoveObjects { objects, nurbs, curves } => {
                 for (guid, _) in objects {
                     self.scene.gpu_session.remove(guid);
                     self.scene.session.lookup.remove(guid);
                     self.scene.geom_guid_set.remove(guid);
                     self.scene.selected_guids.remove(guid);
+                }
+                for ns in nurbs {
+                    let guid = ns.guid().to_string();
+                    self.scene.gpu_session.remove(&guid);
+                    self.scene.session.objects.nurbssurfaces.retain(|n| n.guid() != guid);
+                    self.scene.geom_guid_set.remove(&guid);
+                    self.scene.selected_guids.remove(&guid);
+                }
+                for nc in curves {
+                    let guid = nc.guid().to_string();
+                    self.scene.gpu_session.remove(&guid);
+                    self.scene.session.objects.nurbscurves.retain(|n| n.guid() != guid);
+                    self.scene.geom_guid_set.remove(&guid);
+                    self.scene.selected_guids.remove(&guid);
                 }
                 self.scene.leaf_cache_dirty = true;
                 if self.scene.selected_guids.is_empty() { self.gb.gumball = None; }
@@ -134,6 +187,9 @@ impl State {
                     let origin = self.selected_centroid();
                     if let Some(gb) = &mut self.gb.gumball { gb.set_origin(origin); }
                 }
+            }
+            UndoAction::EditGeom { guid, after, .. } => {
+                self.restore_edit_snapshot(guid, after);
             }
         }
     }

@@ -20,6 +20,8 @@ impl State {
     }
 
     pub(crate) fn set_selection(&mut self, guids: &[&str]) {
+        self.gb.gumball_input = None; // a selection change cancels any open gumball popup
+        self.gb.gumball_press = None;
         let prev: Vec<String> = self.scene.selected_guids.drain().collect();
         for p in &prev {
             self.scene.gpu_session.set_flag(p, InstanceData::FLAG_SELECTED, false, &self.gpu.queue);
@@ -66,8 +68,21 @@ impl State {
         self.gpu.queue.write_buffer(&self.gpu.camera_buf, 0, bytemuck::bytes_of(&cam));
 
         if let Some((cx, cy)) = self.scene.pending_pick.take() {
-            self.process_pick(cx as f32, cy as f32);
+            if self.tool.is_active() {
+                self.tool_on_click(cx as f32, cy as f32);
+            } else {
+                self.process_pick(cx as f32, cy as f32);
+            }
         }
+
+        // Rebuild the draw-tool rubber-band/preview once per frame when flagged.
+        if self.tool.preview_dirty {
+            self.rebuild_draw_preview();
+            self.tool.preview_dirty = false;
+        }
+
+        // Keep control-point handles a constant screen size while edit mode is on.
+        self.update_edit_scale();
 
         // Compute gumball scale after pick so a newly created gumball gets the
         // correct size on its first frame.
@@ -84,7 +99,7 @@ impl State {
                     // vz is in viewer units, negative for objects in front of camera
                     let depth_mm = (-vz).max(0.001) * VIEWER_TO_MM;
                     use session_rust::tolerance::Tolerance;
-                    let mm_per_px = 2.0 * depth_mm * (Tolerance::PI / 6.0).tan() / vp_h;
+                    let mm_per_px = 2.0 * depth_mm * (Tolerance::PI as f32 / 6.0).tan() / vp_h;
                     gumball::SCREEN_PX * mm_per_px / gumball::ARC_RADIUS
                 }
                 ProjMode::Ortho => {

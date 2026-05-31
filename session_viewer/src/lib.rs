@@ -25,22 +25,29 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsCast;
 
 use winit::{
     application::ApplicationHandler,
     event::*,
     event_loop::{ActiveEventLoop, EventLoop},
-    keyboard::{KeyCode, PhysicalKey},
-    platform::web::{EventLoopExtWebSys, WindowAttributesExtWebSys},
+    keyboard::PhysicalKey,
     window::Window,
 };
+#[cfg(target_arch = "wasm32")]
+use winit::platform::web::{EventLoopExtWebSys, WindowAttributesExtWebSys};
 
 mod camera;
 mod engine;
 mod gumball;
 mod pick;
+mod cad_plane;
+mod coord_parser;
+mod snap;
+mod tool_state;
 use engine::gpu as gpu_session;
 use engine::gpu::adapters as gpu_adapters;
 use engine::gpu::arena as gpu_arena;
@@ -58,18 +65,24 @@ use session_rust::Session;
 mod demo;
 mod text;
 mod tree_ui;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod selftest;   // headless native pick/selection self-test (no browser)
 use tree_ui::{auto_lock_leaf_groups, collect_group_leaf_guids};
 
 mod gpu_ctx;
 mod scene_state;
 mod gumball_state;
+mod edit_state;
+mod edit_points;
 mod undo_state;
 mod shell_state;
 use gpu_ctx::{GpuCtx, create_depth_texture, create_msaa_texture};
 use scene_state::SceneState;
 use gumball_state::GumballState;
+use edit_state::EditState;
 use undo_state::UndoState;
 use shell_state::ShellState;
+use tool_state::ToolState;
 
 pub(crate) fn labels_from_session(session: &Session) -> Vec<text::TextLabel> {
     session.lookup.iter()
@@ -78,7 +91,7 @@ pub(crate) fn labels_from_session(session: &Session) -> Vec<text::TextLabel> {
                 if !p.name.is_empty() && p.name != "my_point" {
                     return Some(text::TextLabel {
                         guid: guid.clone(),
-                        position: [p[0], p[1], p[2]],
+                        position: [p[0] as f32, p[1] as f32, p[2] as f32],
                         text: p.name.clone(),
                         color: [
                             (p.pointcolor.r * 255.0) as u8,
@@ -118,8 +131,10 @@ pub struct State {
     pub gpu: GpuCtx,
     pub scene: SceneState,
     pub gb: GumballState,
+    pub edit: EditState,
     pub hist: UndoState,
     pub shell: ShellState,
+    pub tool: ToolState,
 }
 
 
@@ -229,6 +244,8 @@ impl State {
         });
         let gumball_glyph_bg = gpu_session::make_geom_bind_group(&device, &pipelines.geom_bgl, &gumball_glyph_buf);
 
+        let edit = EditState::new(&device, &pipelines.geom_bgl);
+
         let egui_ctx = egui::Context::default();
         {
             let mut vis = egui::Visuals::light();
@@ -251,6 +268,7 @@ impl State {
 
         let mut geom_guid_set: HashSet<String> = session.lookup.keys().cloned().collect();
         for ns in &session.objects.nurbssurfaces { geom_guid_set.insert(ns.guid().to_string()); }
+        for ts in &session.objects.nurbssurfacetrimmeds { geom_guid_set.insert(ts.guid().to_string()); }
         for nc in &session.objects.nurbscurves  { geom_guid_set.insert(nc.guid().to_string()); }
 
         let text_labels = labels_from_session(&session);
@@ -299,20 +317,32 @@ impl State {
             controller,
             key_mods: winit::keyboard::ModifiersState::empty(),
             ctrl_down: false,
+            shift_down: false,
             line_thickness: 2.0,
             shading_enabled: true,
-            backface_highlight: true,
+            // Off by default: backfaces are two-sided-shaded (the fs flips the normal), so a
+            // trimmed cut that exposes the inner wall (cylinder/torus bite) reads as a clean
+            // surface. Pressing `E` toggles the red backface-highlight diagnostic back on.
+            backface_highlight: false,
+            show_tess: false,
             pending_pick: None,
+            reveal_in_tree: false,
             box_select_start: None,
             box_select: None,
+            lmb_down: false,
             mouse_position: (0.0, 0.0),
             text_labels,
+            frustum_cull: true,
+            draw_stats: gpu_session::DrawStats::default(),
         };
 
         // ── GumballState ──────────────────────────────────────
         let gb = GumballState {
             gumball: None,
             gumball_scale: 1.0,
+            gumball_press: None,
+            gumball_input: None,
+            gumball_dragged: false,
             drag_origins: HashMap::new(),
             drag_geom_snapshots: HashMap::new(),
             drag_nurbs_snapshots: HashMap::new(),
@@ -340,11 +370,18 @@ impl State {
             tree_search: String::new(),
         };
 
-        let mut state = Self { window, gpu, scene, gb, hist: UndoState::new(), shell };
+        let mut state = Self { window, gpu, scene, gb, edit, hist: UndoState::new(), shell, tool: ToolState::new() };
         state.apply_thickness();
-        // Auto-lock atomic element groups (mesh + polylines) for joint movement
+        // Auto-lock atomic element groups (mesh + polylines) for joint movement —
+        // only under FloorModel. Other scenes (e.g. CDT) stay unlocked so every
+        // object selects individually.
         if let Some(root) = state.scene.session.tree.root() {
-            auto_lock_leaf_groups(&root, &state.scene.geom_guid_set, &mut state.scene.group_locked);
+            let children = root.borrow().children();
+            for child in &children {
+                if child.borrow().name == "FloorModel" {
+                    auto_lock_leaf_groups(child, &state.scene.geom_guid_set, &mut state.scene.group_locked);
+                }
+            }
         }
         // Auto-hide edges and vertex glyphs for FloorModel meshes
         let floor_guids = collect_group_leaf_guids(&state.scene.session, "FloorModel");
@@ -376,16 +413,20 @@ mod state_ui;                    // build_ui
 mod state_render;                // render
 mod state_interaction;           // reapply_visibility, commit_transform, handle_*, fit_view
 mod state_undo;                  // undo, redo
+mod state_edit;                  // F10 control-point editing: overlay, sub-pick, commit
+mod state_tool;                  // interactive draw tools: click/typed input, osnap, preview
 
 
 // ============================================================
-// APP
+// APP  (web event loop — wasm only; native uses the headless harness instead)
 // ============================================================
+#[cfg(target_arch = "wasm32")]
 pub struct App {
     proxy: Option<winit::event_loop::EventLoopProxy<State>>,
     state: Option<State>,
 }
 
+#[cfg(target_arch = "wasm32")]
 impl App {
     pub fn new(event_loop: &EventLoop<State>) -> Self {
         Self {
@@ -403,6 +444,7 @@ impl App {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 impl ApplicationHandler<State> for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         const CANVAS_ID: &str = "canvas";
@@ -458,22 +500,14 @@ impl ApplicationHandler<State> for App {
             None => return,
         };
 
-        // Undo/redo: intercept before egui sees the event so CLI text focus doesn't block it
-        if let WindowEvent::KeyboardInput {
-            event: KeyEvent { physical_key: PhysicalKey::Code(code), state: key_state, .. }, ..
-        } = &event {
-            // Track Ctrl from key events directly: ModifiersChanged is unreliable on web.
-            if matches!(code, KeyCode::ControlLeft | KeyCode::ControlRight) {
-                state.scene.ctrl_down = key_state.is_pressed();
-            }
-            let ctrl = state.scene.ctrl_down || state.scene.key_mods.control_key();
-            if key_state.is_pressed() && ctrl {
-                if *code == KeyCode::KeyZ {
-                    state.undo(); return;
-                } else if *code == KeyCode::KeyU {
-                    state.redo(); return;
-                }
-            }
+        // Undo/redo are driven solely by the toolbar arrow buttons (state_ui.rs);
+        // no keyboard shortcuts (Ctrl+Z/Y were unreliable in the browser).
+
+        // Track the left button from raw events — even when egui consumes the
+        // release (e.g. over a panel) — so a stale gumball press can never start
+        // a no-button drag.
+        if let WindowEvent::MouseInput { state: btn_state, button: MouseButton::Left, .. } = &event {
+            state.scene.lmb_down = btn_state.is_pressed();
         }
 
         // Route event to egui first; skip 3D handling if egui consumed it
@@ -536,6 +570,7 @@ impl ApplicationHandler<State> for App {
 // ============================================================
 // WASM ENTRY POINT
 // ============================================================
+#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(start)]
 pub fn run_web() -> Result<(), wasm_bindgen::JsValue> {
     console_error_panic_hook::set_once();

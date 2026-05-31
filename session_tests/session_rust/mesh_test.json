@@ -77,13 +77,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Mesh;\n        use crate::Polyline;\n        use crate::Color;\n        use crate::mesh::ColorMode;\n\n        let vertices = Polyline::from_sides(6, 1.0, false).get_points();\n        let mut mesh = Mesh::from_vertices_and_faces(vertices, vec![vec![0, 1, 2, 3, 4, 5]]);\n        let _sstr = mesh.str();\n        let _srepr = mesh.repr();\n        let _mcopy = mesh.duplicate();\n\n        mesh.name = \"hexagon\".to_string();\n\n        let palette = Color::palette();\n\n        // set_objectcolor does not change color_mode\n        mesh.set_objectcolor(Color::grey());\n\n        // set_pointcolors → color_mode = PointColors\n        let mut pc: Vec<Color> = Vec::new();\n        pc.reserve(mesh.number_of_vertices());\n        for i in 0..mesh.number_of_vertices() {\n            pc.push(palette[i % palette.len()].clone());\n        }\n        mesh.set_pointcolors(pc);\n\n        // set_facecolors → color_mode = FaceColors\n        let mut fc: Vec<Color> = Vec::new();\n        fc.reserve(mesh.number_of_faces());\n        for i in 0..mesh.number_of_faces() {\n            fc.push(palette[i % palette.len()].clone());\n        }\n        mesh.set_facecolors(fc);\n\n        // set_linecolors does not change color_mode\n        let mut lc: Vec<Color> = Vec::new();\n        let lw: Vec<f32> = vec![0.1; mesh.number_of_edges()];\n        lc.reserve(mesh.number_of_edges());\n        for i in 0..mesh.number_of_edges() {\n            lc.push(palette[i % palette.len()].clone());\n        }\n        mesh.set_linecolors(lc, lw);\n\n        // clear_facecolors reverts color_mode only if currently FaceColors\n        mesh.color_mode = ColorMode::FACECOLORS;\n        mesh.clear_facecolors();\n\n        // clear_pointcolors does not revert if color_mode != PointColors\n        mesh.color_mode = ColorMode::FACECOLORS;\n        mesh.clear_pointcolors();\n\n        // clear_linecolors does not change color_mode\n        mesh.color_mode = ColorMode::POINTCOLORS;\n        mesh.clear_linecolors();",
+    "code": "        use crate::Mesh;\n        use crate::Polyline;\n        use crate::Color;\n        use crate::mesh::ColorMode;\n\n        let vertices = Polyline::from_sides(6, 1.0, false).get_points();\n        let mut mesh = Mesh::from_vertices_and_faces(vertices, vec![vec![0, 1, 2, 3, 4, 5]]);\n        let _sstr = mesh.str();\n        let _srepr = mesh.repr();\n        let _mcopy = mesh.duplicate();\n\n        mesh.name = \"hexagon\".to_string();\n\n        let palette = Color::palette();\n\n        // set_objectcolor does not change color_mode\n        mesh.set_objectcolor(Color::grey());\n\n        // set_pointcolors → color_mode = PointColors\n        let mut pc: Vec<Color> = Vec::new();\n        pc.reserve(mesh.number_of_vertices());\n        for i in 0..mesh.number_of_vertices() {\n            pc.push(palette[i % palette.len()].clone());\n        }\n        mesh.set_pointcolors(pc);\n\n        // set_facecolors → color_mode = FaceColors\n        let mut fc: Vec<Color> = Vec::new();\n        fc.reserve(mesh.number_of_faces());\n        for i in 0..mesh.number_of_faces() {\n            fc.push(palette[i % palette.len()].clone());\n        }\n        mesh.set_facecolors(fc);\n\n        // set_linecolors does not change color_mode\n        let mut lc: Vec<Color> = Vec::new();\n        let lw: Vec<f64> = vec![0.1; mesh.number_of_edges()];\n        lc.reserve(mesh.number_of_edges());\n        for i in 0..mesh.number_of_edges() {\n            lc.push(palette[i % palette.len()].clone());\n        }\n        mesh.set_linecolors(lc, lw);\n\n        // clear_facecolors reverts color_mode only if currently FaceColors\n        mesh.color_mode = ColorMode::FACECOLORS;\n        mesh.clear_facecolors();\n\n        // clear_pointcolors does not revert if color_mode != PointColors\n        mesh.color_mode = ColorMode::FACECOLORS;\n        mesh.clear_pointcolors();\n\n        // clear_linecolors does not change color_mode\n        mesh.color_mode = ColorMode::POINTCOLORS;\n        mesh.clear_linecolors();",
     "failures": [],
     "group": "Mesh",
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.18400000035762787
+    "time_ms": 0.206
   },
   {
     "checks": [
@@ -99,7 +99,7 @@
     "line": 80,
     "passed": true,
     "test_name": "From Polylines",
-    "time_ms": 0.328000009059906
+    "time_ms": 0.4
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 116,
     "passed": true,
     "test_name": "From Lines",
-    "time_ms": 0.4779999852180481
+    "time_ms": 0.427
   },
   {
     "checks": [
@@ -136,7 +136,7 @@
     "line": 150,
     "passed": true,
     "test_name": "From Polygon With Holes",
-    "time_ms": 0.843999981880188
+    "time_ms": 0.926
   },
   {
     "checks": [
@@ -167,7 +167,7 @@
     "line": 205,
     "passed": true,
     "test_name": "Loft",
-    "time_ms": 2.750999927520752
+    "time_ms": 2.508
   },
   {
     "checks": [
@@ -218,7 +218,7 @@
     "line": 286,
     "passed": true,
     "test_name": "Loft concave with holes and collinear",
-    "time_ms": 2.312000036239624
+    "time_ms": 2.03
   },
   {
     "checks": [
@@ -248,13 +248,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut inputs: Vec<Vec<Vec<Point>>> = Vec::new();\n        for i in 0..4 {\n            let x = i as f32 * 7.0;\n            inputs.push(vec![\n                vec![\n                    Point::new(x, 0.0, 0.0),\n                    Point::new(x+5.0, 0.0, 0.0),\n                    Point::new(x+5.0, 5.0, 0.0),\n                    Point::new(x, 5.0, 0.0),\n                ],\n                vec![\n                    Point::new(x+1.0, 1.0, 0.0),\n                    Point::new(x+4.0, 1.0, 0.0),\n                    Point::new(x+4.0, 4.0, 0.0),\n                    Point::new(x+1.0, 4.0, 0.0),\n                ],\n            ]);\n        }\n        let meshes = Mesh::from_polygon_with_holes_many(inputs.clone(), false, true);\n\n        let meshes_seq = Mesh::from_polygon_with_holes_many(inputs, false, false);",
+    "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let mut inputs: Vec<Vec<Vec<Point>>> = Vec::new();\n        for i in 0..4 {\n            let x = i as f64 * 7.0;\n            inputs.push(vec![\n                vec![\n                    Point::new(x, 0.0, 0.0),\n                    Point::new(x+5.0, 0.0, 0.0),\n                    Point::new(x+5.0, 5.0, 0.0),\n                    Point::new(x, 5.0, 0.0),\n                ],\n                vec![\n                    Point::new(x+1.0, 1.0, 0.0),\n                    Point::new(x+4.0, 1.0, 0.0),\n                    Point::new(x+4.0, 4.0, 0.0),\n                    Point::new(x+1.0, 4.0, 0.0),\n                ],\n            ]);\n        }\n        let meshes = Mesh::from_polygon_with_holes_many(inputs.clone(), false, true);\n\n        let meshes_seq = Mesh::from_polygon_with_holes_many(inputs, false, false);",
     "failures": [],
     "group": "Mesh",
     "line": 390,
     "passed": true,
     "test_name": "From Polygon With Holes Many",
-    "time_ms": 3.187000036239624
+    "time_ms": 2.855
   },
   {
     "checks": [
@@ -379,13 +379,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Polyline;\n\n        let mut loft_inputs: Vec<(Vec<Polyline>, Vec<Polyline>)> = Vec::new();\n        for i in 0..6 {\n            let x = i as f32 * 3.0;\n            let b = Polyline::new(vec![\n                Point::new(x, 0.0, 0.0),\n                Point::new(x+1.0, 0.0, 0.0),\n                Point::new(x+1.0, 1.0, 0.0),\n                Point::new(x, 1.0, 0.0),\n                Point::new(x, 0.0, 0.0),\n            ]);\n            let t = Polyline::new(vec![\n                Point::new(x, 0.0, 1.0+i as f32*0.5),\n                Point::new(x+1.0, 0.0, 1.0+i as f32*0.5),\n                Point::new(x+1.0, 1.0, 1.0+i as f32*0.5),\n                Point::new(x, 1.0, 1.0+i as f32*0.5),\n                Point::new(x, 0.0, 1.0+i as f32*0.5),\n            ]);\n            loft_inputs.push((vec![b], vec![t]));\n        }\n        let meshes = Mesh::loft_many(loft_inputs.clone(), true, true, true);\n\n        let meshes_seq = Mesh::loft_many(loft_inputs, true, false, true);",
+    "code": "        use crate::Mesh;\n        use crate::Point;\n        use crate::Polyline;\n\n        let mut loft_inputs: Vec<(Vec<Polyline>, Vec<Polyline>)> = Vec::new();\n        for i in 0..6 {\n            let x = i as f64 * 3.0;\n            let b = Polyline::new(vec![\n                Point::new(x, 0.0, 0.0),\n                Point::new(x+1.0, 0.0, 0.0),\n                Point::new(x+1.0, 1.0, 0.0),\n                Point::new(x, 1.0, 0.0),\n                Point::new(x, 0.0, 0.0),\n            ]);\n            let t = Polyline::new(vec![\n                Point::new(x, 0.0, 1.0+i as f64*0.5),\n                Point::new(x+1.0, 0.0, 1.0+i as f64*0.5),\n                Point::new(x+1.0, 1.0, 1.0+i as f64*0.5),\n                Point::new(x, 1.0, 1.0+i as f64*0.5),\n                Point::new(x, 0.0, 1.0+i as f64*0.5),\n            ]);\n            loft_inputs.push((vec![b], vec![t]));\n        }\n        let meshes = Mesh::loft_many(loft_inputs.clone(), true, true, true);\n\n        let meshes_seq = Mesh::loft_many(loft_inputs, true, false, true);",
     "failures": [],
     "group": "Mesh",
     "line": 424,
     "passed": true,
     "test_name": "Loft Many",
-    "time_ms": 3.381999969482422
+    "time_ms": 3.048
   },
   {
     "checks": [
@@ -431,7 +431,7 @@
     "line": 642,
     "passed": true,
     "test_name": "Boolean Queries",
-    "time_ms": 0.3409999907016754
+    "time_ms": 0.346
   },
   {
     "checks": [
@@ -777,7 +777,7 @@
     "line": 702,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.4259999990463257
+    "time_ms": 0.386
   },
   {
     "checks": [
@@ -803,7 +803,7 @@
     "line": 820,
     "passed": true,
     "test_name": "Create Dodecahedron",
-    "time_ms": 0.8420000076293945
+    "time_ms": 0.832
   },
   {
     "checks": [
@@ -1008,13 +1008,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let hx = 0.5_f32; let hy = 0.5_f32; let hz = 0.5_f32;\n        let verts = vec![\n            Point::new(-hx, -hy, -hz),\n            Point::new( hx, -hy, -hz),\n            Point::new( hx,  hy, -hz),\n            Point::new(-hx,  hy, -hz),\n            Point::new(-hx, -hy,  hz),\n            Point::new( hx, -hy,  hz),\n            Point::new( hx,  hy,  hz),\n            Point::new(-hx,  hy,  hz),\n        ];\n        let faces: Vec<Vec<usize>> = vec![\n            vec![0, 3, 2, 1], vec![4, 5, 6, 7], vec![0, 1, 5, 4], vec![2, 3, 7, 6], vec![0, 4, 7, 3], vec![1, 2, 6, 5],\n        ];\n\n        let mut mesh = Mesh::new();\n\n        for v in &verts {\n            mesh.add_vertex(v.clone(), None);\n        }\n        for f in &faces {\n            mesh.add_face(f.clone(), None);\n        }\n\n\n        // remove_vertex(0): removes vertex 0 + 3 adjacent faces (0,2,4)\n        // vertices → [1,2,3,4,5,6,7], faces → [1,3,5]\n        mesh.remove_vertex(0);\n\n        // remove_edge(1,2): removes face 5 [1,2,6,5], faces → [1,3]\n        mesh.remove_edge(1, 2);\n\n        // remove_face(1): removes face 1 [4,5,6,7], faces → [3]\n        mesh.remove_face(1);\n\n        // clear\n        mesh.clear();\n\n        // rebuild\n        for v in &verts { mesh.add_vertex(v.clone(), None); }\n        for f in &faces { mesh.add_face(f.clone(), None); }\n\n        // unweld and weld\n        mesh = mesh.unweld();\n        mesh = mesh.weld(0.001);\n        // face 0: 0 1 2 3, face 1: 4 5 6 7, face 2: 0 3 5 4\n        // face 3: 2 1 7 6, face 4: 0 4 7 1, face 5: 3 2 6 5\n        let fv0 = mesh.face_vertices(0).unwrap(); let fv1 = mesh.face_vertices(1).unwrap();\n        let fv2 = mesh.face_vertices(2).unwrap(); let fv3 = mesh.face_vertices(3).unwrap();\n        let fv4 = mesh.face_vertices(4).unwrap(); let fv5 = mesh.face_vertices(5).unwrap();\n\n        // flip_face(0): face 0 → [3,2,1,0], faces 1-5 unchanged\n        mesh.flip_face(0);\n        let fv0 = mesh.face_vertices(0).unwrap(); let fv1 = mesh.face_vertices(1).unwrap();\n        let fv2 = mesh.face_vertices(2).unwrap(); let fv3 = mesh.face_vertices(3).unwrap();\n        let fv4 = mesh.face_vertices(4).unwrap(); let fv5 = mesh.face_vertices(5).unwrap();\n\n        // unify_winding: face 0 restored to [0,1,2,3], faces 1-5 unchanged\n        mesh.unify_winding();\n        let fv0 = mesh.face_vertices(0).unwrap(); let fv1 = mesh.face_vertices(1).unwrap();\n        let fv2 = mesh.face_vertices(2).unwrap(); let fv3 = mesh.face_vertices(3).unwrap();\n        let fv4 = mesh.face_vertices(4).unwrap(); let fv5 = mesh.face_vertices(5).unwrap();\n\n        // flip: face 0 → [3,2,1,0], face 1 → [7,6,5,4], face 2 → [4,5,3,0]\n        // face 3 → [6,7,1,2], face 4 → [1,7,4,0], face 5 → [5,6,2,3]\n        mesh.flip();\n        let fv0 = mesh.face_vertices(0).unwrap(); let fv1 = mesh.face_vertices(1).unwrap();\n        let fv2 = mesh.face_vertices(2).unwrap(); let fv3 = mesh.face_vertices(3).unwrap();\n        let fv4 = mesh.face_vertices(4).unwrap(); let fv5 = mesh.face_vertices(5).unwrap();\n\n        // orient_outward: face 0 → [0,1,2,3], face 1 → [4,5,6,7], face 2 → [0,3,5,4]\n        // face 3 → [2,1,7,6], face 4 → [0,4,7,1], face 5 → [3,2,6,5]\n        mesh.orient_outward();\n        let fv0 = mesh.face_vertices(0).unwrap(); let fv1 = mesh.face_vertices(1).unwrap();\n        let fv2 = mesh.face_vertices(2).unwrap(); let fv3 = mesh.face_vertices(3).unwrap();\n        let fv4 = mesh.face_vertices(4).unwrap(); let fv5 = mesh.face_vertices(5).unwrap();",
+    "code": "        use crate::Mesh;\n        use crate::Point;\n\n        let hx = 0.5_f64; let hy = 0.5_f64; let hz = 0.5_f64;\n        let verts = vec![\n            Point::new(-hx, -hy, -hz),\n            Point::new( hx, -hy, -hz),\n            Point::new( hx,  hy, -hz),\n            Point::new(-hx,  hy, -hz),\n            Point::new(-hx, -hy,  hz),\n            Point::new( hx, -hy,  hz),\n            Point::new( hx,  hy,  hz),\n            Point::new(-hx,  hy,  hz),\n        ];\n        let faces: Vec<Vec<usize>> = vec![\n            vec![0, 3, 2, 1], vec![4, 5, 6, 7], vec![0, 1, 5, 4], vec![2, 3, 7, 6], vec![0, 4, 7, 3], vec![1, 2, 6, 5],\n        ];\n\n        let mut mesh = Mesh::new();\n\n        for v in &verts {\n            mesh.add_vertex(v.clone(), None);\n        }\n        for f in &faces {\n            mesh.add_face(f.clone(), None);\n        }\n\n\n        // remove_vertex(0): removes vertex 0 + 3 adjacent faces (0,2,4)\n        // vertices → [1,2,3,4,5,6,7], faces → [1,3,5]\n        mesh.remove_vertex(0);\n\n        // remove_edge(1,2): removes face 5 [1,2,6,5], faces → [1,3]\n        mesh.remove_edge(1, 2);\n\n        // remove_face(1): removes face 1 [4,5,6,7], faces → [3]\n        mesh.remove_face(1);\n\n        // clear\n        mesh.clear();\n\n        // rebuild\n        for v in &verts { mesh.add_vertex(v.clone(), None); }\n        for f in &faces { mesh.add_face(f.clone(), None); }\n\n        // unweld and weld\n        mesh = mesh.unweld();\n        mesh = mesh.weld(0.001);\n        // face 0: 0 1 2 3, face 1: 4 5 6 7, face 2: 0 3 5 4\n        // face 3: 2 1 7 6, face 4: 0 4 7 1, face 5: 3 2 6 5\n        let fv0 = mesh.face_vertices(0).unwrap(); let fv1 = mesh.face_vertices(1).unwrap();\n        let fv2 = mesh.face_vertices(2).unwrap(); let fv3 = mesh.face_vertices(3).unwrap();\n        let fv4 = mesh.face_vertices(4).unwrap(); let fv5 = mesh.face_vertices(5).unwrap();\n\n        // flip_face(0): face 0 → [3,2,1,0], faces 1-5 unchanged\n        mesh.flip_face(0);\n        let fv0 = mesh.face_vertices(0).unwrap(); let fv1 = mesh.face_vertices(1).unwrap();\n        let fv2 = mesh.face_vertices(2).unwrap(); let fv3 = mesh.face_vertices(3).unwrap();\n        let fv4 = mesh.face_vertices(4).unwrap(); let fv5 = mesh.face_vertices(5).unwrap();\n\n        // unify_winding: face 0 restored to [0,1,2,3], faces 1-5 unchanged\n        mesh.unify_winding();\n        let fv0 = mesh.face_vertices(0).unwrap(); let fv1 = mesh.face_vertices(1).unwrap();\n        let fv2 = mesh.face_vertices(2).unwrap(); let fv3 = mesh.face_vertices(3).unwrap();\n        let fv4 = mesh.face_vertices(4).unwrap(); let fv5 = mesh.face_vertices(5).unwrap();\n\n        // flip: face 0 → [3,2,1,0], face 1 → [7,6,5,4], face 2 → [4,5,3,0]\n        // face 3 → [6,7,1,2], face 4 → [1,7,4,0], face 5 → [5,6,2,3]\n        mesh.flip();\n        let fv0 = mesh.face_vertices(0).unwrap(); let fv1 = mesh.face_vertices(1).unwrap();\n        let fv2 = mesh.face_vertices(2).unwrap(); let fv3 = mesh.face_vertices(3).unwrap();\n        let fv4 = mesh.face_vertices(4).unwrap(); let fv5 = mesh.face_vertices(5).unwrap();\n\n        // orient_outward: face 0 → [0,1,2,3], face 1 → [4,5,6,7], face 2 → [0,3,5,4]\n        // face 3 → [2,1,7,6], face 4 → [0,4,7,1], face 5 → [3,2,6,5]\n        mesh.orient_outward();\n        let fv0 = mesh.face_vertices(0).unwrap(); let fv1 = mesh.face_vertices(1).unwrap();\n        let fv2 = mesh.face_vertices(2).unwrap(); let fv3 = mesh.face_vertices(3).unwrap();\n        let fv4 = mesh.face_vertices(4).unwrap(); let fv5 = mesh.face_vertices(5).unwrap();",
     "failures": [],
     "group": "Mesh",
     "line": 832,
     "passed": true,
     "test_name": "Vertex and Face Operations",
-    "time_ms": 1.3289999961853027
+    "time_ms": 1.17
   },
   {
     "checks": [
@@ -1185,7 +1185,7 @@
     "line": 956,
     "passed": true,
     "test_name": "Connectivity Queries",
-    "time_ms": 0.24699999392032623
+    "time_ms": 0.263
   },
   {
     "checks": [
@@ -2301,7 +2301,7 @@
     "line": 1144,
     "passed": true,
     "test_name": "Geometric Properties",
-    "time_ms": 5.255000114440918
+    "time_ms": 5.064
   },
   {
     "checks": [
@@ -2352,7 +2352,7 @@
     "line": 1289,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.12399999797344208
+    "time_ms": 0.128
   },
   {
     "checks": [
@@ -2398,7 +2398,7 @@
     "line": 1334,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 24.270000457763672
+    "time_ms": 17.749
   },
   {
     "checks": [
@@ -2439,7 +2439,7 @@
     "line": 1398,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 19.461999893188477
+    "time_ms": 16.151
   },
   {
     "checks": [
@@ -2455,7 +2455,7 @@
     "line": 1456,
     "passed": true,
     "test_name": "Loft plate_failing 15-vert outer + 3 holes",
-    "time_ms": 1.9910000562667847
+    "time_ms": 1.906
   },
   {
     "checks": [
@@ -2556,7 +2556,7 @@
     "line": 479,
     "passed": true,
     "test_name": "Loft with quads and triangles",
-    "time_ms": 4.478000164031982
+    "time_ms": 3.488
   },
   {
     "checks": [
@@ -2572,7 +2572,7 @@
     "line": 1505,
     "passed": true,
     "test_name": "Loft plate_v2 15-vert outer + 3 holes",
-    "time_ms": 3.0390000343322754
+    "time_ms": 2.238
   },
   {
     "checks": [
@@ -2593,6 +2593,6 @@
     "line": 806,
     "passed": true,
     "test_name": "Edges",
-    "time_ms": 0.17499999701976776
+    "time_ms": 0.156
   }
 ]

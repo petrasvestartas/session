@@ -20,6 +20,7 @@ web-sys = { version = "0.3", features = ["Document", "Window", "Element", "HtmlC
 bytemuck = { version = "1", features = ["derive"] }
 getrandom = { version = "0.2", features = ["js"] }
 session_rust = { path = "../session_rust" }
+pollster = "0.3"
 egui         = { version = "0.34", default-features = false, features = ["default_fonts"] }
 egui-wgpu    = { version = "0.34", default-features = false }
 egui-winit   = { version = "0.34", default-features = false }
@@ -30,3 +31,8 @@ strip = true
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false
+
+
+[[example]]
+name = "selftest"
+path = "examples/selftest.rs"

@@ -1,4 +1,5 @@
 use bytemuck::{Pod, Zeroable};
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsCast;
 
 // ── TextLabel ─────────────────────────────────────────────────────────────────
@@ -177,34 +178,41 @@ pub fn create_font_atlas(
     device: &wgpu::Device,
     queue:  &wgpu::Queue,
 ) -> (wgpu::TextureView, wgpu::Sampler) {
-    let window   = web_sys::window().expect("no window");
-    let document = window.document().expect("no document");
-    let canvas = document
-        .create_element("canvas").unwrap()
-        .dyn_into::<web_sys::HtmlCanvasElement>().unwrap();
-    canvas.set_width(ATLAS_WIDTH);
-    canvas.set_height(ATLAS_HEIGHT);
+    // The glyph atlas is rasterized in the browser via Canvas 2D. Natively (headless test
+    // harness) there is no canvas — use a blank atlas; text isn't exercised by the pick tests.
+    #[cfg(target_arch = "wasm32")]
+    let pixels: Vec<u8> = {
+        let window   = web_sys::window().expect("no window");
+        let document = window.document().expect("no document");
+        let canvas = document
+            .create_element("canvas").unwrap()
+            .dyn_into::<web_sys::HtmlCanvasElement>().unwrap();
+        canvas.set_width(ATLAS_WIDTH);
+        canvas.set_height(ATLAS_HEIGHT);
 
-    let ctx = canvas
-        .get_context("2d").unwrap().unwrap()
-        .dyn_into::<web_sys::CanvasRenderingContext2d>().unwrap();
+        let ctx = canvas
+            .get_context("2d").unwrap().unwrap()
+            .dyn_into::<web_sys::CanvasRenderingContext2d>().unwrap();
 
-    ctx.set_fill_style_str("white");
-    ctx.set_font("bold 14px monospace");
-    ctx.set_text_baseline("top");
+        ctx.set_fill_style_str("white");
+        ctx.set_font("bold 14px monospace");
+        ctx.set_text_baseline("top");
 
-    for i in 0_u32..96 {
-        let ch = char::from_u32(32 + i).unwrap_or(' ');
-        let col = (i % 16) as f64 * CHAR_W as f64;
-        let row = (i / 16) as f64 * CHAR_H as f64;
-        let _ = ctx.fill_text(&ch.to_string(), col, row);
-    }
+        for i in 0_u32..96 {
+            let ch = char::from_u32(32 + i).unwrap_or(' ');
+            let col = (i % 16) as f64 * CHAR_W as f64;
+            let row = (i / 16) as f64 * CHAR_H as f64;
+            let _ = ctx.fill_text(&ch.to_string(), col, row);
+        }
 
-    let image_data = ctx.get_image_data(
-        0.0, 0.0,
-        ATLAS_WIDTH as f64, ATLAS_HEIGHT as f64,
-    ).unwrap();
-    let pixels: Vec<u8> = image_data.data().0;
+        let image_data = ctx.get_image_data(
+            0.0, 0.0,
+            ATLAS_WIDTH as f64, ATLAS_HEIGHT as f64,
+        ).unwrap();
+        image_data.data().0
+    };
+    #[cfg(not(target_arch = "wasm32"))]
+    let pixels: Vec<u8> = vec![0u8; (ATLAS_WIDTH * ATLAS_HEIGHT * 4) as usize];
 
     let tex = device.create_texture(&wgpu::TextureDescriptor {
         label: Some("font_atlas"),

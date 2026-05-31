@@ -79,10 +79,21 @@ impl GpuSession {
 
         let template_tri = GpuArena::<MeshVertex>::new(device, "gpu_session.template_tri", 8_192, 32_768);
 
+        let mesh_draw_ibo = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("gpu_session.mesh_draw_ibo"),
+            size: (DEFAULT_TRI_INDS as u64) * (std::mem::size_of::<u32>() as u64),
+            usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+
         Self {
             tri, line, point,
             instance_buffer, instance_capacity: DEFAULT_INSTANCE_CAP, instances_cpu: Vec::new(),
             pick: PickTable::new(), default_tints: HashMap::new(), default_face_tints: HashMap::new(),
+            object_aabb_local: HashMap::new(),
+            culled_now: std::collections::HashSet::new(),
+            tri_index_cpu: HashMap::new(),
+            mesh_draw_ibo, mesh_draw_count: 0, mesh_draw_dirty: false,
             cylinder_vbo, cylinder_ibo,
             segments_cpu: Vec::new(), segments_gpu, segment_bg,
             guid_to_seg: HashMap::new(), segments_dirty: false,
@@ -94,9 +105,13 @@ impl GpuSession {
             cones_cpu: Vec::new(), cones_gpu, cone_bg,
             guid_to_cone: HashMap::new(), cones_dirty: false,
             plane_scale: 100.0,
+            tess_angle_deg: super::geometry::TESS_MAX_ANGLE_DEG,
+            tess_chord_factor: super::geometry::TESS_CHORD_FACTOR,
             nurbs_pick_meshes: HashMap::new(),
             nurbs_surfaces: HashMap::new(),
             brep_pick_meshes: HashMap::new(),
+            nurbs_trimmed_pick_meshes: HashMap::new(),
+            nurbs_trimmeds: HashMap::new(),
             nc_pick_pts: HashMap::new(),
             template_tri,
             instance_groups: InstanceGroupAllocator::new(),
@@ -114,6 +129,9 @@ impl GpuSession {
         }
         for ns in &session.objects.nurbssurfaces {
             self.add_nurbssurface(ns, device, queue);
+        }
+        for ts in &session.objects.nurbssurfacetrimmeds {
+            self.add_nurbssurfacetrimmed(ts, device, queue);
         }
     }
     pub fn flush_geometry(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, geom_bgl: &wgpu::BindGroupLayout) {
@@ -185,6 +203,31 @@ impl GpuSession {
             }
             self.cones_dirty = false;
         }
+        // Rebuild the compacted mesh draw index buffer when tri geometry changed.
+        // Concatenates every live object's global indices so the whole mesh arena
+        // renders in a single draw_indexed (no per-slot loop, no holes).
+        if self.mesh_draw_dirty {
+            let mut all: Vec<u32> = Vec::new();
+            for inds in self.tri_index_cpu.values() {
+                all.extend_from_slice(inds);
+            }
+            let needed = (all.len().max(1) * std::mem::size_of::<u32>()) as u64;
+            if needed > self.mesh_draw_ibo.size() {
+                let new_size = (self.mesh_draw_ibo.size() * 2).max(needed);
+                self.mesh_draw_ibo = device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("gpu_session.mesh_draw_ibo"),
+                    size: new_size,
+                    usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                });
+            }
+            if !all.is_empty() {
+                queue.write_buffer(&self.mesh_draw_ibo, 0, bytemuck::cast_slice(&all));
+            }
+            self.mesh_draw_count = all.len() as u32;
+            self.mesh_draw_dirty = false;
+        }
+
         // Flush dirty template instance groups into the upper half of instance_buffer.
         for group in self.instance_groups.groups.values_mut() {
             if !group.dirty { continue; }

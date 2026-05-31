@@ -20,15 +20,29 @@ pub struct SceneState {
     pub camera: Camera,
     pub controller: CameraController,
     pub key_mods: ModifiersState,
-    /// Ctrl held, tracked from key-up/down events directly. WindowEvent::ModifiersChanged
-    /// is unreliable on the winit web backend, which left Ctrl+Z/Ctrl+U dead.
+    /// Ctrl/Shift held, tracked directly from key events (ModifiersChanged is
+    /// unreliable on the web backend). Read at pick time for Ctrl+Shift sub-object
+    /// selection in edit mode.
     pub ctrl_down: bool,
+    pub shift_down: bool,
     pub line_thickness: f32,
     pub shading_enabled: bool,
     pub backface_highlight: bool,
+    /// `m` toggles drawing NURBS / trimmed tessellation as wireframe lines (diagnostic).
+    pub show_tess: bool,
     pub pending_pick: Option<(f64, f64)>,
+    /// One-shot: a viewport pick changed the selection; the tree should expand
+    /// ancestor groups and scroll the selected row into view on the next frame.
+    pub reveal_in_tree: bool,
     pub box_select_start: Option<(f64, f64)>,
     pub box_select: Option<((f64, f64), (f64, f64))>,
+    /// Left mouse button currently held. Tracked from raw events (even when egui
+    /// consumes them) so a leaked gumball press can never start a no-button drag.
+    pub lmb_down: bool,
     pub mouse_position: (f64, f64),
     pub text_labels: Vec<crate::text::TextLabel>,
+    /// Frustum-cull mesh draws when true (perf). Toggled from the perf HUD.
+    pub frustum_cull: bool,
+    /// Render counters from the last frame, shown in the perf HUD.
+    pub draw_stats: crate::gpu_session::DrawStats,
 }

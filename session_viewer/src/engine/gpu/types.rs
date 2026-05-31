@@ -7,18 +7,22 @@ use crate::gpu_instance_groups::{InstanceGroupAllocator, TEMPLATE_INSTANCE_BASE}
 
 // ── Vertex types & instance types ────────────────────────────────────────────
 
-/// Triangle-arena vertex. 28 bytes: position + normal + RGBA8.
+/// Triangle-arena vertex. 32 bytes: position + normal + RGBA8 + instance_id.
+/// `instance_id` lets the whole mesh arena draw in one call (batched path):
+/// the vertex shader indexes `instances[]` by it instead of `@builtin(instance_index)`.
+/// Template instancing ignores this field (it uses the builtin instead).
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Pod, Zeroable)]
 pub struct MeshVertex {
     pub position: [f32; 3],
     pub normal: [f32; 3],
     pub color: [u8; 4],
+    pub instance_id: u32,
 }
 
 impl MeshVertex {
-    pub const ATTRIBS: [wgpu::VertexAttribute; 3] =
-        wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Unorm8x4];
+    pub const ATTRIBS: [wgpu::VertexAttribute; 4] =
+        wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Unorm8x4, 3 => Uint32];
 
     pub fn layout() -> wgpu::VertexBufferLayout<'static> {
         wgpu::VertexBufferLayout {
@@ -149,6 +153,9 @@ impl InstanceData {
     pub const FLAG_GLYPHS_HIDDEN: u32 = 1 << 4;
     /// When set, cylinder/sphere shaders use inst.tint instead of per-segment baked color.
     pub const FLAG_TINT_OVERRIDE: u32 = 1 << 5;
+    /// Set by the per-frame frustum test; the batched mesh vertex shader collapses
+    /// culled instances to a clipped vertex so the whole arena draws in one call.
+    pub const FLAG_CULLED:        u32 = 1 << 7;
 
     pub fn new(instance_id: u32) -> Self {
         Self {
@@ -254,6 +261,34 @@ impl PickTable {
     }
 }
 
+// ── DrawStats ────────────────────────────────────────────────────────────────
+
+/// Per-frame render counters, surfaced in the perf HUD.
+#[derive(Default, Clone, Copy, Debug)]
+pub struct DrawStats {
+    /// Mesh-arena objects considered this frame (before culling).
+    pub mesh_objects: u32,
+    /// Mesh-arena objects actually drawn (passed frustum culling).
+    pub mesh_drawn:   u32,
+    /// Mesh-arena objects skipped by frustum culling.
+    pub mesh_culled:  u32,
+    /// Total GPU draw calls issued this frame across all pipelines.
+    pub draw_calls:   u32,
+}
+
+/// World/local AABB of a mesh-vertex slice: `[minx,miny,minz,maxx,maxy,maxz]`.
+pub fn aabb_of_mesh_verts(vs: &[MeshVertex]) -> [f32; 6] {
+    let mut bb = [f32::INFINITY, f32::INFINITY, f32::INFINITY,
+                  f32::NEG_INFINITY, f32::NEG_INFINITY, f32::NEG_INFINITY];
+    for v in vs {
+        for i in 0..3 {
+            if v.position[i] < bb[i]   { bb[i] = v.position[i]; }
+            if v.position[i] > bb[i+3] { bb[i+3] = v.position[i]; }
+        }
+    }
+    bb
+}
+
 // ── GpuSession ───────────────────────────────────────────────────────────────
 
 pub(crate) const DEFAULT_TRI_VERTS: u32 = 65536;
@@ -279,6 +314,20 @@ pub struct GpuSession {
     pub pick: PickTable,
     pub default_tints: HashMap<String, [f32; 4]>,
     pub default_face_tints: HashMap<String, [f32; 4]>,
+    /// Local-space AABB per instance_id (pre-model). Transformed by the current
+    /// instance model at cull time. Absent → object is never culled (drawn always).
+    pub object_aabb_local: HashMap<u32, [f32; 6]>,
+    /// Currently culled instance_ids (off-screen), so per-frame we only rewrite the
+    /// instances whose culled state flipped.
+    pub culled_now: std::collections::HashSet<u32>,
+
+    // ── Batched mesh draw (single draw call over the whole tri arena) ───────────
+    /// Global (vbo-absolute) triangle indices per tri-arena object. Concatenated into
+    /// `mesh_draw_ibo` on change so all meshes render with one `draw_indexed`.
+    pub tri_index_cpu:   HashMap<u32, Vec<u32>>,
+    pub mesh_draw_ibo:   wgpu::Buffer,
+    pub mesh_draw_count: u32,
+    pub mesh_draw_dirty: bool,
 
     // Instanced cylinder pipeline (Line / Polyline → tubes)
     pub cylinder_vbo:      wgpu::Buffer,
@@ -314,12 +363,24 @@ pub struct GpuSession {
 
     /// Axis length for Plane objects (mm).
     pub plane_scale:       f32,
-    /// Cached tessellated meshes for NurbsSurface picking (BVH pre-built at load).
-    pub nurbs_pick_meshes: HashMap<String, session_rust::Mesh>,
+    /// Runtime tessellation quality for NURBS surfaces / BRep faces (max normal-deviation
+    /// angle in degrees, chord-height factor). Tunable from the UI; coarser = far fewer
+    /// triangles = faster add / edit / commit. Read by `add_nurbssurface`/`add_geometry`.
+    pub tess_angle_deg:    f32,
+    pub tess_chord_factor: f32,
+    /// Cached local-space tessellated meshes for NurbsSurface picking (BVH pre-built) +
+    /// world xform columns. Like `brep_pick_meshes`, a transform updates only the xform
+    /// (matrix-only move) — no re-tessellation.
+    pub nurbs_pick_meshes: HashMap<String, (session_rust::Mesh, [[f32; 4]; 4])>,
     /// Cached NurbsSurface objects for analytical ray intersection.
     pub nurbs_surfaces: HashMap<String, session_rust::NurbsSurface>,
     /// Cached local-space BRep meshes (BVH pre-built) + world xform columns for picking.
     pub brep_pick_meshes: HashMap<String, (session_rust::Mesh, [[f32; 4]; 4])>,
+    /// Cached local-space NurbsSurfaceTrimmed meshes (BVH pre-built) + world xform columns for
+    /// picking — matrix-only move like nurbs_pick_meshes.
+    pub nurbs_trimmed_pick_meshes: HashMap<String, (session_rust::Mesh, [[f32; 4]; 4])>,
+    /// Cached NurbsSurfaceTrimmed objects (re-tessellation, boundary curves).
+    pub nurbs_trimmeds: HashMap<String, session_rust::NurbsSurfaceTrimmed>,
     /// Cached polyline points for NurbsCurve viewport picking.
     pub nc_pick_pts: HashMap<String, Vec<[f32; 3]>>,
 

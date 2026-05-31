@@ -23,7 +23,7 @@
     "line": 425,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 14.729000091552734
+    "time_ms": 14.917
   },
   {
     "checks": [
@@ -54,7 +54,7 @@
     "line": 74,
     "passed": true,
     "test_name": "Identity",
-    "time_ms": 0.010999999940395355
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -70,7 +70,7 @@
     "line": 301,
     "passed": true,
     "test_name": "Normalized",
-    "time_ms": 0.014000000432133675
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -106,7 +106,7 @@
     "line": 147,
     "passed": true,
     "test_name": "From Arc",
-    "time_ms": 0.02800000086426735
+    "time_ms": 0.025
   },
   {
     "checks": [
@@ -122,7 +122,7 @@
     "line": 268,
     "passed": true,
     "test_name": "Magnitude",
-    "time_ms": 0.003000000026077032
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -148,7 +148,7 @@
     "line": 376,
     "passed": true,
     "test_name": "Slerp",
-    "time_ms": 0.02800000086426735
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -169,7 +169,7 @@
     "line": 127,
     "passed": true,
     "test_name": "From Axis Angle",
-    "time_ms": 0.003000000026077032
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -209,7 +209,7 @@
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(angle, 2.0 * (2.0_f32 / 18.0_f32.sqrt()).acos())",
+        "code_line": "TOLERANCE.is_close(angle, 2.0 * (2.0_f64 / 18.0_f64.sqrt()).acos())",
         "line": 114,
         "passed": true
       },
@@ -234,13 +234,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // q = s + xi + yj + zk: first arg is scalar, second arg is (i,j,k) coefficients (NOT a rotation axis).\n        let q = Quaternion::from_components(2.0, Vector::new(1.0, 2.0, 3.0));\n\n\n        // Geometric meaning of (s, v): a rotation by `angle` around `axis`.\n        // to_axis_angle() extracts these — for q=(2,(1,2,3)):\n        //   axis  = (1,2,3)/sqrt(14)\n        //   angle = 2*acos(2/sqrt(18)) ≈ 2.1617 rad ≈ 123.85°\n        let (axis, angle) = q.to_axis_angle();\n        let sqrt14 = 14.0_f32.sqrt();\n\n        // Round-trip: from_axis_angle(to_axis_angle(q)) == q.normalized()\n        let q_round = Quaternion::from_axis_angle(axis, angle);\n        let qn = q.normalized();",
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // q = s + xi + yj + zk: first arg is scalar, second arg is (i,j,k) coefficients (NOT a rotation axis).\n        let q = Quaternion::from_components(2.0, Vector::new(1.0, 2.0, 3.0));\n\n\n        // Geometric meaning of (s, v): a rotation by `angle` around `axis`.\n        // to_axis_angle() extracts these — for q=(2,(1,2,3)):\n        //   axis  = (1,2,3)/sqrt(14)\n        //   angle = 2*acos(2/sqrt(18)) ≈ 2.1617 rad ≈ 123.85°\n        let (axis, angle) = q.to_axis_angle();\n        let sqrt14 = 14.0_f64.sqrt();\n\n        // Round-trip: from_axis_angle(to_axis_angle(q)) == q.normalized()\n        let q_round = Quaternion::from_axis_angle(axis, angle);\n        let qn = q.normalized();",
     "failures": [],
     "group": "Quaternion",
     "line": 93,
     "passed": true,
     "test_name": "From Components",
-    "time_ms": 0.00800000037997961
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -266,7 +266,7 @@
     "line": 455,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 13.76099967956543
+    "time_ms": 12.316
   },
   {
     "checks": [
@@ -352,7 +352,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.05400000140070915
+    "time_ms": 0.039
   },
   {
     "checks": [
@@ -373,7 +373,7 @@
     "line": 177,
     "passed": true,
     "test_name": "From Euler",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -389,7 +389,7 @@
     "line": 285,
     "passed": true,
     "test_name": "Magnitude Squared",
-    "time_ms": 0.003000000026077032
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -415,7 +415,7 @@
     "line": 223,
     "passed": true,
     "test_name": "Rotate Vector",
-    "time_ms": 0.007000000216066837
+    "time_ms": 0.042
   },
   {
     "checks": [
@@ -431,7 +431,7 @@
     "line": 360,
     "passed": true,
     "test_name": "Dot",
-    "time_ms": 0.0020000000949949026
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -457,7 +457,7 @@
     "line": 319,
     "passed": true,
     "test_name": "Conjugate",
-    "time_ms": 0.013000000268220901
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -483,7 +483,7 @@
     "line": 197,
     "passed": true,
     "test_name": "From Rotation",
-    "time_ms": 0.023000000044703484
+    "time_ms": 0.032
   },
   {
     "checks": [
@@ -504,7 +504,7 @@
     "line": 403,
     "passed": true,
     "test_name": "Nlerp",
-    "time_ms": 0.014999999664723873
+    "time_ms": 0.018
   },
   {
     "checks": [
@@ -535,7 +535,7 @@
     "line": 339,
     "passed": true,
     "test_name": "Invert",
-    "time_ms": 0.014999999664723873
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -566,6 +566,6 @@
     "line": 245,
     "passed": true,
     "test_name": "Get Rotation",
-    "time_ms": 0.009999999776482582
+    "time_ms": 0.008
   }
 ]

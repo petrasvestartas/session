@@ -254,6 +254,8 @@ pub fn render_tree_node(
     leaf_cache: &HashMap<String, Vec<String>>,
     search: &str,
     depth: usize,
+    reveal_scroll: bool,
+    did_scroll: &mut bool,
 ) -> bool {
     let name = node.borrow().name.clone();
 
@@ -267,14 +269,6 @@ pub fn render_tree_node(
 
         ui.horizontal(|ui| {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if vis_btn(ui, is_transform_locked, "Lock transform") {
-                    transform_lock_chg.push((name.clone(), !is_transform_locked));
-                }
-                ui.separator();
-                if vis_btn(ui, vis, "Toggle visibility") {
-                    vis_chg.push((name.clone(), vis));
-                }
-                ui.separator();
                 if let Some(r) = color_btn(ui, pt_colors.get(&name).copied(), egui::Id::new(("pt_color", &name)), "Point/line color\nRight-click to clear") {
                     pt_color_chg.push((name.clone(), r));
                 }
@@ -283,12 +277,24 @@ pub fn render_tree_node(
                     face_color_chg.push((name.clone(), r));
                 }
                 ui.separator();
+                if vis_btn(ui, is_transform_locked, "Lock transform") {
+                    transform_lock_chg.push((name.clone(), !is_transform_locked));
+                }
+                ui.separator();
+                if vis_btn(ui, vis, "Toggle visibility") {
+                    vis_chg.push((name.clone(), vis));
+                }
+                ui.separator();
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
                     ui.add_space(depth as f32 * INDENT_W + ARROW_W);
                     ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Truncate);
                     ui.visuals_mut().selection.bg_fill = egui::Color32::from_gray(180);
                     let text = egui::RichText::new(&label).color(egui::Color32::BLACK);
                     let resp = ui.selectable_label(is_sel, text);
+                    if reveal_scroll && is_sel && !*did_scroll {
+                        resp.scroll_to_me(Some(egui::Align::Center));
+                        *did_scroll = true;
+                    }
                     if resp.clicked() {
                         let shift = ui.ctx().input(|i| i.modifiers.shift);
                         *new_sel = Some((vec![name.clone()], shift));
@@ -330,20 +336,20 @@ pub fn render_tree_node(
 
         ui.horizontal(|ui| {
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if vis_btn(ui, is_locked, "Group lock: select together") {
-                    lock_chg.push((node_guid.clone(), !is_locked));
-                }
-                ui.separator();
-                if vis_btn(ui, group_vis, "Toggle visibility") {
-                    for g in &leaf_guids { vis_chg.push((g.clone(), group_vis)); }
-                }
-                ui.separator();
                 if let Some(r) = color_btn(ui, pt_colors.get(&node_guid).copied(), egui::Id::new(("pt_color", &node_guid)), "Point/line color\nRight-click to clear") {
                     pt_color_chg.push((node_guid.clone(), r));
                 }
                 ui.separator();
                 if let Some(r) = color_btn(ui, face_colors.get(&node_guid).copied(), egui::Id::new(("fc_color", &node_guid)), "Face color\nRight-click to clear") {
                     face_color_chg.push((node_guid.clone(), r));
+                }
+                ui.separator();
+                if vis_btn(ui, is_locked, "Group lock: select together") {
+                    lock_chg.push((node_guid.clone(), !is_locked));
+                }
+                ui.separator();
+                if vis_btn(ui, group_vis, "Toggle visibility") {
+                    for g in &leaf_guids { vis_chg.push((g.clone(), group_vis)); }
                 }
                 ui.separator();
                 ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
@@ -359,6 +365,10 @@ pub fn render_tree_node(
                     ui.visuals_mut().selection.bg_fill = egui::Color32::from_gray(180);
                     let text = egui::RichText::new(&*name).color(egui::Color32::BLACK);
                     let resp = ui.selectable_label(is_group_sel, text);
+                    if reveal_scroll && is_group_sel && !*did_scroll {
+                        resp.scroll_to_me(Some(egui::Align::Center));
+                        *did_scroll = true;
+                    }
                     if resp.clicked() {
                         let shift = ui.ctx().input(|i| i.modifiers.shift);
                         *new_sel = Some((leaf_guids.clone(), shift));
@@ -370,7 +380,7 @@ pub fn render_tree_node(
 
         if effective_open {
             for child in &children {
-                render_tree_node(ui, child, vmap, selected, hidden, group_locked, transform_locked, face_colors, pt_colors, new_sel, vis_chg, lock_chg, transform_lock_chg, face_color_chg, pt_color_chg, leaf_cache, search, depth + 1);
+                render_tree_node(ui, child, vmap, selected, hidden, group_locked, transform_locked, face_colors, pt_colors, new_sel, vis_chg, lock_chg, transform_lock_chg, face_color_chg, pt_color_chg, leaf_cache, search, depth + 1, reveal_scroll, did_scroll);
             }
         }
         true

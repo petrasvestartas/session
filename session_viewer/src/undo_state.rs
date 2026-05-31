@@ -1,12 +1,22 @@
 use std::collections::HashMap;
 use session_rust::session::Geometry;
-use session_rust::NurbsSurface;
+use session_rust::{NurbsCurve, NurbsSurface};
 
 /// Geometry state captured at drag-start so Transform undo can restore exact position
 /// for types where commit_object_transform bakes the matrix into coordinates.
 pub enum GeomSnapshot {
     Geom(Geometry),
     Nurbs(NurbsSurface),
+}
+
+/// Full geometry clone captured before/after a sub-object (control-point) edit.
+/// Covers all three stores: lookup geometry, the nurbssurfaces list, and the
+/// nurbscurves list. Undo/redo restore the snapshot and rebuild the GPU mirror.
+#[derive(Clone)]
+pub enum EditSnapshot {
+    Geom(Geometry),
+    Nurbs(NurbsSurface),
+    Curve(NurbsCurve),
 }
 
 /// One undoable/redoable operation recorded on the history stacks.
@@ -19,9 +29,15 @@ pub enum UndoAction {
     /// Undo = remove from nurbssurfaces + GPU. Redo = re-add to nurbssurfaces + GPU.
     AddNurbs { ns: NurbsSurface },
 
-    /// CLI del command: batch remove of selected objects (lookup only).
+    /// Interactive `curve` tool producing a NurbsCurve (lives in objects.nurbscurves).
+    /// Undo = remove from nurbscurves + GPU. Redo = re-add.
+    AddNurbsCurve { nc: NurbsCurve },
+
+    /// CLI del command: batch remove of selected objects. `objects` are lookup
+    /// geometry; `nurbs` are NurbsSurfaces (cone/torus) and `curves` are NurbsCurves,
+    /// both of which live in session.objects, not lookup.
     /// Undo = re-add all. Redo = remove all again.
-    RemoveObjects { objects: Vec<(String, Geometry)> },
+    RemoveObjects { objects: Vec<(String, Geometry)>, nurbs: Vec<NurbsSurface>, curves: Vec<NurbsCurve> },
 
     /// Gumball drag committed via commit_object_transform.
     /// - BRep: snapshots empty → undo/redo via model matrix (before/after).
@@ -34,11 +50,39 @@ pub enum UndoAction {
         snapshots: HashMap<String, GeomSnapshot>,
         snapshots_after: HashMap<String, GeomSnapshot>,
     },
+
+    /// Sub-object (control-point / vertex) edit committed in edit mode.
+    /// Absolute snapshots on both sides, like Transform: `before` is the undo
+    /// target, `after` the redo target. Apply re-imports the snapshot into its
+    /// store and rebuilds the GPU mirror.
+    EditGeom {
+        guid: String,
+        before: EditSnapshot,
+        after: EditSnapshot,
+    },
 }
 
 impl UndoAction {
     pub fn snap_geom(g: Geometry) -> GeomSnapshot { GeomSnapshot::Geom(g) }
     pub fn snap_nurbs(ns: NurbsSurface) -> GeomSnapshot { GeomSnapshot::Nurbs(ns) }
+}
+
+/// Insert `ns` into the scene's nurbssurfaces list, replacing any existing entry
+/// with the same guid instead of blindly pushing. The GPU side is already deduped
+/// (add_nurbssurface removes first), but the CPU Vec is the tree's source of truth,
+/// so an un-guarded push would show a cone/torus twice in the tree after a stray
+/// double-add. Keeps the Vec invariant: at most one entry per guid.
+pub(crate) fn replace_or_push_nurbs(list: &mut Vec<NurbsSurface>, ns: NurbsSurface) {
+    let guid = ns.guid().to_string();
+    list.retain(|n| n.guid() != guid);
+    list.push(ns);
+}
+
+/// Same invariant for the nurbscurves list: at most one entry per guid.
+pub(crate) fn replace_or_push_nurbscurve(list: &mut Vec<NurbsCurve>, nc: NurbsCurve) {
+    let guid = nc.guid().to_string();
+    list.retain(|n| n.guid() != guid);
+    list.push(nc);
 }
 
 pub struct UndoState {

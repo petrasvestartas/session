@@ -1,0 +1,70 @@
+﻿21:         let seg_start = self.segments_cpu.len();
+22:         self.segments_cpu.extend(segs);
+23:         self.guid_to_seg.insert(guid.clone(), seg_start..self.segments_cpu.len());
+24:         self.segments_dirty = true;
+25:         self.nc_pick_pts.insert(guid.clone(), pts.iter().map(|p| [p[0], p[1], p[2]]).collect());
+26:         let gly_start = self.glyphs_cpu.len();
+27:         for p in [pts.first().unwrap(), pts.last().unwrap()] {
+28:             let center = [p[0], p[1], p[2]];
+29:             self.glyphs_cpu.push(GlyphPoint { center, radius: 0.0,
+30:                 color: [1.0; 4], instance_id, _pad: [0; 3] });
+31:         }
+32:         self.guid_to_glyph.insert(guid.clone(), gly_start..self.glyphs_cpu.len());
+33:         self.glyphs_dirty = true;
+34:         let color = color_to_rgba_f32(curve.linecolors.get(0).unwrap_or(&session_rust::Color::white()));
+35:         self.write_instance(instance_id, color, device, queue);
+36:     }
+37: 
+38:     pub fn add_nurbssurface(&mut self, surface: &session_rust::NurbsSurface, device: &wgpu::Device, queue: &wgpu::Queue) {
+39:         let guid = surface.guid().to_string();
+40:         let mut mesh = session_rust::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid::from_u_v(
+41:             surface.clone(), 32, 32);
+42:         let (vs, is) = mesh_to_vertices(&mesh);
+43:         if vs.is_empty() { return; }
+44:         let instance_id = self.pick.allocate(&guid);
+45:         self.tri.allocate(&guid, &vs, Some(&is), instance_id, device, queue);
+46:         // Boundary edges: 4 iso-curves.
+47:         // iso_curve(0,v) = u-direction curve at fixed v â†’ use v-domain (dir=1) for parameter.
+48:         // iso_curve(1,u) = v-direction curve at fixed u â†’ use u-domain (dir=0) for parameter.
+49:         let mut edge_segs: Vec<CylinderSegment> = Vec::new();
+50:         let domains = [surface.domain(0), surface.domain(1)];
+51:         for (iso_dir, param_dir, t_is_max) in [(0usize, 1usize, false), (0, 1, true), (1, 0, false), (1, 0, true)] {
+52:             let t = if let Some((t0, t1)) = domains[param_dir] {
+53:                 if t_is_max { t1 } else { t0 }
+54:             } else { continue };
+55:             if let Some(crv) = surface.iso_curve(iso_dir, t) {
+56:                 let (pts, _) = crv.to_polyline_adaptive(
+57:                     session_rust::Tolerance::ANGULARDEFLECTION * 0.1, 0.0, 0.0);
+58:                 edge_segs.extend(pts_to_segments(&pts, instance_id));
+59:             }
+60:         }
+61:         if !edge_segs.is_empty() {
+62:             if let Some(lc) = surface.linecolors.get(0) {
+63:                 let c = color_to_rgba_f32(lc);
+64:                 for seg in &mut edge_segs { seg.color = c; }
+65:             }
+66:             let seg_start = self.segments_cpu.len();
+67:             self.segments_cpu.extend(edge_segs);
+68:             self.guid_to_seg.insert(guid.clone(), seg_start..self.segments_cpu.len());
+69:             self.segments_dirty = true;
+70:         }
+71:         mesh.ensure_triangle_bvh();
+72:         self.nurbs_pick_meshes.insert(guid.clone(), mesh);
+73:         self.nurbs_surfaces.insert(guid.clone(), surface.clone());
+74:         let surf_color = color_to_rgba_f32(surface.facecolors.get(0).unwrap_or(&session_rust::Color::white()));
+75:         self.write_instance_flags(instance_id, surf_color, InstanceData::FLAG_SMOOTH, device, queue);
+76:     }
+77: 
+78:     pub fn add_geometry(&mut self, guid: &str, geom: &session_rust::session::Geometry, device: &wgpu::Device, queue: &wgpu::Queue) {
+79:         use session_rust::session::Geometry;
+80:         let instance_id = self.pick.allocate(guid);
+81: 
+82:         match geom {
+83:             Geometry::Point(p) => {
+84:                 if !p.name.is_empty() && p.name != "my_point" {
+85:                     // Named point â†’ 3-axis crosshair in line arena + text label.
+86:                     let (vs, is) = named_point_to_cross_vertices(p);
+87:                     self.line.allocate(guid, &vs, Some(&is), instance_id, device, queue);
+88:                     self.write_instance(instance_id, color_to_rgba_f32(&p.pointcolor), device, queue);
+89:                 } else {
+90:                     let vs = point_to_vertex(p);

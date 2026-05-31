@@ -11,13 +11,13 @@ pub mod instance_groups;
 
 mod draw;
 mod edit;
-mod geometry;
+pub(crate) mod geometry;
 mod instancing;
 mod pick;
 mod session;
 mod types;
 
 pub use types::{
-    make_geom_bind_group, CloudPoint, CylinderSegment, GlyphPoint, GpuSession, InstanceData,
-    LineVertex, MeshVertex, PointVertex, TemplateVertex,
+    make_geom_bind_group, CloudPoint, CylinderSegment, DrawStats, GlyphPoint, GpuSession,
+    InstanceData, LineVertex, MeshVertex, PointVertex, TemplateVertex,
 };

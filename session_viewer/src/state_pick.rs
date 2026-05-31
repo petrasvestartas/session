@@ -1,6 +1,5 @@
 use crate::State;
 use crate::camera::ProjMode;
-use crate::gumball;
 use crate::pick::{self, screen_to_world_ray};
 use crate::tree_ui::{collect_group_leaves, locked_group_for_guid};
 
@@ -47,20 +46,20 @@ impl State {
                     if n == 0 { None } else {
                         let nf = n as f32;
                         let (mut sx, mut sy, mut sz) = (0.0f32, 0.0, 0.0);
-                        for c in pl.coords.chunks(3) { sx += c[0]; sy += c[1]; sz += c[2]; }
+                        for c in pl.coords.chunks(3) { sx += c[0] as f32; sy += c[1] as f32; sz += c[2] as f32; }
                         Some([sx/nf, sy/nf, sz/nf])
                     }
                 }
                 Geometry::Mesh(m) => {
                     if m.vertex.is_empty() { None } else {
                         let n = m.vertex.len() as f32;
-                        let cx = m.vertex.values().map(|v| v.x).sum::<f32>() / n;
-                        let cy = m.vertex.values().map(|v| v.y).sum::<f32>() / n;
-                        let cz = m.vertex.values().map(|v| v.z).sum::<f32>() / n;
+                        let cx = m.vertex.values().map(|v| v.x as f32).sum::<f32>() / n;
+                        let cy = m.vertex.values().map(|v| v.y as f32).sum::<f32>() / n;
+                        let cz = m.vertex.values().map(|v| v.z as f32).sum::<f32>() / n;
                         Some([cx, cy, cz])
                     }
                 }
-                Geometry::Plane(pl) => { let o = pl.origin(); Some([o[0], o[1], o[2]]) }
+                Geometry::Plane(pl) => { let o = pl.origin(); Some([o[0] as f32, o[1] as f32, o[2] as f32]) }
                 Geometry::PointCloud(pc) => {
                     let pts = pc.get_points();
                     if pts.is_empty() { None } else {
@@ -75,7 +74,7 @@ impl State {
                     if corners.is_empty() { None } else {
                         let n = corners.len() as f32;
                         let (mut sx, mut sy, mut sz) = (0.0f32, 0.0, 0.0);
-                        for p in &corners { sx += p[0]; sy += p[1]; sz += p[2]; }
+                        for p in &corners { sx += p[0] as f32; sy += p[1] as f32; sz += p[2] as f32; }
                         Some([sx/n, sy/n, sz/n])
                     }
                 }
@@ -95,13 +94,14 @@ impl State {
         for ns in &self.scene.session.objects.nurbssurfaces {
             let guid = ns.guid().to_string();
             if self.scene.hidden_guids.contains(&guid) { continue; }
-            let local = self.scene.gpu_session.nurbs_pick_meshes.get(&guid).and_then(|m| {
+            let local = self.scene.gpu_session.nurbs_pick_meshes.get(&guid).and_then(|(m, _xf)| {
                 if m.vertex.is_empty() { return None; }
                 let n = m.vertex.len() as f32;
+                // Local mesh centroid; the instance model is applied below to get world.
                 Some([
-                    m.vertex.values().map(|v| v.x).sum::<f32>() / n,
-                    m.vertex.values().map(|v| v.y).sum::<f32>() / n,
-                    m.vertex.values().map(|v| v.z).sum::<f32>() / n,
+                    m.vertex.values().map(|v| v.x as f32).sum::<f32>() / n,
+                    m.vertex.values().map(|v| v.y as f32).sum::<f32>() / n,
+                    m.vertex.values().map(|v| v.z as f32).sum::<f32>() / n,
                 ])
             });
             if let Some(lc) = local {
@@ -132,6 +132,7 @@ impl State {
 
         let refs: Vec<&str> = hits.iter().map(|s| s.as_str()).collect();
         self.set_selection(&refs);
+        if !hits.is_empty() { self.scene.reveal_in_tree = true; }
     }
 
     pub(crate) fn process_pick(&mut self, cx: f32, cy: f32) {
@@ -141,9 +142,23 @@ impl State {
         let is_ortho = self.scene.camera.proj_mode == ProjMode::Ortho;
         let ray = screen_to_world_ray(&view, &proj, viewport, (cx, cy), is_ortho);
 
+        // Edit mode reroutes picking to sub-objects (control points / edges).
+        if self.edit.active {
+            self.process_pick_edit(ray, cx, cy);
+            return;
+        }
+
+        // Ctrl+Shift+Left-click (no F10) → select & move a boundary edge.
+        if self.scene.ctrl_down && self.scene.shift_down {
+            self.process_pick_edge(ray);
+            return;
+        }
+
         let gumball_hit = self.gb.gumball.as_ref()
             .and_then(|gb| gb.hit_test(ray, self.gb.gumball_scale));
         if let Some(handle) = gumball_hit {
+            self.gb.gumball_input = None; // a fresh handle press cancels any open popup
+            self.gb.gumball_press = None;
             self.gb.drag_origins.clear();
             self.gb.drag_geom_snapshots.clear();
             self.gb.drag_nurbs_snapshots.clear();
@@ -153,28 +168,43 @@ impl State {
                     let model = self.scene.gpu_session.instances_cpu[iid as usize].model;
                     self.gb.drag_origins.insert(guid.clone(), model);
                 }
-                // Snapshot pre-drag state for non-BRep types (geometry gets baked on commit)
+                // Snapshot pre-drag state for non-BRep lookup types (geometry gets baked on
+                // commit so undo restores exact coords). BRep and NurbsSurface move
+                // matrix-only — they carry NO snapshot, so undo/redo replays the model
+                // matrix instead (see apply_undo/apply_redo `None` arm).
                 if let Some(geom) = self.scene.session.lookup.get(guid) {
                     if !matches!(geom, session_rust::session::Geometry::BRep(_)) {
                         self.gb.drag_geom_snapshots.insert(guid.clone(), geom.clone());
                     }
-                } else if let Some(ns) = self.scene.session.objects.nurbssurfaces.iter().find(|n| n.guid() == guid) {
-                    self.gb.drag_nurbs_snapshots.insert(guid.clone(), ns.clone());
                 }
             }
-            let origin = self.gb.gumball.as_ref().unwrap().origin;
-            let ds = gumball::begin_drag(handle, ray, origin, self.gb.gumball_scale);
-            self.gb.gumball.as_mut().unwrap().drag = Some(ds);
-            return;
+            // Nothing transformable (whole selection transform-locked): don't engage
+            // the gumball — fall through to a normal ray pick below.
+            if !self.gb.drag_origins.is_empty() {
+                if self.scene.lmb_down {
+                    // Button still held: defer the click-vs-drag decision. A press that
+                    // never moves past the threshold opens the popup on release; movement
+                    // starts a drag (see handle_mouse_moved / handle_mouse_button).
+                    self.gb.gumball_press = Some((handle, cx as f64, cy as f64));
+                } else {
+                    // The button was already released before this deferred pick ran
+                    // (fast tap with no movement) — that is a click: open the popup now.
+                    self.open_gumball_input(handle, cx as f64, cy as f64);
+                }
+                return;
+            }
         }
 
         let pick_radius = self.scene.camera.pick_radius_mm(self.gpu.config.height as f32, 8.0)
             .max(crate::gpu_adapters::SPHERE_RADIUS);
         let hits = pick::pick_by_ray(&mut self.scene.session, ray, pick_radius);
-        let origin_pt = session_rust::Point::new(ray.origin[0], ray.origin[1], ray.origin[2]);
-        let dir_vec   = session_rust::Vector::new(ray.direction[0], ray.direction[1], ray.direction[2]);
+        let origin_pt = session_rust::Point::new(ray.origin[0] as f64, ray.origin[1] as f64, ray.origin[2] as f64);
+        let dir_vec   = session_rust::Vector::new(ray.direction[0] as f64, ray.direction[1] as f64, ray.direction[2] as f64);
         let nurbs_hits = self.scene.gpu_session.pick_nurbssurfaces(&origin_pt, &dir_vec);
         let brep_hits  = self.scene.gpu_session.pick_breps(&origin_pt, &dir_vec);
+        let trimmed_hits = self.scene.gpu_session.pick_nurbssurfacetrimmeds(&origin_pt, &dir_vec);
+        // Also allow grabbing a trimmed surface by clicking near its edge curves (cut/seam).
+        let trimmed_edge_hits = self.scene.gpu_session.pick_trimmed_edges(&origin_pt, &dir_vec, pick_radius);
         let nc_hits    = self.scene.gpu_session.pick_nurbscurves(&origin_pt, &dir_vec, pick_radius);
 
         // Combine all hits, filter hidden, pick closest
@@ -183,8 +213,8 @@ impl State {
 
         for hit in &hits {
             if self.scene.hidden_guids.contains(hit.guid()) { continue; }
-            if hit.distance < best_dist {
-                best_dist = hit.distance;
+            if (hit.distance as f32) < best_dist {
+                best_dist = hit.distance as f32;
                 best_guid = Some(hit.guid().to_string());
             }
         }
@@ -193,7 +223,7 @@ impl State {
             let dx = p[0] - origin_pt[0];
             let dy = p[1] - origin_pt[1];
             let dz = p[2] - origin_pt[2];
-            (dx*dx + dy*dy + dz*dz).sqrt()
+            (dx*dx + dy*dy + dz*dz).sqrt() as f32
         };
 
         if let Some((guid, pt)) = nurbs_hits.into_iter().next() {
@@ -203,6 +233,18 @@ impl State {
             }
         }
         if let Some((guid, pt)) = brep_hits.into_iter().next() {
+            if !self.scene.hidden_guids.contains(&guid) {
+                let d = pt_dist(&pt);
+                if d < best_dist { best_dist = d; best_guid = Some(guid); }
+            }
+        }
+        if let Some((guid, pt)) = trimmed_hits.into_iter().next() {
+            if !self.scene.hidden_guids.contains(&guid) {
+                let d = pt_dist(&pt);
+                if d < best_dist { best_dist = d; best_guid = Some(guid); }
+            }
+        }
+        if let Some((guid, pt)) = trimmed_edge_hits.into_iter().next() {
             if !self.scene.hidden_guids.contains(&guid) {
                 let d = pt_dist(&pt);
                 if d < best_dist { best_dist = d; best_guid = Some(guid); }
@@ -235,6 +277,7 @@ impl State {
 
         let refs: Vec<&str> = final_guids.iter().map(|s| s.as_str()).collect();
         self.set_selection(&refs);
+        self.scene.reveal_in_tree = true;
     }
 
     pub fn selected_centroid(&self) -> [f32; 3] {
@@ -269,7 +312,71 @@ impl State {
                             Some([(mn[0]+mx[0])*0.5, (mn[1]+mx[1])*0.5, (mn[2]+mx[2])*0.5])
                         }
                     }
+                    // BRep (cyl/box/sphere via BRep::create_*) lives in `lookup` but its
+                    // local origin is the base/anchor, not the centre. Use the bbox centre
+                    // of its pick mesh (local coords; the outer block applies the instance
+                    // model, which equals the pick-mesh xform) so the gumball sits centred.
+                    Geometry::BRep(_) => {
+                        self.scene.gpu_session.brep_pick_meshes.get(guid).and_then(|(mesh, _xf)| {
+                            if mesh.vertex.is_empty() { return None; }
+                            let (mut mn, mut mx) = ([f32::MAX; 3], [f32::MIN; 3]);
+                            for v in mesh.vertex.values() {
+                                let (x, y, z) = (v.x as f32, v.y as f32, v.z as f32);
+                                mn[0] = mn[0].min(x); mn[1] = mn[1].min(y); mn[2] = mn[2].min(z);
+                                mx[0] = mx[0].max(x); mx[1] = mx[1].max(y); mx[2] = mx[2].max(z);
+                            }
+                            Some([(mn[0]+mx[0])*0.5, (mn[1]+mx[1])*0.5, (mn[2]+mx[2])*0.5])
+                        })
+                    }
+                    Geometry::PointCloud(pc) => {
+                        let pts = pc.get_points();
+                        if pts.is_empty() { None } else {
+                            let (mut mn, mut mx) = ([f32::MAX; 3], [f32::MIN; 3]);
+                            for p in &pts {
+                                for k in 0..3 { let c = p[k] as f32; mn[k] = mn[k].min(c); mx[k] = mx[k].max(c); }
+                            }
+                            Some([(mn[0]+mx[0])*0.5, (mn[1]+mx[1])*0.5, (mn[2]+mx[2])*0.5])
+                        }
+                    }
+                    Geometry::OBB(o) => {
+                        let corners = o.corners();
+                        if corners.is_empty() { None } else {
+                            let (mut mn, mut mx) = ([f32::MAX; 3], [f32::MIN; 3]);
+                            for p in &corners {
+                                for k in 0..3 { let c = p[k] as f32; mn[k] = mn[k].min(c); mx[k] = mx[k].max(c); }
+                            }
+                            Some([(mn[0]+mx[0])*0.5, (mn[1]+mx[1])*0.5, (mn[2]+mx[2])*0.5])
+                        }
+                    }
+                    Geometry::Plane(pl) => { let o = pl.origin(); Some([o[0] as f32, o[1] as f32, o[2] as f32]) }
                     _ => None,
+                }
+            } else if let Some(ns) = self.scene.session.objects.nurbssurfaces.iter().find(|n| n.guid() == *guid) {
+                // NurbsSurface lives outside `lookup`; centre the gumball on its
+                // control-point AABB (matches the "bbox centre" rule used for meshes)
+                // instead of falling through to the identity model translation (XY origin).
+                let (mut mn, mut mx) = ([f32::MAX; 3], [f32::MIN; 3]);
+                for i in 0..ns.cv_count_dir(Some(0)) {
+                    for j in 0..ns.cv_count_dir(Some(1)) {
+                        if let Some(p) = ns.get_cv(i, j) {
+                            for k in 0..3 { mn[k] = mn[k].min(p[k] as f32); mx[k] = mx[k].max(p[k] as f32); }
+                        }
+                    }
+                }
+                if mn[0] <= mx[0] {
+                    Some([(mn[0]+mx[0])*0.5, (mn[1]+mx[1])*0.5, (mn[2]+mx[2])*0.5])
+                } else { None }
+            } else if let Some((mesh, _xf)) = self.scene.gpu_session.nurbs_trimmed_pick_meshes.get(guid) {
+                // NurbsSurfaceTrimmed also lives outside `lookup`; centre the gumball on its
+                // tessellation bbox (local coords; the outer block applies the instance model).
+                if mesh.vertex.is_empty() { None } else {
+                    let (mut mn, mut mx) = ([f32::MAX; 3], [f32::MIN; 3]);
+                    for v in mesh.vertex.values() {
+                        let (x, y, z) = (v.x as f32, v.y as f32, v.z as f32);
+                        mn[0] = mn[0].min(x); mn[1] = mn[1].min(y); mn[2] = mn[2].min(z);
+                        mx[0] = mx[0].max(x); mx[1] = mx[1].max(y); mx[2] = mx[2].max(z);
+                    }
+                    Some([(mn[0]+mx[0])*0.5, (mn[1]+mx[1])*0.5, (mn[2]+mx[2])*0.5])
                 }
             } else { None };
 

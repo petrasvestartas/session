@@ -50,6 +50,37 @@ fn vs_main(in: VsIn, @builtin(instance_index) iid: u32) -> VsOut {
     return out;
 }
 
+// Batched path: instance_id comes from the vertex (location 3) instead of the
+// builtin, so the entire mesh arena draws in one call. Culled instances (FLAG_CULLED,
+// bit 7) collapse to a vertex behind the near plane so every triangle clips away.
+struct VsInBatched {
+    @location(0) position: vec3<f32>,
+    @location(1) normal: vec3<f32>,
+    @location(2) color: vec4<f32>,
+    @location(3) instance_id: u32,
+}
+
+@vertex
+fn vs_batched(in: VsInBatched) -> VsOut {
+    let inst = instances[in.instance_id];
+    var out: VsOut;
+    if (inst.flags & 128u) != 0u {
+        out.clip_pos  = vec4<f32>(0.0, 0.0, -2.0, 1.0); // behind near → clipped
+        out.world_pos = vec3<f32>(0.0);
+        out.normal    = vec3<f32>(0.0, 0.0, 1.0);
+        out.color     = vec4<f32>(0.0);
+        out.flags     = inst.flags;
+        return out;
+    }
+    let world = inst.model * vec4<f32>(in.position, 1.0);
+    out.clip_pos  = camera.view_proj * world;
+    out.world_pos = world.xyz;
+    out.normal    = normalize((inst.model * vec4<f32>(in.normal, 0.0)).xyz);
+    out.color     = in.color * inst.face_tint;
+    out.flags     = inst.flags;
+    return out;
+}
+
 @fragment
 fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
     // Derivatives must be computed before any non-uniform control flow (discard / front_facing).

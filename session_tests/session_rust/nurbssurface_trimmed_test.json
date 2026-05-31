@@ -53,17 +53,17 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.8019999861717224
+    "time_ms": 0.734
   },
   {
     "checks": [],
-    "code": "        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::tolerance::PI;\n\n        // Planar curve boundary\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(3.0, 1.0, 0.0),\n            Point::new(5.0, 0.5, 0.0),\n            Point::new(6.0, 3.0, 0.0),\n            Point::new(4.0, 5.0, 0.0),\n            Point::new(1.0, 4.0, 0.0),\n        ];\n        let bnd = NurbsCurve::create(true, 3, &pts);\n        let _ts = NurbsSurfaceTrimmed::create_planar(&bnd).unwrap();\n\n        // Rotated planar\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(3.0, 1.0, -2.0),\n            Point::new(5.0, 2.0, -3.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(1.0, 3.0, 2.0),\n        ];\n        let bnd = NurbsCurve::create(true, 3, &pts);\n        let _ts = NurbsSurfaceTrimmed::create_planar(&bnd).unwrap();\n\n        // Triangle\n        let bnd = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(6.0, 3.0, 3.0),\n            Point::new(2.0, 5.0, 1.0),\n        ]);\n        let _ts = NurbsSurfaceTrimmed::create_planar(&bnd);\n\n        // Trapezoid\n        let bnd = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 6.0),\n            Point::new(5.0, 0.0, 6.0),\n            Point::new(4.0, 4.0, 2.0),\n            Point::new(1.0, 4.0, 2.0),\n        ]);\n        let _ts = NurbsSurfaceTrimmed::create_planar(&bnd).unwrap();\n\n        // Rectangle with a hole\n        let bnd = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(6.0, 0.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(0.0, 6.0, 0.0),\n        ]);\n        let mut ts = NurbsSurfaceTrimmed::create_planar(&bnd).unwrap();\n        ts.add_hole(&NurbsCurve::create(true, 1, &[\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(4.0, 2.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(2.0, 4.0, 0.0),\n        ]));\n\n        // Hexagon with 2 holes\n        let r = 4.0f32;\n        let mut pts = Vec::new();\n        for k in 0..6 {\n            let a = k as f32 * PI / 3.0;\n            pts.push(Point::new(r * a.cos(), r * a.sin(), r * a.cos() * 0.5));\n        }\n        let bnd = NurbsCurve::create(true, 1, &pts);\n        let mut ts = NurbsSurfaceTrimmed::create_planar(&bnd).unwrap();\n        ts.add_holes(&[\n            NurbsCurve::create(true, 1, &[\n                Point::new(1.5, 0.5, 0.75),\n                Point::new(2.5, 0.5, 1.25),\n                Point::new(2.0, 1.5, 1.0),\n            ]),\n            NurbsCurve::create(true, 1, &[\n                Point::new(-2.0, -0.5, -1.0),\n                Point::new(-1.0, -0.5, -0.5),\n                Point::new(-1.0, -1.5, -0.5),\n                Point::new(-2.0, -1.5, -1.0),\n            ]),\n        ]);",
+    "code": "        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::tolerance::PI;\n\n        // Planar curve boundary\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(3.0, 1.0, 0.0),\n            Point::new(5.0, 0.5, 0.0),\n            Point::new(6.0, 3.0, 0.0),\n            Point::new(4.0, 5.0, 0.0),\n            Point::new(1.0, 4.0, 0.0),\n        ];\n        let bnd = NurbsCurve::create(true, 3, &pts);\n        let _ts = NurbsSurfaceTrimmed::create_planar(&bnd).unwrap();\n\n        // Rotated planar\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(3.0, 1.0, -2.0),\n            Point::new(5.0, 2.0, -3.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(1.0, 3.0, 2.0),\n        ];\n        let bnd = NurbsCurve::create(true, 3, &pts);\n        let _ts = NurbsSurfaceTrimmed::create_planar(&bnd).unwrap();\n\n        // Triangle\n        let bnd = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(6.0, 3.0, 3.0),\n            Point::new(2.0, 5.0, 1.0),\n        ]);\n        let _ts = NurbsSurfaceTrimmed::create_planar(&bnd);\n\n        // Trapezoid\n        let bnd = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 6.0),\n            Point::new(5.0, 0.0, 6.0),\n            Point::new(4.0, 4.0, 2.0),\n            Point::new(1.0, 4.0, 2.0),\n        ]);\n        let _ts = NurbsSurfaceTrimmed::create_planar(&bnd).unwrap();\n\n        // Rectangle with a hole\n        let bnd = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(6.0, 0.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(0.0, 6.0, 0.0),\n        ]);\n        let mut ts = NurbsSurfaceTrimmed::create_planar(&bnd).unwrap();\n        ts.add_hole(&NurbsCurve::create(true, 1, &[\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(4.0, 2.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(2.0, 4.0, 0.0),\n        ]));\n\n        // Hexagon with 2 holes\n        let r = 4.0f64;\n        let mut pts = Vec::new();\n        for k in 0..6 {\n            let a = k as f64 * PI / 3.0;\n            pts.push(Point::new(r * a.cos(), r * a.sin(), r * a.cos() * 0.5));\n        }\n        let bnd = NurbsCurve::create(true, 1, &pts);\n        let mut ts = NurbsSurfaceTrimmed::create_planar(&bnd).unwrap();\n        ts.add_holes(&[\n            NurbsCurve::create(true, 1, &[\n                Point::new(1.5, 0.5, 0.75),\n                Point::new(2.5, 0.5, 1.25),\n                Point::new(2.0, 1.5, 1.0),\n            ]),\n            NurbsCurve::create(true, 1, &[\n                Point::new(-2.0, -0.5, -1.0),\n                Point::new(-1.0, -0.5, -0.5),\n                Point::new(-1.0, -1.5, -0.5),\n                Point::new(-2.0, -1.5, -1.0),\n            ]),\n        ]);",
     "failures": [],
     "group": "NurbsSurfaceTrimmed",
     "line": 49,
     "passed": true,
     "test_name": "Constructor Planar",
-    "time_ms": 246.14100646972656
+    "time_ms": 202.579
   },
   {
     "checks": [
@@ -83,13 +83,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        // Create surface with bump\n        let n = 8usize;\n        let mut pts = Vec::new();\n        for i in 0..n {\n            for j in 0..n {\n                let x = i as f32;\n                let y = j as f32;\n                let r2 = (x - 1.5) * (x - 1.5) + (y - 1.5) * (y - 1.5);\n                let z = 5.0 * (-r2 / 1.0).exp() + 0.3 * (crate::tolerance::PI * x / 7.0).sin() * (crate::tolerance::PI * y / 7.0).sin();\n                pts.push(Point::new(x, y, z));\n            }\n        }\n\n        let srf = NurbsSurface::create(false, false, 3, 3, n, n, &pts).unwrap();\n\n        // Create outer loop (full boundary in UV)\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ]);\n\n        let mut ts = NurbsSurfaceTrimmed::create(&srf, &outer);\n\n        // Add hole as UV curve directly\n        let hole = NurbsCurve::create(true, 1, &[\n            Point::new(0.4, 0.4, 0.0),\n            Point::new(0.6, 0.4, 0.0),\n            Point::new(0.6, 0.6, 0.0),\n            Point::new(0.4, 0.6, 0.0),\n        ]);\n        ts.add_inner_loop(hole);\n",
+    "code": "        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n\n        // Create surface with bump\n        let n = 8usize;\n        let mut pts = Vec::new();\n        for i in 0..n {\n            for j in 0..n {\n                let x = i as f64;\n                let y = j as f64;\n                let r2 = (x - 1.5) * (x - 1.5) + (y - 1.5) * (y - 1.5);\n                let z = 5.0 * (-r2 / 1.0).exp() + 0.3 * (crate::tolerance::PI * x / 7.0).sin() * (crate::tolerance::PI * y / 7.0).sin();\n                pts.push(Point::new(x, y, z));\n            }\n        }\n\n        let srf = NurbsSurface::create(false, false, 3, 3, n, n, &pts).unwrap();\n\n        // Create outer loop (full boundary in UV)\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ]);\n\n        let mut ts = NurbsSurfaceTrimmed::create(&srf, &outer);\n\n        // Add hole as UV curve directly\n        let hole = NurbsCurve::create(true, 1, &[\n            Point::new(0.4, 0.4, 0.0),\n            Point::new(0.6, 0.4, 0.0),\n            Point::new(0.6, 0.6, 0.0),\n            Point::new(0.4, 0.6, 0.0),\n        ]);\n        ts.add_inner_loop(hole);\n",
     "failures": [],
     "group": "NurbsSurfaceTrimmed",
     "line": 136,
     "passed": true,
     "test_name": "Constructor Hole",
-    "time_ms": 2.756999969482422
+    "time_ms": 1.424
   },
   {
     "checks": [
@@ -135,7 +135,7 @@
     "line": 183,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 1.38100004196167
+    "time_ms": 0.679
   },
   {
     "checks": [
@@ -161,7 +161,7 @@
     "line": 220,
     "passed": true,
     "test_name": "Add Inner Loop",
-    "time_ms": 5.250999927520752
+    "time_ms": 2.028
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 269,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 1.9329999685287476
+    "time_ms": 0.963
   },
   {
     "checks": [
@@ -218,7 +218,7 @@
     "line": 406,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 1.5230000019073486
+    "time_ms": 0.698
   },
   {
     "checks": [
@@ -244,7 +244,7 @@
     "line": 442,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 20.9689998626709
+    "time_ms": 16.585
   },
   {
     "checks": [
@@ -265,7 +265,7 @@
     "line": 489,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 17.0049991607666
+    "time_ms": 15.755
   },
   {
     "checks": [
@@ -327,11 +327,6 @@
       {
         "code_line": "mc.number_of_faces() >= 30",
         "line": 365,
-        "passed": true
-      },
-      {
-        "code_line": "len > 0.5",
-        "line": 371,
         "passed": true
       },
       {
@@ -718,14 +713,774 @@
         "code_line": "len > 0.5",
         "line": 400,
         "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
+      },
+      {
+        "code_line": "len > 0.5",
+        "line": 400,
+        "passed": true
       }
     ],
-    "code": "        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::tolerance::PI;\n\n        // Planar rectangle: bilinear 6x6 surface, outer loop at 0.05..0.95\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, &Point::new(6.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 6.0, 0.0));\n        srf.set_cv(1, 1, &Point::new(6.0, 6.0, 0.0));\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.05, 0.05, 0.0), Point::new(0.95, 0.05, 0.0),\n            Point::new(0.95, 0.95, 0.0), Point::new(0.05, 0.95, 0.0),\n        ]);\n        let ts = NurbsSurfaceTrimmed::create(&srf, &outer);\n        let m = ts.mesh();\n        for (_, vd) in m.vertex.iter() {\n            let nx = vd.attributes.get(\"nx\").copied().unwrap_or(0.0);\n            let ny = vd.attributes.get(\"ny\").copied().unwrap_or(0.0);\n            let nz = vd.attributes.get(\"nz\").copied().unwrap_or(0.0);\n            let len = (nx*nx + ny*ny + nz*nz).sqrt();\n        }\n\n        // Planar rectangle with hole\n        let bnd = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0), Point::new(6.0, 0.0, 0.0),\n            Point::new(6.0, 6.0, 0.0), Point::new(0.0, 6.0, 0.0),\n        ]);\n        let mut ts_hole = NurbsSurfaceTrimmed::create_planar(&bnd).unwrap();\n        ts_hole.add_hole(&NurbsCurve::create(true, 1, &[\n            Point::new(2.0, 2.0, 0.0), Point::new(4.0, 2.0, 0.0),\n            Point::new(4.0, 4.0, 0.0), Point::new(2.0, 4.0, 0.0),\n        ]));\n        let mh = ts_hole.mesh();\n\n        // Planar circle (rational NURBS outer loop)\n        let cw = (2.0_f32).sqrt() / 2.0;\n        let ccx = [1.0f32, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0, 1.0, 1.0];\n        let ccy = [0.0f32, 1.0, 1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0];\n        let cwt = [1.0f32, cw, 1.0, cw, 1.0, cw, 1.0, cw, 1.0];\n        let mut circle_loop = NurbsCurve::new(3, true, 3, 9);\n        circle_loop.m_nurbsknot = vec![0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0];\n        for i in 0..9 {\n            circle_loop.set_cv_4d(i, (0.5 + 0.5 * ccx[i]) * cwt[i], (0.5 + 0.5 * ccy[i]) * cwt[i], 0.0, cwt[i]);\n        }\n        let ts_circ = NurbsSurfaceTrimmed::create(&srf, &circle_loop);\n        let mc = ts_circ.mesh();\n        for (_, vd) in mc.vertex.iter() {\n            let nx = vd.attributes.get(\"nx\").copied().unwrap_or(0.0);\n            let ny = vd.attributes.get(\"ny\").copied().unwrap_or(0.0);\n            let nz = vd.attributes.get(\"nz\").copied().unwrap_or(0.0);\n            let len = (nx*nx + ny*ny + nz*nz).sqrt();\n        }\n\n        // Non-planar curved surface (Gaussian bump)\n        let n = 8usize;\n        let mut pts = Vec::new();\n        for i in 0..n {\n            for j in 0..n {\n                let x = i as f32; let y = j as f32;\n                let r2 = (x-1.5)*(x-1.5) + (y-1.5)*(y-1.5);\n                let z = 5.0 * (-r2).exp() + 0.3 * (PI*x/7.0).sin() * (PI*y/7.0).sin();\n                pts.push(Point::new(x, y, z));\n            }\n        }\n        let bump_srf = NurbsSurface::create(false, false, 3, 3, n, n, &pts).unwrap();\n        let bump_outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0),\n        ]);\n        let ts_bump = NurbsSurfaceTrimmed::create(&bump_srf, &bump_outer);\n        let mb = ts_bump.mesh();\n        for (_, vd) in mb.vertex.iter() {\n            let nx = vd.attributes.get(\"nx\").copied().unwrap_or(0.0);\n            let ny = vd.attributes.get(\"ny\").copied().unwrap_or(0.0);\n            let nz = vd.attributes.get(\"nz\").copied().unwrap_or(0.0);\n            let len = (nx*nx + ny*ny + nz*nz).sqrt();\n        }",
+    "code": "        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::tolerance::PI;\n\n        // Planar rectangle: bilinear 6x6 surface, outer loop at 0.05..0.95\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, &Point::new(6.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 6.0, 0.0));\n        srf.set_cv(1, 1, &Point::new(6.0, 6.0, 0.0));\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.05, 0.05, 0.0), Point::new(0.95, 0.05, 0.0),\n            Point::new(0.95, 0.95, 0.0), Point::new(0.05, 0.95, 0.0),\n        ]);\n        let ts = NurbsSurfaceTrimmed::create(&srf, &outer);\n        let m = ts.mesh();\n        for (_, vd) in m.vertex.iter() {\n            let nx = vd.attributes.get(\"nx\").copied().unwrap_or(0.0);\n            let ny = vd.attributes.get(\"ny\").copied().unwrap_or(0.0);\n            let nz = vd.attributes.get(\"nz\").copied().unwrap_or(0.0);\n            let len = (nx*nx + ny*ny + nz*nz).sqrt();\n        }\n\n        // Planar rectangle with hole\n        let bnd = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0), Point::new(6.0, 0.0, 0.0),\n            Point::new(6.0, 6.0, 0.0), Point::new(0.0, 6.0, 0.0),\n        ]);\n        let mut ts_hole = NurbsSurfaceTrimmed::create_planar(&bnd).unwrap();\n        ts_hole.add_hole(&NurbsCurve::create(true, 1, &[\n            Point::new(2.0, 2.0, 0.0), Point::new(4.0, 2.0, 0.0),\n            Point::new(4.0, 4.0, 0.0), Point::new(2.0, 4.0, 0.0),\n        ]));\n        let mh = ts_hole.mesh();\n\n        // Planar circle (rational NURBS outer loop)\n        let cw = (2.0_f64).sqrt() / 2.0;\n        let ccx = [1.0f64, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0, 1.0, 1.0];\n        let ccy = [0.0f64, 1.0, 1.0, 1.0, 0.0, -1.0, -1.0, -1.0, 0.0];\n        let cwt = [1.0f64, cw, 1.0, cw, 1.0, cw, 1.0, cw, 1.0];\n        let mut circle_loop = NurbsCurve::new(3, true, 3, 9);\n        circle_loop.m_nurbsknot = vec![0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0];\n        for i in 0..9 {\n            circle_loop.set_cv_4d(i, (0.5 + 0.5 * ccx[i]) * cwt[i], (0.5 + 0.5 * ccy[i]) * cwt[i], 0.0, cwt[i]);\n        }\n        let ts_circ = NurbsSurfaceTrimmed::create(&srf, &circle_loop);\n        let mc = ts_circ.mesh();\n        for (_, vd) in mc.vertex.iter() {\n            let nx = vd.attributes.get(\"nx\").copied().unwrap_or(0.0);\n            let ny = vd.attributes.get(\"ny\").copied().unwrap_or(0.0);\n            let nz = vd.attributes.get(\"nz\").copied().unwrap_or(0.0);\n            let len = (nx*nx + ny*ny + nz*nz).sqrt();\n        }\n\n        // Non-planar curved surface (Gaussian bump)\n        let n = 8usize;\n        let mut pts = Vec::new();\n        for i in 0..n {\n            for j in 0..n {\n                let x = i as f64; let y = j as f64;\n                let r2 = (x-1.5)*(x-1.5) + (y-1.5)*(y-1.5);\n                let z = 5.0 * (-r2).exp() + 0.3 * (PI*x/7.0).sin() * (PI*y/7.0).sin();\n                pts.push(Point::new(x, y, z));\n            }\n        }\n        let bump_srf = NurbsSurface::create(false, false, 3, 3, n, n, &pts).unwrap();\n        let bump_outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0), Point::new(0.0, 1.0, 0.0),\n        ]);\n        let ts_bump = NurbsSurfaceTrimmed::create(&bump_srf, &bump_outer);\n        let mb = ts_bump.mesh();\n        for (_, vd) in mb.vertex.iter() {\n            let nx = vd.attributes.get(\"nx\").copied().unwrap_or(0.0);\n            let ny = vd.attributes.get(\"ny\").copied().unwrap_or(0.0);\n            let nz = vd.attributes.get(\"nz\").copied().unwrap_or(0.0);\n            let len = (nx*nx + ny*ny + nz*nz).sqrt();\n        }",
     "failures": [],
     "group": "NurbsSurfaceTrimmed",
     "line": 307,
     "passed": true,
     "test_name": "Mesh",
-    "time_ms": 103.3239974975586
+    "time_ms": 204.61
   }
 ]

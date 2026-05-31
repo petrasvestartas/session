@@ -13,9 +13,9 @@ pub fn pick_by_ray(
     ray: Ray,
     pick_radius: f32,
 ) -> Vec<session_rust::session::RayHit> {
-    let origin = session_rust::Point::new(ray.origin[0], ray.origin[1], ray.origin[2]);
-    let direction = session_rust::Vector::new(ray.direction[0], ray.direction[1], ray.direction[2]);
-    session.ray_cast(&origin, &direction, pick_radius)
+    let origin = session_rust::Point::new(ray.origin[0] as f64, ray.origin[1] as f64, ray.origin[2] as f64);
+    let direction = session_rust::Vector::new(ray.direction[0] as f64, ray.direction[1] as f64, ray.direction[2] as f64);
+    session.ray_cast(&origin, &direction, pick_radius as f64)
 }
 
 /// Build a world-space ray from a screen-space cursor.

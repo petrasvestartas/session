@@ -17,12 +17,15 @@ use crate::gpu_session::{LineVertex, MeshVertex, PointVertex};
 use crate::text::TextVertex;
 use build::{
     build_cloud_pipeline, build_glyph_pipeline, build_grid_pipeline, build_instanced_pipeline,
-    build_label_pipeline, build_overlay_pipeline, build_pipeline,
+    build_label_pipeline, build_overlay_pipeline, build_pipeline, build_pipeline_vs,
 };
 use layouts::{build_bind_group_layout, build_glyph_bind_group_layout};
 
 pub struct Pipelines {
-    pub mesh:     wgpu::RenderPipeline,
+    pub mesh:         wgpu::RenderPipeline,
+    /// Batched mesh pipeline: vertex shader reads per-vertex instance_id (`vs_batched`)
+    /// so the whole mesh arena draws in one call. Templates still use `mesh`.
+    pub mesh_batched: wgpu::RenderPipeline,
     pub line:     wgpu::RenderPipeline,
     pub point:    wgpu::RenderPipeline,
     pub grid:     wgpu::RenderPipeline,
@@ -52,6 +55,11 @@ impl Pipelines {
         Self {
             mesh: build_pipeline(
                 device, "mesh", include_str!("../../shaders/mesh.wgsl"),
+                MeshVertex::layout(), wgpu::PrimitiveTopology::TriangleList,
+                color_format, depth_format, &bgl, true, sample_count,
+            ),
+            mesh_batched: build_pipeline_vs(
+                device, "mesh_batched", include_str!("../../shaders/mesh.wgsl"), "vs_batched",
                 MeshVertex::layout(), wgpu::PrimitiveTopology::TriangleList,
                 color_format, depth_format, &bgl, true, sample_count,
             ),

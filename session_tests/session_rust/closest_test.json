@@ -58,7 +58,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Line Point",
-    "time_ms": 0.04500000178813934
+    "time_ms": 0.03
   },
   {
     "checks": [
@@ -89,7 +89,7 @@
     "line": 34,
     "passed": true,
     "test_name": "Polyline Point",
-    "time_ms": 0.15800000727176666
+    "time_ms": 0.062
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 57,
     "passed": true,
     "test_name": "Curve Point",
-    "time_ms": 0.6510000228881836
+    "time_ms": 0.363
   },
   {
     "checks": [
@@ -141,7 +141,7 @@
     "line": 82,
     "passed": true,
     "test_name": "Surface Point",
-    "time_ms": 1.99399995803833
+    "time_ms": 1.14
   },
   {
     "checks": [
@@ -167,7 +167,7 @@
     "line": 119,
     "passed": true,
     "test_name": "Mesh Point",
-    "time_ms": 1.034000039100647
+    "time_ms": 0.523
   },
   {
     "checks": [
@@ -193,7 +193,7 @@
     "line": 137,
     "passed": true,
     "test_name": "Mesh Point AABB",
-    "time_ms": 1.027999997138977
+    "time_ms": 0.524
   },
   {
     "checks": [
@@ -229,7 +229,7 @@
     "line": 155,
     "passed": true,
     "test_name": "Pointcloud Point",
-    "time_ms": 0.02500000037252903
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -255,7 +255,7 @@
     "line": 246,
     "passed": true,
     "test_name": "Nurbscurves Closest",
-    "time_ms": 0.2980000078678131
+    "time_ms": 0.308
   },
   {
     "checks": [
@@ -281,7 +281,7 @@
     "line": 266,
     "passed": true,
     "test_name": "Boxes Closest",
-    "time_ms": 0.014000000432133675
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -307,7 +307,7 @@
     "line": 226,
     "passed": true,
     "test_name": "Polylines Closest",
-    "time_ms": 0.05900000035762787
+    "time_ms": 0.058
   },
   {
     "checks": [
@@ -343,7 +343,7 @@
     "line": 180,
     "passed": true,
     "test_name": "Pointcloud Point SpatialKDTree",
-    "time_ms": 0.03799999877810478
+    "time_ms": 0.033
   },
   {
     "checks": [
@@ -369,6 +369,6 @@
     "line": 206,
     "passed": true,
     "test_name": "Lines Closest",
-    "time_ms": 0.03500000014901161
+    "time_ms": 0.035
   }
 ]

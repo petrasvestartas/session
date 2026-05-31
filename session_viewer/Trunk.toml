@@ -6,4 +6,5 @@ watch = ["src", "Cargo.toml", "index.html", "../session_rust/src"]
 enable_cooldown = true
 
 [serve]
+addresses = ["127.0.0.1"]
 port = 8769

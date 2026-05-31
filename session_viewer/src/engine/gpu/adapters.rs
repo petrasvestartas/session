@@ -20,12 +20,12 @@ pub fn named_point_to_cross_vertices(p: &Point) -> (Vec<LineVertex>, Vec<u32>) {
     let arm = 15.0_f32;
     let color = color_to_rgba_u8(&p.pointcolor);
     let verts = vec![
-        LineVertex { position: [x - arm, y, z], color },
-        LineVertex { position: [x + arm, y, z], color },
-        LineVertex { position: [x, y - arm, z], color },
-        LineVertex { position: [x, y + arm, z], color },
-        LineVertex { position: [x, y, z - arm], color },
-        LineVertex { position: [x, y, z + arm], color },
+        LineVertex { position: [x as f32 - arm, y as f32, z as f32], color },
+        LineVertex { position: [x as f32 + arm, y as f32, z as f32], color },
+        LineVertex { position: [x as f32, y as f32 - arm, z as f32], color },
+        LineVertex { position: [x as f32, y as f32 + arm, z as f32], color },
+        LineVertex { position: [x as f32, y as f32, z as f32 - arm], color },
+        LineVertex { position: [x as f32, y as f32, z as f32 + arm], color },
     ];
     let inds = vec![0u32, 1, 2, 3, 4, 5];
     (verts, inds)
@@ -35,7 +35,7 @@ pub fn named_point_to_cross_vertices(p: &Point) -> (Vec<LineVertex>, Vec<u32>) {
 
 pub fn point_to_vertex(p: &Point) -> [PointVertex; 6] {
     let v = PointVertex {
-        position: [p[0], p[1], p[2]],
+        position: [p[0] as f32, p[1] as f32, p[2] as f32],
         color: color_to_rgba_u8(&p.pointcolor),
     };
     [v, v, v, v, v, v]
@@ -149,7 +149,7 @@ pub fn unit_sphere_template() -> (Vec<TemplateVertex>, Vec<u32>) {
 pub fn line_to_segment(l: &Line, instance_id: u32) -> CylinderSegment {
     let s = l.start();
     let e = l.end();
-    CylinderSegment { p0: [s[0], s[1], s[2]], radius: 0.0, p1: [e[0], e[1], e[2]], instance_id, color: [0.0;4] }
+    CylinderSegment { p0: [s[0] as f32, s[1] as f32, s[2] as f32], radius: 0.0, p1: [e[0] as f32, e[1] as f32, e[2] as f32], instance_id, color: [0.0;4] }
 }
 
 // ---------- Polyline → cylinder segments ----------
@@ -157,9 +157,9 @@ pub fn line_to_segment(l: &Line, instance_id: u32) -> CylinderSegment {
 pub fn polyline_to_segments(pl: &Polyline, instance_id: u32) -> Vec<CylinderSegment> {
     let pts = pl.get_points();
     pts.windows(2).map(|w| CylinderSegment {
-        p0: [w[0][0], w[0][1], w[0][2]],
+        p0: [w[0][0] as f32, w[0][1] as f32, w[0][2] as f32],
         radius: 0.0,
-        p1: [w[1][0], w[1][1], w[1][2]],
+        p1: [w[1][0] as f32, w[1][1] as f32, w[1][2] as f32],
         instance_id,
         color: [0.0; 4],
     }).collect()
@@ -169,21 +169,21 @@ pub fn polyline_to_segments(pl: &Polyline, instance_id: u32) -> Vec<CylinderSegm
 
 pub fn line_endpoint_glyphs(l: &Line, instance_id: u32) -> Vec<GlyphPoint> {
     let s = l.start();
-    vec![GlyphPoint { center: [s[0], s[1], s[2]], radius: 0.0, color: [1.0; 4], instance_id, _pad: [0; 3] }]
+    vec![GlyphPoint { center: [s[0] as f32, s[1] as f32, s[2] as f32], radius: 0.0, color: [1.0; 4], instance_id, _pad: [0; 3] }]
 }
 
 pub fn polyline_endpoint_glyphs(pl: &Polyline, instance_id: u32) -> Vec<GlyphPoint> {
     let pts = pl.get_points();
     if pts.is_empty() { return Vec::new(); }
     vec![
-        GlyphPoint { center: [pts[0][0], pts[0][1], pts[0][2]], radius: 0.0, color: [1.0; 4], instance_id, _pad: [0; 3] },
-        GlyphPoint { center: [pts[pts.len()-1][0], pts[pts.len()-1][1], pts[pts.len()-1][2]], radius: 0.0, color: [1.0; 4], instance_id, _pad: [0; 3] },
+        GlyphPoint { center: [pts[0][0] as f32, pts[0][1] as f32, pts[0][2] as f32], radius: 0.0, color: [1.0; 4], instance_id, _pad: [0; 3] },
+        GlyphPoint { center: [pts[pts.len()-1][0] as f32, pts[pts.len()-1][1] as f32, pts[pts.len()-1][2] as f32], radius: 0.0, color: [1.0; 4], instance_id, _pad: [0; 3] },
     ]
 }
 
 pub fn mesh_vertex_glyphs(m: &Mesh, instance_id: u32) -> Vec<GlyphPoint> {
     m.vertex.iter().map(|(_, v)| GlyphPoint {
-        center: [v.x, v.y, v.z], radius: 0.0, color: [1.0; 4], instance_id, _pad: [0; 3],
+        center: [v.x as f32, v.y as f32, v.z as f32], radius: 0.0, color: [1.0; 4], instance_id, _pad: [0; 3],
     }).collect()
 }
 
@@ -195,7 +195,7 @@ pub fn pointcloud_to_cloud_points(pc: &PointCloud, instance_id: u32) -> Vec<Clou
     pts.iter().enumerate().map(|(i, p)| {
         let c = if has_colors { pc.get_color(i) } else { Color::white() };
         CloudPoint {
-            position: [p[0], p[1], p[2]],
+            position: [p[0] as f32, p[1] as f32, p[2] as f32],
             instance_id,
             color: [c.r, c.g, c.b, c.a],
             half_size: 5.0,
@@ -229,13 +229,13 @@ pub fn mesh_to_vertices(m: &Mesh) -> (Vec<MeshVertex>, Vec<u32>) {
         if nx.is_some() || ny.is_some() || nz.is_some() {
             any_attr_normal = true;
         }
-        let normal = [nx.unwrap_or(0.0), ny.unwrap_or(0.0), nz.unwrap_or(0.0)];
+        let normal = [nx.unwrap_or(0.0) as f32, ny.unwrap_or(0.0) as f32, nz.unwrap_or(0.0) as f32];
         let color = if has_point_colors {
             color_to_rgba_u8(&point_colors[idx])
         } else {
             object_color_rgba
         };
-        verts.push(MeshVertex { position: [v.x, v.y, v.z], normal, color });
+        verts.push(MeshVertex { position: [v.x as f32, v.y as f32, v.z as f32], normal, color, instance_id: 0 });
     }
 
     let mut inds: Vec<u32> = Vec::new();
@@ -299,8 +299,8 @@ pub fn mesh_edges_to_segments(m: &Mesh, instance_id: u32) -> Vec<CylinderSegment
         let va = m.vertex.get(a)?;
         let vb = m.vertex.get(b)?;
         Some(CylinderSegment {
-            p0: [va.x, va.y, va.z], radius: 0.0,
-            p1: [vb.x, vb.y, vb.z], instance_id, color: [0.0; 4],
+            p0: [va.x as f32, va.y as f32, va.z as f32], radius: 0.0,
+            p1: [vb.x as f32, vb.y as f32, vb.z as f32], instance_id, color: [0.0; 4],
         })
     }).collect()
 }
@@ -312,8 +312,8 @@ pub fn mesh_naked_edges_to_segments(m: &Mesh, instance_id: u32) -> Vec<CylinderS
         let va = m.vertex.get(a)?;
         let vb = m.vertex.get(b)?;
         Some(CylinderSegment {
-            p0: [va.x, va.y, va.z], radius: 0.0,
-            p1: [vb.x, vb.y, vb.z], instance_id, color: [0.0; 4],
+            p0: [va.x as f32, va.y as f32, va.z as f32], radius: 0.0,
+            p1: [vb.x as f32, vb.y as f32, vb.z as f32], instance_id, color: [0.0; 4],
         })
     }).collect()
 }
@@ -331,14 +331,14 @@ pub fn mesh_crease_edges_to_segments(m: &Mesh, instance_id: u32, angle_deg: f32)
                 let na = m.face_normal(fa)?;
                 let nb = m.face_normal(fb)?;
                 let dot = (na[0]*nb[0] + na[1]*nb[1] + na[2]*nb[2]).clamp(-1.0, 1.0);
-                dot.acos() > threshold
+                dot.acos() > threshold as f64
             }
         };
         if !keep { return None; }
         let va = m.vertex.get(a)?;
         let vb = m.vertex.get(b)?;
-        Some(CylinderSegment { p0: [va.x, va.y, va.z], radius: 0.0,
-            p1: [vb.x, vb.y, vb.z], instance_id, color: [0.0, 0.0, 0.0, 1.0] })
+        Some(CylinderSegment { p0: [va.x as f32, va.y as f32, va.z as f32], radius: 0.0,
+            p1: [vb.x as f32, vb.y as f32, vb.z as f32], instance_id, color: [0.0, 0.0, 0.0, 1.0] })
     }).collect()
 }
 
@@ -346,8 +346,8 @@ pub fn mesh_crease_edges_to_segments(m: &Mesh, instance_id: u32, angle_deg: f32)
 /// Filters out zero-length segments (degenerate tessellation artefacts).
 pub fn pts_to_segments(pts: &[session_rust::Point], instance_id: u32) -> Vec<CylinderSegment> {
     pts.windows(2).filter_map(|w| {
-        let p0 = [w[0][0], w[0][1], w[0][2]];
-        let p1 = [w[1][0], w[1][1], w[1][2]];
+        let p0 = [w[0][0] as f32, w[0][1] as f32, w[0][2] as f32];
+        let p1 = [w[1][0] as f32, w[1][1] as f32, w[1][2] as f32];
         let dist2 = (p1[0]-p0[0]).powi(2) + (p1[1]-p0[1]).powi(2) + (p1[2]-p0[2]).powi(2);
         if dist2 < 1e-6 { return None; }
         Some(CylinderSegment { p0, radius: 0.0, p1, instance_id, color: [0.0; 4] })
@@ -429,12 +429,13 @@ pub fn plane_to_mesh_vertices(pl: &Plane, size: f32) -> (Vec<MeshVertex>, Vec<u3
     let color = color_to_rgba_u8(&pl.linecolor);
     let mk = |sx: f32, sy: f32| MeshVertex {
         position: [
-            o[0] + sx*x[0] + sy*y[0],
-            o[1] + sx*x[1] + sy*y[1],
-            o[2] + sx*x[2] + sy*y[2],
+            (o[0] + sx as f64*x[0] + sy as f64*y[0]) as f32,
+            (o[1] + sx as f64*x[1] + sy as f64*y[1]) as f32,
+            (o[2] + sx as f64*x[2] + sy as f64*y[2]) as f32,
         ],
-        normal: [z[0], z[1], z[2]],
+        normal: [z[0] as f32, z[1] as f32, z[2] as f32],
         color,
+        instance_id: 0,
     };
     let verts = vec![mk(-h,-h), mk(h,-h), mk(h,h), mk(-h,h)];
     let inds = vec![0u32, 1, 2, 0, 2, 3];
@@ -447,21 +448,21 @@ pub fn plane_to_axis_segments(pl: &Plane, scale: f32, instance_id: u32) -> Vec<C
     let y = pl.y_axis();
     let z = pl.z_axis();
     vec![
-        CylinderSegment { p0: [o[0], o[1], o[2]], radius: 0.0,
-            p1: [o[0]+x[0]*scale, o[1]+x[1]*scale, o[2]+x[2]*scale],
+        CylinderSegment { p0: [o[0] as f32, o[1] as f32, o[2] as f32], radius: 0.0,
+            p1: [(o[0]+x[0]*scale as f64) as f32, (o[1]+x[1]*scale as f64) as f32, (o[2]+x[2]*scale as f64) as f32],
             instance_id, color: [1.0, 0.2, 0.2, 1.0] },
-        CylinderSegment { p0: [o[0], o[1], o[2]], radius: 0.0,
-            p1: [o[0]+y[0]*scale, o[1]+y[1]*scale, o[2]+y[2]*scale],
+        CylinderSegment { p0: [o[0] as f32, o[1] as f32, o[2] as f32], radius: 0.0,
+            p1: [(o[0]+y[0]*scale as f64) as f32, (o[1]+y[1]*scale as f64) as f32, (o[2]+y[2]*scale as f64) as f32],
             instance_id, color: [0.2, 1.0, 0.2, 1.0] },
-        CylinderSegment { p0: [o[0], o[1], o[2]], radius: 0.0,
-            p1: [o[0]+z[0]*scale, o[1]+z[1]*scale, o[2]+z[2]*scale],
+        CylinderSegment { p0: [o[0] as f32, o[1] as f32, o[2] as f32], radius: 0.0,
+            p1: [(o[0]+z[0]*scale as f64) as f32, (o[1]+z[1]*scale as f64) as f32, (o[2]+z[2]*scale as f64) as f32],
             instance_id, color: [0.3, 0.6, 1.0, 1.0] },
     ]
 }
 
 pub fn plane_origin_glyph(pl: &Plane, instance_id: u32) -> GlyphPoint {
     let o = pl.origin();
-    GlyphPoint { center: [o[0], o[1], o[2]], radius: 0.0,
+    GlyphPoint { center: [o[0] as f32, o[1] as f32, o[2] as f32], radius: 0.0,
         color: [1.0, 1.0, 1.0, 1.0], instance_id, _pad: [0; 3] }
 }
 
@@ -472,7 +473,7 @@ pub fn obb_to_line_vertices(bb: &OBB) -> (Vec<LineVertex>, Vec<u32>) {
     let color = [255u8, 255, 255, 255];
     let verts: Vec<LineVertex> = corners
         .iter()
-        .map(|p| LineVertex { position: [p[0], p[1], p[2]], color })
+        .map(|p| LineVertex { position: [p[0] as f32, p[1] as f32, p[2] as f32], color })
         .collect();
     let inds = vec![
         0u32,1, 1,2, 2,3, 3,0,

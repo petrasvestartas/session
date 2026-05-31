@@ -18,7 +18,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Mesh Arrow",
-    "time_ms": 0.5429999828338623
+    "time_ms": 0.482
   },
   {
     "checks": [
@@ -39,7 +39,7 @@
     "line": 19,
     "passed": true,
     "test_name": "Mesh Cylinder",
-    "time_ms": 0.4099999964237213
+    "time_ms": 0.378
   },
   {
     "checks": [
@@ -80,7 +80,7 @@
     "line": 54,
     "passed": true,
     "test_name": "Nurbscurve Polyline",
-    "time_ms": 0.7080000042915344
+    "time_ms": 0.695
   },
   {
     "checks": [
@@ -106,7 +106,7 @@
     "line": 76,
     "passed": true,
     "test_name": "Nurbscurve Circle",
-    "time_ms": 0.013000000268220901
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -132,7 +132,7 @@
     "line": 88,
     "passed": true,
     "test_name": "Nurbscurve Ellipse",
-    "time_ms": 0.012000000104308128
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -158,7 +158,7 @@
     "line": 100,
     "passed": true,
     "test_name": "Nurbscurve Arc",
-    "time_ms": 0.014000000432133675
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -184,7 +184,7 @@
     "line": 116,
     "passed": true,
     "test_name": "Nurbscurve Parabola",
-    "time_ms": 0.010999999940395355
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -210,7 +210,7 @@
     "line": 132,
     "passed": true,
     "test_name": "Nurbscurve Hyperbola",
-    "time_ms": 0.3709999918937683
+    "time_ms": 0.031
   },
   {
     "checks": [
@@ -236,7 +236,7 @@
     "line": 146,
     "passed": true,
     "test_name": "Nurbscurve Spiral",
-    "time_ms": 0.039000000804662704
+    "time_ms": 0.038
   },
   {
     "checks": [
@@ -322,7 +322,7 @@
     "line": 158,
     "passed": true,
     "test_name": "Nurbssurface Cylinder",
-    "time_ms": 0.028999999165534973
+    "time_ms": 0.025
   },
   {
     "checks": [
@@ -408,7 +408,7 @@
     "line": 188,
     "passed": true,
     "test_name": "Nurbssurface Cone",
-    "time_ms": 0.020999999716877937
+    "time_ms": 0.026
   },
   {
     "checks": [
@@ -509,7 +509,7 @@
     "line": 218,
     "passed": true,
     "test_name": "Nurbssurface Sphere",
-    "time_ms": 0.02500000037252903
+    "time_ms": 0.026
   },
   {
     "checks": [
@@ -704,13 +704,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::primitives::Primitives;\n\n        let r = 5.0_f32;\n        let faces = Primitives::quad_sphere(0.0, 0.0, 0.0, r);\n\n        for f in 0..6 {\n        }\n\n        let mut max_err = 0.0_f32;\n        for f in 0..6 {\n            for i in 0..=4 {\n                let u = i as f32 / 4.0;\n                for j in 0..=4 {\n                    let v = j as f32 / 4.0;\n                    let p = faces[f].point_at(u, v).unwrap();\n                    let dist = (p[0]*p[0] + p[1]*p[1] + p[2]*p[2]).sqrt();\n                    let err = (dist - r).abs();\n                    if err > max_err { max_err = err; }\n                }\n            }\n        }",
+    "code": "        use crate::primitives::Primitives;\n\n        let r = 5.0_f64;\n        let faces = Primitives::quad_sphere(0.0, 0.0, 0.0, r);\n\n        for f in 0..6 {\n        }\n\n        let mut max_err = 0.0_f64;\n        for f in 0..6 {\n            for i in 0..=4 {\n                let u = i as f64 / 4.0;\n                for j in 0..=4 {\n                    let v = j as f64 / 4.0;\n                    let p = faces[f].point_at(u, v).unwrap();\n                    let dist = (p[0]*p[0] + p[1]*p[1] + p[2]*p[2]).sqrt();\n                    let err = (dist - r).abs();\n                    if err > max_err { max_err = err; }\n                }\n            }\n        }",
     "failures": [],
     "group": "Primitives",
     "line": 253,
     "passed": true,
     "test_name": "Nurbssurface Quad Sphere",
-    "time_ms": 0.5609999895095825
+    "time_ms": 0.581
   },
   {
     "checks": [
@@ -796,7 +796,7 @@
     "line": 287,
     "passed": true,
     "test_name": "Nurbssurface Torus",
-    "time_ms": 0.026000000536441803
+    "time_ms": 0.027
   },
   {
     "checks": [
@@ -1116,13 +1116,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n        use crate::vector::Vector;\n\n        let pts_a = vec![\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(-2.0, 0.0, 5.0),\n        ];\n        let pts_b = vec![\n            Point::new(3.0, 5.0, 5.0),\n            Point::new(-2.0, 5.0, 0.0),\n        ];\n        let crv_a = NurbsCurve::create(false, 1, &pts_a);\n        let crv_b = NurbsCurve::create(false, 1, &pts_b);\n        let srf = Primitives::create_ruled(&crv_a, &crv_b);\n        let _m = srf.mesh();\n\n\n        let (rd, ruv) = srf.divide_by_count(4, 4);\n\n        let mut pts: Vec<Point> = Vec::new();\n        for i in 0..rd.len() {\n            for j in 0..rd[i].len() {\n                pts.push(rd[i][j].clone());\n            }\n        }\n\n        let mut normals: Vec<Vector> = Vec::new();\n        for i in 0..ruv.len() {\n            for j in 0..ruv[i].len() {\n                normals.push(srf.normal_at(ruv[i][j].0, ruv[i][j].1));\n            }\n        }\n\n        let mut uvs: Vec<(f32, f32)> = Vec::new();\n        for i in 0..ruv.len() {\n            for j in 0..ruv[i].len() {\n                uvs.push(ruv[i][j]);\n            }\n        }\n\n\n",
+    "code": "        use crate::primitives::Primitives;\n        use crate::nurbscurve::NurbsCurve;\n        use crate::point::Point;\n        use crate::vector::Vector;\n\n        let pts_a = vec![\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(-2.0, 0.0, 5.0),\n        ];\n        let pts_b = vec![\n            Point::new(3.0, 5.0, 5.0),\n            Point::new(-2.0, 5.0, 0.0),\n        ];\n        let crv_a = NurbsCurve::create(false, 1, &pts_a);\n        let crv_b = NurbsCurve::create(false, 1, &pts_b);\n        let srf = Primitives::create_ruled(&crv_a, &crv_b);\n        let _m = srf.mesh();\n\n\n        let (rd, ruv) = srf.divide_by_count(4, 4);\n\n        let mut pts: Vec<Point> = Vec::new();\n        for i in 0..rd.len() {\n            for j in 0..rd[i].len() {\n                pts.push(rd[i][j].clone());\n            }\n        }\n\n        let mut normals: Vec<Vector> = Vec::new();\n        for i in 0..ruv.len() {\n            for j in 0..ruv[i].len() {\n                normals.push(srf.normal_at(ruv[i][j].0, ruv[i][j].1));\n            }\n        }\n\n        let mut uvs: Vec<(f64, f64)> = Vec::new();\n        for i in 0..ruv.len() {\n            for j in 0..ruv[i].len() {\n                uvs.push(ruv[i][j]);\n            }\n        }\n\n\n",
     "failures": [],
     "group": "Primitives",
     "line": 317,
     "passed": true,
     "test_name": "Nurbssurface Ruled",
-    "time_ms": 12.154999732971191
+    "time_ms": 16.332
   },
   {
     "checks": [
@@ -1353,7 +1353,7 @@
     "line": 538,
     "passed": true,
     "test_name": "Nurbssurface Extrusion",
-    "time_ms": 3.8450000286102295
+    "time_ms": 5.429
   },
   {
     "checks": [
@@ -1373,182 +1373,182 @@
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(0, 0).unwrap(),\n&Point::new(2.0, 0.0, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(0, 0).unwrap(),\n&Point::new(2.000000000000000, 0.000000000000000, 0.000000000000000))",
         "line": 640,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(0, 1).unwrap(),\n&Point::new(-0.677194251158421, 0.0, 1.75222035185728))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(0, 1).unwrap(),\n&Point::new(-0.689223125118461, 0.000000000000000, 1.662346559763863))",
         "line": 641,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(0, 2).unwrap(),\n&Point::new(3.00619893067415, 0.0, 4.08030037218547))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(0, 2).unwrap(),\n&Point::new(3.009774760647534, 0.000000000000000, 4.110399016539784))",
         "line": 642,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(0, 3).unwrap(),\n&Point::new(0.8, 0.0, 6.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(0, 3).unwrap(),\n&Point::new(0.800000000000000, 0.000000000000000, 6.000000000000000))",
         "line": 643,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(1, 0).unwrap(),\n&Point::new(2.0, 2.0, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(1, 0).unwrap(),\n&Point::new(2.000000000000000, 2.000000000000000, 0.000000000000000))",
         "line": 644,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(1, 1).unwrap(),\n&Point::new(-0.677194251158421, -0.677194251158421, 1.75222035185728))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(1, 1).unwrap(),\n&Point::new(-0.689223125118461, -0.689223125118461, 1.662346559763863))",
         "line": 645,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(1, 2).unwrap(),\n&Point::new(3.00619893067414, 3.00619893067414, 4.08030037218547))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(1, 2).unwrap(),\n&Point::new(3.009774760647534, 3.009774760647534, 4.110399016539783))",
         "line": 646,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(1, 3).unwrap(),\n&Point::new(0.8, 0.8, 6.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(1, 3).unwrap(),\n&Point::new(0.800000000000000, 0.800000000000000, 6.000000000000000))",
         "line": 647,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(2, 0).unwrap(),\n&Point::new(0.0, 2.0, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(2, 0).unwrap(),\n&Point::new(0.000000000000000, 2.000000000000000, 0.000000000000000))",
         "line": 648,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(2, 1).unwrap(),\n&Point::new(0.0, -0.677194251158421, 1.75222035185728))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(2, 1).unwrap(),\n&Point::new(0.000000000000000, -0.689223125118461, 1.662346559763863))",
         "line": 649,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(2, 2).unwrap(),\n&Point::new(0.0, 3.00619893067415, 4.08030037218547))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(2, 2).unwrap(),\n&Point::new(0.000000000000000, 3.009774760647534, 4.110399016539784))",
         "line": 650,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(2, 3).unwrap(),\n&Point::new(0.0, 0.8, 6.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(2, 3).unwrap(),\n&Point::new(0.000000000000000, 0.800000000000000, 6.000000000000000))",
         "line": 651,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(3, 0).unwrap(),\n&Point::new(-2.0, 2.0, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(3, 0).unwrap(),\n&Point::new(-2.000000000000000, 2.000000000000000, 0.000000000000000))",
         "line": 652,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(3, 1).unwrap(),\n&Point::new(0.677194251158421, -0.677194251158421, 1.75222035185728))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(3, 1).unwrap(),\n&Point::new(0.689223125118461, -0.689223125118461, 1.662346559763863))",
         "line": 653,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(3, 2).unwrap(),\n&Point::new(-3.00619893067414, 3.00619893067414, 4.08030037218547))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(3, 2).unwrap(),\n&Point::new(-3.009774760647534, 3.009774760647534, 4.110399016539783))",
         "line": 654,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(3, 3).unwrap(),\n&Point::new(-0.8, 0.8, 6.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(3, 3).unwrap(),\n&Point::new(-0.800000000000000, 0.800000000000000, 6.000000000000000))",
         "line": 655,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(4, 0).unwrap(),\n&Point::new(-2.0, 0.0, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(4, 0).unwrap(),\n&Point::new(-2.000000000000000, 0.000000000000000, 0.000000000000000))",
         "line": 656,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(4, 1).unwrap(),\n&Point::new(0.677194251158421, 0.0, 1.75222035185728))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(4, 1).unwrap(),\n&Point::new(0.689223125118461, 0.000000000000000, 1.662346559763863))",
         "line": 657,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(4, 2).unwrap(),\n&Point::new(-3.00619893067415, 0.0, 4.08030037218547))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(4, 2).unwrap(),\n&Point::new(-3.009774760647534, 0.000000000000000, 4.110399016539784))",
         "line": 658,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(4, 3).unwrap(),\n&Point::new(-0.8, 0.0, 6.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(4, 3).unwrap(),\n&Point::new(-0.800000000000000, 0.000000000000000, 6.000000000000000))",
         "line": 659,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(5, 0).unwrap(),\n&Point::new(-2.0, -2.0, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(5, 0).unwrap(),\n&Point::new(-2.000000000000000, -2.000000000000000, 0.000000000000000))",
         "line": 660,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(5, 1).unwrap(),\n&Point::new(0.677194251158421, 0.677194251158421, 1.75222035185728))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(5, 1).unwrap(),\n&Point::new(0.689223125118461, 0.689223125118461, 1.662346559763863))",
         "line": 661,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(5, 2).unwrap(),\n&Point::new(-3.00619893067414, -3.00619893067414, 4.08030037218547))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(5, 2).unwrap(),\n&Point::new(-3.009774760647534, -3.009774760647534, 4.110399016539783))",
         "line": 662,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(5, 3).unwrap(),\n&Point::new(-0.8, -0.8, 6.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(5, 3).unwrap(),\n&Point::new(-0.800000000000000, -0.800000000000000, 6.000000000000000))",
         "line": 663,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(6, 0).unwrap(),\n&Point::new(0.0, -2.0, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(6, 0).unwrap(),\n&Point::new(0.000000000000000, -2.000000000000000, 0.000000000000000))",
         "line": 664,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(6, 1).unwrap(),\n&Point::new(0.0, 0.677194251158421, 1.75222035185728))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(6, 1).unwrap(),\n&Point::new(0.000000000000000, 0.689223125118461, 1.662346559763863))",
         "line": 665,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(6, 2).unwrap(),\n&Point::new(0.0, -3.00619893067415, 4.08030037218547))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(6, 2).unwrap(),\n&Point::new(0.000000000000000, -3.009774760647534, 4.110399016539784))",
         "line": 666,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(6, 3).unwrap(),\n&Point::new(0.0, -0.8, 6.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(6, 3).unwrap(),\n&Point::new(0.000000000000000, -0.800000000000000, 6.000000000000000))",
         "line": 667,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(7, 0).unwrap(),\n&Point::new(2.0, -2.0, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(7, 0).unwrap(),\n&Point::new(2.000000000000000, -2.000000000000000, 0.000000000000000))",
         "line": 668,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(7, 1).unwrap(),\n&Point::new(-0.677194251158421, 0.677194251158421, 1.75222035185728))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(7, 1).unwrap(),\n&Point::new(-0.689223125118461, 0.689223125118461, 1.662346559763863))",
         "line": 669,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(7, 2).unwrap(),\n&Point::new(3.00619893067414, -3.00619893067414, 4.08030037218547))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(7, 2).unwrap(),\n&Point::new(3.009774760647534, -3.009774760647534, 4.110399016539783))",
         "line": 670,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(7, 3).unwrap(),\n&Point::new(0.8, -0.8, 6.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(7, 3).unwrap(),\n&Point::new(0.800000000000000, -0.800000000000000, 6.000000000000000))",
         "line": 671,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(8, 0).unwrap(),\n&Point::new(2.0, 0.0, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(8, 0).unwrap(),\n&Point::new(2.000000000000000, 0.000000000000000, 0.000000000000000))",
         "line": 672,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(8, 1).unwrap(),\n&Point::new(-0.677194251158421, 0.0, 1.75222035185728))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(8, 1).unwrap(),\n&Point::new(-0.689223125118461, 0.000000000000000, 1.662346559763863))",
         "line": 673,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(8, 2).unwrap(),\n&Point::new(3.00619893067415, 0.0, 4.08030037218547))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(8, 2).unwrap(),\n&Point::new(3.009774760647534, 0.000000000000000, 4.110399016539784))",
         "line": 674,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(8, 3).unwrap(),\n&Point::new(0.8, 0.0, 6.0))",
+        "code_line": "TOLERANCE.is_point_close(&srf.get_cv(8, 3).unwrap(),\n&Point::new(0.800000000000000, 0.000000000000000, 6.000000000000000))",
         "line": 675,
         "passed": true
       },
@@ -1568,62 +1568,62 @@
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(0, 0).unwrap(),\n&Point::new(10.0, -12.0, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(0, 0).unwrap(),\n&Point::new(10.000000000000000, -12.000000000000000, 0.000000000000000))",
         "line": 708,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(0, 1).unwrap(),\n&Point::new(5.5, -12.0, 7.0))",
+        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(0, 1).unwrap(),\n&Point::new(5.500000000000000, -12.000000000000000, 7.000000000000000))",
         "line": 709,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(0, 2).unwrap(),\n&Point::new(1.0, -12.0, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(0, 2).unwrap(),\n&Point::new(1.000000000000000, -12.000000000000000, 0.000000000000000))",
         "line": 710,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(1, 0).unwrap(),\n&Point::new(10.0, -10.0, 3.0))",
+        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(1, 0).unwrap(),\n&Point::new(10.000000000000000, -10.000000000000000, 3.000000000000000))",
         "line": 711,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(1, 1).unwrap(),\n&Point::new(5.5, -10.0, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(1, 1).unwrap(),\n&Point::new(5.500000000000000, -10.000000000000000, 0.000000000000000))",
         "line": 712,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(1, 2).unwrap(),\n&Point::new(1.0, -10.0, 3.0))",
+        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(1, 2).unwrap(),\n&Point::new(1.000000000000000, -10.000000000000000, 3.000000000000000))",
         "line": 713,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(2, 0).unwrap(),\n&Point::new(10.0, -7.0, 3.0))",
+        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(2, 0).unwrap(),\n&Point::new(10.000000000000000, -7.000000000000000, 3.000000000000000))",
         "line": 714,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(2, 1).unwrap(),\n&Point::new(5.5, -7.0, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(2, 1).unwrap(),\n&Point::new(5.500000000000000, -7.000000000000000, 0.000000000000000))",
         "line": 715,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(2, 2).unwrap(),\n&Point::new(1.0, -7.0, 3.0))",
+        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(2, 2).unwrap(),\n&Point::new(1.000000000000000, -7.000000000000000, 3.000000000000000))",
         "line": 716,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(3, 0).unwrap(),\n&Point::new(10.0, -5.0, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(3, 0).unwrap(),\n&Point::new(10.000000000000000, -5.000000000000000, 0.000000000000000))",
         "line": 717,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(3, 1).unwrap(),\n&Point::new(5.5, -5.0, 7.0))",
+        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(3, 1).unwrap(),\n&Point::new(5.500000000000000, -5.000000000000000, 7.000000000000000))",
         "line": 718,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(3, 2).unwrap(),\n&Point::new(1.0, -5.0, 0.0))",
+        "code_line": "TOLERANCE.is_point_close(&open_srf.get_cv(3, 2).unwrap(),\n&Point::new(1.000000000000000, -5.000000000000000, 0.000000000000000))",
         "line": 719,
         "passed": true
       }
@@ -1634,7 +1634,7 @@
     "line": 625,
     "passed": true,
     "test_name": "Nurbssurface Loft",
-    "time_ms": 0.9110000133514404
+    "time_ms": 1.026
   },
   {
     "checks": [
@@ -1675,7 +1675,7 @@
     "line": 967,
     "passed": true,
     "test_name": "Mesh Quad Mesh",
-    "time_ms": 1.2719999551773071
+    "time_ms": 1.333
   },
   {
     "checks": [
@@ -1716,7 +1716,7 @@
     "line": 985,
     "passed": true,
     "test_name": "Mesh Diamond Mesh",
-    "time_ms": 0.9020000100135803
+    "time_ms": 0.872
   },
   {
     "checks": [
@@ -1757,7 +1757,7 @@
     "line": 1003,
     "passed": true,
     "test_name": "Mesh Hex Mesh",
-    "time_ms": 1.6269999742507935
+    "time_ms": 1.391
   },
   {
     "checks": [
@@ -1813,7 +1813,7 @@
     "line": 1021,
     "passed": true,
     "test_name": "Mesh Cone Subdivisions",
-    "time_ms": 1.7910000085830688
+    "time_ms": 1.605
   },
   {
     "checks": [
@@ -1839,7 +1839,7 @@
     "line": 1097,
     "passed": true,
     "test_name": "Mesh Tetrahedron",
-    "time_ms": 0.09200000017881393
+    "time_ms": 0.084
   },
   {
     "checks": [
@@ -1865,7 +1865,7 @@
     "line": 1108,
     "passed": true,
     "test_name": "Mesh Cube",
-    "time_ms": 0.36800000071525574
+    "time_ms": 0.383
   },
   {
     "checks": [
@@ -1891,7 +1891,7 @@
     "line": 1119,
     "passed": true,
     "test_name": "Mesh Octahedron",
-    "time_ms": 0.16099999845027924
+    "time_ms": 0.157
   },
   {
     "checks": [
@@ -1917,7 +1917,7 @@
     "line": 1130,
     "passed": true,
     "test_name": "Mesh Icosahedron",
-    "time_ms": 0.35600000619888306
+    "time_ms": 0.395
   },
   {
     "checks": [
@@ -1958,7 +1958,7 @@
     "line": 1141,
     "passed": true,
     "test_name": "Nurbssurface Wave",
-    "time_ms": 0.18700000643730164
+    "time_ms": 0.177
   },
   {
     "checks": [
@@ -1979,6 +1979,6 @@
     "line": 32,
     "passed": true,
     "test_name": "Mesh Edge Pipes",
-    "time_ms": 4.224999904632568
+    "time_ms": 3.686
   }
 ]

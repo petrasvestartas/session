@@ -48,7 +48,7 @@
     "line": 168,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.03500000014901161
+    "time_ms": 0.041
   },
   {
     "checks": [
@@ -84,7 +84,7 @@
     "line": 208,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 15.720000267028809
+    "time_ms": 14.784
   },
   {
     "checks": [
@@ -120,27 +120,27 @@
     "line": 231,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 13.965999603271484
+    "time_ms": 13.276
   },
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(flts[0], 1.0)",
+        "code_line": "TOLERANCE.is_close(flts[0] as f64, 1.0)",
         "line": 257,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(flts[1], 0.5)",
+        "code_line": "TOLERANCE.is_close(flts[1] as f64, 0.5)",
         "line": 258,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(flts[2], 0.25)",
+        "code_line": "TOLERANCE.is_close(flts[2] as f64, 0.25)",
         "line": 259,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(flts[3], 1.0)",
+        "code_line": "TOLERANCE.is_close(flts[3] as f64, 1.0)",
         "line": 260,
         "passed": true
       },
@@ -156,7 +156,7 @@
     "line": 250,
     "passed": true,
     "test_name": "Conversion",
-    "time_ms": 0.004999999888241291
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -387,6 +387,6 @@
     "line": 266,
     "passed": true,
     "test_name": "Presets",
-    "time_ms": 0.12800000607967377
+    "time_ms": 0.044
   }
 ]

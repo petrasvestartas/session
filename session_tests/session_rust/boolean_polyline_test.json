@@ -38,7 +38,7 @@
     "line": 12,
     "passed": true,
     "test_name": "Overlapping Squares",
-    "time_ms": 0.1850000023841858
+    "time_ms": 0.218
   },
   {
     "checks": [
@@ -79,7 +79,7 @@
     "line": 87,
     "passed": true,
     "test_name": "L Shape Vs Rectangle",
-    "time_ms": 0.1289999932050705
+    "time_ms": 0.181
   },
   {
     "checks": [
@@ -114,13 +114,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::{Point, Polyline};\n        let mut star_pts: Vec<Point> = (0..10).map(|i| { let a = PI2 * i as f32 / 10.0; let r = if i % 2 == 0 { 2.0 } else { 0.8 }; Point::new(10.0 + r * a.cos(), r * a.sin(), 0.0) }).collect();\n        star_pts.push(star_pts[0].clone());\n        let star = Polyline::new(star_pts);\n        let mut circ_pts: Vec<Point> = (0..32).map(|i| { let a = PI2 * i as f32 / 32.0; Point::new(10.5 + 1.2 * a.cos(), 0.5 + 1.2 * a.sin(), 0.0) }).collect();\n        circ_pts.push(circ_pts[0].clone());\n        let circle = Polyline::new(circ_pts);\n        let isect = Polyline::boolean_op(&star, &circle, 0);\n        let uni = Polyline::boolean_op(&star, &circle, 1);\n        let diff = Polyline::boolean_op(&star, &circle, 2);",
+    "code": "        use crate::{Point, Polyline};\n        let mut star_pts: Vec<Point> = (0..10).map(|i| { let a = PI2 * i as f64 / 10.0; let r = if i % 2 == 0 { 2.0 } else { 0.8 }; Point::new(10.0 + r * a.cos(), r * a.sin(), 0.0) }).collect();\n        star_pts.push(star_pts[0].clone());\n        let star = Polyline::new(star_pts);\n        let mut circ_pts: Vec<Point> = (0..32).map(|i| { let a = PI2 * i as f64 / 32.0; Point::new(10.5 + 1.2 * a.cos(), 0.5 + 1.2 * a.sin(), 0.0) }).collect();\n        circ_pts.push(circ_pts[0].clone());\n        let circle = Polyline::new(circ_pts);\n        let isect = Polyline::boolean_op(&star, &circle, 0);\n        let uni = Polyline::boolean_op(&star, &circle, 1);\n        let diff = Polyline::boolean_op(&star, &circle, 2);",
     "failures": [],
     "group": "Boolean Polyline",
     "line": 60,
     "passed": true,
     "test_name": "Star Vs Circle",
-    "time_ms": 0.34599998593330383
+    "time_ms": 0.362
   },
   {
     "checks": [
@@ -161,7 +161,7 @@
     "line": 187,
     "passed": true,
     "test_name": "Cross Shape",
-    "time_ms": 0.09200000017881393
+    "time_ms": 0.09
   },
   {
     "checks": [
@@ -196,13 +196,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::{Point, Polyline};\n        let mut pts: Vec<Point> = (0..64).map(|i| { let a = PI2 * i as f32 / 64.0; Point::new(5.0 + 1.5 * a.cos(), 1.5 * a.sin(), 0.0) }).collect();\n        pts.push(pts[0].clone());\n        let circle = Polyline::new(pts);\n        let rect = Polyline::new(vec![Point::new(4.0,-0.5,0.0), Point::new(7.0,-0.5,0.0), Point::new(7.0,0.5,0.0), Point::new(4.0,0.5,0.0), Point::new(4.0,-0.5,0.0)]);\n        let isect = Polyline::boolean_op(&circle, &rect, 0);\n        let uni = Polyline::boolean_op(&circle, &rect, 1);\n        let diff = Polyline::boolean_op(&circle, &rect, 2);",
+    "code": "        use crate::{Point, Polyline};\n        let mut pts: Vec<Point> = (0..64).map(|i| { let a = PI2 * i as f64 / 64.0; Point::new(5.0 + 1.5 * a.cos(), 1.5 * a.sin(), 0.0) }).collect();\n        pts.push(pts[0].clone());\n        let circle = Polyline::new(pts);\n        let rect = Polyline::new(vec![Point::new(4.0,-0.5,0.0), Point::new(7.0,-0.5,0.0), Point::new(7.0,0.5,0.0), Point::new(4.0,0.5,0.0), Point::new(4.0,-0.5,0.0)]);\n        let isect = Polyline::boolean_op(&circle, &rect, 0);\n        let uni = Polyline::boolean_op(&circle, &rect, 1);\n        let diff = Polyline::boolean_op(&circle, &rect, 2);",
     "failures": [],
     "group": "Boolean Polyline",
     "line": 35,
     "passed": true,
     "test_name": "Circle Vs Rectangle",
-    "time_ms": 0.30799999833106995
+    "time_ms": 0.773
   },
   {
     "checks": [
@@ -243,7 +243,7 @@
     "line": 262,
     "passed": true,
     "test_name": "Large Coords Auto Scale",
-    "time_ms": 0.10899999737739563
+    "time_ms": 0.096
   },
   {
     "checks": [
@@ -284,7 +284,7 @@
     "line": 137,
     "passed": true,
     "test_name": "Diamond Vs Triangle",
-    "time_ms": 0.08299999684095383
+    "time_ms": 0.127
   },
   {
     "checks": [
@@ -319,13 +319,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::{Point, Polyline};\n        let mut pts_a: Vec<Point> = (0..1000).map(|i| { let a = PI2 * i as f32 / 1000.0; Point::new(58.0 + 3.0 * a.cos(), 3.0 * a.sin(), 0.0) }).collect();\n        pts_a.push(pts_a[0].clone());\n        let mut pts_b: Vec<Point> = (0..1000).map(|i| { let a = PI2 * i as f32 / 1000.0; Point::new(59.5 + 3.0 * a.cos(), 3.0 * a.sin(), 0.0) }).collect();\n        pts_b.push(pts_b[0].clone());\n        let ca = Polyline::new(pts_a);\n        let cb = Polyline::new(pts_b);\n        let isect = Polyline::boolean_op(&ca, &cb, 0);\n        let uni = Polyline::boolean_op(&ca, &cb, 1);\n        let diff = Polyline::boolean_op(&ca, &cb, 2);",
+    "code": "        use crate::{Point, Polyline};\n        let mut pts_a: Vec<Point> = (0..1000).map(|i| { let a = PI2 * i as f64 / 1000.0; Point::new(58.0 + 3.0 * a.cos(), 3.0 * a.sin(), 0.0) }).collect();\n        pts_a.push(pts_a[0].clone());\n        let mut pts_b: Vec<Point> = (0..1000).map(|i| { let a = PI2 * i as f64 / 1000.0; Point::new(59.5 + 3.0 * a.cos(), 3.0 * a.sin(), 0.0) }).collect();\n        pts_b.push(pts_b[0].clone());\n        let ca = Polyline::new(pts_a);\n        let cb = Polyline::new(pts_b);\n        let isect = Polyline::boolean_op(&ca, &cb, 0);\n        let uni = Polyline::boolean_op(&ca, &cb, 1);\n        let diff = Polyline::boolean_op(&ca, &cb, 2);",
     "failures": [],
     "group": "Boolean Polyline",
     "line": 235,
     "passed": true,
     "test_name": "Two Large Circles 1000",
-    "time_ms": 10.282999992370605
+    "time_ms": 6.324
   },
   {
     "checks": [
@@ -360,13 +360,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::{Point, Polyline};\n        let arrow = Polyline::new(vec![Point::new(49.0,0.0,0.0), Point::new(52.0,2.0,0.0), Point::new(51.0,0.5,0.0), Point::new(53.0,0.5,0.0), Point::new(53.0,-0.5,0.0), Point::new(51.0,-0.5,0.0), Point::new(52.0,-2.0,0.0), Point::new(49.0,0.0,0.0)]);\n        let mut pts: Vec<Point> = (0..48).map(|i| { let a = PI2 * i as f32 / 48.0; Point::new(51.5 + 1.5 * a.cos(), 1.5 * a.sin(), 0.0) }).collect();\n        pts.push(pts[0].clone());\n        let circle = Polyline::new(pts);\n        let isect = Polyline::boolean_op(&arrow, &circle, 0);\n        let uni = Polyline::boolean_op(&arrow, &circle, 1);\n        let diff = Polyline::boolean_op(&arrow, &circle, 2);",
+    "code": "        use crate::{Point, Polyline};\n        let arrow = Polyline::new(vec![Point::new(49.0,0.0,0.0), Point::new(52.0,2.0,0.0), Point::new(51.0,0.5,0.0), Point::new(53.0,0.5,0.0), Point::new(53.0,-0.5,0.0), Point::new(51.0,-0.5,0.0), Point::new(52.0,-2.0,0.0), Point::new(49.0,0.0,0.0)]);\n        let mut pts: Vec<Point> = (0..48).map(|i| { let a = PI2 * i as f64 / 48.0; Point::new(51.5 + 1.5 * a.cos(), 1.5 * a.sin(), 0.0) }).collect();\n        pts.push(pts[0].clone());\n        let circle = Polyline::new(pts);\n        let isect = Polyline::boolean_op(&arrow, &circle, 0);\n        let uni = Polyline::boolean_op(&arrow, &circle, 1);\n        let diff = Polyline::boolean_op(&arrow, &circle, 2);",
     "failures": [],
     "group": "Boolean Polyline",
     "line": 210,
     "passed": true,
     "test_name": "Concave Arrow Vs Circle",
-    "time_ms": 0.5860000252723694
+    "time_ms": 0.341
   },
   {
     "checks": [
@@ -401,13 +401,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::{Point, Polyline};\n        let mut pts_a: Vec<Point> = (0..256).map(|i| { let a = PI2 * i as f32 / 256.0; Point::new(22.0 + 2.0 * a.cos(), 2.0 * a.sin(), 0.0) }).collect();\n        pts_a.push(pts_a[0].clone());\n        let mut pts_b: Vec<Point> = (0..256).map(|i| { let a = PI2 * i as f32 / 256.0; Point::new(23.0 + 2.0 * a.cos(), 0.5 + 2.0 * a.sin(), 0.0) }).collect();\n        pts_b.push(pts_b[0].clone());\n        let ca = Polyline::new(pts_a);\n        let cb = Polyline::new(pts_b);\n        let isect = Polyline::boolean_op(&ca, &cb, 0);\n        let uni = Polyline::boolean_op(&ca, &cb, 1);\n        let diff = Polyline::boolean_op(&ca, &cb, 2);",
+    "code": "        use crate::{Point, Polyline};\n        let mut pts_a: Vec<Point> = (0..256).map(|i| { let a = PI2 * i as f64 / 256.0; Point::new(22.0 + 2.0 * a.cos(), 2.0 * a.sin(), 0.0) }).collect();\n        pts_a.push(pts_a[0].clone());\n        let mut pts_b: Vec<Point> = (0..256).map(|i| { let a = PI2 * i as f64 / 256.0; Point::new(23.0 + 2.0 * a.cos(), 0.5 + 2.0 * a.sin(), 0.0) }).collect();\n        pts_b.push(pts_b[0].clone());\n        let ca = Polyline::new(pts_a);\n        let cb = Polyline::new(pts_b);\n        let isect = Polyline::boolean_op(&ca, &cb, 0);\n        let uni = Polyline::boolean_op(&ca, &cb, 1);\n        let diff = Polyline::boolean_op(&ca, &cb, 2);",
     "failures": [],
     "group": "Boolean Polyline",
     "line": 110,
     "passed": true,
     "test_name": "Two Large Circles",
-    "time_ms": 2.9089999198913574
+    "time_ms": 1.945
   },
   {
     "checks": [
@@ -442,12 +442,12 @@
         "passed": true
       }
     ],
-    "code": "        use crate::{Point, Polyline};\n        let mut pts_a: Vec<Point> = (0..12).map(|i| { let a = PI2 * i as f32 / 12.0; let r = if i % 2 == 0 { 2.5 } else { 1.0 }; Point::new(36.0 + r * a.cos(), r * a.sin(), 0.0) }).collect();\n        pts_a.push(pts_a[0].clone());\n        let mut pts_b: Vec<Point> = (0..10).map(|i| { let a = PI2 * i as f32 / 10.0; let r = if i % 2 == 0 { 2.0 } else { 0.8 }; Point::new(37.0 + r * a.cos(), 0.5 + r * a.sin(), 0.0) }).collect();\n        pts_b.push(pts_b[0].clone());\n        let sa = Polyline::new(pts_a);\n        let sb = Polyline::new(pts_b);\n        let isect = Polyline::boolean_op(&sa, &sb, 0);\n        let uni = Polyline::boolean_op(&sa, &sb, 1);\n        let diff = Polyline::boolean_op(&sa, &sb, 2);",
+    "code": "        use crate::{Point, Polyline};\n        let mut pts_a: Vec<Point> = (0..12).map(|i| { let a = PI2 * i as f64 / 12.0; let r = if i % 2 == 0 { 2.5 } else { 1.0 }; Point::new(36.0 + r * a.cos(), r * a.sin(), 0.0) }).collect();\n        pts_a.push(pts_a[0].clone());\n        let mut pts_b: Vec<Point> = (0..10).map(|i| { let a = PI2 * i as f64 / 10.0; let r = if i % 2 == 0 { 2.0 } else { 0.8 }; Point::new(37.0 + r * a.cos(), 0.5 + r * a.sin(), 0.0) }).collect();\n        pts_b.push(pts_b[0].clone());\n        let sa = Polyline::new(pts_a);\n        let sb = Polyline::new(pts_b);\n        let isect = Polyline::boolean_op(&sa, &sb, 0);\n        let uni = Polyline::boolean_op(&sa, &sb, 1);\n        let diff = Polyline::boolean_op(&sa, &sb, 2);",
     "failures": [],
     "group": "Boolean Polyline",
     "line": 160,
     "passed": true,
     "test_name": "Star Vs Star",
-    "time_ms": 0.48500001430511475
+    "time_ms": 0.239
   }
 ]

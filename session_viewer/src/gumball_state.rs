@@ -1,10 +1,32 @@
 use std::collections::HashMap;
-use crate::gumball::Gumball;
+use crate::gumball::{Gumball, HandleKind};
 use crate::gpu_session::{CylinderSegment, GlyphPoint, make_geom_bind_group};
+
+/// State for the numeric-entry popup shown when a gumball handle is clicked
+/// (pressed and released without dragging).
+#[derive(Clone)]
+pub struct GumballInput {
+    pub handle: HandleKind,
+    /// Text being typed by the user (parsed as f32 on apply).
+    pub buffer: String,
+    /// Cursor position in physical pixels where the popup is anchored.
+    pub screen_pos: (f32, f32),
+    /// One-shot: request keyboard focus for the text field on the next frame.
+    pub focus: bool,
+}
 
 pub struct GumballState {
     pub gumball: Option<Gumball>,
     pub gumball_scale: f32,
+    /// A gumball handle was pressed: (handle, press_x, press_y) in physical px.
+    /// Drag only begins once the cursor moves past the click/drag threshold; a
+    /// release with no movement opens [`GumballInput`] instead.
+    pub gumball_press: Option<(HandleKind, f64, f64)>,
+    /// Active numeric-entry popup, if any.
+    pub gumball_input: Option<GumballInput>,
+    /// True once a press has moved past the drag threshold this interaction, so the
+    /// release is treated as the end of a drag rather than a click on the handle.
+    pub gumball_dragged: bool,
     pub drag_origins: HashMap<String, [[f32; 4]; 4]>,
     /// Geometry snapshot taken at drag-start for non-BRep objects so undo can restore exact state.
     pub drag_geom_snapshots: HashMap<String, session_rust::session::Geometry>,

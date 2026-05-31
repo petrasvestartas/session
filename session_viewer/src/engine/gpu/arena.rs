@@ -266,6 +266,22 @@ impl<V: Pod> GpuArena<V> {
         self.capacity_inds = new_cap;
     }
 
+    /// Overwrite an existing slot's vertices in place (positions/attributes change,
+    /// topology fixed) via a single `write_buffer` at the slot's byte offset. No-op if
+    /// the guid is unknown or the vertex count differs. Used by live control-point
+    /// editing so a drag never re-allocates or rebuilds the whole arena.
+    pub fn update_vertices(&self, guid: &str, verts: &[V], queue: &wgpu::Queue) {
+        if let Some(slot) = self.slots.get(guid) {
+            let n = (slot.vertex_range.end - slot.vertex_range.start) as usize;
+            if verts.len() != n { return; }
+            queue.write_buffer(
+                &self.vbo,
+                (slot.vertex_range.start as u64) * (std::mem::size_of::<V>() as u64),
+                bytemuck::cast_slice(verts),
+            );
+        }
+    }
+
     /// Mark a slot's ranges free. Does not shift other data.
     pub fn free(&mut self, guid: &str) {
         if let Some(slot) = self.slots.remove(guid) {

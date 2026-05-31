@@ -1,0 +1,11 @@
+﻿C:\pc\3_code\code_rust\session\session_viewer\src\engine\gpu\adapters.rs
+C:\pc\3_code\code_rust\session\session_viewer\src\engine\gpu\arena.rs
+C:\pc\3_code\code_rust\session\session_viewer\src\engine\gpu\draw.rs
+C:\pc\3_code\code_rust\session\session_viewer\src\engine\gpu\edit.rs
+C:\pc\3_code\code_rust\session\session_viewer\src\engine\gpu\geometry.rs
+C:\pc\3_code\code_rust\session\session_viewer\src\engine\gpu\instance_groups.rs
+C:\pc\3_code\code_rust\session\session_viewer\src\engine\gpu\instancing.rs
+C:\pc\3_code\code_rust\session\session_viewer\src\engine\gpu\mod.rs
+C:\pc\3_code\code_rust\session\session_viewer\src\engine\gpu\pick.rs
+C:\pc\3_code\code_rust\session\session_viewer\src\engine\gpu\session.rs
+C:\pc\3_code\code_rust\session\session_viewer\src\engine\gpu\types.rs

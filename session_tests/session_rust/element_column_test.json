@@ -63,7 +63,7 @@
     "line": 10,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.7839999794960022
+    "time_ms": 0.383
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 39,
     "passed": true,
     "test_name": "Setters",
-    "time_ms": 0.8949999809265137
+    "time_ms": 0.51
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 55,
     "passed": true,
     "test_name": "Center Line",
-    "time_ms": 0.2529999911785126
+    "time_ms": 0.121
   },
   {
     "checks": [
@@ -131,7 +131,7 @@
     "line": 67,
     "passed": true,
     "test_name": "Extend",
-    "time_ms": 0.4230000078678131
+    "time_ms": 0.229
   },
   {
     "checks": [
@@ -157,7 +157,7 @@
     "line": 78,
     "passed": true,
     "test_name": "AABB",
-    "time_ms": 0.29899999499320984
+    "time_ms": 0.158
   },
   {
     "checks": [
@@ -183,7 +183,7 @@
     "line": 91,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.28999999165534973
+    "time_ms": 0.127
   },
   {
     "checks": [
@@ -198,13 +198,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::element::{Element, ElementGeometry};\n        use crate::Xform;\n\n        let mut c = Element::column(0.4, 0.4, 3.0, \"my_column\");\n        c.session_transformation = Xform::translation(10.0, 0.0, 0.0);\n        let sg = c.session_geometry();\n\n        if let ElementGeometry::Mesh(mesh) = &sg {\n            let min_x = mesh.vertex.values().map(|v| v.x).fold(f32::INFINITY, f32::min);\n        }",
+    "code": "        use crate::element::{Element, ElementGeometry};\n        use crate::Xform;\n\n        let mut c = Element::column(0.4, 0.4, 3.0, \"my_column\");\n        c.session_transformation = Xform::translation(10.0, 0.0, 0.0);\n        let sg = c.session_geometry();\n\n        if let ElementGeometry::Mesh(mesh) = &sg {\n            let min_x = mesh.vertex.values().map(|v| v.x).fold(f64::INFINITY, f64::min);\n        }",
     "failures": [],
     "group": "ElementColumn",
     "line": 104,
     "passed": true,
     "test_name": "Session Geometry",
-    "time_ms": 0.27300000190734863
+    "time_ms": 0.15
   },
   {
     "checks": [
@@ -235,7 +235,7 @@
     "line": 121,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 19.224000930786133
+    "time_ms": 16.101
   },
   {
     "checks": [
@@ -266,7 +266,7 @@
     "line": 140,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 16.069000244140625
+    "time_ms": 13.289
   },
   {
     "checks": [
@@ -312,7 +312,7 @@
     "line": 163,
     "passed": true,
     "test_name": "Polylines",
-    "time_ms": 0.3479999899864197
+    "time_ms": 0.19
   },
   {
     "checks": [
@@ -338,7 +338,7 @@
     "line": 173,
     "passed": true,
     "test_name": "Planes",
-    "time_ms": 0.35600000619888306
+    "time_ms": 0.153
   },
   {
     "checks": [
@@ -354,7 +354,7 @@
     "line": 184,
     "passed": true,
     "test_name": "Edge Vectors",
-    "time_ms": 0.25
+    "time_ms": 0.124
   },
   {
     "checks": [
@@ -375,6 +375,6 @@
     "line": 193,
     "passed": true,
     "test_name": "Axis",
-    "time_ms": 0.23399999737739563
+    "time_ms": 0.113
   }
 ]

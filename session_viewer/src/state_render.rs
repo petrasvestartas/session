@@ -67,6 +67,17 @@ impl State {
             None
         };
 
+        // Frustum cull (batched mesh path): flag off-screen objects before the pass so the
+        // whole mesh arena still draws in one call. Built from the same view-projection the
+        // GPU uses this frame.
+        let frustum = self.scene.frustum_cull
+            .then(|| crate::camera::Frustum::from_view_proj(&self.scene.camera.view_proj()));
+        let mut stats = gpu_session::DrawStats::default();
+        let (drawn, culled) = self.scene.gpu_session.apply_frustum_cull(frustum.as_ref(), &self.gpu.queue);
+        stats.mesh_drawn = drawn;
+        stats.mesh_culled = culled;
+        stats.mesh_objects = drawn + culled;
+
         // Geometry pass → MSAA texture
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -96,34 +107,45 @@ impl State {
             render_pass.set_bind_group(0, &self.gpu.bind_group, &[]);
             render_pass.set_pipeline(&self.gpu.pipelines.grid);
             render_pass.draw(0..298, 0..1);
+            stats.draw_calls += 1;
 
+            // Meshes: one batched draw for the whole arena, then template instance groups.
             render_pass.set_bind_group(0, &self.gpu.bind_group, &[]);
+            render_pass.set_pipeline(&self.gpu.pipelines.mesh_batched);
+            self.scene.gpu_session.draw_meshes(&mut render_pass);
+            if self.scene.gpu_session.mesh_draw_count > 0 { stats.draw_calls += 1; }
             render_pass.set_pipeline(&self.gpu.pipelines.mesh);
-            self.scene.gpu_session.draw_all_mesh(&mut render_pass);
+            stats.draw_calls += self.scene.gpu_session.draw_instance_groups(&mut render_pass);
 
             render_pass.set_pipeline(&self.gpu.pipelines.line);
             self.scene.gpu_session.draw_lines(&mut render_pass);
+            stats.draw_calls += self.scene.gpu_session.line.iter_slots().count() as u32;
 
             render_pass.set_pipeline(&self.gpu.pipelines.point);
             self.scene.gpu_session.draw_points(&mut render_pass);
+            stats.draw_calls += self.scene.gpu_session.point.iter_slots().count() as u32;
 
             render_pass.set_pipeline(&self.gpu.pipelines.cylinder);
             render_pass.set_bind_group(0, &self.gpu.bind_group, &[]);
             render_pass.set_bind_group(1, &self.scene.gpu_session.segment_bg, &[]);
             self.scene.gpu_session.draw_cylinders(&mut render_pass);
+            if !self.scene.gpu_session.segments_cpu.is_empty() { stats.draw_calls += 1; }
 
             render_pass.set_pipeline(&self.gpu.pipelines.sphere);
             render_pass.set_bind_group(0, &self.gpu.bind_group, &[]);
             render_pass.set_bind_group(1, &self.scene.gpu_session.glyph_sphere_bg, &[]);
             self.scene.gpu_session.draw_spheres(&mut render_pass);
+            if !self.scene.gpu_session.glyphs_cpu.is_empty() { stats.draw_calls += 1; }
 
             render_pass.set_pipeline(&self.gpu.pipelines.point_cloud);
             render_pass.set_bind_group(0, &self.gpu.bind_group, &[]);
             render_pass.set_bind_group(1, &self.scene.gpu_session.cloud_bg, &[]);
             self.scene.gpu_session.draw_clouds(&mut render_pass);
+            if !self.scene.gpu_session.clouds_cpu.is_empty() { stats.draw_calls += 1; }
 
             let nc = self.scene.gpu_session.cones_cpu.len() as u32;
             if nc > 0 {
+                stats.draw_calls += 1;
                 render_pass.set_pipeline(&self.gpu.pipelines.cone);
                 render_pass.set_bind_group(0, &self.gpu.bind_group, &[]);
                 render_pass.set_bind_group(1, &self.scene.gpu_session.cone_bg, &[]);
@@ -147,6 +169,90 @@ impl State {
                 render_pass.set_pipeline(&self.gpu.pipelines.glyph);
                 render_pass.set_vertex_buffer(0, buf.slice(..));
                 render_pass.draw(0..glyph_verts.len() as u32, 0..1);
+            }
+        }
+
+        self.scene.draw_stats = stats;
+
+        // Edit overlay — control-point spheres + control-polygon/edge cylinders.
+        // Drawn after geometry (clears depth so handles show through) and before the
+        // gumball pass (so the gizmo stays on top). Group 0 reuses the gumball's
+        // identity-instance bind group.
+        if self.edit.active && !self.edit.nodes.is_empty() {
+            let scale = self.edit.handle_scale;
+            // Cage lines ~ default object edge thickness; control points twice as big.
+            let edge_r = 1.0 * scale;
+            let node_r = 2.0 * edge_r;
+            let move_set: std::collections::HashSet<usize> =
+                self.edit.move_node_set().into_iter().collect();
+            // Edge-move mode highlights the EDGE (control polygon, below), not the points —
+            // so suppress the control-point spheres there.
+            let node_glyphs: Vec<gpu_session::GlyphPoint> = if self.edit.edge_mode {
+                Vec::new()
+            } else {
+                self.edit.nodes.iter().enumerate().map(|(i, n)| {
+                    let sel = move_set.contains(&i);
+                    // Black like default geometry; picked points highlight orange.
+                    let color = if sel { [1.0, 1.0, 0.0, 1.0] } else { [0.0, 0.0, 0.0, 1.0] };
+                    gpu_session::GlyphPoint { center: crate::edit_state::f32p(n.world), radius: node_r, color, instance_id: 0, _pad: [0; 3] }
+                }).collect()
+            };
+            // A highlighted edge (edge-move mode) draws thicker so it reads as "the edge".
+            let sel_edge_r = if self.edit.edge_mode { 2.5 * edge_r } else { edge_r };
+            // When the selected edge has a true-curve polyline (surface boundary / BRep edge),
+            // draw THAT — so a circular edge reads as a circle, not the chorded control polygon.
+            let edge_segs: Vec<gpu_session::CylinderSegment> = if !self.edit.edge_polyline.is_empty() {
+                let p = &self.edit.edge_polyline;
+                (0..p.len().saturating_sub(1)).map(|i| gpu_session::CylinderSegment {
+                    p0: p[i], radius: sel_edge_r,
+                    p1: p[i + 1], instance_id: 0, color: [1.0, 1.0, 0.0, 1.0],
+                }).collect()
+            } else {
+                self.edit.edges.iter().enumerate().map(|(ei, e)| {
+                    let sel = self.edit.selected_edges.contains(&ei);
+                    let color = if sel { [1.0, 1.0, 0.0, 1.0] } else { [0.0, 0.0, 0.0, 1.0] };
+                    let r = if sel { sel_edge_r } else { edge_r };
+                    gpu_session::CylinderSegment {
+                        p0: crate::edit_state::f32p(self.edit.nodes[e.a].world), radius: r,
+                        p1: crate::edit_state::f32p(self.edit.nodes[e.b].world), instance_id: 0, color,
+                    }
+                }).collect()
+            };
+            let (dev, q, bgl) = (&self.gpu.device, &self.gpu.queue, &self.gpu.pipelines.geom_bgl);
+            self.edit.upload(dev, q, bgl, &node_glyphs, &edge_segs);
+            {
+                let mut epass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("Edit Overlay Pass"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &self.gpu.msaa_view,
+                        resolve_target: None,
+                        depth_slice: None,
+                        ops: wgpu::Operations { load: wgpu::LoadOp::Load, store: wgpu::StoreOp::Store },
+                    })],
+                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                        view: &self.gpu.depth_view,
+                        depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(1.0), store: wgpu::StoreOp::Store }),
+                        stencil_ops: None,
+                    }),
+                    occlusion_query_set: None,
+                    timestamp_writes: None,
+                    multiview_mask: None,
+                });
+                epass.set_bind_group(0, &self.gb.gumball_bind_group, &[]);
+                if !edge_segs.is_empty() {
+                    epass.set_pipeline(&self.gpu.pipelines.cylinder);
+                    epass.set_bind_group(1, &self.edit.edge_bg, &[]);
+                    epass.set_vertex_buffer(0, self.scene.gpu_session.cylinder_vbo.slice(..));
+                    epass.set_index_buffer(self.scene.gpu_session.cylinder_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                    epass.draw_indexed(0..gpu_adapters::N_CYL_INDICES, 0, 0..edge_segs.len() as u32);
+                }
+                if !node_glyphs.is_empty() {
+                    epass.set_pipeline(&self.gpu.pipelines.sphere);
+                    epass.set_bind_group(1, &self.edit.node_bg, &[]);
+                    epass.set_vertex_buffer(0, self.scene.gpu_session.sphere_vbo.slice(..));
+                    epass.set_index_buffer(self.scene.gpu_session.sphere_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                    epass.draw_indexed(0..gpu_adapters::N_SPHERE_INDICES, 0, 0..node_glyphs.len() as u32);
+                }
             }
         }
 

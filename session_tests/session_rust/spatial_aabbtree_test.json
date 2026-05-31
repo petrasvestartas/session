@@ -2,7 +2,7 @@
   {
     "checks": [
       {
-        "code_line": "d == f32::INFINITY",
+        "code_line": "d == f64::INFINITY",
         "line": 38,
         "passed": true
       }
@@ -13,7 +13,7 @@
     "line": 30,
     "passed": true,
     "test_name": "Build Empty",
-    "time_ms": 0.024000000208616257
+    "time_ms": 0.04
   },
   {
     "checks": [
@@ -34,7 +34,7 @@
     "line": 43,
     "passed": true,
     "test_name": "Build Single",
-    "time_ms": 0.10400000214576721
+    "time_ms": 0.109
   },
   {
     "checks": [
@@ -50,7 +50,7 @@
     "line": 61,
     "passed": true,
     "test_name": "Build Multiple",
-    "time_ms": 0.1340000033378601
+    "time_ms": 0.134
   },
   {
     "checks": [
@@ -60,13 +60,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::Closest;\n        use crate::Mesh;\n        use crate::Point;\n\n        let mut m = Mesh::new();\n        let mut vkeys: Vec<usize> = Vec::new();\n        for i in 0..100 {\n            vkeys.push(m.add_vertex(Point::new(i as f32, 0.0, 0.0), None));\n            vkeys.push(m.add_vertex(Point::new(i as f32 + 0.5, 0.5, 0.0), None));\n            vkeys.push(m.add_vertex(Point::new(i as f32, 0.5, 0.0), None));\n        }\n        for i in 0..100 {\n            m.add_face(vec![vkeys[i*3], vkeys[i*3+1], vkeys[i*3+2]], None);\n        }\n        let (_cp, _fk, d) = Closest::mesh_point_aabb(&m, &Point::new(50.0, 0.0, 0.0));\n",
+    "code": "        use crate::Closest;\n        use crate::Mesh;\n        use crate::Point;\n\n        let mut m = Mesh::new();\n        let mut vkeys: Vec<usize> = Vec::new();\n        for i in 0..100 {\n            vkeys.push(m.add_vertex(Point::new(i as f64, 0.0, 0.0), None));\n            vkeys.push(m.add_vertex(Point::new(i as f64 + 0.5, 0.5, 0.0), None));\n            vkeys.push(m.add_vertex(Point::new(i as f64, 0.5, 0.0), None));\n        }\n        for i in 0..100 {\n            m.add_face(vec![vkeys[i*3], vkeys[i*3+1], vkeys[i*3+2]], None);\n        }\n        let (_cp, _fk, d) = Closest::mesh_point_aabb(&m, &Point::new(50.0, 0.0, 0.0));\n",
     "failures": [],
     "group": "SpatialAABBTree",
     "line": 86,
     "passed": true,
     "test_name": "Node Count",
-    "time_ms": 3.1530001163482666
+    "time_ms": 3.109
   },
   {
     "checks": [
@@ -92,7 +92,7 @@
     "line": 108,
     "passed": true,
     "test_name": "Mesh Point Aabb",
-    "time_ms": 0.5490000247955322
+    "time_ms": 0.516
   },
   {
     "checks": [
@@ -123,7 +123,7 @@
     "line": 124,
     "passed": true,
     "test_name": "Mesh Point Aabb Matches Bvh",
-    "time_ms": 0.574999988079071
+    "time_ms": 0.44
   },
   {
     "checks": [
@@ -159,7 +159,7 @@
     "line": 142,
     "passed": true,
     "test_name": "Query Aabb",
-    "time_ms": 0.1120000034570694
+    "time_ms": 0.098
   },
   {
     "checks": [
@@ -190,6 +190,6 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.020999999716877937
+    "time_ms": 0.019
   }
 ]

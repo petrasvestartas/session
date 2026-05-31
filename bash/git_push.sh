@@ -31,7 +31,7 @@ check_large_files() {
     return 0
 }
 
-for d in session_cpp session_py session_rust session_data session_proto session_rhino; do
+for d in session_cpp session_py session_rust session_data session_proto session_rhino session_viewer; do
     if [ -d "$d" ]; then
         echo -e "\n=== $d ==="
         cd "$d"
@@ -70,7 +70,7 @@ done
 
 echo -e "\n=== main repo ==="
 git add -A
-git add session_cpp session_py session_rust session_data session_proto session_rhino 2>/dev/null
+git add session_cpp session_py session_rust session_data session_proto session_rhino session_viewer 2>/dev/null
 git commit -m "$m" 2>/dev/null
 if ! git push -u origin "$BRANCH"; then
     echo "FAILED: main repo push"

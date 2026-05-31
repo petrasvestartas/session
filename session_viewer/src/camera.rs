@@ -58,11 +58,11 @@ impl Camera {
         );
         let orientation = (pitch_q * yaw_q).normalized();
 
-        let offset = orientation.rotate_vector(Vector::new(0.0, -distance, 0.0));
+        let offset = orientation.rotate_vector(Vector::new(0.0, -distance as f64, 0.0));
         let fwd = Vector::new(-offset[0], -offset[1], -offset[2]).normalized();
-        let wu  = Vector::new(world_up[0], world_up[1], world_up[2]);
+        let wu  = Vector::new(world_up[0] as f64, world_up[1] as f64, world_up[2] as f64);
         let r0  = fwd.cross(&wu).normalized();
-        let last_right = [r0[0], r0[1], r0[2]];
+        let last_right = [r0[0] as f32, r0[1] as f32, r0[2] as f32];
 
         let initial_orientation = orientation.duplicate();
 
@@ -87,30 +87,30 @@ impl Camera {
 
     pub fn update_position(&mut self) {
         let offset = self.orientation.rotate_vector(
-            Vector::new(0.0, -self.distance, 0.0)
+            Vector::new(0.0, -self.distance as f64, 0.0)
         );
         self.position = [
-            self.target[0] + offset[0],
-            self.target[1] + offset[1],
-            self.target[2] + offset[2],
+            self.target[0] + offset[0] as f32,
+            self.target[1] + offset[1] as f32,
+            self.target[2] + offset[2] as f32,
         ];
 
         let d = self.distance.max(1e-10);
-        let fwd = Vector::new(-offset[0] / d, -offset[1] / d, -offset[2] / d);
-        let wu  = Vector::new(self.world_up[0], self.world_up[1], self.world_up[2]);
+        let fwd = Vector::new(-offset[0] / d as f64, -offset[1] / d as f64, -offset[2] / d as f64);
+        let wu  = Vector::new(self.world_up[0] as f64, self.world_up[1] as f64, self.world_up[2] as f64);
 
         let alignment = fwd.dot(&wu).abs();
         let right = if alignment > 0.98 {
-            Vector::new(self.last_right[0], self.last_right[1], self.last_right[2])
+            Vector::new(self.last_right[0] as f64, self.last_right[1] as f64, self.last_right[2] as f64)
         } else {
             let computed = fwd.cross(&wu).normalized();
-            let last = Vector::new(self.last_right[0], self.last_right[1], self.last_right[2]);
+            let last = Vector::new(self.last_right[0] as f64, self.last_right[1] as f64, self.last_right[2] as f64);
             if computed.dot(&last) < 0.0 { computed * -1.0 } else { computed }
         };
-        self.last_right = [right[0], right[1], right[2]];
+        self.last_right = [right[0] as f32, right[1] as f32, right[2] as f32];
 
         let up = right.cross(&fwd).normalized();
-        self.up = [up[0], up[1], up[2]];
+        self.up = [up[0] as f32, up[1] as f32, up[2] as f32];
     }
 
     // Build view-projection matrix for the GPU (column-major [[f32;4];4]).
@@ -127,38 +127,54 @@ impl Camera {
     //     fine. Near must be NEGATIVE so geometry behind the camera is not clipped
     //     when orbiting near-horizontal (opposite-side grid lines are behind camera).
     pub fn view_proj(&self) -> [[f32; 4]; 4] {
-        let eye   = Point::new(self.position[0], self.position[1], self.position[2]);
-        let tgt   = Point::new(self.target[0],   self.target[1],   self.target[2]);
-        let up    = Vector::new(self.up[0],       self.up[1],       self.up[2]);
+        let eye   = Point::new(self.position[0] as f64, self.position[1] as f64, self.position[2] as f64);
+        let tgt   = Point::new(self.target[0] as f64,   self.target[1] as f64,   self.target[2] as f64);
+        let up    = Vector::new(self.up[0] as f64,       self.up[1] as f64,       self.up[2] as f64);
         let view  = Xform::look_at_right_handed(&eye, &tgt, &up);
-        let scale = Xform::scale_xyz(MM_TO_UNIT, MM_TO_UNIT, MM_TO_UNIT);
+        let scale = Xform::scale_xyz(MM_TO_UNIT as f64, MM_TO_UNIT as f64, MM_TO_UNIT as f64);
         let proj  = match self.proj_mode {
             ProjMode::Perspective => {
                 // near = distance × 0.001 → far/near ≤ 100 000 at any zoom level.
                 // far = 100 000 viewer units = 100 km worth of mm.
                 let near = (self.distance * 0.001_f32).max(0.0001_f32);
-                Xform::perspective(Tolerance::PI / 3.0, self.aspect, near, 100_000.0)
+                Xform::perspective(Tolerance::PI / 3.0, self.aspect as f64, near as f64, 100_000.0)
             }
             ProjMode::Ortho => {
-                // ±100 000 viewer units = ±100 km. Grid extends ±36 units so this
-                // is ample. Negative near exposes geometry on the far side of the
-                // scene when the camera orbits past horizontal.
+                // Depth range adaptive to zoom/orbit, not a fixed ±100 km. Ortho depth is
+                // linear, so a tight range is what gives precision: at ±100 000 the 24-bit
+                // buffer quantises to ~12 mm and coplanar faces/edges z-fight (jaggy edges).
+                // 8 × max(ortho_scale, distance) keeps the whole scene in view (grid ±36,
+                // geometry sits near view-z ≈ −distance) while raising precision ~1000×.
+                // Symmetric (negative near) still exposes far-side geometry past horizontal.
                 let h = self.ortho_scale;
                 let w = h * self.aspect;
-                Xform::orthographic(-w, w, -h, h, -100_000.0, 100_000.0)
+                let depth = (self.ortho_scale.max(self.distance) * 8.0).max(1.0);
+                Xform::orthographic(-w as f64, w as f64, -h as f64, h as f64, -depth as f64, depth as f64)
             }
         };
         let view_scaled = &view * &scale;
-        (&proj * &view_scaled).to_cols()
+        let m = (&proj * &view_scaled).to_cols();
+        [
+            [m[0][0] as f32, m[0][1] as f32, m[0][2] as f32, m[0][3] as f32],
+            [m[1][0] as f32, m[1][1] as f32, m[1][2] as f32, m[1][3] as f32],
+            [m[2][0] as f32, m[2][1] as f32, m[2][2] as f32, m[2][3] as f32],
+            [m[3][0] as f32, m[3][1] as f32, m[3][2] as f32, m[3][3] as f32],
+        ]
     }
 
     pub fn view_matrix(&self) -> [[f32; 4]; 4] {
-        let eye   = Point::new(self.position[0], self.position[1], self.position[2]);
-        let tgt   = Point::new(self.target[0],   self.target[1],   self.target[2]);
-        let up    = Vector::new(self.up[0],       self.up[1],       self.up[2]);
+        let eye   = Point::new(self.position[0] as f64, self.position[1] as f64, self.position[2] as f64);
+        let tgt   = Point::new(self.target[0] as f64,   self.target[1] as f64,   self.target[2] as f64);
+        let up    = Vector::new(self.up[0] as f64,       self.up[1] as f64,       self.up[2] as f64);
         let view  = Xform::look_at_right_handed(&eye, &tgt, &up);
-        let scale = Xform::scale_xyz(MM_TO_UNIT, MM_TO_UNIT, MM_TO_UNIT);
-        (&view * &scale).to_cols()
+        let scale = Xform::scale_xyz(MM_TO_UNIT as f64, MM_TO_UNIT as f64, MM_TO_UNIT as f64);
+        let m = (&view * &scale).to_cols();
+        [
+            [m[0][0] as f32, m[0][1] as f32, m[0][2] as f32, m[0][3] as f32],
+            [m[1][0] as f32, m[1][1] as f32, m[1][2] as f32, m[1][3] as f32],
+            [m[2][0] as f32, m[2][1] as f32, m[2][2] as f32, m[2][3] as f32],
+            [m[3][0] as f32, m[3][1] as f32, m[3][2] as f32, m[3][3] as f32],
+        ]
     }
 
     pub fn pick_radius_mm(&self, viewport_h: f32, pixel_radius: f32) -> f32 {
@@ -175,17 +191,24 @@ impl Camera {
     }
 
     pub fn proj_matrix(&self) -> [[f32; 4]; 4] {
-        match self.proj_mode {
+        let m = match self.proj_mode {
             ProjMode::Perspective => {
                 let near = (self.distance * 0.001_f32).max(0.0001_f32);
-                Xform::perspective(Tolerance::PI / 3.0, self.aspect, near, 100_000.0).to_cols()
+                Xform::perspective(Tolerance::PI / 3.0, self.aspect as f64, near as f64, 100_000.0).to_cols()
             }
             ProjMode::Ortho => {
                 let h = self.ortho_scale;
                 let w = h * self.aspect;
-                Xform::orthographic(-w, w, -h, h, -100_000.0, 100_000.0).to_cols()
+                let depth = (self.ortho_scale.max(self.distance) * 8.0).max(1.0);
+                Xform::orthographic(-w as f64, w as f64, -h as f64, h as f64, -depth as f64, depth as f64).to_cols()
             }
-        }
+        };
+        [
+            [m[0][0] as f32, m[0][1] as f32, m[0][2] as f32, m[0][3] as f32],
+            [m[1][0] as f32, m[1][1] as f32, m[1][2] as f32, m[1][3] as f32],
+            [m[2][0] as f32, m[2][1] as f32, m[2][2] as f32, m[2][3] as f32],
+            [m[3][0] as f32, m[3][1] as f32, m[3][2] as f32, m[3][3] as f32],
+        ]
     }
 
     // Set a canonical named view and switch to ortho.
@@ -227,19 +250,19 @@ impl Camera {
 
     pub fn pan(&mut self, right_amount: f32, up_amount: f32) {
         let fwd = Vector::new(
-            self.target[0] - self.position[0],
-            self.target[1] - self.position[1],
-            self.target[2] - self.position[2],
+            (self.target[0] - self.position[0]) as f64,
+            (self.target[1] - self.position[1]) as f64,
+            (self.target[2] - self.position[2]) as f64,
         ).normalized();
-        let wu    = Vector::new(self.world_up[0], self.world_up[1], self.world_up[2]);
+        let wu    = Vector::new(self.world_up[0] as f64, self.world_up[1] as f64, self.world_up[2] as f64);
         let right = fwd.cross(&wu).normalized();
         let up    = right.cross(&fwd).normalized();
 
         let speed = self.distance * 0.001;
         for i in 0..3 {
-            let delta = right[i] * right_amount * speed + up[i] * up_amount * speed;
-            self.position[i] += delta;
-            self.target[i]   += delta;
+            let delta = right[i] * right_amount as f64 * speed as f64 + up[i] * up_amount as f64 * speed as f64;
+            self.position[i] += delta as f32;
+            self.target[i]   += delta as f32;
         }
     }
 
@@ -261,10 +284,79 @@ impl Camera {
             center_mm[2] * MM_TO_UNIT,
         ];
         let r = (half_diag_mm * MM_TO_UNIT).max(0.001);
-        self.distance    = (r / (Tolerance::PI / 6.0_f32).tan()).clamp(MIN_ZOOM, MAX_ZOOM);
+        self.distance    = (r as f64 / (Tolerance::PI / 6.0_f32 as f64).tan()).clamp(MIN_ZOOM as f64, MAX_ZOOM as f64) as f32;
         self.ortho_scale = (r * 1.2).max(0.001);
         self.update_position();
     }
+}
+
+// ============================================================
+// FRUSTUM (Gribb–Hartmann plane extraction for culling)
+// Planes face inward; a point is inside when plane·(x,y,z,1) ≥ 0.
+// Extracted for wgpu clip space (z ∈ [0, w]).
+// ============================================================
+pub struct Frustum {
+    /// 6 planes [a,b,c,d]: left, right, bottom, top, near, far.
+    pub planes: [[f32; 4]; 6],
+}
+
+impl Frustum {
+    /// Build from a column-major view-projection matrix (`m[col][row]`).
+    pub fn from_view_proj(m: &[[f32; 4]; 4]) -> Self {
+        // row(r) = [m[0][r], m[1][r], m[2][r], m[3][r]]
+        let row = |r: usize| [m[0][r], m[1][r], m[2][r], m[3][r]];
+        let (r0, r1, r2, r3) = (row(0), row(1), row(2), row(3));
+        let add = |a: [f32; 4], b: [f32; 4]| [a[0]+b[0], a[1]+b[1], a[2]+b[2], a[3]+b[3]];
+        let sub = |a: [f32; 4], b: [f32; 4]| [a[0]-b[0], a[1]-b[1], a[2]-b[2], a[3]-b[3]];
+        let mut planes = [
+            add(r3, r0), // left
+            sub(r3, r0), // right
+            add(r3, r1), // bottom
+            sub(r3, r1), // top
+            r2,          // near (z ≥ 0)
+            sub(r3, r2), // far
+        ];
+        for p in &mut planes {
+            let n = (p[0]*p[0] + p[1]*p[1] + p[2]*p[2]).sqrt();
+            if n > 1e-20 { for c in p.iter_mut() { *c /= n; } }
+        }
+        Self { planes }
+    }
+
+    /// True if the world-space AABB is at least partially inside the frustum.
+    /// Uses the positive-vertex (n-vertex) test: conservative — never culls a
+    /// box that is actually visible.
+    pub fn aabb_visible(&self, min: [f32; 3], max: [f32; 3]) -> bool {
+        for p in &self.planes {
+            let px = if p[0] >= 0.0 { max[0] } else { min[0] };
+            let py = if p[1] >= 0.0 { max[1] } else { min[1] };
+            let pz = if p[2] >= 0.0 { max[2] } else { min[2] };
+            if p[0]*px + p[1]*py + p[2]*pz + p[3] < 0.0 {
+                return false; // entirely behind this plane → outside
+            }
+        }
+        true
+    }
+}
+
+/// Transform a local-space AABB `[minx,miny,minz,maxx,maxy,maxz]` by a column-major
+/// model matrix, returning the enclosing world-space AABB (min, max).
+pub fn transform_aabb_cm(local: &[f32; 6], m: &[[f32; 4]; 4]) -> ([f32; 3], [f32; 3]) {
+    let mut min = [f32::INFINITY; 3];
+    let mut max = [f32::NEG_INFINITY; 3];
+    for &x in &[local[0], local[3]] {
+        for &y in &[local[1], local[4]] {
+            for &z in &[local[2], local[5]] {
+                // column-major: world[r] = Σ_c m[c][r] * v[c]
+                for r in 0..3 {
+                    let w = m[0][r]*x + m[1][r]*y + m[2][r]*z + m[3][r];
+                    if w < min[r] { min[r] = w; }
+                    if w > max[r] { max[r] = w; }
+                }
+            }
+        }
+    }
+    (min, max)
 }
 
 // ============================================================
@@ -394,11 +486,11 @@ impl CameraController {
             let yaw   = (-self.orbit_dx * self.orbit_speed).clamp(-0.1, 0.1);
             let pitch = (-self.orbit_dy * self.orbit_speed).clamp(-0.1, 0.1);
 
-            let wu    = Vector::new(camera.world_up[0],   camera.world_up[1],   camera.world_up[2]);
-            let right = Vector::new(camera.last_right[0], camera.last_right[1], camera.last_right[2]);
+            let wu    = Vector::new(camera.world_up[0] as f64,   camera.world_up[1] as f64,   camera.world_up[2] as f64);
+            let right = Vector::new(camera.last_right[0] as f64, camera.last_right[1] as f64, camera.last_right[2] as f64);
 
-            let yaw_q   = Quaternion::from_axis_angle(wu, yaw);
-            let pitch_q = Quaternion::from_axis_angle(right.normalized(), pitch);
+            let yaw_q   = Quaternion::from_axis_angle(wu, yaw as f64);
+            let pitch_q = Quaternion::from_axis_angle(right.normalized(), pitch as f64);
 
             let old = camera.orientation.duplicate();
             camera.orientation = (yaw_q * (pitch_q * old)).normalized();

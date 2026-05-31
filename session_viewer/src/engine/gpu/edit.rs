@@ -4,6 +4,35 @@ use crate::gpu_instance_groups::TEMPLATE_INSTANCE_BASE;
 use super::types::*;
 
 impl GpuSession {
+    /// Per-frame frustum cull for the batched mesh path: set/clear `FLAG_CULLED` on each
+    /// tri object whose world AABB is off-screen, writing only the instances whose state
+    /// flipped since last frame. `frustum == None` un-culls everything (toggle off).
+    /// Returns `(drawn, culled)` tri-object counts for the HUD.
+    pub fn apply_frustum_cull(&mut self, frustum: Option<&crate::camera::Frustum>, queue: &wgpu::Queue) -> (u32, u32) {
+        let (mut drawn, mut culled) = (0u32, 0u32);
+        let ids: Vec<u32> = self.tri_index_cpu.keys().copied().collect();
+        for id in ids {
+            let cull = if let (Some(fr), Some(local)) = (frustum, self.object_aabb_local.get(&id)) {
+                let model = self.instances_cpu.get(id as usize).map(|i| i.model)
+                    .unwrap_or_else(identity_matrix);
+                let (mn, mx) = crate::camera::transform_aabb_cm(local, &model);
+                !fr.aabb_visible(mn, mx)
+            } else { false };
+            if cull != self.culled_now.contains(&id) {
+                let idx = id as usize;
+                if idx < self.instances_cpu.len() {
+                    if cull { self.instances_cpu[idx].flags |= InstanceData::FLAG_CULLED; }
+                    else    { self.instances_cpu[idx].flags &= !InstanceData::FLAG_CULLED; }
+                    let offset = (idx as u64) * (std::mem::size_of::<InstanceData>() as u64);
+                    queue.write_buffer(&self.instance_buffer, offset, bytemuck::bytes_of(&self.instances_cpu[idx]));
+                }
+                if cull { self.culled_now.insert(id); } else { self.culled_now.remove(&id); }
+            }
+            if cull { culled += 1; } else { drawn += 1; }
+        }
+        (drawn, culled)
+    }
+
     pub fn reset_color(&mut self, guid: &str, queue: &wgpu::Queue) -> bool {
         let id = match self.pick.instance_id(guid) { Some(i) => i, None => return false };
         let idx = id as usize;
@@ -27,6 +56,13 @@ impl GpuSession {
     }
 
     pub fn remove(&mut self, guid: &str) {
+        if let Some(id) = self.pick.instance_id(guid) {
+            self.object_aabb_local.remove(&id);
+            self.culled_now.remove(&id);
+            if self.tri_index_cpu.remove(&id).is_some() {
+                self.mesh_draw_dirty = true;
+            }
+        }
         self.tri.free(guid);
         self.line.free(guid);
         self.point.free(guid);
@@ -66,6 +102,8 @@ impl GpuSession {
         self.nurbs_pick_meshes.remove(guid);
         self.nurbs_surfaces.remove(guid);
         self.brep_pick_meshes.remove(guid);
+        self.nurbs_trimmed_pick_meshes.remove(guid);
+        self.nurbs_trimmeds.remove(guid);
         self.nc_pick_pts.remove(guid);
     }
 
@@ -74,6 +112,10 @@ impl GpuSession {
         self.line.clear();
         self.point.clear();
         self.pick.clear();
+        self.object_aabb_local.clear();
+        self.culled_now.clear();
+        self.tri_index_cpu.clear();
+        self.mesh_draw_dirty = true;
         self.instances_cpu.clear();
         self.segments_cpu.clear();
         self.guid_to_seg.clear();
@@ -90,6 +132,8 @@ impl GpuSession {
         self.nurbs_pick_meshes.clear();
         self.nurbs_surfaces.clear();
         self.brep_pick_meshes.clear();
+        self.nurbs_trimmed_pick_meshes.clear();
+        self.nurbs_trimmeds.clear();
         self.nc_pick_pts.clear();
         self.template_tri.clear();
         self.instance_groups.groups.clear();
@@ -140,6 +184,27 @@ impl GpuSession {
         self.instance_capacity = new_cap;
         self.bind_group_dirty = true;
         self.instance_groups.capacity = new_cap.saturating_sub(TEMPLATE_INSTANCE_BASE);
+    }
+
+    /// Overwrite one object's cylinder segments in place: update the CPU mirror and
+    /// write ONLY that byte sub-range to the GPU, leaving `segments_dirty` false so
+    /// `flush_geometry` does not re-upload the whole scene buffer. No-op unless the
+    /// new count equals the existing range (topology fixed). Used by live editing.
+    pub fn update_object_segments(&mut self, guid: &str, segs: &[CylinderSegment], queue: &wgpu::Queue) {
+        let r = match self.guid_to_seg.get(guid) { Some(r) => r.clone(), None => return };
+        if segs.len() != (r.end - r.start) { return; }
+        self.segments_cpu[r.start..r.end].copy_from_slice(segs);
+        let offset = (r.start * std::mem::size_of::<CylinderSegment>()) as u64;
+        queue.write_buffer(&self.segments_gpu, offset, bytemuck::cast_slice(segs));
+    }
+
+    /// Same as `update_object_segments`, for sphere glyphs.
+    pub fn update_object_glyphs(&mut self, guid: &str, glyphs: &[GlyphPoint], queue: &wgpu::Queue) {
+        let r = match self.guid_to_glyph.get(guid) { Some(r) => r.clone(), None => return };
+        if glyphs.len() != (r.end - r.start) { return; }
+        self.glyphs_cpu[r.start..r.end].copy_from_slice(glyphs);
+        let offset = (r.start * std::mem::size_of::<GlyphPoint>()) as u64;
+        queue.write_buffer(&self.glyphs_gpu, offset, bytemuck::cast_slice(glyphs));
     }
 
     pub fn update_transform(&mut self, guid: &str, model: [[f32; 4]; 4], queue: &wgpu::Queue) -> bool {

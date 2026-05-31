@@ -3,29 +3,27 @@
 use super::types::*;
 
 impl GpuSession {
-    /// Draw regular meshes then all template instance groups. Replaces `draw_meshes` in lib.rs.
-    /// Both use the same mesh pipeline and bind group 0 — no pipeline switch needed.
-    pub fn draw_all_mesh<'a>(&'a self, pass: &mut wgpu::RenderPass<'a>) {
-        self.draw_meshes(pass);
-        self.draw_instance_groups(pass);
-    }
-
+    /// Draw the whole mesh arena in ONE indexed draw call (batched path).
+    /// `mesh_draw_ibo` holds every live object's global indices concatenated, so a single
+    /// `draw_indexed` with base_vertex 0 over `tri.vbo` renders all meshes. Per-vertex
+    /// `instance_id` selects each object's transform; off-screen objects are flagged
+    /// `FLAG_CULLED` (see `apply_frustum_cull`) and collapse to a clipped vertex in the shader.
+    /// Caller must bind the `mesh_batched` pipeline first.
     pub fn draw_meshes<'a>(&'a self, pass: &mut wgpu::RenderPass<'a>) {
-        let ibo = match self.tri.ibo.as_ref() { Some(b) => b, None => return };
+        if self.mesh_draw_count == 0 || self.tri.ibo.is_none() { return; }
         pass.set_vertex_buffer(0, self.tri.vbo.slice(..));
-        pass.set_index_buffer(ibo.slice(..), wgpu::IndexFormat::Uint32);
-        for (_, slot) in self.tri.iter_slots() {
-            if let Some(ir) = slot.index_range.clone() {
-                pass.draw_indexed(ir, slot.vertex_range.start as i32, slot.instance_id..(slot.instance_id+1));
-            }
-        }
+        pass.set_index_buffer(self.mesh_draw_ibo.slice(..), wgpu::IndexFormat::Uint32);
+        pass.draw_indexed(0..self.mesh_draw_count, 0, 0..1);
     }
 
-    fn draw_instance_groups<'a>(&'a self, pass: &mut wgpu::RenderPass<'a>) {
-        let ibo = match self.template_tri.ibo.as_ref() { Some(b) => b, None => return };
-        if self.instance_groups.groups.is_empty() { return; }
+    /// Draw template instance groups. Caller must bind the `mesh` pipeline (builtin
+    /// instance_index) first. Returns the number of draw calls issued.
+    pub fn draw_instance_groups<'a>(&'a self, pass: &mut wgpu::RenderPass<'a>) -> u32 {
+        let ibo = match self.template_tri.ibo.as_ref() { Some(b) => b, None => return 0 };
+        if self.instance_groups.groups.is_empty() { return 0; }
         pass.set_vertex_buffer(0, self.template_tri.vbo.slice(..));
         pass.set_index_buffer(ibo.slice(..), wgpu::IndexFormat::Uint32);
+        let mut calls = 0;
         for group in self.instance_groups.groups.values() {
             if group.live_count == 0 { continue; }
             let slot = match self.template_tri.slot(&group.template_key.0) {
@@ -33,14 +31,16 @@ impl GpuSession {
                 None => continue,
             };
             let ir = match slot.index_range.clone() { Some(r) => r, None => continue };
-            // Draw all capacity slots. Hidden ones discard immediately in mesh.wgsl line 57
+            // Draw all capacity slots. Hidden ones discard immediately in mesh.wgsl
             // (`if (in.flags & 2u) != 0u { discard; }`), so no geometry cost for empty slots.
+            calls += 1;
             pass.draw_indexed(
                 ir,
                 slot.vertex_range.start as i32,
                 group.first_instance()..(group.first_instance() + group.capacity),
             );
         }
+        calls
     }
 
     pub fn draw_lines<'a>(&'a self, pass: &mut wgpu::RenderPass<'a>) {

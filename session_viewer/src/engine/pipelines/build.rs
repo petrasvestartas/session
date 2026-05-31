@@ -382,6 +382,24 @@ pub fn build_pipeline(
     depth_write: bool,
     sample_count: u32,
 ) -> wgpu::RenderPipeline {
+    build_pipeline_vs(device, label, wgsl, "vs_main", vertex_layout, topology,
+        color_format, depth_format, bgl, depth_write, sample_count)
+}
+
+/// As `build_pipeline` but with an explicit vertex entry point (e.g. `vs_batched`).
+pub fn build_pipeline_vs(
+    device: &wgpu::Device,
+    label: &str,
+    wgsl: &str,
+    vs_entry: &str,
+    vertex_layout: wgpu::VertexBufferLayout<'static>,
+    topology: wgpu::PrimitiveTopology,
+    color_format: wgpu::TextureFormat,
+    depth_format: Option<wgpu::TextureFormat>,
+    bgl: &wgpu::BindGroupLayout,
+    depth_write: bool,
+    sample_count: u32,
+) -> wgpu::RenderPipeline {
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some(&format!("{label}.shader")),
         source: wgpu::ShaderSource::Wgsl(wgsl.into()),
@@ -403,7 +421,7 @@ pub fn build_pipeline(
         layout: Some(&layout),
         vertex: wgpu::VertexState {
             module: &shader,
-            entry_point: Some("vs_main"),
+            entry_point: Some(vs_entry),
             buffers: &[vertex_layout],
             compilation_options: Default::default(),
         },
