@@ -109,3 +109,6 @@ temp
 .py_install_hash
 .api_index_hash
 
+# Scratch/audit artifacts
+__audit_*.txt
+
