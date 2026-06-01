@@ -821,8 +821,8 @@ fn compas_tf_demo(s: &mut Session) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Switch demo here — comment/uncomment one line:
 pub fn active_scene() -> (Session, Vec<CylinderSegment>) {
-    //make_floor_scene()
-    make_cdt_scene()
+    make_floor_scene()
+    // make_cdt_scene()
 }
 
 fn make_cdt_scene() -> (Session, Vec<CylinderSegment>) {
