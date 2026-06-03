@@ -223,9 +223,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
-import Parser from 'web-tree-sitter'
+import type { HighlighterCore } from 'shiki/core'
+import { getHighlighter, THEME } from '../highlighter'
 
 const props = defineProps({
   tests: { type: Array, required: true },
@@ -234,83 +235,16 @@ const props = defineProps({
 
 defineEmits(['update:activeSuite'])
 
-// Tree-sitter state
-let parser = null
-const languages = {}
-const queries = {}
+// Syntax highlighting via Shiki (loaded once; replaces the tree-sitter wasm highlighter).
 const ready = ref(false)
+const hl = ref<HighlighterCore | null>(null)
+const LANG_MAP: Record<string, string> = { cpp: 'cpp', python: 'python', rust: 'rust', json: 'json' }
 
-const LANG_MAP = { cpp: 'cpp', python: 'python', rust: 'rust', json: 'json' }
-const BASE = import.meta.env.BASE_URL || '/'
-const WASM_PATHS = {
-  cpp: `${BASE}tree-sitter-cpp.wasm`,
-  python: `${BASE}tree-sitter-python.wasm`,
-  rust: `${BASE}tree-sitter-rust.wasm`,
-  json: `${BASE}tree-sitter-json.wasm`,
-}
-
-// Minimal reliable tree-sitter queries — only unambiguous node types
-// Everything else (keywords, functions, methods) handled by highlightGap
-const QUERIES = {
-  cpp: `
-    (comment) @comment
-    (number_literal) @number
-    (string_literal) @string
-    (raw_string_literal) @string
-    (char_literal) @string
-    (system_lib_string) @string
-    (type_identifier) @type
-    (primitive_type) @type.builtin
-    (sized_type_specifier) @type.builtin
-    (namespace_identifier) @module
-  `,
-  python: `
-    (comment) @comment
-    (integer) @number
-    (float) @number
-    (string) @string
-    (type (identifier) @type)
-  `,
-  rust: `
-    (line_comment) @comment
-    (block_comment) @comment
-    (string_literal) @string
-    (raw_string_literal) @string
-    (char_literal) @string
-    (integer_literal) @number
-    (float_literal) @number
-    (boolean_literal) @constant.builtin
-    (type_identifier) @type
-    (primitive_type) @type.builtin
-    (attribute_item) @decorator
-    (macro_invocation macro: (identifier) @macro)
-  `,
-  json: `
-    (string) @string
-    (number) @number
-    (null) @constant.builtin
-    (true) @constant.builtin
-    (false) @constant.builtin
-    (pair key: (string) @property)
-  `
-}
-
-const CSS = {
-  'comment': 'ts-c', 'number': 'ts-n', 'string': 'ts-s',
-  'type': 'ts-ty', 'type.builtin': 'ts-tyb', 'type.def': 'ts-tyd',
-  'property': 'ts-pr', 'module': 'ts-mod', 'macro': 'ts-mc',
-  'constant.builtin': 'ts-cb', 'decorator': 'ts-dec',
-  'function': 'ts-fn', 'function.def': 'ts-fnd', 'method': 'ts-mt',
-  'keyword': 'ts-kw', 'variable': 'ts-v', 'variable.builtin': 'ts-vb',
-  'parameter': 'ts-pm', 'operator': 'ts-op',
-  'punctuation.bracket': 'ts-pb', 'punctuation.delimiter': 'ts-pd',
-}
-
-const escapeHtml = (str) => {
+const escapeHtml = (str: string): string => {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
-const KEYWORDS = {
+const KEYWORDS: Record<string, Set<string>> = {
   cpp: new Set(['if','else','for','while','do','return','class','struct','enum','namespace','using','template','typename','public','private','protected','virtual','const','static','inline','new','delete','try','catch','throw','void','int','double','float','bool','char','auto','sizeof','constexpr','override','explicit','extern','volatile','mutable','friend','operator','switch','case','default','break','continue','typedef','union','noexcept','nullptr','true','false','this','#include','#define','#ifdef','#ifndef','#endif','#if','co_await','co_return','co_yield','concept','requires','static_assert','static_cast','dynamic_cast','reinterpret_cast','const_cast']),
   python: new Set(['def','class','return','if','elif','else','for','while','break','continue','pass','import','from','as','with','try','except','finally','raise','yield','lambda','global','nonlocal','assert','del','in','not','and','or','is','async','await','True','False','None','self']),
   rust: new Set(['fn','let','mut','pub','struct','enum','impl','trait','use','mod','crate','super','match','if','else','for','while','loop','break','continue','return','as','const','static','type','where','unsafe','async','await','move','ref','dyn','extern','in','self','Self','true','false']),
@@ -319,8 +253,8 @@ const KEYWORDS = {
 }
 
 // Context-aware gap tokenizer: detects functions, methods, keywords, types
-const highlightGap = (text, lang) => {
-  const kw = KEYWORDS[lang] || new Set()
+const highlightGap = (text: string, lang: string): string => {
+  const kw = KEYWORDS[lang] || new Set<string>()
   const re = /(#?\w+)|([(){}\[\]])|([,;])|([+\-*/%=!<>&|^~?:.@#]+)|(\s+)/g
   const tokens = []
   let m
@@ -380,80 +314,56 @@ const highlightGap = (text, lang) => {
   return result
 }
 
-// Core highlight function using tree-sitter
-const highlight = (code, lang) => {
-  if (!parser || !languages[lang]) return escapeHtml(code)
+// github-dark token colors: identifiers Shiki leaves at the base foreground vs the purple it gives
+// function calls / type names (in C++/Rust, but NOT in Python's TextMate grammar).
+const BASE_FG = '#E1E4E8'
+const ENTITY_FG = '#B392F0'
+
+// Shiki (TextMate) doesn't scope Python function-call / type names — they come out as flat base-color
+// runs. Re-tokenize only those base-color spans and give the same purple a call/type gets elsewhere:
+// a name followed by "(" → call; PascalCase or ALL_CAPS → type. Keyword/string/number spans (their
+// own colors) are never touched.
+const enrichEntities = (inner: string): string =>
+  inner.replace(/<span style="color:#E1E4E8">([^<]*)<\/span>/gi, (_m, text: string) => {
+    const parts: Array<{ id?: string; sym?: string }> = []
+    const re = /([A-Za-z_]\w*)|([^A-Za-z_]+)/g
+    let m: RegExpExecArray | null
+    while ((m = re.exec(text)) !== null) parts.push(m[1] != null ? { id: m[1] } : { sym: m[2] })
+    let out = ''
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i]
+      if (p.sym !== undefined) { out += `<span style="color:${BASE_FG}">${escapeHtml(p.sym)}</span>`; continue }
+      const id = p.id!
+      const nextSym = parts[i + 1]?.sym
+      const isCall = !!nextSym && nextSym.trimStart().startsWith('(')
+      const isType = /^[A-Z][A-Za-z0-9]*$/.test(id) || (/^[A-Z][A-Z0-9_]+$/.test(id))
+      const color = isCall || isType ? ENTITY_FG : BASE_FG
+      out += `<span style="color:${color}">${escapeHtml(id)}</span>`
+    }
+    return out
+  })
+
+// Highlight a snippet → inner token HTML (Shiki's outer <pre><code> stripped so the existing
+// block/inline wrappers keep working). Falls back to escaped text until the highlighter loads.
+const highlight = (code: string, lang: string): string => {
+  const h = hl.value
+  if (!h) return escapeHtml(code)
   try {
-    return _highlight(code, lang)
-  } catch (e) {
-    console.error('highlight error', lang, e)
+    const out = h.codeToHtml(code, { lang: LANG_MAP[lang] || 'text', theme: THEME })
+    const inner = out.replace(/^<pre[^>]*><code[^>]*>/, '').replace(/<\/code><\/pre>\s*$/, '')
+    return enrichEntities(inner)
+  } catch {
     return escapeHtml(code)
   }
 }
 
-const _highlight = (code, lang) => {
-  parser.setLanguage(languages[lang])
-  const tree = parser.parse(code)
-  if (!tree) return escapeHtml(code)
-
-  const query = queries[lang]
-  if (!query) { tree.delete(); return escapeHtml(code) }
-
-  const captures = query.captures(tree.rootNode)
-
-  // Build interval list: for each byte position, track the best (most specific) capture
-  const best = new Map()
-  for (const cap of captures) {
-    const s = cap.node.startIndex
-    const e = cap.node.endIndex
-    if (s === e) continue
-    const key = `${s}:${e}`
-    const existing = best.get(key)
-    // More dots = more specific; equal dots = prefer later (more contextual) pattern
-    if (!existing || cap.name.split('.').length >= existing.name.split('.').length) {
-      best.set(key, cap)
-    }
-  }
-
-  // Sort intervals by start, then by shortest span (most specific)
-  const intervals = Array.from(best.values())
-    .map(c => ({ s: c.node.startIndex, e: c.node.endIndex, cls: CSS[c.name] || 'ts-v' }))
-    .sort((a, b) => a.s - b.s || (a.e - a.s) - (b.e - b.s))
-
-  // Render: walk through code, emit spans for intervals, skip overlaps
-  let result = ''
-  let pos = 0
-  for (const iv of intervals) {
-    if (iv.s < pos) continue
-    if (iv.s > pos) result += highlightGap(code.slice(pos, iv.s), lang)
-    const text = code.slice(iv.s, iv.e)
-    result += `<span class="${iv.cls}">${escapeHtml(text)}</span>`
-    pos = iv.e
-  }
-  if (pos < code.length) result += highlightGap(code.slice(pos), lang)
-
-  tree.delete()
-  return result
-}
-
 onMounted(async () => {
   try {
-    await Parser.init({ locateFile: (f) => `${BASE}${f}` })
-    parser = new Parser()
+    hl.value = await getHighlighter()
+    ready.value = true
   } catch (e) {
-    console.error('tree-sitter init failed:', e)
-    return
+    console.error('shiki init failed:', e)
   }
-  for (const lang of Object.keys(WASM_PATHS)) {
-    try {
-      const language = await Parser.Language.load(WASM_PATHS[lang])
-      languages[lang] = language
-      queries[lang] = language.query(QUERIES[lang])
-    } catch (e) {
-      console.error(`tree-sitter ${lang} query failed:`, e.message)
-    }
-  }
-  ready.value = true
 })
 
 const suites = computed(() => {
@@ -801,7 +711,7 @@ pre {
 }
 .error-message {
   margin-top: 0.15rem;
-  font-family: monospace;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
   color: #ff5555;
 }
 .test-card {

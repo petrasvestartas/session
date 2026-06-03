@@ -8,7 +8,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import TestViewer from '../components/TestViewer.vue';
@@ -16,18 +16,18 @@ import TestViewer from '../components/TestViewer.vue';
 const route = useRoute();
 
 const activeSuite = ref('point_test');
-const tests = ref([]);
-const suites = ref([]);
+const tests = ref<any[]>([]);
+const suites = ref<string[]>([]);
 
 const loadTests = () => {
-  if (typeof window.TEST_DATA === 'undefined') {
+  if (typeof (window as any).TEST_DATA === 'undefined') {
     console.warn('TEST_DATA not found. Run: bash minitest.sh');
-    window.TEST_DATA = {};
+    (window as any).TEST_DATA = {};
     return;
   }
 
-  const all = [];
-  const data = window.TEST_DATA;
+  const all: any[] = [];
+  const data = (window as any).TEST_DATA;
 
   for (const [key, testArray] of Object.entries(data)) {
     if (!Array.isArray(testArray)) continue;
@@ -36,7 +36,7 @@ const loadTests = () => {
     const language = parts.pop();
     const suite = parts.join('_');
 
-    testArray.forEach((t, idx) => {
+    testArray.forEach((t: any, idx: number) => {
       all.push({
         id: `${key}:${t.test_name}:${idx}`,
         suite,
@@ -48,7 +48,7 @@ const loadTests = () => {
 
   tests.value = all;
 
-  const set = new Set();
+  const set = new Set<string>();
   for (const t of all) {
     if (t.suite) set.add(t.suite);
   }

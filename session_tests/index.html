@@ -8,11 +8,8 @@
   </head>
   <body>
     <div id="app">ROOT PLACEHOLDER — if you see this text, Vue did not mount.</div>
-    <!-- Load pre-generated test data (from public/testData.js) -->
-    <script src="testData.js"></script>
-    <!-- Load unified API index for cross-language search -->
-    <script src="apiIndex.js"></script>
-    <!-- Vite entrypoint -->
-    <script type="module" src="/src/main.js"></script>
+    <!-- testData.js (~3.5MB) is lazy-loaded on demand (src/dataLoader.ts) only when the Tests
+         tab opens — not on every page. -->
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

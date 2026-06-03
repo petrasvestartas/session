@@ -55519,31 +55519,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "ReciprocalResult.__init__",
-      "implementations": {
-        "python": {
-          "sig": "__init__()",
-          "code": "def __init__(self):\n\n        self.center: List[Line] = []\n        self.top: List[Line] = []\n        self.bottom: List[Line] = []\n        self.lineplanes: List[Plane] = []\n        self.endplanes: List[List[Plane]] = []\n\n\nclass Reciprocal:\n    @staticmethod\n    def from_mesh(\n        mesh: Mesh,\n        angle: float,\n        scale: float,\n        use_ngon_normals: bool,\n        height: float,\n    ) -> ReciprocalResult:\n        fkeys = mesh.faces()\n        ekeys = mesh.edges()\n        ne = len(ekeys)\n        nf = len(fkeys)\n\n        edge_idx = {}\n        for i, (u, v) in enumerate(ekeys):\n            edge_idx[(u, v)] = i\n            edge_idx[(v, u)] = i\n\n        fplane = {}\n        for fk in fkeys:\n            n = mesh.face_normal(fk)\n            c = mesh.face_centroid(fk)\n            if n is not None and c is not None:\n                fplane[fk] = Plane.from_point_normal(c, n)\n\n        fe = []\n        for fi in range(nf):\n            fk = fkeys[fi]\n            edges_of_face = mesh.face_edges(fk) or []\n            row = []\n            for (u, v) in edges_of_face:\n                key = (min(u, v), max(u, v))\n                if key in edge_idx:\n                    row.append(edge_idx[key])\n            fe.append(row)\n\n        vecs = [Vector(0, 0, 0)] * ne\n        for ei, (u, v) in enumerate(ekeys):\n            adj = mesh.edge_faces(u, v)\n            if not adj:\n                continue\n            sx, sy, sz = 0.0, 0.0, 0.0\n            for fk in adj:\n                if fk in fplane:\n                    z = fplane[fk].z_axis\n                    sx += z[0]; sy += z[1]; sz += z[2]\n            count = len(adj)\n            if count > 0:\n                ax, ay, az = sx / count, sy / count, sz / count\n                length = (ax*ax + ay*ay + az*az) ** 0.5\n                if length > 1e-12:\n                    vecs[ei] = Vector(ax / length, ay / length, az / length)\n\n        lines = []\n        for u, v in ekeys:\n            el = mesh.edge_line(u, v)\n            if el is not None:\n                lines.append(copy.deepcopy(el))\n            else:\n                lines.append(Line())\n\n        for ei in range(ne):\n            v = vecs[ei]\n            if v[0] == 0.0 and v[1] == 0.0 and v[2] == 0.0:\n                continue\n            mid = lines[ei].center()\n            lines[ei].xform = Xform.scale_uniform(mid, scale)\n            lines[ei].transform()\n            mid2 = lines[ei].center()\n            axis_end = Point(mid2[0] + v[0], mid2[1] + v[1], mid2[2] + v[2])\n            rot_axis = Line.from_points(mid2, axis_end)",
-          "file": "reciprocal.py"
-        }
-      }
-    },
-    {
-      "name": "Reciprocal.from_mesh",
-      "implementations": {
-        "python": {
-          "sig": "from_mesh(\n        mesh: Mesh,\n        angle: float,\n        scale: float,\n        use_ngon_normals: bool,\n        height: float,\n    ) -> ReciprocalResult",
-          "code": "def from_mesh(\n        mesh: Mesh,\n        angle: float,\n        scale: float,\n        use_ngon_normals: bool,\n        height: float,\n    ) -> ReciprocalResult:\n\n        fkeys = mesh.faces()\n        ekeys = mesh.edges()\n        ne = len(ekeys)\n        nf = len(fkeys)\n\n        edge_idx = {}\n        for i, (u, v) in enumerate(ekeys):\n            edge_idx[(u, v)] = i\n            edge_idx[(v, u)] = i\n\n        fplane = {}\n        for fk in fkeys:\n            n = mesh.face_normal(fk)\n            c = mesh.face_centroid(fk)\n            if n is not None and c is not None:\n                fplane[fk] = Plane.from_point_normal(c, n)\n\n        fe = []\n        for fi in range(nf):\n            fk = fkeys[fi]\n            edges_of_face = mesh.face_edges(fk) or []\n            row = []\n            for (u, v) in edges_of_face:\n                key = (min(u, v), max(u, v))\n                if key in edge_idx:\n                    row.append(edge_idx[key])\n            fe.append(row)\n\n        vecs = [Vector(0, 0, 0)] * ne\n        for ei, (u, v) in enumerate(ekeys):\n            adj = mesh.edge_faces(u, v)\n            if not adj:\n                continue\n            sx, sy, sz = 0.0, 0.0, 0.0\n            for fk in adj:\n                if fk in fplane:\n                    z = fplane[fk].z_axis\n                    sx += z[0]; sy += z[1]; sz += z[2]\n            count = len(adj)\n            if count > 0:\n                ax, ay, az = sx / count, sy / count, sz / count\n                length = (ax*ax + ay*ay + az*az) ** 0.5\n                if length > 1e-12:\n                    vecs[ei] = Vector(ax / length, ay / length, az / length)\n\n        lines = []\n        for u, v in ekeys:\n            el = mesh.edge_line(u, v)\n            if el is not None:\n                lines.append(copy.deepcopy(el))\n            else:\n                lines.append(Line())\n\n        for ei in range(ne):\n            v = vecs[ei]\n            if v[0] == 0.0 and v[1] == 0.0 and v[2] == 0.0:\n                continue\n            mid = lines[ei].center()\n            lines[ei].xform = Xform.scale_uniform(mid, scale)\n            lines[ei].transform()\n            mid2 = lines[ei].center()\n            axis_end = Point(mid2[0] + v[0], mid2[1] + v[1], mid2[2] + v[2])\n            rot_axis = Line.from_points(mid2, axis_end)\n            lines[ei].xform = Xform.rotation_around_line(rot_axis, angle)\n            lines[ei].transform()\n\n        lp = []\n        for ei in range(ne):\n            mid = lines[ei].center()\n            d = lines[ei].to_direction()\n            v = vecs[ei]\n            if not (v[0] == 0.0 and v[1] == 0.0 and v[2] == 0.0):\n                lp.append(Plane(mid, d, v))\n            else:\n                lp.append(Plane.from_point_normal(mid, d))\n\n        result = ReciprocalResult()\n        result.lineplanes = lp",
-          "file": "reciprocal.py"
-        },
-        "cpp": {
-          "sig": "Reciprocal::Result from_mesh(\n    const Mesh& mesh,\n    double angle,\n    double scale,\n    bool   /*use_ngon_normals*/,\n    double height)",
-          "code": "Reciprocal::Result Reciprocal::from_mesh(\n    const Mesh& mesh,\n    double angle,\n    double scale,\n    bool   /*use_ngon_normals*/,\n    double height)\n{\n    auto fkeys = mesh.faces();\n    auto ekeys = mesh.edges();\n    int ne = (int)ekeys.size();\n    int nf = (int)fkeys.size();\n\n    std::map<std::pair<size_t,size_t>, int> edge_idx;\n    for (int i = 0; i < ne; i++) {\n        edge_idx[ekeys[i]] = i;\n        edge_idx[{ekeys[i].second, ekeys[i].first}",
-          "file": "reciprocal.cpp"
-        }
-      }
-    },
-    {
       "name": "_P64.__init__",
       "implementations": {
         "python": {
@@ -80075,16 +80050,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Reciprocal.get_lines",
-      "implementations": {
-        "cpp": {
-          "sig": "std::vector<Line> get_lines(\n    const std::vector<Line>&             lines,\n    const std::vector<Plane>&            lp,\n    const std::vector<std::vector<int>>& fe,\n    std::vector<std::array<Plane,2>>&    end_planes,\n    double move)",
-          "code": "std::vector<Line> Reciprocal::get_lines(\n    const std::vector<Line>&             lines,\n    const std::vector<Plane>&            lp,\n    const std::vector<std::vector<int>>& fe,\n    std::vector<std::array<Plane,2>>&    end_planes,\n    double move)\n{\n    int ne = (int)lines.size();\n    int nf = (int)fe.size();\n\n    std::vector<Line> moved = lines;\n    for (int i = 0; i < ne; i++)\n        moved[i] += lp[i].y_axis() * move;\n\n    std::vector<std::vector<Point>> pts(ne);\n    std::vector<std::vector<int>>   pid(ne);\n\n    for (int fi = 0; fi < nf; fi++) {\n        int n = (int)fe[fi].size();\n        for (int j = 0; j < n; j++) {\n            int cur  = fe[fi][j];\n            int prev = fe[fi][((j - 1) % n + n) % n];\n            int next = fe[fi][(j + 1) % n];\n            Point p0, p1;\n            if (Intersection::line_plane(moved[cur], lp[prev], p0, false)) {\n                pts[cur].push_back(p0);\n                pid[cur].push_back(prev);\n            }",
-          "file": "reciprocal.cpp"
-        }
-      }
-    },
-    {
       "name": "Delaunay.CleanUp",
       "implementations": {
         "cpp": {
@@ -97139,21 +97104,6 @@ window.API_INDEX = {
       }
     },
     {
-      "name": "Reciprocal.test_from_mesh",
-      "implementations": {
-        "cpp": {
-          "sig": "MINI_TEST(\"Reciprocal\", \"from_mesh\")",
-          "code": "MINI_TEST(\"Reciprocal\", \"from_mesh\") {\n        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(2, 0, 0),\n            Point(0, 1, 0),\n            Point(1, 1, 0),\n            Point(2, 1, 0),\n            Point(0, 2, 0),\n            Point(1, 2, 0),\n            Point(2, 2, 0),\n        };\n        std::vector<std::vector<size_t>> faces = {\n            {0, 1, 4, 3},\n            {1, 2, 5, 4},\n            {3, 4, 7, 6},\n            {4, 5, 8, 7},\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, faces);\n        auto r = Reciprocal::from_mesh(mesh, 0.7, 1.4, true, 1.0);\n        int ne = (int)mesh.number_of_edges();\n        MINI_CHECK((int)r.center.size() == ne);\n        MINI_CHECK((int)r.top.size() == ne);\n        MINI_CHECK((int)r.bottom.size() == ne);\n        MINI_CHECK((int)r.lineplanes.size() == ne);\n        MINI_CHECK((int)r.endplanes.size() == ne);\n        MINI_CHECK(r.center[0].length() > 0.0);\n        MINI_CHECK(r.lineplanes[0].is_valid());\n    }",
-          "file": "reciprocal_test.cpp"
-        },
-        "python": {
-          "sig": "@MINI_TEST(\"Reciprocal\", \"from_mesh\")",
-          "code": "@MINI_TEST(\"Reciprocal\", \"from_mesh\")\ndef test_reciprocal_from_mesh():\n    from session_py import Mesh\n    from session_py import Point\n    from session_py.reciprocal import Reciprocal\n\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(2, 0, 0),\n        Point(0, 1, 0),\n        Point(1, 1, 0),\n        Point(2, 1, 0),\n        Point(0, 2, 0),\n        Point(1, 2, 0),\n        Point(2, 2, 0),\n    ]\n    faces = [\n        [0, 1, 4, 3],\n        [1, 2, 5, 4],\n        [3, 4, 7, 6],\n        [4, 5, 8, 7],\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, faces)\n    r = Reciprocal.from_mesh(mesh, 0.7, 1.4, True, 1.0)\n    ne = mesh.number_of_edges()\n    MINI_CHECK(len(r.center) == ne)\n    MINI_CHECK(len(r.top) == ne)\n    MINI_CHECK(len(r.bottom) == ne)\n    MINI_CHECK(len(r.lineplanes) == ne)\n    MINI_CHECK(len(r.endplanes) == ne)\n    MINI_CHECK(r.center[0].length() > 0.0)\n    MINI_CHECK(r.lineplanes[0].is_valid())\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
-          "file": "reciprocal_test.py"
-        }
-      }
-    },
-    {
       "name": "RemeshCDT.test_Triangulate",
       "implementations": {
         "cpp": {
@@ -101163,11 +101113,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "points",
-        "into",
-        "subdivide",
-        "n",
         "circle",
+        "n",
+        "subdivide",
+        "into",
+        "points",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -101182,8 +101132,8 @@ window.API_INDEX = {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
         "length",
-        "arc",
         "by",
+        "arc",
         "ellipse",
         "subdivide",
         "divide_by_length",
@@ -101199,9 +101149,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
+        "points",
         "through",
         "arc",
-        "points",
         "nurbscurve",
         "primitives",
         "point"
@@ -101215,12 +101165,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "curve",
-        "points",
-        "from",
-        "adaptive",
-        "open",
         "polyline",
+        "open",
+        "curve",
+        "adaptive",
+        "from",
+        "points",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -101235,10 +101185,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "curve",
-        "evaluation",
         "at",
         "parameter",
+        "evaluation",
+        "curve",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -101257,10 +101207,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "length",
-        "curve",
         "frames",
+        "length",
         "along",
+        "curve",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -101283,8 +101233,8 @@ window.API_INDEX = {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
         "frames",
-        "ellipse",
         "perpendicular",
+        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -101305,10 +101255,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "surface",
-        "evaluate",
-        "cylinder",
         "point",
+        "surface",
+        "cylinder",
+        "evaluate",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -101323,10 +101273,10 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "vertices",
         "mesh",
-        "faces",
         "from",
+        "vertices",
+        "faces",
         "and",
         "add_vertex",
         "add_face",
@@ -101398,8 +101348,6 @@ window.API_INDEX = {
     "Polyline": "A polyline defined by a collection of coordinates with an associated plane.",
     "Primitives": "Static factory methods for creating NURBS curve primitives.",
     "Quaternion": "A quaternion for 3D rotations (scalar + vector).",
-    "ReciprocalResult": "ReciprocalResult geometry class",
-    "Reciprocal": "Reciprocal geometry class",
     "_P64": "_P64 geometry class",
     "_V2": "_V2 geometry class",
     "_Edge": "_Edge geometry class",
@@ -101463,6 +101411,24 @@ window.API_INDEX = {
       ],
       "summary": "RemeshNurbsSurfaceGrid geometry class"
     },
+    "CurveNurbsKnotStyle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
+    },
+    "GlobalSessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "GlobalSessionConfig geometry class"
+    },
+    "GeometryFileEncoder": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
+    },
     "NurbsSurfaceTrimmed": {
       "composition": [],
       "factories": [],
@@ -101476,29 +101442,11 @@ window.API_INDEX = {
       ],
       "summary": "NurbsSurfaceTrimmed geometry class"
     },
-    "CurveNurbsKnotStyle": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
-    },
     "GeometryFileDecoder": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
-    },
-    "GeometryFileEncoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
-    },
-    "GlobalSessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "GlobalSessionConfig geometry class"
     },
     "TriangulateResult": {
       "composition": [],
@@ -101511,14 +101459,6 @@ window.API_INDEX = {
       ],
       "summary": "TriangulateResult geometry class"
     },
-    "ReciprocalResult": {
-      "composition": [],
-      "factories": [
-        "Reciprocal"
-      ],
-      "uses": [],
-      "summary": "ReciprocalResult geometry class"
-    },
     "GlobalTolerance": {
       "composition": [],
       "factories": [],
@@ -101528,6 +101468,14 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "GlobalTolerance geometry class"
+    },
+    "BooleanPolyline": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Polyline"
+      ],
+      "summary": "BooleanPolyline geometry class"
     },
     "ElementSchoring": {
       "composition": [],
@@ -101543,13 +101491,25 @@ window.API_INDEX = {
       ],
       "summary": "SpatialAABBTree geometry class"
     },
-    "BooleanPolyline": {
+    "ToleranceGuard": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Polyline"
+        "Tolerance"
       ],
-      "summary": "BooleanPolyline geometry class"
+      "summary": "ToleranceGuard geometry class"
+    },
+    "_PartitionVars": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_PartitionVars geometry class"
+    },
+    "VIntersectNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VIntersectNode geometry class"
     },
     "SpatialBVHNode": {
       "composition": [],
@@ -101562,35 +101522,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "A node in the SpatialBVH tree."
-    },
-    "ToleranceGuard": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tolerance"
-      ],
-      "summary": "ToleranceGuard geometry class"
-    },
-    "VIntersectNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VIntersectNode geometry class"
-    },
-    "_PartitionVars": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_PartitionVars geometry class"
-    },
-    "SpatialKDTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "_Node"
-      ],
-      "summary": "KD-tree for point-to-point nearest-neighbor queries."
     },
     "SessionConfig": {
       "composition": [],
@@ -101611,36 +101542,14 @@ window.API_INDEX = {
       ],
       "summary": "ElementColumn geometry class"
     },
-    "Intersection": {
-      "composition": [
-        "Element",
-        "Line",
-        "Polyline",
-        "Tolerance",
-        "Vector"
-      ],
+    "SpatialKDTree": {
+      "composition": [],
       "factories": [],
       "uses": [
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point"
+        "Point",
+        "_Node"
       ],
-      "summary": "Intersection geometry class"
-    },
-    "VLocalMinima": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VLocalMinima geometry class"
-    },
-    "VattiScratch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VattiScratch geometry class"
+      "summary": "KD-tree for point-to-point nearest-neighbor queries."
     },
     "BRepTrimType": {
       "composition": [],
@@ -101656,6 +101565,33 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "BRepTrimType geometry class"
+    },
+    "VattiScratch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VattiScratch geometry class"
+    },
+    "LoftWallFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftWallFace geometry class"
+    },
+    "ElementPlate": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "ElementPlate geometry class"
     },
     "NurbsSurface": {
       "composition": [
@@ -101690,46 +101626,36 @@ window.API_INDEX = {
       "uses": [],
       "summary": "ScanlineHeap geometry class"
     },
-    "ElementPlate": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "ElementPlate geometry class"
-    },
-    "LoftWallFace": {
+    "VLocalMinima": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "LoftWallFace geometry class"
+      "summary": "VLocalMinima geometry class"
+    },
+    "Intersection": {
+      "composition": [
+        "Element",
+        "Line",
+        "Polyline",
+        "Tolerance",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point"
+      ],
+      "summary": "Intersection geometry class"
     },
     "BRepLoopType": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepLoopType geometry class"
-    },
-    "session_cpp": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "session_cpp geometry class"
-    },
-    "LoftAdjPair": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftAdjPair geometry class"
     },
     "ElementBeam": {
       "composition": [],
@@ -101744,11 +101670,58 @@ window.API_INDEX = {
       ],
       "summary": "ElementBeam geometry class"
     },
+    "LoftAdjPair": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftAdjPair geometry class"
+    },
     "_Delaunay2D": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Delaunay2D geometry class"
+    },
+    "session_cpp": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "session_cpp geometry class"
+    },
+    "Quaternion": {
+      "composition": [
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Plane"
+      ],
+      "summary": "A quaternion for 3D rotations (scalar + vector)."
+    },
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
+    },
+    "ConvexHull": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Point"
+      ],
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+    },
+    "VertexData": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "Vertex data containing position and attributes."
     },
     "Primitives": {
       "composition": [
@@ -101765,6 +101738,22 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "Static factory methods for creating NURBS curve primitives."
+    },
+    "MeshOffset": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Plane",
+        "Point"
+      ],
+      "summary": "MeshOffset geometry class"
+    },
+    "BRepVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepVertex geometry class"
     },
     "NurbsCurve": {
       "composition": [
@@ -101787,57 +101776,6 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
-    "SpatialBVH": {
-      "composition": [],
-      "factories": [
-        "SpatialBVHNode"
-      ],
-      "uses": [
-        "AABB",
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
-    },
-    "Quaternion": {
-      "composition": [
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Plane"
-      ],
-      "summary": "A quaternion for 3D rotations (scalar + vector)."
-    },
-    "ConvexHull": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Point"
-      ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
-    },
-    "Reciprocal": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "Plane",
-        "ReciprocalResult"
-      ],
-      "summary": "Reciprocal geometry class"
-    },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "Vertex data containing position and attributes."
-    },
     "PointCloud": {
       "composition": [
         "Color",
@@ -101853,37 +101791,24 @@ window.API_INDEX = {
       ],
       "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
     },
-    "Delaunay2D": {
+    "SpatialBVH": {
       "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Delaunay2D geometry class"
-    },
-    "BRepVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepVertex geometry class"
-    },
-    "MeshOffset": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Plane",
-        "Point"
+      "factories": [
+        "SpatialBVHNode"
       ],
-      "summary": "MeshOffset geometry class"
-    },
-    "Tolerance": {
-      "composition": [],
-      "factories": [],
       "uses": [
+        "AABB",
+        "OBB",
         "Point",
-        "ToleranceGuard",
         "Vector"
       ],
-      "summary": "Tolerance settings for geometric operations."
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
+    },
+    "LoftPanel": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftPanel geometry class"
     },
     "Component": {
       "composition": [],
@@ -101907,44 +101832,15 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
-    "_Vertex2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Vertex2D geometry class"
-    },
-    "VHorzJoin": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzJoin geometry class"
-    },
-    "LoftPanel": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftPanel geometry class"
-    },
-    "_Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay geometry class"
-    },
-    "_Triangle": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Triangle geometry class"
-    },
-    "RemeshCDT": {
+    "Tolerance": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Mesh",
-        "Polyline"
+        "Point",
+        "ToleranceGuard",
+        "Vector"
       ],
-      "summary": "RemeshCDT geometry class"
+      "summary": "Tolerance settings for geometric operations."
     },
     "FlatMap64": {
       "composition": [],
@@ -101955,6 +101851,66 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "FlatMap64 geometry class"
+    },
+    "RemeshCDT": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Polyline"
+      ],
+      "summary": "RemeshCDT geometry class"
+    },
+    "_Triangle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Triangle geometry class"
+    },
+    "VHorzJoin": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzJoin geometry class"
+    },
+    "_Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay geometry class"
+    },
+    "_Vertex2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Vertex2D geometry class"
+    },
+    "Geometry": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Geometry geometry class"
+    },
+    "Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Edge",
+        "TriangulateResult"
+      ],
+      "summary": "Delaunay geometry class"
+    },
+    "BRepFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepFace geometry class"
+    },
+    "VHorzSeg": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzSeg geometry class"
     },
     "BRepEdge": {
       "composition": [],
@@ -101986,14 +101942,11 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "Delaunay": {
+    "BRepLoop": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Edge",
-        "TriangulateResult"
-      ],
-      "summary": "Delaunay geometry class"
+      "uses": [],
+      "summary": "BRepLoop geometry class"
     },
     "TreeNode": {
       "composition": [],
@@ -102003,47 +101956,38 @@ window.API_INDEX = {
       ],
       "summary": "A node of a tree data structure."
     },
-    "Geometry": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Geometry geometry class"
-    },
     "BRepTrim": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepTrim geometry class"
     },
-    "BRepFace": {
+    "VVertex": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepFace geometry class"
+      "summary": "VVertex geometry class"
     },
-    "VHorzSeg": {
+    "Closest": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "VHorzSeg geometry class"
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Static methods for finding closest points between geometry objects."
     },
-    "BRepLoop": {
+    "VOutRec": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepLoop geometry class"
-    },
-    "_Branch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Branch geometry class"
-    },
-    "Dataset": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Dataset geometry class"
+      "summary": "VOutRec geometry class"
     },
     "VActive": {
       "composition": [],
@@ -102069,11 +102013,11 @@ window.API_INDEX = {
       ],
       "summary": "Element geometry class"
     },
-    "VVertex": {
+    "Dataset": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VVertex geometry class"
+      "summary": "Dataset geometry class"
     },
     "Default": {
       "composition": [],
@@ -102135,32 +102079,40 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "Closest": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Static methods for finding closest points between geometry objects."
-    },
-    "VOutRec": {
+    "_Branch": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VOutRec geometry class"
+      "summary": "_Branch geometry class"
+    },
+    "Vertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Graph",
+        "session_cpp"
+      ],
+      "summary": "A graph vertex with a unique identifier and attribute string."
     },
     "VOutPt": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VOutPt geometry class"
+    },
+    "Vector": {
+      "composition": [],
+      "factories": [
+        "Line",
+        "Plane",
+        "Quaternion",
+        "Xform"
+      ],
+      "uses": [
+        "Point",
+        "session_cpp"
+      ],
+      "summary": "A 3D vector with visual properties."
     },
     "BIVec2": {
       "composition": [],
@@ -102180,35 +102132,6 @@ window.API_INDEX = {
       "uses": [],
       "summary": "RayHit geometry class"
     },
-    "Vector": {
-      "composition": [],
-      "factories": [
-        "Line",
-        "Plane",
-        "Quaternion",
-        "Xform"
-      ],
-      "uses": [
-        "Point",
-        "session_cpp"
-      ],
-      "summary": "A 3D vector with visual properties."
-    },
-    "Vertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Graph",
-        "session_cpp"
-      ],
-      "summary": "A graph vertex with a unique identifier and attribute string."
-    },
-    "_Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Edge geometry class"
-    },
     "Graph": {
       "composition": [
         "Edge"
@@ -102218,6 +102141,40 @@ window.API_INDEX = {
         "Vertex"
       ],
       "summary": "A graph data structure with string-only vertices and attributes."
+    },
+    "Plane": {
+      "composition": [],
+      "factories": [
+        "OBB",
+        "Quaternion"
+      ],
+      "uses": [
+        "Point",
+        "Polyline",
+        "Vector",
+        "session_cpp"
+      ],
+      "summary": "A 3D plane defined by origin and coordinate axes."
+    },
+    "Color": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "session_cpp"
+      ],
+      "summary": "An index-based 0.0-1.0 color with RGBA values."
+    },
+    "_Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Edge geometry class"
+    },
+    "_Rect": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Rect geometry class"
     },
     "_Node": {
       "composition": [],
@@ -102240,14 +102197,6 @@ window.API_INDEX = {
       ],
       "summary": "Xform geometry class"
     },
-    "Color": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "An index-based 0.0-1.0 color with RGBA values."
-    },
     "Point": {
       "composition": [],
       "factories": [
@@ -102262,37 +102211,32 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A 3D point with visual properties."
     },
-    "_Rect": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Rect geometry class"
-    },
-    "Plane": {
-      "composition": [],
+    "Mesh": {
+      "composition": [
+        "ColorMode",
+        "LoftAdjPair",
+        "LoftPanel",
+        "LoftWallFace",
+        "SpatialAABBTree"
+      ],
       "factories": [
+        "AABB",
+        "ColorMode",
+        "Element",
+        "MeshOffset",
         "OBB",
-        "Quaternion"
+        "RemeshCDT",
+        "RemeshNurbsSurfaceGrid"
       ],
       "uses": [
+        "Color",
+        "Line",
         "Point",
         "Polyline",
         "Vector",
-        "session_cpp"
+        "Xform"
       ],
-      "summary": "A 3D plane defined by origin and coordinate axes."
-    },
-    "_Tri": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Tri geometry class"
-    },
-    "_P64": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_P64 geometry class"
+      "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
     "Line": {
       "composition": [
@@ -102310,27 +102254,26 @@ window.API_INDEX = {
       ],
       "summary": "A 3D line segment with visual properties."
     },
-    "Edge": {
+    "_Tri": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
+      "summary": "_Tri geometry class"
     },
-    "AABB": {
+    "_P64": {
       "composition": [],
-      "factories": [
-        "OBB"
+      "factories": [],
+      "uses": [],
+      "summary": "_P64 geometry class"
+    },
+    "Tree": {
+      "composition": [
+        "Color",
+        "TreeNode"
       ],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Axis-aligned bounding box (center + half-size)."
+      "factories": [],
+      "uses": [],
+      "summary": "A hierarchical data structure with parent-child relationships."
     },
     "BRep": {
       "composition": [
@@ -102356,42 +102299,33 @@ window.API_INDEX = {
       ],
       "summary": "BRep geometry class"
     },
-    "Mesh": {
-      "composition": [
-        "ColorMode",
-        "LoftAdjPair",
-        "LoftPanel",
-        "LoftWallFace",
-        "SpatialAABBTree"
-      ],
+    "AABB": {
+      "composition": [],
       "factories": [
-        "AABB",
-        "ColorMode",
-        "Element",
-        "MeshOffset",
-        "OBB",
-        "Reciprocal",
-        "RemeshCDT",
-        "RemeshNurbsSurfaceGrid"
+        "OBB"
       ],
       "uses": [
-        "Color",
         "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
         "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
+        "PointCloud",
+        "Polyline"
       ],
-      "summary": "A halfedge mesh data structure for representing polygonal surfaces."
+      "summary": "Axis-aligned bounding box (center + half-size)."
     },
-    "Tree": {
-      "composition": [
-        "Color",
-        "TreeNode"
-      ],
+    "Edge": {
+      "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
+    "_V2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_V2 geometry class"
     },
     "OBB": {
       "composition": [
@@ -102414,12 +102348,6 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
-    },
-    "_V2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],
@@ -102463,7 +102391,6 @@ window.API_INDEX = {
       "AABB.from_mesh",
       "MeshOffset.from_mesh",
       "OBB.from_mesh",
-      "Reciprocal.from_mesh",
       "Element.from_mesh"
     ],
     "from_pointcloud": [
@@ -102622,7 +102549,6 @@ window.API_INDEX = {
       "PointCloud.__init__",
       "Polyline.__init__",
       "Quaternion.__init__",
-      "ReciprocalResult.__init__",
       "_P64.__init__",
       "_V2.__init__",
       "_Edge.__init__",
@@ -105795,8 +105721,7 @@ window.API_INDEX = {
       "Polyline.segment_count"
     ],
     "get_lines": [
-      "Polyline.get_lines",
-      "Reciprocal.get_lines"
+      "Polyline.get_lines"
     ],
     "lines": [
       "Polyline.lines"
@@ -108886,27 +108811,6 @@ window.API_INDEX = {
         "cpp",
         "python",
         "rust"
-      ],
-      "status": "TODO"
-    },
-    "ReciprocalResult": {
-      "cpp": 0,
-      "python": 1,
-      "rust": 0,
-      "gaps": 1,
-      "present_in": [
-        "python"
-      ],
-      "status": "TODO"
-    },
-    "Reciprocal": {
-      "cpp": 2,
-      "python": 1,
-      "rust": 0,
-      "gaps": 2,
-      "present_in": [
-        "cpp",
-        "python"
       ],
       "status": "TODO"
     },

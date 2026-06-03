@@ -60,6 +60,7 @@ jobs:
           ~/.cargo/registry/cache/
           ~/.cargo/git/db/
           session_rust/target/
+          session_viewer/target/
         key: rust-${{ matrix.os }}-${{ hashFiles('session_rust/Cargo.lock') }}
         restore-keys: rust-${{ matrix.os }}-
 
@@ -94,6 +95,23 @@ jobs:
     - name: Install npm dependencies
       working-directory: session_tests
       run: npm ci || npm install
+
+    # ============ VIEWER (wasm) ============
+    # Compile the viewer fresh (release) and copy it into session_tests/public/viewer so the site
+    # build below embeds the latest. Only the 'full' job builds the deployable site, so guard to it.
+    - name: Install trunk + wasm target (full job)
+      if: matrix.language == 'full'
+      shell: bash
+      run: |
+        rustup target add wasm32-unknown-unknown
+        curl -sSL https://github.com/trunk-rs/trunk/releases/download/v0.21.14/trunk-x86_64-unknown-linux-gnu.tar.gz \
+          | tar -xzf - -C "$HOME/.cargo/bin"
+        trunk --version
+
+    - name: Build viewer (wasm, release) into the docs site
+      if: matrix.language == 'full'
+      shell: bash
+      run: bash ./bash/build_viewer.sh
 
     # ============ RUN TESTS ============
 

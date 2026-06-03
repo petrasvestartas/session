@@ -9,12 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "firebase": "^12.6.0",
-    "mermaid": "^11.14.0",
-    "tree-sitter-wasms": "^0.1.13",
+    "marked": "^18.0.4",
+    "shiki": "^4.2.0",
     "vue": "^3.4.21",
-    "vue-router": "^4.2.5",
-    "web-tree-sitter": "^0.24.0"
+    "vue-router": "^4.2.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",

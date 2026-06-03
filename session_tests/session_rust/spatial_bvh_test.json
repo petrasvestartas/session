@@ -33,7 +33,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Expand Bits",
-    "time_ms": 0.013
+    "time_ms": 0.03
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 46,
     "passed": true,
     "test_name": "Morton Code Origin",
-    "time_ms": 0.008
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -70,7 +70,7 @@
     "line": 55,
     "passed": true,
     "test_name": "Morton Code Corners",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -86,7 +86,7 @@
     "line": 66,
     "passed": true,
     "test_name": "Morton Code Spatial Locality",
-    "time_ms": 0.005
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -117,7 +117,7 @@
     "line": 79,
     "passed": true,
     "test_name": "Node Creation",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -138,7 +138,7 @@
     "line": 91,
     "passed": true,
     "test_name": "Node Leaf",
-    "time_ms": 0.005
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -169,7 +169,7 @@
     "line": 102,
     "passed": true,
     "test_name": "Creation",
-    "time_ms": 0.003
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -185,7 +185,7 @@
     "line": 114,
     "passed": true,
     "test_name": "Build Empty",
-    "time_ms": 0.006
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -201,7 +201,7 @@
     "line": 124,
     "passed": true,
     "test_name": "Build Single",
-    "time_ms": 0.038
+    "time_ms": 0.057
   },
   {
     "checks": [
@@ -222,7 +222,7 @@
     "line": 142,
     "passed": true,
     "test_name": "Build Multiple",
-    "time_ms": 0.05
+    "time_ms": 0.097
   },
   {
     "checks": [
@@ -243,7 +243,7 @@
     "line": 164,
     "passed": true,
     "test_name": "Aabb Intersect",
-    "time_ms": 0.01
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -274,7 +274,7 @@
     "line": 183,
     "passed": true,
     "test_name": "Check All Collisions",
-    "time_ms": 0.054
+    "time_ms": 0.07
   },
   {
     "checks": [
@@ -295,7 +295,7 @@
     "line": 207,
     "passed": true,
     "test_name": "Merge Aabb",
-    "time_ms": 0.013
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -516,7 +516,7 @@
     "line": 224,
     "passed": true,
     "test_name": "Fixed 100 Boxes",
-    "time_ms": 0.636
+    "time_ms": 2.297
   },
   {
     "checks": [
@@ -537,7 +537,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.045
+    "time_ms": 0.16
   },
   {
     "checks": [
@@ -568,7 +568,7 @@
     "line": 358,
     "passed": true,
     "test_name": "Nearest Neighbors",
-    "time_ms": 0.043
+    "time_ms": 0.207
   },
   {
     "checks": [
@@ -604,6 +604,6 @@
     "line": 386,
     "passed": true,
     "test_name": "Query Aabb",
-    "time_ms": 0.047
+    "time_ms": 0.213
   }
 ]

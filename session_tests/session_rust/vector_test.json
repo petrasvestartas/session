@@ -103,7 +103,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.054
+    "time_ms": 0.082
   },
   {
     "checks": [
@@ -124,7 +124,7 @@
     "line": 108,
     "passed": true,
     "test_name": "Magnitude",
-    "time_ms": 0.013
+    "time_ms": 0.018
   },
   {
     "checks": [
@@ -145,7 +145,7 @@
     "line": 121,
     "passed": true,
     "test_name": "Normalize",
-    "time_ms": 0.004
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -161,7 +161,7 @@
     "line": 136,
     "passed": true,
     "test_name": "Reverse",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 147,
     "passed": true,
     "test_name": "Dot Product",
-    "time_ms": 0.014
+    "time_ms": 0.03
   },
   {
     "checks": [
@@ -213,7 +213,7 @@
     "line": 178,
     "passed": true,
     "test_name": "Cross Product",
-    "time_ms": 0.011
+    "time_ms": 0.027
   },
   {
     "checks": [
@@ -274,7 +274,7 @@
     "line": 199,
     "passed": true,
     "test_name": "Angle",
-    "time_ms": 0.012
+    "time_ms": 0.03
   },
   {
     "checks": [
@@ -300,7 +300,7 @@
     "line": 241,
     "passed": true,
     "test_name": "Projection",
-    "time_ms": 0.008
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -326,7 +326,7 @@
     "line": 261,
     "passed": true,
     "test_name": "Is Parallel To",
-    "time_ms": 0.003
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -362,7 +362,7 @@
     "line": 277,
     "passed": true,
     "test_name": "Is Perpendicular To",
-    "time_ms": 0.01
+    "time_ms": 0.049
   },
   {
     "checks": [
@@ -378,7 +378,7 @@
     "line": 306,
     "passed": true,
     "test_name": "Get Leveled Vector",
-    "time_ms": 0.007
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -459,7 +459,7 @@
     "line": 319,
     "passed": true,
     "test_name": "Cos Sin Laws",
-    "time_ms": 0.004
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -500,7 +500,7 @@
     "line": 368,
     "passed": true,
     "test_name": "Sum Of Vectors",
-    "time_ms": 0.011
+    "time_ms": 0.025
   },
   {
     "checks": [
@@ -526,7 +526,7 @@
     "line": 393,
     "passed": true,
     "test_name": "Average",
-    "time_ms": 0.008
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -552,7 +552,7 @@
     "line": 411,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.002
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -583,7 +583,7 @@
     "line": 496,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 15.291
+    "time_ms": 17.263
   },
   {
     "checks": [
@@ -614,7 +614,7 @@
     "line": 519,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 15.142
+    "time_ms": 15.728
   },
   {
     "checks": [
@@ -640,7 +640,7 @@
     "line": 445,
     "passed": true,
     "test_name": "Reflect",
-    "time_ms": 0.004
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -661,7 +661,7 @@
     "line": 459,
     "passed": true,
     "test_name": "Average Normal",
-    "time_ms": 0.011
+    "time_ms": 0.039
   },
   {
     "checks": [
@@ -697,7 +697,7 @@
     "line": 425,
     "passed": true,
     "test_name": "Scale",
-    "time_ms": 0.003
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -728,7 +728,7 @@
     "line": 86,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.006
+    "time_ms": 0.022
   },
   {
     "checks": [
@@ -764,6 +764,6 @@
     "line": 478,
     "passed": true,
     "test_name": "Interpolate Points",
-    "time_ms": 0.009
+    "time_ms": 0.029
   }
 ]

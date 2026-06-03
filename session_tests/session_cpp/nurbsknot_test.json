@@ -3,7 +3,7 @@
     "group": "NurbsKnot",
     "test_name": "Make Clamped Uniform",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.039,
     "line": 15,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots = nurbsknot::make_clamped_uniform(order, cv_count);",
     "checks": [
@@ -19,7 +19,7 @@
     "group": "NurbsKnot",
     "test_name": "Make Periodic Uniform",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 25,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // 0 1 2 3 4 5 6\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots = nurbsknot::make_periodic_uniform(order, cv_count);",
     "checks": [
@@ -35,7 +35,7 @@
     "group": "NurbsKnot",
     "test_name": "Is Clamped",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 35,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // 0 0 0 1 2 2 2\n    // 0 1 2 3 4 5 6\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots_periodic = nurbsknot::make_periodic_uniform(order, cv_count);\n    std::vector<double> nurbsknots_clamped = nurbsknot::make_clamped_uniform(order, cv_count);\n    bool is_not_clamped = nurbsknot::is_clamped(order, cv_count, nurbsknots_periodic);\n    bool is_clamped = nurbsknot::is_clamped(order, cv_count, nurbsknots_clamped);",
     "checks": [
@@ -51,7 +51,7 @@
     "group": "NurbsKnot",
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 50,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // Reverses NURBS curve direction: flip control points + reverse nurbsknots\n    // Steps: 1) reverse array  2) remap nurbsknot[i] = t0 + t1 - nurbsknot[i] to preserve domain\n\n    // Symmetric nurbsknot vector -> reverse gives back the same (palindrome)\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots_sym = nurbsknot::make_clamped_uniform(order, cv_count);\n    nurbsknot::reverse(order, cv_count, nurbsknots_sym);\n\n    // Asymmetric nurbsknot vector -> extra nurbsknot at 0.5 shifts to 1.5 after reverse\n    // 0 0 0 0.5 1 2 2 2 -> 0 0 0 1 1.5 2 2 2\n    std::vector<double> nurbsknots_asym = {0.0, 0.0, 0.0, 0.5, 1.0, 2.0, 2.0, 2.0};\n    nurbsknot::reverse(4, 6, nurbsknots_asym);",
     "checks": [
@@ -88,7 +88,7 @@
     "group": "NurbsKnot",
     "test_name": "Solve Tridiagonal",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 85,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // Thomas algorithm -- an O(n) solver for tridiagonal linear systems\n    //   | 2 1 | |x0|   |3|\n    //   | 1 2 | |x1| = |3|\n    //   -> solution: x0 = 1, x1 = 1\n    std::vector<double> lo={0,1}, di={2,2}, up={1,0}, rh={3,3}, sol;\n    nurbsknot::solve_tridiagonal(1, 2, lo, di, up, rh, sol);",
     "checks": [
@@ -120,7 +120,7 @@
     "group": "NurbsKnot",
     "test_name": "Build Interpolation NurbsKnots",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 106,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    std::vector<double> params = {0.0, 1.0, 2.0, 3.0};\n    int degree = 3;\n    // cv_count = n + 2 = 6 (natural end conditions add 2 CVs)\n    // kc = order + cv_count - 2 = 4 + 6 - 2 = 8\n    //   [0, 0, 0,  |  1, 2,  |  3, 3, 3]\n    //   <-clamp->    interior    <-clamp->\n    std::vector<double> nurbsknots = nurbsknot::build_interp_nurbsknots(params, degree);",
     "checks": [
@@ -184,7 +184,7 @@
     "group": "NurbsKnot",
     "test_name": "Solve Banded SPD",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 158,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // Cholesky solver for banded symmetric positive-definite systems\n    //   | 4 2 0 |       |8 |       |1|\n    //   | 2 5 1 | * x = |13| -> x = |2|\n    //   | 0 1 3 |       |5 |       |1|\n    std::vector<double> band = {4, 0, 5, 2, 3, 1};\n    std::vector<double> rhs = {8, 13, 5};\n    nurbsknot::solve_banded_spd(1, 3, 1, band, rhs);",
     "checks": [

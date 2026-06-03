@@ -1,10 +1,14 @@
 [build]
 no_sri = true
+# Relative asset URLs so the built dist/ works when iframed under /session/viewer/.
+public_url = "./"
 
 [watch]
-watch = ["src", "Cargo.toml", "index.html", "../session_rust/src"]
+watch = ["src", "Cargo.toml", "index.html"]
 enable_cooldown = true
 
 [serve]
 addresses = ["127.0.0.1"]
-port = 8769
+# 8770 so `trunk serve` (viewer) and `npm run dev` (docs, 8769) run side by side; the docs
+# Viewer/Learn iframes point here in dev for live reload, and at the static build in prod.
+port = 8770

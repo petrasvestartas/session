@@ -3,3 +3,4 @@ dist
 .DS_Store
 *.log
 testData.js
+public/viewer

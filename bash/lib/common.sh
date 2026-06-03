@@ -2,7 +2,7 @@
 # Shared functions for minitest system
 
 # Single source of truth for class names (sorted alphabetically)
-CLASS_NAMES=("aabb" "boolean_polyline" "brep" "closest" "color" "convex_hull" "element" "element_beam" "element_column" "element_plate" "file_encoders" "file_obj" "graph" "intersection" "nurbsknot" "line" "matrix" "mesh" "mesh_offset" "nurbscurve" "nurbssurface" "obb" "objects" "plane" "point" "pointcloud" "polyline" "primitives" "quaternion" "reciprocal" "remesh_cdt" "remesh_nurbssurface_grid" "remesh_nurbssurface_adaptive" "session" "session_config" "spatial_aabbtree" "spatial_bvh" "spatial_kdtree" "spatial_rtree" "tolerance" "tree" "nurbssurface_trimmed" "vector" "xform")
+CLASS_NAMES=("aabb" "boolean_polyline" "brep" "closest" "color" "convex_hull" "element" "element_beam" "element_column" "element_plate" "file_encoders" "file_obj" "graph" "intersection" "nurbsknot" "line" "matrix" "mesh" "mesh_offset" "nurbscurve" "nurbssurface" "obb" "objects" "plane" "point" "pointcloud" "polyline" "primitives" "quaternion" "remesh_cdt" "remesh_nurbssurface_grid" "remesh_nurbssurface_adaptive" "session" "session_config" "spatial_aabbtree" "spatial_bvh" "spatial_kdtree" "spatial_rtree" "tolerance" "tree" "nurbssurface_trimmed" "vector" "xform")
 
 # Resolve repo root from script location
 resolve_repo_root() {

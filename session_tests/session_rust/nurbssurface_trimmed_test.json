@@ -53,7 +53,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.734
+    "time_ms": 1.496
   },
   {
     "checks": [],
@@ -63,7 +63,7 @@
     "line": 49,
     "passed": true,
     "test_name": "Constructor Planar",
-    "time_ms": 202.579
+    "time_ms": 544.908
   },
   {
     "checks": [
@@ -89,7 +89,7 @@
     "line": 136,
     "passed": true,
     "test_name": "Constructor Hole",
-    "time_ms": 1.424
+    "time_ms": 2.963
   },
   {
     "checks": [
@@ -135,7 +135,7 @@
     "line": 183,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 0.679
+    "time_ms": 1.574
   },
   {
     "checks": [
@@ -161,7 +161,7 @@
     "line": 220,
     "passed": true,
     "test_name": "Add Inner Loop",
-    "time_ms": 2.028
+    "time_ms": 4.384
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 269,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.963
+    "time_ms": 1.445
   },
   {
     "checks": [
@@ -218,7 +218,7 @@
     "line": 406,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.698
+    "time_ms": 1.442
   },
   {
     "checks": [
@@ -244,7 +244,7 @@
     "line": 442,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 16.585
+    "time_ms": 29.177
   },
   {
     "checks": [
@@ -265,7 +265,7 @@
     "line": 489,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 15.755
+    "time_ms": 23.837
   },
   {
     "checks": [
@@ -1481,6 +1481,6 @@
     "line": 307,
     "passed": true,
     "test_name": "Mesh",
-    "time_ms": 204.61
+    "time_ms": 481.325
   }
 ]

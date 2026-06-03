@@ -605,8 +605,8 @@ python -m session_py.vector_test</code></pre>
   </div>
 </template>
 
-<script setup>
-const copyCode = (text) => {
+<script setup lang="ts">
+const copyCode = (text: string) => {
   try {
     if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text)
@@ -772,7 +772,7 @@ th {
 
 .code-shell code {
   color: #5588ff;
-  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace;
   font-size: 0.8rem;
   line-height: 1.4;
   white-space: pre-wrap;
@@ -800,7 +800,7 @@ code {
   background: #000000;
   padding: 0.1rem 0.3rem;
   border-radius: 0;
-  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace;
   font-size: 0.85em;
   color: #888888;
 }

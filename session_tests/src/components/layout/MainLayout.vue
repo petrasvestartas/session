@@ -29,6 +29,31 @@
           </a>
         </div>
 
+        <router-link
+          :to="'/viewer'"
+          class="nav-button"
+          active-class="active">
+          Viewer
+        </router-link>
+
+        <div v-if="currentRoute === 'viewer'" class="suites-section">
+          <button
+            type="button"
+            class="suite-button"
+            :class="{ active: activeSection === 'live' }"
+            @click="selectSection('live')">
+            Live
+          </button>
+          <button
+            v-for="s in viewerSections" :key="s.id"
+            type="button"
+            class="suite-button"
+            :class="{ active: activeSection === s.id }"
+            @click="selectSection(s.id)">
+            {{ s.title }}
+          </button>
+        </div>
+
         <div
           class="nav-button"
           :class="{ active: currentRoute === 'tests' }"
@@ -62,87 +87,60 @@
         </div>
 
         <router-link
-          :to="'/classes'"
-          class="nav-button"
-          active-class="active">
-          Classes
-        </router-link>
-
-        <router-link
           :to="'/install'"
           class="nav-button"
           active-class="active">
           Install
         </router-link>
-
-        <router-link
-          :to="'/viewer'"
-          class="nav-button"
-          active-class="active">
-          Viewer
-        </router-link>
       </div>
     </nav>
 
-    <div class="main-content" :class="{ 'cli-is-expanded': cliExpanded }">
+    <div class="main-content" :class="{ 'viewer-mode': viewerMode }">
       <div class="content-area">
         <router-view></router-view>
       </div>
-
-      <div
-        class="cli-resizer"
-        :class="{ expanded: cliExpanded }"
-        @mousedown="startResize"
-        @click="toggleCliExpand">
-        <span class="resizer-arrow">{{ cliExpanded ? '●' : '○' }}</span>
-      </div>
-
-      <CliInterface
-        :active-tab="currentRoute"
-        :class="{ 'cli-expanded': cliExpanded }"
-        :style="cliExpanded ? {} : { flex: '0 0 ' + cliHeight + 'px' }"
-      ></CliInterface>
     </div>
   </div>
 </template>
 
-<script setup>
-import { computed, ref, onMounted, watch, onUnmounted } from 'vue';
+<script setup lang="ts">
+import { computed, ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import CliInterface from '../CliInterface.vue';
+import { ensureTestData } from '../../dataLoader';
+import { sections as viewerSections } from '../../viewerSections';
 
 const route = useRoute();
 const router = useRouter();
+
+// Viewer sub-sections (Live + each viewer_sections/*.md), chosen here in the sidebar via ?section=.
+const activeSection = computed(() => {
+  const q = route.query.section;
+  return typeof q === 'string' && viewerSections.some((s) => s.id === q) ? q : 'live';
+});
+const selectSection = (id: string) => {
+  router.push({ path: '/viewer', query: id === 'live' ? undefined : { section: id } });
+};
 
 const currentRoute = computed(() => {
   const path = route.path;
   if (path.includes('/viewer')) return 'viewer';
   if (path.includes('/tests')) return 'tests';
-  if (path.includes('/classes')) return 'classes';
   if (path.includes('/install')) return 'install';
   return 'viewer';
 });
 
-const testsSuites = ref([]);
+// Viewer is full-bleed (no padding around the iframe).
+const viewerMode = computed(() => currentRoute.value === 'viewer');
+
+const testsSuites = ref<string[]>([]);
 const selectedSuite = ref('');
 const sidebarCollapsed = ref(false);
 
-
-// CLI height in pixels (resizable)
-const cliHeight = ref(200);
-const minCliHeight = 50;
-const maxCliHeight = 10000;
-const cliExpanded = ref(false);
-let previousCliHeight = 200;
-let startY = 0;
-let startHeight = 0;
-let didDrag = false;
-
 const loadSuitesFromTestData = () => {
-  if (typeof window === 'undefined' || typeof window.TEST_DATA === 'undefined') return;
+  if (typeof window === 'undefined' || typeof (window as any).TEST_DATA === 'undefined') return;
 
-  const set = new Set();
-  const data = window.TEST_DATA;
+  const set = new Set<string>();
+  const data = (window as any).TEST_DATA;
   for (const [key, testArray] of Object.entries(data)) {
     if (!Array.isArray(testArray)) continue;
     const parts = key.split('_');
@@ -176,15 +174,15 @@ const openTestsMenu = () => {
   }
 };
 
-const suiteLabel = (suite) => {
+const suiteLabel = (suite: string): string => {
   // Normalize an identifier for matching: lowercase, strip non-alnum.
-  const norm = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
   const suiteKey = norm(suite.replace(/_test$/i, ''));
-  if (typeof window.TEST_DATA !== 'undefined') {
-    const seen = new Set();
-    let fallback = null;
+  if (typeof (window as any).TEST_DATA !== 'undefined') {
+    const seen = new Set<string>();
+    let fallback: string | null = null;
     for (const lang of ['cpp', 'python', 'rust']) {
-      const arr = window.TEST_DATA[suite + '_' + lang];
+      const arr = (window as any).TEST_DATA[suite + '_' + lang];
       if (!Array.isArray(arr)) continue;
       for (const t of arr) {
         const g = t && t.group;
@@ -200,16 +198,16 @@ const suiteLabel = (suite) => {
     .split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('');
 };
 
-const selectSuite = (suite) => {
+const selectSuite = (suite: string) => {
   selectedSuite.value = suite;
   router.push({ path: '/tests', query: { suite } });
 };
 
 const suitePassedMap = computed(() => {
   const _ = testsSuites.value; // reactive dependency
-  const map = new Map();
-  if (typeof window.TEST_DATA === 'undefined') return map;
-  const data = window.TEST_DATA;
+  const map = new Map<string, boolean>();
+  if (typeof (window as any).TEST_DATA === 'undefined') return map;
+  const data = (window as any).TEST_DATA;
   for (const [key, testArray] of Object.entries(data)) {
     if (!Array.isArray(testArray)) continue;
     const parts = key.split('_');
@@ -225,9 +223,9 @@ const suitePassedMap = computed(() => {
 });
 
 const suiteFunctions = computed(() => {
-  if (!selectedSuite.value || typeof window.TEST_DATA === 'undefined') return [];
-  const data = window.TEST_DATA;
-  const names = new Map();
+  if (!selectedSuite.value || typeof (window as any).TEST_DATA === 'undefined') return [];
+  const data = (window as any).TEST_DATA;
+  const names = new Map<string, boolean>();
   for (const [key, testArray] of Object.entries(data)) {
     if (!Array.isArray(testArray)) continue;
     const parts = key.split('_');
@@ -243,14 +241,26 @@ const suiteFunctions = computed(() => {
   return Array.from(names.entries()).map(([name, passed]) => ({ name, passed }));
 });
 
-const scrollToTest = (name) => {
+const scrollToTest = (name: string) => {
   const el = document.getElementById('test-' + name);
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
-onMounted(() => {
+// Test data is lazy now — only pull it (and build the suites sidebar) when the Tests tab is in
+// play, so Viewer/Install never load the ~3.5MB testData.js.
+const refreshTestsSidebar = async () => {
+  await ensureTestData();
   loadSuitesFromTestData();
   syncSelectedSuiteWithRoute();
+};
+
+onMounted(() => {
+  if (currentRoute.value === 'tests') refreshTestsSidebar();
+  else syncSelectedSuiteWithRoute();
+});
+
+watch(currentRoute, (r) => {
+  if (r === 'tests' && !testsSuites.value.length) refreshTestsSidebar();
 });
 
 watch(
@@ -259,47 +269,6 @@ watch(
     syncSelectedSuiteWithRoute();
   }
 );
-
-
-const onMouseMove = (event) => {
-  didDrag = true;
-  const delta = startY - event.clientY;
-  let next = startHeight + delta;
-  if (next < minCliHeight) next = minCliHeight;
-  if (next > maxCliHeight) next = maxCliHeight;
-  cliHeight.value = next;
-  cliExpanded.value = false;
-};
-
-const stopResize = () => {
-  window.removeEventListener('mousemove', onMouseMove);
-  window.removeEventListener('mouseup', stopResize);
-};
-
-const startResize = (event) => {
-  event.preventDefault();
-  didDrag = false;
-  startY = event.clientY;
-  startHeight = cliHeight.value;
-  window.addEventListener('mousemove', onMouseMove);
-  window.addEventListener('mouseup', stopResize);
-};
-
-const toggleCliExpand = () => {
-  if (didDrag) return;
-  if (cliExpanded.value) {
-    cliHeight.value = previousCliHeight;
-    cliExpanded.value = false;
-  } else {
-    previousCliHeight = cliHeight.value;
-    cliHeight.value = window.innerHeight - 32;
-    cliExpanded.value = true;
-  }
-};
-
-onUnmounted(() => {
-  stopResize();
-});
 </script>
 
 <style scoped>
@@ -325,6 +294,7 @@ onUnmounted(() => {
 
 .sidebar.collapsed {
   width: 0;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -376,11 +346,11 @@ onUnmounted(() => {
 }
 
 .nav-button {
-  padding: 0.5rem 0.75rem;
+  padding: 0.4rem 0.75rem;
   background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 21px;
+  font-size: 13px;
   font-weight: 300;
   color: #ffffff;
   transition: all 0.2s;
@@ -457,12 +427,12 @@ img.repo-icon {
 }
 
 .suite-button {
-  padding: 0.25rem 0.75rem;
+  padding: 0.2rem 0.75rem;
   background: transparent;
   border: none;
   color: #888888;
   font-family: inherit;
-  font-size: 20px;
+  font-size: 13px;
   font-weight: 300;
   text-transform: capitalize;
   cursor: pointer;
@@ -535,34 +505,9 @@ img.repo-icon {
   background: #000000;
 }
 
-.cli-resizer {
-  flex: 0 0 20px;
-  cursor: row-resize;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cli-resizer:hover .resizer-arrow {
-  color: #ffffff;
-}
-
-.resizer-arrow {
-  color: #444444;
-  font-size: 21px;
-  transition: color 0.2s;
-  pointer-events: none;
-}
-
-.cli-expanded {
-  flex: 1 !important;
-}
-
-.cli-is-expanded .content-area {
-  flex: 0 0 0 !important;
-  min-height: 0 !important;
-  padding: 0 !important;
-  overflow: hidden !important;
+/* Viewer: full-bleed, no padding around the iframe. */
+.viewer-mode .content-area {
+  padding: 0;
+  overflow: hidden;
 }
 </style>
