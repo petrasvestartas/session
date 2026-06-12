@@ -192,7 +192,12 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
                 let D = S - P;
                 let dl = length(D);
                 if (dl < 1e-6) { continue; }
-                let sin_elev = dot(D / dl, N) - 0.05; // angular bias vs self-occlusion
+                // Tangent-plane gate (same as SSAO): an occluder must rise above
+                // P's surface plane by ~4° of its distance — flat-ground depth
+                // noise can never pass, so no grazing-angle stripes.
+                let elev = dot(D, N);
+                if (elev <= dl * 0.07 + u.bias_ws) { continue; }
+                let sin_elev = elev / dl - 0.05; // angular bias vs self-occlusion
                 let fall = 1.0 - clamp(dl / (u.radius_ws * 1.5), 0.0, 1.0);
                 max_h = max(max_h, sin_elev * fall);
             }
@@ -238,8 +243,15 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
                 // Fade horizon toward -1 (open) past the AO radius.
                 let f0 = clamp((l0 - u.radius_ws) / (u.radius_ws * 0.5), 0.0, 1.0);
                 let f1 = clamp((l1 - u.radius_ws) / (u.radius_ws * 0.5), 0.0, 1.0);
-                h_cos.x = max(h_cos.x, mix(dot(d0 / l0, V), -1.0, f0));
-                h_cos.y = max(h_cos.y, mix(dot(d1 / l1, V), -1.0, f1));
+                // Tangent-plane gate (same as SSAO/HBAO): only samples rising ~4°
+                // above P's surface plane may raise the horizon — kills the
+                // grazing-ground stripes caused by depth quantization noise.
+                if (dot(d0, N) > l0 * 0.07 + u.bias_ws) {
+                    h_cos.x = max(h_cos.x, mix(dot(d0 / l0, V), -1.0, f0));
+                }
+                if (dot(d1, N) > l1 * 0.07 + u.bias_ws) {
+                    h_cos.y = max(h_cos.y, mix(dot(d1 / l1, V), -1.0, f1));
+                }
             }
             let h0 = n_ang + clamp(-acos(clamp(h_cos.x, -1.0, 1.0)) - n_ang, -0.5 * PI, 0.5 * PI);
             let h1 = n_ang + clamp( acos(clamp(h_cos.y, -1.0, 1.0)) - n_ang, -0.5 * PI, 0.5 * PI);
