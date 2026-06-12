@@ -724,7 +724,7 @@ impl State {
     /// hit-combining, minus the gumball and selection side-effects).
     pub(crate) fn closest_object_under_ray(&mut self, ray: Ray) -> Option<String> {
         let pick_radius = self.scene.camera
-            .pick_radius_mm(self.gpu.config.height as f32, 8.0)
+            .pick_radius_mm(self.vp_rect().3, 8.0)
             .max(crate::gpu_adapters::SPHERE_RADIUS);
         let hits = pick::pick_by_ray(&mut self.scene.session, ray, pick_radius);
         let origin_pt = session_rust::Point::new(ray.origin[0] as f64, ray.origin[1] as f64, ray.origin[2] as f64);
@@ -800,7 +800,7 @@ impl State {
                 .and_then(|iid| self.scene.gpu_session.instances_cpu.get(iid as usize))
                 .map(|inst| inst.model)
                 .unwrap_or(IDENTITY4);
-            let tol = self.scene.camera.pick_radius_mm(self.gpu.config.height as f32, 16.0).max(1.0);
+            let tol = self.scene.camera.pick_radius_mm(self.vp_rect().3, 16.0).max(1.0);
             // Validate the boundary + its iso-curve BEFORE mutating any edit state, so a miss
             // leaves the door open to the raw path with no side effects.
             let boundary = self.scene.session.objects.nurbssurfaces.iter()
@@ -826,7 +826,7 @@ impl State {
         // select its watertight CV set (hidden — handles/cage off), and draw the loop curve. The
         // gumball transforms the whole loop; re-tess is deferred to release (fast).
         if kind == EditKind::BRep {
-            let tol = self.scene.camera.pick_radius_mm(self.gpu.config.height as f32, 16.0).max(1.0);
+            let tol = self.scene.camera.pick_radius_mm(self.vp_rect().3, 16.0).max(1.0);
             let picked = if let Some(Geometry::BRep(b)) = self.scene.session.lookup.get(&guid) {
                 let cols = brep_xform_f32(&b.xform);
                 brep_nearest_edge(b, &cols, ray, tol).map(|e| {
@@ -919,7 +919,7 @@ impl State {
             .and_then(|iid| self.scene.gpu_session.instances_cpu.get(iid as usize))
             .map(|inst| inst.model)
             .unwrap_or(IDENTITY4);
-        let tol = self.scene.camera.pick_radius_mm(self.gpu.config.height as f32, 16.0).max(1.0);
+        let tol = self.scene.camera.pick_radius_mm(self.vp_rect().3, 16.0).max(1.0);
         match kind {
             EditKind::NurbsSurface => {
                 let srf = match self.edit_surface(guid) {
@@ -1585,7 +1585,7 @@ impl State {
     pub(crate) fn update_edit_scale(&mut self) {
         if !self.edit.active || self.edit.nodes.is_empty() { return; }
         const VIEWER_TO_MM: f32 = 1000.0;
-        let vp_h = self.gpu.config.height as f32;
+        let vp_h = self.vp_rect().3;
         let c = self.edit.centroid;
         self.edit.handle_scale = match self.scene.camera.proj_mode {
             ProjMode::Perspective => {

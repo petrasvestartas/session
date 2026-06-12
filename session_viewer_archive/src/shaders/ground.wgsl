@@ -18,6 +18,7 @@ struct Arctic {
     screen_h:  u32,
     plane_p_vs: vec4<f32>,
     plane_n_vs: vec4<f32>,
+    vp_rect:   vec4<f32>,
 }
 
 @group(0) @binding(0) var<uniform> u: Arctic;
@@ -46,9 +47,9 @@ struct FsOut {
 
 @fragment
 fn fs_main(in: VsOut) -> FsOut {
-    // Pixel → NDC; two unprojected depths give the view ray for either projection.
-    let dims = vec2<f32>(f32(u.screen_w), f32(u.screen_h));
-    let uv = in.pos.xy / dims;
+    // Pixel → NDC within the visible viewport rect (scene is confined there via
+    // set_viewport); two unprojected depths give the view ray for either projection.
+    let uv = (in.pos.xy - u.vp_rect.xy) / u.vp_rect.zw;
     let ndc = vec2<f32>(uv.x * 2.0 - 1.0, 1.0 - uv.y * 2.0);
     let p0 = unproject(ndc, 0.0);
     let p1 = unproject(ndc, 0.9);

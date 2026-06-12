@@ -5,6 +5,17 @@ use crate::gumball::{self, Gumball};
 use crate::pipelines::CameraUniform;
 
 impl State {
+    /// Visible 3D viewport rect (x, y, w, h) in physical pixels — the window
+    /// minus egui panels. All screen↔world math must use this, not config dims.
+    pub(crate) fn vp_rect(&self) -> (f32, f32, f32, f32) {
+        let v = self.scene.viewport_px;
+        if v[2] > 1.0 && v[3] > 1.0 {
+            (v[0], v[1], v[2], v[3])
+        } else {
+            (0.0, 0.0, self.gpu.config.width.max(1) as f32, self.gpu.config.height.max(1) as f32)
+        }
+    }
+
     #[allow(dead_code)]
     pub(crate) fn select_by_guid(&mut self, guid: &str) {
         let prev: Vec<String> = self.scene.selected_guids.drain().collect();
@@ -117,6 +128,10 @@ impl State {
             screen_h: self.gpu.config.height,
             plane_p_vs,
             plane_n_vs,
+            vp_rect: {
+                let (vx, vy, vw, vh) = self.vp_rect();
+                [vx, vy, vw, vh]
+            },
         };
         self.gpu.queue.write_buffer(&self.gpu.arctic_buf, 0, bytemuck::bytes_of(&arctic));
     }
@@ -124,17 +139,12 @@ impl State {
     pub fn update(&mut self) {
         self.scene.controller.update_camera(&mut self.scene.camera);
 
-        // Center the projection in the VISIBLE viewport (window minus egui panels)
-        // and match its aspect, so the UI never cuts the perspective.
-        let vw = self.gpu.config.width.max(1) as f32;
-        let vh = self.gpu.config.height.max(1) as f32;
+        // The 3D scene renders ONLY into the visible viewport (window minus egui
+        // panels) via set_viewport/scissor — match the camera aspect to it. No NDC
+        // offset needed: the viewport transform does the placement.
         let vp = self.scene.viewport_px;
         if vp[2] > 1.0 && vp[3] > 1.0 {
             self.scene.camera.aspect = vp[2] / vp[3];
-            self.scene.camera.ndc_offset = [
-                (vp[0] + vp[2] * 0.5) / vw * 2.0 - 1.0,
-                -((vp[1] + vp[3] * 0.5) / vh * 2.0 - 1.0),
-            ];
         }
 
         let v = self.scene.camera.view_matrix();
@@ -156,7 +166,7 @@ impl State {
             view_proj:    self.scene.camera.view_proj(),
             key_light_ws: { let kl = cam_to_ws(-0.3, 0.8, 0.6); let oh = if self.scene.camera.proj_mode == ProjMode::Ortho { self.scene.camera.ortho_scale * 1000.0 } else { 0.0_f32 }; [kl[0], kl[1], kl[2], oh] },
             fill_light_ws:cam_to_ws( 0.8,-0.2, 0.5),
-            screen_size:  [self.gpu.config.width as f32, self.gpu.config.height as f32],
+            screen_size:  [self.vp_rect().2, self.vp_rect().3],
             point_size:   self.scene.line_thickness / 3.0,
             flags:        (!self.scene.shading_enabled as u32)
                 | (if self.scene.backface_highlight { 2 } else { 0 })
@@ -189,7 +199,7 @@ impl State {
         // correct size on its first frame.
         if let Some(gb) = &self.gb.gumball {
             const VIEWER_TO_MM: f32 = 1000.0;
-            let vp_h = self.gpu.config.height as f32;
+            let vp_h = self.vp_rect().3;
             self.gb.gumball_scale = match self.scene.camera.proj_mode {
                 ProjMode::Perspective => {
                     // Use view-space Z depth of the gumball origin for accuracy

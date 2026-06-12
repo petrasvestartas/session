@@ -333,7 +333,7 @@ impl State {
                 if dx*dx + dy*dy >= GUMBALL_DRAG_THRESHOLD_SQ {
                     let view = self.scene.camera.view_matrix();
                     let proj = self.scene.camera.proj_matrix();
-                    let vp = (self.gpu.config.width as f32, self.gpu.config.height as f32);
+                    let vp = self.vp_rect();
                     let is_ortho = self.scene.camera.proj_mode == ProjMode::Ortho;
                     let ray = screen_to_world_ray(&view, &proj, vp, (x as f32, y as f32), is_ortho);
                     let origin = self.gb.gumball.as_ref().unwrap().origin;
@@ -349,7 +349,7 @@ impl State {
         if let Some((ds, origin)) = drag_info {
             let view = self.scene.camera.view_matrix();
             let proj = self.scene.camera.proj_matrix();
-            let vp = (self.gpu.config.width as f32, self.gpu.config.height as f32);
+            let vp = self.vp_rect();
             let is_ortho = self.scene.camera.proj_mode == ProjMode::Ortho;
             let ray = screen_to_world_ray(&view, &proj, vp, (x as f32, y as f32), is_ortho);
             let scale = self.gb.gumball_scale;
@@ -380,7 +380,7 @@ impl State {
         if self.gb.gumball.is_some() {
             let view = self.scene.camera.view_matrix();
             let proj = self.scene.camera.proj_matrix();
-            let vp = (self.gpu.config.width as f32, self.gpu.config.height as f32);
+            let vp = self.vp_rect();
             let is_ortho = self.scene.camera.proj_mode == ProjMode::Ortho;
             let ray = screen_to_world_ray(&view, &proj, vp, (x as f32, y as f32), is_ortho);
             let scale = self.gb.gumball_scale;

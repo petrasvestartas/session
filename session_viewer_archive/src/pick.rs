@@ -24,14 +24,14 @@ pub fn pick_by_ray(
 pub fn screen_to_world_ray(
     view: &[[f32; 4]; 4],
     proj: &[[f32; 4]; 4],
-    viewport: (f32, f32),
+    viewport: (f32, f32, f32, f32), // visible rect (x, y, w, h) in window px
     cursor: (f32, f32),
     is_ortho: bool,
 ) -> Ray {
-    let (w, h) = viewport;
+    let (vx, vy, w, h) = viewport;
     let (cx, cy) = cursor;
-    let ndc_x = (cx / w) * 2.0 - 1.0;
-    let ndc_y = 1.0 - (cy / h) * 2.0;
+    let ndc_x = ((cx - vx) / w) * 2.0 - 1.0;
+    let ndc_y = 1.0 - ((cy - vy) / h) * 2.0;
 
     let inv = mat4_inverse(&mat4_mul(proj, view));
     let ndc_z_near = if is_ortho { 0.5 } else { 0.0 };
@@ -154,17 +154,27 @@ mod pick_tests {
 
     const MM_TO_UNIT: f32 = 0.001;
 
+    fn downcast(m: [[f64; 4]; 4]) -> [[f32; 4]; 4] {
+        let mut out = [[0.0f32; 4]; 4];
+        for c in 0..4 {
+            for r in 0..4 {
+                out[c][r] = m[c][r] as f32;
+            }
+        }
+        out
+    }
+
     fn build_view_matrix(eye_m: [f32; 3], target_m: [f32; 3], up: [f32; 3]) -> [[f32; 4]; 4] {
-        let eye = Point::new(eye_m[0], eye_m[1], eye_m[2]);
-        let tgt = Point::new(target_m[0], target_m[1], target_m[2]);
-        let up  = Vector::new(up[0], up[1], up[2]);
+        let eye = Point::new(eye_m[0] as f64, eye_m[1] as f64, eye_m[2] as f64);
+        let tgt = Point::new(target_m[0] as f64, target_m[1] as f64, target_m[2] as f64);
+        let up  = Vector::new(up[0] as f64, up[1] as f64, up[2] as f64);
         let view  = Xform::look_at_right_handed(&eye, &tgt, &up);
-        let scale = Xform::scale_xyz(MM_TO_UNIT, MM_TO_UNIT, MM_TO_UNIT);
-        (&view * &scale).to_cols()
+        let scale = Xform::scale_xyz(MM_TO_UNIT as f64, MM_TO_UNIT as f64, MM_TO_UNIT as f64);
+        downcast((&view * &scale).to_cols())
     }
 
     fn build_proj_matrix(fov_y: f32, aspect: f32, near: f32, far: f32) -> [[f32; 4]; 4] {
-        Xform::perspective(fov_y, aspect, near, far).to_cols()
+        downcast(Xform::perspective(fov_y as f64, aspect as f64, near as f64, far as f64).to_cols())
     }
 
     fn mat4_mul_point(m: &[[f32; 4]; 4], p: [f32; 4]) -> [f32; 4] {
@@ -185,10 +195,10 @@ mod pick_tests {
     }
 
     /// Convert NDC → screen pixel (inverse of screen_to_world_ray's NDC computation).
-    fn ndc_to_pixel(ndc_x: f32, ndc_y: f32, viewport: (f32, f32)) -> (f32, f32) {
-        let (w, h) = viewport;
-        let cx = (ndc_x + 1.0) / 2.0 * w;
-        let cy = (1.0 - ndc_y) / 2.0 * h;
+    fn ndc_to_pixel(ndc_x: f32, ndc_y: f32, viewport: (f32, f32, f32, f32)) -> (f32, f32) {
+        let (vx, vy, w, h) = viewport;
+        let cx = vx + (ndc_x + 1.0) / 2.0 * w;
+        let cy = vy + (1.0 - ndc_y) / 2.0 * h;
         (cx, cy)
     }
 
@@ -196,7 +206,7 @@ mod pick_tests {
     fn ray_roundtrip_ok(
         view: &[[f32; 4]; 4],
         proj: &[[f32; 4]; 4],
-        viewport: (f32, f32),
+        viewport: (f32, f32, f32, f32),
         world_mm: [f32; 3],
         label: &str,
     ) -> bool {
@@ -234,8 +244,8 @@ mod pick_tests {
         let tgt_m  = [0.0f32, 0.0, 0.0];
         let up     = [0.0f32, 1.0, 0.0];
         let view   = build_view_matrix(eye_m, tgt_m, up);
-        let proj   = build_proj_matrix(Tolerance::PI / 3.0, 16.0/9.0, 0.01, 100.0);
-        let vp     = (1920.0f32, 1080.0);
+        let proj   = build_proj_matrix(Tolerance::PI as f32 / 3.0, 16.0/9.0, 0.01, 100.0);
+        let vp     = (0.0f32, 0.0, 1920.0, 1080.0);
         // Object at origin in mm
         assert!(ray_roundtrip_ok(&view, &proj, vp, [0.0, 0.0, 0.0], "origin"));
         // Object at [1000, 500, 0] mm
@@ -253,8 +263,8 @@ mod pick_tests {
         let up     = [0.0f32, 0.0, 1.0];
         let near   = 3.0_f32 * 0.001;
         let view   = build_view_matrix(eye_m, tgt_m, up);
-        let proj   = build_proj_matrix(Tolerance::PI / 3.0, 16.0/9.0, near, 100_000.0);
-        let vp     = (1920.0f32, 1080.0);
+        let proj   = build_proj_matrix(Tolerance::PI as f32 / 3.0, 16.0/9.0, near, 100_000.0);
+        let vp     = (0.0f32, 0.0, 1920.0, 1080.0);
         assert!(ray_roundtrip_ok(&view, &proj, vp, box_blue, "box_blue_center"));
         // Also test a point slightly offset (edge of box)
         assert!(ray_roundtrip_ok(&view, &proj, vp, [1600.0, 2000.0, 1000.0], "box_blue_edge"));
@@ -269,8 +279,8 @@ mod pick_tests {
         let up     = [-0.354f32, 0.354, 0.866];
         let near   = 3.0_f32 * 0.001;
         let view   = build_view_matrix(eye_m, tgt_m, up);
-        let proj   = build_proj_matrix(Tolerance::PI / 3.0, 16.0/9.0, near, 100_000.0);
-        let vp     = (1920.0f32, 1080.0);
+        let proj   = build_proj_matrix(Tolerance::PI as f32 / 3.0, 16.0/9.0, near, 100_000.0);
+        let vp     = (0.0f32, 0.0, 1920.0, 1080.0);
         // Origin is the camera target — should project near center, definitely in frustum
         assert!(ray_roundtrip_ok(&view, &proj, vp, [0.0, 0.0, 0.0], "origin_default_cam"));
         // Small box at [600, 600, 200] mm
@@ -285,8 +295,8 @@ mod pick_tests {
         let up     = [-0.354f32, 0.354, 0.866];
         let near   = 3.0_f32 * 0.001;
         let view   = build_view_matrix(eye_m, tgt_m, up);
-        let proj   = build_proj_matrix(Tolerance::PI / 3.0, 16.0/9.0, near, 100_000.0);
-        let vp     = (1920.0f32, 1080.0);
+        let proj   = build_proj_matrix(Tolerance::PI as f32 / 3.0, 16.0/9.0, near, 100_000.0);
+        let vp     = (0.0f32, 0.0, 1920.0, 1080.0);
         // Center pixel
         let ray = screen_to_world_ray(&view, &proj, vp, (960.0, 540.0), false);
         // Ray origin should be ~3mm from camera eye (near plane), so ~1836mm from world origin

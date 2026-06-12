@@ -20,7 +20,7 @@ const PREVIEW_INSTANCE_GUID: &str = "__draw_preview__inst";
 
 /// Project a world point (mm) through `view_proj` to physical screen pixels.
 /// Returns None for points behind the camera (perspective).
-pub(crate) fn project_point(view_proj: &[[f32; 4]; 4], vp: (f32, f32), p: &Point) -> Option<(f32, f32)> {
+pub(crate) fn project_point(view_proj: &[[f32; 4]; 4], vp: (f32, f32, f32, f32), p: &Point) -> Option<(f32, f32)> {
     let (px, py, pz) = (p[0] as f32, p[1] as f32, p[2] as f32);
     let cx = view_proj[0][0] * px + view_proj[1][0] * py + view_proj[2][0] * pz + view_proj[3][0];
     let cy = view_proj[0][1] * px + view_proj[1][1] * py + view_proj[2][1] * pz + view_proj[3][1];
@@ -30,7 +30,7 @@ pub(crate) fn project_point(view_proj: &[[f32; 4]; 4], vp: (f32, f32), p: &Point
     }
     let ndc_x = cx / cw;
     let ndc_y = cy / cw;
-    Some(((ndc_x + 1.0) * 0.5 * vp.0, (1.0 - ndc_y) * 0.5 * vp.1))
+    Some((vp.0 + (ndc_x + 1.0) * 0.5 * vp.2, vp.1 + (1.0 - ndc_y) * 0.5 * vp.3))
 }
 
 impl State {
@@ -258,7 +258,7 @@ impl State {
     fn compute_snap(&mut self, cx: f32, cy: f32) -> SnapResult {
         let view = self.scene.camera.view_matrix();
         let proj = self.scene.camera.proj_matrix();
-        let vp = (self.gpu.config.width as f32, self.gpu.config.height as f32);
+        let vp = self.vp_rect();
         let is_ortho = self.scene.camera.proj_mode == ProjMode::Ortho;
         let ray = screen_to_world_ray(&view, &proj, vp, (cx, cy), is_ortho);
         let plane = cad_plane::resolve(&self.scene.camera);

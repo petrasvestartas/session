@@ -28,6 +28,9 @@ pub struct ArcticUniform {
     pub plane_p_vs: [f32; 4],
     /// Unit plane normal in view space (.xyz).
     pub plane_n_vs: [f32; 4],
+    /// Visible 3D viewport rect (x, y, w, h) in physical pixels — the scene is
+    /// confined here via set_viewport/scissor; pixel↔NDC shader math must use it.
+    pub vp_rect:   [f32; 4],
 }
 
 impl Default for ArcticUniform {
@@ -52,6 +55,7 @@ impl Default for ArcticUniform {
             screen_h:  1,
             plane_p_vs: [0.0, 0.0, 0.0, 0.0],
             plane_n_vs: [0.0, 0.0, 1.0, 0.0],
+            vp_rect:   [0.0, 0.0, 1.0, 1.0],
         }
     }
 }
@@ -79,7 +83,7 @@ pub fn build_kernel() -> [[f32; 4]; 32] {
 }
 
 // Byte layout must match the WGSL `Arctic` struct exactly (no align(16) tail pad).
-const _: () = assert!(std::mem::size_of::<ArcticUniform>() == 704);
+const _: () = assert!(std::mem::size_of::<ArcticUniform>() == 720);
 
 pub fn create_arctic_buffer(device: &wgpu::Device) -> wgpu::Buffer {
     use wgpu::util::DeviceExt;

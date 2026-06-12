@@ -393,6 +393,7 @@ impl State {
             cmd_history_idx: None,
             cmd_history_saved: String::new(),
             tree_search: String::new(),
+            panel_visible: true,
         };
 
         let mut state = Self { window, gpu, scene, gb, edit, hist: UndoState::new(), shell, tool: ToolState::new() };

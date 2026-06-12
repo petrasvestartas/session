@@ -20,6 +20,11 @@ struct Arctic {
     outline_px: f32,
     _pad1:     u32,
     _pad2:     u32,
+    plane_p_vs: vec4<f32>,
+    plane_n_vs: vec4<f32>,
+    // Visible viewport rect (x, y, w, h) in pixels: the scene occupies only this
+    // region of the depth texture, and NDC maps to it (set_viewport).
+    vp_rect:   vec4<f32>,
 }
 
 @group(0) @binding(0) var<uniform> u: Arctic;
@@ -46,7 +51,7 @@ fn load_depth(px: vec2<i32>, dims: vec2<i32>) -> f32 {
 
 fn view_pos(px: vec2<i32>, dims: vec2<i32>) -> vec3<f32> {
     let d = load_depth(px, dims);
-    let uv = (vec2<f32>(px) + 0.5) / vec2<f32>(dims);
+    let uv = (vec2<f32>(px) + 0.5 - u.vp_rect.xy) / u.vp_rect.zw;
     let ndc = vec4<f32>(uv.x * 2.0 - 1.0, 1.0 - uv.y * 2.0, d, 1.0);
     let v = u.inv_proj * ndc;
     return v.xyz / v.w;
@@ -94,9 +99,9 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
     // Screen-space extent of radius_ws at this depth (proj[1][1] = 1/tan(fov/2) | 2/h).
     var px_per_unit: f32;
     if (is_ortho) {
-        px_per_unit = 0.5 * f32(dims.y) * u.proj[1][1];
+        px_per_unit = 0.5 * u.vp_rect.w * u.proj[1][1];
     } else {
-        px_per_unit = 0.5 * f32(dims.y) * u.proj[1][1] / max(-P.z, 1e-4);
+        px_per_unit = 0.5 * u.vp_rect.w * u.proj[1][1] / max(-P.z, 1e-4);
     }
     let radius_px = clamp(u.radius_ws * px_per_unit, 2.0, 256.0);
 
@@ -127,7 +132,7 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
             let ndc = clip.xyz / clip.w;
             // Edge-clamp like the reference (GL_CLAMP_TO_EDGE) instead of rejecting.
             let suv = clamp(vec2<f32>(ndc.x * 0.5 + 0.5, 0.5 - ndc.y * 0.5), vec2<f32>(0.0), vec2<f32>(1.0));
-            let spx = vec2<i32>(suv * vec2<f32>(dims));
+            let spx = vec2<i32>(u.vp_rect.xy + suv * u.vp_rect.zw);
             if (all(spx == px)) { continue; } // self-hit: depth==P, not occlusion
             let scene = view_pos(spx, dims);
             // Range check: distant silhouettes must not occlude (kills halos).
@@ -164,7 +169,7 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
             if (clip.w <= 0.0) { continue; }
             let ndc = clip.xyz / clip.w;
             let suv = clamp(vec2<f32>(ndc.x * 0.5 + 0.5, 0.5 - ndc.y * 0.5), vec2<f32>(0.0), vec2<f32>(1.0));
-            let spx = vec2<i32>(suv * vec2<f32>(dims));
+            let spx = vec2<i32>(u.vp_rect.xy + suv * u.vp_rect.zw);
             if (all(spx == px)) { continue; }
             let scene = view_pos(spx, dims);
             let rc = smoothstep(0.0, 1.0, r_far / max(abs(P.z - scene.z), 1e-6));

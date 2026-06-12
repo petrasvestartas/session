@@ -193,7 +193,7 @@ impl State {
                 if matches!(s.kind, crate::snap::SnapKind::Plane | crate::snap::SnapKind::Grid) {
                     return None;
                 }
-                let vp = (self.gpu.config.width as f32, self.gpu.config.height as f32);
+                let vp = self.vp_rect();
                 let view_proj = self.scene.camera.view_proj();
                 crate::state_tool::project_point(&view_proj, vp, &s.point).map(|(sx, sy)| {
                     let ppp = egui_ctx.pixels_per_point();
@@ -238,6 +238,7 @@ impl State {
         let mut hud_outline = self.scene.outline;
         let mut hud_outline_px = self.scene.outline_px;
         let mut hud_fxaa = self.scene.fxaa;
+        let mut panel_visible = self.shell.panel_visible;
         let mut hud_gradient = self.scene.arctic_gradient;
         let mut hud_ao_mode = self.scene.ao_mode;
         let mut hud_intensity = self.scene.ssao_intensity;
@@ -410,6 +411,18 @@ impl State {
                         }
                     });
                 });
+            // Collapse toggle for the right panel — when hidden, the 3D viewport
+            // expands to the full window (egui's available_rect drives it).
+            egui::Area::new(egui::Id::new("panel_toggle"))
+                .order(egui::Order::Foreground)
+                .anchor(egui::Align2::RIGHT_TOP, egui::vec2(-4.0, 4.0))
+                .show(ui.ctx(), |ui| {
+                    let label = if panel_visible { "▶" } else { "◀" };
+                    if ui.button(label).on_hover_text("Show/hide panel").clicked() {
+                        panel_visible = !panel_visible;
+                    }
+                });
+            if panel_visible {
             egui::Panel::right("panel")
                 .default_size(400.0)
                 .show_inside(ui, |ui| {
@@ -538,6 +551,7 @@ impl State {
                         });
                     }); // ScrollArea
                 });
+            } // if panel_visible
 
             // Box select overlay
             if let Some(((x0, y0), (x1, y1))) = box_select_snap {
@@ -623,8 +637,9 @@ impl State {
             }
         });
 
-        // Visible area not covered by egui panels (in physical px) — drives the
-        // off-center projection so the 3D view is never cut by the UI.
+        // Visible area not covered by egui panels (in physical px) — every scene
+        // pass is confined to this rect (set_viewport/scissor), so the 3D view
+        // and the panel are truly separate regions.
         {
             let avail = self.shell.egui_ctx.available_rect();
             let ppp = self.shell.egui_ctx.pixels_per_point();
@@ -641,6 +656,7 @@ impl State {
         self.scene.outline = hud_outline;
         self.scene.outline_px = hud_outline_px;
         self.scene.fxaa = hud_fxaa;
+        self.shell.panel_visible = panel_visible;
         self.scene.arctic_gradient = hud_gradient;
         self.scene.ao_mode = hud_ao_mode;
         self.scene.ssao_intensity = hud_intensity;

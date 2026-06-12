@@ -8,8 +8,7 @@ impl State {
     pub(crate) fn process_box_select(&mut self, x0: f32, y0: f32, x1: f32, y1: f32) {
         use session_rust::session::Geometry;
         let vp = self.scene.camera.view_proj();
-        let width  = self.gpu.config.width  as f32;
-        let height = self.gpu.config.height as f32;
+        let (rx, ry, rw, rh) = self.vp_rect();
         let min_x = x0.min(x1);
         let max_x = x0.max(x1);
         let min_y = y0.min(y1);
@@ -20,7 +19,7 @@ impl State {
             let cy = vp[0][1]*pt[0] + vp[1][1]*pt[1] + vp[2][1]*pt[2] + vp[3][1];
             let cw = vp[0][3]*pt[0] + vp[1][3]*pt[1] + vp[2][3]*pt[2] + vp[3][3];
             if cw <= 0.0 { return None; }
-            Some(((cx/cw + 1.0) * 0.5 * width, (1.0 - cy/cw) * 0.5 * height))
+            Some((rx + (cx/cw + 1.0) * 0.5 * rw, ry + (1.0 - cy/cw) * 0.5 * rh))
         };
         let apply_model = |m: [[f32; 4]; 4], lc: [f32; 3]| -> [f32; 3] {
             [
@@ -138,7 +137,7 @@ impl State {
     pub(crate) fn process_pick(&mut self, cx: f32, cy: f32) {
         let view = self.scene.camera.view_matrix();
         let proj = self.scene.camera.proj_matrix();
-        let viewport = (self.gpu.config.width as f32, self.gpu.config.height as f32);
+        let viewport = self.vp_rect();
         let is_ortho = self.scene.camera.proj_mode == ProjMode::Ortho;
         let ray = screen_to_world_ray(&view, &proj, viewport, (cx, cy), is_ortho);
 
@@ -195,7 +194,7 @@ impl State {
             }
         }
 
-        let pick_radius = self.scene.camera.pick_radius_mm(self.gpu.config.height as f32, 8.0)
+        let pick_radius = self.scene.camera.pick_radius_mm(self.vp_rect().3, 8.0)
             .max(crate::gpu_adapters::SPHERE_RADIUS);
         let hits = pick::pick_by_ray(&mut self.scene.session, ray, pick_radius);
         let origin_pt = session_rust::Point::new(ray.origin[0] as f64, ray.origin[1] as f64, ray.origin[2] as f64);

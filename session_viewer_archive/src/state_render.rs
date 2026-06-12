@@ -89,6 +89,24 @@ impl State {
         let fxaa_on = self.scene.fxaa && post_ok;
         let post_on = arctic_full || outline_on || fxaa_on;
 
+        // True viewport separation: every scene/post pass is confined to the
+        // visible rect (window minus egui panels) via set_viewport + scissor —
+        // the 3D view never renders under the right panel. egui stays full-window.
+        let (vx, vy, vw, vh) = self.vp_rect();
+        let sw = self.gpu.config.width as f32;
+        let sh = self.gpu.config.height as f32;
+        let vx = vx.clamp(0.0, sw - 1.0);
+        let vy = vy.clamp(0.0, sh - 1.0);
+        let vw = vw.min(sw - vx).max(1.0);
+        let vh = vh.min(sh - vy).max(1.0);
+        let (sx, sy, sxw, syh) = (vx as u32, vy as u32, (vw as u32).max(1), (vh as u32).max(1));
+        macro_rules! confine {
+            ($pass:expr) => {
+                $pass.set_viewport(vx, vy, vw, vh, 0.0, 1.0);
+                $pass.set_scissor_rect(sx, sy, sxw, syh);
+            };
+        }
+
         // Geometry pass → MSAA texture
         {
             let clear = if arctic {
@@ -120,6 +138,7 @@ impl State {
                 multiview_mask: None,
             });
 
+            confine!(render_pass);
             render_pass.set_bind_group(0, &self.gpu.bind_group, &[]);
             if arctic {
                 // Horizon gradient first (no depth), then the white depth-writing
@@ -228,6 +247,7 @@ impl State {
                     timestamp_writes: None,
                     multiview_mask: None,
                 });
+                confine!(sp);
                 sp.set_pipeline(&ap.ssao);
                 sp.set_bind_group(0, &targets.ssao_bg, &[]);
                 sp.draw(0..3, 0..1);
@@ -252,6 +272,7 @@ impl State {
                     timestamp_writes: None,
                     multiview_mask: None,
                 });
+                confine!(bp);
                 bp.set_pipeline(&ap.blur_h);
                 bp.set_bind_group(0, &targets.blur_bg, &[]);
                 bp.draw(0..3, 0..1);
@@ -273,6 +294,7 @@ impl State {
                     timestamp_writes: None,
                     multiview_mask: None,
                 });
+                confine!(bp);
                 bp.set_pipeline(&ap.blur_v);
                 bp.set_bind_group(0, &targets.blur2_bg, &[]);
                 bp.draw(0..3, 0..1);
@@ -332,6 +354,7 @@ impl State {
                 timestamp_writes: None,
                 multiview_mask: None,
             });
+            confine!(mp);
             mp.set_bind_group(0, &self.gpu.bind_group, &[]);
             mp.set_pipeline(&ap.mask_batched);
             self.scene.gpu_session.draw_meshes(&mut mp);
@@ -366,6 +389,7 @@ impl State {
                     timestamp_writes: None,
                     multiview_mask: None,
                 });
+                confine!(sp);
                 sp.set_bind_group(0, &self.gpu.bind_group, &[]);
                 sp.set_pipeline(&ap.mask_sel_batched);
                 self.scene.gpu_session.draw_meshes(&mut sp);
@@ -439,6 +463,7 @@ impl State {
                     timestamp_writes: None,
                     multiview_mask: None,
                 });
+                confine!(epass);
                 epass.set_bind_group(0, &self.gb.gumball_bind_group, &[]);
                 if !edge_segs.is_empty() {
                     epass.set_pipeline(&self.gpu.pipelines.cylinder);
@@ -510,6 +535,7 @@ impl State {
                     timestamp_writes: None,
                     multiview_mask: None,
                 });
+                confine!(gpass);
                 gpass.set_bind_group(0, &self.gb.gumball_bind_group, &[]);
                 // Draw cylinder shafts + arcs
                 if !segs.is_empty() {
@@ -585,6 +611,7 @@ impl State {
                 timestamp_writes: None,
                 multiview_mask: None,
             });
+            confine!(cp);
             cp.set_pipeline(&ap.composite);
             cp.set_bind_group(0, &targets.composite_bg, &[]);
             cp.draw(0..3, 0..1);
