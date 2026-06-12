@@ -355,6 +355,8 @@ impl State {
             ssao_intensity: 0.9,
             ssao_radius_pct: 0.5,
             last_arctic_bounds: None,
+            outline: true,
+            outline_px: 2.0,
         };
 
         // ── GumballState ──────────────────────────────────────
@@ -488,6 +490,11 @@ impl ApplicationHandler<State> for App {
 
         let html_canvas_element = canvas.unchecked_into();
         let window_attributes = Window::default_attributes().with_canvas(Some(html_canvas_element));
+        // NOTE: the adopted canvas backing store follows its CSS size (devicePixelRatio
+        // is NOT applied; winit 0.30 ignores request_inner_size for adopted canvases).
+        // On displays with OS scaling > 100% the viewer renders at CSS resolution and
+        // is upscaled. Fixing this requires scaling egui pixels_per_point and cursor
+        // coordinates together — tracked as a follow-up; harmless at 100% scaling.
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
 
         if let Some(proxy) = self.proxy.take() {

@@ -235,6 +235,8 @@ impl State {
         let hud_backend = self.gpu.backend.clone();
         let hud_ssao_ok = self.gpu.ssao_supported;
         let mut hud_arctic = self.scene.arctic;
+        let mut hud_outline = self.scene.outline;
+        let mut hud_outline_px = self.scene.outline_px;
         let mut hud_gradient = self.scene.arctic_gradient;
         let mut hud_ao_mode = self.scene.ao_mode;
         let mut hud_intensity = self.scene.ssao_intensity;
@@ -254,6 +256,12 @@ impl State {
                         ui.monospace(format!("draw calls {}", stats.draw_calls));
                         ui.checkbox(&mut hud_cull, "frustum cull");
                         ui.checkbox(&mut hud_arctic, "arctic");
+                        if hud_ssao_ok {
+                            ui.checkbox(&mut hud_outline, "outline");
+                            if hud_outline {
+                                ui.add(egui::Slider::new(&mut hud_outline_px, 1.0..=8.0).text("outline px"));
+                            }
+                        }
                         if hud_arctic {
                             if hud_ssao_ok {
                                 ui.monospace(format!("gpu {hud_backend}"));
@@ -615,6 +623,8 @@ impl State {
 
         self.scene.frustum_cull = hud_cull;
         self.scene.arctic = hud_arctic;
+        self.scene.outline = hud_outline;
+        self.scene.outline_px = hud_outline_px;
         self.scene.arctic_gradient = hud_gradient;
         self.scene.ao_mode = hud_ao_mode;
         self.scene.ssao_intensity = hud_intensity;

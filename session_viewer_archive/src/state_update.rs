@@ -86,9 +86,10 @@ impl State {
             radius_ws,
             bias_ws: radius_ws * 0.05, // learnopengl bias/radius ratio (0.025 @ 0.5)
             intensity: self.scene.ssao_intensity,
-            flags: self.scene.arctic_gradient as u32,
+            flags: self.scene.arctic_gradient as u32 | ((self.scene.outline as u32) << 1),
             ao_mode: self.scene.ao_mode,
-            _pad: [0; 3],
+            outline_px: self.scene.outline_px,
+            _pad: [0; 2],
         };
         self.gpu.queue.write_buffer(&self.gpu.arctic_buf, 0, bytemuck::bytes_of(&arctic));
 
@@ -135,7 +136,7 @@ impl State {
         };
         self.gpu.queue.write_buffer(&self.gpu.camera_buf, 0, bytemuck::bytes_of(&cam));
 
-        if self.scene.arctic {
+        if self.scene.arctic || self.scene.outline {
             self.update_arctic();
         }
 

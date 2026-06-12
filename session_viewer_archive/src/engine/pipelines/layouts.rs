@@ -171,7 +171,21 @@ pub fn build_blur_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLay
 pub fn build_composite_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("composite.bgl"),
-        entries: &[tex_entry(0), tex_entry(1)],
+        entries: &[
+            tex_entry(0), // scene color
+            tex_entry(1), // blurred AO
+            tex_entry(2), // object-id mask (outline)
+            wgpu::BindGroupLayoutEntry {
+                binding: 3,
+                visibility: wgpu::ShaderStages::FRAGMENT,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false,
+                    min_binding_size: None,
+                },
+                count: None,
+            },
+        ],
     })
 }
 

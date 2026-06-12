@@ -56,4 +56,9 @@ pub struct SceneState {
     /// Last non-empty scene bounds (mm) — survives the cached_boxes clear that
     /// follows every transform/edit commit, so arctic AO sizing never pops.
     pub last_arctic_bounds: Option<([f32; 3], [f32; 3])>,
+    /// Screen-space boundary around surface geometry only (meshes/BReps/NURBS);
+    /// polylines, lines and points are excluded by construction (mask pass).
+    pub outline: bool,
+    /// Outline width in pixels.
+    pub outline_px: f32,
 }

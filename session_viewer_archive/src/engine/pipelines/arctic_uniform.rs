@@ -18,7 +18,9 @@ pub struct ArcticUniform {
     pub flags:     u32,
     /// 0 = SSAO (hemisphere kernel), 1 = HBAO (horizon), 2 = GTAO (ground-truth arcs).
     pub ao_mode:   u32,
-    pub _pad:      [u32; 3],
+    /// Outline (union-silhouette boundary) width in pixels.
+    pub outline_px: f32,
+    pub _pad:      [u32; 2],
 }
 
 impl Default for ArcticUniform {
@@ -38,7 +40,8 @@ impl Default for ArcticUniform {
             intensity: 0.55,
             flags:     0,
             ao_mode:   2,
-            _pad:      [0; 3],
+            outline_px: 2.0,
+            _pad:      [0; 2],
         }
     }
 }

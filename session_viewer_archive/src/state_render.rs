@@ -79,11 +79,14 @@ impl State {
         stats.mesh_objects = drawn + culled;
 
         // Arctic mode: white shading + ground plane always; SSAO/composite only when
-        // the backend can bind MSAA depth (arctic_full).
+        // the backend can bind MSAA depth (arctic_full). The outline pass shares the
+        // post-processing chain, so either feature routes the resolve through
+        // scene_color + composite.
         let arctic = self.scene.arctic;
-        let arctic_full = arctic
-            && self.gpu.pipelines.arctic.is_some()
-            && self.gpu.arctic_targets.is_some();
+        let post_ok = self.gpu.pipelines.arctic.is_some() && self.gpu.arctic_targets.is_some();
+        let arctic_full = arctic && post_ok;
+        let outline_on = self.scene.outline && post_ok;
+        let post_on = arctic_full || outline_on;
 
         // Geometry pass → MSAA texture
         {
@@ -119,7 +122,9 @@ impl State {
             render_pass.set_bind_group(0, &self.gpu.bind_group, &[]);
             if arctic {
                 // Horizon gradient first (no depth), then the white depth-writing
-                // ground plane — SSAO turns it into the soft contact shadow.
+                // ground plane — SSAO turns it into the soft contact shadow. The
+                // grid draws on top of the plane (Always compare, no depth write)
+                // so it stays visible in arctic too.
                 if self.scene.arctic_gradient {
                     render_pass.set_pipeline(&self.gpu.pipelines.background);
                     render_pass.draw(0..3, 0..1);
@@ -129,11 +134,10 @@ impl State {
                 render_pass.set_vertex_buffer(0, self.gpu.ground_vbo.slice(..));
                 render_pass.draw(0..6, 0..1);
                 stats.draw_calls += 1;
-            } else {
-                render_pass.set_pipeline(&self.gpu.pipelines.grid);
-                render_pass.draw(0..298, 0..1);
-                stats.draw_calls += 1;
             }
+            render_pass.set_pipeline(&self.gpu.pipelines.grid);
+            render_pass.draw(0..298, 0..1);
+            stats.draw_calls += 1;
 
             // Meshes: one batched draw for the whole arena, then template instance groups.
             render_pass.set_bind_group(0, &self.gpu.bind_group, &[]);
@@ -271,6 +275,62 @@ impl State {
                 bp.set_bind_group(0, &targets.blur2_bg, &[]);
                 bp.draw(0..3, 0..1);
             }
+        }
+
+        // Outline mask: surface geometry only (mesh arena + instanced templates) →
+        // R32Float id buffer with its own depth. Composite turns id discontinuities
+        // into a boundary; lines/points never render here so they get no outline.
+        if outline_on {
+            let ap = self.gpu.pipelines.arctic.as_ref().unwrap();
+            let targets = self.gpu.arctic_targets.as_ref().unwrap();
+            if !arctic_full {
+                // Composite multiplies by the AO texture — make sure it is white
+                // when the SSAO passes did not run this frame.
+                let _clear = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("AO Clear Pass"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &targets.ao_raw_view,
+                        resolve_target: None,
+                        depth_slice: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: None,
+                    occlusion_query_set: None,
+                    timestamp_writes: None,
+                    multiview_mask: None,
+                });
+            }
+            let mut mp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Outline Mask Pass"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &targets.mask_view,
+                    resolve_target: None,
+                    depth_slice: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &targets.mask_depth_view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(1.0),
+                        store: wgpu::StoreOp::Store,
+                    }),
+                    stencil_ops: None,
+                }),
+                occlusion_query_set: None,
+                timestamp_writes: None,
+                multiview_mask: None,
+            });
+            mp.set_bind_group(0, &self.gpu.bind_group, &[]);
+            mp.set_pipeline(&ap.mask_batched);
+            self.scene.gpu_session.draw_meshes(&mut mp);
+            mp.set_pipeline(&ap.mask);
+            self.scene.gpu_session.draw_instance_groups(&mut mp);
         }
 
         // Edit overlay — control-point spheres + control-polygon/edge cylinders.
@@ -440,7 +500,7 @@ impl State {
         // Arctic: resolve to the offscreen scene_color instead; composite below
         // multiplies it by the blurred AO and writes the swapchain.
         {
-            let resolve_view = if arctic_full {
+            let resolve_view = if post_on {
                 &self.gpu.arctic_targets.as_ref().unwrap().scene_color_view
             } else {
                 &view
@@ -463,8 +523,8 @@ impl State {
             });
         }
 
-        // Composite pass: scene_color × AO → swapchain.
-        if arctic_full {
+        // Composite pass: scene_color × AO (+ outline boundary) → swapchain.
+        if post_on {
             let ap = self.gpu.pipelines.arctic.as_ref().unwrap();
             let targets = self.gpu.arctic_targets.as_ref().unwrap();
             let mut cp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {

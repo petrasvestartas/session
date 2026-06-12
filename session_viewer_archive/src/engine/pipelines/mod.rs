@@ -20,7 +20,8 @@ use crate::text::TextVertex;
 use build::{
     build_background_pipeline, build_cloud_pipeline, build_fullscreen_pipeline,
     build_glyph_pipeline, build_grid_pipeline, build_ground_pipeline, build_instanced_pipeline,
-    build_label_pipeline, build_overlay_pipeline, build_pipeline, build_pipeline_vs,
+    build_label_pipeline, build_mask_pipeline, build_overlay_pipeline, build_pipeline,
+    build_pipeline_vs,
 };
 use layouts::{
     build_bind_group_layout, build_blur_bind_group_layout, build_composite_bind_group_layout,
@@ -34,6 +35,10 @@ pub struct ArcticPipelines {
     pub blur_h:        wgpu::RenderPipeline,
     pub blur_v:        wgpu::RenderPipeline,
     pub composite:     wgpu::RenderPipeline,
+    /// Object-id mask for the outline pass: instanced-template path (vs_main).
+    pub mask:          wgpu::RenderPipeline,
+    /// Object-id mask: batched mesh-arena path (vs_batched).
+    pub mask_batched:  wgpu::RenderPipeline,
     pub ssao_bgl:      wgpu::BindGroupLayout,
     pub blur_bgl:      wgpu::BindGroupLayout,
     pub composite_bgl: wgpu::BindGroupLayout,
@@ -95,6 +100,8 @@ impl Pipelines {
                     device, "composite", include_str!("../../shaders/composite.wgsl"), "fs_main",
                     color_format, &composite_bgl,
                 ),
+                mask: build_mask_pipeline(device, "mask", "vs_main", MeshVertex::layout(), &bgl),
+                mask_batched: build_mask_pipeline(device, "mask_batched", "vs_batched", MeshVertex::layout(), &bgl),
                 ssao_bgl,
                 blur_bgl,
                 composite_bgl,
