@@ -66,9 +66,15 @@ fn fs_main(in: VsOut) -> FsOut {
     let d = clip.z / clip.w;
     if (d <= 0.0 || d >= 1.0) { discard; }
 
+    // Horizon fade: the plane dissolves into the background with view distance
+    // (alpha-blended over the gradient), so there is never a hard horizon line.
+    // Fade range rides in plane_p_vs.w (start) / plane_n_vs.w (end), scene-scaled.
+    let fade = 1.0 - smoothstep(u.plane_p_vs.w, u.plane_n_vs.w, t);
+    if (fade <= 0.002) { discard; }
+
     var o: FsOut;
     // Tiny push-back so geometry resting exactly on the plane wins the depth test.
     o.depth = min(d + 2e-6, 1.0);
-    o.color = vec4<f32>(1.0, 1.0, 1.0, 1.0);
+    o.color = vec4<f32>(1.0, 1.0, 1.0, fade);
     return o;
 }

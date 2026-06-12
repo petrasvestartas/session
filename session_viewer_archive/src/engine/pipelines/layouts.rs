@@ -172,9 +172,19 @@ pub fn build_composite_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGro
     device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("composite.bgl"),
         entries: &[
-            tex_entry(0), // scene color
+            // Scene color: FILTERABLE — FXAA samples it bilinearly.
+            wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStages::FRAGMENT,
+                ty: wgpu::BindingType::Texture {
+                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                    view_dimension: wgpu::TextureViewDimension::D2,
+                    multisampled: false,
+                },
+                count: None,
+            },
             tex_entry(1), // blurred AO
-            tex_entry(2), // object-id mask (outline)
+            tex_entry(2), // coverage mask (outline)
             wgpu::BindGroupLayoutEntry {
                 binding: 3,
                 visibility: wgpu::ShaderStages::FRAGMENT,
@@ -183,6 +193,12 @@ pub fn build_composite_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGro
                     has_dynamic_offset: false,
                     min_binding_size: None,
                 },
+                count: None,
+            },
+            wgpu::BindGroupLayoutEntry {
+                binding: 4,
+                visibility: wgpu::ShaderStages::FRAGMENT,
+                ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                 count: None,
             },
         ],

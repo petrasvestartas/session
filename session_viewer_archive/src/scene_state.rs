@@ -61,4 +61,6 @@ pub struct SceneState {
     pub outline: bool,
     /// Outline width in pixels.
     pub outline_px: f32,
+    /// FXAA on the resolved image (smooths thin-line stair-stepping beyond MSAA).
+    pub fxaa: bool,
 }

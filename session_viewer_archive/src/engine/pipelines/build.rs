@@ -550,6 +550,7 @@ pub fn build_mask_pipeline(
 /// Arctic ground plane: ANALYTIC fullscreen pass — per-pixel ray/plane
 /// intersection with exact depth via frag_depth (see ground.wgsl). No vertex
 /// precision issues, infinite extent, no bias needed (the shader nudges depth).
+/// Alpha-blended: the plane fades out toward the horizon over the gradient.
 pub fn build_ground_pipeline(
     device: &wgpu::Device,
     color_format: wgpu::TextureFormat,
@@ -587,7 +588,7 @@ pub fn build_ground_pipeline(
             entry_point: Some("fs_main"),
             targets: &[Some(wgpu::ColorTargetState {
                 format: color_format,
-                blend: None,
+                blend: Some(wgpu::BlendState::ALPHA_BLENDING),
                 write_mask: wgpu::ColorWrites::ALL,
             })],
             compilation_options: Default::default(),

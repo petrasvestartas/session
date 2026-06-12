@@ -171,6 +171,12 @@ pub fn create_arctic_targets(
             wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::TextureView(depth_view) },
         ],
     });
+    let linear_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+        label: Some("composite.sampler"),
+        mag_filter: wgpu::FilterMode::Linear,
+        min_filter: wgpu::FilterMode::Linear,
+        ..Default::default()
+    });
     let composite_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("composite.bg"),
         layout: &ap.composite_bgl,
@@ -179,6 +185,7 @@ pub fn create_arctic_targets(
             wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::TextureView(&ao_raw_view) },
             wgpu::BindGroupEntry { binding: 2, resource: wgpu::BindingResource::TextureView(&mask_view) },
             wgpu::BindGroupEntry { binding: 3, resource: arctic_buf.as_entire_binding() },
+            wgpu::BindGroupEntry { binding: 4, resource: wgpu::BindingResource::Sampler(&linear_sampler) },
         ],
     });
     Some(ArcticTargets {

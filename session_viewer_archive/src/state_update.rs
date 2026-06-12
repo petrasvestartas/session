@@ -81,13 +81,14 @@ impl State {
         let ty = self.scene.camera.target[1] * 1000.0;
         let vm = self.scene.camera.view_matrix();
         let p = [tx, ty, z_mm];
+        #[allow(unused_mut)]
         let mut plane_p_vs = [0.0f32; 4];
         for i in 0..3 {
             plane_p_vs[i] = vm[0][i] * p[0] + vm[1][i] * p[1] + vm[2][i] * p[2] + vm[3][i];
         }
         // World +Z through the view rotation (column 2); normalize away the mm scale.
         let nl = (vm[2][0] * vm[2][0] + vm[2][1] * vm[2][1] + vm[2][2] * vm[2][2]).sqrt().max(1e-20);
-        let plane_n_vs = [vm[2][0] / nl, vm[2][1] / nl, vm[2][2] / nl, 0.0];
+        let mut plane_n_vs = [vm[2][0] / nl, vm[2][1] / nl, vm[2][2] / nl, 0.0];
 
         let (proj, inv_proj) = self.scene.camera.proj_and_inverse();
         // Clamp relative to the scene so neither tiny parts (washed-out AO) nor
@@ -95,6 +96,10 @@ impl State {
         let diag_m = diag_mm * 0.001;
         let radius_ws = (self.scene.ssao_radius_pct / 100.0 * diag_m)
             .clamp((diag_m * 0.0005).max(0.001), diag_m * 0.15);
+        // Horizon fade range (view-space distance, scene-scaled): the plane starts
+        // dissolving a few scene-sizes out and is gone well before the far clip.
+        plane_p_vs[3] = diag_m * 3.0;
+        plane_n_vs[3] = diag_m * 14.0;
         let arctic = crate::pipelines::ArcticUniform {
             proj,
             inv_proj,
@@ -102,7 +107,9 @@ impl State {
             radius_ws,
             bias_ws: radius_ws * 0.05, // learnopengl bias/radius ratio (0.025 @ 0.5)
             intensity: self.scene.ssao_intensity,
-            flags: self.scene.arctic_gradient as u32 | ((self.scene.outline as u32) << 1),
+            flags: self.scene.arctic_gradient as u32
+                | ((self.scene.outline as u32) << 1)
+                | ((self.scene.fxaa as u32) << 2),
             ao_mode: self.scene.ao_mode,
             outline_px: self.scene.outline_px,
             screen_w: self.gpu.config.width,

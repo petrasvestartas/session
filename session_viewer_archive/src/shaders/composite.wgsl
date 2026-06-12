@@ -22,6 +22,46 @@ struct Arctic {
 @group(0) @binding(1) var t_ao: texture_2d<f32>;
 @group(0) @binding(2) var t_mask: texture_2d<f32>;
 @group(0) @binding(3) var<uniform> u: Arctic;
+@group(0) @binding(4) var samp: sampler;
+
+fn luma(c: vec3<f32>) -> f32 {
+    return dot(c, vec3<f32>(0.299, 0.587, 0.114));
+}
+
+// FXAA (console variant): smooths thin-line stair-stepping the 4x MSAA resolve
+// leaves behind. flags bit2 toggles it.
+fn fxaa(uv: vec2<f32>, inv_dims: vec2<f32>) -> vec3<f32> {
+    let m  = textureSampleLevel(t_color, samp, uv, 0.0).rgb;
+    let nw = textureSampleLevel(t_color, samp, uv + vec2<f32>(-1.0, -1.0) * inv_dims, 0.0).rgb;
+    let ne = textureSampleLevel(t_color, samp, uv + vec2<f32>( 1.0, -1.0) * inv_dims, 0.0).rgb;
+    let sw = textureSampleLevel(t_color, samp, uv + vec2<f32>(-1.0,  1.0) * inv_dims, 0.0).rgb;
+    let se = textureSampleLevel(t_color, samp, uv + vec2<f32>( 1.0,  1.0) * inv_dims, 0.0).rgb;
+    let lm = luma(m);
+    let lnw = luma(nw);
+    let lne = luma(ne);
+    let lsw = luma(sw);
+    let lse = luma(se);
+    let lmin = min(lm, min(min(lnw, lne), min(lsw, lse)));
+    let lmax = max(lm, max(max(lnw, lne), max(lsw, lse)));
+    if (lmax - lmin < max(0.0312, lmax * 0.125)) {
+        return m;
+    }
+    var dir = vec2<f32>(-((lnw + lne) - (lsw + lse)), (lnw + lsw) - (lne + lse));
+    let dir_reduce = max((lnw + lne + lsw + lse) * 0.25 * 0.25, 1.0 / 128.0);
+    let rcp = 1.0 / (min(abs(dir.x), abs(dir.y)) + dir_reduce);
+    dir = clamp(dir * rcp, vec2<f32>(-8.0), vec2<f32>(8.0)) * inv_dims;
+    let a = 0.5 * (
+        textureSampleLevel(t_color, samp, uv + dir * (1.0 / 3.0 - 0.5), 0.0).rgb +
+        textureSampleLevel(t_color, samp, uv + dir * (2.0 / 3.0 - 0.5), 0.0).rgb);
+    let b = a * 0.5 + 0.25 * (
+        textureSampleLevel(t_color, samp, uv + dir * -0.5, 0.0).rgb +
+        textureSampleLevel(t_color, samp, uv + dir * 0.5, 0.0).rgb);
+    let lb = luma(b);
+    if (lb < lmin || lb > lmax) {
+        return a;
+    }
+    return b;
+}
 
 struct VsOut {
     @builtin(position) pos: vec4<f32>,
@@ -43,7 +83,13 @@ fn ign(p: vec2<f32>) -> f32 {
 @fragment
 fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
     let px = vec2<i32>(in.pos.xy);
-    let col = textureLoad(t_color, px, 0).rgb;
+    var col: vec3<f32>;
+    if ((u.flags & 4u) != 0u) {
+        let dims_c = vec2<f32>(textureDimensions(t_color));
+        col = fxaa(in.pos.xy / dims_c, 1.0 / dims_c);
+    } else {
+        col = textureLoad(t_color, px, 0).rgb;
+    }
     let ao = textureLoad(t_ao, px, 0).r;
     var rgb = col * ao;
 
@@ -64,13 +110,15 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
                     let q = clamp(px + vec2<i32>(dx, dy), vec2<i32>(0), dims - vec2<i32>(1));
                     let c = textureLoad(t_mask, q, 0).r;
                     if (c > 0.0) {
-                        let w = 1.0 - smoothstep(r - 0.75, r + 0.75, length(vec2<f32>(f32(dx), f32(dy))));
+                        // SHARP edge with exactly one pixel of AA ramp — crisp,
+                        // not blurry, not stair-stepped.
+                        let w = 1.0 - smoothstep(r - 0.5, r + 0.5, length(vec2<f32>(f32(dx), f32(dy))));
                         a = max(a, c * w);
                     }
                 }
             }
             a = a * (1.0 - c_center);
-            rgb = mix(rgb, vec3<f32>(0.10, 0.10, 0.12), 0.9 * a);
+            rgb = mix(rgb, vec3<f32>(0.10, 0.10, 0.12), a);
         }
     }
 

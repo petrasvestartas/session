@@ -86,7 +86,8 @@ impl State {
         let post_ok = self.gpu.pipelines.arctic.is_some() && self.gpu.arctic_targets.is_some();
         let arctic_full = arctic && post_ok;
         let outline_on = self.scene.outline && post_ok;
-        let post_on = arctic_full || outline_on;
+        let fxaa_on = self.scene.fxaa && post_ok;
+        let post_on = arctic_full || outline_on || fxaa_on;
 
         // Geometry pass → MSAA texture
         {
@@ -281,7 +282,7 @@ impl State {
         // Outline mask: surface geometry only (mesh arena + instanced templates) →
         // R32Float id buffer with its own depth. Composite turns id discontinuities
         // into a boundary; lines/points never render here so they get no outline.
-        if outline_on {
+        if post_on {
             let ap = self.gpu.pipelines.arctic.as_ref().unwrap();
             let targets = self.gpu.arctic_targets.as_ref().unwrap();
             if !arctic_full {
@@ -307,6 +308,7 @@ impl State {
             // 4x MSAA coverage, depth-tested (LessEqual, no write) against the MAIN
             // scene depth: occluders (incl. the arctic ground plane) clip outlines,
             // and the resolve produces fractional silhouette coverage for smooth AA.
+            if outline_on {
             let mut mp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Outline Mask Pass"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -335,6 +337,7 @@ impl State {
             self.scene.gpu_session.draw_meshes(&mut mp);
             mp.set_pipeline(&ap.mask);
             self.scene.gpu_session.draw_instance_groups(&mut mp);
+            }
         }
 
         // Edit overlay — control-point spheres + control-polygon/edge cylinders.

@@ -333,7 +333,7 @@ impl State {
             key_mods: winit::keyboard::ModifiersState::empty(),
             ctrl_down: false,
             shift_down: false,
-            line_thickness: 2.0,
+            line_thickness: 1.0,
             shading_enabled: true,
             // Off by default: backfaces are two-sided-shaded (the fs flips the normal), so a
             // trimmed cut that exposes the inner wall (cylinder/torus bite) reads as a clean
@@ -356,7 +356,8 @@ impl State {
             ssao_radius_pct: 0.5,
             last_arctic_bounds: None,
             outline: true,
-            outline_px: 2.0,
+            outline_px: 3.0,
+            fxaa: true,
         };
 
         // ── GumballState ──────────────────────────────────────
