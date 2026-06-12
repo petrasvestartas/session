@@ -78,8 +78,20 @@ impl State {
         stats.mesh_culled = culled;
         stats.mesh_objects = drawn + culled;
 
+        // Arctic mode: white shading + ground plane always; SSAO/composite only when
+        // the backend can bind MSAA depth (arctic_full).
+        let arctic = self.scene.arctic;
+        let arctic_full = arctic
+            && self.gpu.pipelines.arctic.is_some()
+            && self.gpu.arctic_targets.is_some();
+
         // Geometry pass → MSAA texture
         {
+            let clear = if arctic {
+                wgpu::Color { r: 0.96, g: 0.96, b: 0.97, a: 1.0 }
+            } else {
+                self.gpu.clear_color
+            };
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Geometry Pass"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -87,7 +99,7 @@ impl State {
                     resolve_target: None,
                     depth_slice: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(self.gpu.clear_color),
+                        load: wgpu::LoadOp::Clear(clear),
                         store: wgpu::StoreOp::Store,
                     },
                 })],
@@ -105,9 +117,23 @@ impl State {
             });
 
             render_pass.set_bind_group(0, &self.gpu.bind_group, &[]);
-            render_pass.set_pipeline(&self.gpu.pipelines.grid);
-            render_pass.draw(0..298, 0..1);
-            stats.draw_calls += 1;
+            if arctic {
+                // Horizon gradient first (no depth), then the white depth-writing
+                // ground plane — SSAO turns it into the soft contact shadow.
+                if self.scene.arctic_gradient {
+                    render_pass.set_pipeline(&self.gpu.pipelines.background);
+                    render_pass.draw(0..3, 0..1);
+                    stats.draw_calls += 1;
+                }
+                render_pass.set_pipeline(&self.gpu.pipelines.ground);
+                render_pass.set_vertex_buffer(0, self.gpu.ground_vbo.slice(..));
+                render_pass.draw(0..6, 0..1);
+                stats.draw_calls += 1;
+            } else {
+                render_pass.set_pipeline(&self.gpu.pipelines.grid);
+                render_pass.draw(0..298, 0..1);
+                stats.draw_calls += 1;
+            }
 
             // Meshes: one batched draw for the whole arena, then template instance groups.
             render_pass.set_bind_group(0, &self.gpu.bind_group, &[]);
@@ -173,6 +199,79 @@ impl State {
         }
 
         self.scene.draw_stats = stats;
+
+        // SSAO + blur — MUST run right after the geometry pass: the edit overlay and
+        // gumball passes below clear the depth buffer the AO is computed from.
+        if arctic_full {
+            let ap = self.gpu.pipelines.arctic.as_ref().unwrap();
+            let targets = self.gpu.arctic_targets.as_ref().unwrap();
+            {
+                let mut sp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("SSAO Pass"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &targets.ao_raw_view,
+                        resolve_target: None,
+                        depth_slice: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: None,
+                    occlusion_query_set: None,
+                    timestamp_writes: None,
+                    multiview_mask: None,
+                });
+                sp.set_pipeline(&ap.ssao);
+                sp.set_bind_group(0, &targets.ssao_bg, &[]);
+                sp.draw(0..3, 0..1);
+            }
+            // Separable depth-aware Gaussian (H then V, ping-pong raw -> blur -> raw):
+            // smooth soft shadows without bleeding across silhouettes. Composite
+            // reads ao_raw.
+            {
+                let mut bp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("SSAO Blur Pass"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &targets.ao_blur_view,
+                        resolve_target: None,
+                        depth_slice: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: None,
+                    occlusion_query_set: None,
+                    timestamp_writes: None,
+                    multiview_mask: None,
+                });
+                bp.set_pipeline(&ap.blur_h);
+                bp.set_bind_group(0, &targets.blur_bg, &[]);
+                bp.draw(0..3, 0..1);
+            }
+            {
+                let mut bp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("SSAO Blur Pass 2"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &targets.ao_raw_view,
+                        resolve_target: None,
+                        depth_slice: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: None,
+                    occlusion_query_set: None,
+                    timestamp_writes: None,
+                    multiview_mask: None,
+                });
+                bp.set_pipeline(&ap.blur_v);
+                bp.set_bind_group(0, &targets.blur2_bg, &[]);
+                bp.draw(0..3, 0..1);
+            }
+        }
 
         // Edit overlay — control-point spheres + control-polygon/edge cylinders.
         // Drawn after geometry (clears depth so handles show through) and before the
@@ -337,13 +436,20 @@ impl State {
             }
         }
 
-        // Resolve pass: MSAA → swapchain (empty pass, resolve triggers on end)
+        // Resolve pass: MSAA → swapchain (empty pass, resolve triggers on end).
+        // Arctic: resolve to the offscreen scene_color instead; composite below
+        // multiplies it by the blurred AO and writes the swapchain.
         {
+            let resolve_view = if arctic_full {
+                &self.gpu.arctic_targets.as_ref().unwrap().scene_color_view
+            } else {
+                &view
+            };
             let _resolve = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Resolve Pass"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &self.gpu.msaa_view,
-                    resolve_target: Some(&view),
+                    resolve_target: Some(resolve_view),
                     depth_slice: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Load,
@@ -355,6 +461,31 @@ impl State {
                 timestamp_writes: None,
                 multiview_mask: None,
             });
+        }
+
+        // Composite pass: scene_color × AO → swapchain.
+        if arctic_full {
+            let ap = self.gpu.pipelines.arctic.as_ref().unwrap();
+            let targets = self.gpu.arctic_targets.as_ref().unwrap();
+            let mut cp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Composite Pass"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &view,
+                    resolve_target: None,
+                    depth_slice: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: None,
+                occlusion_query_set: None,
+                timestamp_writes: None,
+                multiview_mask: None,
+            });
+            cp.set_pipeline(&ap.composite);
+            cp.set_bind_group(0, &targets.composite_bg, &[]);
+            cp.draw(0..3, 0..1);
         }
 
         // egui pass

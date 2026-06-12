@@ -429,6 +429,9 @@ impl State {
         } else if code == KeyCode::KeyM && is_pressed {
             self.scene.show_tess = !self.scene.show_tess;
             self.rebuild_tess_wireframe();
+        } else if code == KeyCode::KeyB && is_pressed && !self.scene.shift_down {
+            // B toggles arctic mode (white + SSAO); Shift+B keeps the bottom view.
+            self.scene.arctic = !self.scene.arctic;
         } else {
             self.scene.controller.process_key(code, is_pressed);
         }

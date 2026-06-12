@@ -76,7 +76,7 @@ mod edit_state;
 mod edit_points;
 mod undo_state;
 mod shell_state;
-use gpu_ctx::{GpuCtx, create_depth_texture, create_msaa_texture};
+use gpu_ctx::{GpuCtx, create_arctic_targets, create_depth_texture, create_ground_vbo, create_msaa_texture};
 use scene_state::SceneState;
 use gumball_state::GumballState;
 use edit_state::EditState;
@@ -192,15 +192,25 @@ impl State {
 
         let depth_format = wgpu::TextureFormat::Depth32Float;
         const MSAA_SAMPLES: u32 = 4;
-        let pipelines = Pipelines::new(&device, config.format, Some(depth_format), MSAA_SAMPLES);
+        // SSAO samples the MSAA depth buffer as a texture — the GL fallback backend
+        // cannot bind multisampled depth, so Arctic degrades there (white shading only).
+        let backend = format!("{:?}", adapter.get_info().backend);
+        let ssao_supported = adapter.get_info().backend != wgpu::Backend::Gl;
+        log::info!("wgpu backend: {backend}, ssao_supported: {ssao_supported}");
+        let pipelines = Pipelines::new(&device, config.format, Some(depth_format), MSAA_SAMPLES, ssao_supported);
 
         let aspect = size.width as f32 / size.height.max(1) as f32;
         let camera = Camera::new(aspect);
         let controller = CameraController::new();
         let w = config.width.max(1);
         let h = config.height.max(1);
-        let (depth_tex_raw, depth_view) = create_depth_texture(&device, w, h, MSAA_SAMPLES);
+        let (depth_tex_raw, depth_view) = create_depth_texture(&device, w, h, MSAA_SAMPLES, ssao_supported);
         let msaa_view = create_msaa_texture(&device, w, h, config.format, MSAA_SAMPLES);
+        let arctic_buf = pipelines::create_arctic_buffer(&device);
+        let ground_vbo = create_ground_vbo(&device);
+        let arctic_targets = create_arctic_targets(
+            &device, w, h, config.format, &pipelines, &arctic_buf, &depth_view,
+        );
 
         let (session, demo_cones) = demo::active_scene();
         let mut gpu_session = GpuSession::new(&device, &pipelines.geom_bgl);
@@ -294,6 +304,11 @@ impl State {
             depth_tex_raw,
             depth_view,
             msaa_view,
+            ssao_supported,
+            backend,
+            arctic_buf,
+            ground_vbo,
+            arctic_targets,
             font_atlas_view,
             font_sampler,
             glyph_bind_group,
@@ -334,6 +349,12 @@ impl State {
             text_labels,
             frustum_cull: true,
             draw_stats: gpu_session::DrawStats::default(),
+            arctic: false,
+            arctic_gradient: true,
+            ao_mode: 0, // classic SSAO (learnopengl) — user-requested default
+            ssao_intensity: 0.9,
+            ssao_radius_pct: 0.5,
+            last_arctic_bounds: None,
         };
 
         // ── GumballState ──────────────────────────────────────

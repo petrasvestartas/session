@@ -4,10 +4,12 @@
 //! and constructors), `build` (the pipeline constructors). This module owns the
 //! `Pipelines` struct and wires them together in `new()`.
 
+mod arctic_uniform;
 mod build;
 mod camera_uniform;
 mod layouts;
 
+pub use arctic_uniform::{create_arctic_buffer, ArcticUniform};
 pub use camera_uniform::CameraUniform;
 pub use layouts::{
     build_bind_group, build_geom_bind_group_layout, create_camera_buffer, create_glyph_bind_group,
@@ -16,10 +18,26 @@ pub use layouts::{
 use crate::gpu_session::{LineVertex, MeshVertex, PointVertex};
 use crate::text::TextVertex;
 use build::{
-    build_cloud_pipeline, build_glyph_pipeline, build_grid_pipeline, build_instanced_pipeline,
+    build_background_pipeline, build_cloud_pipeline, build_fullscreen_pipeline,
+    build_glyph_pipeline, build_grid_pipeline, build_ground_pipeline, build_instanced_pipeline,
     build_label_pipeline, build_overlay_pipeline, build_pipeline, build_pipeline_vs,
 };
-use layouts::{build_bind_group_layout, build_glyph_bind_group_layout};
+use layouts::{
+    build_bind_group_layout, build_blur_bind_group_layout, build_composite_bind_group_layout,
+    build_glyph_bind_group_layout, build_ssao_bind_group_layout,
+};
+
+/// SSAO/composite pipelines — only built when the backend can bind MSAA depth
+/// as a texture (WebGPU yes, GL fallback no).
+pub struct ArcticPipelines {
+    pub ssao:          wgpu::RenderPipeline,
+    pub blur_h:        wgpu::RenderPipeline,
+    pub blur_v:        wgpu::RenderPipeline,
+    pub composite:     wgpu::RenderPipeline,
+    pub ssao_bgl:      wgpu::BindGroupLayout,
+    pub blur_bgl:      wgpu::BindGroupLayout,
+    pub composite_bgl: wgpu::BindGroupLayout,
+}
 
 pub struct Pipelines {
     pub mesh:         wgpu::RenderPipeline,
@@ -37,6 +55,9 @@ pub struct Pipelines {
     pub cone:        wgpu::RenderPipeline,
     pub sphere:      wgpu::RenderPipeline,
     pub point_cloud: wgpu::RenderPipeline,
+    pub ground:     wgpu::RenderPipeline,
+    pub background: wgpu::RenderPipeline,
+    pub arctic: Option<ArcticPipelines>,
     pub glyph_bgl: wgpu::BindGroupLayout,
     pub geom_bgl:  wgpu::BindGroupLayout,
     pub bind_group_layout: wgpu::BindGroupLayout,
@@ -48,11 +69,41 @@ impl Pipelines {
         color_format: wgpu::TextureFormat,
         depth_format: Option<wgpu::TextureFormat>,
         sample_count: u32,
+        ssao_supported: bool,
     ) -> Self {
         let bgl = build_bind_group_layout(device);
         let glyph_bgl = build_glyph_bind_group_layout(device);
         let geom_bgl = build_geom_bind_group_layout(device);
+        let arctic = ssao_supported.then(|| {
+            let ssao_bgl = build_ssao_bind_group_layout(device);
+            let blur_bgl = build_blur_bind_group_layout(device);
+            let composite_bgl = build_composite_bind_group_layout(device);
+            ArcticPipelines {
+                ssao: build_fullscreen_pipeline(
+                    device, "ssao", include_str!("../../shaders/ssao.wgsl"), "fs_main",
+                    wgpu::TextureFormat::R16Float, &ssao_bgl,
+                ),
+                blur_h: build_fullscreen_pipeline(
+                    device, "ssao_blur_h", include_str!("../../shaders/ssao_blur.wgsl"), "fs_h",
+                    wgpu::TextureFormat::R16Float, &blur_bgl,
+                ),
+                blur_v: build_fullscreen_pipeline(
+                    device, "ssao_blur_v", include_str!("../../shaders/ssao_blur.wgsl"), "fs_v",
+                    wgpu::TextureFormat::R16Float, &blur_bgl,
+                ),
+                composite: build_fullscreen_pipeline(
+                    device, "composite", include_str!("../../shaders/composite.wgsl"), "fs_main",
+                    color_format, &composite_bgl,
+                ),
+                ssao_bgl,
+                blur_bgl,
+                composite_bgl,
+            }
+        });
         Self {
+            ground:     build_ground_pipeline(device, color_format, depth_format, &bgl, sample_count),
+            background: build_background_pipeline(device, color_format, depth_format, sample_count),
+            arctic,
             mesh: build_pipeline(
                 device, "mesh", include_str!("../../shaders/mesh.wgsl"),
                 MeshVertex::layout(), wgpu::PrimitiveTopology::TriangleList,

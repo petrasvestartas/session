@@ -45,4 +45,15 @@ pub struct SceneState {
     pub frustum_cull: bool,
     /// Render counters from the last frame, shown in the perf HUD.
     pub draw_stats: crate::gpu_session::DrawStats,
+    /// Arctic display mode: white material, ambient only + SSAO, ground plane.
+    pub arctic: bool,
+    pub arctic_gradient: bool,
+    /// 0 = SSAO, 1 = HBAO, 2 = GTAO.
+    pub ao_mode: u32,
+    pub ssao_intensity: f32,
+    /// AO radius as % of scene bbox diagonal.
+    pub ssao_radius_pct: f32,
+    /// Last non-empty scene bounds (mm) — survives the cached_boxes clear that
+    /// follows every transform/edit commit, so arctic AO sizing never pops.
+    pub last_arctic_bounds: Option<([f32; 3], [f32; 3])>,
 }

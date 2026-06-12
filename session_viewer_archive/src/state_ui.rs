@@ -232,6 +232,13 @@ impl State {
         let dt = egui_ctx.input(|i| i.stable_dt);
         let fps = if dt > 1e-6 { 1.0 / dt } else { 0.0 };
         let mut hud_cull = self.scene.frustum_cull;
+        let hud_backend = self.gpu.backend.clone();
+        let hud_ssao_ok = self.gpu.ssao_supported;
+        let mut hud_arctic = self.scene.arctic;
+        let mut hud_gradient = self.scene.arctic_gradient;
+        let mut hud_ao_mode = self.scene.ao_mode;
+        let mut hud_intensity = self.scene.ssao_intensity;
+        let mut hud_radius = self.scene.ssao_radius_pct;
 
         let full_output = egui_ctx.run_ui(raw_input, |ui| {
             egui::Area::new(egui::Id::new("perf_hud"))
@@ -246,6 +253,31 @@ impl State {
                         ));
                         ui.monospace(format!("draw calls {}", stats.draw_calls));
                         ui.checkbox(&mut hud_cull, "frustum cull");
+                        ui.checkbox(&mut hud_arctic, "arctic");
+                        if hud_arctic {
+                            if hud_ssao_ok {
+                                ui.monospace(format!("gpu {hud_backend}"));
+                            } else {
+                                ui.colored_label(
+                                    egui::Color32::RED,
+                                    format!("AO OFF — {hud_backend} backend (need WebGPU)"),
+                                );
+                            }
+                            ui.checkbox(&mut hud_gradient, "gradient");
+                            egui::ComboBox::from_id_salt("ao_mode")
+                                .selected_text(match hud_ao_mode {
+                                    0 => "SSAO",
+                                    1 => "HBAO",
+                                    _ => "GTAO",
+                                })
+                                .show_ui(ui, |ui| {
+                                    ui.selectable_value(&mut hud_ao_mode, 0, "SSAO");
+                                    ui.selectable_value(&mut hud_ao_mode, 1, "HBAO");
+                                    ui.selectable_value(&mut hud_ao_mode, 2, "GTAO");
+                                });
+                            ui.add(egui::Slider::new(&mut hud_intensity, 0.0..=1.5).text("ao"));
+                            ui.add(egui::Slider::new(&mut hud_radius, 0.1..=6.0).text("radius %"));
+                        }
                     });
                 });
 
@@ -582,6 +614,11 @@ impl State {
         });
 
         self.scene.frustum_cull = hud_cull;
+        self.scene.arctic = hud_arctic;
+        self.scene.arctic_gradient = hud_gradient;
+        self.scene.ao_mode = hud_ao_mode;
+        self.scene.ssao_intensity = hud_intensity;
+        self.scene.ssao_radius_pct = hud_radius;
 
         if do_undo { self.undo(); }
         if do_redo { self.redo(); }

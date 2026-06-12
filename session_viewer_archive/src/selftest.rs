@@ -17,6 +17,21 @@ fn headless_device() -> (wgpu::Device, wgpu::Queue) {
         .expect("no wgpu device")
 }
 
+/// Compile every render pipeline (including the arctic SSAO/composite set) on a
+/// headless device — validates all WGSL through naga without a browser.
+pub fn shader_check() -> String {
+    let (device, _queue) = headless_device();
+    let _p = crate::engine::pipelines::Pipelines::new(
+        &device,
+        wgpu::TextureFormat::Bgra8UnormSrgb,
+        Some(wgpu::TextureFormat::Depth32Float),
+        4,
+        true,
+    );
+    let _ = device;
+    "all pipelines compiled ok\n".to_string()
+}
+
 /// Build the demo scene headlessly and report, per trimmed surface, whether a ray aimed at it
 /// (body) and at its boundary curve (edge) is picked. Returns a human-readable report.
 pub fn run() -> String {

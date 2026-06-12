@@ -211,6 +211,71 @@ impl Camera {
         ]
     }
 
+    /// Projection matrix and its analytic inverse, both column-major f32, built
+    /// in f64. NOTE: `Xform::inverse()` is affine-only (3x3 + translation) — it
+    /// silently returns garbage for a projective perspective matrix (the m[11]=-1
+    /// w-row is ignored), so the inverses are written in closed form here.
+    pub fn proj_and_inverse(&self) -> ([[f32; 4]; 4], [[f32; 4]; 4]) {
+        let c = |m: [[f64; 4]; 4]| -> [[f32; 4]; 4] {
+            [
+                [m[0][0] as f32, m[0][1] as f32, m[0][2] as f32, m[0][3] as f32],
+                [m[1][0] as f32, m[1][1] as f32, m[1][2] as f32, m[1][3] as f32],
+                [m[2][0] as f32, m[2][1] as f32, m[2][2] as f32, m[2][3] as f32],
+                [m[3][0] as f32, m[3][1] as f32, m[3][2] as f32, m[3][3] as f32],
+            ]
+        };
+        match self.proj_mode {
+            ProjMode::Perspective => {
+                let near = (self.distance * 0.001_f32).max(0.0001_f32) as f64;
+                let far = 100_000.0_f64;
+                let f = 1.0 / (Tolerance::PI / 6.0).tan();
+                let p00 = f / self.aspect as f64;
+                let p11 = f;
+                let nf = near - far;
+                let m22 = far / nf;
+                let m32 = (near * far) / nf;
+                // proj cols: (p00,0,0,0) (0,p11,0,0) (0,0,m22,-1) (0,0,m32,0)
+                let proj = [
+                    [p00, 0.0, 0.0, 0.0],
+                    [0.0, p11, 0.0, 0.0],
+                    [0.0, 0.0, m22, -1.0],
+                    [0.0, 0.0, m32, 0.0],
+                ];
+                // inv·(x,y,d,1): view = (x/p00, y/p11, -1) / ((d + m22)/m32)
+                let inv = [
+                    [1.0 / p00, 0.0, 0.0, 0.0],
+                    [0.0, 1.0 / p11, 0.0, 0.0],
+                    [0.0, 0.0, 0.0, 1.0 / m32],
+                    [0.0, 0.0, -1.0, m22 / m32],
+                ];
+                (c(proj), c(inv))
+            }
+            ProjMode::Ortho => {
+                let h = self.ortho_scale as f64;
+                let w = h * self.aspect as f64;
+                let depth = ((self.ortho_scale.max(self.distance) * 8.0).max(1.0)) as f64;
+                let near = -depth;
+                let far = depth;
+                let nf = near - far;
+                let sz = 1.0 / nf;
+                let tz = near / nf;
+                let proj = [
+                    [1.0 / w, 0.0, 0.0, 0.0],
+                    [0.0, 1.0 / h, 0.0, 0.0],
+                    [0.0, 0.0, sz, 0.0],
+                    [0.0, 0.0, tz, 1.0],
+                ];
+                let inv = [
+                    [w, 0.0, 0.0, 0.0],
+                    [0.0, h, 0.0, 0.0],
+                    [0.0, 0.0, 1.0 / sz, 0.0],
+                    [0.0, 0.0, -tz / sz, 1.0],
+                ];
+                (c(proj), c(inv))
+            }
+        }
+    }
+
     // Set a canonical named view and switch to ortho.
     // Quaternion maps the camera's default offset [0,−dist,0] to the view direction.
     pub fn set_named_view(&mut self, view: NamedView) {

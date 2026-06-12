@@ -40,6 +40,72 @@ impl State {
         }
     }
 
+    /// Upload the Arctic uniform (projection + AO params, radius scaled to the scene
+    /// bbox) and the white ground-plane vertices (mm). Called once per frame while
+    /// arctic mode is on.
+    fn update_arctic(&mut self) {
+        let mut mn = [f32::MAX; 3];
+        let mut mx = [f32::MIN; 3];
+        let mut found = false;
+        for bbox in &self.scene.session.cached_boxes {
+            for corner in &bbox.corners() {
+                for i in 0..3 {
+                    let v = corner[i] as f32;
+                    if v < mn[i] { mn[i] = v; }
+                    if v > mx[i] { mx[i] = v; }
+                }
+                found = true;
+            }
+        }
+        // cached_boxes is cleared by transform/edit commits and only repopulated on
+        // the next pick — reuse the last known bounds in that window so the AO
+        // radius and ground plane never pop to the fallback box mid-session.
+        if found {
+            self.scene.last_arctic_bounds = Some((mn, mx));
+        } else if let Some((cmn, cmx)) = self.scene.last_arctic_bounds {
+            mn = cmn;
+            mx = cmx;
+        } else {
+            mn = [-5000.0, -5000.0, 0.0];
+            mx = [5000.0, 5000.0, 0.0];
+        }
+        let diag_mm = ((mx[0] - mn[0]).powi(2) + (mx[1] - mn[1]).powi(2) + (mx[2] - mn[2]).powi(2))
+            .sqrt()
+            .max(100.0);
+
+        let (proj, inv_proj) = self.scene.camera.proj_and_inverse();
+        // Clamp relative to the scene so neither tiny parts (washed-out AO) nor
+        // large structures (proportionally vanishing AO) silently degrade.
+        let diag_m = diag_mm * 0.001;
+        let radius_ws = (self.scene.ssao_radius_pct / 100.0 * diag_m)
+            .clamp((diag_m * 0.0005).max(0.001), diag_m * 0.15);
+        let arctic = crate::pipelines::ArcticUniform {
+            proj,
+            inv_proj,
+            kernel: crate::pipelines::ArcticUniform::default().kernel,
+            radius_ws,
+            bias_ws: radius_ws * 0.05, // learnopengl bias/radius ratio (0.025 @ 0.5)
+            intensity: self.scene.ssao_intensity,
+            flags: self.scene.arctic_gradient as u32,
+            ao_mode: self.scene.ao_mode,
+            _pad: [0; 3],
+        };
+        self.gpu.queue.write_buffer(&self.gpu.arctic_buf, 0, bytemuck::bytes_of(&arctic));
+
+        // Ground plane: scene xy extents x3 (min 1000 mm), at the lowest geometry z.
+        let cx = (mn[0] + mx[0]) * 0.5;
+        let cy = (mn[1] + mx[1]) * 0.5;
+        let half = ((mx[0] - mn[0]).max(mx[1] - mn[1]) * 1.5).max(1000.0);
+        let z = mn[2].min(0.0);
+        let (x0, x1) = (cx - half, cx + half);
+        let (y0, y1) = (cy - half, cy + half);
+        let verts: [[f32; 3]; 6] = [
+            [x0, y0, z], [x1, y0, z], [x1, y1, z],
+            [x0, y0, z], [x1, y1, z], [x0, y1, z],
+        ];
+        self.gpu.queue.write_buffer(&self.gpu.ground_vbo, 0, bytemuck::cast_slice(&verts));
+    }
+
     pub fn update(&mut self) {
         self.scene.controller.update_camera(&mut self.scene.camera);
         let v = self.scene.camera.view_matrix();
@@ -63,9 +129,15 @@ impl State {
             fill_light_ws:cam_to_ws( 0.8,-0.2, 0.5),
             screen_size:  [self.gpu.config.width as f32, self.gpu.config.height as f32],
             point_size:   self.scene.line_thickness / 3.0,
-            flags:        (!self.scene.shading_enabled as u32) | (if self.scene.backface_highlight { 2 } else { 0 }),
+            flags:        (!self.scene.shading_enabled as u32)
+                | (if self.scene.backface_highlight { 2 } else { 0 })
+                | (if self.scene.arctic { 4 } else { 0 }),
         };
         self.gpu.queue.write_buffer(&self.gpu.camera_buf, 0, bytemuck::bytes_of(&cam));
+
+        if self.scene.arctic {
+            self.update_arctic();
+        }
 
         if let Some((cx, cy)) = self.scene.pending_pick.take() {
             if self.tool.is_active() {
