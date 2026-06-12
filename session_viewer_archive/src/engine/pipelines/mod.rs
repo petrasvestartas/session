@@ -35,10 +35,13 @@ pub struct ArcticPipelines {
     pub blur_h:        wgpu::RenderPipeline,
     pub blur_v:        wgpu::RenderPipeline,
     pub composite:     wgpu::RenderPipeline,
-    /// Object-id mask for the outline pass: instanced-template path (vs_main).
+    /// Coverage mask for the outline pass: instanced-template path (vs_main).
     pub mask:          wgpu::RenderPipeline,
-    /// Object-id mask: batched mesh-arena path (vs_batched).
+    /// Coverage mask: batched mesh-arena path (vs_batched).
     pub mask_batched:  wgpu::RenderPipeline,
+    /// Selection-only coverage mask variants (fs discards non-selected).
+    pub mask_sel:          wgpu::RenderPipeline,
+    pub mask_sel_batched:  wgpu::RenderPipeline,
     pub ssao_bgl:      wgpu::BindGroupLayout,
     pub blur_bgl:      wgpu::BindGroupLayout,
     pub composite_bgl: wgpu::BindGroupLayout,
@@ -102,8 +105,10 @@ impl Pipelines {
                     device, "composite", include_str!("../../shaders/composite.wgsl"), "fs_main",
                     color_format, &composite_bgl,
                 ),
-                mask: build_mask_pipeline(device, "mask", "vs_main", MeshVertex::layout(), &bgl, sample_count),
-                mask_batched: build_mask_pipeline(device, "mask_batched", "vs_batched", MeshVertex::layout(), &bgl, sample_count),
+                mask: build_mask_pipeline(device, "mask", "vs_main", "fs_main", MeshVertex::layout(), &bgl, sample_count),
+                mask_batched: build_mask_pipeline(device, "mask_batched", "vs_batched", "fs_main", MeshVertex::layout(), &bgl, sample_count),
+                mask_sel: build_mask_pipeline(device, "mask_sel", "vs_main", "fs_selected", MeshVertex::layout(), &bgl, sample_count),
+                mask_sel_batched: build_mask_pipeline(device, "mask_sel_batched", "vs_batched", "fs_selected", MeshVertex::layout(), &bgl, sample_count),
                 ssao_bgl,
                 blur_bgl,
                 composite_bgl,

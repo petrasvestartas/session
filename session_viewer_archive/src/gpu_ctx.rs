@@ -17,6 +17,8 @@ pub struct ArcticTargets {
     /// Coverage mask for the outline pass: MSAA render target + 1x resolve.
     pub mask_msaa_view: wgpu::TextureView,
     pub mask_view: wgpu::TextureView,
+    /// Selection-only coverage resolve (amber boundary around selected objects).
+    pub sel_mask_view: wgpu::TextureView,
 }
 
 pub struct GpuCtx {
@@ -147,6 +149,7 @@ pub fn create_arctic_targets(
     let ao_blur_view = create_target(device, "arctic.ao_blur", w, h, wgpu::TextureFormat::R16Float);
     let mask_msaa_view = create_msaa_texture(device, w, h, wgpu::TextureFormat::R8Unorm, 4);
     let mask_view = create_target(device, "outline.mask", w, h, wgpu::TextureFormat::R8Unorm);
+    let sel_mask_view = create_target(device, "outline.sel_mask", w, h, wgpu::TextureFormat::R8Unorm);
     let ssao_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("ssao.bg"),
         layout: &ap.ssao_bgl,
@@ -186,6 +189,7 @@ pub fn create_arctic_targets(
             wgpu::BindGroupEntry { binding: 2, resource: wgpu::BindingResource::TextureView(&mask_view) },
             wgpu::BindGroupEntry { binding: 3, resource: arctic_buf.as_entire_binding() },
             wgpu::BindGroupEntry { binding: 4, resource: wgpu::BindingResource::Sampler(&linear_sampler) },
+            wgpu::BindGroupEntry { binding: 5, resource: wgpu::BindingResource::TextureView(&sel_mask_view) },
         ],
     });
     Some(ArcticTargets {
@@ -198,6 +202,7 @@ pub fn create_arctic_targets(
         composite_bg,
         mask_msaa_view,
         mask_view,
+        sel_mask_view,
     })
 }
 

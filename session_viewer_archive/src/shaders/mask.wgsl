@@ -76,3 +76,11 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
     if (in.flags & 2u) != 0u { discard; } // hidden
     return vec4<f32>(1.0, 0.0, 0.0, 1.0);
 }
+
+// Selection variant: coverage only for SELECTED surface objects (flags bit0).
+@fragment
+fn fs_selected(in: VsOut) -> @location(0) vec4<f32> {
+    if (in.flags & 2u) != 0u { discard; } // hidden
+    if (in.flags & 1u) == 0u { discard; } // not selected
+    return vec4<f32>(1.0, 0.0, 0.0, 1.0);
+}

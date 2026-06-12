@@ -337,6 +337,41 @@ impl State {
             self.scene.gpu_session.draw_meshes(&mut mp);
             mp.set_pipeline(&ap.mask);
             self.scene.gpu_session.draw_instance_groups(&mut mp);
+            drop(mp);
+
+            // Selection coverage: same pass shape, selected objects only (the
+            // fragment shader discards non-selected). Reuses the MSAA target,
+            // resolves into sel_mask_view for the amber selection boundary.
+            if !self.scene.selected_guids.is_empty() {
+                let mut sp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("Selection Mask Pass"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &targets.mask_msaa_view,
+                        resolve_target: Some(&targets.sel_mask_view),
+                        depth_slice: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                            store: wgpu::StoreOp::Discard,
+                        },
+                    })],
+                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                        view: &self.gpu.depth_view,
+                        depth_ops: Some(wgpu::Operations {
+                            load: wgpu::LoadOp::Load,
+                            store: wgpu::StoreOp::Store,
+                        }),
+                        stencil_ops: None,
+                    }),
+                    occlusion_query_set: None,
+                    timestamp_writes: None,
+                    multiview_mask: None,
+                });
+                sp.set_bind_group(0, &self.gpu.bind_group, &[]);
+                sp.set_pipeline(&ap.mask_sel_batched);
+                self.scene.gpu_session.draw_meshes(&mut sp);
+                sp.set_pipeline(&ap.mask_sel);
+                self.scene.gpu_session.draw_instance_groups(&mut sp);
+            }
             }
         }
 

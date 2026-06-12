@@ -492,6 +492,7 @@ pub fn build_mask_pipeline(
     device: &wgpu::Device,
     label: &str,
     vs_entry: &str,
+    fs_entry: &str,
     vertex_layout: wgpu::VertexBufferLayout<'static>,
     bgl: &wgpu::BindGroupLayout,
     sample_count: u32,
@@ -516,7 +517,7 @@ pub fn build_mask_pipeline(
         },
         fragment: Some(wgpu::FragmentState {
             module: &shader,
-            entry_point: Some("fs_main"),
+            entry_point: Some(fs_entry),
             targets: &[Some(wgpu::ColorTargetState {
                 format: wgpu::TextureFormat::R8Unorm,
                 blend: None,

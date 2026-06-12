@@ -201,6 +201,7 @@ pub fn build_composite_bind_group_layout(device: &wgpu::Device) -> wgpu::BindGro
                 ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                 count: None,
             },
+            tex_entry(5), // selection coverage mask
         ],
     })
 }

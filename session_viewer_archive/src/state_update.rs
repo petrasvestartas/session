@@ -109,7 +109,8 @@ impl State {
             intensity: self.scene.ssao_intensity,
             flags: self.scene.arctic_gradient as u32
                 | ((self.scene.outline as u32) << 1)
-                | ((self.scene.fxaa as u32) << 2),
+                | ((self.scene.fxaa as u32) << 2)
+                | (((self.scene.outline && !self.scene.selected_guids.is_empty()) as u32) << 3),
             ao_mode: self.scene.ao_mode,
             outline_px: self.scene.outline_px,
             screen_w: self.gpu.config.width,

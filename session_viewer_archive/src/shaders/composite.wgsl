@@ -23,6 +23,7 @@ struct Arctic {
 @group(0) @binding(2) var t_mask: texture_2d<f32>;
 @group(0) @binding(3) var<uniform> u: Arctic;
 @group(0) @binding(4) var samp: sampler;
+@group(0) @binding(5) var t_selmask: texture_2d<f32>;
 
 fn luma(c: vec3<f32>) -> f32 {
     return dot(c, vec3<f32>(0.299, 0.587, 0.114));
@@ -119,6 +120,31 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
             }
             a = a * (1.0 - c_center);
             rgb = mix(rgb, vec3<f32>(0.10, 0.10, 0.12), a);
+        }
+    }
+
+    if ((u.flags & 8u) != 0u) {
+        // Selection boundary: same sharp band, amber, around SELECTED surface
+        // objects only (lines/points/curves excluded by the mask pass). Drawn
+        // after the union outline so it wins where they overlap.
+        let dims_s = vec2<i32>(textureDimensions(t_selmask));
+        let sc = textureLoad(t_selmask, clamp(px, vec2<i32>(0), dims_s - vec2<i32>(1)), 0).r;
+        if (sc < 0.999) {
+            let r = clamp(u.outline_px, 1.0, 8.0);
+            let ri = i32(ceil(r)) + 1;
+            var a_sel = 0.0;
+            for (var dy = -ri; dy <= ri; dy++) {
+                for (var dx = -ri; dx <= ri; dx++) {
+                    let q = clamp(px + vec2<i32>(dx, dy), vec2<i32>(0), dims_s - vec2<i32>(1));
+                    let c = textureLoad(t_selmask, q, 0).r;
+                    if (c > 0.0) {
+                        let w = 1.0 - smoothstep(r - 0.5, r + 0.5, length(vec2<f32>(f32(dx), f32(dy))));
+                        a_sel = max(a_sel, c * w);
+                    }
+                }
+            }
+            a_sel = a_sel * (1.0 - sc);
+            rgb = mix(rgb, vec3<f32>(1.0, 0.62, 0.05), a_sel);
         }
     }
 
