@@ -144,7 +144,9 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
                 }
             }
             a_sel = a_sel * (1.0 - sc);
-            rgb = mix(rgb, vec3<f32>(1.0, 0.62, 0.05), a_sel);
+            // Black, like every other outline — Illustrator-scheme consistency
+            // (the yellow fill already signals selection).
+            rgb = mix(rgb, vec3<f32>(0.10, 0.10, 0.12), a_sel);
         }
     }
 

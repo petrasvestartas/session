@@ -123,6 +123,20 @@ impl State {
 
     pub fn update(&mut self) {
         self.scene.controller.update_camera(&mut self.scene.camera);
+
+        // Center the projection in the VISIBLE viewport (window minus egui panels)
+        // and match its aspect, so the UI never cuts the perspective.
+        let vw = self.gpu.config.width.max(1) as f32;
+        let vh = self.gpu.config.height.max(1) as f32;
+        let vp = self.scene.viewport_px;
+        if vp[2] > 1.0 && vp[3] > 1.0 {
+            self.scene.camera.aspect = vp[2] / vp[3];
+            self.scene.camera.ndc_offset = [
+                (vp[0] + vp[2] * 0.5) / vw * 2.0 - 1.0,
+                -((vp[1] + vp[3] * 0.5) / vh * 2.0 - 1.0),
+            ];
+        }
+
         let v = self.scene.camera.view_matrix();
         let norm3 = |x: f32, y: f32, z: f32| -> [f32; 3] {
             let l = (x*x + y*y + z*z).sqrt().max(1e-30);

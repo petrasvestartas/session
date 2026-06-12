@@ -36,6 +36,11 @@ pub struct Camera {
     pub aspect:     f32,
     pub proj_mode:  ProjMode,
     pub ortho_scale: f32,  // half-height of ortho frustum in viewer units
+    /// Off-center projection shift in NDC: centers the perspective inside the
+    /// VISIBLE viewport (window minus egui panels) instead of the full window.
+    /// Baked into view_proj/proj_matrix/proj_and_inverse, so rendering, SSAO,
+    /// picking (generic inverse) and frustum culling all stay consistent.
+    pub ndc_offset: [f32; 2],
     initial_target:      [f32; 3],
     initial_orientation: Quaternion,
     initial_distance:    f32,
@@ -77,6 +82,7 @@ impl Camera {
             aspect,
             proj_mode:  ProjMode::Perspective,
             ortho_scale: distance,
+            ndc_offset: [0.0, 0.0],
             initial_target:      target,
             initial_orientation,
             initial_distance:    distance,
@@ -153,13 +159,26 @@ impl Camera {
             }
         };
         let view_scaled = &view * &scale;
-        let m = (&proj * &view_scaled).to_cols();
+        let mut m = (&proj * &view_scaled).to_cols();
+        self.apply_ndc_offset(&mut m);
         [
             [m[0][0] as f32, m[0][1] as f32, m[0][2] as f32, m[0][3] as f32],
             [m[1][0] as f32, m[1][1] as f32, m[1][2] as f32, m[1][3] as f32],
             [m[2][0] as f32, m[2][1] as f32, m[2][2] as f32, m[2][3] as f32],
             [m[3][0] as f32, m[3][1] as f32, m[3][2] as f32, m[3][3] as f32],
         ]
+    }
+
+    /// Post-multiply an NDC translation onto a projection-like matrix (column-major
+    /// f64 cols): x' = x + dx·w, y' = y + dy·w.
+    fn apply_ndc_offset(&self, m: &mut [[f64; 4]; 4]) {
+        let dx = self.ndc_offset[0] as f64;
+        let dy = self.ndc_offset[1] as f64;
+        if dx == 0.0 && dy == 0.0 { return; }
+        for c in 0..4 {
+            m[c][0] += dx * m[c][3];
+            m[c][1] += dy * m[c][3];
+        }
     }
 
     pub fn view_matrix(&self) -> [[f32; 4]; 4] {
@@ -191,7 +210,7 @@ impl Camera {
     }
 
     pub fn proj_matrix(&self) -> [[f32; 4]; 4] {
-        let m = match self.proj_mode {
+        let mut m = match self.proj_mode {
             ProjMode::Perspective => {
                 let near = (self.distance * 0.001_f32).max(0.0001_f32);
                 Xform::perspective(Tolerance::PI / 3.0, self.aspect as f64, near as f64, 100_000.0).to_cols()
@@ -203,6 +222,7 @@ impl Camera {
                 Xform::orthographic(-w as f64, w as f64, -h as f64, h as f64, -depth as f64, depth as f64).to_cols()
             }
         };
+        self.apply_ndc_offset(&mut m);
         [
             [m[0][0] as f32, m[0][1] as f32, m[0][2] as f32, m[0][3] as f32],
             [m[1][0] as f32, m[1][1] as f32, m[1][2] as f32, m[1][3] as f32],
@@ -224,7 +244,7 @@ impl Camera {
                 [m[3][0] as f32, m[3][1] as f32, m[3][2] as f32, m[3][3] as f32],
             ]
         };
-        match self.proj_mode {
+        let (mut proj, mut inv) = match self.proj_mode {
             ProjMode::Perspective => {
                 let near = (self.distance * 0.001_f32).max(0.0001_f32) as f64;
                 let far = 100_000.0_f64;
@@ -248,7 +268,7 @@ impl Camera {
                     [0.0, 0.0, 0.0, 1.0 / m32],
                     [0.0, 0.0, -1.0, m22 / m32],
                 ];
-                (c(proj), c(inv))
+                (proj, inv)
             }
             ProjMode::Ortho => {
                 let h = self.ortho_scale as f64;
@@ -271,9 +291,18 @@ impl Camera {
                     [0.0, 0.0, 1.0 / sz, 0.0],
                     [0.0, 0.0, -tz / sz, 1.0],
                 ];
-                (c(proj), c(inv))
+                (proj, inv)
             }
+        };
+        // Off-center shift: proj' = T(dx,dy)·proj, so inv' = inv·T(-dx,-dy):
+        // col3 -= dx·col0 + dy·col1.
+        self.apply_ndc_offset(&mut proj);
+        let dx = self.ndc_offset[0] as f64;
+        let dy = self.ndc_offset[1] as f64;
+        for r in 0..4 {
+            inv[3][r] -= dx * inv[0][r] + dy * inv[1][r];
         }
+        (c(proj), c(inv))
     }
 
     // Set a canonical named view and switch to ortho.

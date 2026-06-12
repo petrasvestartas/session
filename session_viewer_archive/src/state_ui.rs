@@ -623,6 +623,19 @@ impl State {
             }
         });
 
+        // Visible area not covered by egui panels (in physical px) — drives the
+        // off-center projection so the 3D view is never cut by the UI.
+        {
+            let avail = self.shell.egui_ctx.available_rect();
+            let ppp = self.shell.egui_ctx.pixels_per_point();
+            self.scene.viewport_px = [
+                avail.min.x * ppp,
+                avail.min.y * ppp,
+                avail.width() * ppp,
+                avail.height() * ppp,
+            ];
+        }
+
         self.scene.frustum_cull = hud_cull;
         self.scene.arctic = hud_arctic;
         self.scene.outline = hud_outline;

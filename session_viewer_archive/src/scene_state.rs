@@ -63,4 +63,8 @@ pub struct SceneState {
     pub outline_px: f32,
     /// FXAA on the resolved image (smooths thin-line stair-stepping beyond MSAA).
     pub fxaa: bool,
+    /// Visible viewport in physical px [x, y, w, h]: the window area NOT covered
+    /// by egui panels (reported by egui each frame). Drives camera aspect and the
+    /// off-center projection so the perspective is never cut by the UI.
+    pub viewport_px: [f32; 4],
 }

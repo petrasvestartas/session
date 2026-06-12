@@ -358,6 +358,7 @@ impl State {
             outline: true,
             outline_px: 3.0,
             fxaa: true,
+            viewport_px: [0.0, 0.0, size.width.max(1) as f32, size.height.max(1) as f32],
         };
 
         // ── GumballState ──────────────────────────────────────
