@@ -567,6 +567,14 @@ impl State {
             self.scene.camera.fit_to_box(center, half_diag.max(50.0));
             return;
         }
+        // The bbox cache is cleared by every transform/edit commit and only
+        // rebuilt by a viewport pick — without this, F after a drag (or after a
+        // tree selection) finds nothing and RESETS the camera instead of
+        // zooming to the selection. A throwaway ray cast forces the rebuild.
+        if self.scene.session.cached_boxes.len() != self.scene.session.lookup.len() {
+            let ray = crate::pick::Ray { origin: [0.0, 0.0, 1.0e9], direction: [0.0, 0.0, -1.0] };
+            let _ = crate::pick::pick_by_ray(&mut self.scene.session, ray, 0.0);
+        }
         for guid in &self.scene.selected_guids {
             if let Some(idx) = self.scene.session.cached_guids.iter().position(|g| g == guid) {
                 if idx < self.scene.session.cached_boxes.len() {
