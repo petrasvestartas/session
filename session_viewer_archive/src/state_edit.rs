@@ -1592,12 +1592,11 @@ impl State {
                 let vm = self.scene.camera.view_matrix();
                 let vz = vm[0][2] * c[0] + vm[1][2] * c[1] + vm[2][2] * c[2] + vm[3][2];
                 let depth_mm = (-vz).max(0.001) * VIEWER_TO_MM;
-                use session_rust::tolerance::Tolerance;
-                let mm_per_px = 2.0 * depth_mm * (Tolerance::PI as f32 / 6.0).tan() / vp_h;
+                let mm_per_px = 2.0 * depth_mm * self.scene.camera.tan_half_fov_y() / vp_h;
                 crate::gumball::SCREEN_PX * mm_per_px / crate::gumball::ARC_RADIUS
             }
             ProjMode::Ortho => {
-                let ortho_h_mm = self.scene.camera.ortho_scale * 2.0 * VIEWER_TO_MM;
+                let ortho_h_mm = self.scene.camera.ortho_half_h() * 2.0 * VIEWER_TO_MM;
                 let mm_per_px = ortho_h_mm / vp_h;
                 crate::gumball::SCREEN_PX * mm_per_px / crate::gumball::ARC_RADIUS
             }

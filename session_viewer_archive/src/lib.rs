@@ -358,7 +358,16 @@ impl State {
             outline: true,
             outline_px: 3.0,
             fxaa: true,
-            viewport_px: [0.0, 0.0, size.width.max(1) as f32, size.height.max(1) as f32],
+            // Approximate the steady-state rect (window minus the 400px default
+            // right panel and 28px command bar) until build_ui measures the real
+            // one — avoids a visible first-frame scale pop with the
+            // width-anchored projection.
+            viewport_px: [
+                0.0,
+                0.0,
+                size.width.saturating_sub(400).max(1) as f32,
+                size.height.saturating_sub(28).max(1) as f32,
+            ],
         };
 
         // ── GumballState ──────────────────────────────────────

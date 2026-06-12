@@ -8,6 +8,12 @@ use winit::keyboard::{KeyCode, ModifiersState};
 const MIN_ZOOM:       f32 = 0.01;
 const MAX_ZOOM:       f32 = 10000.0;
 const MM_TO_UNIT:     f32 = 0.001; // session geometry is in mm; viewer unit = 1 m
+/// Reference full-window aspect (1600×1000). The projection is WIDTH-anchored:
+/// 60° vertical FOV at this aspect defines a fixed horizontal FOV, and the
+/// vertical FOV adapts to the current viewport aspect. Opening the right panel
+/// (narrower viewport) therefore visibly scales the scene down to fit the new
+/// width — browser-style resize — instead of cropping the sides.
+const REF_ASPECT:     f32 = 1.6;
 
 // ============================================================
 
@@ -35,12 +41,18 @@ pub struct Camera {
     pub last_right: [f32; 3],
     pub aspect:     f32,
     pub proj_mode:  ProjMode,
-    pub ortho_scale: f32,  // half-height of ortho frustum in viewer units
+    /// Ortho zoom: half-height at REF_ASPECT. The effective half-WIDTH
+    /// (ortho_scale × REF_ASPECT) is the aspect invariant — see ortho_half_h().
+    pub ortho_scale: f32,
     /// Off-center projection shift in NDC: centers the perspective inside the
     /// VISIBLE viewport (window minus egui panels) instead of the full window.
     /// Baked into view_proj/proj_matrix/proj_and_inverse, so rendering, SSAO,
     /// picking (generic inverse) and frustum culling all stay consistent.
     pub ndc_offset: [f32; 2],
+    /// Visible viewport height in physical pixels — set each frame alongside
+    /// `aspect`. Pan uses it so drag-pan tracks the cursor 1:1 at any
+    /// viewport size (the width-anchored FOV changes world-per-pixel with aspect).
+    pub vp_h:       f32,
     initial_target:      [f32; 3],
     initial_orientation: Quaternion,
     initial_distance:    f32,
@@ -83,12 +95,27 @@ impl Camera {
             proj_mode:  ProjMode::Perspective,
             ortho_scale: distance,
             ndc_offset: [0.0, 0.0],
+            vp_h: 1000.0,
             initial_target:      target,
             initial_orientation,
             initial_distance:    distance,
         };
         cam.update_position();
         cam
+    }
+
+    /// tan(half vertical FOV) for the CURRENT aspect, derived from the fixed
+    /// horizontal FOV (60° vertical at REF_ASPECT). All screen-scale formulas
+    /// (gumball, pick radius, edit handles, fit) must use this, never a
+    /// hard-coded tan(30°).
+    pub fn tan_half_fov_y(&self) -> f32 {
+        (Tolerance::PI as f32 / 6.0).tan() * REF_ASPECT / self.aspect.clamp(0.2, 8.0)
+    }
+
+    /// Effective ortho half-height in viewer units for the current aspect
+    /// (half-width = ortho_scale × REF_ASPECT stays constant).
+    pub fn ortho_half_h(&self) -> f32 {
+        self.ortho_scale * REF_ASPECT / self.aspect.clamp(0.2, 8.0)
     }
 
     pub fn update_position(&mut self) {
@@ -143,7 +170,8 @@ impl Camera {
                 // near = distance × 0.001 → far/near ≤ 100 000 at any zoom level.
                 // far = 100 000 viewer units = 100 km worth of mm.
                 let near = (self.distance * 0.001_f32).max(0.0001_f32);
-                Xform::perspective(Tolerance::PI / 3.0, self.aspect as f64, near as f64, 100_000.0)
+                let fov_y = 2.0 * (self.tan_half_fov_y() as f64).atan();
+                Xform::perspective(fov_y, self.aspect as f64, near as f64, 100_000.0)
             }
             ProjMode::Ortho => {
                 // Depth range adaptive to zoom/orbit, not a fixed ±100 km. Ortho depth is
@@ -152,9 +180,9 @@ impl Camera {
                 // 8 × max(ortho_scale, distance) keeps the whole scene in view (grid ±36,
                 // geometry sits near view-z ≈ −distance) while raising precision ~1000×.
                 // Symmetric (negative near) still exposes far-side geometry past horizontal.
-                let h = self.ortho_scale;
+                let h = self.ortho_half_h();
                 let w = h * self.aspect;
-                let depth = (self.ortho_scale.max(self.distance) * 8.0).max(1.0);
+                let depth = (h.max(self.distance) * 8.0).max(1.0);
                 Xform::orthographic(-w as f64, w as f64, -h as f64, h as f64, -depth as f64, depth as f64)
             }
         };
@@ -200,11 +228,11 @@ impl Camera {
         match self.proj_mode {
             ProjMode::Perspective => {
                 let dist_mm   = self.distance * 1000.0;
-                let tan_half  = (std::f32::consts::PI / 6.0).tan();
+                let tan_half  = self.tan_half_fov_y();
                 dist_mm * tan_half * 2.0 / viewport_h * pixel_radius
             }
             ProjMode::Ortho => {
-                self.ortho_scale * 1000.0 * 2.0 / viewport_h * pixel_radius
+                self.ortho_half_h() * 1000.0 * 2.0 / viewport_h * pixel_radius
             }
         }
     }
@@ -213,12 +241,13 @@ impl Camera {
         let mut m = match self.proj_mode {
             ProjMode::Perspective => {
                 let near = (self.distance * 0.001_f32).max(0.0001_f32);
-                Xform::perspective(Tolerance::PI / 3.0, self.aspect as f64, near as f64, 100_000.0).to_cols()
+                let fov_y = 2.0 * (self.tan_half_fov_y() as f64).atan();
+                Xform::perspective(fov_y, self.aspect as f64, near as f64, 100_000.0).to_cols()
             }
             ProjMode::Ortho => {
-                let h = self.ortho_scale;
+                let h = self.ortho_half_h();
                 let w = h * self.aspect;
-                let depth = (self.ortho_scale.max(self.distance) * 8.0).max(1.0);
+                let depth = (h.max(self.distance) * 8.0).max(1.0);
                 Xform::orthographic(-w as f64, w as f64, -h as f64, h as f64, -depth as f64, depth as f64).to_cols()
             }
         };
@@ -248,7 +277,7 @@ impl Camera {
             ProjMode::Perspective => {
                 let near = (self.distance * 0.001_f32).max(0.0001_f32) as f64;
                 let far = 100_000.0_f64;
-                let f = 1.0 / (Tolerance::PI / 6.0).tan();
+                let f = 1.0 / self.tan_half_fov_y() as f64;
                 let p00 = f / self.aspect as f64;
                 let p11 = f;
                 let nf = near - far;
@@ -271,9 +300,9 @@ impl Camera {
                 (proj, inv)
             }
             ProjMode::Ortho => {
-                let h = self.ortho_scale as f64;
+                let h = self.ortho_half_h() as f64;
                 let w = h * self.aspect as f64;
-                let depth = ((self.ortho_scale.max(self.distance) * 8.0).max(1.0)) as f64;
+                let depth = ((self.ortho_half_h().max(self.distance) * 8.0).max(1.0)) as f64;
                 let near = -depth;
                 let far = depth;
                 let nf = near - far;
@@ -352,7 +381,12 @@ impl Camera {
         let right = fwd.cross(&wu).normalized();
         let up    = right.cross(&fwd).normalized();
 
-        let speed = self.distance * 0.001;
+        // World units per cursor pixel — exact 1:1 cursor tracking under the
+        // width-anchored FOV (and ortho zoom), at any viewport size.
+        let speed = match self.proj_mode {
+            ProjMode::Perspective => 2.0 * self.distance * self.tan_half_fov_y() / self.vp_h.max(1.0),
+            ProjMode::Ortho       => 2.0 * self.ortho_half_h() / self.vp_h.max(1.0),
+        };
         for i in 0..3 {
             let delta = right[i] * right_amount as f64 * speed as f64 + up[i] * up_amount as f64 * speed as f64;
             self.position[i] += delta as f32;
@@ -378,8 +412,12 @@ impl Camera {
             center_mm[2] * MM_TO_UNIT,
         ];
         let r = (half_diag_mm * MM_TO_UNIT).max(0.001);
-        self.distance    = (r as f64 / (Tolerance::PI / 6.0_f32 as f64).tan()).clamp(MIN_ZOOM as f64, MAX_ZOOM as f64) as f32;
-        self.ortho_scale = (r * 1.2).max(0.001);
+        // Fit the sphere into BOTH frustum extents: with the width-anchored
+        // projection the binding direction depends on the viewport aspect.
+        let tan_half_y = self.tan_half_fov_y();
+        let tan_half_x = tan_half_y * self.aspect.clamp(0.2, 8.0);
+        self.distance    = (r as f64 / tan_half_y.min(tan_half_x) as f64).clamp(MIN_ZOOM as f64, MAX_ZOOM as f64) as f32;
+        self.ortho_scale = (r * 1.2 / REF_ASPECT * self.aspect.clamp(0.2, 8.0).max(1.0)).max(0.001);
         self.update_position();
     }
 }

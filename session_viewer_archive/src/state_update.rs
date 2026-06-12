@@ -137,15 +137,17 @@ impl State {
     }
 
     pub fn update(&mut self) {
-        self.scene.controller.update_camera(&mut self.scene.camera);
-
         // The 3D scene renders ONLY into the visible viewport (window minus egui
-        // panels) via set_viewport/scissor — match the camera aspect to it. No NDC
+        // panels) via set_viewport/scissor — match the camera aspect to it BEFORE
+        // the controller runs so pan/zoom use this frame's viewport scale. No NDC
         // offset needed: the viewport transform does the placement.
         let vp = self.scene.viewport_px;
         if vp[2] > 1.0 && vp[3] > 1.0 {
             self.scene.camera.aspect = vp[2] / vp[3];
+            self.scene.camera.vp_h = vp[3];
         }
+
+        self.scene.controller.update_camera(&mut self.scene.camera);
 
         let v = self.scene.camera.view_matrix();
         let norm3 = |x: f32, y: f32, z: f32| -> [f32; 3] {
@@ -164,8 +166,8 @@ impl State {
         };
         let cam = CameraUniform {
             view_proj:    self.scene.camera.view_proj(),
-            key_light_ws: { let kl = cam_to_ws(-0.3, 0.8, 0.6); let oh = if self.scene.camera.proj_mode == ProjMode::Ortho { self.scene.camera.ortho_scale * 1000.0 } else { 0.0_f32 }; [kl[0], kl[1], kl[2], oh] },
-            fill_light_ws:cam_to_ws( 0.8,-0.2, 0.5),
+            key_light_ws: { let kl = cam_to_ws(-0.3, 0.8, 0.6); let oh = if self.scene.camera.proj_mode == ProjMode::Ortho { self.scene.camera.ortho_half_h() * 1000.0 } else { 0.0_f32 }; [kl[0], kl[1], kl[2], oh] },
+            fill_light_ws:{ let fl = cam_to_ws( 0.8,-0.2, 0.5); [fl[0], fl[1], fl[2], self.scene.camera.tan_half_fov_y() * 1000.0] },
             screen_size:  [self.vp_rect().2, self.vp_rect().3],
             point_size:   self.scene.line_thickness / 3.0,
             flags:        (!self.scene.shading_enabled as u32)
@@ -209,13 +211,11 @@ impl State {
                     let vz = vm[0][2]*ox + vm[1][2]*oy + vm[2][2]*oz + vm[3][2];
                     // vz is in viewer units, negative for objects in front of camera
                     let depth_mm = (-vz).max(0.001) * VIEWER_TO_MM;
-                    use session_rust::tolerance::Tolerance;
-                    let mm_per_px = 2.0 * depth_mm * (Tolerance::PI as f32 / 6.0).tan() / vp_h;
+                    let mm_per_px = 2.0 * depth_mm * self.scene.camera.tan_half_fov_y() / vp_h;
                     gumball::SCREEN_PX * mm_per_px / gumball::ARC_RADIUS
                 }
                 ProjMode::Ortho => {
-                    // ortho_scale is the half-height of the frustum in viewer units
-                    let ortho_h_mm = self.scene.camera.ortho_scale * 2.0 * VIEWER_TO_MM;
+                    let ortho_h_mm = self.scene.camera.ortho_half_h() * 2.0 * VIEWER_TO_MM;
                     let mm_per_px = ortho_h_mm / vp_h;
                     gumball::SCREEN_PX * mm_per_px / gumball::ARC_RADIUS
                 }
