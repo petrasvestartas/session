@@ -25,7 +25,7 @@ use build::{
 };
 use layouts::{
     build_bind_group_layout, build_blur_bind_group_layout, build_composite_bind_group_layout,
-    build_glyph_bind_group_layout, build_ssao_bind_group_layout,
+    build_glyph_bind_group_layout, build_ground_bind_group_layout, build_ssao_bind_group_layout,
 };
 
 /// SSAO/composite pipelines — only built when the backend can bind MSAA depth
@@ -65,6 +65,7 @@ pub struct Pipelines {
     pub arctic: Option<ArcticPipelines>,
     pub glyph_bgl: wgpu::BindGroupLayout,
     pub geom_bgl:  wgpu::BindGroupLayout,
+    pub ground_bgl: wgpu::BindGroupLayout,
     pub bind_group_layout: wgpu::BindGroupLayout,
 }
 
@@ -79,6 +80,7 @@ impl Pipelines {
         let bgl = build_bind_group_layout(device);
         let glyph_bgl = build_glyph_bind_group_layout(device);
         let geom_bgl = build_geom_bind_group_layout(device);
+        let ground_bgl = build_ground_bind_group_layout(device);
         let arctic = ssao_supported.then(|| {
             let ssao_bgl = build_ssao_bind_group_layout(device);
             let blur_bgl = build_blur_bind_group_layout(device);
@@ -108,7 +110,7 @@ impl Pipelines {
             }
         });
         Self {
-            ground:     build_ground_pipeline(device, color_format, depth_format, &bgl, sample_count),
+            ground:     build_ground_pipeline(device, color_format, depth_format, &ground_bgl, sample_count),
             background: build_background_pipeline(device, color_format, depth_format, sample_count),
             arctic,
             mesh: build_pipeline(
@@ -160,6 +162,7 @@ impl Pipelines {
             point_cloud: build_cloud_pipeline(device, color_format, depth_format, &bgl, &geom_bgl, sample_count),
             glyph_bgl,
             geom_bgl,
+            ground_bgl,
             bind_group_layout: bgl,
         }
     }

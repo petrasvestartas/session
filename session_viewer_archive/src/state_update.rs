@@ -73,6 +73,22 @@ impl State {
             .sqrt()
             .max(100.0);
 
+        // Analytic ground plane in VIEW space: a point near the view center (camera
+        // target xy at the lowest geometry z) + the world up axis through the view
+        // rotation. No quad vertices — the shader ray-intersects this plane exactly.
+        let z_mm = mn[2].min(0.0);
+        let tx = self.scene.camera.target[0] * 1000.0;
+        let ty = self.scene.camera.target[1] * 1000.0;
+        let vm = self.scene.camera.view_matrix();
+        let p = [tx, ty, z_mm];
+        let mut plane_p_vs = [0.0f32; 4];
+        for i in 0..3 {
+            plane_p_vs[i] = vm[0][i] * p[0] + vm[1][i] * p[1] + vm[2][i] * p[2] + vm[3][i];
+        }
+        // World +Z through the view rotation (column 2); normalize away the mm scale.
+        let nl = (vm[2][0] * vm[2][0] + vm[2][1] * vm[2][1] + vm[2][2] * vm[2][2]).sqrt().max(1e-20);
+        let plane_n_vs = [vm[2][0] / nl, vm[2][1] / nl, vm[2][2] / nl, 0.0];
+
         let (proj, inv_proj) = self.scene.camera.proj_and_inverse();
         // Clamp relative to the scene so neither tiny parts (washed-out AO) nor
         // large structures (proportionally vanishing AO) silently degrade.
@@ -89,23 +105,12 @@ impl State {
             flags: self.scene.arctic_gradient as u32 | ((self.scene.outline as u32) << 1),
             ao_mode: self.scene.ao_mode,
             outline_px: self.scene.outline_px,
-            _pad: [0; 2],
+            screen_w: self.gpu.config.width,
+            screen_h: self.gpu.config.height,
+            plane_p_vs,
+            plane_n_vs,
         };
         self.gpu.queue.write_buffer(&self.gpu.arctic_buf, 0, bytemuck::bytes_of(&arctic));
-
-        // Ground plane: horizon-infinite — centered on the camera target and sized
-        // beyond the 100 km far plane, so its edge can never appear in view.
-        let cx = self.scene.camera.target[0] * 1000.0;
-        let cy = self.scene.camera.target[1] * 1000.0;
-        const HALF: f32 = 1.0e8; // mm
-        let z = mn[2].min(0.0);
-        let (x0, x1) = (cx - HALF, cx + HALF);
-        let (y0, y1) = (cy - HALF, cy + HALF);
-        let verts: [[f32; 3]; 6] = [
-            [x0, y0, z], [x1, y0, z], [x1, y1, z],
-            [x0, y0, z], [x1, y1, z], [x0, y1, z],
-        ];
-        self.gpu.queue.write_buffer(&self.gpu.ground_vbo, 0, bytemuck::cast_slice(&verts));
     }
 
     pub fn update(&mut self) {

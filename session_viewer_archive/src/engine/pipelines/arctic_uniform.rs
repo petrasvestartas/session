@@ -20,7 +20,14 @@ pub struct ArcticUniform {
     pub ao_mode:   u32,
     /// Outline (union-silhouette boundary) width in pixels.
     pub outline_px: f32,
-    pub _pad:      [u32; 2],
+    /// Viewport size in pixels (used by the analytic ground pass).
+    pub screen_w:  u32,
+    pub screen_h:  u32,
+    /// Arctic ground plane in VIEW space (analytic, rendered by ray intersection
+    /// — no giant quad, no f32 vertex precision wobble). Point on plane (.xyz).
+    pub plane_p_vs: [f32; 4],
+    /// Unit plane normal in view space (.xyz).
+    pub plane_n_vs: [f32; 4],
 }
 
 impl Default for ArcticUniform {
@@ -41,7 +48,10 @@ impl Default for ArcticUniform {
             flags:     0,
             ao_mode:   2,
             outline_px: 2.0,
-            _pad:      [0; 2],
+            screen_w:  1,
+            screen_h:  1,
+            plane_p_vs: [0.0, 0.0, 0.0, 0.0],
+            plane_n_vs: [0.0, 0.0, 1.0, 0.0],
         }
     }
 }
@@ -69,7 +79,7 @@ pub fn build_kernel() -> [[f32; 4]; 32] {
 }
 
 // Byte layout must match the WGSL `Arctic` struct exactly (no align(16) tail pad).
-const _: () = assert!(std::mem::size_of::<ArcticUniform>() == 672);
+const _: () = assert!(std::mem::size_of::<ArcticUniform>() == 704);
 
 pub fn create_arctic_buffer(device: &wgpu::Device) -> wgpu::Buffer {
     use wgpu::util::DeviceExt;

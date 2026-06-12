@@ -76,7 +76,7 @@ mod edit_state;
 mod edit_points;
 mod undo_state;
 mod shell_state;
-use gpu_ctx::{GpuCtx, create_arctic_targets, create_depth_texture, create_ground_vbo, create_msaa_texture};
+use gpu_ctx::{GpuCtx, create_arctic_targets, create_depth_texture, create_ground_bind_group, create_msaa_texture};
 use scene_state::SceneState;
 use gumball_state::GumballState;
 use edit_state::EditState;
@@ -207,7 +207,7 @@ impl State {
         let (depth_tex_raw, depth_view) = create_depth_texture(&device, w, h, MSAA_SAMPLES, ssao_supported);
         let msaa_view = create_msaa_texture(&device, w, h, config.format, MSAA_SAMPLES);
         let arctic_buf = pipelines::create_arctic_buffer(&device);
-        let ground_vbo = create_ground_vbo(&device);
+        let ground_bg = create_ground_bind_group(&device, &pipelines.ground_bgl, &arctic_buf);
         let arctic_targets = create_arctic_targets(
             &device, w, h, config.format, &pipelines, &arctic_buf, &depth_view,
         );
@@ -307,7 +307,7 @@ impl State {
             ssao_supported,
             backend,
             arctic_buf,
-            ground_vbo,
+            ground_bg,
             arctic_targets,
             font_atlas_view,
             font_sampler,

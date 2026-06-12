@@ -36,7 +36,8 @@ pub struct GpuCtx {
     /// Adapter backend name ("BrowserWebGpu", "Gl", "Vulkan", ...) for the HUD.
     pub backend: String,
     pub arctic_buf: wgpu::Buffer,
-    pub ground_vbo: wgpu::Buffer,
+    /// Bind group for the analytic ground pass (Arctic uniform only).
+    pub ground_bg: wgpu::BindGroup,
     pub arctic_targets: Option<ArcticTargets>,
     #[allow(dead_code)]
     pub font_atlas_view: wgpu::TextureView,
@@ -193,11 +194,14 @@ pub fn create_arctic_targets(
     })
 }
 
-pub fn create_ground_vbo(device: &wgpu::Device) -> wgpu::Buffer {
-    device.create_buffer(&wgpu::BufferDescriptor {
-        label: Some("arctic.ground"),
-        size: 6 * 12, // 6 vertices x vec3<f32>
-        usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-        mapped_at_creation: false,
+pub fn create_ground_bind_group(
+    device: &wgpu::Device,
+    ground_bgl: &wgpu::BindGroupLayout,
+    arctic_buf: &wgpu::Buffer,
+) -> wgpu::BindGroup {
+    device.create_bind_group(&wgpu::BindGroupDescriptor {
+        label: Some("ground.bg"),
+        layout: ground_bgl,
+        entries: &[wgpu::BindGroupEntry { binding: 0, resource: arctic_buf.as_entire_binding() }],
     })
 }

@@ -547,8 +547,9 @@ pub fn build_mask_pipeline(
     })
 }
 
-/// Arctic ground plane: position-only vertices, depth write ON with a small bias so
-/// geometry resting exactly on the plane never z-fights it.
+/// Arctic ground plane: ANALYTIC fullscreen pass — per-pixel ray/plane
+/// intersection with exact depth via frag_depth (see ground.wgsl). No vertex
+/// precision issues, infinite extent, no bias needed (the shader nudges depth).
 pub fn build_ground_pipeline(
     device: &wgpu::Device,
     color_format: wgpu::TextureFormat,
@@ -556,7 +557,6 @@ pub fn build_ground_pipeline(
     bgl: &wgpu::BindGroupLayout,
     sample_count: u32,
 ) -> wgpu::RenderPipeline {
-    const GROUND_ATTRS: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Float32x3];
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("ground.shader"),
         source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/ground.wgsl").into()),
@@ -571,7 +571,7 @@ pub fn build_ground_pipeline(
         depth_write_enabled: Some(true),
         depth_compare: Some(wgpu::CompareFunction::Less),
         stencil: wgpu::StencilState::default(),
-        bias: wgpu::DepthBiasState { constant: 2, slope_scale: 2.0, clamp: 0.0 },
+        bias: wgpu::DepthBiasState::default(),
     });
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("ground"),
@@ -579,11 +579,7 @@ pub fn build_ground_pipeline(
         vertex: wgpu::VertexState {
             module: &shader,
             entry_point: Some("vs_main"),
-            buffers: &[wgpu::VertexBufferLayout {
-                array_stride: 12,
-                step_mode: wgpu::VertexStepMode::Vertex,
-                attributes: &GROUND_ATTRS,
-            }],
+            buffers: &[],
             compilation_options: Default::default(),
         },
         fragment: Some(wgpu::FragmentState {

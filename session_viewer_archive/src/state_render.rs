@@ -131,8 +131,9 @@ impl State {
                     stats.draw_calls += 1;
                 }
                 render_pass.set_pipeline(&self.gpu.pipelines.ground);
-                render_pass.set_vertex_buffer(0, self.gpu.ground_vbo.slice(..));
-                render_pass.draw(0..6, 0..1);
+                render_pass.set_bind_group(0, &self.gpu.ground_bg, &[]);
+                render_pass.draw(0..3, 0..1);
+                render_pass.set_bind_group(0, &self.gpu.bind_group, &[]);
                 stats.draw_calls += 1;
             }
             render_pass.set_pipeline(&self.gpu.pipelines.grid);
