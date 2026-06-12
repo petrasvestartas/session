@@ -93,13 +93,14 @@ impl State {
         };
         self.gpu.queue.write_buffer(&self.gpu.arctic_buf, 0, bytemuck::bytes_of(&arctic));
 
-        // Ground plane: scene xy extents x3 (min 1000 mm), at the lowest geometry z.
-        let cx = (mn[0] + mx[0]) * 0.5;
-        let cy = (mn[1] + mx[1]) * 0.5;
-        let half = ((mx[0] - mn[0]).max(mx[1] - mn[1]) * 1.5).max(1000.0);
+        // Ground plane: horizon-infinite — centered on the camera target and sized
+        // beyond the 100 km far plane, so its edge can never appear in view.
+        let cx = self.scene.camera.target[0] * 1000.0;
+        let cy = self.scene.camera.target[1] * 1000.0;
+        const HALF: f32 = 1.0e8; // mm
         let z = mn[2].min(0.0);
-        let (x0, x1) = (cx - half, cx + half);
-        let (y0, y1) = (cy - half, cy + half);
+        let (x0, x1) = (cx - HALF, cx + HALF);
+        let (y0, y1) = (cy - HALF, cy + HALF);
         let verts: [[f32; 3]; 6] = [
             [x0, y0, z], [x1, y0, z], [x1, y1, z],
             [x0, y0, z], [x1, y1, z], [x0, y1, z],

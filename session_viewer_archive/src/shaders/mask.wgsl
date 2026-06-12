@@ -1,8 +1,12 @@
-// Object-ID mask for the outline post pass: surface geometry only (the mesh
+// Coverage mask for the outline post pass: surface geometry only (the mesh
 // arena + instanced templates — meshes, BReps, NURBS tessellations). Polylines,
-// lines and points never render here, so they never receive outlines. Each
-// pixel stores instance_id + 1 (0 = no surface); the composite pass draws a
-// boundary wherever neighboring ids differ.
+// lines and points never render here, so they never receive outlines.
+//
+// Rendered at 4x MSAA against the MAIN scene depth (load, no write, LessEqual):
+// the resolve yields FRACTIONAL coverage at silhouettes — the composite outline
+// fades with it, giving smooth anti-aliased boundaries — and anything that
+// occludes geometry in the scene (including the arctic ground plane) occludes
+// its outline too.
 
 struct Camera {
     view_proj:     mat4x4<f32>,
@@ -34,8 +38,7 @@ struct VsIn {
 
 struct VsOut {
     @builtin(position) clip_pos: vec4<f32>,
-    @location(0) @interpolate(flat) iid: u32,
-    @location(1) @interpolate(flat) flags: u32,
+    @location(0) @interpolate(flat) flags: u32,
 }
 
 @vertex
@@ -43,7 +46,6 @@ fn vs_main(in: VsIn, @builtin(instance_index) iid: u32) -> VsOut {
     let inst = instances[iid];
     var out: VsOut;
     out.clip_pos = camera.view_proj * (inst.model * vec4<f32>(in.position, 1.0));
-    out.iid = iid;
     out.flags = inst.flags;
     return out;
 }
@@ -61,12 +63,10 @@ fn vs_batched(in: VsInBatched) -> VsOut {
     var out: VsOut;
     if (inst.flags & 128u) != 0u {
         out.clip_pos = vec4<f32>(0.0, 0.0, -2.0, 1.0); // culled → clipped
-        out.iid = in.instance_id;
         out.flags = inst.flags;
         return out;
     }
     out.clip_pos = camera.view_proj * (inst.model * vec4<f32>(in.position, 1.0));
-    out.iid = in.instance_id;
     out.flags = inst.flags;
     return out;
 }
@@ -74,5 +74,5 @@ fn vs_batched(in: VsInBatched) -> VsOut {
 @fragment
 fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
     if (in.flags & 2u) != 0u { discard; } // hidden
-    return vec4<f32>(f32(in.iid) + 1.0, 0.0, 0.0, 1.0);
+    return vec4<f32>(1.0, 0.0, 0.0, 1.0);
 }

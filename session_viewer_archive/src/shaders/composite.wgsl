@@ -48,26 +48,28 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
     var rgb = col * ao;
 
     if ((u.flags & 2u) != 0u) {
-        // Union-silhouette boundary: outlined only where the BACKGROUND meets any
-        // surface geometry — one border around all objects together, never between
-        // touching parts. Anti-aliased: the band fades by Euclidean distance to the
-        // nearest surface pixel (smoothstep over ±0.75px), so edges read smooth and
-        // corners round instead of the square stepping of a binary dilation.
+        // Union-silhouette boundary: one border around all surface objects
+        // together, never between touching parts. The mask holds MSAA-resolved
+        // FRACTIONAL coverage, so the band strength follows the true anti-aliased
+        // silhouette: each tap contributes coverage × a smoothstep distance
+        // falloff, and the result fades out inside the object by (1 - coverage).
         let dims = vec2<i32>(textureDimensions(t_mask));
-        let id_c = textureLoad(t_mask, clamp(px, vec2<i32>(0), dims - vec2<i32>(1)), 0).r;
-        if (id_c < 0.5) {
+        let c_center = textureLoad(t_mask, clamp(px, vec2<i32>(0), dims - vec2<i32>(1)), 0).r;
+        if (c_center < 0.999) {
             let r = clamp(u.outline_px, 1.0, 8.0);
             let ri = i32(ceil(r)) + 1;
-            var dmin = 1e9;
+            var a = 0.0;
             for (var dy = -ri; dy <= ri; dy++) {
                 for (var dx = -ri; dx <= ri; dx++) {
                     let q = clamp(px + vec2<i32>(dx, dy), vec2<i32>(0), dims - vec2<i32>(1));
-                    if (textureLoad(t_mask, q, 0).r > 0.5) {
-                        dmin = min(dmin, length(vec2<f32>(f32(dx), f32(dy))));
+                    let c = textureLoad(t_mask, q, 0).r;
+                    if (c > 0.0) {
+                        let w = 1.0 - smoothstep(r - 0.75, r + 0.75, length(vec2<f32>(f32(dx), f32(dy))));
+                        a = max(a, c * w);
                     }
                 }
             }
-            let a = 1.0 - smoothstep(r - 0.75, r + 0.75, dmin);
+            a = a * (1.0 - c_center);
             rgb = mix(rgb, vec3<f32>(0.10, 0.10, 0.12), 0.9 * a);
         }
     }

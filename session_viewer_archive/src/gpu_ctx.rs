@@ -14,9 +14,9 @@ pub struct ArcticTargets {
     pub blur2_bg: wgpu::BindGroup,
     /// Composite reads ao_raw (the twice-blurred result) + the object-id mask.
     pub composite_bg: wgpu::BindGroup,
-    /// Object-id mask target (outline pass) + its own non-MSAA depth.
+    /// Coverage mask for the outline pass: MSAA render target + 1x resolve.
+    pub mask_msaa_view: wgpu::TextureView,
     pub mask_view: wgpu::TextureView,
-    pub mask_depth_view: wgpu::TextureView,
 }
 
 pub struct GpuCtx {
@@ -144,8 +144,8 @@ pub fn create_arctic_targets(
     let scene_color_view = create_target(device, "arctic.scene_color", w, h, surface_format);
     let ao_raw_view = create_target(device, "arctic.ao_raw", w, h, wgpu::TextureFormat::R16Float);
     let ao_blur_view = create_target(device, "arctic.ao_blur", w, h, wgpu::TextureFormat::R16Float);
-    let mask_view = create_target(device, "outline.mask", w, h, wgpu::TextureFormat::R32Float);
-    let (_, mask_depth_view) = create_depth_texture(device, w, h, 1, false);
+    let mask_msaa_view = create_msaa_texture(device, w, h, wgpu::TextureFormat::R8Unorm, 4);
+    let mask_view = create_target(device, "outline.mask", w, h, wgpu::TextureFormat::R8Unorm);
     let ssao_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("ssao.bg"),
         layout: &ap.ssao_bgl,
@@ -188,8 +188,8 @@ pub fn create_arctic_targets(
         blur_bg,
         blur2_bg,
         composite_bg,
+        mask_msaa_view,
         mask_view,
-        mask_depth_view,
     })
 }
 

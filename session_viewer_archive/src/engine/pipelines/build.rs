@@ -483,14 +483,18 @@ pub fn build_background_pipeline(
     })
 }
 
-/// Object-ID mask pipeline for the outline pass: mesh-arena vertex layout, R32Float
-/// id target (no blending — R32Float is not blendable), own non-MSAA depth.
+/// Coverage-mask pipeline for the outline pass: mesh-arena vertex layout, R8Unorm
+/// coverage target at the scene's MSAA sample count (resolve gives fractional
+/// silhouette coverage = anti-aliased outlines), depth-TESTED against the main
+/// scene depth (load, no write, LessEqual) so occluders — including the arctic
+/// ground plane — also occlude outlines.
 pub fn build_mask_pipeline(
     device: &wgpu::Device,
     label: &str,
     vs_entry: &str,
     vertex_layout: wgpu::VertexBufferLayout<'static>,
     bgl: &wgpu::BindGroupLayout,
+    sample_count: u32,
 ) -> wgpu::RenderPipeline {
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some(&format!("{label}.shader")),
@@ -514,7 +518,7 @@ pub fn build_mask_pipeline(
             module: &shader,
             entry_point: Some("fs_main"),
             targets: &[Some(wgpu::ColorTargetState {
-                format: wgpu::TextureFormat::R32Float,
+                format: wgpu::TextureFormat::R8Unorm,
                 blend: None,
                 write_mask: wgpu::ColorWrites::ALL,
             })],
@@ -531,12 +535,13 @@ pub fn build_mask_pipeline(
         },
         depth_stencil: Some(wgpu::DepthStencilState {
             format: wgpu::TextureFormat::Depth32Float,
-            depth_write_enabled: Some(true),
-            depth_compare: Some(wgpu::CompareFunction::Less),
+            depth_write_enabled: Some(false),
+            // Equality against the depth the same geometry wrote in the main pass.
+            depth_compare: Some(wgpu::CompareFunction::LessEqual),
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
         }),
-        multisample: wgpu::MultisampleState::default(),
+        multisample: wgpu::MultisampleState { count: sample_count, mask: !0, alpha_to_coverage_enabled: false },
         multiview_mask: None,
         cache: None,
     })

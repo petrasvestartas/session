@@ -303,21 +303,24 @@ impl State {
                     multiview_mask: None,
                 });
             }
+            // 4x MSAA coverage, depth-tested (LessEqual, no write) against the MAIN
+            // scene depth: occluders (incl. the arctic ground plane) clip outlines,
+            // and the resolve produces fractional silhouette coverage for smooth AA.
             let mut mp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Outline Mask Pass"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &targets.mask_view,
-                    resolve_target: None,
+                    view: &targets.mask_msaa_view,
+                    resolve_target: Some(&targets.mask_view),
                     depth_slice: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-                        store: wgpu::StoreOp::Store,
+                        store: wgpu::StoreOp::Discard,
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &targets.mask_depth_view,
+                    view: &self.gpu.depth_view,
                     depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(1.0),
+                        load: wgpu::LoadOp::Load,
                         store: wgpu::StoreOp::Store,
                     }),
                     stencil_ops: None,
