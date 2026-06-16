@@ -88,7 +88,7 @@
     "line": 8,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.335
+    "time_ms": 0.096
   },
   {
     "checks": [
@@ -124,7 +124,7 @@
     "line": 105,
     "passed": true,
     "test_name": "Reverse",
-    "time_ms": 0.022
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -140,7 +140,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Rotate",
-    "time_ms": 0.039
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 131,
     "passed": true,
     "test_name": "Is Right Hand",
-    "time_ms": 0.057
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -187,7 +187,7 @@
     "line": 174,
     "passed": true,
     "test_name": "Is Coplanar",
-    "time_ms": 0.044
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -213,7 +213,7 @@
     "line": 216,
     "passed": true,
     "test_name": "Transform",
-    "time_ms": 0.021
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -234,7 +234,7 @@
     "line": 247,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 18.653
+    "time_ms": 13.131
   },
   {
     "checks": [
@@ -255,7 +255,106 @@
     "line": 268,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 18.213
+    "time_ms": 12.798
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pl.is_valid()",
+        "line": 99,
+        "passed": true
+      },
+      {
+        "code_line": "!invalid.is_valid()",
+        "line": 100,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Plane;\n\n        let pl = Plane::xy_plane();\n        let invalid = Plane::invalid();\n",
+    "failures": [],
+    "group": "Plane",
+    "line": 93,
+    "passed": true,
+    "test_name": "Is Valid",
+    "time_ms": 0.008
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(pl2.origin()[0], 1.0)",
+        "line": 239,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pl2.origin()[1], 2.0)",
+        "line": 240,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pl2.origin()[2], 3.0)",
+        "line": 241,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pl.origin()[0], 0.0)",
+        "line": 242,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Plane;\n        use crate::Xform;\n\n        let mut pl = Plane::xy_plane();\n        pl.xform = Xform::translation(1.0, 2.0, 3.0);\n        let pl2 = pl.transformed();\n",
+    "failures": [],
+    "group": "Plane",
+    "line": 231,
+    "passed": true,
+    "test_name": "Transformed",
+    "time_ms": 0.01
+  },
+  {
+    "checks": [
+      {
+        "code_line": "Plane::is_same_direction(&p1, &p2, true)",
+        "line": 153,
+        "passed": true
+      },
+      {
+        "code_line": "Plane::is_same_direction(&p1, &p3, true)",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "Plane::is_same_direction(&p1, &p3, false)",
+        "line": 155,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Plane;\n\n        let p1 = Plane::xy_plane();\n        let p2 = Plane::xy_plane();\n        let mut p3 = Plane::xy_plane();\n        p3.reverse();\n",
+    "failures": [],
+    "group": "Plane",
+    "line": 145,
+    "passed": true,
+    "test_name": "Is Same Direction",
+    "time_ms": 0.009
+  },
+  {
+    "checks": [
+      {
+        "code_line": "Plane::is_same_position(&p1, &Plane::xy_plane())",
+        "line": 168,
+        "passed": true
+      },
+      {
+        "code_line": "!Plane::is_same_position(&p1, &p2)",
+        "line": 169,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Plane;\n        use crate::Vector;\n\n        let p1 = Plane::xy_plane();\n        let mut p2 = Plane::xy_plane();\n        p2 += Vector::new(0.0, 0.0, 1.0);\n",
+    "failures": [],
+    "group": "Plane",
+    "line": 160,
+    "passed": true,
+    "test_name": "Is Same Position",
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -291,70 +390,7 @@
     "line": 201,
     "passed": true,
     "test_name": "Base1 Base2",
-    "time_ms": 0.015
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_close(moved.origin()[2], 5.0)",
-        "line": 195,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl.origin()[2], 0.0)",
-        "line": 196,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Plane;\n\n        let pl = Plane::xy_plane();\n        let moved = pl.translate_by_normal(5.0);\n",
-    "failures": [],
-    "group": "Plane",
-    "line": 189,
-    "passed": true,
-    "test_name": "Translate By Normal",
-    "time_ms": 0.04
-  },
-  {
-    "checks": [
-      {
-        "code_line": "pl.is_valid()",
-        "line": 99,
-        "passed": true
-      },
-      {
-        "code_line": "!invalid.is_valid()",
-        "line": 100,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Plane;\n\n        let pl = Plane::xy_plane();\n        let invalid = Plane::invalid();\n",
-    "failures": [],
-    "group": "Plane",
-    "line": 93,
-    "passed": true,
-    "test_name": "Is Valid",
-    "time_ms": 0.013
-  },
-  {
-    "checks": [
-      {
-        "code_line": "Plane::is_same_position(&p1, &Plane::xy_plane())",
-        "line": 168,
-        "passed": true
-      },
-      {
-        "code_line": "!Plane::is_same_position(&p1, &p2)",
-        "line": 169,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Plane;\n        use crate::Vector;\n\n        let p1 = Plane::xy_plane();\n        let mut p2 = Plane::xy_plane();\n        p2 += Vector::new(0.0, 0.0, 1.0);\n",
-    "failures": [],
-    "group": "Plane",
-    "line": 160,
-    "passed": true,
-    "test_name": "Is Same Position",
-    "time_ms": 0.015
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -375,63 +411,27 @@
     "line": 299,
     "passed": true,
     "test_name": "Has On Negative Side",
-    "time_ms": 0.011
+    "time_ms": 0.005
   },
   {
     "checks": [
       {
-        "code_line": "Plane::is_same_direction(&p1, &p2, true)",
-        "line": 153,
+        "code_line": "TOLERANCE.is_close(moved.origin()[2], 5.0)",
+        "line": 195,
         "passed": true
       },
       {
-        "code_line": "Plane::is_same_direction(&p1, &p3, true)",
-        "line": 154,
-        "passed": true
-      },
-      {
-        "code_line": "Plane::is_same_direction(&p1, &p3, false)",
-        "line": 155,
+        "code_line": "TOLERANCE.is_close(pl.origin()[2], 0.0)",
+        "line": 196,
         "passed": true
       }
     ],
-    "code": "        use crate::Plane;\n\n        let p1 = Plane::xy_plane();\n        let p2 = Plane::xy_plane();\n        let mut p3 = Plane::xy_plane();\n        p3.reverse();\n",
+    "code": "        use crate::Plane;\n\n        let pl = Plane::xy_plane();\n        let moved = pl.translate_by_normal(5.0);\n",
     "failures": [],
     "group": "Plane",
-    "line": 145,
+    "line": 189,
     "passed": true,
-    "test_name": "Is Same Direction",
-    "time_ms": 0.02
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_close(pl2.origin()[0], 1.0)",
-        "line": 239,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl2.origin()[1], 2.0)",
-        "line": 240,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl2.origin()[2], 3.0)",
-        "line": 241,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pl.origin()[0], 0.0)",
-        "line": 242,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Plane;\n        use crate::Xform;\n\n        let mut pl = Plane::xy_plane();\n        pl.xform = Xform::translation(1.0, 2.0, 3.0);\n        let pl2 = pl.transformed();\n",
-    "failures": [],
-    "group": "Plane",
-    "line": 231,
-    "passed": true,
-    "test_name": "Transformed",
-    "time_ms": 0.021
+    "test_name": "Translate By Normal",
+    "time_ms": 0.01
   }
 ]

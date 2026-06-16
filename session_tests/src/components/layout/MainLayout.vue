@@ -92,6 +92,17 @@
           active-class="active">
           Install
         </router-link>
+
+        <div v-if="currentRoute === 'install'" class="suites-section">
+          <button
+            v-for="s in installSections" :key="s.id"
+            type="button"
+            class="suite-button"
+            :class="{ active: activeInstall === s.id }"
+            @click="selectInstall(s.id)">
+            {{ s.title }}
+          </button>
+        </div>
       </div>
     </nav>
 
@@ -108,6 +119,7 @@ import { computed, ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ensureTestData } from '../../dataLoader';
 import { sections as viewerSections } from '../../viewerSections';
+import { sections as installSections } from '../../installSections';
 
 const route = useRoute();
 const router = useRouter();
@@ -119,6 +131,17 @@ const activeSection = computed(() => {
 });
 const selectSection = (id: string) => {
   router.push({ path: '/viewer', query: id === 'live' ? undefined : { section: id } });
+};
+
+// Install page sub-sections — each install_sections/*.md is its own page via ?section=.
+const activeInstall = computed(() => {
+  const q = route.query.section;
+  const first = installSections[0]?.id ?? '';
+  return typeof q === 'string' && installSections.some((s) => s.id === q) ? q : first;
+});
+const selectInstall = (id: string) => {
+  const first = installSections[0]?.id ?? '';
+  router.push({ path: '/install', query: id === first ? undefined : { section: id } });
 };
 
 const currentRoute = computed(() => {

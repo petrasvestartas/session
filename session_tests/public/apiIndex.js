@@ -4655,6 +4655,7 @@ window.API_INDEX = {
         "BRep.__ne__",
         "BRep.__repr__",
         "BRep.__str__",
+        "BRep._split",
         "BRep.add_curve_2d",
         "BRep.add_curve_3d",
         "BRep.add_surface",
@@ -4830,6 +4831,7 @@ window.API_INDEX = {
         "BRep.__ne__",
         "BRep.__repr__",
         "BRep.__str__",
+        "BRep._split",
         "BRep.add_curve_2d",
         "BRep.add_curve_3d",
         "BRep.add_edge",
@@ -4837,13 +4839,16 @@ window.API_INDEX = {
         "BRep.add_surface",
         "BRep.add_trim",
         "BRep.add_vertex",
+        "BRep.append_face",
         "BRep.duplicate",
         "BRep.edge_count",
         "BRep.face_count",
+        "BRep.find_or_add_vertex",
         "BRep.from_nurbscurves",
         "BRep.from_polylines",
         "BRep.get_edge",
         "BRep.is_solid",
+        "BRep.lift",
         "BRep.make_cap",
         "BRep.surfacecolor",
         "BRep.vertex_count",
@@ -4917,6 +4922,8 @@ window.API_INDEX = {
       "related": [
         "BRep.__ne__",
         "BRep._cap_circle",
+        "BRep._split",
+        "BRep._subset",
         "BRep.add_curve_2d",
         "BRep.add_curve_3d",
         "BRep.add_edge",
@@ -4924,6 +4931,7 @@ window.API_INDEX = {
         "BRep.add_loop",
         "BRep.add_trim",
         "BRep.add_vertex",
+        "BRep.append_face",
         "BRep.create_block_with_hole",
         "BRep.create_box",
         "BRep.create_cylinder",
@@ -4932,13 +4940,21 @@ window.API_INDEX = {
         "BRep.edge_count",
         "BRep.face_count",
         "BRep.find_edge",
+        "BRep.find_or_add_vertex",
         "BRep.from_nurbscurves",
         "BRep.from_polylines",
         "BRep.get_edge",
         "BRep.is_solid",
         "BRep.is_valid",
+        "BRep.lift",
         "BRep.make_cap",
+        "BRep.map_surface",
         "BRep.pt3d",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
+        "BRep.split_by_plane",
+        "BRep.split_by_surface",
+        "BRep.subset",
         "BRep.vertex_count"
       ]
     },
@@ -4964,6 +4980,8 @@ window.API_INDEX = {
       "related": [
         "BRep.__ne__",
         "BRep._cap_circle",
+        "BRep._split",
+        "BRep._subset",
         "BRep.add_curve_2d",
         "BRep.add_curve_loop",
         "BRep.add_edge",
@@ -4972,6 +4990,7 @@ window.API_INDEX = {
         "BRep.add_surface",
         "BRep.add_trim",
         "BRep.add_vertex",
+        "BRep.append_face",
         "BRep.create_block_with_hole",
         "BRep.create_box",
         "BRep.create_cylinder",
@@ -4981,13 +5000,21 @@ window.API_INDEX = {
         "BRep.face_count",
         "BRep.find_edge",
         "BRep.find_or_add",
+        "BRep.find_or_add_vertex",
         "BRep.from_nurbscurves",
         "BRep.from_polylines",
         "BRep.get_edge",
         "BRep.is_solid",
         "BRep.is_valid",
+        "BRep.lift",
         "BRep.make_cap",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
         "BRep.project_curve_to_uv",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
+        "BRep.split_by_surface",
         "BRep.vertex_count"
       ]
     },
@@ -5013,6 +5040,8 @@ window.API_INDEX = {
       "related": [
         "BRep.__ne__",
         "BRep._cap_circle",
+        "BRep._split",
+        "BRep._subset",
         "BRep.add_curve_3d",
         "BRep.add_curve_loop",
         "BRep.add_edge",
@@ -5021,6 +5050,7 @@ window.API_INDEX = {
         "BRep.add_surface",
         "BRep.add_trim",
         "BRep.add_vertex",
+        "BRep.append_face",
         "BRep.create_block_with_hole",
         "BRep.create_box",
         "BRep.create_cylinder",
@@ -5030,14 +5060,21 @@ window.API_INDEX = {
         "BRep.face_count",
         "BRep.find_edge",
         "BRep.find_or_add",
+        "BRep.find_or_add_vertex",
         "BRep.from_nurbscurves",
         "BRep.from_polylines",
         "BRep.get_edge",
         "BRep.is_solid",
         "BRep.is_valid",
+        "BRep.lift",
         "BRep.make_cap",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
         "BRep.project_curve_to_uv",
         "BRep.pt3d",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
         "BRep.vertex_count"
       ]
     },
@@ -5063,6 +5100,8 @@ window.API_INDEX = {
       "related": [
         "BRep.__ne__",
         "BRep._cap_circle",
+        "BRep._split",
+        "BRep._subset",
         "BRep.add_curve_2d",
         "BRep.add_curve_3d",
         "BRep.add_edge",
@@ -5070,6 +5109,7 @@ window.API_INDEX = {
         "BRep.add_loop",
         "BRep.add_surface",
         "BRep.add_trim",
+        "BRep.append_face",
         "BRep.create_block_with_hole",
         "BRep.create_box",
         "BRep.create_cylinder",
@@ -5079,13 +5119,21 @@ window.API_INDEX = {
         "BRep.face_count",
         "BRep.find_edge",
         "BRep.find_or_add",
+        "BRep.find_or_add_vertex",
         "BRep.from_nurbscurves",
         "BRep.from_polylines",
         "BRep.get_edge",
         "BRep.is_solid",
         "BRep.is_valid",
+        "BRep.lift",
         "BRep.make_cap",
+        "BRep.map_surface",
+        "BRep.map_vertex",
         "BRep.pt3d",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
+        "BRep.split_by_plane",
+        "BRep.split_by_surface",
         "BRep.vertex_count"
       ]
     },
@@ -5110,6 +5158,8 @@ window.API_INDEX = {
       },
       "related": [
         "BRep._cap_circle",
+        "BRep._split",
+        "BRep._subset",
         "BRep.add_curve_2d",
         "BRep.add_curve_3d",
         "BRep.add_curve_loop",
@@ -5118,6 +5168,7 @@ window.API_INDEX = {
         "BRep.add_surface",
         "BRep.add_trim",
         "BRep.add_vertex",
+        "BRep.append_face",
         "BRep.create_block_with_hole",
         "BRep.create_box",
         "BRep.create_cylinder",
@@ -5126,14 +5177,22 @@ window.API_INDEX = {
         "BRep.face_count",
         "BRep.find_edge",
         "BRep.find_or_add",
+        "BRep.find_or_add_vertex",
         "BRep.from_nurbscurves",
         "BRep.from_polylines",
         "BRep.get_edge",
         "BRep.is_solid",
         "BRep.is_valid",
+        "BRep.lift",
         "BRep.make_cap",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
         "BRep.new",
         "BRep.project_curve_to_uv",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
+        "BRep.split_by_surface",
         "BRep.vertex_count"
       ]
     },
@@ -5158,6 +5217,8 @@ window.API_INDEX = {
       },
       "related": [
         "BRep._cap_circle",
+        "BRep._split",
+        "BRep._subset",
         "BRep.add_curve_2d",
         "BRep.add_curve_3d",
         "BRep.add_curve_loop",
@@ -5166,6 +5227,7 @@ window.API_INDEX = {
         "BRep.add_loop",
         "BRep.add_surface",
         "BRep.add_vertex",
+        "BRep.append_face",
         "BRep.create_block_with_hole",
         "BRep.create_box",
         "BRep.create_cylinder",
@@ -5174,14 +5236,22 @@ window.API_INDEX = {
         "BRep.face_count",
         "BRep.find_edge",
         "BRep.find_or_add",
+        "BRep.find_or_add_vertex",
         "BRep.from_nurbscurves",
         "BRep.from_polylines",
         "BRep.get_edge",
         "BRep.is_solid",
         "BRep.is_valid",
+        "BRep.lift",
         "BRep.make_cap",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
         "BRep.project_curve_to_uv",
         "BRep.pt3d",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
+        "BRep.subset",
         "BRep.vertex_count"
       ]
     },
@@ -5206,6 +5276,8 @@ window.API_INDEX = {
       },
       "related": [
         "BRep._cap_circle",
+        "BRep._split",
+        "BRep._subset",
         "BRep.add_curve_2d",
         "BRep.add_curve_3d",
         "BRep.add_curve_loop",
@@ -5214,6 +5286,7 @@ window.API_INDEX = {
         "BRep.add_surface",
         "BRep.add_trim",
         "BRep.add_vertex",
+        "BRep.append_face",
         "BRep.create_block_with_hole",
         "BRep.create_box",
         "BRep.create_cylinder",
@@ -5221,15 +5294,23 @@ window.API_INDEX = {
         "BRep.edge_count",
         "BRep.find_edge",
         "BRep.find_or_add",
+        "BRep.find_or_add_vertex",
         "BRep.from_nurbscurves",
         "BRep.from_polylines",
         "BRep.get_edge",
         "BRep.is_solid",
         "BRep.is_valid",
+        "BRep.lift",
         "BRep.make_cap",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
         "BRep.new",
         "BRep.project_curve_to_uv",
         "BRep.pt3d",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
+        "BRep.subset",
         "BRep.vertex_count"
       ]
     },
@@ -5254,6 +5335,8 @@ window.API_INDEX = {
       },
       "related": [
         "BRep._cap_circle",
+        "BRep._split",
+        "BRep._subset",
         "BRep.add_curve_2d",
         "BRep.add_curve_3d",
         "BRep.add_edge",
@@ -5261,18 +5344,27 @@ window.API_INDEX = {
         "BRep.add_surface",
         "BRep.add_trim",
         "BRep.add_vertex",
+        "BRep.append_face",
         "BRep.create_block_with_hole",
         "BRep.create_box",
         "BRep.create_cylinder",
         "BRep.create_sphere",
         "BRep.find_edge",
+        "BRep.find_or_add_vertex",
         "BRep.from_nurbscurves",
         "BRep.from_polylines",
         "BRep.get_edge",
         "BRep.is_solid",
+        "BRep.lift",
         "BRep.make_cap",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
         "BRep.new",
-        "BRep.pt3d"
+        "BRep.pt3d",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
+        "BRep.subset"
       ]
     },
     {
@@ -5543,6 +5635,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "BRep._split",
         "BRep.add_curve_2d",
         "BRep.add_curve_3d",
         "BRep.add_curve_loop",
@@ -5550,10 +5643,13 @@ window.API_INDEX = {
         "BRep.add_loop",
         "BRep.add_trim",
         "BRep.add_vertex",
+        "BRep.append_face",
+        "BRep.find_or_add_vertex",
         "BRep.from_nurbscurves",
         "BRep.from_polylines",
         "BRep.get_edge",
         "BRep.guid",
+        "BRep.lift",
         "BRep.make_cap",
         "BRep.new",
         "BRep.project_curve_to_uv",
@@ -5709,6 +5805,493 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "BRep._split",
+      "implementations": {
+        "python": {
+          "sig": "_split(cut_pcurves_for, tolerance=None)",
+          "code": "def _split(self, cut_pcurves_for, tolerance=None):\n\n        \"\"\"Split every face by per-face cut pcurves; rebuild a new BRep.\n\n        cut_pcurves_for(surface) returns the cutter's UV pcurves on that\n        surface (empty if the cutter misses it). Faces the cutter crosses are\n        subdivided via the loop-aware arrangement; uncut faces and faces with\n        inner loops are copied unchanged. Vertices and edges are deduplicated\n        in 3D so shared boundaries become mated.\n        \"\"\"\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n\n        result = BRep()\n        result.name = self.name\n        _vmap = {}\n        _emap = {}\n\n        def find_or_add_vertex(p):\n            key = (int(round(p[0]*1e6)), int(round(p[1]*1e6)), int(round(p[2]*1e6)))\n            existing = _vmap.get(key)\n            if existing is not None:\n                return existing\n            idx = result.add_vertex(p)\n            tv = BRepVertex(); tv.point_index = idx\n            result.m_topology_vertices.append(tv)\n            _vmap[key] = idx\n            return idx\n\n        def lift(srf, pc):\n            n = max(pc.cv_count() * 4, 8)\n            c0, c1 = pc.domain()\n            pts3 = []\n            for i in range(n + 1):\n                uv = pc.point_at(c0 + (c1 - c0) * i / n)\n                pts3.append(srf.point_at(uv[0], uv[1]))\n            c3d = NurbsCurve.create(False, 1, pts3)\n            return c3d, pts3[0], pts3[-1], pts3[n // 2]\n\n        def append_face(srf, loops):\n            si = result.add_surface(srf)\n            fi = result.add_face(si, False)\n            for ltype, pcs in loops:\n                li = result.add_loop(fi, ltype)\n                for pc in pcs:\n                    if pc is None or not pc.is_valid():\n                        continue\n                    c3d, p0, p1, pm = lift(srf, pc)\n                    ci3d = result.add_curve_3d(c3d)\n                    va = find_or_add_vertex(p0)\n                    vb = find_or_add_vertex(p1)\n                    lo, hi = (va, vb) if va <= vb else (vb, va)\n                    ekey = (lo, hi,\n                            int(round(pm[0]*1e6)), int(round(pm[1]*1e6)), int(round(pm[2]*1e6)))\n                    prior = _emap.get(ekey)\n                    if prior is not None:\n                        ei = prior\n                        ttype = BRepTrimType.Mated\n                    else:\n                        ei = result.add_edge(ci3d, lo, hi)\n                        _emap[ekey] = ei\n                        ttype = BRepTrimType.Boundary\n                    ci2d = result.add_curve_2d(pc)\n                    result.add_trim(ci2d, ei, li, False, ttype)\n\n        for face in self.m_faces:\n            if face.surface_index < 0 or face.surface_index >= len(self.m_surfaces):\n                continue\n            srf = self.m_surfaces[face.surface_index]\n            outer_pcs = []\n            inner_loops = []\n            has_inner = False\n            for li in face.loop_indices:\n                if li < 0 or li >= len(self.m_loops):\n                    continue\n                loop = self.m_loops[li]\n                pcs = []\n                for ti in loop.trim_indices:\n                    if ti < 0 or ti >= len(self.m_trims):\n                        continue\n                    trim = self.m_trims[ti]\n                    if 0 <= trim.curve_2d_index < len(self.m_curves_2d):",
+          "file": "brep.py"
+        }
+      },
+      "related": [
+        "BRep.add_curve_2d",
+        "BRep.add_curve_3d",
+        "BRep.add_edge",
+        "BRep.add_face",
+        "BRep.add_loop",
+        "BRep.add_surface",
+        "BRep.add_trim",
+        "BRep.add_vertex",
+        "BRep.append_face",
+        "BRep.cut_for",
+        "BRep.duplicate",
+        "BRep.find_or_add",
+        "BRep.find_or_add_vertex",
+        "BRep.is_valid",
+        "BRep.lift",
+        "BRep.new",
+        "BRep.point_at",
+        "BRep.split_by_brep",
+        "BRep.split_by_curves",
+        "BRep.split_by_plane",
+        "BRep.split_by_plane_pieces",
+        "BRep.split_by_surface"
+      ]
+    },
+    {
+      "name": "BRep.find_or_add_vertex",
+      "implementations": {
+        "python": {
+          "sig": "find_or_add_vertex(p)",
+          "code": "def find_or_add_vertex(p):\n\n            key = (int(round(p[0]*1e6)), int(round(p[1]*1e6)), int(round(p[2]*1e6)))\n            existing = _vmap.get(key)\n            if existing is not None:\n                return existing\n            idx = result.add_vertex(p)\n            tv = BRepVertex(); tv.point_index = idx\n            result.m_topology_vertices.append(tv)\n            _vmap[key] = idx\n            return idx\n\n        def lift(srf, pc):\n            n = max(pc.cv_count() * 4, 8)\n            c0, c1 = pc.domain()\n            pts3 = []\n            for i in range(n + 1):\n                uv = pc.point_at(c0 + (c1 - c0) * i / n)\n                pts3.append(srf.point_at(uv[0], uv[1]))\n            c3d = NurbsCurve.create(False, 1, pts3)\n            return c3d, pts3[0], pts3[-1], pts3[n // 2]\n\n        def append_face(srf, loops):\n            si = result.add_surface(srf)\n            fi = result.add_face(si, False)\n            for ltype, pcs in loops:\n                li = result.add_loop(fi, ltype)\n                for pc in pcs:\n                    if pc is None or not pc.is_valid():\n                        continue\n                    c3d, p0, p1, pm = lift(srf, pc)\n                    ci3d = result.add_curve_3d(c3d)\n                    va = find_or_add_vertex(p0)\n                    vb = find_or_add_vertex(p1)\n                    lo, hi = (va, vb) if va <= vb else (vb, va)\n                    ekey = (lo, hi,\n                            int(round(pm[0]*1e6)), int(round(pm[1]*1e6)), int(round(pm[2]*1e6)))\n                    prior = _emap.get(ekey)\n                    if prior is not None:\n                        ei = prior\n                        ttype = BRepTrimType.Mated\n                    else:\n                        ei = result.add_edge(ci3d, lo, hi)\n                        _emap[ekey] = ei\n                        ttype = BRepTrimType.Boundary\n                    ci2d = result.add_curve_2d(pc)\n                    result.add_trim(ci2d, ei, li, False, ttype)\n\n        for face in self.m_faces:\n            if face.surface_index < 0 or face.surface_index >= len(self.m_surfaces):\n                continue\n            srf = self.m_surfaces[face.surface_index]\n            outer_pcs = []\n            inner_loops = []\n            has_inner = False\n            for li in face.loop_indices:\n                if li < 0 or li >= len(self.m_loops):\n                    continue\n                loop = self.m_loops[li]\n                pcs = []\n                for ti in loop.trim_indices:\n                    if ti < 0 or ti >= len(self.m_trims):\n                        continue\n                    trim = self.m_trims[ti]\n                    if 0 <= trim.curve_2d_index < len(self.m_curves_2d):\n                        pcs.append(self.m_curves_2d[trim.curve_2d_index])\n                if loop.type == BRepLoopType.Inner:\n                    has_inner = True\n                    inner_loops.append(pcs)\n                else:\n                    outer_pcs = pcs\n\n            cut_pcs = cut_pcurves_for(srf)\n            if not cut_pcs or has_inner:\n                loops = [(BRepLoopType.Outer, outer_pcs)]\n                for il in inner_loops:\n                    loops.append((BRepLoopType.Inner, il))\n                append_face(srf, loops)\n                continue\n\n            parts = NurbsSurfaceTrimmed.split_by_uv_curves(",
+          "file": "brep.py"
+        }
+      },
+      "related": [
+        "BRep._split",
+        "BRep.add_curve_2d",
+        "BRep.add_curve_3d",
+        "BRep.add_edge",
+        "BRep.add_face",
+        "BRep.add_loop",
+        "BRep.add_surface",
+        "BRep.add_trim",
+        "BRep.add_vertex",
+        "BRep.append_face",
+        "BRep.find_or_add",
+        "BRep.is_valid",
+        "BRep.lift",
+        "BRep.point_at"
+      ]
+    },
+    {
+      "name": "BRep.lift",
+      "implementations": {
+        "python": {
+          "sig": "lift(srf, pc)",
+          "code": "def lift(srf, pc):\n\n            n = max(pc.cv_count() * 4, 8)\n            c0, c1 = pc.domain()\n            pts3 = []\n            for i in range(n + 1):\n                uv = pc.point_at(c0 + (c1 - c0) * i / n)\n                pts3.append(srf.point_at(uv[0], uv[1]))\n            c3d = NurbsCurve.create(False, 1, pts3)\n            return c3d, pts3[0], pts3[-1], pts3[n // 2]\n\n        def append_face(srf, loops):\n            si = result.add_surface(srf)\n            fi = result.add_face(si, False)\n            for ltype, pcs in loops:\n                li = result.add_loop(fi, ltype)\n                for pc in pcs:\n                    if pc is None or not pc.is_valid():\n                        continue\n                    c3d, p0, p1, pm = lift(srf, pc)\n                    ci3d = result.add_curve_3d(c3d)\n                    va = find_or_add_vertex(p0)\n                    vb = find_or_add_vertex(p1)\n                    lo, hi = (va, vb) if va <= vb else (vb, va)\n                    ekey = (lo, hi,\n                            int(round(pm[0]*1e6)), int(round(pm[1]*1e6)), int(round(pm[2]*1e6)))\n                    prior = _emap.get(ekey)\n                    if prior is not None:\n                        ei = prior\n                        ttype = BRepTrimType.Mated\n                    else:\n                        ei = result.add_edge(ci3d, lo, hi)\n                        _emap[ekey] = ei\n                        ttype = BRepTrimType.Boundary\n                    ci2d = result.add_curve_2d(pc)\n                    result.add_trim(ci2d, ei, li, False, ttype)\n\n        for face in self.m_faces:\n            if face.surface_index < 0 or face.surface_index >= len(self.m_surfaces):\n                continue\n            srf = self.m_surfaces[face.surface_index]\n            outer_pcs = []\n            inner_loops = []\n            has_inner = False\n            for li in face.loop_indices:\n                if li < 0 or li >= len(self.m_loops):\n                    continue\n                loop = self.m_loops[li]\n                pcs = []\n                for ti in loop.trim_indices:\n                    if ti < 0 or ti >= len(self.m_trims):\n                        continue\n                    trim = self.m_trims[ti]\n                    if 0 <= trim.curve_2d_index < len(self.m_curves_2d):\n                        pcs.append(self.m_curves_2d[trim.curve_2d_index])\n                if loop.type == BRepLoopType.Inner:\n                    has_inner = True\n                    inner_loops.append(pcs)\n                else:\n                    outer_pcs = pcs\n\n            cut_pcs = cut_pcurves_for(srf)\n            if not cut_pcs or has_inner:\n                loops = [(BRepLoopType.Outer, outer_pcs)]\n                for il in inner_loops:\n                    loops.append((BRepLoopType.Inner, il))\n                append_face(srf, loops)\n                continue\n\n            parts = NurbsSurfaceTrimmed.split_by_uv_curves(\n                srf, outer_pcs + cut_pcs, tolerance,\n                use_domain_border=False, n_boundary=len(outer_pcs))\n            if len(parts) <= 1:\n                loops = [(BRepLoopType.Outer, outer_pcs)]\n                append_face(srf, loops)\n                continue\n            for part in parts:\n                loops = [(BRepLoopType.Outer, [part.m_outer_loop])]\n                for il in part.m_inner_loops:\n                    loops.append((BRepLoopType.Inner, [il]))\n                append_face(part.m_surface, loops)",
+          "file": "brep.py"
+        }
+      },
+      "related": [
+        "BRep._split",
+        "BRep._subset",
+        "BRep.add_curve_2d",
+        "BRep.add_curve_3d",
+        "BRep.add_edge",
+        "BRep.add_face",
+        "BRep.add_loop",
+        "BRep.add_surface",
+        "BRep.add_trim",
+        "BRep.add_vertex",
+        "BRep.append_face",
+        "BRep.find_or_add",
+        "BRep.find_or_add_vertex",
+        "BRep.is_valid",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
+        "BRep.point_at",
+        "BRep.split_by_plane_pieces",
+        "BRep.split_with"
+      ]
+    },
+    {
+      "name": "BRep.append_face",
+      "implementations": {
+        "python": {
+          "sig": "append_face(srf, loops)",
+          "code": "def append_face(srf, loops):\n\n            si = result.add_surface(srf)\n            fi = result.add_face(si, False)\n            for ltype, pcs in loops:\n                li = result.add_loop(fi, ltype)\n                for pc in pcs:\n                    if pc is None or not pc.is_valid():\n                        continue\n                    c3d, p0, p1, pm = lift(srf, pc)\n                    ci3d = result.add_curve_3d(c3d)\n                    va = find_or_add_vertex(p0)\n                    vb = find_or_add_vertex(p1)\n                    lo, hi = (va, vb) if va <= vb else (vb, va)\n                    ekey = (lo, hi,\n                            int(round(pm[0]*1e6)), int(round(pm[1]*1e6)), int(round(pm[2]*1e6)))\n                    prior = _emap.get(ekey)\n                    if prior is not None:\n                        ei = prior\n                        ttype = BRepTrimType.Mated\n                    else:\n                        ei = result.add_edge(ci3d, lo, hi)\n                        _emap[ekey] = ei\n                        ttype = BRepTrimType.Boundary\n                    ci2d = result.add_curve_2d(pc)\n                    result.add_trim(ci2d, ei, li, False, ttype)\n\n        for face in self.m_faces:\n            if face.surface_index < 0 or face.surface_index >= len(self.m_surfaces):\n                continue\n            srf = self.m_surfaces[face.surface_index]\n            outer_pcs = []\n            inner_loops = []\n            has_inner = False\n            for li in face.loop_indices:\n                if li < 0 or li >= len(self.m_loops):\n                    continue\n                loop = self.m_loops[li]\n                pcs = []\n                for ti in loop.trim_indices:\n                    if ti < 0 or ti >= len(self.m_trims):\n                        continue\n                    trim = self.m_trims[ti]\n                    if 0 <= trim.curve_2d_index < len(self.m_curves_2d):\n                        pcs.append(self.m_curves_2d[trim.curve_2d_index])\n                if loop.type == BRepLoopType.Inner:\n                    has_inner = True\n                    inner_loops.append(pcs)\n                else:\n                    outer_pcs = pcs\n\n            cut_pcs = cut_pcurves_for(srf)\n            if not cut_pcs or has_inner:\n                loops = [(BRepLoopType.Outer, outer_pcs)]\n                for il in inner_loops:\n                    loops.append((BRepLoopType.Inner, il))\n                append_face(srf, loops)\n                continue\n\n            parts = NurbsSurfaceTrimmed.split_by_uv_curves(\n                srf, outer_pcs + cut_pcs, tolerance,\n                use_domain_border=False, n_boundary=len(outer_pcs))\n            if len(parts) <= 1:\n                loops = [(BRepLoopType.Outer, outer_pcs)]\n                append_face(srf, loops)\n                continue\n            for part in parts:\n                loops = [(BRepLoopType.Outer, [part.m_outer_loop])]\n                for il in part.m_inner_loops:\n                    loops.append((BRepLoopType.Inner, [il]))\n                append_face(part.m_surface, loops)\n\n        for ei, e in enumerate(result.m_topology_edges):\n            if 0 <= e.start_vertex < len(result.m_topology_vertices):\n                result.m_topology_vertices[e.start_vertex].edge_indices.append(ei)\n            if e.end_vertex != e.start_vertex and 0 <= e.end_vertex < len(result.m_topology_vertices):\n                result.m_topology_vertices[e.end_vertex].edge_indices.append(ei)\n        return result\n\n    def split_by_plane(self, plane, tolerance=None):\n        \"\"\"Split this BRep by a plane. Returns a new subdivided BRep.\"\"\"",
+          "file": "brep.py"
+        }
+      },
+      "related": [
+        "BRep._split",
+        "BRep.add_curve_2d",
+        "BRep.add_curve_3d",
+        "BRep.add_edge",
+        "BRep.add_face",
+        "BRep.add_loop",
+        "BRep.add_surface",
+        "BRep.add_trim",
+        "BRep.add_vertex",
+        "BRep.find_or_add",
+        "BRep.find_or_add_vertex",
+        "BRep.is_valid",
+        "BRep.lift",
+        "BRep.new",
+        "BRep.split_by_plane"
+      ]
+    },
+    {
+      "name": "BRep.split_by_plane",
+      "implementations": {
+        "python": {
+          "sig": "split_by_plane(plane, tolerance=None)",
+          "code": "def split_by_plane(self, plane, tolerance=None):\n\n        \"\"\"Split this BRep by a plane. Returns a new subdivided BRep.\"\"\"\n        from .intersection import surface_plane_uv\n\n        def cut_for(srf):\n            return [pair[1] for pair in surface_plane_uv(srf, plane, tolerance)]\n        return self._split(cut_for, tolerance)\n\n    def split_by_surface(self, cutter, tolerance=None):\n        \"\"\"Split this BRep by another surface. Returns a new subdivided BRep.\"\"\"\n        from .intersection import surface_surface\n        cutter_bb = _aabb_from_surface(cutter)\n\n        def cut_for(srf):\n            srf_bb = _aabb_from_surface(srf)\n            margin = max(srf_bb[1][0] - srf_bb[0][0], srf_bb[1][1] - srf_bb[0][1],\n                         srf_bb[1][2] - srf_bb[0][2]) * 1e-3\n            if not _aabb_overlap(srf_bb, cutter_bb, margin):\n                return []\n            return [triple[1] for triple in surface_surface(srf, cutter, tolerance)]\n        return self._split(cut_for, tolerance)\n\n    def split_by_curves(self, curves, tolerance=None):\n        \"\"\"Split this BRep by 3D curves pulled onto each face. New BRep.\"\"\"\n        from .closest import Closest\n        curve_bbs = [_aabb_from_curve(c) for c in curves]\n\n        def cut_for(srf):\n            srf_bb = _aabb_from_surface(srf)\n            margin = max(srf_bb[1][0] - srf_bb[0][0], srf_bb[1][1] - srf_bb[0][1],\n                         srf_bb[1][2] - srf_bb[0][2]) * 1e-3\n            out = []\n            for crv, cbb in zip(curves, curve_bbs):\n                if not _aabb_overlap(srf_bb, cbb, margin):\n                    continue\n                for pc in Closest.surface_curve(srf, crv, 0.0, 0.0, tolerance):\n                    out.append(pc)\n            return out\n        return self._split(cut_for, tolerance)\n\n    def split_by_line(self, line, tolerance=None):\n        \"\"\"Split this BRep by a line pulled onto each face. New BRep.\"\"\"\n        pts = [line.start(), line.end()]\n        crv = NurbsCurve.create(False, 1, pts)\n        return self.split_by_curves([crv], tolerance)\n\n    def _subset(self, face_indices):\n        \"\"\"Build a standalone BRep from a subset of this BRep's faces.\n\n        Copies only the referenced geometry and topology, remapping indices.\n        \"\"\"\n        sub = BRep()\n        sub.name = self.name\n        s_map = {}\n        c3_map = {}\n        c2_map = {}\n        v_map = {}\n        e_map = {}\n        l_map = {}\n\n        def map_surface(i):\n            if i not in s_map:\n                s_map[i] = sub.add_surface(self.m_surfaces[i])\n            return s_map[i]\n\n        def map_vertex(i):\n            if i not in v_map:\n                pt = self.m_vertices[self.m_topology_vertices[i].point_index]\n                idx = sub.add_vertex(pt)\n                tv = BRepVertex(); tv.point_index = idx\n                sub.m_topology_vertices.append(tv)\n                v_map[i] = len(sub.m_topology_vertices) - 1\n            return v_map[i]\n\n        def map_edge(i):\n            if i < 0:\n                return -1\n            if i not in e_map:\n                e = self.m_topology_edges[i]\n                ci3 = c3_map.get(e.curve_3d_index)",
+          "file": "brep.py"
+        },
+        "cpp": {
+          "sig": "BRep split_by_plane(const Plane& plane, double tolerance)",
+          "code": "BRep BRep::split_by_plane(const Plane& plane, double tolerance) const {\n    return split_with(tolerance, [&](const NurbsSurface& srf) {\n        std::vector<NurbsCurve> out;\n        for (auto& pr : Intersection::surface_plane_uv(srf, plane, tolerance)) out.push_back(pr.second);\n        return out;\n    }",
+          "file": "brep.cpp"
+        },
+        "rust": {
+          "sig": "split_by_plane(plane: &crate::plane::Plane, tolerance: Option<f64>) -> BRep",
+          "code": "pub fn split_by_plane(&self, plane: &crate::plane::Plane, tolerance: Option<f64>) -> BRep {\n        self.split_with(tolerance, |srf| {\n            crate::intersection::surface_plane_uv(srf, plane, tolerance)\n                .into_iter().map(|(_c3, pc)| pc).collect()\n        })\n    }",
+          "file": "brep.rs"
+        }
+      },
+      "related": [
+        "BRep._split",
+        "BRep._subset",
+        "BRep.add_surface",
+        "BRep.add_vertex",
+        "BRep.append_face",
+        "BRep.cut_for",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
+        "BRep.new",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
+        "BRep.split_by_plane_pieces",
+        "BRep.split_by_surface",
+        "BRep.split_with",
+        "BRep.subset"
+      ]
+    },
+    {
+      "name": "BRep.cut_for",
+      "implementations": {
+        "python": {
+          "sig": "cut_for(srf)",
+          "code": "def cut_for(srf):\n\n            srf_bb = _aabb_from_surface(srf)\n            margin = max(srf_bb[1][0] - srf_bb[0][0], srf_bb[1][1] - srf_bb[0][1],\n                         srf_bb[1][2] - srf_bb[0][2]) * 1e-3\n            out = []\n            for cs, cbb in zip(cutter_surfaces, cutter_bbs):\n                if not _aabb_overlap(srf_bb, cbb, margin):\n                    continue\n                for pc in cut_curves_on_surface(srf, cs, tolerance):\n                    out.append(pc)\n            return out\n        return self._split(cut_for, tolerance)\n\n    ###########################################################################\n    # Meshing\n    ###########################################################################\n\n    def mesh(self):\n        from .mesh import Mesh\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        nf = len(self.m_faces)\n\n        # Phase 1: Classify faces as direct (RemeshNurbsSurfaceGrid) or CDT\n        face_direct = [False] * nf\n        for fi in range(nf):\n            face = self.m_faces[fi]\n            if face.surface_index < 0 or face.surface_index >= len(self.m_surfaces):\n                continue\n            srf = self.m_surfaces[face.surface_index]\n            has_inner = False\n            all_linear = True\n            outer_pts = []\n            for li in face.loop_indices:\n                if li < 0 or li >= len(self.m_loops):\n                    continue\n                loop = self.m_loops[li]\n                if loop.type == BRepLoopType.Inner:\n                    has_inner = True\n                for ti in loop.trim_indices:\n                    if ti < 0 or ti >= len(self.m_trims):\n                        continue\n                    trim = self.m_trims[ti]\n                    if trim.curve_2d_index < 0 or trim.curve_2d_index >= len(self.m_curves_2d):\n                        continue\n                    crv = self.m_curves_2d[trim.curve_2d_index]\n                    if crv.degree() > 1 or crv.is_rational():\n                        all_linear = False\n                    if loop.type == BRepLoopType.Outer and crv.degree() <= 1 and not crv.is_rational():\n                        for k in range(max(crv.cv_count() - 1, 0)):\n                            p = crv.get_cv(k)\n                            if p is not None:\n                                outer_pts.append(p)\n            direct = (not has_inner) and all_linear\n            if direct and outer_pts:\n                u0, u1 = srf.domain(0)\n                v0, v1 = srf.domain(1)\n                tol = max(u1 - u0, v1 - v0) * 0.01\n                bb_umin = bb_vmin = 1e30\n                bb_umax = bb_vmax = -1e30\n                for p in outer_pts:\n                    if p[0] < bb_umin: bb_umin = p[0]\n                    if p[0] > bb_umax: bb_umax = p[0]\n                    if p[1] < bb_vmin: bb_vmin = p[1]\n                    if p[1] > bb_vmax: bb_vmax = p[1]\n                if (abs(bb_umin - u0) > tol or abs(bb_umax - u1) > tol or\n                    abs(bb_vmin - v0) > tol or abs(bb_vmax - v1) > tol):\n                    direct = False\n            face_direct[fi] = direct\n\n        # Phase 2: Mesh direct faces\n        fmesh = [Mesh() for _ in range(nf)]\n        for fi in range(nf):\n            if not face_direct[fi]:\n                continue\n            face = self.m_faces[fi]\n            srf = self.m_surfaces[face.surface_index]\n            fmesh[fi] = srf.mesh()\n\n        # Phase 3: Mesh CDT faces\n        for fi in range(nf):",
+          "file": "brep.py"
+        }
+      },
+      "related": [
+        "BRep._split",
+        "BRep.mesh",
+        "BRep.split_by_brep",
+        "BRep.split_by_curves",
+        "BRep.split_by_plane",
+        "BRep.split_by_plane_pieces",
+        "BRep.split_by_surface",
+        "BRep.split_with"
+      ]
+    },
+    {
+      "name": "BRep.split_by_surface",
+      "implementations": {
+        "python": {
+          "sig": "split_by_surface(cutter, tolerance=None)",
+          "code": "def split_by_surface(self, cutter, tolerance=None):\n\n        \"\"\"Split this BRep by another surface. Returns a new subdivided BRep.\"\"\"\n        from .intersection import surface_surface\n        cutter_bb = _aabb_from_surface(cutter)\n\n        def cut_for(srf):\n            srf_bb = _aabb_from_surface(srf)\n            margin = max(srf_bb[1][0] - srf_bb[0][0], srf_bb[1][1] - srf_bb[0][1],\n                         srf_bb[1][2] - srf_bb[0][2]) * 1e-3\n            if not _aabb_overlap(srf_bb, cutter_bb, margin):\n                return []\n            return [triple[1] for triple in surface_surface(srf, cutter, tolerance)]\n        return self._split(cut_for, tolerance)\n\n    def split_by_curves(self, curves, tolerance=None):\n        \"\"\"Split this BRep by 3D curves pulled onto each face. New BRep.\"\"\"\n        from .closest import Closest\n        curve_bbs = [_aabb_from_curve(c) for c in curves]\n\n        def cut_for(srf):\n            srf_bb = _aabb_from_surface(srf)\n            margin = max(srf_bb[1][0] - srf_bb[0][0], srf_bb[1][1] - srf_bb[0][1],\n                         srf_bb[1][2] - srf_bb[0][2]) * 1e-3\n            out = []\n            for crv, cbb in zip(curves, curve_bbs):\n                if not _aabb_overlap(srf_bb, cbb, margin):\n                    continue\n                for pc in Closest.surface_curve(srf, crv, 0.0, 0.0, tolerance):\n                    out.append(pc)\n            return out\n        return self._split(cut_for, tolerance)\n\n    def split_by_line(self, line, tolerance=None):\n        \"\"\"Split this BRep by a line pulled onto each face. New BRep.\"\"\"\n        pts = [line.start(), line.end()]\n        crv = NurbsCurve.create(False, 1, pts)\n        return self.split_by_curves([crv], tolerance)\n\n    def _subset(self, face_indices):\n        \"\"\"Build a standalone BRep from a subset of this BRep's faces.\n\n        Copies only the referenced geometry and topology, remapping indices.\n        \"\"\"\n        sub = BRep()\n        sub.name = self.name\n        s_map = {}\n        c3_map = {}\n        c2_map = {}\n        v_map = {}\n        e_map = {}\n        l_map = {}\n\n        def map_surface(i):\n            if i not in s_map:\n                s_map[i] = sub.add_surface(self.m_surfaces[i])\n            return s_map[i]\n\n        def map_vertex(i):\n            if i not in v_map:\n                pt = self.m_vertices[self.m_topology_vertices[i].point_index]\n                idx = sub.add_vertex(pt)\n                tv = BRepVertex(); tv.point_index = idx\n                sub.m_topology_vertices.append(tv)\n                v_map[i] = len(sub.m_topology_vertices) - 1\n            return v_map[i]\n\n        def map_edge(i):\n            if i < 0:\n                return -1\n            if i not in e_map:\n                e = self.m_topology_edges[i]\n                ci3 = c3_map.get(e.curve_3d_index)\n                if ci3 is None and 0 <= e.curve_3d_index < len(self.m_curves_3d):\n                    ci3 = sub.add_curve_3d(self.m_curves_3d[e.curve_3d_index])\n                    c3_map[e.curve_3d_index] = ci3\n                sv = map_vertex(e.start_vertex) if 0 <= e.start_vertex < len(self.m_topology_vertices) else -1\n                ev = map_vertex(e.end_vertex) if 0 <= e.end_vertex < len(self.m_topology_vertices) else -1\n                e_map[i] = sub.add_edge(ci3 if ci3 is not None else -1, sv, ev)\n            return e_map[i]",
+          "file": "brep.py"
+        },
+        "cpp": {
+          "sig": "BRep split_by_surface(const NurbsSurface& cutter, double tolerance)",
+          "code": "BRep BRep::split_by_surface(const NurbsSurface& cutter, double tolerance) const {\n    auto cutter_bb = aabb_from_surface(cutter);\n    return split_with(tolerance, [&](const NurbsSurface& srf) {\n        std::vector<NurbsCurve> out;\n        auto srf_bb = aabb_from_surface(srf);\n        double margin = std::max({srf_bb.second[0] - srf_bb.first[0],\n                                  srf_bb.second[1] - srf_bb.first[1],\n                                  srf_bb.second[2] - srf_bb.first[2]}",
+          "file": "brep.cpp"
+        },
+        "rust": {
+          "sig": "split_by_surface(cutter: &NurbsSurface, tolerance: Option<f64>) -> BRep",
+          "code": "pub fn split_by_surface(&self, cutter: &NurbsSurface, tolerance: Option<f64>) -> BRep {\n        let cutter_bb = aabb_from_surface(cutter);\n        self.split_with(tolerance, |srf| {\n            let srf_bb = aabb_from_surface(srf);\n            let margin = (srf_bb.1[0] - srf_bb.0[0]).max(srf_bb.1[1] - srf_bb.0[1]).max(srf_bb.1[2] - srf_bb.0[2]) * 1e-3;\n            if !aabb_overlap(&srf_bb, &cutter_bb, margin) {\n                return Vec::new();\n            }\n            crate::intersection::surface_surface(srf, cutter, tolerance)\n                .into_iter().map(|(_c3, pa, _pb)| pa).collect()\n        })\n    }",
+          "file": "brep.rs"
+        }
+      },
+      "related": [
+        "BRep._split",
+        "BRep._subset",
+        "BRep.add_curve_3d",
+        "BRep.add_edge",
+        "BRep.add_surface",
+        "BRep.add_vertex",
+        "BRep.cut_for",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
+        "BRep.new",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
+        "BRep.split_by_plane",
+        "BRep.split_with",
+        "BRep.subset"
+      ]
+    },
+    {
+      "name": "BRep.split_by_curves",
+      "implementations": {
+        "python": {
+          "sig": "split_by_curves(curves, tolerance=None)",
+          "code": "def split_by_curves(self, curves, tolerance=None):\n\n        \"\"\"Split this BRep by 3D curves pulled onto each face. New BRep.\"\"\"\n        from .closest import Closest\n        curve_bbs = [_aabb_from_curve(c) for c in curves]\n\n        def cut_for(srf):\n            srf_bb = _aabb_from_surface(srf)\n            margin = max(srf_bb[1][0] - srf_bb[0][0], srf_bb[1][1] - srf_bb[0][1],\n                         srf_bb[1][2] - srf_bb[0][2]) * 1e-3\n            out = []\n            for crv, cbb in zip(curves, curve_bbs):\n                if not _aabb_overlap(srf_bb, cbb, margin):\n                    continue\n                for pc in Closest.surface_curve(srf, crv, 0.0, 0.0, tolerance):\n                    out.append(pc)\n            return out\n        return self._split(cut_for, tolerance)\n\n    def split_by_line(self, line, tolerance=None):\n        \"\"\"Split this BRep by a line pulled onto each face. New BRep.\"\"\"\n        pts = [line.start(), line.end()]\n        crv = NurbsCurve.create(False, 1, pts)\n        return self.split_by_curves([crv], tolerance)\n\n    def _subset(self, face_indices):\n        \"\"\"Build a standalone BRep from a subset of this BRep's faces.\n\n        Copies only the referenced geometry and topology, remapping indices.\n        \"\"\"\n        sub = BRep()\n        sub.name = self.name\n        s_map = {}\n        c3_map = {}\n        c2_map = {}\n        v_map = {}\n        e_map = {}\n        l_map = {}\n\n        def map_surface(i):\n            if i not in s_map:\n                s_map[i] = sub.add_surface(self.m_surfaces[i])\n            return s_map[i]\n\n        def map_vertex(i):\n            if i not in v_map:\n                pt = self.m_vertices[self.m_topology_vertices[i].point_index]\n                idx = sub.add_vertex(pt)\n                tv = BRepVertex(); tv.point_index = idx\n                sub.m_topology_vertices.append(tv)\n                v_map[i] = len(sub.m_topology_vertices) - 1\n            return v_map[i]\n\n        def map_edge(i):\n            if i < 0:\n                return -1\n            if i not in e_map:\n                e = self.m_topology_edges[i]\n                ci3 = c3_map.get(e.curve_3d_index)\n                if ci3 is None and 0 <= e.curve_3d_index < len(self.m_curves_3d):\n                    ci3 = sub.add_curve_3d(self.m_curves_3d[e.curve_3d_index])\n                    c3_map[e.curve_3d_index] = ci3\n                sv = map_vertex(e.start_vertex) if 0 <= e.start_vertex < len(self.m_topology_vertices) else -1\n                ev = map_vertex(e.end_vertex) if 0 <= e.end_vertex < len(self.m_topology_vertices) else -1\n                e_map[i] = sub.add_edge(ci3 if ci3 is not None else -1, sv, ev)\n            return e_map[i]\n\n        for fi in face_indices:\n            face = self.m_faces[fi]\n            si = map_surface(face.surface_index)\n            new_fi = sub.add_face(si, face.reversed)\n            for li in face.loop_indices:\n                loop = self.m_loops[li]\n                new_li = sub.add_loop(new_fi, loop.type)\n                for ti in loop.trim_indices:\n                    trim = self.m_trims[ti]\n                    ci2 = c2_map.get(trim.curve_2d_index)\n                    if ci2 is None and 0 <= trim.curve_2d_index < len(self.m_curves_2d):\n                        ci2 = sub.add_curve_2d(self.m_curves_2d[trim.curve_2d_index])\n                        c2_map[trim.curve_2d_index] = ci2\n                    sub.add_trim(ci2 if ci2 is not None else -1, map_edge(trim.edge_index),",
+          "file": "brep.py"
+        },
+        "cpp": {
+          "sig": "BRep split_by_curves(const std::vector<NurbsCurve>& curves, double tolerance)",
+          "code": "BRep BRep::split_by_curves(const std::vector<NurbsCurve>& curves, double tolerance) const {\n    std::vector<std::pair<std::array<double, 3>, std::array<double, 3>>> curve_bbs;\n    for (auto& c : curves) curve_bbs.push_back(aabb_from_curve(c));\n    return split_with(tolerance, [&](const NurbsSurface& srf) {\n        std::vector<NurbsCurve> out;\n        auto srf_bb = aabb_from_surface(srf);\n        double margin = std::max({srf_bb.second[0] - srf_bb.first[0],\n                                  srf_bb.second[1] - srf_bb.first[1],\n                                  srf_bb.second[2] - srf_bb.first[2]}",
+          "file": "brep.cpp"
+        },
+        "rust": {
+          "sig": "split_by_curves(curves: &[NurbsCurve], tolerance: Option<f64>) -> BRep",
+          "code": "pub fn split_by_curves(&self, curves: &[NurbsCurve], tolerance: Option<f64>) -> BRep {\n        let curve_bbs: Vec<([f64; 3], [f64; 3])> = curves.iter().map(|c| aabb_from_curve(c)).collect();\n        self.split_with(tolerance, |srf| {\n            let srf_bb = aabb_from_surface(srf);\n            let margin = (srf_bb.1[0] - srf_bb.0[0]).max(srf_bb.1[1] - srf_bb.0[1]).max(srf_bb.1[2] - srf_bb.0[2]) * 1e-3;\n            let mut out: Vec<NurbsCurve> = Vec::new();\n            for (crv, cbb) in curves.iter().zip(curve_bbs.iter()) {\n                if !aabb_overlap(&srf_bb, cbb, margin) {\n                    continue;\n                }\n                for pc in crate::closest::Closest::surface_curve(srf, crv, 0.0, 0.0, tolerance) {\n                    out.push(pc);\n                }\n            }\n            out\n        })\n    }",
+          "file": "brep.rs"
+        }
+      },
+      "related": [
+        "BRep._split",
+        "BRep._subset",
+        "BRep.add_curve_2d",
+        "BRep.add_curve_3d",
+        "BRep.add_edge",
+        "BRep.add_face",
+        "BRep.add_loop",
+        "BRep.add_surface",
+        "BRep.add_trim",
+        "BRep.add_vertex",
+        "BRep.cut_for",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
+        "BRep.new",
+        "BRep.split_by_line",
+        "BRep.split_by_plane",
+        "BRep.split_by_surface",
+        "BRep.split_with",
+        "BRep.subset"
+      ]
+    },
+    {
+      "name": "BRep.split_by_line",
+      "implementations": {
+        "python": {
+          "sig": "split_by_line(line, tolerance=None)",
+          "code": "def split_by_line(self, line, tolerance=None):\n\n        \"\"\"Split this BRep by a line pulled onto each face. New BRep.\"\"\"\n        pts = [line.start(), line.end()]\n        crv = NurbsCurve.create(False, 1, pts)\n        return self.split_by_curves([crv], tolerance)\n\n    def _subset(self, face_indices):\n        \"\"\"Build a standalone BRep from a subset of this BRep's faces.\n\n        Copies only the referenced geometry and topology, remapping indices.\n        \"\"\"\n        sub = BRep()\n        sub.name = self.name\n        s_map = {}\n        c3_map = {}\n        c2_map = {}\n        v_map = {}\n        e_map = {}\n        l_map = {}\n\n        def map_surface(i):\n            if i not in s_map:\n                s_map[i] = sub.add_surface(self.m_surfaces[i])\n            return s_map[i]\n\n        def map_vertex(i):\n            if i not in v_map:\n                pt = self.m_vertices[self.m_topology_vertices[i].point_index]\n                idx = sub.add_vertex(pt)\n                tv = BRepVertex(); tv.point_index = idx\n                sub.m_topology_vertices.append(tv)\n                v_map[i] = len(sub.m_topology_vertices) - 1\n            return v_map[i]\n\n        def map_edge(i):\n            if i < 0:\n                return -1\n            if i not in e_map:\n                e = self.m_topology_edges[i]\n                ci3 = c3_map.get(e.curve_3d_index)\n                if ci3 is None and 0 <= e.curve_3d_index < len(self.m_curves_3d):\n                    ci3 = sub.add_curve_3d(self.m_curves_3d[e.curve_3d_index])\n                    c3_map[e.curve_3d_index] = ci3\n                sv = map_vertex(e.start_vertex) if 0 <= e.start_vertex < len(self.m_topology_vertices) else -1\n                ev = map_vertex(e.end_vertex) if 0 <= e.end_vertex < len(self.m_topology_vertices) else -1\n                e_map[i] = sub.add_edge(ci3 if ci3 is not None else -1, sv, ev)\n            return e_map[i]\n\n        for fi in face_indices:\n            face = self.m_faces[fi]\n            si = map_surface(face.surface_index)\n            new_fi = sub.add_face(si, face.reversed)\n            for li in face.loop_indices:\n                loop = self.m_loops[li]\n                new_li = sub.add_loop(new_fi, loop.type)\n                for ti in loop.trim_indices:\n                    trim = self.m_trims[ti]\n                    ci2 = c2_map.get(trim.curve_2d_index)\n                    if ci2 is None and 0 <= trim.curve_2d_index < len(self.m_curves_2d):\n                        ci2 = sub.add_curve_2d(self.m_curves_2d[trim.curve_2d_index])\n                        c2_map[trim.curve_2d_index] = ci2\n                    sub.add_trim(ci2 if ci2 is not None else -1, map_edge(trim.edge_index),\n                                 new_li, trim.reversed, trim.type)\n        for ei, e in enumerate(sub.m_topology_edges):\n            if 0 <= e.start_vertex < len(sub.m_topology_vertices):\n                sub.m_topology_vertices[e.start_vertex].edge_indices.append(ei)\n            if e.end_vertex != e.start_vertex and 0 <= e.end_vertex < len(sub.m_topology_vertices):\n                sub.m_topology_vertices[e.end_vertex].edge_indices.append(ei)\n        return sub\n\n    def split_by_plane_pieces(self, plane, tolerance=None):\n        \"\"\"Split this BRep by a plane and separate the result into the pieces\n        on each side of the plane. Returns a list of BReps (one per side).\"\"\"\n        whole = self.split_by_plane(plane, tolerance)\n        o = plane.origin\n        n = plane.z_axis\n        pos = []\n        neg = []\n        for fi, face in enumerate(whole.m_faces):\n            srf = whole.m_surfaces[face.surface_index]",
+          "file": "brep.py"
+        },
+        "cpp": {
+          "sig": "BRep split_by_line(const Line& line, double tolerance)",
+          "code": "BRep BRep::split_by_line(const Line& line, double tolerance) const {\n    std::vector<Point> pts = {line.start(), line.end()}",
+          "file": "brep.cpp"
+        },
+        "rust": {
+          "sig": "split_by_line(line: &crate::line::Line, tolerance: Option<f64>) -> BRep",
+          "code": "pub fn split_by_line(&self, line: &crate::line::Line, tolerance: Option<f64>) -> BRep {\n        let pts = [line.start(), line.end()];\n        let crv = NurbsCurve::create(false, 1, &pts);\n        self.split_by_curves(&[crv], tolerance)\n    }",
+          "file": "brep.rs"
+        }
+      },
+      "related": [
+        "BRep._subset",
+        "BRep.add_curve_2d",
+        "BRep.add_curve_3d",
+        "BRep.add_edge",
+        "BRep.add_face",
+        "BRep.add_loop",
+        "BRep.add_surface",
+        "BRep.add_trim",
+        "BRep.add_vertex",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
+        "BRep.new",
+        "BRep.split_by_curves",
+        "BRep.split_by_plane",
+        "BRep.split_by_plane_pieces",
+        "BRep.split_by_surface",
+        "BRep.subset"
+      ]
+    },
+    {
+      "name": "BRep._subset",
+      "implementations": {
+        "python": {
+          "sig": "_subset(face_indices)",
+          "code": "def _subset(self, face_indices):\n\n        \"\"\"Build a standalone BRep from a subset of this BRep's faces.\n\n        Copies only the referenced geometry and topology, remapping indices.\n        \"\"\"\n        sub = BRep()\n        sub.name = self.name\n        s_map = {}\n        c3_map = {}\n        c2_map = {}\n        v_map = {}\n        e_map = {}\n        l_map = {}\n\n        def map_surface(i):\n            if i not in s_map:\n                s_map[i] = sub.add_surface(self.m_surfaces[i])\n            return s_map[i]\n\n        def map_vertex(i):\n            if i not in v_map:\n                pt = self.m_vertices[self.m_topology_vertices[i].point_index]\n                idx = sub.add_vertex(pt)\n                tv = BRepVertex(); tv.point_index = idx\n                sub.m_topology_vertices.append(tv)\n                v_map[i] = len(sub.m_topology_vertices) - 1\n            return v_map[i]\n\n        def map_edge(i):\n            if i < 0:\n                return -1\n            if i not in e_map:\n                e = self.m_topology_edges[i]\n                ci3 = c3_map.get(e.curve_3d_index)\n                if ci3 is None and 0 <= e.curve_3d_index < len(self.m_curves_3d):\n                    ci3 = sub.add_curve_3d(self.m_curves_3d[e.curve_3d_index])\n                    c3_map[e.curve_3d_index] = ci3\n                sv = map_vertex(e.start_vertex) if 0 <= e.start_vertex < len(self.m_topology_vertices) else -1\n                ev = map_vertex(e.end_vertex) if 0 <= e.end_vertex < len(self.m_topology_vertices) else -1\n                e_map[i] = sub.add_edge(ci3 if ci3 is not None else -1, sv, ev)\n            return e_map[i]\n\n        for fi in face_indices:\n            face = self.m_faces[fi]\n            si = map_surface(face.surface_index)\n            new_fi = sub.add_face(si, face.reversed)\n            for li in face.loop_indices:\n                loop = self.m_loops[li]\n                new_li = sub.add_loop(new_fi, loop.type)\n                for ti in loop.trim_indices:\n                    trim = self.m_trims[ti]\n                    ci2 = c2_map.get(trim.curve_2d_index)\n                    if ci2 is None and 0 <= trim.curve_2d_index < len(self.m_curves_2d):\n                        ci2 = sub.add_curve_2d(self.m_curves_2d[trim.curve_2d_index])\n                        c2_map[trim.curve_2d_index] = ci2\n                    sub.add_trim(ci2 if ci2 is not None else -1, map_edge(trim.edge_index),\n                                 new_li, trim.reversed, trim.type)\n        for ei, e in enumerate(sub.m_topology_edges):\n            if 0 <= e.start_vertex < len(sub.m_topology_vertices):\n                sub.m_topology_vertices[e.start_vertex].edge_indices.append(ei)\n            if e.end_vertex != e.start_vertex and 0 <= e.end_vertex < len(sub.m_topology_vertices):\n                sub.m_topology_vertices[e.end_vertex].edge_indices.append(ei)\n        return sub\n\n    def split_by_plane_pieces(self, plane, tolerance=None):\n        \"\"\"Split this BRep by a plane and separate the result into the pieces\n        on each side of the plane. Returns a list of BReps (one per side).\"\"\"\n        whole = self.split_by_plane(plane, tolerance)\n        o = plane.origin\n        n = plane.z_axis\n        pos = []\n        neg = []\n        for fi, face in enumerate(whole.m_faces):\n            srf = whole.m_surfaces[face.surface_index]\n            # Classify by the centroid of the face's outer loop lifted to 3D\n            # (the underlying surface center is shared by both cut halves).\n            sx = sy = sz = 0.0\n            cnt = 0\n            for li in face.loop_indices:\n                loop = whole.m_loops[li]",
+          "file": "brep.py"
+        }
+      },
+      "related": [
+        "BRep.add_curve_2d",
+        "BRep.add_curve_3d",
+        "BRep.add_edge",
+        "BRep.add_face",
+        "BRep.add_loop",
+        "BRep.add_surface",
+        "BRep.add_trim",
+        "BRep.add_vertex",
+        "BRep.lift",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
+        "BRep.new",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
+        "BRep.split_by_plane",
+        "BRep.split_by_plane_pieces",
+        "BRep.split_by_surface",
+        "BRep.subset"
+      ]
+    },
+    {
+      "name": "BRep.map_surface",
+      "implementations": {
+        "python": {
+          "sig": "map_surface(i)",
+          "code": "def map_surface(i):\n\n            if i not in s_map:\n                s_map[i] = sub.add_surface(self.m_surfaces[i])\n            return s_map[i]\n\n        def map_vertex(i):\n            if i not in v_map:\n                pt = self.m_vertices[self.m_topology_vertices[i].point_index]\n                idx = sub.add_vertex(pt)\n                tv = BRepVertex(); tv.point_index = idx\n                sub.m_topology_vertices.append(tv)\n                v_map[i] = len(sub.m_topology_vertices) - 1\n            return v_map[i]\n\n        def map_edge(i):\n            if i < 0:\n                return -1\n            if i not in e_map:\n                e = self.m_topology_edges[i]\n                ci3 = c3_map.get(e.curve_3d_index)\n                if ci3 is None and 0 <= e.curve_3d_index < len(self.m_curves_3d):\n                    ci3 = sub.add_curve_3d(self.m_curves_3d[e.curve_3d_index])\n                    c3_map[e.curve_3d_index] = ci3\n                sv = map_vertex(e.start_vertex) if 0 <= e.start_vertex < len(self.m_topology_vertices) else -1\n                ev = map_vertex(e.end_vertex) if 0 <= e.end_vertex < len(self.m_topology_vertices) else -1\n                e_map[i] = sub.add_edge(ci3 if ci3 is not None else -1, sv, ev)\n            return e_map[i]\n\n        for fi in face_indices:\n            face = self.m_faces[fi]\n            si = map_surface(face.surface_index)\n            new_fi = sub.add_face(si, face.reversed)\n            for li in face.loop_indices:\n                loop = self.m_loops[li]\n                new_li = sub.add_loop(new_fi, loop.type)\n                for ti in loop.trim_indices:\n                    trim = self.m_trims[ti]\n                    ci2 = c2_map.get(trim.curve_2d_index)\n                    if ci2 is None and 0 <= trim.curve_2d_index < len(self.m_curves_2d):\n                        ci2 = sub.add_curve_2d(self.m_curves_2d[trim.curve_2d_index])\n                        c2_map[trim.curve_2d_index] = ci2\n                    sub.add_trim(ci2 if ci2 is not None else -1, map_edge(trim.edge_index),\n                                 new_li, trim.reversed, trim.type)\n        for ei, e in enumerate(sub.m_topology_edges):\n            if 0 <= e.start_vertex < len(sub.m_topology_vertices):\n                sub.m_topology_vertices[e.start_vertex].edge_indices.append(ei)\n            if e.end_vertex != e.start_vertex and 0 <= e.end_vertex < len(sub.m_topology_vertices):\n                sub.m_topology_vertices[e.end_vertex].edge_indices.append(ei)\n        return sub\n\n    def split_by_plane_pieces(self, plane, tolerance=None):\n        \"\"\"Split this BRep by a plane and separate the result into the pieces\n        on each side of the plane. Returns a list of BReps (one per side).\"\"\"\n        whole = self.split_by_plane(plane, tolerance)\n        o = plane.origin\n        n = plane.z_axis\n        pos = []\n        neg = []\n        for fi, face in enumerate(whole.m_faces):\n            srf = whole.m_surfaces[face.surface_index]\n            # Classify by the centroid of the face's outer loop lifted to 3D\n            # (the underlying surface center is shared by both cut halves).\n            sx = sy = sz = 0.0\n            cnt = 0\n            for li in face.loop_indices:\n                loop = whole.m_loops[li]\n                if loop.type != BRepLoopType.Outer:\n                    continue\n                for ti in loop.trim_indices:\n                    pc = whole.m_curves_2d[whole.m_trims[ti].curve_2d_index]\n                    d0, d1 = pc.domain()\n                    for k in range(8):\n                        uv = pc.point_at(d0 + (d1 - d0) * k / 8.0)\n                        p = srf.point_at(uv[0], uv[1])\n                        sx += p[0]; sy += p[1]; sz += p[2]; cnt += 1\n            if cnt == 0:\n                continue\n            cx, cy, cz = sx / cnt, sy / cnt, sz / cnt\n            d = (cx - o[0]) * n[0] + (cy - o[1]) * n[1] + (cz - o[2]) * n[2]\n            (pos if d >= 0.0 else neg).append(fi)",
+          "file": "brep.py"
+        }
+      },
+      "related": [
+        "BRep._subset",
+        "BRep.add_curve_2d",
+        "BRep.add_curve_3d",
+        "BRep.add_edge",
+        "BRep.add_face",
+        "BRep.add_loop",
+        "BRep.add_surface",
+        "BRep.add_trim",
+        "BRep.add_vertex",
+        "BRep.lift",
+        "BRep.map_edge",
+        "BRep.map_vertex",
+        "BRep.new",
+        "BRep.point_at",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
+        "BRep.split_by_plane",
+        "BRep.split_by_plane_pieces",
+        "BRep.split_by_surface",
+        "BRep.subset"
+      ]
+    },
+    {
+      "name": "BRep.map_vertex",
+      "implementations": {
+        "python": {
+          "sig": "map_vertex(i)",
+          "code": "def map_vertex(i):\n\n            if i not in v_map:\n                pt = self.m_vertices[self.m_topology_vertices[i].point_index]\n                idx = sub.add_vertex(pt)\n                tv = BRepVertex(); tv.point_index = idx\n                sub.m_topology_vertices.append(tv)\n                v_map[i] = len(sub.m_topology_vertices) - 1\n            return v_map[i]\n\n        def map_edge(i):\n            if i < 0:\n                return -1\n            if i not in e_map:\n                e = self.m_topology_edges[i]\n                ci3 = c3_map.get(e.curve_3d_index)\n                if ci3 is None and 0 <= e.curve_3d_index < len(self.m_curves_3d):\n                    ci3 = sub.add_curve_3d(self.m_curves_3d[e.curve_3d_index])\n                    c3_map[e.curve_3d_index] = ci3\n                sv = map_vertex(e.start_vertex) if 0 <= e.start_vertex < len(self.m_topology_vertices) else -1\n                ev = map_vertex(e.end_vertex) if 0 <= e.end_vertex < len(self.m_topology_vertices) else -1\n                e_map[i] = sub.add_edge(ci3 if ci3 is not None else -1, sv, ev)\n            return e_map[i]\n\n        for fi in face_indices:\n            face = self.m_faces[fi]\n            si = map_surface(face.surface_index)\n            new_fi = sub.add_face(si, face.reversed)\n            for li in face.loop_indices:\n                loop = self.m_loops[li]\n                new_li = sub.add_loop(new_fi, loop.type)\n                for ti in loop.trim_indices:\n                    trim = self.m_trims[ti]\n                    ci2 = c2_map.get(trim.curve_2d_index)\n                    if ci2 is None and 0 <= trim.curve_2d_index < len(self.m_curves_2d):\n                        ci2 = sub.add_curve_2d(self.m_curves_2d[trim.curve_2d_index])\n                        c2_map[trim.curve_2d_index] = ci2\n                    sub.add_trim(ci2 if ci2 is not None else -1, map_edge(trim.edge_index),\n                                 new_li, trim.reversed, trim.type)\n        for ei, e in enumerate(sub.m_topology_edges):\n            if 0 <= e.start_vertex < len(sub.m_topology_vertices):\n                sub.m_topology_vertices[e.start_vertex].edge_indices.append(ei)\n            if e.end_vertex != e.start_vertex and 0 <= e.end_vertex < len(sub.m_topology_vertices):\n                sub.m_topology_vertices[e.end_vertex].edge_indices.append(ei)\n        return sub\n\n    def split_by_plane_pieces(self, plane, tolerance=None):\n        \"\"\"Split this BRep by a plane and separate the result into the pieces\n        on each side of the plane. Returns a list of BReps (one per side).\"\"\"\n        whole = self.split_by_plane(plane, tolerance)\n        o = plane.origin\n        n = plane.z_axis\n        pos = []\n        neg = []\n        for fi, face in enumerate(whole.m_faces):\n            srf = whole.m_surfaces[face.surface_index]\n            # Classify by the centroid of the face's outer loop lifted to 3D\n            # (the underlying surface center is shared by both cut halves).\n            sx = sy = sz = 0.0\n            cnt = 0\n            for li in face.loop_indices:\n                loop = whole.m_loops[li]\n                if loop.type != BRepLoopType.Outer:\n                    continue\n                for ti in loop.trim_indices:\n                    pc = whole.m_curves_2d[whole.m_trims[ti].curve_2d_index]\n                    d0, d1 = pc.domain()\n                    for k in range(8):\n                        uv = pc.point_at(d0 + (d1 - d0) * k / 8.0)\n                        p = srf.point_at(uv[0], uv[1])\n                        sx += p[0]; sy += p[1]; sz += p[2]; cnt += 1\n            if cnt == 0:\n                continue\n            cx, cy, cz = sx / cnt, sy / cnt, sz / cnt\n            d = (cx - o[0]) * n[0] + (cy - o[1]) * n[1] + (cz - o[2]) * n[2]\n            (pos if d >= 0.0 else neg).append(fi)\n        pieces = []\n        for idxs in (pos, neg):\n            if idxs:\n                pieces.append(whole._subset(idxs))\n        return pieces",
+          "file": "brep.py"
+        }
+      },
+      "related": [
+        "BRep._subset",
+        "BRep.add_curve_2d",
+        "BRep.add_curve_3d",
+        "BRep.add_edge",
+        "BRep.add_face",
+        "BRep.add_loop",
+        "BRep.add_trim",
+        "BRep.add_vertex",
+        "BRep.lift",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.new",
+        "BRep.point_at",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
+        "BRep.split_by_plane",
+        "BRep.split_by_plane_pieces",
+        "BRep.split_by_surface",
+        "BRep.subset"
+      ]
+    },
+    {
+      "name": "BRep.map_edge",
+      "implementations": {
+        "python": {
+          "sig": "map_edge(i)",
+          "code": "def map_edge(i):\n\n            if i < 0:\n                return -1\n            if i not in e_map:\n                e = self.m_topology_edges[i]\n                ci3 = c3_map.get(e.curve_3d_index)\n                if ci3 is None and 0 <= e.curve_3d_index < len(self.m_curves_3d):\n                    ci3 = sub.add_curve_3d(self.m_curves_3d[e.curve_3d_index])\n                    c3_map[e.curve_3d_index] = ci3\n                sv = map_vertex(e.start_vertex) if 0 <= e.start_vertex < len(self.m_topology_vertices) else -1\n                ev = map_vertex(e.end_vertex) if 0 <= e.end_vertex < len(self.m_topology_vertices) else -1\n                e_map[i] = sub.add_edge(ci3 if ci3 is not None else -1, sv, ev)\n            return e_map[i]\n\n        for fi in face_indices:\n            face = self.m_faces[fi]\n            si = map_surface(face.surface_index)\n            new_fi = sub.add_face(si, face.reversed)\n            for li in face.loop_indices:\n                loop = self.m_loops[li]\n                new_li = sub.add_loop(new_fi, loop.type)\n                for ti in loop.trim_indices:\n                    trim = self.m_trims[ti]\n                    ci2 = c2_map.get(trim.curve_2d_index)\n                    if ci2 is None and 0 <= trim.curve_2d_index < len(self.m_curves_2d):\n                        ci2 = sub.add_curve_2d(self.m_curves_2d[trim.curve_2d_index])\n                        c2_map[trim.curve_2d_index] = ci2\n                    sub.add_trim(ci2 if ci2 is not None else -1, map_edge(trim.edge_index),\n                                 new_li, trim.reversed, trim.type)\n        for ei, e in enumerate(sub.m_topology_edges):\n            if 0 <= e.start_vertex < len(sub.m_topology_vertices):\n                sub.m_topology_vertices[e.start_vertex].edge_indices.append(ei)\n            if e.end_vertex != e.start_vertex and 0 <= e.end_vertex < len(sub.m_topology_vertices):\n                sub.m_topology_vertices[e.end_vertex].edge_indices.append(ei)\n        return sub\n\n    def split_by_plane_pieces(self, plane, tolerance=None):\n        \"\"\"Split this BRep by a plane and separate the result into the pieces\n        on each side of the plane. Returns a list of BReps (one per side).\"\"\"\n        whole = self.split_by_plane(plane, tolerance)\n        o = plane.origin\n        n = plane.z_axis\n        pos = []\n        neg = []\n        for fi, face in enumerate(whole.m_faces):\n            srf = whole.m_surfaces[face.surface_index]\n            # Classify by the centroid of the face's outer loop lifted to 3D\n            # (the underlying surface center is shared by both cut halves).\n            sx = sy = sz = 0.0\n            cnt = 0\n            for li in face.loop_indices:\n                loop = whole.m_loops[li]\n                if loop.type != BRepLoopType.Outer:\n                    continue\n                for ti in loop.trim_indices:\n                    pc = whole.m_curves_2d[whole.m_trims[ti].curve_2d_index]\n                    d0, d1 = pc.domain()\n                    for k in range(8):\n                        uv = pc.point_at(d0 + (d1 - d0) * k / 8.0)\n                        p = srf.point_at(uv[0], uv[1])\n                        sx += p[0]; sy += p[1]; sz += p[2]; cnt += 1\n            if cnt == 0:\n                continue\n            cx, cy, cz = sx / cnt, sy / cnt, sz / cnt\n            d = (cx - o[0]) * n[0] + (cy - o[1]) * n[1] + (cz - o[2]) * n[2]\n            (pos if d >= 0.0 else neg).append(fi)\n        pieces = []\n        for idxs in (pos, neg):\n            if idxs:\n                pieces.append(whole._subset(idxs))\n        return pieces\n\n    def split_by_brep(self, cutter, tolerance=None):\n        \"\"\"Split this BRep by every face of another BRep. New BRep.\n\n        Each target face is cut by every overlapping cutter face (planar faces\n        via the fast plane path, others via surface/surface).\n        \"\"\"\n        from .intersection import cut_curves_on_surface\n        cutter_surfaces = cutter.m_surfaces",
+          "file": "brep.py"
+        }
+      },
+      "related": [
+        "BRep._subset",
+        "BRep.add_curve_2d",
+        "BRep.add_curve_3d",
+        "BRep.add_edge",
+        "BRep.add_face",
+        "BRep.add_loop",
+        "BRep.add_trim",
+        "BRep.lift",
+        "BRep.map_surface",
+        "BRep.map_vertex",
+        "BRep.new",
+        "BRep.point_at",
+        "BRep.split_by_brep",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
+        "BRep.split_by_plane",
+        "BRep.split_by_plane_pieces",
+        "BRep.split_by_surface",
+        "BRep.subset"
+      ]
+    },
+    {
+      "name": "BRep.split_by_plane_pieces",
+      "implementations": {
+        "python": {
+          "sig": "split_by_plane_pieces(plane, tolerance=None)",
+          "code": "def split_by_plane_pieces(self, plane, tolerance=None):\n\n        \"\"\"Split this BRep by a plane and separate the result into the pieces\n        on each side of the plane. Returns a list of BReps (one per side).\"\"\"\n        whole = self.split_by_plane(plane, tolerance)\n        o = plane.origin\n        n = plane.z_axis\n        pos = []\n        neg = []\n        for fi, face in enumerate(whole.m_faces):\n            srf = whole.m_surfaces[face.surface_index]\n            # Classify by the centroid of the face's outer loop lifted to 3D\n            # (the underlying surface center is shared by both cut halves).\n            sx = sy = sz = 0.0\n            cnt = 0\n            for li in face.loop_indices:\n                loop = whole.m_loops[li]\n                if loop.type != BRepLoopType.Outer:\n                    continue\n                for ti in loop.trim_indices:\n                    pc = whole.m_curves_2d[whole.m_trims[ti].curve_2d_index]\n                    d0, d1 = pc.domain()\n                    for k in range(8):\n                        uv = pc.point_at(d0 + (d1 - d0) * k / 8.0)\n                        p = srf.point_at(uv[0], uv[1])\n                        sx += p[0]; sy += p[1]; sz += p[2]; cnt += 1\n            if cnt == 0:\n                continue\n            cx, cy, cz = sx / cnt, sy / cnt, sz / cnt\n            d = (cx - o[0]) * n[0] + (cy - o[1]) * n[1] + (cz - o[2]) * n[2]\n            (pos if d >= 0.0 else neg).append(fi)\n        pieces = []\n        for idxs in (pos, neg):\n            if idxs:\n                pieces.append(whole._subset(idxs))\n        return pieces\n\n    def split_by_brep(self, cutter, tolerance=None):\n        \"\"\"Split this BRep by every face of another BRep. New BRep.\n\n        Each target face is cut by every overlapping cutter face (planar faces\n        via the fast plane path, others via surface/surface).\n        \"\"\"\n        from .intersection import cut_curves_on_surface\n        cutter_surfaces = cutter.m_surfaces\n        cutter_bbs = [_aabb_from_surface(cs) for cs in cutter_surfaces]\n\n        def cut_for(srf):\n            srf_bb = _aabb_from_surface(srf)\n            margin = max(srf_bb[1][0] - srf_bb[0][0], srf_bb[1][1] - srf_bb[0][1],\n                         srf_bb[1][2] - srf_bb[0][2]) * 1e-3\n            out = []\n            for cs, cbb in zip(cutter_surfaces, cutter_bbs):\n                if not _aabb_overlap(srf_bb, cbb, margin):\n                    continue\n                for pc in cut_curves_on_surface(srf, cs, tolerance):\n                    out.append(pc)\n            return out\n        return self._split(cut_for, tolerance)\n\n    ###########################################################################\n    # Meshing\n    ###########################################################################\n\n    def mesh(self):\n        from .mesh import Mesh\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        nf = len(self.m_faces)\n\n        # Phase 1: Classify faces as direct (RemeshNurbsSurfaceGrid) or CDT\n        face_direct = [False] * nf\n        for fi in range(nf):\n            face = self.m_faces[fi]\n            if face.surface_index < 0 or face.surface_index >= len(self.m_surfaces):\n                continue\n            srf = self.m_surfaces[face.surface_index]\n            has_inner = False\n            all_linear = True\n            outer_pts = []\n            for li in face.loop_indices:\n                if li < 0 or li >= len(self.m_loops):",
+          "file": "brep.py"
+        },
+        "cpp": {
+          "sig": "std::vector<BRep> split_by_plane_pieces(const Plane& plane, double tolerance)",
+          "code": "std::vector<BRep> BRep::split_by_plane_pieces(const Plane& plane, double tolerance) const {\n    BRep whole = split_by_plane(plane, tolerance);\n    const Point& o = plane.origin();\n    const Vector& n = plane.z_axis();\n    std::vector<int> pos, neg;\n    for (int fi = 0; fi < (int)whole.m_faces.size(); ++fi) {\n        const BRepFace& face = whole.m_faces[fi];\n        const NurbsSurface& srf = whole.m_surfaces[face.surface_index];\n        double sx = 0.0, sy = 0.0, sz = 0.0;\n        int cnt = 0;\n        for (int li : face.loop_indices) {\n            const BRepLoop& lp = whole.m_loops[li];\n            if (lp.type != BRepLoopType::Outer) continue;\n            for (int ti : lp.trim_indices) {\n                const NurbsCurve& pc = whole.m_curves_2d[whole.m_trims[ti].curve_2d_index];\n                auto dc = pc.domain();\n                for (int k = 0; k < 8; ++k) {\n                    Point uv = pc.point_at(dc.first + (dc.second - dc.first) * k / 8.0);\n                    Point p = srf.point_at(uv[0], uv[1]);\n                    sx += p[0]; sy += p[1]; sz += p[2]; cnt += 1;\n                }",
+          "file": "brep.cpp"
+        },
+        "rust": {
+          "sig": "split_by_plane_pieces(plane: &crate::plane::Plane, tolerance: Option<f64>) -> Vec<BRep>",
+          "code": "pub fn split_by_plane_pieces(&self, plane: &crate::plane::Plane, tolerance: Option<f64>) -> Vec<BRep> {\n        let whole = self.split_by_plane(plane, tolerance);\n        let o = plane.origin();\n        let n = plane.z_axis();\n        let mut pos: Vec<usize> = Vec::new();\n        let mut neg: Vec<usize> = Vec::new();\n        for (fi, face) in whole.m_faces.iter().enumerate() {\n            let srf = &whole.m_surfaces[face.surface_index as usize];\n            let (mut sx, mut sy, mut sz, mut cnt) = (0.0, 0.0, 0.0, 0i32);\n            for &li in &face.loop_indices {\n                let lp = &whole.m_loops[li as usize];\n                if lp.loop_type != BRepLoopType::Outer { continue; }\n                for &ti in &lp.trim_indices {\n                    let pc = &whole.m_curves_2d[whole.m_trims[ti as usize].curve_2d_index as usize];\n                    let (d0, d1) = pc.domain();\n                    for k in 0..8 {\n                        let uv = pc.point_at(d0 + (d1 - d0) * k as f64 / 8.0);\n                        let p = srf.point_at(uv[0], uv[1]).unwrap_or(Point::new(0.0, 0.0, 0.0));\n                        sx += p[0]; sy += p[1]; sz += p[2]; cnt += 1;\n                    }\n                }\n            }\n            if cnt == 0 { continue; }\n            let (cx, cy, cz) = (sx / cnt as f64, sy / cnt as f64, sz / cnt as f64);\n            let d = (cx - o[0]) * n[0] + (cy - o[1]) * n[1] + (cz - o[2]) * n[2];\n            if d >= 0.0 { pos.push(fi); } else { neg.push(fi); }\n        }\n        let mut pieces = Vec::new();\n        for idxs in [pos, neg] {\n            if !idxs.is_empty() {\n                pieces.push(whole.subset(&idxs));\n            }\n        }\n        pieces\n    }",
+          "file": "brep.rs"
+        }
+      },
+      "related": [
+        "BRep._split",
+        "BRep._subset",
+        "BRep.cut_for",
+        "BRep.lift",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
+        "BRep.mesh",
+        "BRep.new",
+        "BRep.point_at",
+        "BRep.split_by_brep",
+        "BRep.split_by_line",
+        "BRep.split_by_plane",
+        "BRep.subset"
+      ]
+    },
+    {
+      "name": "BRep.split_by_brep",
+      "implementations": {
+        "python": {
+          "sig": "split_by_brep(cutter, tolerance=None)",
+          "code": "def split_by_brep(self, cutter, tolerance=None):\n\n        \"\"\"Split this BRep by every face of another BRep. New BRep.\n\n        Each target face is cut by every overlapping cutter face (planar faces\n        via the fast plane path, others via surface/surface).\n        \"\"\"\n        from .intersection import cut_curves_on_surface\n        cutter_surfaces = cutter.m_surfaces\n        cutter_bbs = [_aabb_from_surface(cs) for cs in cutter_surfaces]\n\n        def cut_for(srf):\n            srf_bb = _aabb_from_surface(srf)\n            margin = max(srf_bb[1][0] - srf_bb[0][0], srf_bb[1][1] - srf_bb[0][1],\n                         srf_bb[1][2] - srf_bb[0][2]) * 1e-3\n            out = []\n            for cs, cbb in zip(cutter_surfaces, cutter_bbs):\n                if not _aabb_overlap(srf_bb, cbb, margin):\n                    continue\n                for pc in cut_curves_on_surface(srf, cs, tolerance):\n                    out.append(pc)\n            return out\n        return self._split(cut_for, tolerance)\n\n    ###########################################################################\n    # Meshing\n    ###########################################################################\n\n    def mesh(self):\n        from .mesh import Mesh\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        nf = len(self.m_faces)\n\n        # Phase 1: Classify faces as direct (RemeshNurbsSurfaceGrid) or CDT\n        face_direct = [False] * nf\n        for fi in range(nf):\n            face = self.m_faces[fi]\n            if face.surface_index < 0 or face.surface_index >= len(self.m_surfaces):\n                continue\n            srf = self.m_surfaces[face.surface_index]\n            has_inner = False\n            all_linear = True\n            outer_pts = []\n            for li in face.loop_indices:\n                if li < 0 or li >= len(self.m_loops):\n                    continue\n                loop = self.m_loops[li]\n                if loop.type == BRepLoopType.Inner:\n                    has_inner = True\n                for ti in loop.trim_indices:\n                    if ti < 0 or ti >= len(self.m_trims):\n                        continue\n                    trim = self.m_trims[ti]\n                    if trim.curve_2d_index < 0 or trim.curve_2d_index >= len(self.m_curves_2d):\n                        continue\n                    crv = self.m_curves_2d[trim.curve_2d_index]\n                    if crv.degree() > 1 or crv.is_rational():\n                        all_linear = False\n                    if loop.type == BRepLoopType.Outer and crv.degree() <= 1 and not crv.is_rational():\n                        for k in range(max(crv.cv_count() - 1, 0)):\n                            p = crv.get_cv(k)\n                            if p is not None:\n                                outer_pts.append(p)\n            direct = (not has_inner) and all_linear\n            if direct and outer_pts:\n                u0, u1 = srf.domain(0)\n                v0, v1 = srf.domain(1)\n                tol = max(u1 - u0, v1 - v0) * 0.01\n                bb_umin = bb_vmin = 1e30\n                bb_umax = bb_vmax = -1e30\n                for p in outer_pts:\n                    if p[0] < bb_umin: bb_umin = p[0]\n                    if p[0] > bb_umax: bb_umax = p[0]\n                    if p[1] < bb_vmin: bb_vmin = p[1]\n                    if p[1] > bb_vmax: bb_vmax = p[1]\n                if (abs(bb_umin - u0) > tol or abs(bb_umax - u1) > tol or\n                    abs(bb_vmin - v0) > tol or abs(bb_vmax - v1) > tol):\n                    direct = False\n            face_direct[fi] = direct\n\n        # Phase 2: Mesh direct faces",
+          "file": "brep.py"
+        },
+        "cpp": {
+          "sig": "BRep split_by_brep(const BRep& cutter, double tolerance)",
+          "code": "BRep BRep::split_by_brep(const BRep& cutter, double tolerance) const {\n    std::vector<std::pair<std::array<double, 3>, std::array<double, 3>>> cutter_bbs;\n    for (const auto& cs : cutter.m_surfaces) cutter_bbs.push_back(aabb_from_surface(cs));\n    return split_with(tolerance, [&](const NurbsSurface& srf) {\n        std::vector<NurbsCurve> out;\n        auto srf_bb = aabb_from_surface(srf);\n        double margin = std::max({srf_bb.second[0] - srf_bb.first[0],\n                                  srf_bb.second[1] - srf_bb.first[1],\n                                  srf_bb.second[2] - srf_bb.first[2]}",
+          "file": "brep.cpp"
+        },
+        "rust": {
+          "sig": "split_by_brep(cutter: &BRep, tolerance: Option<f64>) -> BRep",
+          "code": "pub fn split_by_brep(&self, cutter: &BRep, tolerance: Option<f64>) -> BRep {\n        let cutter_bbs: Vec<([f64; 3], [f64; 3])> = cutter.m_surfaces.iter().map(|cs| aabb_from_surface(cs)).collect();\n        self.split_with(tolerance, |srf| {\n            let srf_bb = aabb_from_surface(srf);\n            let margin = (srf_bb.1[0] - srf_bb.0[0]).max(srf_bb.1[1] - srf_bb.0[1]).max(srf_bb.1[2] - srf_bb.0[2]) * 1e-3;\n            let mut out: Vec<NurbsCurve> = Vec::new();\n            for (cs, cbb) in cutter.m_surfaces.iter().zip(cutter_bbs.iter()) {\n                if !aabb_overlap(&srf_bb, cbb, margin) {\n                    continue;\n                }\n                for pc in crate::intersection::cut_curves_on_surface(srf, cs, tolerance) {\n                    out.push(pc);\n                }\n            }\n            out\n        })\n    }",
+          "file": "brep.rs"
+        }
+      },
+      "related": [
+        "BRep._split",
+        "BRep.cut_for",
+        "BRep.map_edge",
+        "BRep.mesh",
+        "BRep.new",
+        "BRep.split_by_plane_pieces",
+        "BRep.split_with"
+      ]
+    },
+    {
       "name": "BRep.mesh",
       "implementations": {
         "python": {
@@ -5728,10 +6311,13 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "BRep.cut_for",
         "BRep.face_meshes",
         "BRep.face_meshes_q",
         "BRep.from_polylines",
-        "BRep.new"
+        "BRep.new",
+        "BRep.split_by_brep",
+        "BRep.split_by_plane_pieces"
       ]
     },
     {
@@ -5755,15 +6341,23 @@ window.API_INDEX = {
       },
       "related": [
         "BRep.__jsondump__",
+        "BRep._split",
         "BRep.create_box",
         "BRep.create_cylinder",
         "BRep.create_sphere",
         "BRep.duplicate",
+        "BRep.find_or_add_vertex",
         "BRep.from_nurbscurves",
         "BRep.guid",
         "BRep.jsondump",
+        "BRep.lift",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
         "BRep.new",
         "BRep.normal_at",
+        "BRep.split_by_plane_pieces",
+        "BRep.split_with",
         "BRep.str",
         "BRep.surfacecolor",
         "BRep.transform",
@@ -6310,7 +6904,107 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Closest.polyline_point"
+        "Closest.invert_near",
+        "Closest.polyline_point",
+        "Closest.surface_curve",
+        "Closest.unwrap_to",
+        "Closest.wrap_u",
+        "Closest.wrap_v"
+      ]
+    },
+    {
+      "name": "Closest.surface_curve",
+      "implementations": {
+        "python": {
+          "sig": "surface_curve(surface, curve, t0: float = 0.0, t1: float = 0.0, tolerance=None)",
+          "code": "def surface_curve(surface, curve, t0: float = 0.0, t1: float = 0.0, tolerance=None):\n\n        \"\"\"Project a 3D curve onto a surface (curve pullback).\n\n        Samples the curve, inverts each sample with warm-started windowed\n        point inversion, unwraps across seams of closed surfaces, refines\n        adaptively, and refits seam-split UV pcurves (x=u, y=v, z=0) with\n        domain [0, 1]. Returns an empty list if the curve does not lie on the\n        surface within the rejection tolerance.\n\n        Parameters\n        ----------\n        surface : NurbsSurface\n            The surface to project onto.\n        curve : NurbsCurve\n            The 3D curve to pull back.\n        t0, t1 : float\n            Curve sub-domain. 0 means use the curve domain end.\n        tolerance : float, optional\n            Fit deviation budget. Defaults to a trace-step heuristic.\n\n        Returns\n        -------\n        list of NurbsCurve\n            Seam-split UV pcurves.\n        \"\"\"\n        from session_py.nurbscurve import NurbsCurve\n        from session_py.nurbsknot import CurveNurbsKnotStyle\n\n        if not surface.is_valid() or not curve.is_valid():\n            return []\n\n        u0, u1 = surface.domain(0)\n        v0, v1 = surface.domain(1)\n        range_u = u1 - u0\n        range_v = v1 - v0\n        closed_u = surface.is_closed(0)\n        closed_v = surface.is_closed(1)\n\n        ct0, ct1 = curve.domain()\n        if t0 <= 0.0:\n            t0 = ct0\n        if t1 <= 0.0:\n            t1 = ct1\n        t0 = max(t0, ct0)\n        t1 = min(t1, ct1)\n        if t1 - t0 < 1e-14:\n            return []\n\n        spans_u = surface.get_span_vector(0)\n        spans_v = surface.get_span_vector(1)\n        nu = max(len(spans_u) - 1, 1) * 4\n        nv = max(len(spans_v) - 1, 1) * 4\n        du = range_u / nu\n        dv = range_v / nv\n\n        mu = (u0 + u1) * 0.5\n        mv = (v0 + v1) * 0.5\n        pmid = surface.point_at(mu, mv)\n        wu_probe = min(mu + du, u1)\n        wv_probe = min(mv + dv, v1)\n        uv_to_3d_u = pmid.distance(surface.point_at(wu_probe, mv)) / du\n        uv_to_3d_v = pmid.distance(surface.point_at(mu, wv_probe)) / dv\n        uv_to_3d = max(uv_to_3d_u, uv_to_3d_v)\n        uv_to_3d_min = min(uv_to_3d_u, uv_to_3d_v)\n        if uv_to_3d < 1e-10:\n            uv_to_3d = 1.0\n        if uv_to_3d_min < 1e-10:\n            uv_to_3d_min = 1.0\n\n        step = min(du, dv) * 0.25\n        if tolerance is not None and tolerance > 0.0:\n            fit_tol = tolerance\n        else:\n            fit_tol = step * (uv_to_3d + uv_to_3d_min) * 0.5\n        reject_tol = fit_tol * 100.0\n        # Absolute \"lies on the surface\" gate (fraction of the surface size).\n        # Used to (a) reject a curve that nowhere touches the surface and\n        # (b) stop bisecting stick-out portions of a curve that extends past\n        # the face, both of which otherwise burn a full 4096-sample bisection.\n        corner_diag = surface.point_at(u0, v0).distance(surface.point_at(u1, v1))",
+          "file": "closest.py"
+        },
+        "cpp": {
+          "sig": "std::vector<NurbsCurve> surface_curve(\n    const NurbsSurface& surface,\n    const NurbsCurve& curve,\n    double t0,\n    double t1,\n    double tolerance\n)",
+          "code": "std::vector<NurbsCurve> Closest::surface_curve(\n    const NurbsSurface& surface,\n    const NurbsCurve& curve,\n    double t0,\n    double t1,\n    double tolerance\n) {\n    if (!surface.is_valid() || !curve.is_valid()) return {}",
+          "file": "closest.cpp"
+        },
+        "rust": {
+          "sig": "surface_curve(surface: &NurbsSurface, curve: &NurbsCurve, t0: f64, t1: f64, tolerance: Option<f64>) -> Vec<NurbsCurve>",
+          "code": "pub fn surface_curve(surface: &NurbsSurface, curve: &NurbsCurve, t0: f64, t1: f64, tolerance: Option<f64>) -> Vec<NurbsCurve> {\n        use crate::nurbsknot::CurveNurbsKnotStyle;\n\n        if !surface.is_valid() || !curve.is_valid() {\n            return vec![];\n        }\n\n        let (u0, u1) = match surface.domain(0) { Some(d) => d, None => return vec![] };\n        let (v0, v1) = match surface.domain(1) { Some(d) => d, None => return vec![] };\n        let range_u = u1 - u0;\n        let range_v = v1 - v0;\n        let closed_u = surface.is_closed(0);\n        let closed_v = surface.is_closed(1);\n\n        let (ct0, ct1) = curve.domain();\n        let mut t0 = if t0 <= 0.0 { ct0 } else { t0 };\n        let mut t1 = if t1 <= 0.0 { ct1 } else { t1 };\n        t0 = t0.max(ct0);\n        t1 = t1.min(ct1);\n        if t1 - t0 < 1e-14 {\n            return vec![];\n        }\n\n        let spans_u = surface.get_span_vector(0);\n        let spans_v = surface.get_span_vector(1);\n        let nu = spans_u.len().saturating_sub(1).max(1) * 4;\n        let nv = spans_v.len().saturating_sub(1).max(1) * 4;\n        let du = range_u / nu as f64;\n        let dv = range_v / nv as f64;\n\n        let mu = (u0 + u1) * 0.5;\n        let mv = (v0 + v1) * 0.5;\n        let pmid = surface.point_at(mu, mv).unwrap_or(Point::new(0.0, 0.0, 0.0));\n        let wu_probe = (mu + du).min(u1);\n        let wv_probe = (mv + dv).min(v1);\n        let uv_to_3d_u = pmid.distance(&surface.point_at(wu_probe, mv).unwrap_or(Point::new(0.0, 0.0, 0.0)), None) / du;\n        let uv_to_3d_v = pmid.distance(&surface.point_at(mu, wv_probe).unwrap_or(Point::new(0.0, 0.0, 0.0)), None) / dv;\n        let mut uv_to_3d = uv_to_3d_u.max(uv_to_3d_v);\n        let mut uv_to_3d_min = uv_to_3d_u.min(uv_to_3d_v);\n        if uv_to_3d < 1e-10 {\n            uv_to_3d = 1.0;\n        }\n        if uv_to_3d_min < 1e-10 {\n            uv_to_3d_min = 1.0;\n        }\n\n        let step = du.min(dv) * 0.25;\n        let fit_tol = match tolerance {\n            Some(tol) if tol > 0.0 => tol,\n            _ => step * (uv_to_3d + uv_to_3d_min) * 0.5,\n        };\n        let reject_tol = fit_tol * 100.0;\n        // Absolute \"lies on the surface\" gate (fraction of the surface size).\n        // Used to (a) reject a curve that nowhere touches the surface and\n        // (b) stop bisecting stick-out portions of a curve that extends past\n        // the face, both of which otherwise burn a full 4096-sample bisection.\n        let c00 = surface.point_at(u0, v0).unwrap_or(crate::point::Point::new(0.0, 0.0, 0.0));\n        let c11 = surface.point_at(u1, v1).unwrap_or(crate::point::Point::new(0.0, 0.0, 0.0));\n        let mut corner_diag = c00.distance(&c11, None);\n        if corner_diag < 1e-12 {\n            corner_diag = range_u.max(range_v);\n        }\n        let on_surf_tol = corner_diag * 0.05;\n\n        let wrap_u = |u: f64| -> f64 {\n            if closed_u {\n                let mut t = (u - u0) % range_u;\n                if t < 0.0 { t += range_u; }\n                return u0 + t;\n            }\n            u.max(u0).min(u1)\n        };\n        let wrap_v = |v: f64| -> f64 {\n            if closed_v {\n                let mut t = (v - v0) % range_v;\n                if t < 0.0 { t += range_v; }\n                return v0 + t;\n            }\n            v.max(v0).min(v1)\n        };\n\n        let invert_near = |pt: &Point, up: f64, vp: f64, wu: f64, wv: f64| -> (f64, f64, f64) {\n            // Windowed inversion with seam-aware candidate windows\n            let mut u_centers = vec![up];\n            if closed_u {\n                if up - wu < u0 { u_centers.push(up + range_u); }\n                if up + wu > u1 { u_centers.push(up - range_u); }\n            }\n            let mut v_centers = vec![vp];\n            if closed_v {\n                if vp - wv < v0 { v_centers.push(vp + range_v); }\n                if vp + wv > v1 { v_centers.push(vp - range_v); }\n            }\n            let mut best = (up, vp, f64::INFINITY);\n            for &uc in &u_centers {\n                for &vc in &v_centers {\n                    let wu0 = (uc - wu).max(u0);\n                    let wu1 = (uc + wu).min(u1);\n                    let wv0 = (vc - wv).max(v0);\n                    let wv1 = (vc + wv).min(v1);\n                    if wu1 - wu0 < 1e-14 || wv1 - wv0 < 1e-14 { continue; }\n                    let res = Closest::surface_point(surface, pt, wu0, wu1, wv0, wv1);\n                    if res.2 < best.2 { best = res; }\n                    if best.2 < fit_tol * 0.01 { break; }\n                }\n            }\n            best\n        };\n\n        let unwrap_to = |prev_u: f64, prev_v: f64, mut u: f64, mut v: f64| -> (f64, f64) {\n            if closed_u {\n                while u - prev_u > range_u * 0.5 { u -= range_u; }\n                while u - prev_u < -range_u * 0.5 { u += range_u; }\n            }\n            if closed_v {\n                while v - prev_v > range_v * 0.5 { v -= range_v; }\n                while v - prev_v < -range_v * 0.5 { v += range_v; }\n            }\n            (u, v)\n        };\n\n        // 1. Initial samples with warm-started inversion\n        let n0 = 16.max(4 * curve.span_count());\n        let mut samples: Vec<[f64; 4]> = Vec::new(); // [t, u_unwrapped, v_unwrapped, residual]\n        let mut max_residual = 0.0f64;\n        let mut min_residual = f64::INFINITY;\n        for i in 0..=n0 {\n            let t = t0 + (t1 - t0) * i as f64 / n0 as f64;\n            let pt = curve.point_at(t);\n            let (uu, vv, rd) = if i == 0 {\n                Closest::surface_point(surface, &pt, 0.0, 0.0, 0.0, 0.0)\n            } else {\n                let prev = samples[samples.len() - 1];\n                let prev2 = samples[samples.len().saturating_sub(2)];\n                let wu = du.max(dv) * 2.0 + (prev[1] - prev2[1]).abs();\n                let wv = du.max(dv) * 2.0 + (prev[2] - prev2[2]).abs();\n                let (mut ru, mut rv, mut rd) = invert_near(&pt, wrap_u(prev[1]), wrap_v(prev[2]), wu, wv);\n                if rd > reject_tol {\n                    let full = Closest::surface_point(surface, &pt, 0.0, 0.0, 0.0, 0.0);\n                    ru = full.0;\n                    rv = full.1;\n                    rd = full.2;\n                }\n                let (uu, vv) = unwrap_to(prev[1], prev[2], ru, rv);\n                (uu, vv, rd)\n            };\n            samples.push([t, uu, vv, rd]);\n            max_residual = max_residual.max(rd);\n            min_residual = min_residual.min(rd);\n        }\n\n        // Reject a curve that nowhere lies on the surface (no sample touches it).\n        if max_residual > reject_tol || min_residual > on_surf_tol {\n            return vec![];\n        }\n\n        // 2. Adaptive bisection where the lifted UV midpoint strays from the curve\n        let mut depth = 0;\n        while depth < 8 {\n            let mut inserted = 0;\n            let mut i = 0;\n            while i < samples.len() - 1 {\n                let a = samples[i];\n                let b = samples[i + 1];\n                let tm = (a[0] + b[0]) * 0.5;\n                let um = (a[1] + b[1]) * 0.5;\n                let vm = (a[2] + b[2]) * 0.5;\n                let pm = curve.point_at(tm);\n                let lift = surface.point_at(wrap_u(um), wrap_v(vm)).unwrap_or(Point::new(0.0, 0.0, 0.0));\n                if lift.distance(&pm, None) > fit_tol && samples.len() < 4096 {\n                    let wu = (b[1] - a[1]).abs().max(du) * 1.0;\n                    let wv = (b[2] - a[2]).abs().max(dv) * 1.0;\n                    let (ru, rv, rd) = invert_near(&pm, wrap_u(um), wrap_v(vm), wu, wv);\n                    if rd > on_surf_tol {\n                        // Midpoint is off the surface: stick-out portion of a\n                        // curve that extends past the face, not a curvature\n                        // stray. Do not refine it (avoids unbounded bisection).\n                        i += 1;\n                        continue;\n                    }\n                    let (uu, vv) = unwrap_to(a[1], a[2], ru",
+          "file": "closest.rs"
+        }
+      },
+      "related": [
+        "Closest.invert_near",
+        "Closest.surface_point",
+        "Closest.unwrap_to",
+        "Closest.wrap_u",
+        "Closest.wrap_v"
+      ]
+    },
+    {
+      "name": "Closest.wrap_u",
+      "implementations": {
+        "python": {
+          "sig": "wrap_u(u)",
+          "code": "def wrap_u(u):\n\n            if closed_u:\n                t = math.fmod(u - u0, range_u)\n                if t < 0:\n                    t += range_u\n                return u0 + t\n            return max(u0, min(u, u1))\n\n        def wrap_v(v):\n            if closed_v:\n                t = math.fmod(v - v0, range_v)\n                if t < 0:\n                    t += range_v\n                return v0 + t\n            return max(v0, min(v, v1))\n\n        def invert_near(pt, up, vp, wu, wv):\n            # Windowed inversion with seam-aware candidate windows\n            u_centers = [up]\n            if closed_u:\n                if up - wu < u0:\n                    u_centers.append(up + range_u)\n                if up + wu > u1:\n                    u_centers.append(up - range_u)\n            v_centers = [vp]\n            if closed_v:\n                if vp - wv < v0:\n                    v_centers.append(vp + range_v)\n                if vp + wv > v1:\n                    v_centers.append(vp - range_v)\n            best = (up, vp, float('inf'))\n            for uc in u_centers:\n                for vc in v_centers:\n                    wu0 = max(uc - wu, u0)\n                    wu1 = min(uc + wu, u1)\n                    wv0 = max(vc - wv, v0)\n                    wv1 = min(vc + wv, v1)\n                    if wu1 - wu0 < 1e-14 or wv1 - wv0 < 1e-14:\n                        continue\n                    res = Closest.surface_point(surface, pt, wu0, wu1, wv0, wv1)\n                    if res[2] < best[2]:\n                        best = res\n                    if best[2] < fit_tol * 0.01:\n                        break\n            return best\n\n        def unwrap_to(prev_u, prev_v, u, v):\n            if closed_u:\n                while u - prev_u > range_u * 0.5:\n                    u -= range_u\n                while u - prev_u < -range_u * 0.5:\n                    u += range_u\n            if closed_v:\n                while v - prev_v > range_v * 0.5:\n                    v -= range_v\n                while v - prev_v < -range_v * 0.5:\n                    v += range_v\n            return u, v\n\n        # 1. Initial samples with warm-started inversion\n        n0 = max(16, 4 * curve.span_count())\n        samples = []  # list of [t, u_unwrapped, v_unwrapped, residual]\n        max_residual = 0.0\n        min_residual = float('inf')\n        for i in range(n0 + 1):\n            t = t0 + (t1 - t0) * i / n0\n            pt = curve.point_at(t)\n            if i == 0:\n                ru, rv, rd = Closest.surface_point(surface, pt, 0.0, 0.0, 0.0, 0.0)\n                uu, vv = ru, rv\n            else:\n                prev = samples[-1]\n                wu = max(du, dv) * 2.0 + abs(prev[1] - samples[max(0, len(samples)-2)][1])\n                wv = max(du, dv) * 2.0 + abs(prev[2] - samples[max(0, len(samples)-2)][2])\n                ru, rv, rd = invert_near(pt, wrap_u(prev[1]), wrap_v(prev[2]), wu, wv)\n                if rd > reject_tol:\n                    ru, rv, rd = Closest.surface_point(surface, pt, 0.0, 0.0, 0.0, 0.0)\n                uu, vv = unwrap_to(prev[1], prev[2], ru, rv)\n            samples.append([t, uu, vv, rd])\n            max_residual = max(max_residual, rd)",
+          "file": "closest.py"
+        }
+      },
+      "related": [
+        "Closest.invert_near",
+        "Closest.surface_curve",
+        "Closest.surface_point",
+        "Closest.unwrap_to",
+        "Closest.wrap_v"
+      ]
+    },
+    {
+      "name": "Closest.wrap_v",
+      "implementations": {
+        "python": {
+          "sig": "wrap_v(v)",
+          "code": "def wrap_v(v):\n\n            if closed_v:\n                t = math.fmod(v - v0, range_v)\n                if t < 0:\n                    t += range_v\n                return v0 + t\n            return max(v0, min(v, v1))\n\n        def invert_near(pt, up, vp, wu, wv):\n            # Windowed inversion with seam-aware candidate windows\n            u_centers = [up]\n            if closed_u:\n                if up - wu < u0:\n                    u_centers.append(up + range_u)\n                if up + wu > u1:\n                    u_centers.append(up - range_u)\n            v_centers = [vp]\n            if closed_v:\n                if vp - wv < v0:\n                    v_centers.append(vp + range_v)\n                if vp + wv > v1:\n                    v_centers.append(vp - range_v)\n            best = (up, vp, float('inf'))\n            for uc in u_centers:\n                for vc in v_centers:\n                    wu0 = max(uc - wu, u0)\n                    wu1 = min(uc + wu, u1)\n                    wv0 = max(vc - wv, v0)\n                    wv1 = min(vc + wv, v1)\n                    if wu1 - wu0 < 1e-14 or wv1 - wv0 < 1e-14:\n                        continue\n                    res = Closest.surface_point(surface, pt, wu0, wu1, wv0, wv1)\n                    if res[2] < best[2]:\n                        best = res\n                    if best[2] < fit_tol * 0.01:\n                        break\n            return best\n\n        def unwrap_to(prev_u, prev_v, u, v):\n            if closed_u:\n                while u - prev_u > range_u * 0.5:\n                    u -= range_u\n                while u - prev_u < -range_u * 0.5:\n                    u += range_u\n            if closed_v:\n                while v - prev_v > range_v * 0.5:\n                    v -= range_v\n                while v - prev_v < -range_v * 0.5:\n                    v += range_v\n            return u, v\n\n        # 1. Initial samples with warm-started inversion\n        n0 = max(16, 4 * curve.span_count())\n        samples = []  # list of [t, u_unwrapped, v_unwrapped, residual]\n        max_residual = 0.0\n        min_residual = float('inf')\n        for i in range(n0 + 1):\n            t = t0 + (t1 - t0) * i / n0\n            pt = curve.point_at(t)\n            if i == 0:\n                ru, rv, rd = Closest.surface_point(surface, pt, 0.0, 0.0, 0.0, 0.0)\n                uu, vv = ru, rv\n            else:\n                prev = samples[-1]\n                wu = max(du, dv) * 2.0 + abs(prev[1] - samples[max(0, len(samples)-2)][1])\n                wv = max(du, dv) * 2.0 + abs(prev[2] - samples[max(0, len(samples)-2)][2])\n                ru, rv, rd = invert_near(pt, wrap_u(prev[1]), wrap_v(prev[2]), wu, wv)\n                if rd > reject_tol:\n                    ru, rv, rd = Closest.surface_point(surface, pt, 0.0, 0.0, 0.0, 0.0)\n                uu, vv = unwrap_to(prev[1], prev[2], ru, rv)\n            samples.append([t, uu, vv, rd])\n            max_residual = max(max_residual, rd)\n            min_residual = min(min_residual, rd)\n\n        # Reject a curve that nowhere lies on the surface (no sample touches it).\n        if max_residual > reject_tol or min_residual > on_surf_tol:\n            return []\n\n        # 2. Adaptive bisection where the lifted UV midpoint strays from the curve\n        depth = 0",
+          "file": "closest.py"
+        }
+      },
+      "related": [
+        "Closest.invert_near",
+        "Closest.surface_curve",
+        "Closest.surface_point",
+        "Closest.unwrap_to",
+        "Closest.wrap_u"
+      ]
+    },
+    {
+      "name": "Closest.invert_near",
+      "implementations": {
+        "python": {
+          "sig": "invert_near(pt, up, vp, wu, wv)",
+          "code": "def invert_near(pt, up, vp, wu, wv):\n\n            # Windowed inversion with seam-aware candidate windows\n            u_centers = [up]\n            if closed_u:\n                if up - wu < u0:\n                    u_centers.append(up + range_u)\n                if up + wu > u1:\n                    u_centers.append(up - range_u)\n            v_centers = [vp]\n            if closed_v:\n                if vp - wv < v0:\n                    v_centers.append(vp + range_v)\n                if vp + wv > v1:\n                    v_centers.append(vp - range_v)\n            best = (up, vp, float('inf'))\n            for uc in u_centers:\n                for vc in v_centers:\n                    wu0 = max(uc - wu, u0)\n                    wu1 = min(uc + wu, u1)\n                    wv0 = max(vc - wv, v0)\n                    wv1 = min(vc + wv, v1)\n                    if wu1 - wu0 < 1e-14 or wv1 - wv0 < 1e-14:\n                        continue\n                    res = Closest.surface_point(surface, pt, wu0, wu1, wv0, wv1)\n                    if res[2] < best[2]:\n                        best = res\n                    if best[2] < fit_tol * 0.01:\n                        break\n            return best\n\n        def unwrap_to(prev_u, prev_v, u, v):\n            if closed_u:\n                while u - prev_u > range_u * 0.5:\n                    u -= range_u\n                while u - prev_u < -range_u * 0.5:\n                    u += range_u\n            if closed_v:\n                while v - prev_v > range_v * 0.5:\n                    v -= range_v\n                while v - prev_v < -range_v * 0.5:\n                    v += range_v\n            return u, v\n\n        # 1. Initial samples with warm-started inversion\n        n0 = max(16, 4 * curve.span_count())\n        samples = []  # list of [t, u_unwrapped, v_unwrapped, residual]\n        max_residual = 0.0\n        min_residual = float('inf')\n        for i in range(n0 + 1):\n            t = t0 + (t1 - t0) * i / n0\n            pt = curve.point_at(t)\n            if i == 0:\n                ru, rv, rd = Closest.surface_point(surface, pt, 0.0, 0.0, 0.0, 0.0)\n                uu, vv = ru, rv\n            else:\n                prev = samples[-1]\n                wu = max(du, dv) * 2.0 + abs(prev[1] - samples[max(0, len(samples)-2)][1])\n                wv = max(du, dv) * 2.0 + abs(prev[2] - samples[max(0, len(samples)-2)][2])\n                ru, rv, rd = invert_near(pt, wrap_u(prev[1]), wrap_v(prev[2]), wu, wv)\n                if rd > reject_tol:\n                    ru, rv, rd = Closest.surface_point(surface, pt, 0.0, 0.0, 0.0, 0.0)\n                uu, vv = unwrap_to(prev[1], prev[2], ru, rv)\n            samples.append([t, uu, vv, rd])\n            max_residual = max(max_residual, rd)\n            min_residual = min(min_residual, rd)\n\n        # Reject a curve that nowhere lies on the surface (no sample touches it).\n        if max_residual > reject_tol or min_residual > on_surf_tol:\n            return []\n\n        # 2. Adaptive bisection where the lifted UV midpoint strays from the curve\n        depth = 0\n        while depth < 8:\n            inserted = 0\n            i = 0\n            while i < len(samples) - 1:\n                a = samples[i]\n                b = samples[i + 1]\n                tm = (a[0] + b[0]) * 0.5\n                um = (a[1] + b[1]) * 0.5",
+          "file": "closest.py"
+        }
+      },
+      "related": [
+        "Closest.surface_curve",
+        "Closest.surface_point",
+        "Closest.unwrap_to",
+        "Closest.wrap_u",
+        "Closest.wrap_v"
+      ]
+    },
+    {
+      "name": "Closest.unwrap_to",
+      "implementations": {
+        "python": {
+          "sig": "unwrap_to(prev_u, prev_v, u, v)",
+          "code": "def unwrap_to(prev_u, prev_v, u, v):\n\n            if closed_u:\n                while u - prev_u > range_u * 0.5:\n                    u -= range_u\n                while u - prev_u < -range_u * 0.5:\n                    u += range_u\n            if closed_v:\n                while v - prev_v > range_v * 0.5:\n                    v -= range_v\n                while v - prev_v < -range_v * 0.5:\n                    v += range_v\n            return u, v\n\n        # 1. Initial samples with warm-started inversion\n        n0 = max(16, 4 * curve.span_count())\n        samples = []  # list of [t, u_unwrapped, v_unwrapped, residual]\n        max_residual = 0.0\n        min_residual = float('inf')\n        for i in range(n0 + 1):\n            t = t0 + (t1 - t0) * i / n0\n            pt = curve.point_at(t)\n            if i == 0:\n                ru, rv, rd = Closest.surface_point(surface, pt, 0.0, 0.0, 0.0, 0.0)\n                uu, vv = ru, rv\n            else:\n                prev = samples[-1]\n                wu = max(du, dv) * 2.0 + abs(prev[1] - samples[max(0, len(samples)-2)][1])\n                wv = max(du, dv) * 2.0 + abs(prev[2] - samples[max(0, len(samples)-2)][2])\n                ru, rv, rd = invert_near(pt, wrap_u(prev[1]), wrap_v(prev[2]), wu, wv)\n                if rd > reject_tol:\n                    ru, rv, rd = Closest.surface_point(surface, pt, 0.0, 0.0, 0.0, 0.0)\n                uu, vv = unwrap_to(prev[1], prev[2], ru, rv)\n            samples.append([t, uu, vv, rd])\n            max_residual = max(max_residual, rd)\n            min_residual = min(min_residual, rd)\n\n        # Reject a curve that nowhere lies on the surface (no sample touches it).\n        if max_residual > reject_tol or min_residual > on_surf_tol:\n            return []\n\n        # 2. Adaptive bisection where the lifted UV midpoint strays from the curve\n        depth = 0\n        while depth < 8:\n            inserted = 0\n            i = 0\n            while i < len(samples) - 1:\n                a = samples[i]\n                b = samples[i + 1]\n                tm = (a[0] + b[0]) * 0.5\n                um = (a[1] + b[1]) * 0.5\n                vm = (a[2] + b[2]) * 0.5\n                pm = curve.point_at(tm)\n                lift = surface.point_at(wrap_u(um), wrap_v(vm))\n                if lift.distance(pm) > fit_tol and len(samples) < 4096:\n                    wu = max(abs(b[1] - a[1]), du) * 1.0\n                    wv = max(abs(b[2] - a[2]), dv) * 1.0\n                    ru, rv, rd = invert_near(pm, wrap_u(um), wrap_v(vm), wu, wv)\n                    if rd > on_surf_tol:\n                        # Midpoint is off the surface: this is a stick-out\n                        # portion of a curve that extends past the face, not a\n                        # curvature stray. Do not refine it (avoids an\n                        # unbounded bisection of an off-surface segment).\n                        i += 1\n                        continue\n                    uu, vv = unwrap_to(a[1], a[2], ru, rv)\n                    samples.insert(i + 1, [tm, uu, vv, rd])\n                    inserted += 1\n                    i += 2\n                else:\n                    i += 1\n            if inserted == 0:\n                break\n            depth += 1\n\n        pts = [[s[1], s[2]] for s in samples]\n\n        # 3. Closed-loop closure and seam-crossing split (same scheme as surface_plane_uv)\n        p_first = curve.point_at(samples[0][0])\n        p_last = curve.point_at(samples[-1][0])\n        is_loop = p_first.distance(p_last) < fit_tol * 4.0 and len(pts) >= 6",
+          "file": "closest.py"
+        }
+      },
+      "related": [
+        "Closest.invert_near",
+        "Closest.surface_curve",
+        "Closest.surface_point",
+        "Closest.wrap_u",
+        "Closest.wrap_v"
       ]
     },
     {
@@ -26787,7 +27481,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "create(periodic: bool, degree: int, points: List[Point], \n               dimension: int = 3, nurbsknot_delta: float = 1.0) -> 'NurbsCurve'",
-          "code": "def create(periodic: bool, degree: int, points: List[Point], \n               dimension: int = 3, nurbsknot_delta: float = 1.0) -> 'NurbsCurve':\n\n        \"\"\"Create NURBS curve from points.\n\n        Parameters\n        ----------\n        periodic : bool\n            If True, creates a periodic curve; otherwise clamped.\n        degree : int\n            The degree of the curve.\n        points : list of Point\n            Control points for the curve.\n        dimension : int, optional\n            Dimension of the curve. Defaults to 3.\n        nurbsknot_delta : float, optional\n            Spacing between nurbsknots. Defaults to 1.0.\n\n        Returns\n        -------\n        NurbsCurve\n            The created NURBS curve.\n        \"\"\"\n        curve = NurbsCurve()\n        if periodic:\n            curve.create_periodic_uniform(dimension, degree + 1, points, nurbsknot_delta)\n        else:\n            curve.create_clamped_uniform(dimension, degree + 1, points, nurbsknot_delta)\n        if curve.is_valid():\n            if degree == 1 and len(points) == 2:\n                p0, p1 = points[0], points[1]\n                dx = p1[0] - p0[0]; dy = p1[1] - p0[1]; dz = p1[2] - p0[2]\n                L = (dx*dx + dy*dy + dz*dz) ** 0.5\n            else:\n                L = curve.length()\n            if L > 0.0:\n                curve.set_domain(0.0, L)\n        return curve\n\n    @staticmethod\n    def create_interpolated(points, parameterization=CurveNurbsKnotStyle.Chord):\n        # parameterization maps to Rhino's CurveKnotStyle: Uniform/Chord/ChordSquareRoot\n        # (centripetal). Rhino's CreateInterpolatedCurve(points, degree) API defaults to Uniform;\n        # the InterpCrv command commonly uses Chord. Pass the style explicitly to match Rhino.\n        n = len(points)\n        if n < 2:\n            return NurbsCurve()\n        dim = 3\n        degree = 3\n        order = degree + 1\n\n        periodic = parameterization in (CurveNurbsKnotStyle.UniformPeriodic,\n                                        CurveNurbsKnotStyle.ChordPeriodic,\n                                        CurveNurbsKnotStyle.ChordSquareRootPeriodic)\n\n        if periodic and n < 3:\n            return NurbsCurve()\n\n        def pdist(a, b):\n            dx, dy, dz = a[0]-b[0], a[1]-b[1], a[2]-b[2]\n            return math.sqrt(dx*dx + dy*dy + dz*dz)\n\n        if periodic:\n            cv_count = n + 3\n            kc = cv_count + order - 2\n\n            base_map = {CurveNurbsKnotStyle.UniformPeriodic: CurveNurbsKnotStyle.Uniform,\n                        CurveNurbsKnotStyle.ChordSquareRootPeriodic: CurveNurbsKnotStyle.ChordSquareRoot}\n            base_style = base_map.get(parameterization, CurveNurbsKnotStyle.Chord)\n\n            params = [0.0] * (n + 1)\n            if base_style == CurveNurbsKnotStyle.Uniform:\n                for i in range(1, n + 1):\n                    params[i] = float(i)\n            else:\n                for i in range(1, n):\n                    d = pdist(points[i-1], points[i])\n                    if base_style == CurveNurbsKnotStyle.ChordSquareRoot:\n                        d = math.sqrt(d)\n                    params[i] = params[i-1] + d\n                d_close = pdist(points[n-1], points[0])\n                if base_style == CurveNurbsKnotStyle.ChordSquareRoot:",
+          "code": "def create(periodic: bool, degree: int, points: List[Point], \n               dimension: int = 3, nurbsknot_delta: float = 1.0) -> 'NurbsCurve':\n\n        \"\"\"Create NURBS curve from points.\n\n        Parameters\n        ----------\n        periodic : bool\n            If True, creates a periodic curve; otherwise clamped.\n        degree : int\n            The degree of the curve.\n        points : list of Point\n            Control points for the curve.\n        dimension : int, optional\n            Dimension of the curve. Defaults to 3.\n        nurbsknot_delta : float, optional\n            Spacing between nurbsknots. Defaults to 1.0.\n\n        Returns\n        -------\n        NurbsCurve\n            The created NURBS curve.\n        \"\"\"\n        curve = NurbsCurve()\n        if periodic:\n            curve.create_periodic_uniform(dimension, degree + 1, points, nurbsknot_delta)\n        else:\n            curve.create_clamped_uniform(dimension, degree + 1, points, nurbsknot_delta)\n        if curve.is_valid():\n            if degree == 1 and len(points) == 2:\n                p0, p1 = points[0], points[1]\n                dx = p1[0] - p0[0]; dy = p1[1] - p0[1]; dz = p1[2] - p0[2]\n                L = (dx*dx + dy*dy + dz*dz) ** 0.5\n            else:\n                L = curve.length()\n            if L > 0.0:\n                curve.set_domain(0.0, L)\n        return curve\n\n    @staticmethod\n    def create_interpolated(points, parameterization=CurveNurbsKnotStyle.Chord):\n        # parameterization maps to Rhino's CurveKnotStyle: Uniform/Chord/ChordSquareRoot\n        # (centripetal). Rhino's CreateInterpolatedCurve(points, degree) API defaults to Uniform;\n        # the InterpCrv command commonly uses Chord. Pass the style explicitly to match Rhino.\n        n = len(points)\n        if n < 2:\n            return NurbsCurve()\n        dim = 3\n        degree = 3\n        order = degree + 1\n\n        periodic = parameterization in (CurveNurbsKnotStyle.UniformPeriodic,\n                                        CurveNurbsKnotStyle.ChordPeriodic,\n                                        CurveNurbsKnotStyle.ChordSquareRootPeriodic)\n\n        if periodic and n < 3:\n            return NurbsCurve()\n\n        # Two points: Rhino emits a degree-1 line (2 CVs), not a cubic.\n        if n == 2 and not periodic:\n            return NurbsCurve.create(False, 1, list(points))\n\n        def pdist(a, b):\n            dx, dy, dz = a[0]-b[0], a[1]-b[1], a[2]-b[2]\n            return math.sqrt(dx*dx + dy*dy + dz*dz)\n\n        if periodic:\n            cv_count = n + 3\n            kc = cv_count + order - 2\n\n            base_map = {CurveNurbsKnotStyle.UniformPeriodic: CurveNurbsKnotStyle.Uniform,\n                        CurveNurbsKnotStyle.ChordSquareRootPeriodic: CurveNurbsKnotStyle.ChordSquareRoot}\n            base_style = base_map.get(parameterization, CurveNurbsKnotStyle.Chord)\n\n            params = [0.0] * (n + 1)\n            if base_style == CurveNurbsKnotStyle.Uniform:\n                for i in range(1, n + 1):\n                    params[i] = float(i)\n            else:\n                for i in range(1, n):\n                    d = pdist(points[i-1], points[i])\n                    if base_style == CurveNurbsKnotStyle.ChordSquareRoot:",
           "file": "nurbscurve.py"
         },
         "cpp": {
@@ -26835,7 +27529,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "create_interpolated(points, parameterization=CurveNurbsKnotStyle.Chord)",
-          "code": "def create_interpolated(points, parameterization=CurveNurbsKnotStyle.Chord):\n\n        # parameterization maps to Rhino's CurveKnotStyle: Uniform/Chord/ChordSquareRoot\n        # (centripetal). Rhino's CreateInterpolatedCurve(points, degree) API defaults to Uniform;\n        # the InterpCrv command commonly uses Chord. Pass the style explicitly to match Rhino.\n        n = len(points)\n        if n < 2:\n            return NurbsCurve()\n        dim = 3\n        degree = 3\n        order = degree + 1\n\n        periodic = parameterization in (CurveNurbsKnotStyle.UniformPeriodic,\n                                        CurveNurbsKnotStyle.ChordPeriodic,\n                                        CurveNurbsKnotStyle.ChordSquareRootPeriodic)\n\n        if periodic and n < 3:\n            return NurbsCurve()\n\n        def pdist(a, b):\n            dx, dy, dz = a[0]-b[0], a[1]-b[1], a[2]-b[2]\n            return math.sqrt(dx*dx + dy*dy + dz*dz)\n\n        if periodic:\n            cv_count = n + 3\n            kc = cv_count + order - 2\n\n            base_map = {CurveNurbsKnotStyle.UniformPeriodic: CurveNurbsKnotStyle.Uniform,\n                        CurveNurbsKnotStyle.ChordSquareRootPeriodic: CurveNurbsKnotStyle.ChordSquareRoot}\n            base_style = base_map.get(parameterization, CurveNurbsKnotStyle.Chord)\n\n            params = [0.0] * (n + 1)\n            if base_style == CurveNurbsKnotStyle.Uniform:\n                for i in range(1, n + 1):\n                    params[i] = float(i)\n            else:\n                for i in range(1, n):\n                    d = pdist(points[i-1], points[i])\n                    if base_style == CurveNurbsKnotStyle.ChordSquareRoot:\n                        d = math.sqrt(d)\n                    params[i] = params[i-1] + d\n                d_close = pdist(points[n-1], points[0])\n                if base_style == CurveNurbsKnotStyle.ChordSquareRoot:\n                    d_close = math.sqrt(d_close)\n                params[n] = params[n-1] + d_close\n\n            dmin, dmax = 1e300, 0.0\n            for i in range(n):\n                d = params[i+1] - params[i]\n                if d < dmin: dmin = d\n                if d > dmax: dmax = d\n            if dmax <= 0.0 or dmax * 1.490116119385e-8 >= dmin:\n                return NurbsCurve()\n\n            nurbsknots_vec = [0.0] * kc\n            for i in range(n + 1):\n                nurbsknots_vec[i + 2] = params[i]\n            nurbsknots_vec[cv_count]     = nurbsknots_vec[3] - nurbsknots_vec[2] + nurbsknots_vec[cv_count - 1]\n            nurbsknots_vec[1]            = nurbsknots_vec[cv_count - 2] - nurbsknots_vec[cv_count - 1] + nurbsknots_vec[2]\n            nurbsknots_vec[cv_count + 1] = nurbsknots_vec[4] - nurbsknots_vec[3] + nurbsknots_vec[cv_count]\n            nurbsknots_vec[0]            = nurbsknots_vec[cv_count - 3] - nurbsknots_vec[cv_count - 2] + nurbsknots_vec[1]\n\n            A = [[0.0] * n for _ in range(n)]\n            rhs = [0.0] * (n * dim)\n\n            for i in range(n):\n                basis = nurbsknot.eval_basis(order, nurbsknots_vec, i, params[i])\n                c0 = i % n\n                c1 = (i + 1) % n\n                c2 = (i + 2) % n\n                A[i][c0] += basis[0]\n                A[i][c1] += basis[1]\n                A[i][c2] += basis[2]\n                for d in range(dim):\n                    rhs[i * dim + d] = points[i][d]\n\n            cv = [0.0] * (n * dim)\n            for i in range(n):\n                for d in range(dim):\n                    cv[i * dim + d] = rhs[i * dim + d]",
+          "code": "def create_interpolated(points, parameterization=CurveNurbsKnotStyle.Chord):\n\n        # parameterization maps to Rhino's CurveKnotStyle: Uniform/Chord/ChordSquareRoot\n        # (centripetal). Rhino's CreateInterpolatedCurve(points, degree) API defaults to Uniform;\n        # the InterpCrv command commonly uses Chord. Pass the style explicitly to match Rhino.\n        n = len(points)\n        if n < 2:\n            return NurbsCurve()\n        dim = 3\n        degree = 3\n        order = degree + 1\n\n        periodic = parameterization in (CurveNurbsKnotStyle.UniformPeriodic,\n                                        CurveNurbsKnotStyle.ChordPeriodic,\n                                        CurveNurbsKnotStyle.ChordSquareRootPeriodic)\n\n        if periodic and n < 3:\n            return NurbsCurve()\n\n        # Two points: Rhino emits a degree-1 line (2 CVs), not a cubic.\n        if n == 2 and not periodic:\n            return NurbsCurve.create(False, 1, list(points))\n\n        def pdist(a, b):\n            dx, dy, dz = a[0]-b[0], a[1]-b[1], a[2]-b[2]\n            return math.sqrt(dx*dx + dy*dy + dz*dz)\n\n        if periodic:\n            cv_count = n + 3\n            kc = cv_count + order - 2\n\n            base_map = {CurveNurbsKnotStyle.UniformPeriodic: CurveNurbsKnotStyle.Uniform,\n                        CurveNurbsKnotStyle.ChordSquareRootPeriodic: CurveNurbsKnotStyle.ChordSquareRoot}\n            base_style = base_map.get(parameterization, CurveNurbsKnotStyle.Chord)\n\n            params = [0.0] * (n + 1)\n            if base_style == CurveNurbsKnotStyle.Uniform:\n                for i in range(1, n + 1):\n                    params[i] = float(i)\n            else:\n                for i in range(1, n):\n                    d = pdist(points[i-1], points[i])\n                    if base_style == CurveNurbsKnotStyle.ChordSquareRoot:\n                        d = math.sqrt(d)\n                    params[i] = params[i-1] + d\n                d_close = pdist(points[n-1], points[0])\n                if base_style == CurveNurbsKnotStyle.ChordSquareRoot:\n                    d_close = math.sqrt(d_close)\n                params[n] = params[n-1] + d_close\n\n            dmin, dmax = 1e300, 0.0\n            for i in range(n):\n                d = params[i+1] - params[i]\n                if d < dmin: dmin = d\n                if d > dmax: dmax = d\n            if dmax <= 0.0 or dmax * 1.490116119385e-8 >= dmin:\n                return NurbsCurve()\n\n            nurbsknots_vec = [0.0] * kc\n            for i in range(n + 1):\n                nurbsknots_vec[i + 2] = params[i]\n            nurbsknots_vec[cv_count]     = nurbsknots_vec[3] - nurbsknots_vec[2] + nurbsknots_vec[cv_count - 1]\n            nurbsknots_vec[1]            = nurbsknots_vec[cv_count - 2] - nurbsknots_vec[cv_count - 1] + nurbsknots_vec[2]\n            nurbsknots_vec[cv_count + 1] = nurbsknots_vec[4] - nurbsknots_vec[3] + nurbsknots_vec[cv_count]\n            nurbsknots_vec[0]            = nurbsknots_vec[cv_count - 3] - nurbsknots_vec[cv_count - 2] + nurbsknots_vec[1]\n\n            A = [[0.0] * n for _ in range(n)]\n            rhs = [0.0] * (n * dim)\n\n            for i in range(n):\n                basis = nurbsknot.eval_basis(order, nurbsknots_vec, i, params[i])\n                c0 = i % n\n                c1 = (i + 1) % n\n                c2 = (i + 2) % n\n                A[i][c0] += basis[0]\n                A[i][c1] += basis[1]\n                A[i][c2] += basis[2]\n                for d in range(dim):\n                    rhs[i * dim + d] = points[i][d]\n\n            cv = [0.0] * (n * dim)",
           "file": "nurbscurve.py"
         },
         "cpp": {
@@ -26845,7 +27539,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "create_interpolated(points: &[Point], parameterization: nurbsknot::CurveNurbsKnotStyle) -> NurbsCurve",
-          "code": "pub fn create_interpolated(points: &[Point], parameterization: nurbsknot::CurveNurbsKnotStyle) -> NurbsCurve {\n        let n = points.len();\n        if n < 2 { return NurbsCurve::new(3, false, 4, 0); }\n        let dim = 3usize;\n        let degree = 3usize;\n        let order = degree + 1;\n\n        let periodic = matches!(parameterization,\n            nurbsknot::CurveNurbsKnotStyle::UniformPeriodic |\n            nurbsknot::CurveNurbsKnotStyle::ChordPeriodic |\n            nurbsknot::CurveNurbsKnotStyle::ChordSquareRootPeriodic);\n\n        if periodic && n < 3 { return NurbsCurve::new(3, false, 4, 0); }\n\n        let pdist = |a: &Point, b: &Point| -> f64 {\n            let dx = a[0]-b[0]; let dy = a[1]-b[1]; let dz = a[2]-b[2];\n            (dx*dx + dy*dy + dz*dz).sqrt()\n        };\n\n        if periodic {\n            let cv_count = n + 3;\n            let kc = cv_count + order - 2;\n\n            let base_style = match parameterization {\n                nurbsknot::CurveNurbsKnotStyle::UniformPeriodic => nurbsknot::CurveNurbsKnotStyle::Uniform,\n                nurbsknot::CurveNurbsKnotStyle::ChordSquareRootPeriodic => nurbsknot::CurveNurbsKnotStyle::ChordSquareRoot,\n                _ => nurbsknot::CurveNurbsKnotStyle::Chord,\n            };\n\n            let mut params = vec![0.0; n + 1];\n            if matches!(base_style, nurbsknot::CurveNurbsKnotStyle::Uniform) {\n                for i in 1..=n { params[i] = i as f64; }\n            } else {\n                for i in 1..n {\n                    let mut d = pdist(&points[i-1], &points[i]);\n                    if matches!(base_style, nurbsknot::CurveNurbsKnotStyle::ChordSquareRoot) { d = d.sqrt(); }\n                    params[i] = params[i-1] + d;\n                }\n                let mut d_close = pdist(&points[n-1], &points[0]);\n                if matches!(base_style, nurbsknot::CurveNurbsKnotStyle::ChordSquareRoot) { d_close = d_close.sqrt(); }\n                params[n] = params[n-1] + d_close;\n            }\n\n            let mut dmin = f64::INFINITY;\n            let mut dmax = 0.0_f64;\n            for i in 0..n {\n                let d = params[i+1] - params[i];\n                if d < dmin { dmin = d; }\n                if d > dmax { dmax = d; }\n            }\n            if dmax <= 0.0 || dmax * 1.490116119385e-8 >= dmin {\n                return NurbsCurve::new(3, false, 4, 0);\n            }\n\n            let mut nurbsknots_vec = vec![0.0; kc];\n            for i in 0..=n { nurbsknots_vec[i + 2] = params[i]; }\n            nurbsknots_vec[cv_count]     = nurbsknots_vec[3] - nurbsknots_vec[2] + nurbsknots_vec[cv_count - 1];\n            nurbsknots_vec[1]            = nurbsknots_vec[cv_count - 2] - nurbsknots_vec[cv_count - 1] + nurbsknots_vec[2];\n            nurbsknots_vec[cv_count + 1] = nurbsknots_vec[4] - nurbsknots_vec[3] + nurbsknots_vec[cv_count];\n            nurbsknots_vec[0]            = nurbsknots_vec[cv_count - 3] - nurbsknots_vec[cv_count - 2] + nurbsknots_vec[1];\n\n            let mut a = vec![vec![0.0; n]; n];\n            let mut rhs = vec![0.0; n * dim];\n\n            for i in 0..n {\n                let basis = nurbsknot::eval_basis(order, &nurbsknots_vec, i, params[i]);\n                let c0 = i % n;\n                let c1 = (i + 1) % n;\n                let c2 = (i + 2) % n;\n                a[i][c0] += basis[0];\n                a[i][c1] += basis[1];\n                a[i][c2] += basis[2];\n                for d in 0..dim { rhs[i * dim + d] = points[i][d]; }\n            }\n\n            let mut cv = vec![0.0; n * dim];\n            for i in 0..n {\n                for d in 0..dim { cv[i * dim + d] = rhs[i * dim + d]; }\n            }\n\n            for col in 0..n {\n                let mut pivot = col;\n                for row in (col+1)..n {\n                    if a[row][col].abs() > a[pivot][col].abs() { pivot = row; }\n                }\n                if pivot != col {\n                    a.swap(col, pivot);\n                    for d in 0..dim { cv.swap(col*dim+d, pivot*dim+d); }\n                }\n                if a[col][col].abs() < 1e-300 { return NurbsCurve::new(3, false, 4, 0); }\n                for row in (col+1)..n {\n                    let factor = a[row][col] / a[col][col];\n                    for j in col..n { a[row][j] -= factor * a[col][j]; }\n                    for d in 0..dim { cv[row*dim+d] -= factor * cv[col*dim+d]; }\n                }\n            }\n            for i in (0..n).rev() {\n                for d in 0..dim {\n                    let mut sum = cv[i*dim+d];\n                    for j in (i+1)..n { sum -= a[i][j] * cv[j*dim+d]; }\n                    cv[i*dim+d] = sum / a[i][i];\n                }\n            }\n\n            let mut curve = NurbsCurve::new(dim, false, order, cv_count);\n            for i in 0..kc { curve.set_nurbsknot(i, nurbsknots_vec[i]); }\n            for i in 0..n {\n                curve.set_cv(i, &Point::new(cv[i*3], cv[i*3+1], cv[i*3+2]));\n            }\n            let cv0 = curve.get_cv(0).unwrap();\n            let cv1 = curve.get_cv(1).unwrap();\n            let cv2 = curve.get_cv(2).unwrap();\n            curve.set_cv(n, &cv0);\n            curve.set_cv(n + 1, &cv1);\n            curve.set_cv(n + 2, &cv2);\n            return curve;\n        }\n\n        // Open interpolation\n        let cv_count = n + 2;\n\n        let mut pts = vec![0.0; n * dim];\n        for i in 0..n {\n            pts[i*3] = points[i][0];\n            pts[i*3+1] = points[i][1];\n            pts[i*3+2] = points[i][2];\n        }\n\n        let params = nurbsknot::compute_parameters(&pts, dim, parameterization);\n        let nurbsknots_vec = nurbsknot::build_interp_nurbsknots(&params, degree);\n        let kc = nurbsknots_vec.len();\n\n        let estimate_tangent = |i0: usize, i1: usize, i2: usize| -> Vector {\n            let d01 = pdist(&points[i0], &points[i1]);\n            let d21 = pdist(&points[i2], &points[i1]);\n            if d01 + d21 < 1e-300 { return Vector::new(0.0, 0.0, 0.0); }\n            let s = d01 / (d01 + d21);\n            let t = 1.0 - s;\n            let denom = 2.0 * s * t;\n            if denom < 1e-16 {\n                let dx = points[i1][0] - points[i0][0];\n                let dy = points[i1][1] - points[i0][1];\n                let dz = points[i1][2] - points[i0][2];\n                let len = (dx*dx + dy*dy + dz*dz).sqrt();\n                return if len > 0.0 { Vector::new(dx/len, dy/len, dz/len) } else { Vector::new(0.0, 0.0, 0.0) };\n            }\n            let cvx = (-t*t*points[i0][0] + points[i1][0] - s*s*points[i2][0]) / denom;\n            let cvy = (-t*t*points[i0][1] + points[i1][1] - s*s*points[i2][1]) / denom;\n            let cvz = (-t*t*points[i0][2] + points[i1][2] - s*s*points[i2][2]) / denom;\n            let dx = cvx - points[i0][0];\n            let dy = cvy - points[i0][1];\n            let dz = cvz - points[i0][2];\n            let len = (dx*dx + dy*dy + dz*dz).sqrt();\n            if len > 0.0 { Vector::new(dx/len, dy/len, dz/len) } else { Vector::new(0.0, 0.0, 0.0) }\n        };\n\n        let (tan_start, tan_end) = if n >= 3 {\n            let ts = estimate_tangent(0, 1, 2);\n            let er = estimate_tangent(n-1, n-2, n-3);\n            (ts, Vector::new(-er[0], -er[1], -er[2]))\n        } else {\n            let dx = points[1][0] - points[0][0];\n            let dy = points[1][1] - points[0][1];\n            let dz = points[1][2] - points[0][2];\n            let len = (dx*dx + dy*dy + dz*dz).sqrt();\n            if len > 0.0 {\n                let v = Vector::new(dx/len, dy/len, dz/len);\n                (v.clone(), v)\n            } else {\n                (Vector::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 0.0))\n            }\n        };\n\n        let d_start = pdist(&points[0], &points[1]);\n        let d_end = pdist(&points[n-1], &points[n-2]);\n\n        let mut cv = vec![0.0; cv_count * dim];\n        for d in 0..dim { cv[d] = points[0][d]; }\n        let s0 = d_start / 3.0;\n        for d in 0..dim { cv[dim + d] = points[0][d] + s0 * tan_start[d]; }\n        for i in 1..n-1 {\n            for d",
+          "code": "pub fn create_interpolated(points: &[Point], parameterization: nurbsknot::CurveNurbsKnotStyle) -> NurbsCurve {\n        let n = points.len();\n        if n < 2 { return NurbsCurve::new(3, false, 4, 0); }\n        let dim = 3usize;\n        let degree = 3usize;\n        let order = degree + 1;\n\n        let periodic = matches!(parameterization,\n            nurbsknot::CurveNurbsKnotStyle::UniformPeriodic |\n            nurbsknot::CurveNurbsKnotStyle::ChordPeriodic |\n            nurbsknot::CurveNurbsKnotStyle::ChordSquareRootPeriodic);\n\n        if periodic && n < 3 { return NurbsCurve::new(3, false, 4, 0); }\n\n        // Two points: Rhino emits a degree-1 line (2 CVs), not a cubic.\n        if n == 2 && !periodic { return NurbsCurve::create(false, 1, points); }\n\n        let pdist = |a: &Point, b: &Point| -> f64 {\n            let dx = a[0]-b[0]; let dy = a[1]-b[1]; let dz = a[2]-b[2];\n            (dx*dx + dy*dy + dz*dz).sqrt()\n        };\n\n        if periodic {\n            let cv_count = n + 3;\n            let kc = cv_count + order - 2;\n\n            let base_style = match parameterization {\n                nurbsknot::CurveNurbsKnotStyle::UniformPeriodic => nurbsknot::CurveNurbsKnotStyle::Uniform,\n                nurbsknot::CurveNurbsKnotStyle::ChordSquareRootPeriodic => nurbsknot::CurveNurbsKnotStyle::ChordSquareRoot,\n                _ => nurbsknot::CurveNurbsKnotStyle::Chord,\n            };\n\n            let mut params = vec![0.0; n + 1];\n            if matches!(base_style, nurbsknot::CurveNurbsKnotStyle::Uniform) {\n                for i in 1..=n { params[i] = i as f64; }\n            } else {\n                for i in 1..n {\n                    let mut d = pdist(&points[i-1], &points[i]);\n                    if matches!(base_style, nurbsknot::CurveNurbsKnotStyle::ChordSquareRoot) { d = d.sqrt(); }\n                    params[i] = params[i-1] + d;\n                }\n                let mut d_close = pdist(&points[n-1], &points[0]);\n                if matches!(base_style, nurbsknot::CurveNurbsKnotStyle::ChordSquareRoot) { d_close = d_close.sqrt(); }\n                params[n] = params[n-1] + d_close;\n            }\n\n            let mut dmin = f64::INFINITY;\n            let mut dmax = 0.0_f64;\n            for i in 0..n {\n                let d = params[i+1] - params[i];\n                if d < dmin { dmin = d; }\n                if d > dmax { dmax = d; }\n            }\n            if dmax <= 0.0 || dmax * 1.490116119385e-8 >= dmin {\n                return NurbsCurve::new(3, false, 4, 0);\n            }\n\n            let mut nurbsknots_vec = vec![0.0; kc];\n            for i in 0..=n { nurbsknots_vec[i + 2] = params[i]; }\n            nurbsknots_vec[cv_count]     = nurbsknots_vec[3] - nurbsknots_vec[2] + nurbsknots_vec[cv_count - 1];\n            nurbsknots_vec[1]            = nurbsknots_vec[cv_count - 2] - nurbsknots_vec[cv_count - 1] + nurbsknots_vec[2];\n            nurbsknots_vec[cv_count + 1] = nurbsknots_vec[4] - nurbsknots_vec[3] + nurbsknots_vec[cv_count];\n            nurbsknots_vec[0]            = nurbsknots_vec[cv_count - 3] - nurbsknots_vec[cv_count - 2] + nurbsknots_vec[1];\n\n            let mut a = vec![vec![0.0; n]; n];\n            let mut rhs = vec![0.0; n * dim];\n\n            for i in 0..n {\n                let basis = nurbsknot::eval_basis(order, &nurbsknots_vec, i, params[i]);\n                let c0 = i % n;\n                let c1 = (i + 1) % n;\n                let c2 = (i + 2) % n;\n                a[i][c0] += basis[0];\n                a[i][c1] += basis[1];\n                a[i][c2] += basis[2];\n                for d in 0..dim { rhs[i * dim + d] = points[i][d]; }\n            }\n\n            let mut cv = vec![0.0; n * dim];\n            for i in 0..n {\n                for d in 0..dim { cv[i * dim + d] = rhs[i * dim + d]; }\n            }\n\n            for col in 0..n {\n                let mut pivot = col;\n                for row in (col+1)..n {\n                    if a[row][col].abs() > a[pivot][col].abs() { pivot = row; }\n                }\n                if pivot != col {\n                    a.swap(col, pivot);\n                    for d in 0..dim { cv.swap(col*dim+d, pivot*dim+d); }\n                }\n                if a[col][col].abs() < 1e-300 { return NurbsCurve::new(3, false, 4, 0); }\n                for row in (col+1)..n {\n                    let factor = a[row][col] / a[col][col];\n                    for j in col..n { a[row][j] -= factor * a[col][j]; }\n                    for d in 0..dim { cv[row*dim+d] -= factor * cv[col*dim+d]; }\n                }\n            }\n            for i in (0..n).rev() {\n                for d in 0..dim {\n                    let mut sum = cv[i*dim+d];\n                    for j in (i+1)..n { sum -= a[i][j] * cv[j*dim+d]; }\n                    cv[i*dim+d] = sum / a[i][i];\n                }\n            }\n\n            let mut curve = NurbsCurve::new(dim, false, order, cv_count);\n            for i in 0..kc { curve.set_nurbsknot(i, nurbsknots_vec[i]); }\n            for i in 0..n {\n                curve.set_cv(i, &Point::new(cv[i*3], cv[i*3+1], cv[i*3+2]));\n            }\n            let cv0 = curve.get_cv(0).unwrap();\n            let cv1 = curve.get_cv(1).unwrap();\n            let cv2 = curve.get_cv(2).unwrap();\n            curve.set_cv(n, &cv0);\n            curve.set_cv(n + 1, &cv1);\n            curve.set_cv(n + 2, &cv2);\n            return curve;\n        }\n\n        // Open interpolation\n        let cv_count = n + 2;\n\n        let mut pts = vec![0.0; n * dim];\n        for i in 0..n {\n            pts[i*3] = points[i][0];\n            pts[i*3+1] = points[i][1];\n            pts[i*3+2] = points[i][2];\n        }\n\n        let params = nurbsknot::compute_parameters(&pts, dim, parameterization);\n        let nurbsknots_vec = nurbsknot::build_interp_nurbsknots(&params, degree);\n        let kc = nurbsknots_vec.len();\n\n        let estimate_tangent = |i0: usize, i1: usize, i2: usize| -> Vector {\n            let d01 = pdist(&points[i0], &points[i1]);\n            let d21 = pdist(&points[i2], &points[i1]);\n            if d01 + d21 < 1e-300 { return Vector::new(0.0, 0.0, 0.0); }\n            let s = d01 / (d01 + d21);\n            let t = 1.0 - s;\n            let denom = 2.0 * s * t;\n            if denom < 1e-16 {\n                let dx = points[i1][0] - points[i0][0];\n                let dy = points[i1][1] - points[i0][1];\n                let dz = points[i1][2] - points[i0][2];\n                let len = (dx*dx + dy*dy + dz*dz).sqrt();\n                return if len > 0.0 { Vector::new(dx/len, dy/len, dz/len) } else { Vector::new(0.0, 0.0, 0.0) };\n            }\n            let cvx = (-t*t*points[i0][0] + points[i1][0] - s*s*points[i2][0]) / denom;\n            let cvy = (-t*t*points[i0][1] + points[i1][1] - s*s*points[i2][1]) / denom;\n            let cvz = (-t*t*points[i0][2] + points[i1][2] - s*s*points[i2][2]) / denom;\n            let dx = cvx - points[i0][0];\n            let dy = cvy - points[i0][1];\n            let dz = cvz - points[i0][2];\n            let len = (dx*dx + dy*dy + dz*dz).sqrt();\n            if len > 0.0 { Vector::new(dx/len, dy/len, dz/len) } else { Vector::new(0.0, 0.0, 0.0) }\n        };\n\n        let (tan_start, tan_end) = if n >= 3 {\n            let ts = estimate_tangent(0, 1, 2);\n            let er = estimate_tangent(n-1, n-2, n-3);\n            (ts, Vector::new(-er[0], -er[1], -er[2]))\n        } else {\n            let dx = points[1][0] - points[0][0];\n            let dy = points[1][1] - points[0][1];\n            let dz = points[1][2] - points[0][2];\n            let len = (dx*dx + dy*dy + dz*dz).sqrt();\n            if len > 0.0 {\n                let v = Vector::new(dx/len, dy/len, dz/len);\n                (v.clone(), v)\n            } else {\n                (Vector::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 0.0))\n            }\n        };\n\n        let d_start = pdist(&points[0], &points[1]);\n        let d_end = pdist(&points[n-1], &points[n-2]);\n\n        let mut cv = vec![0.0; cv_count * dim];\n        for d in 0..dim { cv[d] = points[0][d];",
           "file": "nurbscurve.rs"
         }
       },
@@ -26949,6 +27643,57 @@ window.API_INDEX = {
         "NurbsCurve.pdist",
         "NurbsCurve.set_cv",
         "NurbsCurve.set_nurbsknot"
+      ]
+    },
+    {
+      "name": "NurbsCurve.join",
+      "implementations": {
+        "python": {
+          "sig": "join(curves, tolerance=None)",
+          "code": "def join(curves, tolerance=None):\n\n        \"\"\"Join curve segments into chains by endpoint matching.\n\n        Segments are greedily chained (reversed as needed), made compatible\n        (common degree, common rationality), and concatenated with C0\n        continuity (junction nurbsknot at multiplicity = degree).\n\n        Parameters\n        ----------\n        curves : list of NurbsCurve\n            Segments to join. Inputs are not modified.\n        tolerance : float, optional\n            Endpoint matching distance. Defaults to Tolerance.ZERO_TOLERANCE.\n\n        Returns\n        -------\n        list of NurbsCurve\n            One curve per chain (singletons returned as duplicates).\n        \"\"\"\n        tol = tolerance if tolerance is not None else Tolerance.ZERO_TOLERANCE\n        segs = []\n        for c in curves:\n            if c is not None and c.is_valid():\n                segs.append(c.duplicate())\n        chains = []\n        used = [False] * len(segs)\n        for i in range(len(segs)):\n            if used[i]:\n                continue\n            used[i] = True\n            chain = [segs[i]]\n            if not segs[i].is_closed():\n                grown = True\n                while grown:\n                    grown = False\n                    start = chain[0].point_at_start()\n                    end = chain[-1].point_at_end()\n                    for j in range(len(segs)):\n                        if used[j] or segs[j].is_closed():\n                            continue\n                        s = segs[j].point_at_start()\n                        e = segs[j].point_at_end()\n                        if s.distance(end) <= tol:\n                            chain.append(segs[j])\n                        elif e.distance(end) <= tol:\n                            segs[j].reverse()\n                            chain.append(segs[j])\n                        elif e.distance(start) <= tol:\n                            chain.insert(0, segs[j])\n                        elif s.distance(start) <= tol:\n                            segs[j].reverse()\n                            chain.insert(0, segs[j])\n                        else:\n                            continue\n                        used[j] = True\n                        grown = True\n                        break\n            chains.append(chain)\n        result = []\n        for chain in chains:\n            if len(chain) == 1:\n                result.append(chain[0])\n                continue\n            rational = False\n            max_degree = 1\n            for c in chain:\n                if c.is_rational():\n                    rational = True\n                if c.degree() > max_degree:\n                    max_degree = c.degree()\n            for c in chain:\n                if rational:\n                    c.make_rational()\n                c.clamp_end(2)\n                c.increase_degree(max_degree)\n            joined = chain[0]\n            for c in chain[1:]:\n                stride = joined.m_cv_stride\n                cvdim = joined.cv_size()\n                _, a1 = joined.domain()",
+          "file": "nurbscurve.py"
+        },
+        "cpp": {
+          "sig": "std::vector<NurbsCurve> join(const std::vector<NurbsCurve>& curves, double tolerance)",
+          "code": "std::vector<NurbsCurve> NurbsCurve::join(const std::vector<NurbsCurve>& curves, double tolerance) {\n    double tol = tolerance;\n    std::vector<NurbsCurve> segs;\n    for (const NurbsCurve& c : curves) {\n        if (c.is_valid()) {\n            segs.push_back(c);\n        }",
+          "file": "nurbscurve.cpp"
+        },
+        "rust": {
+          "sig": "join(curves: &[NurbsCurve], tolerance: Option<f64>) -> Vec<NurbsCurve>",
+          "code": "pub fn join(curves: &[NurbsCurve], tolerance: Option<f64>) -> Vec<NurbsCurve> {\n        let tol = tolerance.unwrap_or(Tolerance::ZERO_TOLERANCE);\n        let mut segs: Vec<NurbsCurve> = Vec::new();\n        for c in curves {\n            if c.is_valid() {\n                segs.push(c.duplicate());\n            }\n        }\n        let mut chains: Vec<Vec<NurbsCurve>> = Vec::new();\n        let mut used = vec![false; segs.len()];\n        for i in 0..segs.len() {\n            if used[i] {\n                continue;\n            }\n            used[i] = true;\n            let mut chain: Vec<NurbsCurve> = vec![segs[i].duplicate()];\n            if !segs[i].is_closed() {\n                let mut grown = true;\n                while grown {\n                    grown = false;\n                    let start = chain[0].point_at_start();\n                    let end = chain[chain.len() - 1].point_at_end();\n                    for j in 0..segs.len() {\n                        if used[j] || segs[j].is_closed() {\n                            continue;\n                        }\n                        let s = segs[j].point_at_start();\n                        let e = segs[j].point_at_end();\n                        if s.distance(&end, None) <= tol {\n                            chain.push(segs[j].duplicate());\n                        } else if e.distance(&end, None) <= tol {\n                            let mut r = segs[j].duplicate();\n                            r.reverse();\n                            chain.push(r);\n                        } else if e.distance(&start, None) <= tol {\n                            chain.insert(0, segs[j].duplicate());\n                        } else if s.distance(&start, None) <= tol {\n                            let mut r = segs[j].duplicate();\n                            r.reverse();\n                            chain.insert(0, r);\n                        } else {\n                            continue;\n                        }\n                        used[j] = true;\n                        grown = true;\n                        break;\n                    }\n                }\n            }\n            chains.push(chain);\n        }\n        let mut result: Vec<NurbsCurve> = Vec::new();\n        for mut chain in chains {\n            if chain.len() == 1 {\n                result.push(chain.remove(0));\n                continue;\n            }\n            let mut rational = false;\n            let mut max_degree = 1;\n            for c in &chain {\n                if c.is_rational() {\n                    rational = true;\n                }\n                if c.degree() > max_degree {\n                    max_degree = c.degree();\n                }\n            }\n            for c in chain.iter_mut() {\n                if rational {\n                    c.make_rational();\n                }\n                c.clamp_end(2);\n                c.increase_degree(max_degree);\n            }\n            let mut joined = chain.remove(0);\n            for mut c in chain {\n                let stride = joined.m_cv_stride;\n                let cvdim = joined.cv_size();\n                let (_, a1) = joined.domain();\n                let (s0, s1) = c.domain();\n                c.set_domain(a1, a1 + (s1 - s0));\n                if rational {\n                    let w_end = joined.weight(joined.m_cv_count - 1);\n                    let w_start = c.weight(0);\n                    if w_start.abs() > Tolerance::ZERO_TOLERANCE {\n                        let scale = w_end / w_start;\n                        for k in 0..c.m_cv.len() {\n                            c.m_cv[k] = c.m_cv[k] * scale;\n                        }\n                    }\n                }\n                let last = (joined.m_cv_count - 1) * stride;\n                for k in 0..cvdim {\n                    joined.m_cv[last + k] = 0.5 * (joined.m_cv[last + k] + c.m_cv[k]);\n                }\n                joined.m_nurbsknot.extend_from_slice(&c.m_nurbsknot[joined.m_order - 1..]);\n                joined.m_cv.extend_from_slice(&c.m_cv[stride..]);\n                joined.m_cv_count = joined.m_cv_count + c.m_cv_count - 1;\n            }\n            result.push(joined);\n        }\n        result\n    }",
+          "file": "nurbscurve.rs"
+        }
+      },
+      "related": [
+        "NurbsCurve.__repr__",
+        "NurbsCurve.__str__",
+        "NurbsCurve.clamp_end",
+        "NurbsCurve.cv",
+        "NurbsCurve.cv_count",
+        "NurbsCurve.cv_size",
+        "NurbsCurve.degree",
+        "NurbsCurve.domain",
+        "NurbsCurve.duplicate",
+        "NurbsCurve.extend",
+        "NurbsCurve.increase_degree",
+        "NurbsCurve.is_closed",
+        "NurbsCurve.is_rational",
+        "NurbsCurve.is_valid",
+        "NurbsCurve.make_rational",
+        "NurbsCurve.new",
+        "NurbsCurve.nurbsknot",
+        "NurbsCurve.order",
+        "NurbsCurve.pb_dump",
+        "NurbsCurve.pb_load",
+        "NurbsCurve.pb_loads",
+        "NurbsCurve.point_at",
+        "NurbsCurve.point_at_end",
+        "NurbsCurve.point_at_start",
+        "NurbsCurve.repr",
+        "NurbsCurve.reverse",
+        "NurbsCurve.set_domain",
+        "NurbsCurve.str",
+        "NurbsCurve.weight"
       ]
     },
     {
@@ -27170,6 +27915,7 @@ window.API_INDEX = {
         "NurbsCurve.is_polyline",
         "NurbsCurve.is_rational",
         "NurbsCurve.is_singular",
+        "NurbsCurve.join",
         "NurbsCurve.new",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.nurbsknot_count",
@@ -27460,6 +28206,7 @@ window.API_INDEX = {
         "NurbsCurve.is_rational",
         "NurbsCurve.is_singular",
         "NurbsCurve.is_valid_nurbsknot_vector",
+        "NurbsCurve.join",
         "NurbsCurve.length",
         "NurbsCurve.make_non_rational",
         "NurbsCurve.make_rational",
@@ -27543,6 +28290,7 @@ window.API_INDEX = {
         "NurbsCurve.is_periodic",
         "NurbsCurve.is_planar",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.jsonload",
         "NurbsCurve.length",
         "NurbsCurve.new",
@@ -27597,6 +28345,7 @@ window.API_INDEX = {
         "NurbsCurve.is_planar",
         "NurbsCurve.is_rational",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.length",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.order",
@@ -28249,6 +28998,7 @@ window.API_INDEX = {
         "NurbsCurve.is_singular",
         "NurbsCurve.is_valid",
         "NurbsCurve.is_valid_nurbsknot_vector",
+        "NurbsCurve.join",
         "NurbsCurve.jsondump",
         "NurbsCurve.jsonload",
         "NurbsCurve.length",
@@ -28337,6 +29087,7 @@ window.API_INDEX = {
         "NurbsCurve.is_periodic",
         "NurbsCurve.is_polyline",
         "NurbsCurve.is_valid_nurbsknot_vector",
+        "NurbsCurve.join",
         "NurbsCurve.make_non_rational",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.nurbsknot_array",
@@ -28456,6 +29207,7 @@ window.API_INDEX = {
         "NurbsCurve.is_singular",
         "NurbsCurve.is_valid",
         "NurbsCurve.is_valid_nurbsknot_vector",
+        "NurbsCurve.join",
         "NurbsCurve.jsondump",
         "NurbsCurve.jsonload",
         "NurbsCurve.make_clamped_uniform_nurbsknot_vector",
@@ -28541,6 +29293,7 @@ window.API_INDEX = {
         "NurbsCurve.is_continuous",
         "NurbsCurve.is_valid",
         "NurbsCurve.is_valid_nurbsknot_vector",
+        "NurbsCurve.join",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.nurbsknot_array",
         "NurbsCurve.nurbsknot_count",
@@ -28976,6 +29729,7 @@ window.API_INDEX = {
         "NurbsCurve.is_singular",
         "NurbsCurve.is_valid",
         "NurbsCurve.is_valid_nurbsknot_vector",
+        "NurbsCurve.join",
         "NurbsCurve.jsondump",
         "NurbsCurve.jsonload",
         "NurbsCurve.make_clamped_uniform_nurbsknot_vector",
@@ -29202,6 +29956,7 @@ window.API_INDEX = {
         "NurbsCurve.is_duplicate",
         "NurbsCurve.is_polyline",
         "NurbsCurve.is_singular",
+        "NurbsCurve.join",
         "NurbsCurve.jsondump",
         "NurbsCurve.length",
         "NurbsCurve.make_non_rational",
@@ -29358,6 +30113,7 @@ window.API_INDEX = {
         "NurbsCurve.is_singular",
         "NurbsCurve.is_valid",
         "NurbsCurve.is_valid_nurbsknot_vector",
+        "NurbsCurve.join",
         "NurbsCurve.jsonload",
         "NurbsCurve.length",
         "NurbsCurve.make_clamped_uniform_nurbsknot_vector",
@@ -29700,6 +30456,7 @@ window.API_INDEX = {
         "NurbsCurve.is_singular",
         "NurbsCurve.is_valid",
         "NurbsCurve.is_valid_nurbsknot_vector",
+        "NurbsCurve.join",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.nurbsknot_multiplicity",
         "NurbsCurve.order",
@@ -29881,6 +30638,7 @@ window.API_INDEX = {
         "NurbsCurve.invalidate_rmf_cache",
         "NurbsCurve.is_singular",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.nurbsknot_multiplicity",
         "NurbsCurve.order",
@@ -30297,6 +31055,7 @@ window.API_INDEX = {
         "NurbsCurve.is_rational",
         "NurbsCurve.is_singular",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.new",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.order",
@@ -30762,6 +31521,7 @@ window.API_INDEX = {
         "NurbsCurve.is_rational",
         "NurbsCurve.is_singular",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.point_at",
         "NurbsCurve.point_at_end",
@@ -30810,6 +31570,7 @@ window.API_INDEX = {
         "NurbsCurve.is_polyline",
         "NurbsCurve.is_rational",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.point_at",
         "NurbsCurve.point_at_middle",
@@ -30969,6 +31730,7 @@ window.API_INDEX = {
         "NurbsCurve.insert_nurbsknot",
         "NurbsCurve.invalidate_rmf_cache",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.order",
         "NurbsCurve.point_at_end",
@@ -31141,6 +31903,7 @@ window.API_INDEX = {
         "NurbsCurve.file_json_loads",
         "NurbsCurve.is_closed",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.make_non_rational",
         "NurbsCurve.make_rational",
         "NurbsCurve.new",
@@ -31185,6 +31948,7 @@ window.API_INDEX = {
         "NurbsCurve.get_cv",
         "NurbsCurve.get_cv_4d",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.make_non_rational",
         "NurbsCurve.new",
         "NurbsCurve.nurbsknot",
@@ -31266,6 +32030,7 @@ window.API_INDEX = {
         "NurbsCurve.increase_degree",
         "NurbsCurve.insert_nurbsknot",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.make_non_rational",
         "NurbsCurve.make_rational",
         "NurbsCurve.new",
@@ -31309,6 +32074,7 @@ window.API_INDEX = {
         "NurbsCurve.cv_size",
         "NurbsCurve.degree",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.make_non_rational",
         "NurbsCurve.new",
         "NurbsCurve.nurbsknot",
@@ -31859,6 +32625,7 @@ window.API_INDEX = {
         "NurbsCurve.guid",
         "NurbsCurve.is_rational",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
@@ -31908,6 +32675,7 @@ window.API_INDEX = {
         "NurbsCurve.find_span",
         "NurbsCurve.get_cv",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.order",
         "NurbsCurve.pb_dumps",
@@ -31955,6 +32723,7 @@ window.API_INDEX = {
         "NurbsCurve.find_span",
         "NurbsCurve.get_cv",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
@@ -31987,6 +32756,7 @@ window.API_INDEX = {
         "NurbsCurve.find_span",
         "NurbsCurve.get_cv",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
@@ -32020,6 +32790,7 @@ window.API_INDEX = {
         "NurbsCurve.find_span",
         "NurbsCurve.get_cv",
         "NurbsCurve.is_valid",
+        "NurbsCurve.join",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.order",
         "NurbsCurve.pb_dump",
@@ -33088,7 +33859,6 @@ window.API_INDEX = {
         "NurbsSurface.destroy",
         "NurbsSurface.dimension",
         "NurbsSurface.guid",
-        "NurbsSurface.increase_degree",
         "NurbsSurface.initialize",
         "NurbsSurface.is_rational",
         "NurbsSurface.iso_curve",
@@ -33101,10 +33871,13 @@ window.API_INDEX = {
         "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
         "NurbsSurface.set_cv",
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_line",
+        "NurbsSurface.split_by_plane",
+        "NurbsSurface.split_by_surface",
         "NurbsSurface.str",
         "NurbsSurface.to_string",
-        "NurbsSurface.transform_stored",
-        "NurbsSurface.transformed_stored",
         "NurbsSurface.weight",
         "NurbsSurface.xform",
         "NurbsSurface.zero_cvs"
@@ -33254,12 +34027,13 @@ window.API_INDEX = {
         "NurbsSurface.set_domain",
         "NurbsSurface.set_nurbsknot",
         "NurbsSurface.split",
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_line",
         "NurbsSurface.str",
         "NurbsSurface.swap_coordinates",
         "NurbsSurface.transform",
-        "NurbsSurface.transform_stored",
         "NurbsSurface.transformed",
-        "NurbsSurface.transformed_stored",
         "NurbsSurface.transpose",
         "NurbsSurface.trim",
         "NurbsSurface.zero_cvs"
@@ -33792,7 +34566,6 @@ window.API_INDEX = {
         "NurbsSurface.get_nurbsknots",
         "NurbsSurface.get_span_vector",
         "NurbsSurface.guid",
-        "NurbsSurface.increase_degree",
         "NurbsSurface.initialize",
         "NurbsSurface.insert_nurbsknot",
         "NurbsSurface.is_clamped",
@@ -33825,12 +34598,13 @@ window.API_INDEX = {
         "NurbsSurface.set_nurbsknot",
         "NurbsSurface.span_count",
         "NurbsSurface.split",
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_line",
         "NurbsSurface.swap_coordinates",
         "NurbsSurface.to_string",
         "NurbsSurface.transform",
-        "NurbsSurface.transform_stored",
         "NurbsSurface.transformed",
-        "NurbsSurface.transformed_stored",
         "NurbsSurface.transpose",
         "NurbsSurface.trim",
         "NurbsSurface.xform",
@@ -33895,7 +34669,12 @@ window.API_INDEX = {
         "NurbsSurface.repr",
         "NurbsSurface.span_count",
         "NurbsSurface.split",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_line",
+        "NurbsSurface.split_by_plane",
+        "NurbsSurface.split_by_surface",
         "NurbsSurface.to_string",
+        "NurbsSurface.transformed_stored",
         "NurbsSurface.trim",
         "NurbsSurface.xform"
       ]
@@ -33964,7 +34743,6 @@ window.API_INDEX = {
         "NurbsSurface.get_nurbsknots",
         "NurbsSurface.get_span_vector",
         "NurbsSurface.guid",
-        "NurbsSurface.increase_degree",
         "NurbsSurface.initialize",
         "NurbsSurface.insert_nurbsknot",
         "NurbsSurface.is_clamped",
@@ -34001,13 +34779,14 @@ window.API_INDEX = {
         "NurbsSurface.set_nurbsknot",
         "NurbsSurface.span_count",
         "NurbsSurface.split",
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_line",
         "NurbsSurface.swap_coordinates",
         "NurbsSurface.to_string",
         "NurbsSurface.transform",
         "NurbsSurface.transform_self",
-        "NurbsSurface.transform_stored",
         "NurbsSurface.transformed",
-        "NurbsSurface.transformed_stored",
         "NurbsSurface.transpose",
         "NurbsSurface.trim",
         "NurbsSurface.xform",
@@ -34090,10 +34869,9 @@ window.API_INDEX = {
         "NurbsSurface.point_at_corner",
         "NurbsSurface.reverse",
         "NurbsSurface.span_count",
+        "NurbsSurface.split_by_brep",
         "NurbsSurface.str",
         "NurbsSurface.swap_coordinates",
-        "NurbsSurface.transform_stored",
-        "NurbsSurface.transformed_stored",
         "NurbsSurface.transpose"
       ]
     },
@@ -34134,7 +34912,6 @@ window.API_INDEX = {
         "NurbsSurface.destroy",
         "NurbsSurface.dimension",
         "NurbsSurface.get_cv",
-        "NurbsSurface.increase_degree",
         "NurbsSurface.is_clamped",
         "NurbsSurface.is_closed",
         "NurbsSurface.is_duplicate",
@@ -34146,9 +34923,9 @@ window.API_INDEX = {
         "NurbsSurface.nurbsknot",
         "NurbsSurface.order",
         "NurbsSurface.span_count",
-        "NurbsSurface.str",
-        "NurbsSurface.transform_stored",
-        "NurbsSurface.transformed_stored"
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_line",
+        "NurbsSurface.str"
       ]
     },
     {
@@ -34254,7 +35031,6 @@ window.API_INDEX = {
         "NurbsSurface.get_nurbsknots",
         "NurbsSurface.get_span_vector",
         "NurbsSurface.guid",
-        "NurbsSurface.increase_degree",
         "NurbsSurface.initialize",
         "NurbsSurface.insert_nurbsknot",
         "NurbsSurface.is_clamped",
@@ -34294,14 +35070,15 @@ window.API_INDEX = {
         "NurbsSurface.set_weight",
         "NurbsSurface.span_count",
         "NurbsSurface.split",
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_line",
         "NurbsSurface.str",
         "NurbsSurface.swap_coordinates",
         "NurbsSurface.to_string",
         "NurbsSurface.transform",
         "NurbsSurface.transform_self",
-        "NurbsSurface.transform_stored",
         "NurbsSurface.transformed",
-        "NurbsSurface.transformed_stored",
         "NurbsSurface.transpose",
         "NurbsSurface.trim",
         "NurbsSurface.weight",
@@ -34432,7 +35209,6 @@ window.API_INDEX = {
         "NurbsSurface.transform",
         "NurbsSurface.transform_self",
         "NurbsSurface.transformed",
-        "NurbsSurface.transformed_stored",
         "NurbsSurface.weight",
         "NurbsSurface.zero_cvs"
       ]
@@ -34505,7 +35281,6 @@ window.API_INDEX = {
         "NurbsSurface.set_weight",
         "NurbsSurface.swap_coordinates",
         "NurbsSurface.transformed",
-        "NurbsSurface.transformed_stored",
         "NurbsSurface.zero_cvs"
       ]
     },
@@ -34539,7 +35314,6 @@ window.API_INDEX = {
         "NurbsSurface.set_cv_4d",
         "NurbsSurface.set_nurbsknot",
         "NurbsSurface.transformed",
-        "NurbsSurface.transformed_stored",
         "NurbsSurface.weight",
         "NurbsSurface.zero_cvs"
       ]
@@ -34608,7 +35382,6 @@ window.API_INDEX = {
         "NurbsSurface.get_nurbsknots",
         "NurbsSurface.get_span_vector",
         "NurbsSurface.guid",
-        "NurbsSurface.increase_degree",
         "NurbsSurface.initialize",
         "NurbsSurface.insert_nurbsknot",
         "NurbsSurface.is_clamped",
@@ -34638,11 +35411,11 @@ window.API_INDEX = {
         "NurbsSurface.set_nurbsknot",
         "NurbsSurface.set_weight",
         "NurbsSurface.split",
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_line",
         "NurbsSurface.to_string",
         "NurbsSurface.transform",
-        "NurbsSurface.transform_stored",
         "NurbsSurface.transformed",
-        "NurbsSurface.transformed_stored",
         "NurbsSurface.transpose",
         "NurbsSurface.trim",
         "NurbsSurface.weight",
@@ -34680,15 +35453,14 @@ window.API_INDEX = {
         "NurbsSurface.cv_count_total",
         "NurbsSurface.domain",
         "NurbsSurface.get_nurbsknots",
-        "NurbsSurface.increase_degree",
         "NurbsSurface.is_valid",
         "NurbsSurface.iso_curve",
         "NurbsSurface.nurbsknot",
         "NurbsSurface.nurbsknot_multiplicity",
         "NurbsSurface.order",
         "NurbsSurface.set_weight",
-        "NurbsSurface.transform_stored",
-        "NurbsSurface.transformed_stored"
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_line"
       ]
     },
     {
@@ -34779,6 +35551,7 @@ window.API_INDEX = {
       },
       "related": [
         "NurbsSurface._from_curve_internal",
+        "NurbsSurface.clamp_end",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.divide_by_count",
@@ -34787,6 +35560,7 @@ window.API_INDEX = {
         "NurbsSurface.get_bounding_box",
         "NurbsSurface.get_nurbsknots",
         "NurbsSurface.get_span_vector",
+        "NurbsSurface.increase_degree",
         "NurbsSurface.insert_nurbsknot",
         "NurbsSurface.is_valid",
         "NurbsSurface.make_clamped_uniform_nurbsknot_vector",
@@ -34797,6 +35571,13 @@ window.API_INDEX = {
         "NurbsSurface.set_domain",
         "NurbsSurface.set_nurbsknot",
         "NurbsSurface.split",
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_line",
+        "NurbsSurface.split_by_plane",
+        "NurbsSurface.split_by_surface",
+        "NurbsSurface.transform_stored",
+        "NurbsSurface.transformed_stored",
         "NurbsSurface.trim"
       ]
     },
@@ -34969,7 +35750,6 @@ window.API_INDEX = {
         "NurbsSurface.cv_count",
         "NurbsSurface.evaluate",
         "NurbsSurface.find_span",
-        "NurbsSurface.increase_degree",
         "NurbsSurface.iso_curve",
         "NurbsSurface.make_clamped_uniform_nurbsknot_vector",
         "NurbsSurface.make_periodic_uniform_nurbsknot_vector",
@@ -34978,8 +35758,8 @@ window.API_INDEX = {
         "NurbsSurface.order",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
-        "NurbsSurface.transform_stored",
-        "NurbsSurface.transformed_stored"
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_line"
       ]
     },
     {
@@ -34999,7 +35779,6 @@ window.API_INDEX = {
         "NurbsSurface.degree",
         "NurbsSurface.evaluate",
         "NurbsSurface.find_span",
-        "NurbsSurface.increase_degree",
         "NurbsSurface.iso_curve",
         "NurbsSurface.make_clamped_uniform_nurbsknot_vector",
         "NurbsSurface.make_periodic_uniform_nurbsknot_vector",
@@ -35008,8 +35787,8 @@ window.API_INDEX = {
         "NurbsSurface.order",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
-        "NurbsSurface.transform_stored",
-        "NurbsSurface.transformed_stored"
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_line"
       ]
     },
     {
@@ -36463,7 +37242,14 @@ window.API_INDEX = {
         "NurbsSurface.is_valid",
         "NurbsSurface.nurbsknot",
         "NurbsSurface.order",
-        "NurbsSurface.split"
+        "NurbsSurface.split",
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_line",
+        "NurbsSurface.split_by_plane",
+        "NurbsSurface.split_by_surface",
+        "NurbsSurface.transform_stored",
+        "NurbsSurface.transformed_stored"
       ]
     },
     {
@@ -36498,8 +37284,14 @@ window.API_INDEX = {
         "NurbsSurface.is_valid",
         "NurbsSurface.nurbsknot",
         "NurbsSurface.order",
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_line",
+        "NurbsSurface.split_by_plane",
+        "NurbsSurface.split_by_surface",
         "NurbsSurface.transform",
         "NurbsSurface.transform_stored",
+        "NurbsSurface.transformed_stored",
         "NurbsSurface.trim",
         "NurbsSurface.xform"
       ]
@@ -36509,7 +37301,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "clamp_end(dir: int, end: int) -> bool",
-          "code": "def clamp_end(self, dir: int, end: int) -> bool:\n\n        \"\"\"Clamp nurbsknot vector end(s) (OpenNURBS implementation).\n        \n        Sets initial/final (order-2) nurbsknot values to match nurbsknot[order-2]/nurbsknot[cv_count-1].\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 or 1).\n        end : int\n            Which end to clamp (0=start, 1=end, 2=both).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        if dir < 0 or dir > 1:\n            return False\n        if not self.is_valid():\n            return False\n        \n        # Use nurbsknot module function\n        return nurbsknot.clamp(self.m_order[dir], self.m_cv_count[dir], self.m_nurbsknot[dir], end)\n    \n    def increase_degree(self, dir: int, desired_degree: int) -> bool:\n        if dir < 0 or dir > 1:\n            return False\n        if desired_degree < self.degree(dir):\n            return False\n        if desired_degree == self.degree(dir):\n            return True\n        crv = self._to_curve_internal(dir)\n        if crv is None:\n            return False\n        if not crv.increase_degree(desired_degree):\n            return False\n        return self._from_curve_internal(crv, dir)\n    \n    ###########################################################################\n    # TRANSFORMATION (OVERLOADS)\n    ###########################################################################\n    \n    def transform_stored(self) -> bool:\n        \"\"\"Apply stored xform transformation (in-place).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        return self.transform(self.xform)\n    \n    def transformed_stored(self) -> 'NurbsSurface':\n        \"\"\"Get transformed copy using stored xform.\n        \n        Returns\n        -------\n        NurbsSurface\n            Transformed copy.\n        \"\"\"\n        return self.transformed(self.xform)\n    \n    ###########################################################################\n    # GEOMETRIC OPERATIONS (ADDITIONAL)\n    ###########################################################################\n    \n    def iso_curve(self, dir: int, c: float) -> Optional['NurbsCurve']:\n        \"\"\"Get isoparametric curve at parameter.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0=iso-u curve where v varies, 1=iso-v curve where u varies).\n        c : float\n            Parameter value.\n        \n        Returns\n        -------\n        NurbsCurve or None",
+          "code": "def clamp_end(self, dir: int, end: int) -> bool:\n\n        \"\"\"Clamp nurbsknot vector end(s) (OpenNURBS implementation).\n        \n        Sets initial/final (order-2) nurbsknot values to match nurbsknot[order-2]/nurbsknot[cv_count-1].\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 or 1).\n        end : int\n            Which end to clamp (0=start, 1=end, 2=both).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        if dir < 0 or dir > 1:\n            return False\n        if not self.is_valid():\n            return False\n        \n        # Use nurbsknot module function\n        return nurbsknot.clamp(self.m_order[dir], self.m_cv_count[dir], self.m_nurbsknot[dir], end)\n    \n    def increase_degree(self, dir: int, desired_degree: int) -> bool:\n        if dir < 0 or dir > 1:\n            return False\n        if desired_degree < self.degree(dir):\n            return False\n        if desired_degree == self.degree(dir):\n            return True\n        crv = self._to_curve_internal(dir)\n        if crv is None:\n            return False\n        if not crv.increase_degree(desired_degree):\n            return False\n        return self._from_curve_internal(crv, dir)\n    \n    ###########################################################################\n    # TRANSFORMATION (OVERLOADS)\n    ###########################################################################\n    \n    def transform_stored(self) -> bool:\n        \"\"\"Apply stored xform transformation (in-place).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        return self.transform(self.xform)\n    \n    def transformed_stored(self) -> 'NurbsSurface':\n        \"\"\"Get transformed copy using stored xform.\n        \n        Returns\n        -------\n        NurbsSurface\n            Transformed copy.\n        \"\"\"\n        return self.transformed(self.xform)\n    \n    ###########################################################################\n    # GEOMETRIC OPERATIONS (ADDITIONAL)\n    ###########################################################################\n\n    def split_by_plane(self, plane, tolerance=None):\n        \"\"\"Split this surface by a plane into trimmed faces.\n\n        Computes the surface/plane intersection with UV pcurves and splits\n        the UV domain along them.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .intersection import surface_plane_uv\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        pairs = surface_plane_uv(self, plane, tolerance)",
           "file": "nurbssurface.py"
         },
         "rust": {
@@ -36524,13 +37316,14 @@ window.API_INDEX = {
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.degree",
+        "NurbsSurface.domain",
         "NurbsSurface.increase_degree",
         "NurbsSurface.insert_nurbsknot",
         "NurbsSurface.is_valid",
-        "NurbsSurface.iso_curve",
         "NurbsSurface.nurbsknot",
         "NurbsSurface.order",
         "NurbsSurface.split",
+        "NurbsSurface.split_by_plane",
         "NurbsSurface.transform",
         "NurbsSurface.transform_stored",
         "NurbsSurface.transformed",
@@ -36544,7 +37337,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "increase_degree(dir: int, desired_degree: int) -> bool",
-          "code": "def increase_degree(self, dir: int, desired_degree: int) -> bool:\n\n        if dir < 0 or dir > 1:\n            return False\n        if desired_degree < self.degree(dir):\n            return False\n        if desired_degree == self.degree(dir):\n            return True\n        crv = self._to_curve_internal(dir)\n        if crv is None:\n            return False\n        if not crv.increase_degree(desired_degree):\n            return False\n        return self._from_curve_internal(crv, dir)\n    \n    ###########################################################################\n    # TRANSFORMATION (OVERLOADS)\n    ###########################################################################\n    \n    def transform_stored(self) -> bool:\n        \"\"\"Apply stored xform transformation (in-place).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        return self.transform(self.xform)\n    \n    def transformed_stored(self) -> 'NurbsSurface':\n        \"\"\"Get transformed copy using stored xform.\n        \n        Returns\n        -------\n        NurbsSurface\n            Transformed copy.\n        \"\"\"\n        return self.transformed(self.xform)\n    \n    ###########################################################################\n    # GEOMETRIC OPERATIONS (ADDITIONAL)\n    ###########################################################################\n    \n    def iso_curve(self, dir: int, c: float) -> Optional['NurbsCurve']:\n        \"\"\"Get isoparametric curve at parameter.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0=iso-u curve where v varies, 1=iso-v curve where u varies).\n        c : float\n            Parameter value.\n        \n        Returns\n        -------\n        NurbsCurve or None\n            Isoparametric curve, or None on failure.\n        \"\"\"\n        from .nurbscurve import NurbsCurve\n        \n        if (dir != 0 and dir != 1) or not self.is_valid():\n            return None\n        \n        # Create output curve with proper initialization\n        nurbs_crv = NurbsCurve()\n        if not nurbs_crv.create_curve(self.m_dim, self.m_is_rat != 0, self.m_order[dir], self.m_cv_count[dir]):\n            return None\n        \n        # Copy nurbsknot vector for varying direction\n        for i in range(nurbs_crv.nurbsknot_count()):\n            nurbs_crv.set_nurbsknot(i, self.nurbsknot(dir, i))\n        \n        # Find span in constant direction\n        span_index = self._find_span(1 - dir, c)\n        if span_index < 0:\n            span_index = 0\n        elif span_index > self.m_cv_count[1 - dir] - self.m_order[1 - dir]:\n            span_index = self.m_cv_count[1 - dir] - self.m_order[1 - dir]\n        \n        # Compute basis functions in constant direction\n        basis = self._basis_functions(1 - dir, span_index, c)",
+          "code": "def increase_degree(self, dir: int, desired_degree: int) -> bool:\n\n        if dir < 0 or dir > 1:\n            return False\n        if desired_degree < self.degree(dir):\n            return False\n        if desired_degree == self.degree(dir):\n            return True\n        crv = self._to_curve_internal(dir)\n        if crv is None:\n            return False\n        if not crv.increase_degree(desired_degree):\n            return False\n        return self._from_curve_internal(crv, dir)\n    \n    ###########################################################################\n    # TRANSFORMATION (OVERLOADS)\n    ###########################################################################\n    \n    def transform_stored(self) -> bool:\n        \"\"\"Apply stored xform transformation (in-place).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        return self.transform(self.xform)\n    \n    def transformed_stored(self) -> 'NurbsSurface':\n        \"\"\"Get transformed copy using stored xform.\n        \n        Returns\n        -------\n        NurbsSurface\n            Transformed copy.\n        \"\"\"\n        return self.transformed(self.xform)\n    \n    ###########################################################################\n    # GEOMETRIC OPERATIONS (ADDITIONAL)\n    ###########################################################################\n\n    def split_by_plane(self, plane, tolerance=None):\n        \"\"\"Split this surface by a plane into trimmed faces.\n\n        Computes the surface/plane intersection with UV pcurves and splits\n        the UV domain along them.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .intersection import surface_plane_uv\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        pairs = surface_plane_uv(self, plane, tolerance)\n        pcurves = []\n        for pair in pairs:\n            pcurves.append(pair[1])\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def split_by_surface(self, cutter, tolerance=None):\n        \"\"\"Split this surface by another surface.\n\n        Computes the surface/surface intersection and splits the UV domain\n        along the pcurves on this surface.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .intersection import surface_surface\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        triples = surface_surface(self, cutter, tolerance)\n        pcurves = []\n        for triple in triples:\n            pcurves.append(triple[1])\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def split_by_curves(self, curves, tolerance=None):\n        \"\"\"Split this surface by 3D curves lying on (or near) it.",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -36559,24 +37352,16 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NurbsSurface._basis_functions",
-        "NurbsSurface._find_span",
         "NurbsSurface._from_curve_internal",
         "NurbsSurface._to_curve_internal",
-        "NurbsSurface.basis_functions",
         "NurbsSurface.clamp_end",
-        "NurbsSurface.create",
-        "NurbsSurface.cv",
-        "NurbsSurface.cv_count",
         "NurbsSurface.degree",
-        "NurbsSurface.find_span",
+        "NurbsSurface.domain",
         "NurbsSurface.is_valid",
-        "NurbsSurface.iso_curve",
-        "NurbsSurface.nurbsknot",
-        "NurbsSurface.nurbsknot_count",
-        "NurbsSurface.order",
-        "NurbsSurface.set_nurbsknot",
         "NurbsSurface.split",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_plane",
+        "NurbsSurface.split_by_surface",
         "NurbsSurface.transform",
         "NurbsSurface.transform_stored",
         "NurbsSurface.transformed",
@@ -36590,31 +37375,23 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "transform_stored() -> bool",
-          "code": "def transform_stored(self) -> bool:\n\n        \"\"\"Apply stored xform transformation (in-place).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        return self.transform(self.xform)\n    \n    def transformed_stored(self) -> 'NurbsSurface':\n        \"\"\"Get transformed copy using stored xform.\n        \n        Returns\n        -------\n        NurbsSurface\n            Transformed copy.\n        \"\"\"\n        return self.transformed(self.xform)\n    \n    ###########################################################################\n    # GEOMETRIC OPERATIONS (ADDITIONAL)\n    ###########################################################################\n    \n    def iso_curve(self, dir: int, c: float) -> Optional['NurbsCurve']:\n        \"\"\"Get isoparametric curve at parameter.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0=iso-u curve where v varies, 1=iso-v curve where u varies).\n        c : float\n            Parameter value.\n        \n        Returns\n        -------\n        NurbsCurve or None\n            Isoparametric curve, or None on failure.\n        \"\"\"\n        from .nurbscurve import NurbsCurve\n        \n        if (dir != 0 and dir != 1) or not self.is_valid():\n            return None\n        \n        # Create output curve with proper initialization\n        nurbs_crv = NurbsCurve()\n        if not nurbs_crv.create_curve(self.m_dim, self.m_is_rat != 0, self.m_order[dir], self.m_cv_count[dir]):\n            return None\n        \n        # Copy nurbsknot vector for varying direction\n        for i in range(nurbs_crv.nurbsknot_count()):\n            nurbs_crv.set_nurbsknot(i, self.nurbsknot(dir, i))\n        \n        # Find span in constant direction\n        span_index = self._find_span(1 - dir, c)\n        if span_index < 0:\n            span_index = 0\n        elif span_index > self.m_cv_count[1 - dir] - self.m_order[1 - dir]:\n            span_index = self.m_cv_count[1 - dir] - self.m_order[1 - dir]\n        \n        # Compute basis functions in constant direction\n        basis = self._basis_functions(1 - dir, span_index, c)\n        \n        # Evaluate CVs for isocurve\n        for i in range(nurbs_crv.m_cv_count):\n            cv_sum = np.zeros(self.cv_size())\n            \n            for k in range(self.m_order[1 - dir]):\n                if dir == 0:\n                    # iso-u: v varies, u is constant at c\n                    cv_ptr = self.cv(span_index + k, i)\n                else:\n                    # iso-v: u varies, v is constant at c\n                    cv_ptr = self.cv(i, span_index + k)\n                \n                if cv_ptr is not None:\n                    cv_sum += basis[k] * cv_ptr\n            \n            # Set CV in curve\n            if self.m_is_rat and abs(cv_sum[self.m_dim]) > 1e-14:",
+          "code": "def transform_stored(self) -> bool:\n\n        \"\"\"Apply stored xform transformation (in-place).\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        return self.transform(self.xform)\n    \n    def transformed_stored(self) -> 'NurbsSurface':\n        \"\"\"Get transformed copy using stored xform.\n        \n        Returns\n        -------\n        NurbsSurface\n            Transformed copy.\n        \"\"\"\n        return self.transformed(self.xform)\n    \n    ###########################################################################\n    # GEOMETRIC OPERATIONS (ADDITIONAL)\n    ###########################################################################\n\n    def split_by_plane(self, plane, tolerance=None):\n        \"\"\"Split this surface by a plane into trimmed faces.\n\n        Computes the surface/plane intersection with UV pcurves and splits\n        the UV domain along them.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .intersection import surface_plane_uv\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        pairs = surface_plane_uv(self, plane, tolerance)\n        pcurves = []\n        for pair in pairs:\n            pcurves.append(pair[1])\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def split_by_surface(self, cutter, tolerance=None):\n        \"\"\"Split this surface by another surface.\n\n        Computes the surface/surface intersection and splits the UV domain\n        along the pcurves on this surface.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .intersection import surface_surface\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        triples = surface_surface(self, cutter, tolerance)\n        pcurves = []\n        for triple in triples:\n            pcurves.append(triple[1])\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def split_by_curves(self, curves, tolerance=None):\n        \"\"\"Split this surface by 3D curves lying on (or near) it.\n\n        Each curve is pulled back to UV via closest-point projection; curves\n        whose pullback fails (off-surface) are skipped.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .closest import Closest\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        pcurves = []\n        for crv in curves:\n            for pcurve in Closest.surface_curve(self, crv, 0.0, 0.0, tolerance):\n                pcurves.append(pcurve)\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def split_by_line(self, line, tolerance=None):\n        \"\"\"Split this surface by a line pulled onto it (Rhino \"pull then split\").",
           "file": "nurbssurface.py"
         }
       },
       "related": [
-        "NurbsSurface._basis_functions",
-        "NurbsSurface._find_span",
-        "NurbsSurface.basis_functions",
         "NurbsSurface.clamp_end",
-        "NurbsSurface.create",
-        "NurbsSurface.cv",
-        "NurbsSurface.cv_count",
-        "NurbsSurface.cv_size",
-        "NurbsSurface.find_span",
+        "NurbsSurface.domain",
         "NurbsSurface.increase_degree",
-        "NurbsSurface.is_valid",
-        "NurbsSurface.iso_curve",
-        "NurbsSurface.nurbsknot",
-        "NurbsSurface.nurbsknot_count",
-        "NurbsSurface.order",
-        "NurbsSurface.set_nurbsknot",
         "NurbsSurface.split",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_line",
+        "NurbsSurface.split_by_plane",
+        "NurbsSurface.split_by_surface",
         "NurbsSurface.transform",
         "NurbsSurface.transformed",
         "NurbsSurface.transformed_stored",
+        "NurbsSurface.trim",
         "NurbsSurface.xform"
       ]
     },
@@ -36623,34 +37400,226 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "transformed_stored() -> 'NurbsSurface'",
-          "code": "def transformed_stored(self) -> 'NurbsSurface':\n\n        \"\"\"Get transformed copy using stored xform.\n        \n        Returns\n        -------\n        NurbsSurface\n            Transformed copy.\n        \"\"\"\n        return self.transformed(self.xform)\n    \n    ###########################################################################\n    # GEOMETRIC OPERATIONS (ADDITIONAL)\n    ###########################################################################\n    \n    def iso_curve(self, dir: int, c: float) -> Optional['NurbsCurve']:\n        \"\"\"Get isoparametric curve at parameter.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0=iso-u curve where v varies, 1=iso-v curve where u varies).\n        c : float\n            Parameter value.\n        \n        Returns\n        -------\n        NurbsCurve or None\n            Isoparametric curve, or None on failure.\n        \"\"\"\n        from .nurbscurve import NurbsCurve\n        \n        if (dir != 0 and dir != 1) or not self.is_valid():\n            return None\n        \n        # Create output curve with proper initialization\n        nurbs_crv = NurbsCurve()\n        if not nurbs_crv.create_curve(self.m_dim, self.m_is_rat != 0, self.m_order[dir], self.m_cv_count[dir]):\n            return None\n        \n        # Copy nurbsknot vector for varying direction\n        for i in range(nurbs_crv.nurbsknot_count()):\n            nurbs_crv.set_nurbsknot(i, self.nurbsknot(dir, i))\n        \n        # Find span in constant direction\n        span_index = self._find_span(1 - dir, c)\n        if span_index < 0:\n            span_index = 0\n        elif span_index > self.m_cv_count[1 - dir] - self.m_order[1 - dir]:\n            span_index = self.m_cv_count[1 - dir] - self.m_order[1 - dir]\n        \n        # Compute basis functions in constant direction\n        basis = self._basis_functions(1 - dir, span_index, c)\n        \n        # Evaluate CVs for isocurve\n        for i in range(nurbs_crv.m_cv_count):\n            cv_sum = np.zeros(self.cv_size())\n            \n            for k in range(self.m_order[1 - dir]):\n                if dir == 0:\n                    # iso-u: v varies, u is constant at c\n                    cv_ptr = self.cv(span_index + k, i)\n                else:\n                    # iso-v: u varies, v is constant at c\n                    cv_ptr = self.cv(i, span_index + k)\n                \n                if cv_ptr is not None:\n                    cv_sum += basis[k] * cv_ptr\n            \n            # Set CV in curve\n            if self.m_is_rat and abs(cv_sum[self.m_dim]) > 1e-14:\n                w = cv_sum[self.m_dim]\n                pt = Point(cv_sum[0]/w,\n                          cv_sum[1]/w if self.m_dim > 1 else 0,\n                          cv_sum[2]/w if self.m_dim > 2 else 0)\n                nurbs_crv.set_cv(i, pt)\n                if nurbs_crv.m_is_rat:\n                    nurbs_crv.set_weight(i, w)\n            else:\n                pt = Point(cv_sum[0],\n                          cv_sum[1] if self.m_dim > 1 else 0,",
+          "code": "def transformed_stored(self) -> 'NurbsSurface':\n\n        \"\"\"Get transformed copy using stored xform.\n        \n        Returns\n        -------\n        NurbsSurface\n            Transformed copy.\n        \"\"\"\n        return self.transformed(self.xform)\n    \n    ###########################################################################\n    # GEOMETRIC OPERATIONS (ADDITIONAL)\n    ###########################################################################\n\n    def split_by_plane(self, plane, tolerance=None):\n        \"\"\"Split this surface by a plane into trimmed faces.\n\n        Computes the surface/plane intersection with UV pcurves and splits\n        the UV domain along them.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .intersection import surface_plane_uv\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        pairs = surface_plane_uv(self, plane, tolerance)\n        pcurves = []\n        for pair in pairs:\n            pcurves.append(pair[1])\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def split_by_surface(self, cutter, tolerance=None):\n        \"\"\"Split this surface by another surface.\n\n        Computes the surface/surface intersection and splits the UV domain\n        along the pcurves on this surface.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .intersection import surface_surface\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        triples = surface_surface(self, cutter, tolerance)\n        pcurves = []\n        for triple in triples:\n            pcurves.append(triple[1])\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def split_by_curves(self, curves, tolerance=None):\n        \"\"\"Split this surface by 3D curves lying on (or near) it.\n\n        Each curve is pulled back to UV via closest-point projection; curves\n        whose pullback fails (off-surface) are skipped.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .closest import Closest\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        pcurves = []\n        for crv in curves:\n            for pcurve in Closest.surface_curve(self, crv, 0.0, 0.0, tolerance):\n                pcurves.append(pcurve)\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def split_by_line(self, line, tolerance=None):\n        \"\"\"Split this surface by a line pulled onto it (Rhino \"pull then split\").\n\n        The line is converted to a degree-1 curve and projected onto the\n        surface by closest points; the surface is split along the pulled\n        curve. A pulled curve that does not reach the boundary or another\n        cutter is discarded. For a planar cut, use split_by_plane.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"",
           "file": "nurbssurface.py"
+        }
+      },
+      "related": [
+        "NurbsSurface.clamp_end",
+        "NurbsSurface.degree",
+        "NurbsSurface.domain",
+        "NurbsSurface.increase_degree",
+        "NurbsSurface.split",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_line",
+        "NurbsSurface.split_by_plane",
+        "NurbsSurface.split_by_surface",
+        "NurbsSurface.transform",
+        "NurbsSurface.transform_stored",
+        "NurbsSurface.transformed",
+        "NurbsSurface.trim",
+        "NurbsSurface.xform"
+      ]
+    },
+    {
+      "name": "NurbsSurface.split_by_plane",
+      "implementations": {
+        "python": {
+          "sig": "split_by_plane(plane, tolerance=None)",
+          "code": "def split_by_plane(self, plane, tolerance=None):\n\n        \"\"\"Split this surface by a plane into trimmed faces.\n\n        Computes the surface/plane intersection with UV pcurves and splits\n        the UV domain along them.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .intersection import surface_plane_uv\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        pairs = surface_plane_uv(self, plane, tolerance)\n        pcurves = []\n        for pair in pairs:\n            pcurves.append(pair[1])\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def split_by_surface(self, cutter, tolerance=None):\n        \"\"\"Split this surface by another surface.\n\n        Computes the surface/surface intersection and splits the UV domain\n        along the pcurves on this surface.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .intersection import surface_surface\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        triples = surface_surface(self, cutter, tolerance)\n        pcurves = []\n        for triple in triples:\n            pcurves.append(triple[1])\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def split_by_curves(self, curves, tolerance=None):\n        \"\"\"Split this surface by 3D curves lying on (or near) it.\n\n        Each curve is pulled back to UV via closest-point projection; curves\n        whose pullback fails (off-surface) are skipped.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .closest import Closest\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        pcurves = []\n        for crv in curves:\n            for pcurve in Closest.surface_curve(self, crv, 0.0, 0.0, tolerance):\n                pcurves.append(pcurve)\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def split_by_line(self, line, tolerance=None):\n        \"\"\"Split this surface by a line pulled onto it (Rhino \"pull then split\").\n\n        The line is converted to a degree-1 curve and projected onto the\n        surface by closest points; the surface is split along the pulled\n        curve. A pulled curve that does not reach the boundary or another\n        cutter is discarded. For a planar cut, use split_by_plane.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .nurbscurve import NurbsCurve\n        pts = [line.start(), line.end()]\n        crv = NurbsCurve.create(False, 1, pts)\n        return self.split_by_curves([crv], tolerance)\n\n    def split_by_brep(self, brep, tolerance=None):\n        \"\"\"Split this surface by every face of a BRep.\n\n        Each cutter face is intersected with this surface (planar faces via the\n        fast plane path, others via surface/surface); all cut pcurves split the\n        UV domain at once.\n\n        Returns\n        -------",
+          "file": "nurbssurface.py"
+        },
+        "cpp": {
+          "sig": "std::vector<NurbsSurfaceTrimmed> split_by_plane(const Plane& plane, double tolerance)",
+          "code": "std::vector<NurbsSurfaceTrimmed> NurbsSurface::split_by_plane(const Plane& plane, double tolerance) const {\n    auto pairs = Intersection::surface_plane_uv(*this, plane, tolerance);\n    std::vector<NurbsCurve> pcurves;\n    for (const auto& pair : pairs)\n        pcurves.push_back(pair.second);\n    return NurbsSurfaceTrimmed::split_by_uv_curves(*this, pcurves, tolerance);\n}",
+          "file": "nurbssurface.cpp"
+        },
+        "rust": {
+          "sig": "split_by_plane(plane: &Plane, tolerance: Option<f64>) -> Vec<crate::nurbssurface_trimmed::NurbsSurfaceTrimmed>",
+          "code": "pub fn split_by_plane(&self, plane: &Plane, tolerance: Option<f64>) -> Vec<crate::nurbssurface_trimmed::NurbsSurfaceTrimmed> {\n        let pairs = crate::intersection::surface_plane_uv(self, plane, tolerance);\n        let mut pcurves = Vec::new();\n        for pair in pairs {\n            pcurves.push(pair.1);\n        }\n        crate::nurbssurface_trimmed::NurbsSurfaceTrimmed::split_by_uv_curves(self, &pcurves, tolerance)\n    }",
+          "file": "nurbssurface.rs"
+        }
+      },
+      "related": [
+        "NurbsSurface.clamp_end",
+        "NurbsSurface.create",
+        "NurbsSurface.degree",
+        "NurbsSurface.domain",
+        "NurbsSurface.increase_degree",
+        "NurbsSurface.new",
+        "NurbsSurface.split",
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_line",
+        "NurbsSurface.split_by_surface",
+        "NurbsSurface.transform_stored",
+        "NurbsSurface.transformed_stored",
+        "NurbsSurface.trim"
+      ]
+    },
+    {
+      "name": "NurbsSurface.split_by_surface",
+      "implementations": {
+        "python": {
+          "sig": "split_by_surface(cutter, tolerance=None)",
+          "code": "def split_by_surface(self, cutter, tolerance=None):\n\n        \"\"\"Split this surface by another surface.\n\n        Computes the surface/surface intersection and splits the UV domain\n        along the pcurves on this surface.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .intersection import surface_surface\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        triples = surface_surface(self, cutter, tolerance)\n        pcurves = []\n        for triple in triples:\n            pcurves.append(triple[1])\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def split_by_curves(self, curves, tolerance=None):\n        \"\"\"Split this surface by 3D curves lying on (or near) it.\n\n        Each curve is pulled back to UV via closest-point projection; curves\n        whose pullback fails (off-surface) are skipped.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .closest import Closest\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        pcurves = []\n        for crv in curves:\n            for pcurve in Closest.surface_curve(self, crv, 0.0, 0.0, tolerance):\n                pcurves.append(pcurve)\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def split_by_line(self, line, tolerance=None):\n        \"\"\"Split this surface by a line pulled onto it (Rhino \"pull then split\").\n\n        The line is converted to a degree-1 curve and projected onto the\n        surface by closest points; the surface is split along the pulled\n        curve. A pulled curve that does not reach the boundary or another\n        cutter is discarded. For a planar cut, use split_by_plane.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .nurbscurve import NurbsCurve\n        pts = [line.start(), line.end()]\n        crv = NurbsCurve.create(False, 1, pts)\n        return self.split_by_curves([crv], tolerance)\n\n    def split_by_brep(self, brep, tolerance=None):\n        \"\"\"Split this surface by every face of a BRep.\n\n        Each cutter face is intersected with this surface (planar faces via the\n        fast plane path, others via surface/surface); all cut pcurves split the\n        UV domain at once.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .intersection import cut_curves_on_surface\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        target_bb = _surface_aabb(self)\n        pcurves = []\n        for cutter in brep.m_surfaces:\n            if not _aabb_overlap_pad(target_bb, _surface_aabb(cutter)):\n                continue\n            for pc in cut_curves_on_surface(self, cutter, tolerance):\n                pcurves.append(pc)\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def iso_curve(self, dir: int, c: float) -> Optional['NurbsCurve']:\n        \"\"\"Get isoparametric curve at parameter.\n        \n        Parameters\n        ----------",
+          "file": "nurbssurface.py"
+        },
+        "cpp": {
+          "sig": "std::vector<NurbsSurfaceTrimmed> split_by_surface(const NurbsSurface& cutter, double tolerance)",
+          "code": "std::vector<NurbsSurfaceTrimmed> NurbsSurface::split_by_surface(const NurbsSurface& cutter, double tolerance) const {\n    auto triples = Intersection::surface_surface(*this, cutter, tolerance);\n    std::vector<NurbsCurve> pcurves;\n    for (const auto& triple : triples)\n        pcurves.push_back(std::get<1>(triple));\n    return NurbsSurfaceTrimmed::split_by_uv_curves(*this, pcurves, tolerance);\n}",
+          "file": "nurbssurface.cpp"
+        },
+        "rust": {
+          "sig": "split_by_surface(cutter: &NurbsSurface, tolerance: Option<f64>) -> Vec<crate::nurbssurface_trimmed::NurbsSurfaceTrimmed>",
+          "code": "pub fn split_by_surface(&self, cutter: &NurbsSurface, tolerance: Option<f64>) -> Vec<crate::nurbssurface_trimmed::NurbsSurfaceTrimmed> {\n        let triples = crate::intersection::surface_surface(self, cutter, tolerance);\n        let mut pcurves = Vec::new();\n        for triple in triples {\n            pcurves.push(triple.1);\n        }\n        crate::nurbssurface_trimmed::NurbsSurfaceTrimmed::split_by_uv_curves(self, &pcurves, tolerance)\n    }",
+          "file": "nurbssurface.rs"
+        }
+      },
+      "related": [
+        "NurbsSurface.create",
+        "NurbsSurface.degree",
+        "NurbsSurface.domain",
+        "NurbsSurface.increase_degree",
+        "NurbsSurface.iso_curve",
+        "NurbsSurface.new",
+        "NurbsSurface.split",
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_line",
+        "NurbsSurface.split_by_plane",
+        "NurbsSurface.transform_stored",
+        "NurbsSurface.transformed_stored",
+        "NurbsSurface.trim"
+      ]
+    },
+    {
+      "name": "NurbsSurface.split_by_curves",
+      "implementations": {
+        "python": {
+          "sig": "split_by_curves(curves, tolerance=None)",
+          "code": "def split_by_curves(self, curves, tolerance=None):\n\n        \"\"\"Split this surface by 3D curves lying on (or near) it.\n\n        Each curve is pulled back to UV via closest-point projection; curves\n        whose pullback fails (off-surface) are skipped.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .closest import Closest\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        pcurves = []\n        for crv in curves:\n            for pcurve in Closest.surface_curve(self, crv, 0.0, 0.0, tolerance):\n                pcurves.append(pcurve)\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def split_by_line(self, line, tolerance=None):\n        \"\"\"Split this surface by a line pulled onto it (Rhino \"pull then split\").\n\n        The line is converted to a degree-1 curve and projected onto the\n        surface by closest points; the surface is split along the pulled\n        curve. A pulled curve that does not reach the boundary or another\n        cutter is discarded. For a planar cut, use split_by_plane.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .nurbscurve import NurbsCurve\n        pts = [line.start(), line.end()]\n        crv = NurbsCurve.create(False, 1, pts)\n        return self.split_by_curves([crv], tolerance)\n\n    def split_by_brep(self, brep, tolerance=None):\n        \"\"\"Split this surface by every face of a BRep.\n\n        Each cutter face is intersected with this surface (planar faces via the\n        fast plane path, others via surface/surface); all cut pcurves split the\n        UV domain at once.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .intersection import cut_curves_on_surface\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        target_bb = _surface_aabb(self)\n        pcurves = []\n        for cutter in brep.m_surfaces:\n            if not _aabb_overlap_pad(target_bb, _surface_aabb(cutter)):\n                continue\n            for pc in cut_curves_on_surface(self, cutter, tolerance):\n                pcurves.append(pc)\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def iso_curve(self, dir: int, c: float) -> Optional['NurbsCurve']:\n        \"\"\"Get isoparametric curve at parameter.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0=iso-u curve where v varies, 1=iso-v curve where u varies).\n        c : float\n            Parameter value.\n        \n        Returns\n        -------\n        NurbsCurve or None\n            Isoparametric curve, or None on failure.\n        \"\"\"\n        from .nurbscurve import NurbsCurve\n        \n        if (dir != 0 and dir != 1) or not self.is_valid():\n            return None\n        \n        # Create output curve with proper initialization\n        nurbs_crv = NurbsCurve()\n        if not nurbs_crv.create_curve(self.m_dim, self.m_is_rat != 0, self.m_order[dir], self.m_cv_count[dir]):",
+          "file": "nurbssurface.py"
+        },
+        "cpp": {
+          "sig": "std::vector<NurbsSurfaceTrimmed> split_by_curves(const std::vector<NurbsCurve>& curves, double tolerance)",
+          "code": "std::vector<NurbsSurfaceTrimmed> NurbsSurface::split_by_curves(const std::vector<NurbsCurve>& curves, double tolerance) const {\n    std::vector<NurbsCurve> pcurves;\n    for (const auto& crv : curves) {\n        for (const auto& pcurve : Closest::surface_curve(*this, crv, 0.0, 0.0, tolerance))\n            pcurves.push_back(pcurve);\n    }",
+          "file": "nurbssurface.cpp"
+        },
+        "rust": {
+          "sig": "split_by_curves(curves: &[NurbsCurve], tolerance: Option<f64>) -> Vec<crate::nurbssurface_trimmed::NurbsSurfaceTrimmed>",
+          "code": "pub fn split_by_curves(&self, curves: &[NurbsCurve], tolerance: Option<f64>) -> Vec<crate::nurbssurface_trimmed::NurbsSurfaceTrimmed> {\n        let mut pcurves = Vec::new();\n        for crv in curves {\n            for pcurve in crate::closest::Closest::surface_curve(self, crv, 0.0, 0.0, tolerance) {\n                pcurves.push(pcurve);\n            }\n        }\n        crate::nurbssurface_trimmed::NurbsSurfaceTrimmed::split_by_uv_curves(self, &pcurves, tolerance)\n    }",
+          "file": "nurbssurface.rs"
+        }
+      },
+      "related": [
+        "NurbsSurface.create",
+        "NurbsSurface.cv",
+        "NurbsSurface.cv_count",
+        "NurbsSurface.degree",
+        "NurbsSurface.domain",
+        "NurbsSurface.increase_degree",
+        "NurbsSurface.is_valid",
+        "NurbsSurface.iso_curve",
+        "NurbsSurface.new",
+        "NurbsSurface.order",
+        "NurbsSurface.split",
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_line",
+        "NurbsSurface.split_by_plane",
+        "NurbsSurface.split_by_surface",
+        "NurbsSurface.transform_stored",
+        "NurbsSurface.transformed_stored",
+        "NurbsSurface.trim"
+      ]
+    },
+    {
+      "name": "NurbsSurface.split_by_line",
+      "implementations": {
+        "python": {
+          "sig": "split_by_line(line, tolerance=None)",
+          "code": "def split_by_line(self, line, tolerance=None):\n\n        \"\"\"Split this surface by a line pulled onto it (Rhino \"pull then split\").\n\n        The line is converted to a degree-1 curve and projected onto the\n        surface by closest points; the surface is split along the pulled\n        curve. A pulled curve that does not reach the boundary or another\n        cutter is discarded. For a planar cut, use split_by_plane.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .nurbscurve import NurbsCurve\n        pts = [line.start(), line.end()]\n        crv = NurbsCurve.create(False, 1, pts)\n        return self.split_by_curves([crv], tolerance)\n\n    def split_by_brep(self, brep, tolerance=None):\n        \"\"\"Split this surface by every face of a BRep.\n\n        Each cutter face is intersected with this surface (planar faces via the\n        fast plane path, others via surface/surface); all cut pcurves split the\n        UV domain at once.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .intersection import cut_curves_on_surface\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        target_bb = _surface_aabb(self)\n        pcurves = []\n        for cutter in brep.m_surfaces:\n            if not _aabb_overlap_pad(target_bb, _surface_aabb(cutter)):\n                continue\n            for pc in cut_curves_on_surface(self, cutter, tolerance):\n                pcurves.append(pc)\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def iso_curve(self, dir: int, c: float) -> Optional['NurbsCurve']:\n        \"\"\"Get isoparametric curve at parameter.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0=iso-u curve where v varies, 1=iso-v curve where u varies).\n        c : float\n            Parameter value.\n        \n        Returns\n        -------\n        NurbsCurve or None\n            Isoparametric curve, or None on failure.\n        \"\"\"\n        from .nurbscurve import NurbsCurve\n        \n        if (dir != 0 and dir != 1) or not self.is_valid():\n            return None\n        \n        # Create output curve with proper initialization\n        nurbs_crv = NurbsCurve()\n        if not nurbs_crv.create_curve(self.m_dim, self.m_is_rat != 0, self.m_order[dir], self.m_cv_count[dir]):\n            return None\n        \n        # Copy nurbsknot vector for varying direction\n        for i in range(nurbs_crv.nurbsknot_count()):\n            nurbs_crv.set_nurbsknot(i, self.nurbsknot(dir, i))\n        \n        # Find span in constant direction\n        span_index = self._find_span(1 - dir, c)\n        if span_index < 0:\n            span_index = 0\n        elif span_index > self.m_cv_count[1 - dir] - self.m_order[1 - dir]:\n            span_index = self.m_cv_count[1 - dir] - self.m_order[1 - dir]\n        \n        # Compute basis functions in constant direction\n        basis = self._basis_functions(1 - dir, span_index, c)\n        \n        # Evaluate CVs for isocurve\n        for i in range(nurbs_crv.m_cv_count):",
+          "file": "nurbssurface.py"
+        },
+        "cpp": {
+          "sig": "std::vector<NurbsSurfaceTrimmed> split_by_line(const Line& line, double tolerance)",
+          "code": "std::vector<NurbsSurfaceTrimmed> NurbsSurface::split_by_line(const Line& line, double tolerance) const {\n    std::vector<Point> pts = {line.start(), line.end()}",
+          "file": "nurbssurface.cpp"
+        },
+        "rust": {
+          "sig": "split_by_line(line: &Line, tolerance: Option<f64>) -> Vec<crate::nurbssurface_trimmed::NurbsSurfaceTrimmed>",
+          "code": "pub fn split_by_line(&self, line: &Line, tolerance: Option<f64>) -> Vec<crate::nurbssurface_trimmed::NurbsSurfaceTrimmed> {\n        let pts = vec![line.start(), line.end()];\n        let crv = NurbsCurve::create(false, 1, &pts);\n        self.split_by_curves(&[crv], tolerance)\n    }",
+          "file": "nurbssurface.rs"
         }
       },
       "related": [
         "NurbsSurface._basis_functions",
         "NurbsSurface._find_span",
         "NurbsSurface.basis_functions",
-        "NurbsSurface.clamp_end",
         "NurbsSurface.create",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
-        "NurbsSurface.cv_size",
+        "NurbsSurface.degree",
+        "NurbsSurface.domain",
         "NurbsSurface.find_span",
-        "NurbsSurface.increase_degree",
         "NurbsSurface.is_valid",
         "NurbsSurface.iso_curve",
         "NurbsSurface.nurbsknot",
         "NurbsSurface.nurbsknot_count",
         "NurbsSurface.order",
-        "NurbsSurface.set_cv",
         "NurbsSurface.set_nurbsknot",
-        "NurbsSurface.set_weight",
-        "NurbsSurface.transform",
+        "NurbsSurface.split",
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_plane",
+        "NurbsSurface.split_by_surface",
         "NurbsSurface.transform_stored",
-        "NurbsSurface.transformed",
-        "NurbsSurface.weight",
-        "NurbsSurface.xform"
+        "NurbsSurface.transformed_stored",
+        "NurbsSurface.trim"
+      ]
+    },
+    {
+      "name": "NurbsSurface.split_by_brep",
+      "implementations": {
+        "python": {
+          "sig": "split_by_brep(brep, tolerance=None)",
+          "code": "def split_by_brep(self, brep, tolerance=None):\n\n        \"\"\"Split this surface by every face of a BRep.\n\n        Each cutter face is intersected with this surface (planar faces via the\n        fast plane path, others via surface/surface); all cut pcurves split the\n        UV domain at once.\n\n        Returns\n        -------\n        list of NurbsSurfaceTrimmed\n        \"\"\"\n        from .intersection import cut_curves_on_surface\n        from .nurbssurface_trimmed import NurbsSurfaceTrimmed\n        target_bb = _surface_aabb(self)\n        pcurves = []\n        for cutter in brep.m_surfaces:\n            if not _aabb_overlap_pad(target_bb, _surface_aabb(cutter)):\n                continue\n            for pc in cut_curves_on_surface(self, cutter, tolerance):\n                pcurves.append(pc)\n        return NurbsSurfaceTrimmed.split_by_uv_curves(self, pcurves, tolerance)\n\n    def iso_curve(self, dir: int, c: float) -> Optional['NurbsCurve']:\n        \"\"\"Get isoparametric curve at parameter.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0=iso-u curve where v varies, 1=iso-v curve where u varies).\n        c : float\n            Parameter value.\n        \n        Returns\n        -------\n        NurbsCurve or None\n            Isoparametric curve, or None on failure.\n        \"\"\"\n        from .nurbscurve import NurbsCurve\n        \n        if (dir != 0 and dir != 1) or not self.is_valid():\n            return None\n        \n        # Create output curve with proper initialization\n        nurbs_crv = NurbsCurve()\n        if not nurbs_crv.create_curve(self.m_dim, self.m_is_rat != 0, self.m_order[dir], self.m_cv_count[dir]):\n            return None\n        \n        # Copy nurbsknot vector for varying direction\n        for i in range(nurbs_crv.nurbsknot_count()):\n            nurbs_crv.set_nurbsknot(i, self.nurbsknot(dir, i))\n        \n        # Find span in constant direction\n        span_index = self._find_span(1 - dir, c)\n        if span_index < 0:\n            span_index = 0\n        elif span_index > self.m_cv_count[1 - dir] - self.m_order[1 - dir]:\n            span_index = self.m_cv_count[1 - dir] - self.m_order[1 - dir]\n        \n        # Compute basis functions in constant direction\n        basis = self._basis_functions(1 - dir, span_index, c)\n        \n        # Evaluate CVs for isocurve\n        for i in range(nurbs_crv.m_cv_count):\n            cv_sum = np.zeros(self.cv_size())\n            \n            for k in range(self.m_order[1 - dir]):\n                if dir == 0:\n                    # iso-u: v varies, u is constant at c\n                    cv_ptr = self.cv(span_index + k, i)\n                else:\n                    # iso-v: u varies, v is constant at c\n                    cv_ptr = self.cv(i, span_index + k)\n                \n                if cv_ptr is not None:\n                    cv_sum += basis[k] * cv_ptr\n            \n            # Set CV in curve\n            if self.m_is_rat and abs(cv_sum[self.m_dim]) > 1e-14:\n                w = cv_sum[self.m_dim]\n                pt = Point(cv_sum[0]/w,",
+          "file": "nurbssurface.py"
+        },
+        "cpp": {
+          "sig": "std::vector<NurbsSurfaceTrimmed> split_by_brep(const BRep& brep, double tolerance)",
+          "code": "std::vector<NurbsSurfaceTrimmed> NurbsSurface::split_by_brep(const BRep& brep, double tolerance) const {\n    auto target_bb = ns_surface_aabb(*this);\n    std::vector<NurbsCurve> pcurves;\n    for (const auto& cutter : brep.m_surfaces) {\n        if (!ns_aabb_overlap_pad(target_bb, ns_surface_aabb(cutter))) continue;\n        for (auto& pc : Intersection::cut_curves_on_surface(*this, cutter, tolerance)) pcurves.push_back(pc);\n    }",
+          "file": "nurbssurface.cpp"
+        },
+        "rust": {
+          "sig": "split_by_brep(brep: &crate::brep::BRep, tolerance: Option<f64>) -> Vec<crate::nurbssurface_trimmed::NurbsSurfaceTrimmed>",
+          "code": "pub fn split_by_brep(&self, brep: &crate::brep::BRep, tolerance: Option<f64>) -> Vec<crate::nurbssurface_trimmed::NurbsSurfaceTrimmed> {\n        let target_bb = surface_aabb(self);\n        let mut pcurves = Vec::new();\n        for cutter in &brep.m_surfaces {\n            if !aabb_overlap_pad(&target_bb, &surface_aabb(cutter)) {\n                continue;\n            }\n            for pc in crate::intersection::cut_curves_on_surface(self, cutter, tolerance) {\n                pcurves.push(pc);\n            }\n        }\n        crate::nurbssurface_trimmed::NurbsSurfaceTrimmed::split_by_uv_curves(self, &pcurves, tolerance)\n    }",
+          "file": "nurbssurface.rs"
+        }
+      },
+      "related": [
+        "NurbsSurface._basis_functions",
+        "NurbsSurface._find_span",
+        "NurbsSurface.basis_functions",
+        "NurbsSurface.create",
+        "NurbsSurface.cv",
+        "NurbsSurface.cv_count",
+        "NurbsSurface.cv_size",
+        "NurbsSurface.domain",
+        "NurbsSurface.find_span",
+        "NurbsSurface.is_valid",
+        "NurbsSurface.iso_curve",
+        "NurbsSurface.new",
+        "NurbsSurface.nurbsknot",
+        "NurbsSurface.nurbsknot_count",
+        "NurbsSurface.order",
+        "NurbsSurface.set_nurbsknot",
+        "NurbsSurface.split",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_line",
+        "NurbsSurface.split_by_plane",
+        "NurbsSurface.split_by_surface",
+        "NurbsSurface.trim"
       ]
     },
     {
@@ -36676,13 +37645,11 @@ window.API_INDEX = {
         "NurbsSurface._basis_functions",
         "NurbsSurface._find_span",
         "NurbsSurface.basis_functions",
-        "NurbsSurface.clamp_end",
         "NurbsSurface.create",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.cv_size",
         "NurbsSurface.find_span",
-        "NurbsSurface.increase_degree",
         "NurbsSurface.is_valid",
         "NurbsSurface.nurbsknot",
         "NurbsSurface.nurbsknot_count",
@@ -36690,9 +37657,11 @@ window.API_INDEX = {
         "NurbsSurface.set_cv",
         "NurbsSurface.set_nurbsknot",
         "NurbsSurface.set_weight",
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_line",
+        "NurbsSurface.split_by_surface",
         "NurbsSurface.str",
-        "NurbsSurface.transform_stored",
-        "NurbsSurface.transformed_stored",
         "NurbsSurface.weight",
         "NurbsSurface.zero_cvs"
       ]
@@ -37414,7 +38383,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "guid(value: str)",
-          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    @staticmethod\n    def create(surface, outer_loop):\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = surface.duplicate()\n        ts.m_outer_loop = outer_loop.duplicate()\n        return ts\n\n    @staticmethod\n    def create_planar(boundary):\n        from .point import Point\n        from .vector import Vector\n        srf = Primitives.create_planar(boundary)\n        if not srf.is_valid():\n            return NurbsSurfaceTrimmed()\n        p00 = srf.get_cv(0, 0)\n        p10 = srf.get_cv(1, 0)\n        p01 = srf.get_cv(0, 1)\n        u_axis = Vector(p10[0]-p00[0], p10[1]-p00[1], p10[2]-p00[2])\n        v_axis = Vector(p01[0]-p00[0], p01[1]-p00[1], p01[2]-p00[2])\n        u_len2 = u_axis[0]**2 + u_axis[1]**2 + u_axis[2]**2\n        v_len2 = v_axis[0]**2 + v_axis[1]**2 + v_axis[2]**2\n        if u_len2 < 1e-28 or v_len2 < 1e-28:\n            return NurbsSurfaceTrimmed()\n        def project_to_uv(pt):\n            dx, dy, dz = pt[0]-p00[0], pt[1]-p00[1], pt[2]-p00[2]\n            nu = (dx*u_axis[0] + dy*u_axis[1] + dz*u_axis[2]) / u_len2\n            nv = (dx*v_axis[0] + dy*v_axis[1] + dz*v_axis[2]) / v_len2\n            return Point(nu, nv, 0.0)\n        uv_pts = []\n        if boundary.degree() <= 1:\n            for i in range(boundary.cv_count()):\n                uv_pts.append(project_to_uv(boundary.get_cv(i)))\n        else:\n            spans = boundary.get_span_vector()\n            for si in range(len(spans) - 1):\n                n_sub = 10\n                for k in range(n_sub + 1):\n                    t = spans[si] + (spans[si+1] - spans[si]) * k / n_sub\n                    uv = project_to_uv(boundary.point_at(t))\n                    if not uv_pts or (uv[0]-uv_pts[-1][0])**2 + (uv[1]-uv_pts[-1][1])**2 > 1e-24:\n                        uv_pts.append(uv)\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = srf\n        if len(uv_pts) >= 3:\n            ts.m_outer_loop = NurbsCurve.create(False, 1, uv_pts)\n        return ts\n\n    def surface(self):\n        return self.m_surface\n\n    def get_outer_loop(self):\n        return self.m_outer_loop\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def is_trimmed(self):",
+          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    @staticmethod\n    def create(surface, outer_loop):\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = surface.duplicate()\n        ts.m_outer_loop = outer_loop.duplicate()\n        return ts\n\n    @staticmethod\n    def create_planar(boundary):\n        from .point import Point\n        from .vector import Vector\n        srf = Primitives.create_planar(boundary)\n        if not srf.is_valid():\n            return NurbsSurfaceTrimmed()\n        p00 = srf.get_cv(0, 0)\n        p10 = srf.get_cv(1, 0)\n        p01 = srf.get_cv(0, 1)\n        u_axis = Vector(p10[0]-p00[0], p10[1]-p00[1], p10[2]-p00[2])\n        v_axis = Vector(p01[0]-p00[0], p01[1]-p00[1], p01[2]-p00[2])\n        u_len2 = u_axis[0]**2 + u_axis[1]**2 + u_axis[2]**2\n        v_len2 = v_axis[0]**2 + v_axis[1]**2 + v_axis[2]**2\n        if u_len2 < 1e-28 or v_len2 < 1e-28:\n            return NurbsSurfaceTrimmed()\n        def project_to_uv(pt):\n            dx, dy, dz = pt[0]-p00[0], pt[1]-p00[1], pt[2]-p00[2]\n            nu = (dx*u_axis[0] + dy*u_axis[1] + dz*u_axis[2]) / u_len2\n            nv = (dx*v_axis[0] + dy*v_axis[1] + dz*v_axis[2]) / v_len2\n            return Point(nu, nv, 0.0)\n        uv_pts = []\n        if boundary.degree() <= 1:\n            for i in range(boundary.cv_count()):\n                uv_pts.append(project_to_uv(boundary.get_cv(i)))\n        else:\n            spans = boundary.get_span_vector()\n            for si in range(len(spans) - 1):\n                n_sub = 10\n                for k in range(n_sub + 1):\n                    t = spans[si] + (spans[si+1] - spans[si]) * k / n_sub\n                    uv = project_to_uv(boundary.point_at(t))\n                    if not uv_pts or (uv[0]-uv_pts[-1][0])**2 + (uv[1]-uv_pts[-1][1])**2 > 1e-24:\n                        uv_pts.append(uv)\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = srf\n        if len(uv_pts) >= 3:\n            ts.m_outer_loop = NurbsCurve.create(False, 1, uv_pts)\n        return ts\n\n    @staticmethod\n    def split_by_uv_curves(srf, pcurves, tolerance=None, use_domain_border=True, n_boundary=0):\n        \"\"\"Split a surface into trimmed faces by UV pcurves.\n\n        Builds a planar arrangement of the UV domain rectangle and the given\n        pcurves (NurbsCurves with x=u, y=v, z=0), extracts faces, and emits one\n        NurbsSurfaceTrimmed per face. Loops are exact trims of the input\n        pcurves joined with straight border segments. Dangling open cutters\n        that do not reach the border or another cutter are discarded.",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -37445,8 +38414,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.file_json_dumps",
         "NurbsSurfaceTrimmed.file_json_load",
         "NurbsSurfaceTrimmed.file_json_loads",
-        "NurbsSurfaceTrimmed.get_outer_loop",
-        "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.jsondump",
         "NurbsSurfaceTrimmed.jsonload",
@@ -37456,7 +38423,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.set_guid",
-        "NurbsSurfaceTrimmed.set_outer_loop",
+        "NurbsSurfaceTrimmed.split_by_uv_curves",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.surfacecolor",
@@ -37472,7 +38439,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "surfacecolor(value)",
-          "code": "def surfacecolor(self, value):\n\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    @staticmethod\n    def create(surface, outer_loop):\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = surface.duplicate()\n        ts.m_outer_loop = outer_loop.duplicate()\n        return ts\n\n    @staticmethod\n    def create_planar(boundary):\n        from .point import Point\n        from .vector import Vector\n        srf = Primitives.create_planar(boundary)\n        if not srf.is_valid():\n            return NurbsSurfaceTrimmed()\n        p00 = srf.get_cv(0, 0)\n        p10 = srf.get_cv(1, 0)\n        p01 = srf.get_cv(0, 1)\n        u_axis = Vector(p10[0]-p00[0], p10[1]-p00[1], p10[2]-p00[2])\n        v_axis = Vector(p01[0]-p00[0], p01[1]-p00[1], p01[2]-p00[2])\n        u_len2 = u_axis[0]**2 + u_axis[1]**2 + u_axis[2]**2\n        v_len2 = v_axis[0]**2 + v_axis[1]**2 + v_axis[2]**2\n        if u_len2 < 1e-28 or v_len2 < 1e-28:\n            return NurbsSurfaceTrimmed()\n        def project_to_uv(pt):\n            dx, dy, dz = pt[0]-p00[0], pt[1]-p00[1], pt[2]-p00[2]\n            nu = (dx*u_axis[0] + dy*u_axis[1] + dz*u_axis[2]) / u_len2\n            nv = (dx*v_axis[0] + dy*v_axis[1] + dz*v_axis[2]) / v_len2\n            return Point(nu, nv, 0.0)\n        uv_pts = []\n        if boundary.degree() <= 1:\n            for i in range(boundary.cv_count()):\n                uv_pts.append(project_to_uv(boundary.get_cv(i)))\n        else:\n            spans = boundary.get_span_vector()\n            for si in range(len(spans) - 1):\n                n_sub = 10\n                for k in range(n_sub + 1):\n                    t = spans[si] + (spans[si+1] - spans[si]) * k / n_sub\n                    uv = project_to_uv(boundary.point_at(t))\n                    if not uv_pts or (uv[0]-uv_pts[-1][0])**2 + (uv[1]-uv_pts[-1][1])**2 > 1e-24:\n                        uv_pts.append(uv)\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = srf\n        if len(uv_pts) >= 3:\n            ts.m_outer_loop = NurbsCurve.create(False, 1, uv_pts)\n        return ts\n\n    def surface(self):\n        return self.m_surface\n\n    def get_outer_loop(self):\n        return self.m_outer_loop\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def is_trimmed(self):\n        return self.m_outer_loop.is_valid()\n\n    def is_valid(self):\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point",
+          "code": "def surfacecolor(self, value):\n\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    @staticmethod\n    def create(surface, outer_loop):\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = surface.duplicate()\n        ts.m_outer_loop = outer_loop.duplicate()\n        return ts\n\n    @staticmethod\n    def create_planar(boundary):\n        from .point import Point\n        from .vector import Vector\n        srf = Primitives.create_planar(boundary)\n        if not srf.is_valid():\n            return NurbsSurfaceTrimmed()\n        p00 = srf.get_cv(0, 0)\n        p10 = srf.get_cv(1, 0)\n        p01 = srf.get_cv(0, 1)\n        u_axis = Vector(p10[0]-p00[0], p10[1]-p00[1], p10[2]-p00[2])\n        v_axis = Vector(p01[0]-p00[0], p01[1]-p00[1], p01[2]-p00[2])\n        u_len2 = u_axis[0]**2 + u_axis[1]**2 + u_axis[2]**2\n        v_len2 = v_axis[0]**2 + v_axis[1]**2 + v_axis[2]**2\n        if u_len2 < 1e-28 or v_len2 < 1e-28:\n            return NurbsSurfaceTrimmed()\n        def project_to_uv(pt):\n            dx, dy, dz = pt[0]-p00[0], pt[1]-p00[1], pt[2]-p00[2]\n            nu = (dx*u_axis[0] + dy*u_axis[1] + dz*u_axis[2]) / u_len2\n            nv = (dx*v_axis[0] + dy*v_axis[1] + dz*v_axis[2]) / v_len2\n            return Point(nu, nv, 0.0)\n        uv_pts = []\n        if boundary.degree() <= 1:\n            for i in range(boundary.cv_count()):\n                uv_pts.append(project_to_uv(boundary.get_cv(i)))\n        else:\n            spans = boundary.get_span_vector()\n            for si in range(len(spans) - 1):\n                n_sub = 10\n                for k in range(n_sub + 1):\n                    t = spans[si] + (spans[si+1] - spans[si]) * k / n_sub\n                    uv = project_to_uv(boundary.point_at(t))\n                    if not uv_pts or (uv[0]-uv_pts[-1][0])**2 + (uv[1]-uv_pts[-1][1])**2 > 1e-24:\n                        uv_pts.append(uv)\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = srf\n        if len(uv_pts) >= 3:\n            ts.m_outer_loop = NurbsCurve.create(False, 1, uv_pts)\n        return ts\n\n    @staticmethod\n    def split_by_uv_curves(srf, pcurves, tolerance=None, use_domain_border=True, n_boundary=0):\n        \"\"\"Split a surface into trimmed faces by UV pcurves.\n\n        Builds a planar arrangement of the UV domain rectangle and the given\n        pcurves (NurbsCurves with x=u, y=v, z=0), extracts faces, and emits one\n        NurbsSurfaceTrimmed per face. Loops are exact trims of the input\n        pcurves joined with straight border segments. Dangling open cutters\n        that do not reach the border or another cutter are discarded.\n\n        When ``use_domain_border`` is False, the four domain border sides are\n        not added; the caller must supply closed boundary loops as pcurves\n        (used by BRep splitting to split a face inside its own trim region).\n        ``n_boundary`` then gives the number of leading pcurves that form the\n        region boundary; their vertices anchor the arrangement so the exterior\n        cycle is not mistaken for a hole.\n        \"\"\"\n        def _is_boundary(cidx):\n            return cidx < 0 or (not use_domain_border and 0 <= cidx < n_boundary)\n        import math",
           "file": "nurbssurface_trimmed.py"
         }
       },
@@ -37484,8 +38451,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__ne__",
         "NurbsSurfaceTrimmed.__repr__",
         "NurbsSurfaceTrimmed.__str__",
-        "NurbsSurfaceTrimmed.add_hole",
-        "NurbsSurfaceTrimmed.add_inner_loop",
+        "NurbsSurfaceTrimmed._is_boundary",
         "NurbsSurfaceTrimmed.create",
         "NurbsSurfaceTrimmed.create_planar",
         "NurbsSurfaceTrimmed.cross",
@@ -37495,9 +38461,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.file_json_dumps",
         "NurbsSurfaceTrimmed.file_json_load",
         "NurbsSurfaceTrimmed.file_json_loads",
-        "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.guid",
-        "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.jsondump",
         "NurbsSurfaceTrimmed.jsonload",
@@ -37506,7 +38470,8 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.pb_loads",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.project_to_uv",
-        "NurbsSurfaceTrimmed.set_outer_loop",
+        "NurbsSurfaceTrimmed.split_by_uv_curves",
+        "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.to_string",
         "NurbsSurfaceTrimmed.transform",
@@ -37520,7 +38485,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "xform(value)",
-          "code": "def xform(self, value):\n\n        self._xform = value\n\n    @staticmethod\n    def create(surface, outer_loop):\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = surface.duplicate()\n        ts.m_outer_loop = outer_loop.duplicate()\n        return ts\n\n    @staticmethod\n    def create_planar(boundary):\n        from .point import Point\n        from .vector import Vector\n        srf = Primitives.create_planar(boundary)\n        if not srf.is_valid():\n            return NurbsSurfaceTrimmed()\n        p00 = srf.get_cv(0, 0)\n        p10 = srf.get_cv(1, 0)\n        p01 = srf.get_cv(0, 1)\n        u_axis = Vector(p10[0]-p00[0], p10[1]-p00[1], p10[2]-p00[2])\n        v_axis = Vector(p01[0]-p00[0], p01[1]-p00[1], p01[2]-p00[2])\n        u_len2 = u_axis[0]**2 + u_axis[1]**2 + u_axis[2]**2\n        v_len2 = v_axis[0]**2 + v_axis[1]**2 + v_axis[2]**2\n        if u_len2 < 1e-28 or v_len2 < 1e-28:\n            return NurbsSurfaceTrimmed()\n        def project_to_uv(pt):\n            dx, dy, dz = pt[0]-p00[0], pt[1]-p00[1], pt[2]-p00[2]\n            nu = (dx*u_axis[0] + dy*u_axis[1] + dz*u_axis[2]) / u_len2\n            nv = (dx*v_axis[0] + dy*v_axis[1] + dz*v_axis[2]) / v_len2\n            return Point(nu, nv, 0.0)\n        uv_pts = []\n        if boundary.degree() <= 1:\n            for i in range(boundary.cv_count()):\n                uv_pts.append(project_to_uv(boundary.get_cv(i)))\n        else:\n            spans = boundary.get_span_vector()\n            for si in range(len(spans) - 1):\n                n_sub = 10\n                for k in range(n_sub + 1):\n                    t = spans[si] + (spans[si+1] - spans[si]) * k / n_sub\n                    uv = project_to_uv(boundary.point_at(t))\n                    if not uv_pts or (uv[0]-uv_pts[-1][0])**2 + (uv[1]-uv_pts[-1][1])**2 > 1e-24:\n                        uv_pts.append(uv)\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = srf\n        if len(uv_pts) >= 3:\n            ts.m_outer_loop = NurbsCurve.create(False, 1, uv_pts)\n        return ts\n\n    def surface(self):\n        return self.m_surface\n\n    def get_outer_loop(self):\n        return self.m_outer_loop\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def is_trimmed(self):\n        return self.m_outer_loop.is_valid()\n\n    def is_valid(self):\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples",
+          "code": "def xform(self, value):\n\n        self._xform = value\n\n    @staticmethod\n    def create(surface, outer_loop):\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = surface.duplicate()\n        ts.m_outer_loop = outer_loop.duplicate()\n        return ts\n\n    @staticmethod\n    def create_planar(boundary):\n        from .point import Point\n        from .vector import Vector\n        srf = Primitives.create_planar(boundary)\n        if not srf.is_valid():\n            return NurbsSurfaceTrimmed()\n        p00 = srf.get_cv(0, 0)\n        p10 = srf.get_cv(1, 0)\n        p01 = srf.get_cv(0, 1)\n        u_axis = Vector(p10[0]-p00[0], p10[1]-p00[1], p10[2]-p00[2])\n        v_axis = Vector(p01[0]-p00[0], p01[1]-p00[1], p01[2]-p00[2])\n        u_len2 = u_axis[0]**2 + u_axis[1]**2 + u_axis[2]**2\n        v_len2 = v_axis[0]**2 + v_axis[1]**2 + v_axis[2]**2\n        if u_len2 < 1e-28 or v_len2 < 1e-28:\n            return NurbsSurfaceTrimmed()\n        def project_to_uv(pt):\n            dx, dy, dz = pt[0]-p00[0], pt[1]-p00[1], pt[2]-p00[2]\n            nu = (dx*u_axis[0] + dy*u_axis[1] + dz*u_axis[2]) / u_len2\n            nv = (dx*v_axis[0] + dy*v_axis[1] + dz*v_axis[2]) / v_len2\n            return Point(nu, nv, 0.0)\n        uv_pts = []\n        if boundary.degree() <= 1:\n            for i in range(boundary.cv_count()):\n                uv_pts.append(project_to_uv(boundary.get_cv(i)))\n        else:\n            spans = boundary.get_span_vector()\n            for si in range(len(spans) - 1):\n                n_sub = 10\n                for k in range(n_sub + 1):\n                    t = spans[si] + (spans[si+1] - spans[si]) * k / n_sub\n                    uv = project_to_uv(boundary.point_at(t))\n                    if not uv_pts or (uv[0]-uv_pts[-1][0])**2 + (uv[1]-uv_pts[-1][1])**2 > 1e-24:\n                        uv_pts.append(uv)\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = srf\n        if len(uv_pts) >= 3:\n            ts.m_outer_loop = NurbsCurve.create(False, 1, uv_pts)\n        return ts\n\n    @staticmethod\n    def split_by_uv_curves(srf, pcurves, tolerance=None, use_domain_border=True, n_boundary=0):\n        \"\"\"Split a surface into trimmed faces by UV pcurves.\n\n        Builds a planar arrangement of the UV domain rectangle and the given\n        pcurves (NurbsCurves with x=u, y=v, z=0), extracts faces, and emits one\n        NurbsSurfaceTrimmed per face. Loops are exact trims of the input\n        pcurves joined with straight border segments. Dangling open cutters\n        that do not reach the border or another cutter are discarded.\n\n        When ``use_domain_border`` is False, the four domain border sides are\n        not added; the caller must supply closed boundary loops as pcurves\n        (used by BRep splitting to split a face inside its own trim region).\n        ``n_boundary`` then gives the number of leading pcurves that form the\n        region boundary; their vertices anchor the arrangement so the exterior\n        cycle is not mistaken for a hole.\n        \"\"\"\n        def _is_boundary(cidx):\n            return cidx < 0 or (not use_domain_border and 0 <= cidx < n_boundary)\n        import math\n        from .point import Point\n\n        if not srf.is_valid():\n            return []\n\n        u0, u1 = srf.domain(0)\n        v0, v1 = srf.domain(1)\n        range_u = u1 - u0\n        range_v = v1 - v0",
           "file": "nurbssurface_trimmed.py"
         }
       },
@@ -37532,8 +38497,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__ne__",
         "NurbsSurfaceTrimmed.__repr__",
         "NurbsSurfaceTrimmed.__str__",
-        "NurbsSurfaceTrimmed.add_hole",
-        "NurbsSurfaceTrimmed.add_inner_loop",
+        "NurbsSurfaceTrimmed._is_boundary",
         "NurbsSurfaceTrimmed.create",
         "NurbsSurfaceTrimmed.create_planar",
         "NurbsSurfaceTrimmed.cross",
@@ -37543,9 +38507,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.file_json_dumps",
         "NurbsSurfaceTrimmed.file_json_load",
         "NurbsSurfaceTrimmed.file_json_loads",
-        "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.guid",
-        "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.jsondump",
         "NurbsSurfaceTrimmed.jsonload",
@@ -37554,7 +38516,8 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.pb_loads",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.project_to_uv",
-        "NurbsSurfaceTrimmed.set_outer_loop",
+        "NurbsSurfaceTrimmed.split_by_uv_curves",
+        "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.surfacecolor",
         "NurbsSurfaceTrimmed.to_string",
@@ -37569,7 +38532,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "create(surface, outer_loop)",
-          "code": "def create(surface, outer_loop):\n\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = surface.duplicate()\n        ts.m_outer_loop = outer_loop.duplicate()\n        return ts\n\n    @staticmethod\n    def create_planar(boundary):\n        from .point import Point\n        from .vector import Vector\n        srf = Primitives.create_planar(boundary)\n        if not srf.is_valid():\n            return NurbsSurfaceTrimmed()\n        p00 = srf.get_cv(0, 0)\n        p10 = srf.get_cv(1, 0)\n        p01 = srf.get_cv(0, 1)\n        u_axis = Vector(p10[0]-p00[0], p10[1]-p00[1], p10[2]-p00[2])\n        v_axis = Vector(p01[0]-p00[0], p01[1]-p00[1], p01[2]-p00[2])\n        u_len2 = u_axis[0]**2 + u_axis[1]**2 + u_axis[2]**2\n        v_len2 = v_axis[0]**2 + v_axis[1]**2 + v_axis[2]**2\n        if u_len2 < 1e-28 or v_len2 < 1e-28:\n            return NurbsSurfaceTrimmed()\n        def project_to_uv(pt):\n            dx, dy, dz = pt[0]-p00[0], pt[1]-p00[1], pt[2]-p00[2]\n            nu = (dx*u_axis[0] + dy*u_axis[1] + dz*u_axis[2]) / u_len2\n            nv = (dx*v_axis[0] + dy*v_axis[1] + dz*v_axis[2]) / v_len2\n            return Point(nu, nv, 0.0)\n        uv_pts = []\n        if boundary.degree() <= 1:\n            for i in range(boundary.cv_count()):\n                uv_pts.append(project_to_uv(boundary.get_cv(i)))\n        else:\n            spans = boundary.get_span_vector()\n            for si in range(len(spans) - 1):\n                n_sub = 10\n                for k in range(n_sub + 1):\n                    t = spans[si] + (spans[si+1] - spans[si]) * k / n_sub\n                    uv = project_to_uv(boundary.point_at(t))\n                    if not uv_pts or (uv[0]-uv_pts[-1][0])**2 + (uv[1]-uv_pts[-1][1])**2 > 1e-24:\n                        uv_pts.append(uv)\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = srf\n        if len(uv_pts) >= 3:\n            ts.m_outer_loop = NurbsCurve.create(False, 1, uv_pts)\n        return ts\n\n    def surface(self):\n        return self.m_surface\n\n    def get_outer_loop(self):\n        return self.m_outer_loop\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def is_trimmed(self):\n        return self.m_outer_loop.is_valid()\n\n    def is_valid(self):\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v",
+          "code": "def create(surface, outer_loop):\n\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = surface.duplicate()\n        ts.m_outer_loop = outer_loop.duplicate()\n        return ts\n\n    @staticmethod\n    def create_planar(boundary):\n        from .point import Point\n        from .vector import Vector\n        srf = Primitives.create_planar(boundary)\n        if not srf.is_valid():\n            return NurbsSurfaceTrimmed()\n        p00 = srf.get_cv(0, 0)\n        p10 = srf.get_cv(1, 0)\n        p01 = srf.get_cv(0, 1)\n        u_axis = Vector(p10[0]-p00[0], p10[1]-p00[1], p10[2]-p00[2])\n        v_axis = Vector(p01[0]-p00[0], p01[1]-p00[1], p01[2]-p00[2])\n        u_len2 = u_axis[0]**2 + u_axis[1]**2 + u_axis[2]**2\n        v_len2 = v_axis[0]**2 + v_axis[1]**2 + v_axis[2]**2\n        if u_len2 < 1e-28 or v_len2 < 1e-28:\n            return NurbsSurfaceTrimmed()\n        def project_to_uv(pt):\n            dx, dy, dz = pt[0]-p00[0], pt[1]-p00[1], pt[2]-p00[2]\n            nu = (dx*u_axis[0] + dy*u_axis[1] + dz*u_axis[2]) / u_len2\n            nv = (dx*v_axis[0] + dy*v_axis[1] + dz*v_axis[2]) / v_len2\n            return Point(nu, nv, 0.0)\n        uv_pts = []\n        if boundary.degree() <= 1:\n            for i in range(boundary.cv_count()):\n                uv_pts.append(project_to_uv(boundary.get_cv(i)))\n        else:\n            spans = boundary.get_span_vector()\n            for si in range(len(spans) - 1):\n                n_sub = 10\n                for k in range(n_sub + 1):\n                    t = spans[si] + (spans[si+1] - spans[si]) * k / n_sub\n                    uv = project_to_uv(boundary.point_at(t))\n                    if not uv_pts or (uv[0]-uv_pts[-1][0])**2 + (uv[1]-uv_pts[-1][1])**2 > 1e-24:\n                        uv_pts.append(uv)\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = srf\n        if len(uv_pts) >= 3:\n            ts.m_outer_loop = NurbsCurve.create(False, 1, uv_pts)\n        return ts\n\n    @staticmethod\n    def split_by_uv_curves(srf, pcurves, tolerance=None, use_domain_border=True, n_boundary=0):\n        \"\"\"Split a surface into trimmed faces by UV pcurves.\n\n        Builds a planar arrangement of the UV domain rectangle and the given\n        pcurves (NurbsCurves with x=u, y=v, z=0), extracts faces, and emits one\n        NurbsSurfaceTrimmed per face. Loops are exact trims of the input\n        pcurves joined with straight border segments. Dangling open cutters\n        that do not reach the border or another cutter are discarded.\n\n        When ``use_domain_border`` is False, the four domain border sides are\n        not added; the caller must supply closed boundary loops as pcurves\n        (used by BRep splitting to split a face inside its own trim region).\n        ``n_boundary`` then gives the number of leading pcurves that form the\n        region boundary; their vertices anchor the arrangement so the exterior\n        cycle is not mistaken for a hole.\n        \"\"\"\n        def _is_boundary(cidx):\n            return cidx < 0 or (not use_domain_border and 0 <= cidx < n_boundary)\n        import math\n        from .point import Point\n\n        if not srf.is_valid():\n            return []\n\n        u0, u1 = srf.domain(0)\n        v0, v1 = srf.domain(1)\n        range_u = u1 - u0\n        range_v = v1 - v0\n\n        spans_u = srf.get_span_vector(0)\n        spans_v = srf.get_span_vector(1)\n        nu = max(len(spans_u) - 1, 1) * 4\n        nv = max(len(spans_v) - 1, 1) * 4",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -37585,19 +38548,25 @@ window.API_INDEX = {
       },
       "related": [
         "NurbsSurfaceTrimmed.__init__",
+        "NurbsSurfaceTrimmed._is_boundary",
         "NurbsSurfaceTrimmed.add_hole",
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.create_planar",
+        "NurbsSurfaceTrimmed.cycle_to_loop",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.guid",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.loop_signed_area",
         "NurbsSurfaceTrimmed.new",
         "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.point_in_cycle",
         "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.set_outer_loop",
+        "NurbsSurfaceTrimmed.split_by_uv_curves",
+        "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.surfacecolor",
         "NurbsSurfaceTrimmed.xform"
@@ -37608,7 +38577,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "create_planar(boundary)",
-          "code": "def create_planar(boundary):\n\n        from .point import Point\n        from .vector import Vector\n        srf = Primitives.create_planar(boundary)\n        if not srf.is_valid():\n            return NurbsSurfaceTrimmed()\n        p00 = srf.get_cv(0, 0)\n        p10 = srf.get_cv(1, 0)\n        p01 = srf.get_cv(0, 1)\n        u_axis = Vector(p10[0]-p00[0], p10[1]-p00[1], p10[2]-p00[2])\n        v_axis = Vector(p01[0]-p00[0], p01[1]-p00[1], p01[2]-p00[2])\n        u_len2 = u_axis[0]**2 + u_axis[1]**2 + u_axis[2]**2\n        v_len2 = v_axis[0]**2 + v_axis[1]**2 + v_axis[2]**2\n        if u_len2 < 1e-28 or v_len2 < 1e-28:\n            return NurbsSurfaceTrimmed()\n        def project_to_uv(pt):\n            dx, dy, dz = pt[0]-p00[0], pt[1]-p00[1], pt[2]-p00[2]\n            nu = (dx*u_axis[0] + dy*u_axis[1] + dz*u_axis[2]) / u_len2\n            nv = (dx*v_axis[0] + dy*v_axis[1] + dz*v_axis[2]) / v_len2\n            return Point(nu, nv, 0.0)\n        uv_pts = []\n        if boundary.degree() <= 1:\n            for i in range(boundary.cv_count()):\n                uv_pts.append(project_to_uv(boundary.get_cv(i)))\n        else:\n            spans = boundary.get_span_vector()\n            for si in range(len(spans) - 1):\n                n_sub = 10\n                for k in range(n_sub + 1):\n                    t = spans[si] + (spans[si+1] - spans[si]) * k / n_sub\n                    uv = project_to_uv(boundary.point_at(t))\n                    if not uv_pts or (uv[0]-uv_pts[-1][0])**2 + (uv[1]-uv_pts[-1][1])**2 > 1e-24:\n                        uv_pts.append(uv)\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = srf\n        if len(uv_pts) >= 3:\n            ts.m_outer_loop = NurbsCurve.create(False, 1, uv_pts)\n        return ts\n\n    def surface(self):\n        return self.m_surface\n\n    def get_outer_loop(self):\n        return self.m_outer_loop\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def is_trimmed(self):\n        return self.m_outer_loop.is_valid()\n\n    def is_valid(self):\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)",
+          "code": "def create_planar(boundary):\n\n        from .point import Point\n        from .vector import Vector\n        srf = Primitives.create_planar(boundary)\n        if not srf.is_valid():\n            return NurbsSurfaceTrimmed()\n        p00 = srf.get_cv(0, 0)\n        p10 = srf.get_cv(1, 0)\n        p01 = srf.get_cv(0, 1)\n        u_axis = Vector(p10[0]-p00[0], p10[1]-p00[1], p10[2]-p00[2])\n        v_axis = Vector(p01[0]-p00[0], p01[1]-p00[1], p01[2]-p00[2])\n        u_len2 = u_axis[0]**2 + u_axis[1]**2 + u_axis[2]**2\n        v_len2 = v_axis[0]**2 + v_axis[1]**2 + v_axis[2]**2\n        if u_len2 < 1e-28 or v_len2 < 1e-28:\n            return NurbsSurfaceTrimmed()\n        def project_to_uv(pt):\n            dx, dy, dz = pt[0]-p00[0], pt[1]-p00[1], pt[2]-p00[2]\n            nu = (dx*u_axis[0] + dy*u_axis[1] + dz*u_axis[2]) / u_len2\n            nv = (dx*v_axis[0] + dy*v_axis[1] + dz*v_axis[2]) / v_len2\n            return Point(nu, nv, 0.0)\n        uv_pts = []\n        if boundary.degree() <= 1:\n            for i in range(boundary.cv_count()):\n                uv_pts.append(project_to_uv(boundary.get_cv(i)))\n        else:\n            spans = boundary.get_span_vector()\n            for si in range(len(spans) - 1):\n                n_sub = 10\n                for k in range(n_sub + 1):\n                    t = spans[si] + (spans[si+1] - spans[si]) * k / n_sub\n                    uv = project_to_uv(boundary.point_at(t))\n                    if not uv_pts or (uv[0]-uv_pts[-1][0])**2 + (uv[1]-uv_pts[-1][1])**2 > 1e-24:\n                        uv_pts.append(uv)\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = srf\n        if len(uv_pts) >= 3:\n            ts.m_outer_loop = NurbsCurve.create(False, 1, uv_pts)\n        return ts\n\n    @staticmethod\n    def split_by_uv_curves(srf, pcurves, tolerance=None, use_domain_border=True, n_boundary=0):\n        \"\"\"Split a surface into trimmed faces by UV pcurves.\n\n        Builds a planar arrangement of the UV domain rectangle and the given\n        pcurves (NurbsCurves with x=u, y=v, z=0), extracts faces, and emits one\n        NurbsSurfaceTrimmed per face. Loops are exact trims of the input\n        pcurves joined with straight border segments. Dangling open cutters\n        that do not reach the border or another cutter are discarded.\n\n        When ``use_domain_border`` is False, the four domain border sides are\n        not added; the caller must supply closed boundary loops as pcurves\n        (used by BRep splitting to split a face inside its own trim region).\n        ``n_boundary`` then gives the number of leading pcurves that form the\n        region boundary; their vertices anchor the arrangement so the exterior\n        cycle is not mistaken for a hole.\n        \"\"\"\n        def _is_boundary(cidx):\n            return cidx < 0 or (not use_domain_border and 0 <= cidx < n_boundary)\n        import math\n        from .point import Point\n\n        if not srf.is_valid():\n            return []\n\n        u0, u1 = srf.domain(0)\n        v0, v1 = srf.domain(1)\n        range_u = u1 - u0\n        range_v = v1 - v0\n\n        spans_u = srf.get_span_vector(0)\n        spans_v = srf.get_span_vector(1)\n        nu = max(len(spans_u) - 1, 1) * 4\n        nv = max(len(spans_v) - 1, 1) * 4\n        du = range_u / nu\n        dv = range_v / nv\n        mu = (u0 + u1) * 0.5\n        mv = (v0 + v1) * 0.5\n        pmid = srf.point_at(mu, mv)\n        uv_to_3d_u = pmid.distance(srf.point_at(min(mu + du, u1), mv)) / du\n        uv_to_3d_v = pmid.distance(srf.point_at(mu, min(mv + dv, v1))) / dv",
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
@@ -37624,18 +38593,15 @@ window.API_INDEX = {
       },
       "related": [
         "NurbsSurfaceTrimmed.__init__",
-        "NurbsSurfaceTrimmed.add_hole",
-        "NurbsSurfaceTrimmed.add_holes",
-        "NurbsSurfaceTrimmed.add_inner_loop",
+        "NurbsSurfaceTrimmed._is_boundary",
         "NurbsSurfaceTrimmed.create",
-        "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.guid",
-        "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.new",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.project_to_uv",
-        "NurbsSurfaceTrimmed.set_outer_loop",
+        "NurbsSurfaceTrimmed.split_by_uv_curves",
+        "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.surfacecolor",
         "NurbsSurfaceTrimmed.xform"
@@ -37646,29 +38612,242 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "project_to_uv(pt)",
-          "code": "def project_to_uv(pt):\n\n            dx, dy, dz = pt[0]-p00[0], pt[1]-p00[1], pt[2]-p00[2]\n            nu = (dx*u_axis[0] + dy*u_axis[1] + dz*u_axis[2]) / u_len2\n            nv = (dx*v_axis[0] + dy*v_axis[1] + dz*v_axis[2]) / v_len2\n            return Point(nu, nv, 0.0)\n        uv_pts = []\n        if boundary.degree() <= 1:\n            for i in range(boundary.cv_count()):\n                uv_pts.append(project_to_uv(boundary.get_cv(i)))\n        else:\n            spans = boundary.get_span_vector()\n            for si in range(len(spans) - 1):\n                n_sub = 10\n                for k in range(n_sub + 1):\n                    t = spans[si] + (spans[si+1] - spans[si]) * k / n_sub\n                    uv = project_to_uv(boundary.point_at(t))\n                    if not uv_pts or (uv[0]-uv_pts[-1][0])**2 + (uv[1]-uv_pts[-1][1])**2 > 1e-24:\n                        uv_pts.append(uv)\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = srf\n        if len(uv_pts) >= 3:\n            ts.m_outer_loop = NurbsCurve.create(False, 1, uv_pts)\n        return ts\n\n    def surface(self):\n        return self.m_surface\n\n    def get_outer_loop(self):\n        return self.m_outer_loop\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def is_trimmed(self):\n        return self.m_outer_loop.is_valid()\n\n    def is_valid(self):\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()\n\n    def point_at(self, u, v):\n        return self.m_surface.point_at(u, v)",
+          "code": "def project_to_uv(pt):\n\n            dx, dy, dz = pt[0]-p00[0], pt[1]-p00[1], pt[2]-p00[2]\n            nu = (dx*u_axis[0] + dy*u_axis[1] + dz*u_axis[2]) / u_len2\n            nv = (dx*v_axis[0] + dy*v_axis[1] + dz*v_axis[2]) / v_len2\n            return Point(nu, nv, 0.0)\n        uv_pts = []\n        if boundary.degree() <= 1:\n            for i in range(boundary.cv_count()):\n                uv_pts.append(project_to_uv(boundary.get_cv(i)))\n        else:\n            spans = boundary.get_span_vector()\n            for si in range(len(spans) - 1):\n                n_sub = 10\n                for k in range(n_sub + 1):\n                    t = spans[si] + (spans[si+1] - spans[si]) * k / n_sub\n                    uv = project_to_uv(boundary.point_at(t))\n                    if not uv_pts or (uv[0]-uv_pts[-1][0])**2 + (uv[1]-uv_pts[-1][1])**2 > 1e-24:\n                        uv_pts.append(uv)\n        ts = NurbsSurfaceTrimmed()\n        ts.m_surface = srf\n        if len(uv_pts) >= 3:\n            ts.m_outer_loop = NurbsCurve.create(False, 1, uv_pts)\n        return ts\n\n    @staticmethod\n    def split_by_uv_curves(srf, pcurves, tolerance=None, use_domain_border=True, n_boundary=0):\n        \"\"\"Split a surface into trimmed faces by UV pcurves.\n\n        Builds a planar arrangement of the UV domain rectangle and the given\n        pcurves (NurbsCurves with x=u, y=v, z=0), extracts faces, and emits one\n        NurbsSurfaceTrimmed per face. Loops are exact trims of the input\n        pcurves joined with straight border segments. Dangling open cutters\n        that do not reach the border or another cutter are discarded.\n\n        When ``use_domain_border`` is False, the four domain border sides are\n        not added; the caller must supply closed boundary loops as pcurves\n        (used by BRep splitting to split a face inside its own trim region).\n        ``n_boundary`` then gives the number of leading pcurves that form the\n        region boundary; their vertices anchor the arrangement so the exterior\n        cycle is not mistaken for a hole.\n        \"\"\"\n        def _is_boundary(cidx):\n            return cidx < 0 or (not use_domain_border and 0 <= cidx < n_boundary)\n        import math\n        from .point import Point\n\n        if not srf.is_valid():\n            return []\n\n        u0, u1 = srf.domain(0)\n        v0, v1 = srf.domain(1)\n        range_u = u1 - u0\n        range_v = v1 - v0\n\n        spans_u = srf.get_span_vector(0)\n        spans_v = srf.get_span_vector(1)\n        nu = max(len(spans_u) - 1, 1) * 4\n        nv = max(len(spans_v) - 1, 1) * 4\n        du = range_u / nu\n        dv = range_v / nv\n        mu = (u0 + u1) * 0.5\n        mv = (v0 + v1) * 0.5\n        pmid = srf.point_at(mu, mv)\n        uv_to_3d_u = pmid.distance(srf.point_at(min(mu + du, u1), mv)) / du\n        uv_to_3d_v = pmid.distance(srf.point_at(mu, min(mv + dv, v1))) / dv\n        uv_to_3d = max(uv_to_3d_u, uv_to_3d_v)\n        if uv_to_3d < 1e-10:\n            uv_to_3d = 1.0\n\n        if tolerance is not None and tolerance > 0.0:\n            snap_uv = max(1e-9, tolerance / uv_to_3d)\n        else:\n            snap_uv = min(range_u, range_v) * 1e-7\n\n        # ---- 1. Sample cutters into tagged UV polylines ----\n        samp_tol = max(range_u, range_v) * 1e-3\n        polylines = []  # dict: cidx, pts (list [u,v]), ts (curve params)\n\n        def snap_border(p):\n            if abs(p[0] - u0) < snap_uv:",
           "file": "nurbssurface_trimmed.py"
         }
       },
       "related": [
         "NurbsSurfaceTrimmed.__init__",
+        "NurbsSurfaceTrimmed._is_boundary",
+        "NurbsSurfaceTrimmed.create",
+        "NurbsSurfaceTrimmed.create_planar",
+        "NurbsSurfaceTrimmed.guid",
+        "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.snap_border",
+        "NurbsSurfaceTrimmed.split_by_uv_curves",
+        "NurbsSurfaceTrimmed.str",
+        "NurbsSurfaceTrimmed.surface",
+        "NurbsSurfaceTrimmed.surfacecolor",
+        "NurbsSurfaceTrimmed.xform"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.split_by_uv_curves",
+      "implementations": {
+        "python": {
+          "sig": "split_by_uv_curves(srf, pcurves, tolerance=None, use_domain_border=True, n_boundary=0)",
+          "code": "def split_by_uv_curves(srf, pcurves, tolerance=None, use_domain_border=True, n_boundary=0):\n\n        \"\"\"Split a surface into trimmed faces by UV pcurves.\n\n        Builds a planar arrangement of the UV domain rectangle and the given\n        pcurves (NurbsCurves with x=u, y=v, z=0), extracts faces, and emits one\n        NurbsSurfaceTrimmed per face. Loops are exact trims of the input\n        pcurves joined with straight border segments. Dangling open cutters\n        that do not reach the border or another cutter are discarded.\n\n        When ``use_domain_border`` is False, the four domain border sides are\n        not added; the caller must supply closed boundary loops as pcurves\n        (used by BRep splitting to split a face inside its own trim region).\n        ``n_boundary`` then gives the number of leading pcurves that form the\n        region boundary; their vertices anchor the arrangement so the exterior\n        cycle is not mistaken for a hole.\n        \"\"\"\n        def _is_boundary(cidx):\n            return cidx < 0 or (not use_domain_border and 0 <= cidx < n_boundary)\n        import math\n        from .point import Point\n\n        if not srf.is_valid():\n            return []\n\n        u0, u1 = srf.domain(0)\n        v0, v1 = srf.domain(1)\n        range_u = u1 - u0\n        range_v = v1 - v0\n\n        spans_u = srf.get_span_vector(0)\n        spans_v = srf.get_span_vector(1)\n        nu = max(len(spans_u) - 1, 1) * 4\n        nv = max(len(spans_v) - 1, 1) * 4\n        du = range_u / nu\n        dv = range_v / nv\n        mu = (u0 + u1) * 0.5\n        mv = (v0 + v1) * 0.5\n        pmid = srf.point_at(mu, mv)\n        uv_to_3d_u = pmid.distance(srf.point_at(min(mu + du, u1), mv)) / du\n        uv_to_3d_v = pmid.distance(srf.point_at(mu, min(mv + dv, v1))) / dv\n        uv_to_3d = max(uv_to_3d_u, uv_to_3d_v)\n        if uv_to_3d < 1e-10:\n            uv_to_3d = 1.0\n\n        if tolerance is not None and tolerance > 0.0:\n            snap_uv = max(1e-9, tolerance / uv_to_3d)\n        else:\n            snap_uv = min(range_u, range_v) * 1e-7\n\n        # ---- 1. Sample cutters into tagged UV polylines ----\n        samp_tol = max(range_u, range_v) * 1e-3\n        polylines = []  # dict: cidx, pts (list [u,v]), ts (curve params)\n\n        def snap_border(p):\n            if abs(p[0] - u0) < snap_uv:\n                p[0] = u0\n            if abs(p[0] - u1) < snap_uv:\n                p[0] = u1\n            if abs(p[1] - v0) < snap_uv:\n                p[1] = v0\n            if abs(p[1] - v1) < snap_uv:\n                p[1] = v1\n\n        for cidx, crv in enumerate(pcurves):\n            if crv is None or not crv.is_valid():\n                continue\n            ct0, ct1 = crv.domain()\n            entries = []\n            n = max(crv.cv_count() * 4, 16)\n            for i in range(n + 1):\n                t = ct0 + (ct1 - ct0) * i / n\n                p = crv.point_at(t)\n                entries.append([t, p[0], p[1]])\n            depth = 0\n            while depth < 6:\n                inserted = 0\n                i = 0\n                while i < len(entries) - 1:\n                    a = entries[i]\n                    b = entries[i + 1]",
+          "file": "nurbssurface_trimmed.py"
+        },
+        "cpp": {
+          "sig": "std::vector<NurbsSurfaceTrimmed> split_by_uv_curves(const NurbsSurface& srf, const std::vector<NurbsCurve>& pcurves, double tolerance, bool use_domain_border, int n_boundary)",
+          "code": "std::vector<NurbsSurfaceTrimmed> NurbsSurfaceTrimmed::split_by_uv_curves(const NurbsSurface& srf, const std::vector<NurbsCurve>& pcurves, double tolerance, bool use_domain_border, int n_boundary) {\n    if (!srf.is_valid()) return {}",
+          "file": "nurbssurface_trimmed.cpp"
+        },
+        "rust": {
+          "sig": "split_by_uv_curves(srf: &NurbsSurface, pcurves: &[NurbsCurve], tolerance: Option<f64>) -> Vec<NurbsSurfaceTrimmed>",
+          "code": "pub fn split_by_uv_curves(srf: &NurbsSurface, pcurves: &[NurbsCurve], tolerance: Option<f64>) -> Vec<NurbsSurfaceTrimmed> {\n        Self::split_by_uv_curves_ex(srf, pcurves, tolerance, true, 0)\n    }",
+          "file": "nurbssurface_trimmed.rs"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed._is_boundary",
+        "NurbsSurfaceTrimmed.create",
+        "NurbsSurfaceTrimmed.create_planar",
+        "NurbsSurfaceTrimmed.guid",
+        "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.project_to_uv",
+        "NurbsSurfaceTrimmed.snap_border",
+        "NurbsSurfaceTrimmed.split_by_uv_curves_ex",
+        "NurbsSurfaceTrimmed.str",
+        "NurbsSurfaceTrimmed.surface",
+        "NurbsSurfaceTrimmed.surfacecolor",
+        "NurbsSurfaceTrimmed.xform"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed._is_boundary",
+      "implementations": {
+        "python": {
+          "sig": "_is_boundary(cidx)",
+          "code": "def _is_boundary(cidx):\n\n            return cidx < 0 or (not use_domain_border and 0 <= cidx < n_boundary)\n        import math\n        from .point import Point\n\n        if not srf.is_valid():\n            return []\n\n        u0, u1 = srf.domain(0)\n        v0, v1 = srf.domain(1)\n        range_u = u1 - u0\n        range_v = v1 - v0\n\n        spans_u = srf.get_span_vector(0)\n        spans_v = srf.get_span_vector(1)\n        nu = max(len(spans_u) - 1, 1) * 4\n        nv = max(len(spans_v) - 1, 1) * 4\n        du = range_u / nu\n        dv = range_v / nv\n        mu = (u0 + u1) * 0.5\n        mv = (v0 + v1) * 0.5\n        pmid = srf.point_at(mu, mv)\n        uv_to_3d_u = pmid.distance(srf.point_at(min(mu + du, u1), mv)) / du\n        uv_to_3d_v = pmid.distance(srf.point_at(mu, min(mv + dv, v1))) / dv\n        uv_to_3d = max(uv_to_3d_u, uv_to_3d_v)\n        if uv_to_3d < 1e-10:\n            uv_to_3d = 1.0\n\n        if tolerance is not None and tolerance > 0.0:\n            snap_uv = max(1e-9, tolerance / uv_to_3d)\n        else:\n            snap_uv = min(range_u, range_v) * 1e-7\n\n        # ---- 1. Sample cutters into tagged UV polylines ----\n        samp_tol = max(range_u, range_v) * 1e-3\n        polylines = []  # dict: cidx, pts (list [u,v]), ts (curve params)\n\n        def snap_border(p):\n            if abs(p[0] - u0) < snap_uv:\n                p[0] = u0\n            if abs(p[0] - u1) < snap_uv:\n                p[0] = u1\n            if abs(p[1] - v0) < snap_uv:\n                p[1] = v0\n            if abs(p[1] - v1) < snap_uv:\n                p[1] = v1\n\n        for cidx, crv in enumerate(pcurves):\n            if crv is None or not crv.is_valid():\n                continue\n            ct0, ct1 = crv.domain()\n            entries = []\n            n = max(crv.cv_count() * 4, 16)\n            for i in range(n + 1):\n                t = ct0 + (ct1 - ct0) * i / n\n                p = crv.point_at(t)\n                entries.append([t, p[0], p[1]])\n            depth = 0\n            while depth < 6:\n                inserted = 0\n                i = 0\n                while i < len(entries) - 1:\n                    a = entries[i]\n                    b = entries[i + 1]\n                    tm = (a[0] + b[0]) * 0.5\n                    pm = crv.point_at(tm)\n                    exu = b[1] - a[1]\n                    exv = b[2] - a[2]\n                    l2 = exu*exu + exv*exv\n                    if l2 > 1e-30:\n                        s = ((pm[0]-a[1])*exu + (pm[1]-a[2])*exv) / l2\n                        cx = a[1] + s*exu\n                        cy = a[2] + s*exv\n                        dev = math.hypot(pm[0]-cx, pm[1]-cy)\n                    else:\n                        dev = 0.0\n                    if dev > samp_tol and len(entries) < 4096:\n                        entries.insert(i + 1, [tm, pm[0], pm[1]])\n                        inserted += 1\n                        i += 2",
+          "file": "nurbssurface_trimmed.py"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed.create",
+        "NurbsSurfaceTrimmed.create_planar",
+        "NurbsSurfaceTrimmed.face_area",
+        "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.newton_cc",
+        "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.project_to_uv",
+        "NurbsSurfaceTrimmed.seg_seg",
+        "NurbsSurfaceTrimmed.snap_border",
+        "NurbsSurfaceTrimmed.split_by_uv_curves",
+        "NurbsSurfaceTrimmed.surfacecolor",
+        "NurbsSurfaceTrimmed.xform"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.snap_border",
+      "implementations": {
+        "python": {
+          "sig": "snap_border(p)",
+          "code": "def snap_border(p):\n\n            if abs(p[0] - u0) < snap_uv:\n                p[0] = u0\n            if abs(p[0] - u1) < snap_uv:\n                p[0] = u1\n            if abs(p[1] - v0) < snap_uv:\n                p[1] = v0\n            if abs(p[1] - v1) < snap_uv:\n                p[1] = v1\n\n        for cidx, crv in enumerate(pcurves):\n            if crv is None or not crv.is_valid():\n                continue\n            ct0, ct1 = crv.domain()\n            entries = []\n            n = max(crv.cv_count() * 4, 16)\n            for i in range(n + 1):\n                t = ct0 + (ct1 - ct0) * i / n\n                p = crv.point_at(t)\n                entries.append([t, p[0], p[1]])\n            depth = 0\n            while depth < 6:\n                inserted = 0\n                i = 0\n                while i < len(entries) - 1:\n                    a = entries[i]\n                    b = entries[i + 1]\n                    tm = (a[0] + b[0]) * 0.5\n                    pm = crv.point_at(tm)\n                    exu = b[1] - a[1]\n                    exv = b[2] - a[2]\n                    l2 = exu*exu + exv*exv\n                    if l2 > 1e-30:\n                        s = ((pm[0]-a[1])*exu + (pm[1]-a[2])*exv) / l2\n                        cx = a[1] + s*exu\n                        cy = a[2] + s*exv\n                        dev = math.hypot(pm[0]-cx, pm[1]-cy)\n                    else:\n                        dev = 0.0\n                    if dev > samp_tol and len(entries) < 4096:\n                        entries.insert(i + 1, [tm, pm[0], pm[1]])\n                        inserted += 1\n                        i += 2\n                    else:\n                        i += 1\n                if inserted == 0:\n                    break\n                depth += 1\n            pts = []\n            ts = []\n            for t, pu, pv in entries:\n                p = [min(max(pu, u0), u1), min(max(pv, v0), v1)]\n                snap_border(p)\n                if pts and abs(p[0]-pts[-1][0]) < 1e-15 and abs(p[1]-pts[-1][1]) < 1e-15:\n                    continue\n                pts.append(p)\n                ts.append(t)\n            if len(pts) < 2:\n                continue\n            # A cutter lying entirely on one border line coincides with the\n            # domain edge (e.g. a cut circle on the seam) and splits nothing.\n            # When the caller supplies its own boundary loops (no domain\n            # border), those loops legitimately run along the domain edges.\n            if use_domain_border and (\n               all(abs(p[0] - u0) < snap_uv for p in pts) or\n               all(abs(p[0] - u1) < snap_uv for p in pts) or\n               all(abs(p[1] - v0) < snap_uv for p in pts) or\n               all(abs(p[1] - v1) < snap_uv for p in pts)):\n                continue\n            polylines.append({'cidx': cidx, 'pts': pts, 'ts': ts})\n\n        # Border sides as polylines: cidx -1 bottom, -2 right, -3 top, -4 left\n        if use_domain_border:\n            polylines.append({'cidx': -1, 'pts': [[u0, v0], [u1, v0]], 'ts': [u0, u1]})\n            polylines.append({'cidx': -2, 'pts': [[u1, v0], [u1, v1]], 'ts': [v0, v1]})\n            polylines.append({'cidx': -3, 'pts': [[u1, v1], [u0, v1]], 'ts': [u1, u0]})\n            polylines.append({'cidx': -4, 'pts': [[u0, v1], [u0, v0]], 'ts': [v1, v0]})\n\n        # ---- 2. Segment-segment intersections (Newton-refined on real curves) ----\n        def seg_seg(p1, p2, p3, p4):",
+          "file": "nurbssurface_trimmed.py"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed._is_boundary",
+        "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.newton_cc",
+        "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.project_to_uv",
+        "NurbsSurfaceTrimmed.refine",
+        "NurbsSurfaceTrimmed.seg_seg",
+        "NurbsSurfaceTrimmed.split_by_uv_curves",
+        "NurbsSurfaceTrimmed.split_by_uv_curves_ex"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.seg_seg",
+      "implementations": {
+        "python": {
+          "sig": "seg_seg(p1, p2, p3, p4)",
+          "code": "def seg_seg(p1, p2, p3, p4):\n\n            d1u = p2[0] - p1[0]\n            d1v = p2[1] - p1[1]\n            d2u = p4[0] - p3[0]\n            d2v = p4[1] - p3[1]\n            den = d1u * d2v - d1v * d2u\n            if abs(den) < 1e-20:\n                return None\n            s = ((p3[0]-p1[0]) * d2v - (p3[1]-p1[1]) * d2u) / den\n            t = ((p3[0]-p1[0]) * d1v - (p3[1]-p1[1]) * d1u) / den\n            if -1e-12 <= s <= 1.0 + 1e-12 and -1e-12 <= t <= 1.0 + 1e-12:\n                return (s, t)\n            return None\n\n        def newton_cc(ca, ta, cb, tb):\n            for _ in range(8):\n                da = ca.evaluate(ta, 1)\n                db = cb.evaluate(tb, 1)\n                fu = da[0][0] - db[0][0]\n                fv = da[0][1] - db[0][1]\n                if math.hypot(fu, fv) < snap_uv * 0.01:\n                    break\n                j00 = da[1][0]\n                j01 = -db[1][0]\n                j10 = da[1][1]\n                j11 = -db[1][1]\n                den = j00 * j11 - j01 * j10\n                if abs(den) < 1e-20:\n                    break\n                ta -= (fu * j11 - j01 * fv) / den\n                tb -= (j00 * fv - fu * j10) / den\n                a0, a1 = ca.domain()\n                b0, b1 = cb.domain()\n                ta = min(max(ta, a0), a1)\n                tb = min(max(tb, b0), b1)\n            return ta, tb\n\n        splits = {}  # (poly_index, seg_index) -> list of (frac, u, v, t_on_curve)\n        for pi in range(len(polylines)):\n            for pj in range(pi + 1, len(polylines)):\n                A = polylines[pi]\n                B = polylines[pj]\n                if _is_boundary(A['cidx']) and _is_boundary(B['cidx']):\n                    continue\n                aminu = min(p[0] for p in A['pts']) - snap_uv\n                amaxu = max(p[0] for p in A['pts']) + snap_uv\n                aminv = min(p[1] for p in A['pts']) - snap_uv\n                amaxv = max(p[1] for p in A['pts']) + snap_uv\n                bminu = min(p[0] for p in B['pts'])\n                bmaxu = max(p[0] for p in B['pts'])\n                bminv = min(p[1] for p in B['pts'])\n                bmaxv = max(p[1] for p in B['pts'])\n                if bminu > amaxu or bmaxu < aminu or bminv > amaxv or bmaxv < aminv:\n                    continue\n                for ia in range(len(A['pts']) - 1):\n                    for ib in range(len(B['pts']) - 1):\n                        hit = seg_seg(A['pts'][ia], A['pts'][ia+1], B['pts'][ib], B['pts'][ib+1])\n                        if hit is None:\n                            continue\n                        s, t = hit\n                        ta = A['ts'][ia] + (A['ts'][ia+1] - A['ts'][ia]) * s\n                        tb = B['ts'][ib] + (B['ts'][ib+1] - B['ts'][ib]) * t\n                        hu = A['pts'][ia][0] + (A['pts'][ia+1][0] - A['pts'][ia][0]) * s\n                        hv = A['pts'][ia][1] + (A['pts'][ia+1][1] - A['pts'][ia][1]) * s\n                        if A['cidx'] >= 0 and B['cidx'] >= 0:\n                            ta, tb = newton_cc(pcurves[A['cidx']], ta, pcurves[B['cidx']], tb)\n                            pa = pcurves[A['cidx']].point_at(ta)\n                            hu, hv = pa[0], pa[1]\n                        elif A['cidx'] >= 0:\n                            pa = pcurves[A['cidx']].point_at(ta)\n                            hu, hv = pa[0], pa[1]\n                        elif B['cidx'] >= 0:\n                            pb = pcurves[B['cidx']].point_at(tb)\n                            hu, hv = pb[0], pb[1]\n                        hp = [hu, hv]\n                        snap_border(hp)\n                        if B['cidx'] < 0:\n                            if B['cidx'] in (-1, -3):\n                                tb = hp[0]\n                            else:",
+          "file": "nurbssurface_trimmed.py"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed._is_boundary",
+        "NurbsSurfaceTrimmed.new",
+        "NurbsSurfaceTrimmed.newton_cc",
+        "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.snap_border",
+        "NurbsSurfaceTrimmed.split_by_uv_curves_ex"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.newton_cc",
+      "implementations": {
+        "python": {
+          "sig": "newton_cc(ca, ta, cb, tb)",
+          "code": "def newton_cc(ca, ta, cb, tb):\n\n            for _ in range(8):\n                da = ca.evaluate(ta, 1)\n                db = cb.evaluate(tb, 1)\n                fu = da[0][0] - db[0][0]\n                fv = da[0][1] - db[0][1]\n                if math.hypot(fu, fv) < snap_uv * 0.01:\n                    break\n                j00 = da[1][0]\n                j01 = -db[1][0]\n                j10 = da[1][1]\n                j11 = -db[1][1]\n                den = j00 * j11 - j01 * j10\n                if abs(den) < 1e-20:\n                    break\n                ta -= (fu * j11 - j01 * fv) / den\n                tb -= (j00 * fv - fu * j10) / den\n                a0, a1 = ca.domain()\n                b0, b1 = cb.domain()\n                ta = min(max(ta, a0), a1)\n                tb = min(max(tb, b0), b1)\n            return ta, tb\n\n        splits = {}  # (poly_index, seg_index) -> list of (frac, u, v, t_on_curve)\n        for pi in range(len(polylines)):\n            for pj in range(pi + 1, len(polylines)):\n                A = polylines[pi]\n                B = polylines[pj]\n                if _is_boundary(A['cidx']) and _is_boundary(B['cidx']):\n                    continue\n                aminu = min(p[0] for p in A['pts']) - snap_uv\n                amaxu = max(p[0] for p in A['pts']) + snap_uv\n                aminv = min(p[1] for p in A['pts']) - snap_uv\n                amaxv = max(p[1] for p in A['pts']) + snap_uv\n                bminu = min(p[0] for p in B['pts'])\n                bmaxu = max(p[0] for p in B['pts'])\n                bminv = min(p[1] for p in B['pts'])\n                bmaxv = max(p[1] for p in B['pts'])\n                if bminu > amaxu or bmaxu < aminu or bminv > amaxv or bmaxv < aminv:\n                    continue\n                for ia in range(len(A['pts']) - 1):\n                    for ib in range(len(B['pts']) - 1):\n                        hit = seg_seg(A['pts'][ia], A['pts'][ia+1], B['pts'][ib], B['pts'][ib+1])\n                        if hit is None:\n                            continue\n                        s, t = hit\n                        ta = A['ts'][ia] + (A['ts'][ia+1] - A['ts'][ia]) * s\n                        tb = B['ts'][ib] + (B['ts'][ib+1] - B['ts'][ib]) * t\n                        hu = A['pts'][ia][0] + (A['pts'][ia+1][0] - A['pts'][ia][0]) * s\n                        hv = A['pts'][ia][1] + (A['pts'][ia+1][1] - A['pts'][ia][1]) * s\n                        if A['cidx'] >= 0 and B['cidx'] >= 0:\n                            ta, tb = newton_cc(pcurves[A['cidx']], ta, pcurves[B['cidx']], tb)\n                            pa = pcurves[A['cidx']].point_at(ta)\n                            hu, hv = pa[0], pa[1]\n                        elif A['cidx'] >= 0:\n                            pa = pcurves[A['cidx']].point_at(ta)\n                            hu, hv = pa[0], pa[1]\n                        elif B['cidx'] >= 0:\n                            pb = pcurves[B['cidx']].point_at(tb)\n                            hu, hv = pb[0], pb[1]\n                        hp = [hu, hv]\n                        snap_border(hp)\n                        if B['cidx'] < 0:\n                            if B['cidx'] in (-1, -3):\n                                tb = hp[0]\n                            else:\n                                tb = hp[1]\n                        if A['cidx'] < 0:\n                            if A['cidx'] in (-1, -3):\n                                ta = hp[0]\n                            else:\n                                ta = hp[1]\n                        splits.setdefault((pi, ia), []).append((s, hp[0], hp[1], ta))\n                        splits.setdefault((pj, ib), []).append((t, hp[0], hp[1], tb))\n\n        # ---- 3. Rebuild polylines with split vertices; build the vertex pool ----\n        cell_map = {}\n        verts = []\n\n        def vert_id(p):",
+          "file": "nurbssurface_trimmed.py"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed._is_boundary",
+        "NurbsSurfaceTrimmed.new",
+        "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.seg_seg",
+        "NurbsSurfaceTrimmed.snap_border",
+        "NurbsSurfaceTrimmed.split_by_uv_curves_ex",
+        "NurbsSurfaceTrimmed.vert_id"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.vert_id",
+      "implementations": {
+        "python": {
+          "sig": "vert_id(p)",
+          "code": "def vert_id(p):\n\n            ci = int(math.floor(p[0] / snap_uv))\n            cj = int(math.floor(p[1] / snap_uv))\n            for di in (-1, 0, 1):\n                for dj in (-1, 0, 1):\n                    bucket = cell_map.get((ci+di, cj+dj))\n                    if bucket is None:\n                        continue\n                    for vk in bucket:\n                        q = verts[vk]\n                        if math.hypot(q[0]-p[0], q[1]-p[1]) <= snap_uv:\n                            return vk\n            vk = len(verts)\n            verts.append([p[0], p[1]])\n            cell_map.setdefault((ci, cj), []).append(vk)\n            return vk\n\n        edges = []  # dict: a, b, cidx, ta, tb\n\n        for pi, poly in enumerate(polylines):\n            chain = []  # (vid, t_on_curve)\n            for i in range(len(poly['pts'])):\n                chain.append((vert_id(poly['pts'][i]), poly['ts'][i]))\n                if i < len(poly['pts']) - 1 and (pi, i) in splits:\n                    evs = sorted(splits[(pi, i)])\n                    for frac, hu, hv, tc in evs:\n                        chain.append((vert_id([hu, hv]), tc))\n            for i in range(len(chain) - 1):\n                a, ta = chain[i]\n                b, tb = chain[i + 1]\n                if a == b:\n                    continue\n                edges.append({'a': a, 'b': b, 'cidx': poly['cidx'], 'ta': ta, 'tb': tb})\n\n        # ---- 4. Prune dangling edges (valence-1 chains) ----\n        alive = [True] * len(edges)\n        changed = True\n        while changed:\n            changed = False\n            degree = {}\n            for ei, e in enumerate(edges):\n                if not alive[ei]:\n                    continue\n                degree[e['a']] = degree.get(e['a'], 0) + 1\n                degree[e['b']] = degree.get(e['b'], 0) + 1\n            for ei, e in enumerate(edges):\n                if not alive[ei]:\n                    continue\n                if degree.get(e['a'], 0) == 1 or degree.get(e['b'], 0) == 1:\n                    alive[ei] = False\n                    changed = True\n\n        live_edges = [e for ei, e in enumerate(edges) if alive[ei]]\n        if not live_edges:\n            return []\n\n        # ---- 5. Half-edge face extraction (leftmost-turn walk) ----\n        out_map = {}  # vid -> list of he indices\n        hes = []  # (tail, head, edge_ref, dir_flag)\n        for e in live_edges:\n            hes.append([e['a'], e['b'], e, 1])\n            hes.append([e['b'], e['a'], e, 0])\n        for hi, he in enumerate(hes):\n            out_map.setdefault(he[0], []).append(hi)\n        for vid in out_map:\n            out_map[vid].sort(key=lambda hi: math.atan2(verts[hes[hi][1]][1] - verts[vid][1], verts[hes[hi][1]][0] - verts[vid][0]))\n\n        twin = {}\n        for hi in range(0, len(hes), 2):\n            twin[hi] = hi + 1\n            twin[hi + 1] = hi\n\n        next_he = {}\n        for vid, outs in out_map.items():\n            for hi in outs:\n                tw = twin[hi]\n                # at vertex vid, incoming tw arrives; next outgoing is the one\n                # clockwise from the reversed incoming (leftmost turn)\n                pos = outs.index(hi)\n                nxt = outs[(pos - 1) % len(outs)]",
+          "file": "nurbssurface_trimmed.py"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed.newton_cc"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.face_area",
+      "implementations": {
+        "python": {
+          "sig": "face_area(cycle)",
+          "code": "def face_area(cycle):\n\n            s = 0.0\n            for hi in cycle:\n                a = verts[hes[hi][0]]\n                b = verts[hes[hi][1]]\n                s += a[0]*b[1] - b[0]*a[1]\n            return s * 0.5\n\n        border_vids = set()\n        for e in live_edges:\n            if _is_boundary(e['cidx']):\n                border_vids.add(e['a'])\n                border_vids.add(e['b'])\n\n        def point_in_cycle(p, cycle):\n            inside = False\n            n = len(cycle)\n            for hi in cycle:\n                a = verts[hes[hi][0]]\n                b = verts[hes[hi][1]]\n                if (a[1] > p[1]) != (b[1] > p[1]) and p[0] < (b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0]:\n                    inside = not inside\n            return inside\n\n        pos_faces = []\n        neg_faces = []\n        for cycle in faces:\n            area = face_area(cycle)\n            if area > snap_uv * snap_uv:\n                pos_faces.append((cycle, area))\n            elif area < -snap_uv * snap_uv:\n                touches_border = any(hes[hi][0] in border_vids for hi in cycle)\n                if not touches_border:\n                    neg_faces.append(cycle)\n\n        # ---- 6. Assign floating hole loops to their containing faces ----\n        holes_of = {fi: [] for fi in range(len(pos_faces))}\n        for cycle in neg_faces:\n            sample = verts[hes[cycle[0]][0]]\n            best = -1\n            best_area = float('inf')\n            for fi, (fc, area) in enumerate(pos_faces):\n                if area < best_area and point_in_cycle(sample, fc):\n                    # the hole vertex lies ON the cycle of its own disk face;\n                    # skip faces sharing vertices with the hole cycle\n                    hole_vids = set(hes[hi][0] for hi in cycle)\n                    face_vids = set(hes[hi][0] for hi in fc)\n                    if hole_vids == face_vids:\n                        continue\n                    best = fi\n                    best_area = area\n            if best >= 0:\n                holes_of[best].append(cycle)\n\n        # ---- 7. Emit one trimmed surface per face ----\n        def cycle_to_loop(cycle):\n            # Collapse consecutive same-curve half-edges into exact trims,\n            # border runs into straight segments, then join into one loop\n            runs = []\n            for hi in cycle:\n                tail, head, e, fwd = hes[hi]\n                ta = e['ta'] if fwd else e['tb']\n                tb = e['tb'] if fwd else e['ta']\n                if runs and runs[-1]['cidx'] == e['cidx'] and runs[-1]['vb'] == tail:\n                    runs[-1]['vb'] = head\n                    runs[-1]['tb'] = tb\n                else:\n                    runs.append({'cidx': e['cidx'], 'va': tail, 'vb': head, 'ta': ta, 'tb': tb})\n            pieces = []\n            for run in runs:\n                if run['cidx'] >= 0:\n                    crv = pcurves[run['cidx']]\n                    c0, c1 = crv.domain()\n                    lo = min(run['ta'], run['tb'])\n                    hi_ = max(run['ta'], run['tb'])\n                    piece = crv.duplicate()\n                    if hi_ - lo < (c1 - c0) - 1e-12 and hi_ - lo > 1e-14:\n                        if not piece.trim(lo, hi_):\n                            piece = None\n                    if piece is not None and piece.is_valid():",
+          "file": "nurbssurface_trimmed.py"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed._is_boundary",
+        "NurbsSurfaceTrimmed.cycle_to_loop",
+        "NurbsSurfaceTrimmed.duplicate",
+        "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.point_in_cycle",
+        "NurbsSurfaceTrimmed.str",
+        "NurbsSurfaceTrimmed.surface"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.point_in_cycle",
+      "implementations": {
+        "python": {
+          "sig": "point_in_cycle(p, cycle)",
+          "code": "def point_in_cycle(p, cycle):\n\n            inside = False\n            n = len(cycle)\n            for hi in cycle:\n                a = verts[hes[hi][0]]\n                b = verts[hes[hi][1]]\n                if (a[1] > p[1]) != (b[1] > p[1]) and p[0] < (b[0]-a[0])*(p[1]-a[1])/(b[1]-a[1])+a[0]:\n                    inside = not inside\n            return inside\n\n        pos_faces = []\n        neg_faces = []\n        for cycle in faces:\n            area = face_area(cycle)\n            if area > snap_uv * snap_uv:\n                pos_faces.append((cycle, area))\n            elif area < -snap_uv * snap_uv:\n                touches_border = any(hes[hi][0] in border_vids for hi in cycle)\n                if not touches_border:\n                    neg_faces.append(cycle)\n\n        # ---- 6. Assign floating hole loops to their containing faces ----\n        holes_of = {fi: [] for fi in range(len(pos_faces))}\n        for cycle in neg_faces:\n            sample = verts[hes[cycle[0]][0]]\n            best = -1\n            best_area = float('inf')\n            for fi, (fc, area) in enumerate(pos_faces):\n                if area < best_area and point_in_cycle(sample, fc):\n                    # the hole vertex lies ON the cycle of its own disk face;\n                    # skip faces sharing vertices with the hole cycle\n                    hole_vids = set(hes[hi][0] for hi in cycle)\n                    face_vids = set(hes[hi][0] for hi in fc)\n                    if hole_vids == face_vids:\n                        continue\n                    best = fi\n                    best_area = area\n            if best >= 0:\n                holes_of[best].append(cycle)\n\n        # ---- 7. Emit one trimmed surface per face ----\n        def cycle_to_loop(cycle):\n            # Collapse consecutive same-curve half-edges into exact trims,\n            # border runs into straight segments, then join into one loop\n            runs = []\n            for hi in cycle:\n                tail, head, e, fwd = hes[hi]\n                ta = e['ta'] if fwd else e['tb']\n                tb = e['tb'] if fwd else e['ta']\n                if runs and runs[-1]['cidx'] == e['cidx'] and runs[-1]['vb'] == tail:\n                    runs[-1]['vb'] = head\n                    runs[-1]['tb'] = tb\n                else:\n                    runs.append({'cidx': e['cidx'], 'va': tail, 'vb': head, 'ta': ta, 'tb': tb})\n            pieces = []\n            for run in runs:\n                if run['cidx'] >= 0:\n                    crv = pcurves[run['cidx']]\n                    c0, c1 = crv.domain()\n                    lo = min(run['ta'], run['tb'])\n                    hi_ = max(run['ta'], run['tb'])\n                    piece = crv.duplicate()\n                    if hi_ - lo < (c1 - c0) - 1e-12 and hi_ - lo > 1e-14:\n                        if not piece.trim(lo, hi_):\n                            piece = None\n                    if piece is not None and piece.is_valid():\n                        pieces.append(piece)\n                        continue\n                pa = verts[run['va']]\n                pb = verts[run['vb']]\n                if math.hypot(pb[0]-pa[0], pb[1]-pa[1]) > 1e-14:\n                    seg_pts = [Point(pa[0], pa[1], 0.0), Point(pb[0], pb[1], 0.0)]\n                    pieces.append(NurbsCurve.create(False, 1, seg_pts))\n            if not pieces:\n                return NurbsCurve()\n            joined = NurbsCurve.join(pieces, snap_uv * 4.0)\n            if len(joined) == 1 and joined[0].is_closed():\n                return joined[0]\n            # Fallback: polyline loop from the face walk\n            loop_pts = []",
+          "file": "nurbssurface_trimmed.py"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed.create",
+        "NurbsSurfaceTrimmed.cycle_to_loop",
+        "NurbsSurfaceTrimmed.duplicate",
+        "NurbsSurfaceTrimmed.face_area",
+        "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.str",
+        "NurbsSurfaceTrimmed.surface"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.cycle_to_loop",
+      "implementations": {
+        "python": {
+          "sig": "cycle_to_loop(cycle)",
+          "code": "def cycle_to_loop(cycle):\n\n            # Collapse consecutive same-curve half-edges into exact trims,\n            # border runs into straight segments, then join into one loop\n            runs = []\n            for hi in cycle:\n                tail, head, e, fwd = hes[hi]\n                ta = e['ta'] if fwd else e['tb']\n                tb = e['tb'] if fwd else e['ta']\n                if runs and runs[-1]['cidx'] == e['cidx'] and runs[-1]['vb'] == tail:\n                    runs[-1]['vb'] = head\n                    runs[-1]['tb'] = tb\n                else:\n                    runs.append({'cidx': e['cidx'], 'va': tail, 'vb': head, 'ta': ta, 'tb': tb})\n            pieces = []\n            for run in runs:\n                if run['cidx'] >= 0:\n                    crv = pcurves[run['cidx']]\n                    c0, c1 = crv.domain()\n                    lo = min(run['ta'], run['tb'])\n                    hi_ = max(run['ta'], run['tb'])\n                    piece = crv.duplicate()\n                    if hi_ - lo < (c1 - c0) - 1e-12 and hi_ - lo > 1e-14:\n                        if not piece.trim(lo, hi_):\n                            piece = None\n                    if piece is not None and piece.is_valid():\n                        pieces.append(piece)\n                        continue\n                pa = verts[run['va']]\n                pb = verts[run['vb']]\n                if math.hypot(pb[0]-pa[0], pb[1]-pa[1]) > 1e-14:\n                    seg_pts = [Point(pa[0], pa[1], 0.0), Point(pb[0], pb[1], 0.0)]\n                    pieces.append(NurbsCurve.create(False, 1, seg_pts))\n            if not pieces:\n                return NurbsCurve()\n            joined = NurbsCurve.join(pieces, snap_uv * 4.0)\n            if len(joined) == 1 and joined[0].is_closed():\n                return joined[0]\n            # Fallback: polyline loop from the face walk\n            loop_pts = []\n            for hi in cycle:\n                a = verts[hes[hi][0]]\n                loop_pts.append(Point(a[0], a[1], 0.0))\n            loop_pts.append(Point(loop_pts[0][0], loop_pts[0][1], 0.0))\n            return NurbsCurve.create(False, 1, loop_pts)\n\n        def loop_signed_area(loop):\n            n = 64\n            l0, l1 = loop.domain()\n            s = 0.0\n            prev = loop.point_at(l0)\n            for i in range(1, n + 1):\n                p = loop.point_at(l0 + (l1 - l0) * i / n)\n                s += prev[0]*p[1] - p[0]*prev[1]\n                prev = p\n            return s * 0.5\n\n        result = []\n        for fi, (cycle, area) in enumerate(pos_faces):\n            outer = cycle_to_loop(cycle)\n            if not outer.is_valid():\n                continue\n            if loop_signed_area(outer) < 0.0:\n                outer.reverse()\n            ts = NurbsSurfaceTrimmed.create(srf, outer)\n            for hole_cycle in holes_of[fi]:\n                hole = cycle_to_loop(hole_cycle)\n                if hole.is_valid():\n                    if loop_signed_area(hole) > 0.0:\n                        hole.reverse()\n                    ts.add_inner_loop(hole)\n            result.append(ts)\n        return result\n\n    def surface(self):\n        return self.m_surface\n\n    def get_outer_loop(self):\n        return self.m_outer_loop\n\n    def set_outer_loop(self, loop):",
+          "file": "nurbssurface_trimmed.py"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed.add_inner_loop",
+        "NurbsSurfaceTrimmed.create",
+        "NurbsSurfaceTrimmed.duplicate",
+        "NurbsSurfaceTrimmed.face_area",
+        "NurbsSurfaceTrimmed.get_outer_loop",
+        "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.loop_signed_area",
+        "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.point_in_cycle",
+        "NurbsSurfaceTrimmed.set_outer_loop",
+        "NurbsSurfaceTrimmed.str",
+        "NurbsSurfaceTrimmed.surface"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.loop_signed_area",
+      "implementations": {
+        "python": {
+          "sig": "loop_signed_area(loop)",
+          "code": "def loop_signed_area(loop):\n\n            n = 64\n            l0, l1 = loop.domain()\n            s = 0.0\n            prev = loop.point_at(l0)\n            for i in range(1, n + 1):\n                p = loop.point_at(l0 + (l1 - l0) * i / n)\n                s += prev[0]*p[1] - p[0]*prev[1]\n                prev = p\n            return s * 0.5\n\n        result = []\n        for fi, (cycle, area) in enumerate(pos_faces):\n            outer = cycle_to_loop(cycle)\n            if not outer.is_valid():\n                continue\n            if loop_signed_area(outer) < 0.0:\n                outer.reverse()\n            ts = NurbsSurfaceTrimmed.create(srf, outer)\n            for hole_cycle in holes_of[fi]:\n                hole = cycle_to_loop(hole_cycle)\n                if hole.is_valid():\n                    if loop_signed_area(hole) > 0.0:\n                        hole.reverse()\n                    ts.add_inner_loop(hole)\n            result.append(ts)\n        return result\n\n    def surface(self):\n        return self.m_surface\n\n    def get_outer_loop(self):\n        return self.m_outer_loop\n\n    def set_outer_loop(self, loop):\n        self.m_outer_loop = loop\n\n    def is_trimmed(self):\n        return self.m_outer_loop.is_valid()\n\n    def is_valid(self):\n        return self.m_surface.is_valid()\n\n    def add_inner_loop(self, loop_2d):\n        self.m_inner_loops.append(loop_2d)\n\n    def add_hole(self, curve_3d):\n        from .point import Point\n        from .nurbscurve import NurbsCurve\n        dom = curve_3d.domain()\n        sdom_u = self.m_surface.domain(0)\n        sdom_v = self.m_surface.domain(1)\n        range_u = sdom_u[1] - sdom_u[0]\n        range_v = sdom_v[1] - sdom_v[0]\n        n_samples = max(curve_3d.cv_count() * 4, 32)\n        uv_pts = []\n        for i in range(n_samples):\n            t = dom[0] + (dom[1] - dom[0]) * i / n_samples\n            pt3d = curve_3d.point_at(t)\n            u, v, _ = Closest.surface_point(self.m_surface, pt3d)\n            nu = (u - sdom_u[0]) / range_u\n            nv = (v - sdom_v[0]) / range_v\n            uv_pts.append(Point(nu, nv, 0.0))\n        if len(uv_pts) >= 3:\n            self.m_inner_loops.append(NurbsCurve.create(True, 1, uv_pts))\n\n    def add_holes(self, curves_3d):\n        for crv in curves_3d:\n            self.add_hole(crv)\n\n    def get_inner_loop(self, index):\n        if 0 <= index < len(self.m_inner_loops):\n            return self.m_inner_loops[index]\n        return None\n\n    def inner_loop_count(self):\n        return len(self.m_inner_loops)\n\n    def clear_inner_loops(self):\n        self.m_inner_loops.clear()",
+          "file": "nurbssurface_trimmed.py"
+        }
+      },
+      "related": [
         "NurbsSurfaceTrimmed.add_hole",
         "NurbsSurfaceTrimmed.add_holes",
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.create",
-        "NurbsSurfaceTrimmed.create_planar",
+        "NurbsSurfaceTrimmed.cycle_to_loop",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
-        "NurbsSurfaceTrimmed.guid",
         "NurbsSurfaceTrimmed.inner_loop_count",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.set_outer_loop",
-        "NurbsSurfaceTrimmed.surface",
-        "NurbsSurfaceTrimmed.surfacecolor",
-        "NurbsSurfaceTrimmed.xform"
+        "NurbsSurfaceTrimmed.surface"
       ]
     },
     {
@@ -37705,10 +38884,12 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.create",
         "NurbsSurfaceTrimmed.create_planar",
         "NurbsSurfaceTrimmed.cross",
+        "NurbsSurfaceTrimmed.cycle_to_loop",
         "NurbsSurfaceTrimmed.deep_copy_from",
         "NurbsSurfaceTrimmed.disc_loop",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.eval3",
+        "NurbsSurfaceTrimmed.face_area",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
         "NurbsSurfaceTrimmed.file_json_load",
@@ -37722,6 +38903,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.is_valid",
         "NurbsSurfaceTrimmed.jsondump",
         "NurbsSurfaceTrimmed.jsonload",
+        "NurbsSurfaceTrimmed.loop_signed_area",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.mesh_by_plane",
         "NurbsSurfaceTrimmed.mesh_by_planes",
@@ -37731,12 +38913,14 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.pb_dumps",
         "NurbsSurfaceTrimmed.pb_loads",
         "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.point_in_cycle",
         "NurbsSurfaceTrimmed.point_in_polygon",
         "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.refine",
         "NurbsSurfaceTrimmed.repr",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.split_by_planes",
+        "NurbsSurfaceTrimmed.split_by_uv_curves",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surfacecolor",
         "NurbsSurfaceTrimmed.to_string",
@@ -37773,24 +38957,21 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.create",
-        "NurbsSurfaceTrimmed.create_planar",
+        "NurbsSurfaceTrimmed.cycle_to_loop",
         "NurbsSurfaceTrimmed.e3",
         "NurbsSurfaceTrimmed.get_inner_loop",
-        "NurbsSurfaceTrimmed.guid",
         "NurbsSurfaceTrimmed.inner_loop_count",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.loop_signed_area",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.mesh_q",
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.point_at",
-        "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.refine",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.str",
-        "NurbsSurfaceTrimmed.surface",
-        "NurbsSurfaceTrimmed.surfacecolor",
-        "NurbsSurfaceTrimmed.xform"
+        "NurbsSurfaceTrimmed.surface"
       ]
     },
     {
@@ -37818,24 +38999,21 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.create",
-        "NurbsSurfaceTrimmed.create_planar",
+        "NurbsSurfaceTrimmed.cycle_to_loop",
         "NurbsSurfaceTrimmed.e3",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
-        "NurbsSurfaceTrimmed.guid",
         "NurbsSurfaceTrimmed.inner_loop_count",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.loop_signed_area",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.mesh_q",
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.point_at",
-        "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.refine",
         "NurbsSurfaceTrimmed.str",
-        "NurbsSurfaceTrimmed.surface",
-        "NurbsSurfaceTrimmed.surfacecolor",
-        "NurbsSurfaceTrimmed.xform"
+        "NurbsSurfaceTrimmed.surface"
       ]
     },
     {
@@ -37869,7 +39047,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.create",
-        "NurbsSurfaceTrimmed.create_planar",
         "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.e3",
@@ -37879,25 +39056,22 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.file_json_loads",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
-        "NurbsSurfaceTrimmed.guid",
         "NurbsSurfaceTrimmed.inner_loop_count",
         "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.loop_signed_area",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.mesh_q",
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.pb_dumps",
         "NurbsSurfaceTrimmed.point_at",
-        "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.refine",
         "NurbsSurfaceTrimmed.repr",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
-        "NurbsSurfaceTrimmed.surfacecolor",
         "NurbsSurfaceTrimmed.to_string",
         "NurbsSurfaceTrimmed.transform",
-        "NurbsSurfaceTrimmed.transformed",
-        "NurbsSurfaceTrimmed.xform"
+        "NurbsSurfaceTrimmed.transformed"
       ]
     },
     {
@@ -37926,27 +39100,35 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__ne__",
         "NurbsSurfaceTrimmed.__repr__",
         "NurbsSurfaceTrimmed.__str__",
+        "NurbsSurfaceTrimmed._is_boundary",
         "NurbsSurfaceTrimmed.add_hole",
         "NurbsSurfaceTrimmed.add_holes",
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.create",
         "NurbsSurfaceTrimmed.create_planar",
+        "NurbsSurfaceTrimmed.cycle_to_loop",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.e3",
+        "NurbsSurfaceTrimmed.face_area",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.guid",
         "NurbsSurfaceTrimmed.inner_loop_count",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.jsondump",
+        "NurbsSurfaceTrimmed.loop_signed_area",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.mesh_q",
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.point_in_cycle",
         "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.refine",
         "NurbsSurfaceTrimmed.set_outer_loop",
+        "NurbsSurfaceTrimmed.snap_border",
+        "NurbsSurfaceTrimmed.split_by_uv_curves",
+        "NurbsSurfaceTrimmed.split_by_uv_curves_ex",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.surfacecolor",
@@ -37980,24 +39162,22 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_holes",
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.create",
-        "NurbsSurfaceTrimmed.create_planar",
+        "NurbsSurfaceTrimmed.cycle_to_loop",
         "NurbsSurfaceTrimmed.e3",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.inner_loop_count",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.loop_signed_area",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.mesh_q",
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.point_at",
-        "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.refine",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.str",
-        "NurbsSurfaceTrimmed.surface",
-        "NurbsSurfaceTrimmed.surfacecolor",
-        "NurbsSurfaceTrimmed.xform"
+        "NurbsSurfaceTrimmed.surface"
       ]
     },
     {
@@ -38024,25 +39204,22 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.create",
-        "NurbsSurfaceTrimmed.create_planar",
         "NurbsSurfaceTrimmed.e3",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.inner_loop_count",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.loop_signed_area",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.mesh_q",
         "NurbsSurfaceTrimmed.new",
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.point_at",
-        "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.refine",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.str",
-        "NurbsSurfaceTrimmed.surface",
-        "NurbsSurfaceTrimmed.surfacecolor",
-        "NurbsSurfaceTrimmed.xform"
+        "NurbsSurfaceTrimmed.surface"
       ]
     },
     {
@@ -38068,7 +39245,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_hole",
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
-        "NurbsSurfaceTrimmed.create_planar",
         "NurbsSurfaceTrimmed.disc_loop",
         "NurbsSurfaceTrimmed.e3",
         "NurbsSurfaceTrimmed.eval3",
@@ -38077,11 +39253,11 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.inner_loop_count",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.loop_signed_area",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.mesh_q",
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.point_at",
-        "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.refine",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.str",
@@ -38119,11 +39295,11 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.inner_loop_count",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.loop_signed_area",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.mesh_q",
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.point_at",
-        "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.refine",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.str",
@@ -38167,11 +39343,11 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.loop_signed_area",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.mesh_q",
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.point_at",
-        "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.refine",
         "NurbsSurfaceTrimmed.repr",
         "NurbsSurfaceTrimmed.set_outer_loop",
@@ -38213,11 +39389,11 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.inner_loop_count",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.loop_signed_area",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.mesh_q",
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.point_at",
-        "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.refine",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.str",
@@ -38245,12 +39421,14 @@ window.API_INDEX = {
       },
       "related": [
         "NurbsSurfaceTrimmed.__init__",
+        "NurbsSurfaceTrimmed._is_boundary",
         "NurbsSurfaceTrimmed.add_hole",
         "NurbsSurfaceTrimmed.add_holes",
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.create",
         "NurbsSurfaceTrimmed.create_planar",
+        "NurbsSurfaceTrimmed.cycle_to_loop",
         "NurbsSurfaceTrimmed.disc_loop",
         "NurbsSurfaceTrimmed.e3",
         "NurbsSurfaceTrimmed.eval3",
@@ -38260,15 +39438,21 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.inner_loop_count",
         "NurbsSurfaceTrimmed.is_trimmed",
         "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.loop_signed_area",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.mesh_by_plane",
         "NurbsSurfaceTrimmed.mesh_by_planes",
         "NurbsSurfaceTrimmed.mesh_q",
+        "NurbsSurfaceTrimmed.newton_cc",
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.refine",
+        "NurbsSurfaceTrimmed.seg_seg",
         "NurbsSurfaceTrimmed.set_outer_loop",
+        "NurbsSurfaceTrimmed.snap_border",
         "NurbsSurfaceTrimmed.span_subs",
+        "NurbsSurfaceTrimmed.split_by_uv_curves",
+        "NurbsSurfaceTrimmed.split_by_uv_curves_ex",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.surfacecolor",
@@ -38655,7 +39839,9 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.point_in_polygon",
         "NurbsSurfaceTrimmed.set_outer_loop",
+        "NurbsSurfaceTrimmed.snap_border",
         "NurbsSurfaceTrimmed.span_subs",
+        "NurbsSurfaceTrimmed.split_by_uv_curves_ex",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.weld",
         "NurbsSurfaceTrimmed.weld_vertex"
@@ -38868,6 +40054,8 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__str__",
         "NurbsSurfaceTrimmed.create",
         "NurbsSurfaceTrimmed.cross",
+        "NurbsSurfaceTrimmed.cycle_to_loop",
+        "NurbsSurfaceTrimmed.face_area",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
         "NurbsSurfaceTrimmed.file_json_load",
@@ -38878,6 +40066,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.jsondump",
         "NurbsSurfaceTrimmed.jsonload",
         "NurbsSurfaceTrimmed.new",
+        "NurbsSurfaceTrimmed.point_in_cycle",
         "NurbsSurfaceTrimmed.repr",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
@@ -70016,6 +71205,82 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "BRepTrimType.split_by_plane",
+      "implementations": {
+        "cpp": {
+          "sig": "BRep split_by_plane(const Plane& plane, double tolerance = 0.0)",
+          "code": "BRep split_by_plane(const Plane& plane, double tolerance = 0.0) const;",
+          "file": "brep.h"
+        }
+      },
+      "related": [
+        "BRepTrimType.split_by_plane_pieces"
+      ]
+    },
+    {
+      "name": "BRepTrimType.split_by_surface",
+      "implementations": {
+        "cpp": {
+          "sig": "BRep split_by_surface(const NurbsSurface& cutter, double tolerance = 0.0)",
+          "code": "BRep split_by_surface(const NurbsSurface& cutter, double tolerance = 0.0) const;",
+          "file": "brep.h"
+        }
+      }
+    },
+    {
+      "name": "BRepTrimType.split_by_curves",
+      "implementations": {
+        "cpp": {
+          "sig": "BRep split_by_curves(const std::vector<NurbsCurve>& curves, double tolerance = 0.0)",
+          "code": "BRep split_by_curves(const std::vector<NurbsCurve>& curves, double tolerance = 0.0) const;",
+          "file": "brep.h"
+        }
+      }
+    },
+    {
+      "name": "BRepTrimType.split_by_line",
+      "implementations": {
+        "cpp": {
+          "sig": "BRep split_by_line(const Line& line, double tolerance = 0.0)",
+          "code": "BRep split_by_line(const Line& line, double tolerance = 0.0) const;",
+          "file": "brep.h"
+        }
+      }
+    },
+    {
+      "name": "BRepTrimType.split_by_brep",
+      "implementations": {
+        "cpp": {
+          "sig": "BRep split_by_brep(const BRep& cutter, double tolerance = 0.0)",
+          "code": "BRep split_by_brep(const BRep& cutter, double tolerance = 0.0) const;",
+          "file": "brep.h"
+        }
+      }
+    },
+    {
+      "name": "BRepTrimType.subset",
+      "implementations": {
+        "cpp": {
+          "sig": "BRep subset(const std::vector<int>& face_indices)",
+          "code": "BRep subset(const std::vector<int>& face_indices) const;",
+          "file": "brep.h"
+        }
+      }
+    },
+    {
+      "name": "BRepTrimType.split_by_plane_pieces",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<BRep> split_by_plane_pieces(const Plane& plane, double tolerance = 0.0)",
+          "code": "std::vector<BRep> split_by_plane_pieces(const Plane& plane, double tolerance = 0.0) const;",
+          "file": "brep.h"
+        }
+      },
+      "related": [
+        "BRepTrimType.split_by_plane"
+      ]
+    },
+    {
       "name": "BRepTrimType.mesh",
       "implementations": {
         "cpp": {
@@ -70276,6 +71541,56 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "BRep.subset",
+      "implementations": {
+        "cpp": {
+          "sig": "BRep subset(const std::vector<int>& face_indices)",
+          "code": "BRep BRep::subset(const std::vector<int>& face_indices) const {\n    BRep sub;\n    sub.name = name;\n    std::map<int, int> s_map, c2_map, c3_map, v_map, e_map;\n\n    auto map_surface = [&](int i) -> int {\n        auto it = s_map.find(i);\n        if (it != s_map.end()) return it->second;\n        int x = sub.add_surface(m_surfaces[i]);\n        s_map[i] = x;\n        return x;\n    }",
+          "file": "brep.cpp"
+        },
+        "rust": {
+          "sig": "subset(face_indices: &[usize]) -> BRep",
+          "code": "pub fn subset(&self, face_indices: &[usize]) -> BRep {\n        let mut sub = BRep::new();\n        sub.name = self.name.clone();\n        let mut s_map = std::collections::HashMap::new();\n        let mut c2_map = std::collections::HashMap::new();\n        let mut c3_map = std::collections::HashMap::new();\n        let mut v_map = std::collections::HashMap::new();\n        let mut e_map = std::collections::HashMap::new();\n        for &fi in face_indices {\n            let face = &self.m_faces[fi];\n            let si = Self::sub_map_surface(&mut sub, &mut s_map, self, face.surface_index);\n            let new_fi = sub.add_face(si, face.reversed) as i32;\n            for &li in &face.loop_indices {\n                let lp = self.m_loops[li as usize].clone();\n                let new_li = sub.add_loop(new_fi, lp.loop_type) as i32;\n                for &ti in &lp.trim_indices {\n                    let trim = self.m_trims[ti as usize].clone();\n                    let ci2 = Self::sub_map_c2(&mut sub, &mut c2_map, self, trim.curve_2d_index);\n                    let ei = Self::sub_map_edge(&mut sub, &mut e_map, &mut c3_map, &mut v_map, self, trim.edge_index);\n                    sub.add_trim(ci2, ei, new_li, trim.reversed, trim.trim_type);\n                }\n            }\n        }\n        for ei in 0..sub.m_topology_edges.len() {\n            let (sv, ev) = (sub.m_topology_edges[ei].start_vertex, sub.m_topology_edges[ei].end_vertex);\n            if sv >= 0 && (sv as usize) < sub.m_topology_vertices.len() {\n                sub.m_topology_vertices[sv as usize].edge_indices.push(ei as i32);\n            }\n            if ev != sv && ev >= 0 && (ev as usize) < sub.m_topology_vertices.len() {\n                sub.m_topology_vertices[ev as usize].edge_indices.push(ei as i32);\n            }\n        }\n        sub\n    }",
+          "file": "brep.rs"
+        }
+      },
+      "related": [
+        "BRep._subset",
+        "BRep.add_face",
+        "BRep.add_loop",
+        "BRep.add_surface",
+        "BRep.add_trim",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
+        "BRep.new",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
+        "BRep.split_by_plane",
+        "BRep.split_by_plane_pieces",
+        "BRep.split_by_surface"
+      ]
+    },
+    {
+      "name": "BRep.split_with",
+      "implementations": {
+        "cpp": {
+          "sig": "BRep split_with(double tolerance, const std::function<std::vector<NurbsCurve>(const NurbsSurface&)",
+          "code": "BRep BRep::split_with(double tolerance, const std::function<std::vector<NurbsCurve>(const NurbsSurface&)>& cut_for) const {\n    BRep result;\n    result.name = name;\n    std::map<std::tuple<long long, long long, long long>, int> vmap;\n    std::map<std::tuple<int, int, long long, long long, long long>, int> emap;\n\n    auto lift_loop = [](const NurbsSurface& srf, const NurbsCurve& pc,\n                        NurbsCurve& c3d, Point& p0, Point& p1, Point& pm) {\n        int n = std::max(pc.cv_count() * 4, 8);\n        auto dc = pc.domain();\n        std::vector<Point> pts3;\n        pts3.reserve(n + 1);\n        for (int i = 0; i <= n; ++i) {\n            Point uv = pc.point_at(dc.first + (dc.second - dc.first) * i / n);\n            pts3.push_back(srf.point_at(uv[0], uv[1]));\n        }",
+          "file": "brep.cpp"
+        }
+      },
+      "related": [
+        "BRep.cut_for",
+        "BRep.lift",
+        "BRep.point_at",
+        "BRep.split_by_brep",
+        "BRep.split_by_curves",
+        "BRep.split_by_plane",
+        "BRep.split_by_surface"
+      ]
+    },
+    {
       "name": "BRep.jsondump",
       "implementations": {
         "cpp": {
@@ -70423,6 +71738,16 @@ window.API_INDEX = {
           "sig": "return make_tuple(center, plane, cr[2])",
           "code": "return std::make_tuple(center, plane, cr[2]);\n}",
           "file": "polyline.cpp"
+        }
+      }
+    },
+    {
+      "name": "std.max",
+      "implementations": {
+        "cpp": {
+          "sig": "return max(max_extent * 2.2, 10.0)",
+          "code": "return std::max(max_extent * 2.2, 10.0);\n}",
+          "file": "spatial_bvh.cpp"
         }
       }
     },
@@ -73609,7 +74934,49 @@ window.API_INDEX = {
           "code": "std::vector<NurbsCurve> Intersection::surface_plane(\n    const NurbsSurface& surface,\n    const Plane& plane,\n    double tolerance\n) {\n    if (!surface.is_valid()) return {}",
           "file": "intersection.cpp"
         }
+      },
+      "related": [
+        "Intersection.cut_curves_on_surface",
+        "Intersection.surface_plane_uv"
+      ]
+    },
+    {
+      "name": "Intersection.surface_plane_uv",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<std::pair<NurbsCurve, NurbsCurve>> surface_plane_uv(\n    const NurbsSurface& surface,\n    const Plane& plane,\n    double tolerance\n)",
+          "code": "std::vector<std::pair<NurbsCurve, NurbsCurve>> Intersection::surface_plane_uv(\n    const NurbsSurface& surface,\n    const Plane& plane,\n    double tolerance\n) {\n    if (!surface.is_valid()) return {}",
+          "file": "intersection.cpp"
+        }
+      },
+      "related": [
+        "Intersection.cut_curves_on_surface",
+        "Intersection.surface_plane"
+      ]
+    },
+    {
+      "name": "Intersection.surface_surface",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<std::tuple<NurbsCurve, NurbsCurve, NurbsCurve>> surface_surface(\n    const NurbsSurface& a,\n    const NurbsSurface& b,\n    double tolerance\n)",
+          "code": "std::vector<std::tuple<NurbsCurve, NurbsCurve, NurbsCurve>> Intersection::surface_surface(\n    const NurbsSurface& a,\n    const NurbsSurface& b,\n    double tolerance\n) {\n    if (!a.is_valid() || !b.is_valid()) return {}",
+          "file": "intersection.cpp"
+        }
       }
+    },
+    {
+      "name": "Intersection.cut_curves_on_surface",
+      "implementations": {
+        "cpp": {
+          "sig": "std::vector<NurbsCurve> cut_curves_on_surface(const NurbsSurface& target, const NurbsSurface& cutter, double tolerance)",
+          "code": "std::vector<NurbsCurve> Intersection::cut_curves_on_surface(const NurbsSurface& target, const NurbsSurface& cutter, double tolerance) {\n    std::vector<NurbsCurve> out;\n    if (cutter.is_planar(nullptr, 1e-6)) {\n        auto cu = cutter.domain(0);\n        auto cv = cutter.domain(1);\n        double mu = (cu.first + cu.second) * 0.5;\n        double mv = (cv.first + cv.second) * 0.5;\n        Point origin = cutter.point_at(mu, mv);\n        Vector normal = cutter.normal_at(mu, mv);\n        Plane plane = Plane::from_point_normal(origin, normal);\n        for (auto& pr : surface_plane_uv(target, plane, tolerance)) {\n            auto clipped = clip_pcurve_to_cutter(target, pr.second, cutter);\n            out.insert(out.end(), clipped.begin(), clipped.end());\n        }",
+          "file": "intersection.cpp"
+        }
+      },
+      "related": [
+        "Intersection.surface_plane",
+        "Intersection.surface_plane_uv"
+      ]
     },
     {
       "name": "Intersection.plane_plane_plane_check",
@@ -73913,26 +75280,6 @@ window.API_INDEX = {
         "cpp": {
           "sig": "case 2: swap(x_addr, z_addr)",
           "code": "case 2:\n            std::swap(x_addr, z_addr);\n            p0 = &workarray[0];\n            std::swap(p0[0], p0[2]); p0 += 4;\n            std::swap(p0[0], p0[2]); p0 += 4;\n            std::swap(p0[0], p0[2]);\n            break;\n    }",
-          "file": "intersection.cpp"
-        }
-      }
-    },
-    {
-      "name": "std.max",
-      "implementations": {
-        "cpp": {
-          "sig": "return max(max_extent * 2.2, 10.0)",
-          "code": "return std::max(max_extent * 2.2, 10.0);\n}",
-          "file": "spatial_bvh.cpp"
-        }
-      }
-    },
-    {
-      "name": "std.hypot",
-      "implementations": {
-        "cpp": {
-          "sig": "return hypot(ddu, ddv)",
-          "code": "return std::hypot(ddu, ddv);\n    }",
           "file": "intersection.cpp"
         }
       }
@@ -77035,6 +78382,7 @@ window.API_INDEX = {
         "NurbsCurve.is_rational",
         "NurbsCurve.is_valid",
         "NurbsCurve.is_valid_nurbsknot_vector",
+        "NurbsCurve.join",
         "NurbsCurve.jsondump",
         "NurbsCurve.jsonload",
         "NurbsCurve.make_non_rational",
@@ -77094,6 +78442,7 @@ window.API_INDEX = {
         "NurbsCurve.get_cv",
         "NurbsCurve.is_natural",
         "NurbsCurve.is_polyline",
+        "NurbsCurve.join",
         "NurbsCurve.pb_dump",
         "NurbsCurve.pb_fill",
         "NurbsCurve.pb_load",
@@ -77657,7 +79006,6 @@ window.API_INDEX = {
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.evaluate",
-        "NurbsSurface.increase_degree",
         "NurbsSurface.iso_curve",
         "NurbsSurface.make_clamped_uniform_nurbsknot_vector",
         "NurbsSurface.make_periodic_uniform_nurbsknot_vector",
@@ -77666,8 +79014,8 @@ window.API_INDEX = {
         "NurbsSurface.order",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
-        "NurbsSurface.transform_stored",
-        "NurbsSurface.transformed_stored"
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_line"
       ]
     },
     {
@@ -77686,7 +79034,6 @@ window.API_INDEX = {
         "NurbsSurface.basis_functions_derivatives",
         "NurbsSurface.degree",
         "NurbsSurface.evaluate",
-        "NurbsSurface.increase_degree",
         "NurbsSurface.iso_curve",
         "NurbsSurface.make_clamped_uniform_nurbsknot_vector",
         "NurbsSurface.make_periodic_uniform_nurbsknot_vector",
@@ -77695,8 +79042,8 @@ window.API_INDEX = {
         "NurbsSurface.order",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
-        "NurbsSurface.transform_stored",
-        "NurbsSurface.transformed_stored"
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_line"
       ]
     },
     {
@@ -77824,9 +79171,13 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_holes",
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
+        "NurbsSurfaceTrimmed.create",
+        "NurbsSurfaceTrimmed.create_planar",
         "NurbsSurfaceTrimmed.cross",
+        "NurbsSurfaceTrimmed.cycle_to_loop",
         "NurbsSurfaceTrimmed.disc_loop",
         "NurbsSurfaceTrimmed.duplicate",
+        "NurbsSurfaceTrimmed.face_area",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
         "NurbsSurfaceTrimmed.file_json_load",
@@ -77849,14 +79200,20 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.pb_load",
         "NurbsSurfaceTrimmed.pb_loads",
         "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.point_in_cycle",
         "NurbsSurfaceTrimmed.point_in_polygon",
+        "NurbsSurfaceTrimmed.project_to_uv",
         "NurbsSurfaceTrimmed.repr",
         "NurbsSurfaceTrimmed.set_outer_loop",
+        "NurbsSurfaceTrimmed.split_by_uv_curves",
+        "NurbsSurfaceTrimmed.split_by_uv_curves_ex",
         "NurbsSurfaceTrimmed.surface",
+        "NurbsSurfaceTrimmed.surfacecolor",
         "NurbsSurfaceTrimmed.to_string",
         "NurbsSurfaceTrimmed.transform",
         "NurbsSurfaceTrimmed.transformed",
-        "NurbsSurfaceTrimmed.weld"
+        "NurbsSurfaceTrimmed.weld",
+        "NurbsSurfaceTrimmed.xform"
       ]
     },
     {
@@ -78354,6 +79711,16 @@ window.API_INDEX = {
         "cpp": {
           "sig": "return Point(nu, nv, 0.0)",
           "code": "return Point(nu, nv, 0.0);",
+          "file": "nurbssurface_trimmed.cpp"
+        }
+      }
+    },
+    {
+      "name": "FlatMap64.NurbsCurve",
+      "implementations": {
+        "cpp": {
+          "sig": "return NurbsCurve()",
+          "code": "return NurbsCurve();",
           "file": "nurbssurface_trimmed.cpp"
         }
       }
@@ -83436,9 +84803,12 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "BRep._split",
+        "BRep._subset",
         "BRep.add_edge",
         "BRep.add_face",
         "BRep.add_loop",
+        "BRep.append_face",
         "BRep.create_block_with_hole",
         "BRep.create_box",
         "BRep.create_cylinder",
@@ -83452,6 +84822,9 @@ window.API_INDEX = {
         "BRep.from_polylines",
         "BRep.get_edge",
         "BRep.guid",
+        "BRep.map_edge",
+        "BRep.map_surface",
+        "BRep.map_vertex",
         "BRep.mesh",
         "BRep.normal_at",
         "BRep.pb_dumps",
@@ -83459,7 +84832,14 @@ window.API_INDEX = {
         "BRep.point_at",
         "BRep.project_curve_to_uv",
         "BRep.pt3d",
+        "BRep.split_by_brep",
+        "BRep.split_by_curves",
+        "BRep.split_by_line",
+        "BRep.split_by_plane",
+        "BRep.split_by_plane_pieces",
+        "BRep.split_by_surface",
         "BRep.str",
+        "BRep.subset",
         "BRep.surfacecolor",
         "BRep.transform",
         "BRep.xform"
@@ -84757,6 +86137,7 @@ window.API_INDEX = {
         "NurbsCurve.is_linear",
         "NurbsCurve.is_planar",
         "NurbsCurve.is_rational",
+        "NurbsCurve.join",
         "NurbsCurve.make_non_rational",
         "NurbsCurve.make_rational",
         "NurbsCurve.nurbsknot",
@@ -84994,6 +86375,10 @@ window.API_INDEX = {
         "NurbsSurface.ray_intersect",
         "NurbsSurface.reverse",
         "NurbsSurface.set_weight",
+        "NurbsSurface.split_by_brep",
+        "NurbsSurface.split_by_curves",
+        "NurbsSurface.split_by_plane",
+        "NurbsSurface.split_by_surface",
         "NurbsSurface.str",
         "NurbsSurface.swap_coordinates",
         "NurbsSurface.to_string",
@@ -85127,8 +86512,11 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.mesh_by_plane",
         "NurbsSurfaceTrimmed.mesh_by_planes",
         "NurbsSurfaceTrimmed.mesh_q",
+        "NurbsSurfaceTrimmed.newton_cc",
         "NurbsSurfaceTrimmed.pb_loads",
+        "NurbsSurfaceTrimmed.seg_seg",
         "NurbsSurfaceTrimmed.split_by_planes",
+        "NurbsSurfaceTrimmed.split_by_uv_curves_ex",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.surfacecolor",
@@ -85151,6 +86539,27 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.mesh_by_planes",
         "NurbsSurfaceTrimmed.mesh_q",
         "NurbsSurfaceTrimmed.split_by_planes"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.split_by_uv_curves_ex",
+      "implementations": {
+        "rust": {
+          "sig": "split_by_uv_curves_ex(srf: &NurbsSurface, pcurves: &[NurbsCurve], tolerance: Option<f64>, use_domain_border: bool, n_boundary: usize) -> Vec<NurbsSurfaceTrimmed>",
+          "code": "pub fn split_by_uv_curves_ex(srf: &NurbsSurface, pcurves: &[NurbsCurve], tolerance: Option<f64>, use_domain_border: bool, n_boundary: usize) -> Vec<NurbsSurfaceTrimmed> {\n        use std::collections::HashMap;\n        use std::collections::HashSet;\n\n        let is_boundary = |cidx: i32| -> bool {\n            cidx < 0 || (!use_domain_border && cidx >= 0 && (cidx as usize) < n_boundary)\n        };\n\n        if !srf.is_valid() {\n            return Vec::new();\n        }\n\n        let (u0, u1) = srf.domain(0).unwrap_or((0.0, 1.0));\n        let (v0, v1) = srf.domain(1).unwrap_or((0.0, 1.0));\n        let range_u = u1 - u0;\n        let range_v = v1 - v0;\n\n        let spans_u = srf.get_span_vector(0);\n        let spans_v = srf.get_span_vector(1);\n        let nu = spans_u.len().saturating_sub(1).max(1) * 4;\n        let nv = spans_v.len().saturating_sub(1).max(1) * 4;\n        let du = range_u / nu as f64;\n        let dv = range_v / nv as f64;\n        let mu = (u0 + u1) * 0.5;\n        let mv = (v0 + v1) * 0.5;\n        let pmid = srf.point_at(mu, mv).unwrap_or_else(|| Point::new(0.0, 0.0, 0.0));\n        let pdu = srf.point_at((mu + du).min(u1), mv).unwrap_or_else(|| Point::new(0.0, 0.0, 0.0));\n        let pdv = srf.point_at(mu, (mv + dv).min(v1)).unwrap_or_else(|| Point::new(0.0, 0.0, 0.0));\n        let uv_to_3d_u = pmid.distance(&pdu, None) / du;\n        let uv_to_3d_v = pmid.distance(&pdv, None) / dv;\n        let mut uv_to_3d = uv_to_3d_u.max(uv_to_3d_v);\n        if uv_to_3d < 1e-10 {\n            uv_to_3d = 1.0;\n        }\n\n        let snap_uv = match tolerance {\n            Some(tol) if tol > 0.0 => (tol / uv_to_3d).max(1e-9),\n            _ => range_u.min(range_v) * 1e-7,\n        };\n\n        // ---- 1. Sample cutters into tagged UV polylines ----\n        let samp_tol = range_u.max(range_v) * 1e-3;\n        struct PolyLine { cidx: i32, pts: Vec<[f64; 2]>, ts: Vec<f64> }\n        let mut polylines: Vec<PolyLine> = Vec::new();\n\n        let snap_border = |p: &mut [f64; 2]| {\n            if (p[0] - u0).abs() < snap_uv {\n                p[0] = u0;\n            }\n            if (p[0] - u1).abs() < snap_uv {\n                p[0] = u1;\n            }\n            if (p[1] - v0).abs() < snap_uv {\n                p[1] = v0;\n            }\n            if (p[1] - v1).abs() < snap_uv {\n                p[1] = v1;\n            }\n        };\n\n        for (cidx, crv) in pcurves.iter().enumerate() {\n            if !crv.is_valid() {\n                continue;\n            }\n            let (ct0, ct1) = crv.domain();\n            let mut entries: Vec<[f64; 3]> = Vec::new();\n            let n = (crv.cv_count() * 4).max(16);\n            for i in 0..=n {\n                let t = ct0 + (ct1 - ct0) * i as f64 / n as f64;\n                let p = crv.point_at(t);\n                entries.push([t, p[0], p[1]]);\n            }\n            let mut depth = 0;\n            while depth < 6 {\n                let mut inserted = 0;\n                let mut i = 0;\n                while i < entries.len() - 1 {\n                    let a = entries[i];\n                    let b = entries[i + 1];\n                    let tm = (a[0] + b[0]) * 0.5;\n                    let pm = crv.point_at(tm);\n                    let exu = b[1] - a[1];\n                    let exv = b[2] - a[2];\n                    let l2 = exu*exu + exv*exv;\n                    let dev = if l2 > 1e-30 {\n                        let s = ((pm[0]-a[1])*exu + (pm[1]-a[2])*exv) / l2;\n                        let cx = a[1] + s*exu;\n                        let cy = a[2] + s*exv;\n                        (pm[0]-cx).hypot(pm[1]-cy)\n                    } else {\n                        0.0\n                    };\n                    if dev > samp_tol && entries.len() < 4096 {\n                        entries.insert(i + 1, [tm, pm[0], pm[1]]);\n                        inserted += 1;\n                        i += 2;\n                    } else {\n                        i += 1;\n                    }\n                }\n                if inserted == 0 {\n                    break;\n                }\n                depth += 1;\n            }\n            let mut pts: Vec<[f64; 2]> = Vec::new();\n            let mut ts: Vec<f64> = Vec::new();\n            for e in &entries {\n                let mut p = [e[1].max(u0).min(u1), e[2].max(v0).min(v1)];\n                snap_border(&mut p);\n                if let Some(last) = pts.last() {\n                    if (p[0]-last[0]).abs() < 1e-15 && (p[1]-last[1]).abs() < 1e-15 {\n                        continue;\n                    }\n                }\n                pts.push(p);\n                ts.push(e[0]);\n            }\n            if pts.len() < 2 {\n                continue;\n            }\n            // A cutter lying entirely on one border line coincides with the\n            // domain edge (e.g. a cut circle on the seam) and splits nothing.\n            // When the caller supplies its own boundary loops (no domain\n            // border), those loops legitimately run along the domain edges.\n            if use_domain_border && (\n               pts.iter().all(|p| (p[0] - u0).abs() < snap_uv) ||\n               pts.iter().all(|p| (p[0] - u1).abs() < snap_uv) ||\n               pts.iter().all(|p| (p[1] - v0).abs() < snap_uv) ||\n               pts.iter().all(|p| (p[1] - v1).abs() < snap_uv)) {\n                continue;\n            }\n            polylines.push(PolyLine { cidx: cidx as i32, pts, ts });\n        }\n\n        // Border sides as polylines: cidx -1 bottom, -2 right, -3 top, -4 left\n        if use_domain_border {\n            polylines.push(PolyLine { cidx: -1, pts: vec![[u0, v0], [u1, v0]], ts: vec![u0, u1] });\n            polylines.push(PolyLine { cidx: -2, pts: vec![[u1, v0], [u1, v1]], ts: vec![v0, v1] });\n            polylines.push(PolyLine { cidx: -3, pts: vec![[u1, v1], [u0, v1]], ts: vec![u1, u0] });\n            polylines.push(PolyLine { cidx: -4, pts: vec![[u0, v1], [u0, v0]], ts: vec![v1, v0] });\n        }\n\n        // ---- 2. Segment-segment intersections (Newton-refined on real curves) ----\n        fn seg_seg(p1: &[f64; 2], p2: &[f64; 2], p3: &[f64; 2], p4: &[f64; 2]) -> Option<(f64, f64)> {\n            let d1u = p2[0] - p1[0];\n            let d1v = p2[1] - p1[1];\n            let d2u = p4[0] - p3[0];\n            let d2v = p4[1] - p3[1];\n            let den = d1u * d2v - d1v * d2u;\n            if den.abs() < 1e-20 {\n                return None;\n            }\n            let s = ((p3[0]-p1[0]) * d2v - (p3[1]-p1[1]) * d2u) / den;\n            let t = ((p3[0]-p1[0]) * d1v - (p3[1]-p1[1]) * d1u) / den;\n            if -1e-12 <= s && s <= 1.0 + 1e-12 && -1e-12 <= t && t <= 1.0 + 1e-12 {\n                return Some((s, t));\n            }\n            None\n        }\n\n        let newton_cc = |ca: &NurbsCurve, mut ta: f64, cb: &NurbsCurve, mut tb: f64| -> (f64, f64) {\n            for _ in 0..8 {\n                let da = ca.evaluate(ta, 1);\n                let db = cb.evaluate(tb, 1);\n                let fu = da[0][0] - db[0][0];\n                let fv = da[0][1] - db[0][1];\n                if fu.hypot(fv) < snap_uv * 0.01 {\n                    break;\n                }\n                let j00 = da[1][0];\n                let j01 = -db[1][0];\n                let j10 = da[1][1];\n                let j11 = -db[1][1];\n                let den = j00 * j11 - j01 * j10;\n                if den.abs() < 1e-20 {\n                    break;\n                }\n                ta -= (fu * j11 - j01 * fv) / den;\n                tb -= (j00 * fv - fu * j10) / den;\n                let (a0, a1) = ca.domain();\n                let (b0, b1) = cb.domain();\n                ta = ta.max(a0).min(a1);\n                tb = tb.max(b0).min(b1);\n            }\n            (ta, tb)\n        };\n\n        let mut splits: HashMap<(usize, usize), Vec<(f64, f64, f64, f64)>> = HashMap::new();\n        for pi in 0..polylines.len() {\n            for pj in (pi + 1)..polylines.len() {\n                let a_poly = &polylines[pi];\n                let b_poly = &polylines[pj];\n                if is",
+          "file": "nurbssurface_trimmed.rs"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed.is_valid",
+        "NurbsSurfaceTrimmed.new",
+        "NurbsSurfaceTrimmed.newton_cc",
+        "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.refine",
+        "NurbsSurfaceTrimmed.seg_seg",
+        "NurbsSurfaceTrimmed.snap_border",
+        "NurbsSurfaceTrimmed.split_by_uv_curves",
+        "NurbsSurfaceTrimmed.str"
       ]
     },
     {
@@ -87453,7 +88862,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"Constructor\")",
-          "code": "MINI_TEST!(\"BRep\", \"Constructor\", crate::brep_test::run_brep_constructor);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Box\", crate::brep_test::run_brep_create_box);\nREGISTER_MINI_TEST!(\"BRep\", \"Accessors\", crate::brep_test::run_brep_accessors);\nREGISTER_MINI_TEST!(\"BRep\", \"Add Face\", crate::brep_test::run_brep_add_face);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh\", crate::brep_test::run_brep_mesh);\nREGISTER_MINI_TEST!(\"BRep\", \"Point At\", crate::brep_test::run_brep_point_at);\nREGISTER_MINI_TEST!(\"BRep\", \"Is Solid\", crate::brep_test::run_brep_is_solid);\nREGISTER_MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"Constructor\", crate::brep_test::run_brep_constructor);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Box\", crate::brep_test::run_brep_create_box);\nREGISTER_MINI_TEST!(\"BRep\", \"Accessors\", crate::brep_test::run_brep_accessors);\nREGISTER_MINI_TEST!(\"BRep\", \"Add Face\", crate::brep_test::run_brep_add_face);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh\", crate::brep_test::run_brep_mesh);\nREGISTER_MINI_TEST!(\"BRep\", \"Point At\", crate::brep_test::run_brep_point_at);\nREGISTER_MINI_TEST!(\"BRep\", \"Is Solid\", crate::brep_test::run_brep_is_solid);\nREGISTER_MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87473,7 +88882,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"Create Box\")",
-          "code": "MINI_TEST!(\"BRep\", \"Create Box\", crate::brep_test::run_brep_create_box);\nREGISTER_MINI_TEST!(\"BRep\", \"Accessors\", crate::brep_test::run_brep_accessors);\nREGISTER_MINI_TEST!(\"BRep\", \"Add Face\", crate::brep_test::run_brep_add_face);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh\", crate::brep_test::run_brep_mesh);\nREGISTER_MINI_TEST!(\"BRep\", \"Point At\", crate::brep_test::run_brep_point_at);\nREGISTER_MINI_TEST!(\"BRep\", \"Is Solid\", crate::brep_test::run_brep_is_solid);\nREGISTER_MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"Create Box\", crate::brep_test::run_brep_create_box);\nREGISTER_MINI_TEST!(\"BRep\", \"Accessors\", crate::brep_test::run_brep_accessors);\nREGISTER_MINI_TEST!(\"BRep\", \"Add Face\", crate::brep_test::run_brep_add_face);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh\", crate::brep_test::run_brep_mesh);\nREGISTER_MINI_TEST!(\"BRep\", \"Point At\", crate::brep_test::run_brep_point_at);\nREGISTER_MINI_TEST!(\"BRep\", \"Is Solid\", crate::brep_test::run_brep_is_solid);\nREGISTER_MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87493,7 +88902,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"Accessors\")",
-          "code": "MINI_TEST!(\"BRep\", \"Accessors\", crate::brep_test::run_brep_accessors);\nREGISTER_MINI_TEST!(\"BRep\", \"Add Face\", crate::brep_test::run_brep_add_face);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh\", crate::brep_test::run_brep_mesh);\nREGISTER_MINI_TEST!(\"BRep\", \"Point At\", crate::brep_test::run_brep_point_at);\nREGISTER_MINI_TEST!(\"BRep\", \"Is Solid\", crate::brep_test::run_brep_is_solid);\nREGISTER_MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"Accessors\", crate::brep_test::run_brep_accessors);\nREGISTER_MINI_TEST!(\"BRep\", \"Add Face\", crate::brep_test::run_brep_add_face);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh\", crate::brep_test::run_brep_mesh);\nREGISTER_MINI_TEST!(\"BRep\", \"Point At\", crate::brep_test::run_brep_point_at);\nREGISTER_MINI_TEST!(\"BRep\", \"Is Solid\", crate::brep_test::run_brep_is_solid);\nREGISTER_MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87513,7 +88922,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"Add Face\")",
-          "code": "MINI_TEST!(\"BRep\", \"Add Face\", crate::brep_test::run_brep_add_face);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh\", crate::brep_test::run_brep_mesh);\nREGISTER_MINI_TEST!(\"BRep\", \"Point At\", crate::brep_test::run_brep_point_at);\nREGISTER_MINI_TEST!(\"BRep\", \"Is Solid\", crate::brep_test::run_brep_is_solid);\nREGISTER_MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"Add Face\", crate::brep_test::run_brep_add_face);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh\", crate::brep_test::run_brep_mesh);\nREGISTER_MINI_TEST!(\"BRep\", \"Point At\", crate::brep_test::run_brep_point_at);\nREGISTER_MINI_TEST!(\"BRep\", \"Is Solid\", crate::brep_test::run_brep_is_solid);\nREGISTER_MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87533,7 +88942,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"Mesh\")",
-          "code": "MINI_TEST!(\"BRep\", \"Mesh\", crate::brep_test::run_brep_mesh);\nREGISTER_MINI_TEST!(\"BRep\", \"Point At\", crate::brep_test::run_brep_point_at);\nREGISTER_MINI_TEST!(\"BRep\", \"Is Solid\", crate::brep_test::run_brep_is_solid);\nREGISTER_MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"Mesh\", crate::brep_test::run_brep_mesh);\nREGISTER_MINI_TEST!(\"BRep\", \"Point At\", crate::brep_test::run_brep_point_at);\nREGISTER_MINI_TEST!(\"BRep\", \"Is Solid\", crate::brep_test::run_brep_is_solid);\nREGISTER_MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87553,7 +88962,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"Point At\")",
-          "code": "MINI_TEST!(\"BRep\", \"Point At\", crate::brep_test::run_brep_point_at);\nREGISTER_MINI_TEST!(\"BRep\", \"Is Solid\", crate::brep_test::run_brep_is_solid);\nREGISTER_MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"Point At\", crate::brep_test::run_brep_point_at);\nREGISTER_MINI_TEST!(\"BRep\", \"Is Solid\", crate::brep_test::run_brep_is_solid);\nREGISTER_MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87573,7 +88982,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"Is Solid\")",
-          "code": "MINI_TEST!(\"BRep\", \"Is Solid\", crate::brep_test::run_brep_is_solid);\nREGISTER_MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"Is Solid\", crate::brep_test::run_brep_is_solid);\nREGISTER_MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87593,7 +89002,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"Transformation\")",
-          "code": "MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"Transformation\", crate::brep_test::run_brep_transformation);\nREGISTER_MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87613,7 +89022,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"Json Roundtrip\")",
-          "code": "MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"Json Roundtrip\", crate::brep_test::run_brep_json_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87633,7 +89042,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"Create Cylinder\")",
-          "code": "MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"Create Cylinder\", crate::brep_test::run_brep_create_cylinder);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87653,7 +89062,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"Create Sphere\")",
-          "code": "MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"Create Sphere\", crate::brep_test::run_brep_create_sphere);\n// TODO(f64-followup): re-enable after BRep/Mesh-from-polylines tolerance\n// investigation under f64 (currently produces empty mesh).\n// REGISTER_MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87673,7 +89082,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"From Polylines\")",
-          "code": "MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"From Polylines\", crate::brep_test::run_brep_from_polylines);\nREGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87693,7 +89102,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"From Nurbscurves\")",
-          "code": "MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"From Nurbscurves\", crate::brep_test::run_brep_from_nurbscurves);\n// TODO(f64-followup): re-enable after BRep validity check under f64.\n// REGISTER_MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87713,7 +89122,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\")",
-          "code": "MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"From Nurbscurves Holes\", crate::brep_test::run_brep_from_nurbscurves_holes);\nREGISTER_MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87733,7 +89142,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"Create Block With Hole\")",
-          "code": "MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"Create Block With Hole\", crate::brep_test::run_brep_create_block_with_hole);\nREGISTER_MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87753,7 +89162,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"Mesh Orientation\")",
-          "code": "MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"Mesh Orientation\", crate::brep_test::run_brep_mesh_orientation);\nREGISTER_MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87768,12 +89177,92 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"BRep\", \"Protobuf Roundtrip\")",
-          "code": "@MINI_TEST(\"BRep\", \"Protobuf Roundtrip\")\ndef test_protobuf_roundtrip():\n    from session_py import BRep\n    from session_py import Color\n    from pathlib import Path\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    b.name = \"test_brep\"\n    b.width = 2.0\n    b.surfacecolor = Color(255, 128, 64, 255)\n\n    # String\n    proto_data = b.pb_dumps()\n    loaded_proto = BRep.pb_loads(proto_data)\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_brep.bin\"\n    fname.parent.mkdir(parents=True, exist_ok=True)\n    b.pb_dump(str(fname))\n    loaded = BRep.pb_load(str(fname))\n\n    MINI_CHECK(loaded_proto == b)\n    MINI_CHECK(loaded == b)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "code": "@MINI_TEST(\"BRep\", \"Protobuf Roundtrip\")\ndef test_protobuf_roundtrip():\n    from session_py import BRep\n    from session_py import Color\n    from pathlib import Path\n\n    b = BRep.create_box(2.0, 3.0, 4.0)\n    b.name = \"test_brep\"\n    b.width = 2.0\n    b.surfacecolor = Color(255, 128, 64, 255)\n\n    # String\n    proto_data = b.pb_dumps()\n    loaded_proto = BRep.pb_loads(proto_data)\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_brep.bin\"\n    fname.parent.mkdir(parents=True, exist_ok=True)\n    b.pb_dump(str(fname))\n    loaded = BRep.pb_load(str(fname))\n\n    MINI_CHECK(loaded_proto == b)\n    MINI_CHECK(loaded == b)",
           "file": "brep_test.py"
         },
         "rust": {
           "sig": "MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\")",
-          "code": "MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"BRep\", \"Protobuf Roundtrip\", crate::brep_test::run_brep_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
+          "file": "brep_test.rs"
+        }
+      }
+    },
+    {
+      "name": "BRep.test_Split By Plane",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"BRep\", \"Split By Plane\")",
+          "code": "MINI_TEST(\"BRep\", \"Split By Plane\") {\n        // uncomment #include \"brep.h\"\n        // uncomment #include \"plane.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n\n        BRep box = BRep::create_box(2.0, 2.0, 2.0);\n        Point origin(0.0, 0.0, 0.0);\n        Vector normal(0.0, 0.0, 1.0);\n        Plane plane = Plane::from_point_normal(origin, normal);\n        BRep split = box.split_by_plane(plane);\n        double box_area = box.mesh().area();\n        double split_area = split.mesh().area();\n        int inner = 0;\n        for (const auto& face : split.m_faces)\n            for (int li : face.loop_indices)\n                if (split.m_loops[li].type == BRepLoopType::Inner)\n                    inner += 1;\n\n        MINI_CHECK(split.face_count() == 10);\n        MINI_CHECK(std::abs(split_area - box_area) < box_area * 0.01);\n        MINI_CHECK(!split.mesh().is_empty());\n        MINI_CHECK(inner == 0);\n\n        BRep cylinder = BRep::create_cylinder(1.0, 4.0);\n        Point mid_origin(0.0, 0.0, 1.0);\n        Vector mid_normal(0.0, 0.0, 1.0);\n        Plane mid = Plane::from_point_normal(mid_origin, mid_normal);\n        BRep cut = cylinder.split_by_plane(mid);\n\n        MINI_CHECK(cut.face_count() == 4);\n        MINI_CHECK(std::abs(cut.mesh().area() - cylinder.mesh().area()) < cylinder.mesh().area() * 0.02);\n    }",
+          "file": "brep_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"BRep\", \"Split By Plane\")",
+          "code": "@MINI_TEST(\"BRep\", \"Split By Plane\")\ndef test_brep_split_by_plane():\n    from session_py import BRep\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n    from session_py.brep import BRepLoopType\n\n    box = BRep.create_box(2.0, 2.0, 2.0)\n    plane = Plane.from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0))\n    split = box.split_by_plane(plane)\n    box_area = box.mesh().area()\n    split_area = split.mesh().area()\n    inner = 0\n    for face in split.m_faces:\n        for li in face.loop_indices:\n            if split.m_loops[li].type == BRepLoopType.Inner:\n                inner += 1\n\n    MINI_CHECK(split.face_count() == 10)\n    MINI_CHECK(abs(split_area - box_area) < box_area * 0.01)\n    MINI_CHECK(not split.mesh().is_empty())\n    MINI_CHECK(inner == 0)\n\n    cylinder = BRep.create_cylinder(1.0, 4.0)\n    mid = Plane.from_point_normal(Point(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0))\n    cut = cylinder.split_by_plane(mid)\n\n    MINI_CHECK(cut.face_count() == 4)\n    MINI_CHECK(abs(cut.mesh().area() - cylinder.mesh().area()) < cylinder.mesh().area() * 0.02)",
+          "file": "brep_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"BRep\", \"Split By Plane\")",
+          "code": "MINI_TEST!(\"BRep\", \"Split By Plane\", crate::brep_test::run_brep_split_by_plane);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
+          "file": "brep_test.rs"
+        }
+      }
+    },
+    {
+      "name": "BRep.test_Split By Plane Pieces",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"BRep\", \"Split By Plane Pieces\")",
+          "code": "MINI_TEST(\"BRep\", \"Split By Plane Pieces\") {\n        // uncomment #include \"brep.h\"\n        // uncomment #include \"plane.h\"\n\n        BRep box = BRep::create_box(2.0, 2.0, 2.0);\n        Point origin(0.0, 0.0, 0.0);\n        Vector normal(0.0, 0.0, 1.0);\n        Plane plane = Plane::from_point_normal(origin, normal);\n        std::vector<BRep> pieces = box.split_by_plane_pieces(plane);\n        double total = 0.0;\n        for (const auto& piece : pieces) total += piece.mesh().area();\n\n        MINI_CHECK(pieces.size() == 2);\n        MINI_CHECK(pieces[0].face_count() == 5);\n        MINI_CHECK(pieces[1].face_count() == 5);\n        MINI_CHECK(std::abs(total - box.mesh().area()) < box.mesh().area() * 0.01);\n\n        Point far_o(0.0, 0.0, 5.0);\n        Vector far_n(0.0, 0.0, 1.0);\n        Plane far = Plane::from_point_normal(far_o, far_n);\n        std::vector<BRep> whole = box.split_by_plane_pieces(far);\n\n        MINI_CHECK(whole.size() == 1);\n        MINI_CHECK(whole[0].face_count() == 6);\n    }",
+          "file": "brep_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"BRep\", \"Split By Plane Pieces\")",
+          "code": "@MINI_TEST(\"BRep\", \"Split By Plane Pieces\")\ndef test_brep_split_by_plane_pieces():\n    from session_py import BRep\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    box = BRep.create_box(2.0, 2.0, 2.0)\n    plane = Plane.from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0))\n    pieces = box.split_by_plane_pieces(plane)\n    total = 0.0\n    for piece in pieces:\n        total += piece.mesh().area()\n\n    MINI_CHECK(len(pieces) == 2)\n    MINI_CHECK(pieces[0].face_count() == 5)\n    MINI_CHECK(pieces[1].face_count() == 5)\n    MINI_CHECK(abs(total - box.mesh().area()) < box.mesh().area() * 0.01)\n\n    far = Plane.from_point_normal(Point(0.0, 0.0, 5.0), Vector(0.0, 0.0, 1.0))\n    whole = box.split_by_plane_pieces(far)\n\n    MINI_CHECK(len(whole) == 1)\n    MINI_CHECK(whole[0].face_count() == 6)",
+          "file": "brep_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"BRep\", \"Split By Plane Pieces\")",
+          "code": "MINI_TEST!(\"BRep\", \"Split By Plane Pieces\", crate::brep_test::run_brep_split_by_plane_pieces);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
+          "file": "brep_test.rs"
+        }
+      }
+    },
+    {
+      "name": "BRep.test_Split By Line",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"BRep\", \"Split By Line\")",
+          "code": "MINI_TEST(\"BRep\", \"Split By Line\") {\n        // uncomment #include \"brep.h\"\n        // uncomment #include \"line.h\"\n        // uncomment #include \"point.h\"\n\n        BRep box = BRep::create_box(2.0, 2.0, 2.0);\n        Line line = Line::from_points(Point(0.0, -2.0, 1.0), Point(0.0, 2.0, 1.0));\n        BRep split = box.split_by_line(line);\n        double box_area = box.mesh().area();\n        double split_area = split.mesh().area();\n\n        MINI_CHECK(split.face_count() == 7);\n        MINI_CHECK(std::abs(split_area - box_area) < box_area * 0.01);\n        MINI_CHECK(!split.mesh().is_empty());\n    }",
+          "file": "brep_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"BRep\", \"Split By Line\")",
+          "code": "@MINI_TEST(\"BRep\", \"Split By Line\")\ndef test_brep_split_by_line():\n    from session_py import BRep\n    from session_py import Line\n    from session_py import Point\n\n    box = BRep.create_box(2.0, 2.0, 2.0)\n    line = Line.from_points(Point(0.0, -2.0, 1.0), Point(0.0, 2.0, 1.0))\n    split = box.split_by_line(line)\n    box_area = box.mesh().area()\n    split_area = split.mesh().area()\n\n    MINI_CHECK(split.face_count() == 7)\n    MINI_CHECK(abs(split_area - box_area) < box_area * 0.01)\n    MINI_CHECK(not split.mesh().is_empty())",
+          "file": "brep_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"BRep\", \"Split By Line\")",
+          "code": "MINI_TEST!(\"BRep\", \"Split By Line\", crate::brep_test::run_brep_split_by_line);\nREGISTER_MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
+          "file": "brep_test.rs"
+        }
+      }
+    },
+    {
+      "name": "BRep.test_Split By Brep",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"BRep\", \"Split By Brep\")",
+          "code": "MINI_TEST(\"BRep\", \"Split By Brep\") {\n        // uncomment #include \"brep.h\"\n\n        BRep target = BRep::create_box(4.0, 4.0, 2.0);\n        BRep cutter = BRep::create_box(2.0, 2.0, 6.0);\n        BRep split = target.split_by_brep(cutter);\n        double target_area = target.mesh().area();\n        double split_area = split.mesh().area();\n\n        MINI_CHECK(split.face_count() == 8);\n        MINI_CHECK(std::abs(split_area - target_area) < target_area * 0.01);\n        MINI_CHECK(!split.mesh().is_empty());\n    }",
+          "file": "brep_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"BRep\", \"Split By Brep\")",
+          "code": "@MINI_TEST(\"BRep\", \"Split By Brep\")\ndef test_brep_split_by_brep():\n    from session_py import BRep\n\n    target = BRep.create_box(4.0, 4.0, 2.0)\n    cutter = BRep.create_box(2.0, 2.0, 6.0)\n    split = target.split_by_brep(cutter)\n    target_area = target.mesh().area()\n    split_area = split.mesh().area()\n\n    MINI_CHECK(split.face_count() == 8)\n    MINI_CHECK(abs(split_area - target_area) < target_area * 0.01)\n    MINI_CHECK(not split.mesh().is_empty())\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "file": "brep_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"BRep\", \"Split By Brep\")",
+          "code": "MINI_TEST!(\"BRep\", \"Split By Brep\", crate::brep_test::run_brep_split_by_brep);",
           "file": "brep_test.rs"
         }
       }
@@ -87793,7 +89282,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Closest\", \"Line Point\")",
-          "code": "MINI_TEST!(\"Closest\", \"Line Point\", crate::closest_test::run_closest_line_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Polyline Point\", crate::closest_test::run_closest_polyline_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Curve Point\", crate::closest_test::run_closest_curve_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point SpatialKDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
+          "code": "MINI_TEST!(\"Closest\", \"Line Point\", crate::closest_test::run_closest_line_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Polyline Point\", crate::closest_test::run_closest_polyline_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Curve Point\", crate::closest_test::run_closest_curve_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Curve\", crate::closest_test::run_closest_surface_curve);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point SpatialKDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
           "file": "closest_test.rs"
         }
       }
@@ -87813,7 +89302,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Closest\", \"Polyline Point\")",
-          "code": "MINI_TEST!(\"Closest\", \"Polyline Point\", crate::closest_test::run_closest_polyline_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Curve Point\", crate::closest_test::run_closest_curve_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point SpatialKDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
+          "code": "MINI_TEST!(\"Closest\", \"Polyline Point\", crate::closest_test::run_closest_polyline_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Curve Point\", crate::closest_test::run_closest_curve_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Curve\", crate::closest_test::run_closest_surface_curve);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point SpatialKDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
           "file": "closest_test.rs"
         }
       }
@@ -87833,7 +89322,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Closest\", \"Curve Point\")",
-          "code": "MINI_TEST!(\"Closest\", \"Curve Point\", crate::closest_test::run_closest_curve_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point SpatialKDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
+          "code": "MINI_TEST!(\"Closest\", \"Curve Point\", crate::closest_test::run_closest_curve_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Curve\", crate::closest_test::run_closest_surface_curve);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point SpatialKDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
           "file": "closest_test.rs"
         }
       }
@@ -87853,7 +89342,27 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Closest\", \"Surface Point\")",
-          "code": "MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point SpatialKDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
+          "code": "MINI_TEST!(\"Closest\", \"Surface Point\", crate::closest_test::run_closest_surface_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Surface Curve\", crate::closest_test::run_closest_surface_curve);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point SpatialKDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
+          "file": "closest_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Closest.test_Surface Curve",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Closest\", \"Surface Curve\")",
+          "code": "MINI_TEST(\"Closest\", \"Surface Curve\") {\n    // uncomment #include \"closest.h\"\n    // uncomment #include \"nurbscurve.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface cyl = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 4.0);\n    auto [u0, u1] = cyl.domain(0);\n    auto [v0, v1] = cyl.domain(1);\n    Point ps = cyl.point_at(u0, 0.5);\n    double seam_ang = std::atan2(ps[1], ps[0]);\n    std::vector<Point> crv_pts;\n    for (int i = 0; i < 21; i++) {\n        double a = seam_ang - 0.8 + 1.6 * i / 20.0;\n        double z = 1.0 + 2.0 * i / 20.0;\n        crv_pts.push_back(Point(std::cos(a), std::sin(a), z));\n    }\n    NurbsCurve crv = NurbsCurve::create_interpolated(crv_pts);\n\n    auto pcurves = Closest::surface_curve(cyl, crv);\n\n    MINI_CHECK(pcurves.size() == 2);\n    int on_border = 0;\n    bool inside = true;\n    for (auto& pcurve : pcurves) {\n        MINI_CHECK(pcurve.is_valid());\n        for (double e : {0.0, 1.0}) {\n            Point p2 = pcurve.point_at(e);\n            if (std::abs(p2[0] - u0) < 1e-9 || std::abs(p2[0] - u1) < 1e-9) on_border += 1;\n        }\n        for (int i = 0; i < 17; i++) {\n            Point p2 = pcurve.point_at(i / 16.0);\n            if (p2[0] < u0 - 1e-6 || p2[0] > u1 + 1e-6 || p2[1] < v0 - 1e-6 || p2[1] > v1 + 1e-6) inside = false;\n        }\n    }\n    MINI_CHECK(on_border == 2);\n    MINI_CHECK(inside);\n\n    NurbsCurve off = NurbsCurve::create(false, 1, {Point(20.0, 20.0, 20.0), Point(30.0, 30.0, 30.0)});\n\n    MINI_CHECK(Closest::surface_curve(cyl, off).size() == 0);\n}",
+          "file": "closest_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Closest\", \"Surface Curve\")",
+          "code": "@MINI_TEST(\"Closest\", \"Surface Curve\")\ndef test_closest_surface_curve():\n    import math\n    from session_py import Closest\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.primitives import Primitives\n    from session_py.tolerance import PI\n\n    cyl = Primitives.cylinder_surface(0.0, 0.0, 0.0, 1.0, 4.0)\n    u0, u1 = cyl.domain(0)\n    v0, v1 = cyl.domain(1)\n    ps = cyl.point_at(u0, 0.5)\n    seam_ang = math.atan2(ps[1], ps[0])\n    crv_pts = []\n    for i in range(21):\n        a = seam_ang - 0.8 + 1.6 * i / 20.0\n        z = 1.0 + 2.0 * i / 20.0\n        crv_pts.append(Point(math.cos(a), math.sin(a), z))\n    crv = NurbsCurve.create_interpolated(crv_pts)\n\n    pcurves = Closest.surface_curve(cyl, crv)\n\n    MINI_CHECK(len(pcurves) == 2)\n    on_border = 0\n    inside = True\n    for pcurve in pcurves:\n        MINI_CHECK(pcurve.is_valid())\n        for e in [0.0, 1.0]:\n            p2 = pcurve.point_at(e)\n            if abs(p2[0] - u0) < 1e-9 or abs(p2[0] - u1) < 1e-9:\n                on_border += 1\n        for i in range(17):\n            p2 = pcurve.point_at(i / 16.0)\n            if p2[0] < u0 - 1e-6 or p2[0] > u1 + 1e-6 or p2[1] < v0 - 1e-6 or p2[1] > v1 + 1e-6:\n                inside = False\n    MINI_CHECK(on_border == 2)\n    MINI_CHECK(inside)\n\n    off = NurbsCurve.create(False, 1, [Point(20.0, 20.0, 20.0), Point(30.0, 30.0, 30.0)])\n\n    MINI_CHECK(len(Closest.surface_curve(cyl, off)) == 0)",
+          "file": "closest_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Closest\", \"Surface Curve\")",
+          "code": "MINI_TEST!(\"Closest\", \"Surface Curve\", crate::closest_test::run_closest_surface_curve);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point\", crate::closest_test::run_closest_mesh_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Mesh Point AABB\", crate::closest_test::run_closest_mesh_point_aabb);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point\", crate::closest_test::run_closest_pointcloud_point);\nREGISTER_MINI_TEST!(\"Closest\", \"Pointcloud Point SpatialKDTree\", crate::closest_test::run_closest_pointcloud_point_kdtree);\nREGISTER_MINI_TEST!(\"Closest\", \"Lines Closest\", crate::closest_test::run_closest_lines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Polylines Closest\", crate::closest_test::run_closest_polylines_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Nurbscurves Closest\", crate::closest_test::run_closest_nurbscurves_closest);\nREGISTER_MINI_TEST!(\"Closest\", \"Boxes Closest\", crate::closest_test::run_closest_boxes_closest);",
           "file": "closest_test.rs"
         }
       }
@@ -90373,7 +91882,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Line Line\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Line Line\", crate::intersection_test::run_intersection_line_line);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parallel\", crate::intersection_test::run_intersection_line_line_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters\", crate::intersection_test::run_intersection_line_line_parameters);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters Endpoints\", crate::intersection_test::run_intersection_line_line_parameters_endpoints);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters Infinite\", crate::intersection_test::run_intersection_line_line_parameters_infinite);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane\", crate::intersection_test::run_intersection_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Complex\", crate::intersection_test::run_intersection_plane_plane_complex);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Line Line\", crate::intersection_test::run_intersection_line_line);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parallel\", crate::intersection_test::run_intersection_line_line_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters\", crate::intersection_test::run_intersection_line_line_parameters);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters Endpoints\", crate::intersection_test::run_intersection_line_line_parameters_endpoints);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters Infinite\", crate::intersection_test::run_intersection_line_line_parameters_infinite);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane\", crate::intersection_test::run_intersection_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Complex\", crate::intersection_test::run_intersection_plane_plane_complex);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90393,7 +91902,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Line Line Parallel\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Line Line Parallel\", crate::intersection_test::run_intersection_line_line_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters\", crate::intersection_test::run_intersection_line_line_parameters);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters Endpoints\", crate::intersection_test::run_intersection_line_line_parameters_endpoints);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters Infinite\", crate::intersection_test::run_intersection_line_line_parameters_infinite);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane\", crate::intersection_test::run_intersection_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Complex\", crate::intersection_test::run_intersection_plane_plane_complex);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Line Line Parallel\", crate::intersection_test::run_intersection_line_line_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters\", crate::intersection_test::run_intersection_line_line_parameters);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters Endpoints\", crate::intersection_test::run_intersection_line_line_parameters_endpoints);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters Infinite\", crate::intersection_test::run_intersection_line_line_parameters_infinite);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane\", crate::intersection_test::run_intersection_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Complex\", crate::intersection_test::run_intersection_plane_plane_complex);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90413,7 +91922,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Line Line Parameters\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Line Line Parameters\", crate::intersection_test::run_intersection_line_line_parameters);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters Endpoints\", crate::intersection_test::run_intersection_line_line_parameters_endpoints);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters Infinite\", crate::intersection_test::run_intersection_line_line_parameters_infinite);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane\", crate::intersection_test::run_intersection_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Complex\", crate::intersection_test::run_intersection_plane_plane_complex);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Line Line Parameters\", crate::intersection_test::run_intersection_line_line_parameters);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters Endpoints\", crate::intersection_test::run_intersection_line_line_parameters_endpoints);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters Infinite\", crate::intersection_test::run_intersection_line_line_parameters_infinite);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane\", crate::intersection_test::run_intersection_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Complex\", crate::intersection_test::run_intersection_plane_plane_complex);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90433,7 +91942,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Line Line Parameters Endpoints\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Line Line Parameters Endpoints\", crate::intersection_test::run_intersection_line_line_parameters_endpoints);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters Infinite\", crate::intersection_test::run_intersection_line_line_parameters_infinite);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane\", crate::intersection_test::run_intersection_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Complex\", crate::intersection_test::run_intersection_plane_plane_complex);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Line Line Parameters Endpoints\", crate::intersection_test::run_intersection_line_line_parameters_endpoints);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line Parameters Infinite\", crate::intersection_test::run_intersection_line_line_parameters_infinite);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane\", crate::intersection_test::run_intersection_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Complex\", crate::intersection_test::run_intersection_plane_plane_complex);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90453,7 +91962,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Line Line Parameters Infinite\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Line Line Parameters Infinite\", crate::intersection_test::run_intersection_line_line_parameters_infinite);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane\", crate::intersection_test::run_intersection_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Complex\", crate::intersection_test::run_intersection_plane_plane_complex);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Line Line Parameters Infinite\", crate::intersection_test::run_intersection_line_line_parameters_infinite);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane\", crate::intersection_test::run_intersection_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Complex\", crate::intersection_test::run_intersection_plane_plane_complex);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90473,7 +91982,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Plane Plane\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Plane Plane\", crate::intersection_test::run_intersection_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Complex\", crate::intersection_test::run_intersection_plane_plane_complex);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Plane Plane\", crate::intersection_test::run_intersection_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Complex\", crate::intersection_test::run_intersection_plane_plane_complex);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90493,7 +92002,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Plane Plane Complex\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Plane Plane Complex\", crate::intersection_test::run_intersection_plane_plane_complex);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Plane Plane Complex\", crate::intersection_test::run_intersection_plane_plane_complex);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90513,7 +92022,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Line Plane\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Line Plane\", crate::intersection_test::run_intersection_line_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90533,7 +92042,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Line Plane Parallel\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Line Plane Parallel\", crate::intersection_test::run_intersection_line_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90553,7 +92062,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Line Plane Real World\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Line Plane Real World\", crate::intersection_test::run_intersection_line_plane_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90573,7 +92082,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Plane Plane Plane\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Plane Plane Plane\", crate::intersection_test::run_intersection_plane_plane_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90593,7 +92102,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Plane Plane Plane Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90613,7 +92122,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Box\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Box\", crate::intersection_test::run_intersection_ray_box);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90633,7 +92142,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Box Miss\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Box Miss\", crate::intersection_test::run_intersection_ray_box_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90653,7 +92162,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Sphere\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Sphere\", crate::intersection_test::run_intersection_ray_sphere);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90673,7 +92182,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Sphere Tangent\", crate::intersection_test::run_intersection_ray_sphere_tangent);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90693,7 +92202,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Sphere Miss\", crate::intersection_test::run_intersection_ray_sphere_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90713,7 +92222,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Triangle\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Triangle\", crate::intersection_test::run_intersection_ray_triangle);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90733,7 +92242,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Triangle Miss\", crate::intersection_test::run_intersection_ray_triangle_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90753,7 +92262,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Triangle Parallel\", crate::intersection_test::run_intersection_ray_triangle_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90773,7 +92282,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Mesh\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Mesh\", crate::intersection_test::run_intersection_ray_mesh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90793,7 +92302,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Mesh First\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Mesh First\", crate::intersection_test::run_intersection_ray_mesh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90813,7 +92322,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Mesh Miss\", crate::intersection_test::run_intersection_ray_mesh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90833,7 +92342,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh\", crate::intersection_test::run_intersection_ray_mesh_bvh);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90853,7 +92362,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh First\", crate::intersection_test::run_intersection_ray_mesh_bvh_first);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90873,7 +92382,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Miss\", crate::intersection_test::run_intersection_ray_mesh_bvh_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90893,7 +92402,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Mesh Bvh Vs Naive\", crate::intersection_test::run_intersection_ray_mesh_bvh_vs_naive);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90913,7 +92422,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Box Real World\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Box Real World\", crate::intersection_test::run_intersection_ray_box_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90933,7 +92442,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Sphere Real World\", crate::intersection_test::run_intersection_ray_sphere_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90953,7 +92462,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Ray Triangle Real World\", crate::intersection_test::run_intersection_ray_triangle_real_world);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90973,7 +92482,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Surface Plane\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Surface Plane\", crate::intersection_test::run_intersection_surface_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -90993,7 +92502,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Surface Plane Curved\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Surface Plane Curved\", crate::intersection_test::run_intersection_surface_plane_curved);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -91013,7 +92522,67 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Surface Plane Miss\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Intersection\", \"Surface Plane Miss\", crate::intersection_test::run_intersection_surface_plane_miss);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "file": "intersection_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Intersection.test_Surface Plane UV",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Intersection\", \"Surface Plane UV\")",
+          "code": "MINI_TEST(\"Intersection\", \"Surface Plane UV\") {\n    // uncomment #include \"intersection.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface cyl = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 4.0);\n    Point pp(0.0, 0.0, 2.0);\n    Vector pnv(0.3, 0.0, 1.0);\n    Plane plane = Plane::from_point_normal(pp, pnv);\n    auto pairs = Intersection::surface_plane_uv(cyl, plane);\n\n    MINI_CHECK(pairs.size() == 1);\n    NurbsCurve curve3 = pairs[0].first;\n    NurbsCurve pcurve = pairs[0].second;\n    MINI_CHECK(curve3.is_valid());\n    MINI_CHECK(pcurve.is_valid());\n    MINI_CHECK(curve3.is_closed());\n    auto [u0, u1] = cyl.domain(0);\n    MINI_CHECK(std::fabs(pcurve.point_at(0.0)[0] - u1) < 1e-9 || std::fabs(pcurve.point_at(0.0)[0] - u0) < 1e-9);\n    MINI_CHECK(std::fabs(pcurve.point_at(1.0)[0] - u1) < 1e-9 || std::fabs(pcurve.point_at(1.0)[0] - u0) < 1e-9);\n    Vector pn = plane.z_axis();\n    Point po = plane.origin();\n    double max_off = 0.0;\n    for (int i = 0; i < 17; i++) {\n        Point p2 = pcurve.point_at(i / 16.0);\n        Point s = cyl.point_at(p2[0], p2[1]);\n        double off = std::fabs((s[0]-po[0])*pn[0] + (s[1]-po[1])*pn[1] + (s[2]-po[2])*pn[2]);\n        max_off = std::max(max_off, off);\n    }\n    MINI_CHECK(max_off < 0.05);\n\n    NurbsSurface torus = Primitives::torus_surface(0.0, 0.0, 0.0, 2.0, 0.5);\n    Point pp2(0.0, 0.0, 0.0);\n    Vector pnv2(0.0, 0.0, 1.0);\n    Plane plane2 = Plane::from_point_normal(pp2, pnv2);\n    auto pairs2 = Intersection::surface_plane_uv(torus, plane2);\n\n    MINI_CHECK(pairs2.size() == 2);\n    auto [tu0, tu1] = torus.domain(0);\n    auto [tv0, tv1] = torus.domain(1);\n    bool inside = true;\n    for (auto& pair : pairs2) {\n        for (int i = 0; i < 17; i++) {\n            Point p2 = pair.second.point_at(i / 16.0);\n            if (p2[0] < tu0 - 1e-6 || p2[0] > tu1 + 1e-6 || p2[1] < tv0 - 1e-6 || p2[1] > tv1 + 1e-6)\n                inside = false;\n        }\n    }\n    MINI_CHECK(inside);\n}",
+          "file": "intersection_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Intersection\", \"Surface Plane UV\")",
+          "code": "@MINI_TEST(\"Intersection\", \"Surface Plane UV\")\ndef test_intersection_surface_plane_uv():\n    from session_py import intersection\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n    from session_py.primitives import Primitives\n\n    cyl = Primitives.cylinder_surface(0.0, 0.0, 0.0, 1.0, 4.0)\n    plane = Plane.from_point_normal(Point(0.0, 0.0, 2.0), Vector(0.3, 0.0, 1.0))\n    pairs = intersection.surface_plane_uv(cyl, plane)\n\n    MINI_CHECK(len(pairs) == 1)\n    curve3 = pairs[0][0]\n    pcurve = pairs[0][1]\n    MINI_CHECK(curve3.is_valid())\n    MINI_CHECK(pcurve.is_valid())\n    MINI_CHECK(curve3.is_closed())\n    u0, u1 = cyl.domain(0)\n    MINI_CHECK(abs(pcurve.point_at(0.0)[0] - u1) < 1e-9 or abs(pcurve.point_at(0.0)[0] - u0) < 1e-9)\n    MINI_CHECK(abs(pcurve.point_at(1.0)[0] - u1) < 1e-9 or abs(pcurve.point_at(1.0)[0] - u0) < 1e-9)\n    pn = plane.z_axis\n    po = plane.origin\n    max_off = 0.0\n    for i in range(17):\n        p2 = pcurve.point_at(i / 16.0)\n        s = cyl.point_at(p2[0], p2[1])\n        off = abs((s[0]-po[0])*pn[0] + (s[1]-po[1])*pn[1] + (s[2]-po[2])*pn[2])\n        max_off = max(max_off, off)\n    MINI_CHECK(max_off < 0.05)\n\n    torus = Primitives.torus_surface(0.0, 0.0, 0.0, 2.0, 0.5)\n    plane2 = Plane.from_point_normal(Point(0.0, 0.0, 0.0), Vector(0.0, 0.0, 1.0))\n    pairs2 = intersection.surface_plane_uv(torus, plane2)\n\n    MINI_CHECK(len(pairs2) == 2)\n    tu0, tu1 = torus.domain(0)\n    tv0, tv1 = torus.domain(1)\n    inside = True\n    for pair in pairs2:\n        for i in range(17):\n            p2 = pair[1].point_at(i / 16.0)\n            if p2[0] < tu0 - 1e-6 or p2[0] > tu1 + 1e-6 or p2[1] < tv0 - 1e-6 or p2[1] > tv1 + 1e-6:\n                inside = False\n    MINI_CHECK(inside)",
+          "file": "intersection_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Intersection\", \"Surface Plane UV\")",
+          "code": "MINI_TEST!(\"Intersection\", \"Surface Plane UV\", crate::intersection_test::run_intersection_surface_plane_uv);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "file": "intersection_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Intersection.test_Surface Surface",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Intersection\", \"Surface Surface\")",
+          "code": "MINI_TEST(\"Intersection\", \"Surface Surface\") {\n    // uncomment #include \"intersection.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"primitives.h\"\n    auto lies_on_curve = [](const NurbsCurve& curve3d, const NurbsCurve& pcurve, const NurbsSurface& surface) -> double {\n        auto [u0, u1] = surface.domain(0);\n        auto [v0, v1] = surface.domain(1);\n        std::vector<Point> dense;\n        for (int j = 0; j < 129; j++) dense.push_back(curve3d.point_at(j / 128.0));\n        double worst = 0.0;\n        for (int i = 0; i < 33; i++) {\n            Point q = pcurve.point_at(i / 32.0);\n            Point s = surface.point_at(std::min(std::max(q[0], u0), u1), std::min(std::max(q[1], v0), v1));\n            double best = dense[0].distance(s);\n            for (const Point& p : dense) {\n                double d = p.distance(s);\n                if (d < best) best = d;\n            }\n            if (best > worst) worst = best;\n        }\n        return worst;\n    };\n\n    NurbsSurface flat = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(-3.0, -3.0, 0.5),\n        Point(-3.0, 3.0, 0.5),\n        Point(3.0, -3.0, 0.5),\n        Point(3.0, 3.0, 0.5),\n    });\n    NurbsSurface cyl = Primitives::cylinder_surface(0.0, 0.0, -2.0, 1.0, 4.0);\n    auto flat_triples = Intersection::surface_surface(flat, cyl);\n\n    MINI_CHECK(flat_triples.size() == 1);\n    NurbsCurve c3 = std::get<0>(flat_triples[0]);\n    NurbsCurve pa = std::get<1>(flat_triples[0]);\n    NurbsCurve pb = std::get<2>(flat_triples[0]);\n    MINI_CHECK(c3.is_valid() && pa.is_valid() && pb.is_valid());\n    MINI_CHECK(c3.is_closed());\n    MINI_CHECK(lies_on_curve(c3, pa, flat) < 0.05);\n    MINI_CHECK(lies_on_curve(c3, pb, cyl) < 0.05);\n\n    NurbsSurface sphere = Primitives::sphere_surface(0.0, 0.0, 0.0, 2.0);\n    NurbsSurface cyl2 = Primitives::cylinder_surface(1.3, 0.0, -3.0, 0.3, 6.0);\n    auto triples = Intersection::surface_surface(sphere, cyl2);\n\n    MINI_CHECK(triples.size() >= 2);\n    int clean = 0;\n    for (const auto& triple : triples) {\n        NurbsCurve tc3 = std::get<0>(triple);\n        NurbsCurve tpa = std::get<1>(triple);\n        NurbsCurve tpb = std::get<2>(triple);\n        MINI_CHECK(tc3.is_valid() && tpa.is_valid() && tpb.is_valid());\n        if (lies_on_curve(tc3, tpa, sphere) < 0.05 && lies_on_curve(tc3, tpb, cyl2) < 0.05) clean++;\n    }\n    MINI_CHECK(clean >= 2);\n\n    // Exactness check: sphere(r=2) x flat plane patch at z=0.4 -> circle of\n    // radius sqrt(2^2 - 0.4^2) = sqrt(3.84). The analytic path is geometrically\n    // exact, so the deviation from the true radius must be ~machine epsilon.\n    NurbsSurface sphere2 = Primitives::sphere_surface(0.0, 0.0, 0.0, 2.0);\n    NurbsSurface flat04 = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(-3.0, -3.0, 0.4),\n        Point(-3.0, 3.0, 0.4),\n        Point(3.0, -3.0, 0.4),\n        Point(3.0, 3.0, 0.4),\n    });\n    auto ex_triples = Intersection::surface_surface(sphere2, flat04);\n    MINI_CHECK(ex_triples.size() == 1);\n    NurbsCurve ex_c3 = std::get<0>(ex_triples[0]);\n    double expected_r = std::sqrt(3.84);\n    double max_dev = 0.0;\n    for (int j = 0; j <= 256; j++) {\n        Point p = ex_c3.point_at(j / 256.0);\n        double rr = std::sqrt(p[0]*p[0] + p[1]*p[1]);  // distance from z-axis\n        max_dev = std::max(max_dev, std::abs(rr - expected_r));\n        max_dev = std::max(max_dev, std::abs(p[2] - 0.4));\n    }\n    MINI_CHECK(max_dev < 1e-9);\n}",
+          "file": "intersection_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Intersection\", \"Surface Surface\")",
+          "code": "@MINI_TEST(\"Intersection\", \"Surface Surface\")\ndef test_intersection_surface_surface():\n    from session_py import intersection\n    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py.primitives import Primitives\n\n    def lies_on_curve(curve3d, pcurve, surface):\n        u0, u1 = surface.domain(0)\n        v0, v1 = surface.domain(1)\n        dense = [curve3d.point_at(j / 128.0) for j in range(129)]\n        worst = 0.0\n        for i in range(33):\n            q = pcurve.point_at(i / 32.0)\n            s = surface.point_at(min(max(q[0], u0), u1), min(max(q[1], v0), v1))\n            best = dense[0].distance(s)\n            for p in dense:\n                d = p.distance(s)\n                if d < best:\n                    best = d\n            if best > worst:\n                worst = best\n        return worst\n\n    # Planar dispatch path: flat NURBS patch x cylinder -> one closed circle\n    flat = NurbsSurface.create(False, False, 1, 1, 2, 2, [\n        Point(-3.0, -3.0, 0.5),\n        Point(-3.0, 3.0, 0.5),\n        Point(3.0, -3.0, 0.5),\n        Point(3.0, 3.0, 0.5),\n    ])\n    cyl = Primitives.cylinder_surface(0.0, 0.0, -2.0, 1.0, 4.0)\n    flat_triples = intersection.surface_surface(flat, cyl)\n\n    MINI_CHECK(len(flat_triples) == 1)\n    c3, pa, pb = flat_triples[0]\n    MINI_CHECK(c3.is_valid() and pa.is_valid() and pb.is_valid())\n    MINI_CHECK(c3.is_closed())\n    MINI_CHECK(lies_on_curve(c3, pa, flat) < 0.05)\n    MINI_CHECK(lies_on_curve(c3, pb, cyl) < 0.05)\n\n    # Marching path: sphere x cylinder is a QUARTIC (not a conic). The marcher\n    # finds the intersection branches and most of each branch lies on both\n    # surfaces; precise pcurves on seam-crossing branches are still WIP (need a\n    # whole-loop-c3 + pcurve-piece return type \u00e2\u20ac\u201d tracked in task #12). So assert\n    # the branches are found and at least two clean arcs lie on both surfaces.\n    sphere = Primitives.sphere_surface(0.0, 0.0, 0.0, 2.0)\n    cyl2 = Primitives.cylinder_surface(1.3, 0.0, -3.0, 0.3, 6.0)\n    triples = intersection.surface_surface(sphere, cyl2)\n\n    MINI_CHECK(len(triples) >= 2)\n    clean = 0\n    for c3, pa, pb in triples:\n        MINI_CHECK(c3.is_valid() and pa.is_valid() and pb.is_valid())\n        if lies_on_curve(c3, pa, sphere) < 0.05 and lies_on_curve(c3, pb, cyl2) < 0.05:\n            clean += 1\n    MINI_CHECK(clean >= 2)",
+          "file": "intersection_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Intersection\", \"Surface Surface\")",
+          "code": "MINI_TEST!(\"Intersection\", \"Surface Surface\", crate::intersection_test::run_intersection_surface_surface);\nREGISTER_MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
+          "file": "intersection_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Intersection.test_Surface Surface Accuracy",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Intersection\", \"Surface Surface Accuracy\")",
+          "code": "MINI_TEST(\"Intersection\", \"Surface Surface Accuracy\") {\n    // uncomment #include \"intersection.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    // Every intersection point must lie on BOTH analytic surfaces to ~1e-6,\n    // measured by closed-form distance (independent of OCCT/parameterization).\n    auto on_both = [](const NurbsCurve& c3,\n                      const std::function<double(const Point&)>& da,\n                      const std::function<double(const Point&)>& db) -> double {\n        double worst = 0.0;\n        for (int i = 0; i <= 64; i++) {\n            Point p = c3.point_at(i / 64.0);\n            worst = std::max(worst, std::max(da(p), db(p)));\n        }\n        return worst;\n    };\n\n    // Quartic: sphere x cylinder (axis Z at x=1.3) -> 1e-6.\n    NurbsSurface sphere = Primitives::sphere_surface(0.0, 0.0, 0.0, 2.0);\n    NurbsSurface cyl = Primitives::cylinder_surface(1.3, 0.0, -3.0, 0.3, 6.0);\n    std::function<double(const Point&)> d_sph = [](const Point& p) {\n        return std::abs(std::sqrt(p[0]*p[0]+p[1]*p[1]+p[2]*p[2]) - 2.0); };\n    std::function<double(const Point&)> d_cyl = [](const Point& p) {\n        return std::abs(std::sqrt((p[0]-1.3)*(p[0]-1.3) + p[1]*p[1]) - 0.3); };\n    auto tr = Intersection::surface_surface(sphere, cyl);\n    MINI_CHECK(tr.size() >= 2);\n    for (auto& t : tr) MINI_CHECK(on_both(std::get<0>(t), d_sph, d_cyl) < 1e-5);\n\n    // Conic: sphere x sphere -> exact circle.\n    NurbsSurface sphere2 = Primitives::sphere_surface(2.0, 0.0, 0.0, 2.0);\n    std::function<double(const Point&)> d_sph2 = [](const Point& p) {\n        return std::abs(std::sqrt((p[0]-2.0)*(p[0]-2.0) + p[1]*p[1] + p[2]*p[2]) - 2.0); };\n    auto tr2 = Intersection::surface_surface(sphere, sphere2);\n    MINI_CHECK(tr2.size() >= 1);\n    for (auto& t : tr2) MINI_CHECK(on_both(std::get<0>(t), d_sph, d_sph2) < 1e-6);\n\n    // Torus x perpendicular plane -> two exact circles.\n    NurbsSurface torus = Primitives::torus_surface(0.0, 0.0, 0.0, 2.0, 0.5);\n    NurbsSurface flat = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(-9.0, -9.0, 0.0), Point(-9.0, 9.0, 0.0),\n        Point(9.0, -9.0, 0.0), Point(9.0, 9.0, 0.0)});\n    std::function<double(const Point&)> d_tor = [](const Point& p) {\n        return std::abs(std::sqrt((std::sqrt(p[0]*p[0]+p[1]*p[1]) - 2.0)*(std::sqrt(p[0]*p[0]+p[1]*p[1]) - 2.0) + p[2]*p[2]) - 0.5); };\n    std::function<double(const Point&)> d_flat = [](const Point& p) { return std::abs(p[2]); };\n    auto tr3 = Intersection::surface_surface(torus, flat);\n    MINI_CHECK(tr3.size() == 2);\n    for (auto& t : tr3) MINI_CHECK(on_both(std::get<0>(t), d_tor, d_flat) < 1e-6);\n}",
+          "file": "intersection_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Intersection\", \"Surface Surface Accuracy\")",
+          "code": "@MINI_TEST(\"Intersection\", \"Surface Surface Accuracy\")\ndef test_intersection_surface_surface_accuracy():\n    import math\n    from session_py import intersection\n    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py.primitives import Primitives\n\n    # Every intersection point must lie on BOTH analytic surfaces to ~1e-6.\n    # Measured exactly (closed-form distance), independent of OCCT/parameterization.\n    def on_both(c3, dist_a, dist_b):\n        worst = 0.0\n        for i in range(65):\n            p = c3.point_at(i / 64.0)\n            worst = max(worst, dist_a(p), dist_b(p))\n        return worst\n\n    # Quartic: sphere x cylinder (axis Z at x=1.3) -> exact 1e-6.\n    sphere = Primitives.sphere_surface(0.0, 0.0, 0.0, 2.0)\n    cyl = Primitives.cylinder_surface(1.3, 0.0, -3.0, 0.3, 6.0)\n    d_sph = lambda p: abs(math.sqrt(p[0]*p[0]+p[1]*p[1]+p[2]*p[2]) - 2.0)\n    d_cyl = lambda p: abs(math.sqrt((p[0]-1.3)**2 + p[1]*p[1]) - 0.3)\n    tr = intersection.surface_surface(sphere, cyl)\n    MINI_CHECK(len(tr) >= 2)\n    for c3, pa, pb in tr:\n        MINI_CHECK(on_both(c3, d_sph, d_cyl) < 1e-5)\n\n    # Conic: sphere x sphere -> exact circle (machine precision).\n    sphere2 = Primitives.sphere_surface(2.0, 0.0, 0.0, 2.0)\n    d_sph2 = lambda p: abs(math.sqrt((p[0]-2.0)**2 + p[1]*p[1] + p[2]*p[2]) - 2.0)\n    tr2 = intersection.surface_surface(sphere, sphere2)\n    MINI_CHECK(len(tr2) >= 1)\n    for c3, pa, pb in tr2:\n        MINI_CHECK(on_both(c3, d_sph, d_sph2) < 1e-6)\n\n    # Torus x perpendicular plane -> two exact circles.\n    torus = Primitives.torus_surface(0.0, 0.0, 0.0, 2.0, 0.5)\n    flat = NurbsSurface.create(False, False, 1, 1, 2, 2, [\n        Point(-9.0, -9.0, 0.0),\n        Point(-9.0, 9.0, 0.0),\n        Point(9.0, -9.0, 0.0),\n        Point(9.0, 9.0, 0.0),\n    ])\n    d_tor = lambda p: abs(math.sqrt((math.sqrt(p[0]*p[0]+p[1]*p[1]) - 2.0)**2 + p[2]*p[2]) - 0.5)\n    d_flat = lambda p: abs(p[2])\n    tr3 = intersection.surface_surface(torus, flat)\n    MINI_CHECK(len(tr3) == 2)\n    for c3, pa, pb in tr3:\n        MINI_CHECK(on_both(c3, d_tor, d_flat) < 1e-6)",
+          "file": "intersection_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\")",
+          "code": "MINI_TEST!(\"Intersection\", \"Surface Surface Accuracy\", crate::intersection_test::run_intersection_surface_surface_accuracy);\nREGISTER_MINI_TEST!(\"Intersection\", \"Remap\", crate::intersection_test::run_intersection_remap);\nREGISTER_MINI_TEST!(\"Intersection\", \"Closest Point On Segment\", crate::intersection_test::run_intersection_closest_point_on_segment);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane Plane Plane Check Parallel\", crate::intersection_test::run_intersection_plane_plane_plane_check_parallel);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Closed\", crate::intersection_test::run_intersection_plane_4planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Planes Open\", crate::intersection_test::run_intersection_plane_4planes_open);\nREGISTER_MINI_TEST!(\"Intersection\", \"Plane 4 Lines\", crate::intersection_test::run_intersection_plane_4lines);\nREGISTER_MINI_TEST!(\"Intersection\", \"Scale Vector To Distance Of 2 Planes\", crate::intersection_test::run_intersection_scale_vector_to_distance_of_2planes);\nREGISTER_MINI_TEST!(\"Intersection\", \"Polyline Plane\", crate::intersection_test::run_intersection_polyline_plane);\nREGISTER_MINI_TEST!(\"Intersection\", \"Line Line 3D\", crate::intersection_test::run_intersection_line_line_3d);\n\npub fn run_intersection_polyline_plane_to_line() -> TestResult {\n    MINI_TEST!(\"Polyline Plane To Line\", {\n        use crate::intersection::polyline_plane_to_line;\n        use crate::{Plane, Point, Polyline, Vector};\n        let poly = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n            Point::new(4.0, 4.0, 0.0),\n            Point::new(0.0, 4.0, 0.0),\n            Point::new(0.0, 0.0, 0.0),\n        ]);\n        let pln = Plane::from_point_normal(Point::new(0.0, 2.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let out = polyline_plane_to_line(&poly, &pln, &Point::new(0.0, 0.0, 0.0)).unwrap();\n        MINI_CHECK!(TOLERANCE.is_close(out.start()[0], 0.0));\n        MINI_CHECK!(TOLERANCE.is_close(out.end()[0], 4.0));\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -92918,7 +94487,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsCurve\", \"Constructor\")",
-          "code": "MINI_TEST!(\"NurbsCurve\", \"Constructor\", crate::nurbscurve_test::run_nurbscurve_constructor);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Create Interpolated\", crate::nurbscurve_test::run_nurbscurve_create_interpolated);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Create Fitted\", crate::nurbscurve_test::run_nurbscurve_create_fitted);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Attributes\", crate::nurbscurve_test::run_nurbscurve_attributes);\n// TODO(f64-followup): re-enable after rebaselining or NURBS algorithm-level\n// precision investigation. The arc-length clustering bug (divide_by_count finite-diff\n// step underflowing f64 ULP) is now fixed, but the expected values are 15-digit f64\n// outputs that f64 evaluation still diverges from by more than tolerance (e.g. div_pts[1],\n// tangent[0]); needs f64 NURBS evaluation to match exactly.\n// REGISTER_MINI_TEST!(\"NurbsCurve\", \"Conversions\", crate::nurbscurve_test::run_nurbscurve_conversions);\n// REGISTER_MINI_TEST!(\"NurbsCurve\", \"Evaluation\", crate::nurbscurve_test::run_nurbscurve_evaluation);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Modifications\", crate::nurbscurve_test::run_nurbscurve_modifications);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Transformations\", crate::nurbscurve_test::run_nurbscurve_transformations);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Json Roundtrip\", crate::nurbscurve_test::run_nurbscurve_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Protobuf Roundtrip\", crate::nurbscurve_test::run_nurbscurve_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsCurve\", \"Constructor\", crate::nurbscurve_test::run_nurbscurve_constructor);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Create Interpolated\", crate::nurbscurve_test::run_nurbscurve_create_interpolated);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Create Fitted\", crate::nurbscurve_test::run_nurbscurve_create_fitted);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Join\", crate::nurbscurve_test::run_nurbscurve_join);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Attributes\", crate::nurbscurve_test::run_nurbscurve_attributes);\n// TODO(f64-followup): re-enable after rebaselining or NURBS algorithm-level\n// precision investigation. The arc-length clustering bug (divide_by_count finite-diff\n// step underflowing f64 ULP) is now fixed, but the expected values are 15-digit f64\n// outputs that f64 evaluation still diverges from by more than tolerance (e.g. div_pts[1],\n// tangent[0]); needs f64 NURBS evaluation to match exactly.\n// REGISTER_MINI_TEST!(\"NurbsCurve\", \"Conversions\", crate::nurbscurve_test::run_nurbscurve_conversions);\n// REGISTER_MINI_TEST!(\"NurbsCurve\", \"Evaluation\", crate::nurbscurve_test::run_nurbscurve_evaluation);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Modifications\", crate::nurbscurve_test::run_nurbscurve_modifications);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Transformations\", crate::nurbscurve_test::run_nurbscurve_transformations);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Json Roundtrip\", crate::nurbscurve_test::run_nurbscurve_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Protobuf Roundtrip\", crate::nurbscurve_test::run_nurbscurve_protobuf_roundtrip);",
           "file": "nurbscurve_test.rs"
         }
       }
@@ -92928,17 +94497,17 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"NurbsCurve\", \"Create Interpolated\")",
-          "code": "MINI_TEST(\"NurbsCurve\", \"Create Interpolated\") {\n            // uncomment #include \"nurbscurve.h\"\n            // uncomment #include \"point.h\"\n\n            std::vector<Point> points = {\n                Point(14, 9, 0),\n                Point(21, 22, 0),\n                Point(26, 10, 0),\n                Point(35, 19, 0),\n                Point(41, 13, 0)\n            };\n\n            NurbsCurve c = NurbsCurve::create_interpolated(points, CurveNurbsKnotStyle::Chord);\n\n            MINI_CHECK(c.is_valid());\n            MINI_CHECK(c.degree() == 3);\n            MINI_CHECK(c.order() == 4);\n            MINI_CHECK(c.cv_count() == 7);\n            MINI_CHECK(c.is_rational() == false);\n\n            auto [d0, d1] = c.domain();\n            MINI_CHECK(TOLERANCE.is_point_close(c.point_at(d0), points[0]));\n            MINI_CHECK(TOLERANCE.is_point_close(c.point_at(d1), points[4]));\n            MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(0), points[0]));\n            MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(6), points[4]));\n\n            // Periodic closed curve\n            std::vector<Point> closed_pts = {\n                Point(4, 20, 0),\n                Point(-2, 20, 0),\n                Point(-2, 25, 0),\n                Point(-3, 28, 0),\n                Point(-10, 28, 0),\n                Point(-10, 21, 0),\n                Point(-13, 16, 0),\n                Point(-8, 14, 0),\n                Point(-6, 11, 0),\n                Point(0, 15, 0),\n            };\n\n            NurbsCurve cp = NurbsCurve::create_interpolated(closed_pts, CurveNurbsKnotStyle::ChordPeriodic);\n\n            MINI_CHECK(cp.is_valid());\n            MINI_CHECK(cp.degree() == 3);\n            MINI_CHECK(cp.cv_count() == 13);\n            MINI_CHECK(cp.is_closed());\n    }",
+          "code": "MINI_TEST(\"NurbsCurve\", \"Create Interpolated\") {\n            // uncomment #include \"nurbscurve.h\"\n            // uncomment #include \"point.h\"\n\n            std::vector<Point> points = {\n                Point(14, 9, 0),\n                Point(21, 22, 0),\n                Point(26, 10, 0),\n                Point(35, 19, 0),\n                Point(41, 13, 0)\n            };\n\n            NurbsCurve c = NurbsCurve::create_interpolated(points, CurveNurbsKnotStyle::Chord);\n\n            MINI_CHECK(c.is_valid());\n            MINI_CHECK(c.degree() == 3);\n            MINI_CHECK(c.order() == 4);\n            MINI_CHECK(c.cv_count() == 7);\n            MINI_CHECK(c.is_rational() == false);\n\n            auto [d0, d1] = c.domain();\n            MINI_CHECK(TOLERANCE.is_point_close(c.point_at(d0), points[0]));\n            MINI_CHECK(TOLERANCE.is_point_close(c.point_at(d1), points[4]));\n            MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(0), points[0]));\n            MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(6), points[4]));\n\n            // Rhino parity: interior CVs match Rhino CreateInterpolatedCurve (Chord)\n            // bit-for-bit (validated by the OCCT/Rhino harness in validation/).\n            MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(1), Point(15.342776949, 13.734888836, 0.0)));\n            MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(3), Point(24.678472471, 0.354555126, 0.0)));\n            MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(5), Point(39.626394361, 15.472490151, 0.0)));\n\n            // Periodic closed curve\n            std::vector<Point> closed_pts = {\n                Point(4, 20, 0),\n                Point(-2, 20, 0),\n                Point(-2, 25, 0),\n                Point(-3, 28, 0),\n                Point(-10, 28, 0),\n                Point(-10, 21, 0),\n                Point(-13, 16, 0),\n                Point(-8, 14, 0),\n                Point(-6, 11, 0),\n                Point(0, 15, 0),\n            };\n\n            NurbsCurve cp = NurbsCurve::create_interpolated(closed_pts, CurveNurbsKnotStyle::ChordPeriodic);\n\n            MINI_CHECK(cp.is_valid());\n            MINI_CHECK(cp.degree() == 3);\n            MINI_CHECK(cp.cv_count() == 13);\n            MINI_CHECK(cp.is_closed());\n    }",
           "file": "nurbscurve_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"NurbsCurve\", \"Create Interpolated\")",
-          "code": "@MINI_TEST(\"NurbsCurve\", \"Create Interpolated\")\ndef test_nurbscurve_create_interpolated():\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.nurbsknot import CurveNurbsKnotStyle\n\n    points = [\n        Point(14, 9, 0),\n        Point(21, 22, 0),\n        Point(26, 10, 0),\n        Point(35, 19, 0),\n        Point(41, 13, 0),\n    ]\n\n    c = NurbsCurve.create_interpolated(points, CurveNurbsKnotStyle.Chord)\n\n    MINI_CHECK(c.is_valid())\n    MINI_CHECK(c.degree() == 3)\n    MINI_CHECK(c.order() == 4)\n    MINI_CHECK(c.cv_count() == 7)\n    MINI_CHECK(c.is_rational() == False)\n\n    d0, d1 = c.domain()\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(d0), points[0]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(d1), points[4]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(0), points[0]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(6), points[4]))\n\n    # Periodic closed curve\n    closed_pts = [\n        Point(4, 20, 0),\n        Point(-2, 20, 0),\n        Point(-2, 25, 0),\n        Point(-3, 28, 0),\n        Point(-10, 28, 0),\n        Point(-10, 21, 0),\n        Point(-13, 16, 0),\n        Point(-8, 14, 0),\n        Point(-6, 11, 0),\n        Point(0, 15, 0),\n    ]\n\n    cp = NurbsCurve.create_interpolated(closed_pts, CurveNurbsKnotStyle.ChordPeriodic)\n\n    MINI_CHECK(cp.is_valid())\n    MINI_CHECK(cp.degree() == 3)\n    MINI_CHECK(cp.cv_count() == 13)\n    MINI_CHECK(cp.is_closed())",
+          "code": "@MINI_TEST(\"NurbsCurve\", \"Create Interpolated\")\ndef test_nurbscurve_create_interpolated():\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.nurbsknot import CurveNurbsKnotStyle\n\n    points = [\n        Point(14, 9, 0),\n        Point(21, 22, 0),\n        Point(26, 10, 0),\n        Point(35, 19, 0),\n        Point(41, 13, 0),\n    ]\n\n    c = NurbsCurve.create_interpolated(points, CurveNurbsKnotStyle.Chord)\n\n    MINI_CHECK(c.is_valid())\n    MINI_CHECK(c.degree() == 3)\n    MINI_CHECK(c.order() == 4)\n    MINI_CHECK(c.cv_count() == 7)\n    MINI_CHECK(c.is_rational() == False)\n\n    d0, d1 = c.domain()\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(d0), points[0]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.point_at(d1), points[4]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(0), points[0]))\n    MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(6), points[4]))\n\n    # Rhino parity: interior CVs match Rhino CreateInterpolatedCurve (Chord)\n    # bit-for-bit (validated by the OCCT/Rhino harness in validation/).\n    MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(1), Point(15.342776949, 13.734888836, 0.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(3), Point(24.678472471, 0.354555126, 0.0)))\n    MINI_CHECK(TOLERANCE.is_point_close(c.get_cv(5), Point(39.626394361, 15.472490151, 0.0)))\n\n    # Periodic closed curve\n    closed_pts = [\n        Point(4, 20, 0),\n        Point(-2, 20, 0),\n        Point(-2, 25, 0),\n        Point(-3, 28, 0),\n        Point(-10, 28, 0),\n        Point(-10, 21, 0),\n        Point(-13, 16, 0),\n        Point(-8, 14, 0),\n        Point(-6, 11, 0),\n        Point(0, 15, 0),\n    ]\n\n    cp = NurbsCurve.create_interpolated(closed_pts, CurveNurbsKnotStyle.ChordPeriodic)\n\n    MINI_CHECK(cp.is_valid())\n    MINI_CHECK(cp.degree() == 3)\n    MINI_CHECK(cp.cv_count() == 13)\n    MINI_CHECK(cp.is_closed())",
           "file": "nurbscurve_test.py"
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsCurve\", \"Create Interpolated\")",
-          "code": "MINI_TEST!(\"NurbsCurve\", \"Create Interpolated\", crate::nurbscurve_test::run_nurbscurve_create_interpolated);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Create Fitted\", crate::nurbscurve_test::run_nurbscurve_create_fitted);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Attributes\", crate::nurbscurve_test::run_nurbscurve_attributes);\n// TODO(f64-followup): re-enable after rebaselining or NURBS algorithm-level\n// precision investigation. The arc-length clustering bug (divide_by_count finite-diff\n// step underflowing f64 ULP) is now fixed, but the expected values are 15-digit f64\n// outputs that f64 evaluation still diverges from by more than tolerance (e.g. div_pts[1],\n// tangent[0]); needs f64 NURBS evaluation to match exactly.\n// REGISTER_MINI_TEST!(\"NurbsCurve\", \"Conversions\", crate::nurbscurve_test::run_nurbscurve_conversions);\n// REGISTER_MINI_TEST!(\"NurbsCurve\", \"Evaluation\", crate::nurbscurve_test::run_nurbscurve_evaluation);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Modifications\", crate::nurbscurve_test::run_nurbscurve_modifications);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Transformations\", crate::nurbscurve_test::run_nurbscurve_transformations);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Json Roundtrip\", crate::nurbscurve_test::run_nurbscurve_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Protobuf Roundtrip\", crate::nurbscurve_test::run_nurbscurve_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsCurve\", \"Create Interpolated\", crate::nurbscurve_test::run_nurbscurve_create_interpolated);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Create Fitted\", crate::nurbscurve_test::run_nurbscurve_create_fitted);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Join\", crate::nurbscurve_test::run_nurbscurve_join);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Attributes\", crate::nurbscurve_test::run_nurbscurve_attributes);\n// TODO(f64-followup): re-enable after rebaselining or NURBS algorithm-level\n// precision investigation. The arc-length clustering bug (divide_by_count finite-diff\n// step underflowing f64 ULP) is now fixed, but the expected values are 15-digit f64\n// outputs that f64 evaluation still diverges from by more than tolerance (e.g. div_pts[1],\n// tangent[0]); needs f64 NURBS evaluation to match exactly.\n// REGISTER_MINI_TEST!(\"NurbsCurve\", \"Conversions\", crate::nurbscurve_test::run_nurbscurve_conversions);\n// REGISTER_MINI_TEST!(\"NurbsCurve\", \"Evaluation\", crate::nurbscurve_test::run_nurbscurve_evaluation);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Modifications\", crate::nurbscurve_test::run_nurbscurve_modifications);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Transformations\", crate::nurbscurve_test::run_nurbscurve_transformations);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Json Roundtrip\", crate::nurbscurve_test::run_nurbscurve_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Protobuf Roundtrip\", crate::nurbscurve_test::run_nurbscurve_protobuf_roundtrip);",
           "file": "nurbscurve_test.rs"
         }
       }
@@ -92958,7 +94527,27 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsCurve\", \"Create Fitted\")",
-          "code": "MINI_TEST!(\"NurbsCurve\", \"Create Fitted\", crate::nurbscurve_test::run_nurbscurve_create_fitted);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Attributes\", crate::nurbscurve_test::run_nurbscurve_attributes);\n// TODO(f64-followup): re-enable after rebaselining or NURBS algorithm-level\n// precision investigation. The arc-length clustering bug (divide_by_count finite-diff\n// step underflowing f64 ULP) is now fixed, but the expected values are 15-digit f64\n// outputs that f64 evaluation still diverges from by more than tolerance (e.g. div_pts[1],\n// tangent[0]); needs f64 NURBS evaluation to match exactly.\n// REGISTER_MINI_TEST!(\"NurbsCurve\", \"Conversions\", crate::nurbscurve_test::run_nurbscurve_conversions);\n// REGISTER_MINI_TEST!(\"NurbsCurve\", \"Evaluation\", crate::nurbscurve_test::run_nurbscurve_evaluation);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Modifications\", crate::nurbscurve_test::run_nurbscurve_modifications);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Transformations\", crate::nurbscurve_test::run_nurbscurve_transformations);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Json Roundtrip\", crate::nurbscurve_test::run_nurbscurve_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Protobuf Roundtrip\", crate::nurbscurve_test::run_nurbscurve_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsCurve\", \"Create Fitted\", crate::nurbscurve_test::run_nurbscurve_create_fitted);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Join\", crate::nurbscurve_test::run_nurbscurve_join);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Attributes\", crate::nurbscurve_test::run_nurbscurve_attributes);\n// TODO(f64-followup): re-enable after rebaselining or NURBS algorithm-level\n// precision investigation. The arc-length clustering bug (divide_by_count finite-diff\n// step underflowing f64 ULP) is now fixed, but the expected values are 15-digit f64\n// outputs that f64 evaluation still diverges from by more than tolerance (e.g. div_pts[1],\n// tangent[0]); needs f64 NURBS evaluation to match exactly.\n// REGISTER_MINI_TEST!(\"NurbsCurve\", \"Conversions\", crate::nurbscurve_test::run_nurbscurve_conversions);\n// REGISTER_MINI_TEST!(\"NurbsCurve\", \"Evaluation\", crate::nurbscurve_test::run_nurbscurve_evaluation);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Modifications\", crate::nurbscurve_test::run_nurbscurve_modifications);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Transformations\", crate::nurbscurve_test::run_nurbscurve_transformations);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Json Roundtrip\", crate::nurbscurve_test::run_nurbscurve_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Protobuf Roundtrip\", crate::nurbscurve_test::run_nurbscurve_protobuf_roundtrip);",
+          "file": "nurbscurve_test.rs"
+        }
+      }
+    },
+    {
+      "name": "NurbsCurve.test_Join",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"NurbsCurve\", \"Join\")",
+          "code": "MINI_TEST(\"NurbsCurve\", \"Join\") {\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"primitives.h\"\n\n        NurbsCurve arc1 = Primitives::arc(Point(-1.0, 0.0, 0.0), Point(0.0, 1.0, 0.0), Point(1.0, 0.0, 0.0));\n        NurbsCurve arc2 = Primitives::arc(Point(1.0, 0.0, 0.0), Point(1.5, -1.0, 0.0), Point(1.0, -2.0, 0.0));\n        std::vector<Point> pts = {Point(1.0, -2.0, 0.0), Point(-1.0, 0.0, 0.0)};\n        NurbsCurve line = NurbsCurve::create(false, 1, pts);\n        arc2.reverse();\n\n        std::vector<NurbsCurve> joined = NurbsCurve::join({line, arc1, arc2});\n\n        MINI_CHECK(joined.size() == 1);\n        MINI_CHECK(joined[0].is_valid());\n        MINI_CHECK(joined[0].is_closed());\n        MINI_CHECK(joined[0].degree() == 2);\n        MINI_CHECK(joined[0].cv_count() == 7);\n\n        NurbsCurve l1 = NurbsCurve::create(false, 1, {Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0)});\n        NurbsCurve l2 = NurbsCurve::create(false, 1, {Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)});\n        NurbsCurve l3 = NurbsCurve::create(false, 1, {Point(9.0, 9.0, 0.0), Point(8.0, 8.0, 0.0)});\n\n        std::vector<NurbsCurve> separate = NurbsCurve::join({l1, l3, l2});\n\n        MINI_CHECK(separate.size() == 2);\n        MINI_CHECK(separate[0].cv_count() == 3);\n        MINI_CHECK(std::fabs(separate[0].length() - 2.0) < 1e-9);\n    }",
+          "file": "nurbscurve_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsCurve\", \"Join\")",
+          "code": "@MINI_TEST(\"NurbsCurve\", \"Join\")\ndef test_nurbscurve_join():\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.primitives import Primitives\n\n    arc1 = Primitives.arc(Point(-1.0, 0.0, 0.0), Point(0.0, 1.0, 0.0), Point(1.0, 0.0, 0.0))\n    arc2 = Primitives.arc(Point(1.0, 0.0, 0.0), Point(1.5, -1.0, 0.0), Point(1.0, -2.0, 0.0))\n    pts = [Point(1.0, -2.0, 0.0), Point(-1.0, 0.0, 0.0)]\n    line = NurbsCurve.create(False, 1, pts)\n    arc2.reverse()\n\n    joined = NurbsCurve.join([line, arc1, arc2])\n\n    MINI_CHECK(len(joined) == 1)\n    MINI_CHECK(joined[0].is_valid())\n    MINI_CHECK(joined[0].is_closed())\n    MINI_CHECK(joined[0].degree() == 2)\n    MINI_CHECK(joined[0].cv_count() == 7)\n\n    l1 = NurbsCurve.create(False, 1, [Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0)])\n    l2 = NurbsCurve.create(False, 1, [Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)])\n    l3 = NurbsCurve.create(False, 1, [Point(9.0, 9.0, 0.0), Point(8.0, 8.0, 0.0)])\n\n    separate = NurbsCurve.join([l1, l3, l2])\n\n    MINI_CHECK(len(separate) == 2)\n    MINI_CHECK(separate[0].cv_count() == 3)\n    MINI_CHECK(abs(separate[0].length() - 2.0) < 1e-9)",
+          "file": "nurbscurve_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"NurbsCurve\", \"Join\")",
+          "code": "MINI_TEST!(\"NurbsCurve\", \"Join\", crate::nurbscurve_test::run_nurbscurve_join);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Attributes\", crate::nurbscurve_test::run_nurbscurve_attributes);\n// TODO(f64-followup): re-enable after rebaselining or NURBS algorithm-level\n// precision investigation. The arc-length clustering bug (divide_by_count finite-diff\n// step underflowing f64 ULP) is now fixed, but the expected values are 15-digit f64\n// outputs that f64 evaluation still diverges from by more than tolerance (e.g. div_pts[1],\n// tangent[0]); needs f64 NURBS evaluation to match exactly.\n// REGISTER_MINI_TEST!(\"NurbsCurve\", \"Conversions\", crate::nurbscurve_test::run_nurbscurve_conversions);\n// REGISTER_MINI_TEST!(\"NurbsCurve\", \"Evaluation\", crate::nurbscurve_test::run_nurbscurve_evaluation);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Modifications\", crate::nurbscurve_test::run_nurbscurve_modifications);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Transformations\", crate::nurbscurve_test::run_nurbscurve_transformations);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Json Roundtrip\", crate::nurbscurve_test::run_nurbscurve_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsCurve\", \"Protobuf Roundtrip\", crate::nurbscurve_test::run_nurbscurve_protobuf_roundtrip);",
           "file": "nurbscurve_test.rs"
         }
       }
@@ -93358,7 +94947,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurface\", \"Constructor\")",
-          "code": "MINI_TEST!(\"NurbsSurface\", \"Constructor\", crate::nurbssurface_test::run_nurbssurface_constructor);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Booleans Queries\", crate::nurbssurface_test::run_nurbssurface_booleans_queries);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Attributes\", crate::nurbssurface_test::run_nurbssurface_attributes);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Control Vertices Access\", crate::nurbssurface_test::run_nurbssurface_control_vertices_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"NurbsKnot Access\", crate::nurbssurface_test::run_nurbssurface_nurbsknot_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Domain\", crate::nurbssurface_test::run_nurbssurface_domain);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Division\", crate::nurbssurface_test::run_nurbssurface_division);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"Constructor\", crate::nurbssurface_test::run_nurbssurface_constructor);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Booleans Queries\", crate::nurbssurface_test::run_nurbssurface_booleans_queries);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Attributes\", crate::nurbssurface_test::run_nurbssurface_attributes);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Control Vertices Access\", crate::nurbssurface_test::run_nurbssurface_control_vertices_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"NurbsKnot Access\", crate::nurbssurface_test::run_nurbssurface_nurbsknot_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Domain\", crate::nurbssurface_test::run_nurbssurface_domain);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Division\", crate::nurbssurface_test::run_nurbssurface_division);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Plane\", crate::nurbssurface_test::run_nurbssurface_split_by_plane);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Curves\", crate::nurbssurface_test::run_nurbssurface_split_by_curves);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Line\", crate::nurbssurface_test::run_nurbssurface_split_by_line);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Surface\", crate::nurbssurface_test::run_nurbssurface_split_by_surface);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
           "file": "nurbssurface_test.rs"
         }
       }
@@ -93378,7 +94967,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurface\", \"Booleans Queries\")",
-          "code": "MINI_TEST!(\"NurbsSurface\", \"Booleans Queries\", crate::nurbssurface_test::run_nurbssurface_booleans_queries);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Attributes\", crate::nurbssurface_test::run_nurbssurface_attributes);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Control Vertices Access\", crate::nurbssurface_test::run_nurbssurface_control_vertices_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"NurbsKnot Access\", crate::nurbssurface_test::run_nurbssurface_nurbsknot_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Domain\", crate::nurbssurface_test::run_nurbssurface_domain);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Division\", crate::nurbssurface_test::run_nurbssurface_division);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"Booleans Queries\", crate::nurbssurface_test::run_nurbssurface_booleans_queries);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Attributes\", crate::nurbssurface_test::run_nurbssurface_attributes);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Control Vertices Access\", crate::nurbssurface_test::run_nurbssurface_control_vertices_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"NurbsKnot Access\", crate::nurbssurface_test::run_nurbssurface_nurbsknot_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Domain\", crate::nurbssurface_test::run_nurbssurface_domain);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Division\", crate::nurbssurface_test::run_nurbssurface_division);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Plane\", crate::nurbssurface_test::run_nurbssurface_split_by_plane);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Curves\", crate::nurbssurface_test::run_nurbssurface_split_by_curves);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Line\", crate::nurbssurface_test::run_nurbssurface_split_by_line);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Surface\", crate::nurbssurface_test::run_nurbssurface_split_by_surface);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
           "file": "nurbssurface_test.rs"
         }
       }
@@ -93398,7 +94987,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurface\", \"Attributes\")",
-          "code": "MINI_TEST!(\"NurbsSurface\", \"Attributes\", crate::nurbssurface_test::run_nurbssurface_attributes);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Control Vertices Access\", crate::nurbssurface_test::run_nurbssurface_control_vertices_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"NurbsKnot Access\", crate::nurbssurface_test::run_nurbssurface_nurbsknot_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Domain\", crate::nurbssurface_test::run_nurbssurface_domain);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Division\", crate::nurbssurface_test::run_nurbssurface_division);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"Attributes\", crate::nurbssurface_test::run_nurbssurface_attributes);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Control Vertices Access\", crate::nurbssurface_test::run_nurbssurface_control_vertices_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"NurbsKnot Access\", crate::nurbssurface_test::run_nurbssurface_nurbsknot_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Domain\", crate::nurbssurface_test::run_nurbssurface_domain);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Division\", crate::nurbssurface_test::run_nurbssurface_division);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Plane\", crate::nurbssurface_test::run_nurbssurface_split_by_plane);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Curves\", crate::nurbssurface_test::run_nurbssurface_split_by_curves);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Line\", crate::nurbssurface_test::run_nurbssurface_split_by_line);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Surface\", crate::nurbssurface_test::run_nurbssurface_split_by_surface);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
           "file": "nurbssurface_test.rs"
         }
       }
@@ -93418,7 +95007,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurface\", \"Control Vertices Access\")",
-          "code": "MINI_TEST!(\"NurbsSurface\", \"Control Vertices Access\", crate::nurbssurface_test::run_nurbssurface_control_vertices_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"NurbsKnot Access\", crate::nurbssurface_test::run_nurbssurface_nurbsknot_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Domain\", crate::nurbssurface_test::run_nurbssurface_domain);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Division\", crate::nurbssurface_test::run_nurbssurface_division);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"Control Vertices Access\", crate::nurbssurface_test::run_nurbssurface_control_vertices_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"NurbsKnot Access\", crate::nurbssurface_test::run_nurbssurface_nurbsknot_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Domain\", crate::nurbssurface_test::run_nurbssurface_domain);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Division\", crate::nurbssurface_test::run_nurbssurface_division);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Plane\", crate::nurbssurface_test::run_nurbssurface_split_by_plane);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Curves\", crate::nurbssurface_test::run_nurbssurface_split_by_curves);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Line\", crate::nurbssurface_test::run_nurbssurface_split_by_line);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Surface\", crate::nurbssurface_test::run_nurbssurface_split_by_surface);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
           "file": "nurbssurface_test.rs"
         }
       }
@@ -93438,7 +95027,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurface\", \"NurbsKnot Access\")",
-          "code": "MINI_TEST!(\"NurbsSurface\", \"NurbsKnot Access\", crate::nurbssurface_test::run_nurbssurface_nurbsknot_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Domain\", crate::nurbssurface_test::run_nurbssurface_domain);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Division\", crate::nurbssurface_test::run_nurbssurface_division);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"NurbsKnot Access\", crate::nurbssurface_test::run_nurbssurface_nurbsknot_access);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Domain\", crate::nurbssurface_test::run_nurbssurface_domain);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Division\", crate::nurbssurface_test::run_nurbssurface_division);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Plane\", crate::nurbssurface_test::run_nurbssurface_split_by_plane);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Curves\", crate::nurbssurface_test::run_nurbssurface_split_by_curves);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Line\", crate::nurbssurface_test::run_nurbssurface_split_by_line);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Surface\", crate::nurbssurface_test::run_nurbssurface_split_by_surface);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
           "file": "nurbssurface_test.rs"
         }
       }
@@ -93458,7 +95047,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurface\", \"Domain\")",
-          "code": "MINI_TEST!(\"NurbsSurface\", \"Domain\", crate::nurbssurface_test::run_nurbssurface_domain);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Division\", crate::nurbssurface_test::run_nurbssurface_division);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"Domain\", crate::nurbssurface_test::run_nurbssurface_domain);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Division\", crate::nurbssurface_test::run_nurbssurface_division);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Plane\", crate::nurbssurface_test::run_nurbssurface_split_by_plane);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Curves\", crate::nurbssurface_test::run_nurbssurface_split_by_curves);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Line\", crate::nurbssurface_test::run_nurbssurface_split_by_line);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Surface\", crate::nurbssurface_test::run_nurbssurface_split_by_surface);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
           "file": "nurbssurface_test.rs"
         }
       }
@@ -93478,7 +95067,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurface\", \"Division\")",
-          "code": "MINI_TEST!(\"NurbsSurface\", \"Division\", crate::nurbssurface_test::run_nurbssurface_division);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"Division\", crate::nurbssurface_test::run_nurbssurface_division);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Plane\", crate::nurbssurface_test::run_nurbssurface_split_by_plane);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Curves\", crate::nurbssurface_test::run_nurbssurface_split_by_curves);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Line\", crate::nurbssurface_test::run_nurbssurface_split_by_line);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Surface\", crate::nurbssurface_test::run_nurbssurface_split_by_surface);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
           "file": "nurbssurface_test.rs"
         }
       }
@@ -93498,7 +95087,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurface\", \"Evaluation\")",
-          "code": "MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"Evaluation\", crate::nurbssurface_test::run_nurbssurface_evaluation);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Plane\", crate::nurbssurface_test::run_nurbssurface_split_by_plane);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Curves\", crate::nurbssurface_test::run_nurbssurface_split_by_curves);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Line\", crate::nurbssurface_test::run_nurbssurface_split_by_line);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Surface\", crate::nurbssurface_test::run_nurbssurface_split_by_surface);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
           "file": "nurbssurface_test.rs"
         }
       }
@@ -93518,7 +95107,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurface\", \"Modification\")",
-          "code": "MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"Modification\", crate::nurbssurface_test::run_nurbssurface_modification);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Plane\", crate::nurbssurface_test::run_nurbssurface_split_by_plane);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Curves\", crate::nurbssurface_test::run_nurbssurface_split_by_curves);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Line\", crate::nurbssurface_test::run_nurbssurface_split_by_line);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Surface\", crate::nurbssurface_test::run_nurbssurface_split_by_surface);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
           "file": "nurbssurface_test.rs"
         }
       }
@@ -93538,7 +95127,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurface\", \"Transformations\")",
-          "code": "MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"Transformations\", crate::nurbssurface_test::run_nurbssurface_transformations);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Plane\", crate::nurbssurface_test::run_nurbssurface_split_by_plane);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Curves\", crate::nurbssurface_test::run_nurbssurface_split_by_curves);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Line\", crate::nurbssurface_test::run_nurbssurface_split_by_line);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Surface\", crate::nurbssurface_test::run_nurbssurface_split_by_surface);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
           "file": "nurbssurface_test.rs"
         }
       }
@@ -93558,7 +95147,107 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurface\", \"Meshing\")",
-          "code": "MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"Meshing\", crate::nurbssurface_test::run_nurbssurface_meshing);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Plane\", crate::nurbssurface_test::run_nurbssurface_split_by_plane);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Curves\", crate::nurbssurface_test::run_nurbssurface_split_by_curves);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Line\", crate::nurbssurface_test::run_nurbssurface_split_by_line);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Surface\", crate::nurbssurface_test::run_nurbssurface_split_by_surface);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "file": "nurbssurface_test.rs"
+        }
+      }
+    },
+    {
+      "name": "NurbsSurface.test_Split By Plane",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"NurbsSurface\", \"Split By Plane\")",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Split By Plane\") {\n        // uncomment #include \"nurbssurface_trimmed.h\"\n        // uncomment #include \"plane.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n        // uncomment #include \"primitives.h\"\n\n        NurbsSurface cyl = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 4.0);\n        Point plane_origin(0.0, 0.0, 2.0);\n        Vector plane_normal(0.3, 0.0, 1.0);\n        Plane plane = Plane::from_point_normal(plane_origin, plane_normal);\n\n        std::vector<NurbsSurfaceTrimmed> parts = cyl.split_by_plane(plane);\n\n        MINI_CHECK(parts.size() == 2);\n        for (const auto& ts : parts) {\n            MINI_CHECK(ts.is_trimmed());\n            Mesh m = ts.mesh_q(20.0, 0.005);\n            MINI_CHECK(m.number_of_faces() > 0);\n        }\n\n        NurbsSurface sphere = Primitives::sphere_surface(0.0, 0.0, 0.0, 1.0);\n        Point plane2_origin(0.0, 0.0, 0.3);\n        Vector plane2_normal(0.0, 0.0, 1.0);\n        Plane plane2 = Plane::from_point_normal(plane2_origin, plane2_normal);\n\n        std::vector<NurbsSurfaceTrimmed> caps = sphere.split_by_plane(plane2);\n\n        MINI_CHECK(caps.size() == 2);\n    }",
+          "file": "nurbssurface_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsSurface\", \"Split By Plane\")",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Split By Plane\")\ndef test_nurbssurface_split_by_plane():\n    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n    from session_py.primitives import Primitives\n\n    cyl = Primitives.cylinder_surface(0.0, 0.0, 0.0, 1.0, 4.0)\n    plane = Plane.from_point_normal(Point(0.0, 0.0, 2.0), Vector(0.3, 0.0, 1.0))\n\n    parts = cyl.split_by_plane(plane)\n\n    MINI_CHECK(len(parts) == 2)\n    for ts in parts:\n        MINI_CHECK(ts.is_trimmed())\n        m = ts.mesh_q(20.0, 0.005)\n        MINI_CHECK(m.number_of_faces() > 0)\n\n    sphere = Primitives.sphere_surface(0.0, 0.0, 0.0, 1.0)\n    plane2 = Plane.from_point_normal(Point(0.0, 0.0, 0.3), Vector(0.0, 0.0, 1.0))\n\n    caps = sphere.split_by_plane(plane2)\n\n    MINI_CHECK(len(caps) == 2)",
+          "file": "nurbssurface_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"NurbsSurface\", \"Split By Plane\")",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"Split By Plane\", crate::nurbssurface_test::run_nurbssurface_split_by_plane);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Curves\", crate::nurbssurface_test::run_nurbssurface_split_by_curves);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Line\", crate::nurbssurface_test::run_nurbssurface_split_by_line);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Surface\", crate::nurbssurface_test::run_nurbssurface_split_by_surface);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "file": "nurbssurface_test.rs"
+        }
+      }
+    },
+    {
+      "name": "NurbsSurface.test_Split By Curves",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"NurbsSurface\", \"Split By Curves\")",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Split By Curves\") {\n        // uncomment #include \"nurbssurface_trimmed.h\"\n        // uncomment #include \"closest.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"primitives.h\"\n\n        NurbsSurface wave = Primitives::wave_surface(10.0, 1.0);\n        std::vector<Point> lift_pts;\n        for (int i = 0; i < 21; ++i) {\n            double x = 10.0 * i / 20.0;\n            double y = 5.0 + 2.0 * std::sin(x);\n            auto [u, v, d] = Closest::surface_point(wave, Point(x, y, 0.0));\n            lift_pts.push_back(wave.point_at(u, v));\n        }\n        NurbsCurve crv = NurbsCurve::create_interpolated(lift_pts);\n\n        std::vector<NurbsSurfaceTrimmed> parts = wave.split_by_curves({crv});\n\n        MINI_CHECK(parts.size() == 2);\n        MINI_CHECK(parts[0].is_trimmed());\n        MINI_CHECK(parts[1].is_trimmed());\n\n        NurbsCurve off = NurbsCurve::create(false, 1, {Point(50.0, 50.0, 50.0), Point(60.0, 60.0, 60.0)});\n\n        std::vector<NurbsSurfaceTrimmed> whole = wave.split_by_curves({off});\n\n        MINI_CHECK(whole.size() == 1);\n    }",
+          "file": "nurbssurface_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsSurface\", \"Split By Curves\")",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Split By Curves\")\ndef test_nurbssurface_split_by_curves():\n    import math\n    from session_py import Closest\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.primitives import Primitives\n\n    wave = Primitives.wave_surface(10.0, 1.0)\n    lift_pts = []\n    for i in range(21):\n        x = 10.0 * i / 20.0\n        y = 5.0 + 2.0 * math.sin(x)\n        u, v, d = Closest.surface_point(wave, Point(x, y, 0.0))\n        lift_pts.append(wave.point_at(u, v))\n    crv = NurbsCurve.create_interpolated(lift_pts)\n\n    parts = wave.split_by_curves([crv])\n\n    MINI_CHECK(len(parts) == 2)\n    MINI_CHECK(parts[0].is_trimmed())\n    MINI_CHECK(parts[1].is_trimmed())\n\n    off = NurbsCurve.create(False, 1, [Point(50.0, 50.0, 50.0), Point(60.0, 60.0, 60.0)])\n\n    whole = wave.split_by_curves([off])\n\n    MINI_CHECK(len(whole) == 1)",
+          "file": "nurbssurface_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"NurbsSurface\", \"Split By Curves\")",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"Split By Curves\", crate::nurbssurface_test::run_nurbssurface_split_by_curves);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Line\", crate::nurbssurface_test::run_nurbssurface_split_by_line);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Surface\", crate::nurbssurface_test::run_nurbssurface_split_by_surface);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "file": "nurbssurface_test.rs"
+        }
+      }
+    },
+    {
+      "name": "NurbsSurface.test_Split By Line",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"NurbsSurface\", \"Split By Line\")",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Split By Line\") {\n        // uncomment #include \"nurbssurface_trimmed.h\"\n        // uncomment #include \"line.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"primitives.h\"\n\n        NurbsSurface wave = Primitives::wave_surface(10.0, 1.0);\n        Line line = Line::from_points(Point(-1.0, 5.0, 0.0), Point(11.0, 5.0, 0.0));\n\n        std::vector<NurbsSurfaceTrimmed> parts = wave.split_by_line(line);\n\n        MINI_CHECK(parts.size() == 2);\n        MINI_CHECK(parts[0].is_trimmed());\n        MINI_CHECK(parts[1].is_trimmed());\n    }",
+          "file": "nurbssurface_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsSurface\", \"Split By Line\")",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Split By Line\")\ndef test_nurbssurface_split_by_line():\n    from session_py import Line\n    from session_py import Point\n    from session_py.primitives import Primitives\n\n    wave = Primitives.wave_surface(10.0, 1.0)\n    line = Line.from_points(Point(-1.0, 5.0, 0.0), Point(11.0, 5.0, 0.0))\n\n    parts = wave.split_by_line(line)\n\n    MINI_CHECK(len(parts) == 2)\n    MINI_CHECK(parts[0].is_trimmed())\n    MINI_CHECK(parts[1].is_trimmed())",
+          "file": "nurbssurface_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"NurbsSurface\", \"Split By Line\")",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"Split By Line\", crate::nurbssurface_test::run_nurbssurface_split_by_line);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Surface\", crate::nurbssurface_test::run_nurbssurface_split_by_surface);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "file": "nurbssurface_test.rs"
+        }
+      }
+    },
+    {
+      "name": "NurbsSurface.test_Split By Surface",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"NurbsSurface\", \"Split By Surface\")",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Split By Surface\") {\n        // uncomment #include \"nurbssurface_trimmed.h\"\n        // uncomment #include \"primitives.h\"\n\n        NurbsSurface cyl = Primitives::cylinder_surface(0.0, 0.0, -2.0, 1.0, 4.0);\n        NurbsSurface flat = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n            Point(-3.0, -3.0, 0.0),\n            Point(-3.0, 3.0, 0.0),\n            Point(3.0, -3.0, 0.0),\n            Point(3.0, 3.0, 0.0),\n        });\n\n        std::vector<NurbsSurfaceTrimmed> parts = cyl.split_by_surface(flat);\n\n        MINI_CHECK(parts.size() == 2);\n        for (const auto& ts : parts) {\n            MINI_CHECK(ts.is_trimmed());\n            Mesh m = ts.mesh_q(20.0, 0.005);\n            MINI_CHECK(m.number_of_faces() > 0);\n        }\n    }",
+          "file": "nurbssurface_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsSurface\", \"Split By Surface\")",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Split By Surface\")\ndef test_nurbssurface_split_by_surface():\n    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py.primitives import Primitives\n\n    cyl = Primitives.cylinder_surface(0.0, 0.0, -2.0, 1.0, 4.0)\n    flat = NurbsSurface.create(False, False, 1, 1, 2, 2, [\n        Point(-3.0, -3.0, 0.0),\n        Point(-3.0, 3.0, 0.0),\n        Point(3.0, -3.0, 0.0),\n        Point(3.0, 3.0, 0.0),\n    ])\n\n    parts = cyl.split_by_surface(flat)\n\n    MINI_CHECK(len(parts) == 2)\n    for ts in parts:\n        MINI_CHECK(ts.is_trimmed())\n        m = ts.mesh_q(20.0, 0.005)\n        MINI_CHECK(m.number_of_faces() > 0)",
+          "file": "nurbssurface_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"NurbsSurface\", \"Split By Surface\")",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"Split By Surface\", crate::nurbssurface_test::run_nurbssurface_split_by_surface);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
+          "file": "nurbssurface_test.rs"
+        }
+      }
+    },
+    {
+      "name": "NurbsSurface.test_Split By Brep",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"NurbsSurface\", \"Split By Brep\")",
+          "code": "MINI_TEST(\"NurbsSurface\", \"Split By Brep\") {\n        // uncomment #include \"nurbssurface_trimmed.h\"\n        // uncomment #include \"brep.h\"\n\n        NurbsSurface flat = NurbsSurface::create(false, false, 1, 1, 2, 2, {\n            Point(-3.0, -3.0, 0.0),\n            Point(-3.0, 3.0, 0.0),\n            Point(3.0, -3.0, 0.0),\n            Point(3.0, 3.0, 0.0),\n        });\n        BRep cutter = BRep::create_box(2.0, 2.0, 2.0);\n\n        std::vector<NurbsSurfaceTrimmed> parts = flat.split_by_brep(cutter);\n\n        MINI_CHECK(parts.size() == 2);\n        for (const auto& ts : parts) {\n            MINI_CHECK(ts.is_trimmed());\n            Mesh m = ts.mesh_q(20.0, 0.005);\n            MINI_CHECK(m.number_of_faces() > 0);\n        }\n    }",
+          "file": "nurbssurface_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsSurface\", \"Split By Brep\")",
+          "code": "@MINI_TEST(\"NurbsSurface\", \"Split By Brep\")\ndef test_nurbssurface_split_by_brep():\n    from session_py import NurbsSurface\n    from session_py import BRep\n    from session_py import Point\n\n    flat = NurbsSurface.create(False, False, 1, 1, 2, 2, [\n        Point(-3.0, -3.0, 0.0),\n        Point(-3.0, 3.0, 0.0),\n        Point(3.0, -3.0, 0.0),\n        Point(3.0, 3.0, 0.0),\n    ])\n    cutter = BRep.create_box(2.0, 2.0, 2.0)\n\n    parts = flat.split_by_brep(cutter)\n\n    MINI_CHECK(len(parts) == 2)\n    for ts in parts:\n        MINI_CHECK(ts.is_trimmed())\n        m = ts.mesh_q(20.0, 0.005)\n        MINI_CHECK(m.number_of_faces() > 0)",
+          "file": "nurbssurface_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"NurbsSurface\", \"Split By Brep\")",
+          "code": "MINI_TEST!(\"NurbsSurface\", \"Split By Brep\", crate::nurbssurface_test::run_nurbssurface_split_by_brep);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Json Roundtrip\", crate::nurbssurface_test::run_nurbssurface_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurface\", \"Protobuf Roundtrip\", crate::nurbssurface_test::run_nurbssurface_protobuf_roundtrip);",
           "file": "nurbssurface_test.rs"
         }
       }
@@ -93618,7 +95307,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor\")",
-          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Planar\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_planar);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Hole\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_hole);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Planar\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_planar);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Hole\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_hole);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Split By UV Curves\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_split_by_uv_curves);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
           "file": "nurbssurface_trimmed_test.rs"
         }
       }
@@ -93638,7 +95327,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Planar\")",
-          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Planar\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_planar);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Hole\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_hole);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Planar\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_planar);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Hole\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_hole);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Split By UV Curves\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_split_by_uv_curves);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
           "file": "nurbssurface_trimmed_test.rs"
         }
       }
@@ -93658,7 +95347,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Hole\")",
-          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Hole\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_hole);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Constructor Hole\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_constructor_hole);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Split By UV Curves\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_split_by_uv_curves);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
           "file": "nurbssurface_trimmed_test.rs"
         }
       }
@@ -93678,7 +95367,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\")",
-          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Accessors\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_accessors);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Split By UV Curves\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_split_by_uv_curves);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
           "file": "nurbssurface_trimmed_test.rs"
         }
       }
@@ -93698,7 +95387,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\")",
-          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Add Inner Loop\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_add_inner_loop);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Split By UV Curves\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_split_by_uv_curves);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
           "file": "nurbssurface_trimmed_test.rs"
         }
       }
@@ -93718,7 +95407,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\")",
-          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Point At\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_point_at);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Split By UV Curves\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_split_by_uv_curves);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
           "file": "nurbssurface_trimmed_test.rs"
         }
       }
@@ -93738,7 +95427,27 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\")",
-          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
+          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Mesh\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_mesh);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Split By UV Curves\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_split_by_uv_curves);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
+          "file": "nurbssurface_trimmed_test.rs"
+        }
+      }
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.test_Split By UV Curves",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"NurbsSurfaceTrimmed\", \"Split By UV Curves\")",
+          "code": "MINI_TEST(\"NurbsSurfaceTrimmed\", \"Split By UV Curves\") {\n        // uncomment #include \"nurbssurface_trimmed.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"primitives.h\"\n\n        NurbsSurface srf = Primitives::wave_surface(10.0, 1.0);\n        auto [u0, u1] = srf.domain(0);\n        auto [v0, v1] = srf.domain(1);\n        std::vector<Point> pts = {Point(u0 + (u1-u0)*0.4, v0, 0.0), Point(u0 + (u1-u0)*0.6, v1, 0.0)};\n        NurbsCurve line = NurbsCurve::create(false, 1, pts);\n\n        std::vector<NurbsSurfaceTrimmed> parts = NurbsSurfaceTrimmed::split_by_uv_curves(srf, {line});\n\n        MINI_CHECK(parts.size() == 2);\n        MINI_CHECK(parts[0].is_trimmed());\n        MINI_CHECK(parts[1].is_trimmed());\n\n        NurbsCurve circle = Primitives::circle((u0+u1)*0.5, (v0+v1)*0.5, 0.0, (u1-u0)*0.2);\n\n        std::vector<NurbsSurfaceTrimmed> ring = NurbsSurfaceTrimmed::split_by_uv_curves(srf, {circle});\n\n        MINI_CHECK(ring.size() == 2);\n        MINI_CHECK(ring[0].inner_loop_count() + ring[1].inner_loop_count() == 1);\n\n        NurbsCurve dangling = NurbsCurve::create(false, 1, {Point(3.0, 3.0, 0.0), Point(5.0, 5.0, 0.0)});\n\n        std::vector<NurbsSurfaceTrimmed> whole = NurbsSurfaceTrimmed::split_by_uv_curves(srf, {dangling});\n\n        MINI_CHECK(whole.size() == 1);\n    }",
+          "file": "nurbssurface_trimmed_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"NurbsSurfaceTrimmed\", \"Split By UV Curves\")",
+          "code": "@MINI_TEST(\"NurbsSurfaceTrimmed\", \"Split By UV Curves\")\ndef test_nurbssurface_trimmed_split_by_uv_curves():\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.nurbssurface_trimmed import NurbsSurfaceTrimmed\n    from session_py.primitives import Primitives\n\n    srf = Primitives.wave_surface(10.0, 1.0)\n    u0, u1 = srf.domain(0)\n    v0, v1 = srf.domain(1)\n    pts = [Point(u0 + (u1-u0)*0.4, v0, 0.0), Point(u0 + (u1-u0)*0.6, v1, 0.0)]\n    line = NurbsCurve.create(False, 1, pts)\n\n    parts = NurbsSurfaceTrimmed.split_by_uv_curves(srf, [line])\n\n    MINI_CHECK(len(parts) == 2)\n    MINI_CHECK(parts[0].is_trimmed())\n    MINI_CHECK(parts[1].is_trimmed())\n\n    circle = Primitives.circle((u0+u1)*0.5, (v0+v1)*0.5, 0.0, (u1-u0)*0.2)\n\n    ring = NurbsSurfaceTrimmed.split_by_uv_curves(srf, [circle])\n\n    MINI_CHECK(len(ring) == 2)\n    MINI_CHECK(ring[0].inner_loop_count() + ring[1].inner_loop_count() == 1)\n\n    dangling = NurbsCurve.create(False, 1, [Point(3.0, 3.0, 0.0), Point(5.0, 5.0, 0.0)])\n\n    whole = NurbsSurfaceTrimmed.split_by_uv_curves(srf, [dangling])\n\n    MINI_CHECK(len(whole) == 1)",
+          "file": "nurbssurface_trimmed_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Split By UV Curves\")",
+          "code": "MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Split By UV Curves\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_split_by_uv_curves);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Transformation\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_transformation);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Json Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_json_roundtrip);\nREGISTER_MINI_TEST!(\"NurbsSurfaceTrimmed\", \"Protobuf Roundtrip\", crate::nurbssurface_trimmed_test::run_nurbssurface_trimmed_protobuf_roundtrip);",
           "file": "nurbssurface_trimmed_test.rs"
         }
       }
@@ -101113,11 +102822,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "circle",
         "n",
-        "subdivide",
-        "into",
         "points",
+        "into",
+        "circle",
+        "subdivide",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -101131,10 +102840,10 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "length",
         "by",
-        "arc",
         "ellipse",
+        "length",
+        "arc",
         "subdivide",
         "divide_by_length",
         "nurbscurve",
@@ -101150,8 +102859,8 @@ window.API_INDEX = {
       "title": "Arc Through 3 Points",
       "tags": [
         "points",
-        "through",
         "arc",
+        "through",
         "nurbscurve",
         "primitives",
         "point"
@@ -101165,12 +102874,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "polyline",
-        "open",
-        "curve",
-        "adaptive",
         "from",
+        "open",
         "points",
+        "adaptive",
+        "polyline",
+        "curve",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -101185,10 +102894,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "at",
         "parameter",
         "evaluation",
         "curve",
+        "at",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -101207,10 +102916,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "frames",
-        "length",
         "along",
+        "frames",
         "curve",
+        "length",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -101255,9 +102964,9 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "point",
-        "surface",
         "cylinder",
+        "surface",
+        "point",
         "evaluate",
         "point_at",
         "cylinder_surface",
@@ -101273,11 +102982,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "mesh",
         "from",
-        "vertices",
         "faces",
         "and",
+        "vertices",
+        "mesh",
         "add_vertex",
         "add_face",
         "vertex"
@@ -101411,17 +103120,11 @@ window.API_INDEX = {
       ],
       "summary": "RemeshNurbsSurfaceGrid geometry class"
     },
-    "CurveNurbsKnotStyle": {
+    "GeometryFileDecoder": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
-    },
-    "GlobalSessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "GlobalSessionConfig geometry class"
+      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
     },
     "GeometryFileEncoder": {
       "composition": [],
@@ -101442,11 +103145,17 @@ window.API_INDEX = {
       ],
       "summary": "NurbsSurfaceTrimmed geometry class"
     },
-    "GeometryFileDecoder": {
+    "CurveNurbsKnotStyle": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
+      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
+    },
+    "GlobalSessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "GlobalSessionConfig geometry class"
     },
     "TriangulateResult": {
       "composition": [],
@@ -101458,16 +103167,6 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "TriangulateResult geometry class"
-    },
-    "GlobalTolerance": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "Tolerance",
-        "Vector"
-      ],
-      "summary": "GlobalTolerance geometry class"
     },
     "BooleanPolyline": {
       "composition": [],
@@ -101491,6 +103190,28 @@ window.API_INDEX = {
       ],
       "summary": "SpatialAABBTree geometry class"
     },
+    "GlobalTolerance": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "Tolerance",
+        "Vector"
+      ],
+      "summary": "GlobalTolerance geometry class"
+    },
+    "SpatialBVHNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "OBB",
+        "Point",
+        "SpatialBVH",
+        "Vector"
+      ],
+      "summary": "A node in the SpatialBVH tree."
+    },
     "ToleranceGuard": {
       "composition": [],
       "factories": [],
@@ -101510,24 +103231,6 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "VIntersectNode geometry class"
-    },
-    "SpatialBVHNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "OBB",
-        "Point",
-        "SpatialBVH",
-        "Vector"
-      ],
-      "summary": "A node in the SpatialBVH tree."
-    },
-    "SessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SessionConfig geometry class"
     },
     "ElementColumn": {
       "composition": [],
@@ -101551,86 +103254,11 @@ window.API_INDEX = {
       ],
       "summary": "KD-tree for point-to-point nearest-neighbor queries."
     },
-    "BRepTrimType": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "BRep",
-        "BRepLoopType",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRepTrimType geometry class"
-    },
-    "VattiScratch": {
+    "SessionConfig": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VattiScratch geometry class"
-    },
-    "LoftWallFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftWallFace geometry class"
-    },
-    "ElementPlate": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "ElementPlate geometry class"
-    },
-    "NurbsSurface": {
-      "composition": [
-        "Color",
-        "Mesh",
-        "Point",
-        "Tolerance"
-      ],
-      "factories": [
-        "AABB",
-        "OBB",
-        "RemeshNurbsSurfaceGrid"
-      ],
-      "uses": [
-        "Line",
-        "NurbsCurve",
-        "Plane",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
-    },
-    "SpatialRTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SpatialRTree geometry class"
-    },
-    "ScanlineHeap": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "ScanlineHeap geometry class"
-    },
-    "VLocalMinima": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VLocalMinima geometry class"
+      "summary": "SessionConfig geometry class"
     },
     "Intersection": {
       "composition": [
@@ -101657,6 +103285,91 @@ window.API_INDEX = {
       "uses": [],
       "summary": "BRepLoopType geometry class"
     },
+    "NurbsSurface": {
+      "composition": [
+        "Color",
+        "Mesh",
+        "Point",
+        "Tolerance"
+      ],
+      "factories": [
+        "AABB",
+        "OBB",
+        "RemeshNurbsSurfaceGrid"
+      ],
+      "uses": [
+        "BRep",
+        "Line",
+        "NurbsCurve",
+        "NurbsSurfaceTrimmed",
+        "Plane",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
+    },
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
+    },
+    "SpatialRTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SpatialRTree geometry class"
+    },
+    "VattiScratch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VattiScratch geometry class"
+    },
+    "ScanlineHeap": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "ScanlineHeap geometry class"
+    },
+    "LoftWallFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftWallFace geometry class"
+    },
+    "ElementPlate": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "ElementPlate geometry class"
+    },
+    "BRepTrimType": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "BRep",
+        "BRepLoopType",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRepTrimType geometry class"
+    },
     "ElementBeam": {
       "composition": [],
       "factories": [],
@@ -101669,12 +103382,6 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "ElementBeam geometry class"
-    },
-    "LoftAdjPair": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftAdjPair geometry class"
     },
     "_Delaunay2D": {
       "composition": [],
@@ -101690,6 +103397,33 @@ window.API_INDEX = {
       ],
       "summary": "session_cpp geometry class"
     },
+    "LoftAdjPair": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftAdjPair geometry class"
+    },
+    "BRepVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepVertex geometry class"
+    },
+    "PointCloud": {
+      "composition": [
+        "Color",
+        "Xform"
+      ],
+      "factories": [
+        "AABB",
+        "OBB"
+      ],
+      "uses": [
+        "Point",
+        "Vector"
+      ],
+      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
+    },
     "Quaternion": {
       "composition": [
         "Vector"
@@ -101700,12 +103434,6 @@ window.API_INDEX = {
       ],
       "summary": "A quaternion for 3D rotations (scalar + vector)."
     },
-    "Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Delaunay2D geometry class"
-    },
     "ConvexHull": {
       "composition": [],
       "factories": [],
@@ -101714,14 +103442,6 @@ window.API_INDEX = {
         "Point"
       ],
       "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
-    },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "Vertex data containing position and attributes."
     },
     "Primitives": {
       "composition": [
@@ -101739,21 +103459,32 @@ window.API_INDEX = {
       ],
       "summary": "Static factory methods for creating NURBS curve primitives."
     },
-    "MeshOffset": {
+    "VertexData": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Mesh",
-        "Plane",
         "Point"
       ],
-      "summary": "MeshOffset geometry class"
+      "summary": "Vertex data containing position and attributes."
     },
-    "BRepVertex": {
+    "SpatialBVH": {
+      "composition": [],
+      "factories": [
+        "SpatialBVHNode"
+      ],
+      "uses": [
+        "AABB",
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
+    },
+    "Delaunay2D": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepVertex geometry class"
+      "summary": "Delaunay2D geometry class"
     },
     "NurbsCurve": {
       "composition": [
@@ -101776,33 +103507,26 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
-    "PointCloud": {
-      "composition": [
-        "Color",
-        "Xform"
-      ],
-      "factories": [
-        "AABB",
-        "OBB"
-      ],
-      "uses": [
-        "Point",
-        "Vector"
-      ],
-      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
-    },
-    "SpatialBVH": {
+    "MeshOffset": {
       "composition": [],
-      "factories": [
-        "SpatialBVHNode"
-      ],
+      "factories": [],
       "uses": [
-        "AABB",
-        "OBB",
+        "Mesh",
+        "Plane",
+        "Point"
+      ],
+      "summary": "MeshOffset geometry class"
+    },
+    "FlatMap64": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Delaunay2D",
+        "NurbsCurve",
         "Point",
         "Vector"
       ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
+      "summary": "FlatMap64 geometry class"
     },
     "LoftPanel": {
       "composition": [],
@@ -101810,11 +103534,15 @@ window.API_INDEX = {
       "uses": [],
       "summary": "LoftPanel geometry class"
     },
-    "Component": {
+    "Tolerance": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "Component geometry class"
+      "uses": [
+        "Point",
+        "ToleranceGuard",
+        "Vector"
+      ],
+      "summary": "Tolerance settings for geometric operations."
     },
     "ColorMode": {
       "composition": [],
@@ -101832,25 +103560,23 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
-    "Tolerance": {
+    "Component": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Point",
-        "ToleranceGuard",
-        "Vector"
-      ],
-      "summary": "Tolerance settings for geometric operations."
+      "uses": [],
+      "summary": "Component geometry class"
     },
-    "FlatMap64": {
+    "_Vertex2D": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Delaunay2D",
-        "Point",
-        "Vector"
-      ],
-      "summary": "FlatMap64 geometry class"
+      "uses": [],
+      "summary": "_Vertex2D geometry class"
+    },
+    "_Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay geometry class"
     },
     "RemeshCDT": {
       "composition": [],
@@ -101861,35 +103587,17 @@ window.API_INDEX = {
       ],
       "summary": "RemeshCDT geometry class"
     },
-    "_Triangle": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Triangle geometry class"
-    },
     "VHorzJoin": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VHorzJoin geometry class"
     },
-    "_Delaunay": {
+    "_Triangle": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Delaunay geometry class"
-    },
-    "_Vertex2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Vertex2D geometry class"
-    },
-    "Geometry": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Geometry geometry class"
+      "summary": "_Triangle geometry class"
     },
     "Delaunay": {
       "composition": [],
@@ -101912,11 +103620,23 @@ window.API_INDEX = {
       "uses": [],
       "summary": "VHorzSeg geometry class"
     },
+    "BRepLoop": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoop geometry class"
+    },
     "BRepEdge": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepEdge geometry class"
+    },
+    "BRepTrim": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepTrim geometry class"
     },
     "Polyline": {
       "composition": [
@@ -101942,11 +103662,11 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "BRepLoop": {
+    "Geometry": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepLoop geometry class"
+      "summary": "Geometry geometry class"
     },
     "TreeNode": {
       "composition": [],
@@ -101956,79 +103676,17 @@ window.API_INDEX = {
       ],
       "summary": "A node of a tree data structure."
     },
-    "BRepTrim": {
+    "_Branch": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepTrim geometry class"
-    },
-    "VVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VVertex geometry class"
-    },
-    "Closest": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Static methods for finding closest points between geometry objects."
-    },
-    "VOutRec": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutRec geometry class"
-    },
-    "VActive": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VActive geometry class"
-    },
-    "Element": {
-      "composition": [
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "BRep",
-        "Xform"
-      ],
-      "summary": "Element geometry class"
+      "summary": "_Branch geometry class"
     },
     "Dataset": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Dataset geometry class"
-    },
-    "Default": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "Default geometry class"
     },
     "Objects": {
       "composition": [
@@ -102050,6 +103708,12 @@ window.API_INDEX = {
         "session_cpp"
       ],
       "summary": "A collection of all geometry objects."
+    },
+    "VOutRec": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutRec geometry class"
     },
     "Session": {
       "composition": [
@@ -102079,26 +103743,61 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "_Branch": {
-      "composition": [],
+    "Element": {
+      "composition": [
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
       "factories": [],
-      "uses": [],
-      "summary": "_Branch geometry class"
+      "uses": [
+        "AABB",
+        "BRep",
+        "Xform"
+      ],
+      "summary": "Element geometry class"
     },
-    "Vertex": {
+    "Closest": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Graph",
-        "session_cpp"
+        "AABB",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
       ],
-      "summary": "A graph vertex with a unique identifier and attribute string."
+      "summary": "Static methods for finding closest points between geometry objects."
     },
-    "VOutPt": {
+    "VVertex": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VOutPt geometry class"
+      "summary": "VVertex geometry class"
+    },
+    "Default": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "Default geometry class"
+    },
+    "VActive": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VActive geometry class"
     },
     "Vector": {
       "composition": [],
@@ -102120,27 +103819,69 @@ window.API_INDEX = {
       "uses": [],
       "summary": "BIVec2 geometry class"
     },
-    "Matrix": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Matrix geometry class"
-    },
     "RayHit": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "RayHit geometry class"
     },
-    "Graph": {
-      "composition": [
-        "Edge"
-      ],
+    "VOutPt": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutPt geometry class"
+    },
+    "Matrix": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Matrix geometry class"
+    },
+    "Vertex": {
+      "composition": [],
       "factories": [],
       "uses": [
-        "Vertex"
+        "Graph",
+        "session_cpp"
       ],
-      "summary": "A graph data structure with string-only vertices and attributes."
+      "summary": "A graph vertex with a unique identifier and attribute string."
+    },
+    "Point": {
+      "composition": [],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Vector"
+      ],
+      "uses": [],
+      "summary": "A 3D point with visual properties."
+    },
+    "Xform": {
+      "composition": [
+        "Point",
+        "Vector"
+      ],
+      "factories": [
+        "Element"
+      ],
+      "uses": [
+        "Line",
+        "Plane",
+        "Polyline"
+      ],
+      "summary": "Xform geometry class"
+    },
+    "Color": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "session_cpp"
+      ],
+      "summary": "An index-based 0.0-1.0 color with RGBA values."
     },
     "Plane": {
       "composition": [],
@@ -102155,14 +103896,6 @@ window.API_INDEX = {
         "session_cpp"
       ],
       "summary": "A 3D plane defined by origin and coordinate axes."
-    },
-    "Color": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "An index-based 0.0-1.0 color with RGBA values."
     },
     "_Edge": {
       "composition": [],
@@ -102182,34 +103915,78 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_Node geometry class"
     },
-    "Xform": {
+    "Graph": {
       "composition": [
+        "Edge"
+      ],
+      "factories": [],
+      "uses": [
+        "Vertex"
+      ],
+      "summary": "A graph data structure with string-only vertices and attributes."
+    },
+    "AABB": {
+      "composition": [],
+      "factories": [
+        "OBB"
+      ],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
         "Point",
-        "Vector"
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Axis-aligned bounding box (center + half-size)."
+    },
+    "Tree": {
+      "composition": [
+        "Color",
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A hierarchical data structure with parent-child relationships."
+    },
+    "Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
+    "_Tri": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Tri geometry class"
+    },
+    "BRep": {
+      "composition": [
+        "BRepEdge",
+        "BRepFace",
+        "BRepLoop",
+        "BRepLoopType",
+        "BRepTrim",
+        "BRepTrimType",
+        "BRepVertex",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point"
       ],
       "factories": [
+        "BRepTrimType",
         "Element"
       ],
       "uses": [
         "Line",
-        "Plane",
-        "Polyline"
-      ],
-      "summary": "Xform geometry class"
-    },
-    "Point": {
-      "composition": [],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Line",
         "Mesh",
-        "OBB",
         "Plane",
+        "Polyline",
         "Vector"
       ],
-      "uses": [],
-      "summary": "A 3D point with visual properties."
+      "summary": "BRep geometry class"
     },
     "Mesh": {
       "composition": [
@@ -102238,6 +104015,12 @@ window.API_INDEX = {
       ],
       "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
+    "_P64": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_P64 geometry class"
+    },
     "Line": {
       "composition": [
         "Point"
@@ -102253,79 +104036,6 @@ window.API_INDEX = {
         "session_cpp"
       ],
       "summary": "A 3D line segment with visual properties."
-    },
-    "_Tri": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Tri geometry class"
-    },
-    "_P64": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_P64 geometry class"
-    },
-    "Tree": {
-      "composition": [
-        "Color",
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
-    },
-    "BRep": {
-      "composition": [
-        "BRepEdge",
-        "BRepFace",
-        "BRepLoop",
-        "BRepLoopType",
-        "BRepTrim",
-        "BRepTrimType",
-        "BRepVertex",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point"
-      ],
-      "factories": [
-        "BRepTrimType",
-        "Element"
-      ],
-      "uses": [
-        "Mesh",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRep geometry class"
-    },
-    "AABB": {
-      "composition": [],
-      "factories": [
-        "OBB"
-      ],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Axis-aligned bounding box (center + half-size)."
-    },
-    "Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
-    },
-    "_V2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_V2 geometry class"
     },
     "OBB": {
       "composition": [
@@ -102348,6 +104058,12 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
+    },
+    "_V2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],
@@ -103143,6 +104859,62 @@ window.API_INDEX = {
     "add_curve_loop": [
       "BRep.add_curve_loop"
     ],
+    "_split": [
+      "BRep._split"
+    ],
+    "find_or_add_vertex": [
+      "BRep.find_or_add_vertex"
+    ],
+    "lift": [
+      "BRep.lift"
+    ],
+    "append_face": [
+      "BRep.append_face"
+    ],
+    "split_by_plane": [
+      "BRep.split_by_plane",
+      "NurbsSurface.split_by_plane",
+      "BRepTrimType.split_by_plane"
+    ],
+    "cut_for": [
+      "BRep.cut_for"
+    ],
+    "split_by_surface": [
+      "BRep.split_by_surface",
+      "NurbsSurface.split_by_surface",
+      "BRepTrimType.split_by_surface"
+    ],
+    "split_by_curves": [
+      "BRep.split_by_curves",
+      "NurbsSurface.split_by_curves",
+      "BRepTrimType.split_by_curves"
+    ],
+    "split_by_line": [
+      "BRep.split_by_line",
+      "NurbsSurface.split_by_line",
+      "BRepTrimType.split_by_line"
+    ],
+    "_subset": [
+      "BRep._subset"
+    ],
+    "map_surface": [
+      "BRep.map_surface"
+    ],
+    "map_vertex": [
+      "BRep.map_vertex"
+    ],
+    "map_edge": [
+      "BRep.map_edge"
+    ],
+    "split_by_plane_pieces": [
+      "BRep.split_by_plane_pieces",
+      "BRepTrimType.split_by_plane_pieces"
+    ],
+    "split_by_brep": [
+      "BRep.split_by_brep",
+      "NurbsSurface.split_by_brep",
+      "BRepTrimType.split_by_brep"
+    ],
     "mesh": [
       "BRep.mesh",
       "NurbsSurface.mesh",
@@ -103499,6 +105271,21 @@ window.API_INDEX = {
     ],
     "surface_point": [
       "Closest.surface_point"
+    ],
+    "surface_curve": [
+      "Closest.surface_curve"
+    ],
+    "wrap_u": [
+      "Closest.wrap_u"
+    ],
+    "wrap_v": [
+      "Closest.wrap_v"
+    ],
+    "invert_near": [
+      "Closest.invert_near"
+    ],
+    "unwrap_to": [
+      "Closest.unwrap_to"
     ],
     "_closest_point_on_triangle": [
       "Closest._closest_point_on_triangle"
@@ -104692,6 +106479,7 @@ window.API_INDEX = {
     ],
     "face_area": [
       "Mesh.face_area",
+      "NurbsSurfaceTrimmed.face_area",
       "ColorMode.face_area"
     ],
     "face_centroid": [
@@ -104776,6 +106564,9 @@ window.API_INDEX = {
     ],
     "create_fitted": [
       "NurbsCurve.create_fitted"
+    ],
+    "join": [
+      "NurbsCurve.join"
     ],
     "initialize": [
       "NurbsCurve.initialize",
@@ -105375,6 +107166,33 @@ window.API_INDEX = {
     ],
     "project_to_uv": [
       "NurbsSurfaceTrimmed.project_to_uv"
+    ],
+    "split_by_uv_curves": [
+      "NurbsSurfaceTrimmed.split_by_uv_curves"
+    ],
+    "_is_boundary": [
+      "NurbsSurfaceTrimmed._is_boundary"
+    ],
+    "snap_border": [
+      "NurbsSurfaceTrimmed.snap_border"
+    ],
+    "seg_seg": [
+      "NurbsSurfaceTrimmed.seg_seg"
+    ],
+    "newton_cc": [
+      "NurbsSurfaceTrimmed.newton_cc"
+    ],
+    "vert_id": [
+      "NurbsSurfaceTrimmed.vert_id"
+    ],
+    "point_in_cycle": [
+      "NurbsSurfaceTrimmed.point_in_cycle"
+    ],
+    "cycle_to_loop": [
+      "NurbsSurfaceTrimmed.cycle_to_loop"
+    ],
+    "loop_signed_area": [
+      "NurbsSurfaceTrimmed.loop_signed_area"
     ],
     "surface": [
       "NurbsSurfaceTrimmed.surface"
@@ -106949,6 +108767,10 @@ window.API_INDEX = {
     "abs": [
       "std.abs"
     ],
+    "subset": [
+      "BRepTrimType.subset",
+      "BRep.subset"
+    ],
     "deep_copy_from": [
       "BRepTrimType.deep_copy_from",
       "BRep.deep_copy_from",
@@ -106990,6 +108812,9 @@ window.API_INDEX = {
       "Vector.constructor",
       "Xform.constructor"
     ],
+    "split_with": [
+      "BRep.split_with"
+    ],
     "format": [
       "fmt.format",
       "Color.format",
@@ -107003,6 +108828,9 @@ window.API_INDEX = {
     ],
     "make_tuple": [
       "std.make_tuple"
+    ],
+    "max": [
+      "std.max"
     ],
     "sqrt": [
       "std.sqrt"
@@ -107169,6 +108997,15 @@ window.API_INDEX = {
     "surface_plane": [
       "Intersection.surface_plane"
     ],
+    "surface_plane_uv": [
+      "Intersection.surface_plane_uv"
+    ],
+    "surface_surface": [
+      "Intersection.surface_surface"
+    ],
+    "cut_curves_on_surface": [
+      "Intersection.cut_curves_on_surface"
+    ],
     "plane_plane_plane_check": [
       "Intersection.plane_plane_plane_check"
     ],
@@ -107244,12 +109081,6 @@ window.API_INDEX = {
     ],
     "swap": [
       "std.swap"
-    ],
-    "max": [
-      "std.max"
-    ],
-    "hypot": [
-      "std.hypot"
     ],
     "from_projected_points": [
       "Line.from_projected_points"
@@ -107478,6 +109309,9 @@ window.API_INDEX = {
     ],
     "v_axis": [
       "FlatMap64.v_axis"
+    ],
+    "NurbsCurve": [
+      "FlatMap64.NurbsCurve"
     ],
     "dt": [
       "FlatMap64.dt"
@@ -108096,6 +109930,9 @@ window.API_INDEX = {
     "mesh_render": [
       "NurbsSurfaceTrimmed.mesh_render"
     ],
+    "split_by_uv_curves_ex": [
+      "NurbsSurfaceTrimmed.split_by_uv_curves_ex"
+    ],
     "mesh_by_planes": [
       "NurbsSurfaceTrimmed.mesh_by_planes"
     ],
@@ -108313,10 +110150,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "BRepTrimType": {
-      "cpp": 38,
+      "cpp": 45,
       "python": 2,
       "rust": 0,
-      "gaps": 40,
+      "gaps": 47,
       "present_in": [
         "cpp",
         "python"
@@ -108384,10 +110221,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "BRep": {
-      "cpp": 38,
-      "python": 51,
-      "rust": 40,
-      "gaps": 29,
+      "cpp": 46,
+      "python": 66,
+      "rust": 47,
+      "gaps": 40,
       "present_in": [
         "cpp",
         "python",
@@ -108396,10 +110233,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Closest": {
-      "cpp": 12,
-      "python": 22,
-      "rust": 12,
-      "gaps": 10,
+      "cpp": 13,
+      "python": 27,
+      "rust": 13,
+      "gaps": 14,
       "present_in": [
         "cpp",
         "python",
@@ -108642,9 +110479,9 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "NurbsCurve": {
-      "cpp": 115,
-      "python": 126,
-      "rust": 102,
+      "cpp": 116,
+      "python": 127,
+      "rust": 103,
       "gaps": 75,
       "present_in": [
         "cpp",
@@ -108665,9 +110502,9 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "NurbsSurface": {
-      "cpp": 77,
-      "python": 104,
-      "rust": 79,
+      "cpp": 82,
+      "python": 109,
+      "rust": 84,
       "gaps": 51,
       "present_in": [
         "cpp",
@@ -108707,10 +110544,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "NurbsSurfaceTrimmed": {
-      "cpp": 35,
-      "python": 52,
-      "rust": 40,
-      "gaps": 35,
+      "cpp": 36,
+      "python": 62,
+      "rust": 42,
+      "gaps": 45,
       "present_in": [
         "cpp",
         "python",
@@ -109085,10 +110922,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "std": {
-      "cpp": 20,
+      "cpp": 19,
       "python": 0,
       "rust": 0,
-      "gaps": 20,
+      "gaps": 19,
       "present_in": [
         "cpp"
       ],
@@ -109116,10 +110953,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Intersection": {
-      "cpp": 40,
+      "cpp": 43,
       "python": 0,
       "rust": 0,
-      "gaps": 40,
+      "gaps": 43,
       "present_in": [
         "cpp"
       ],
@@ -109167,10 +111004,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "FlatMap64": {
-      "cpp": 28,
+      "cpp": 29,
       "python": 0,
       "rust": 0,
-      "gaps": 28,
+      "gaps": 29,
       "present_in": [
         "cpp"
       ],

@@ -384,8 +384,9 @@ impl State {
             let is_ortho = self.scene.camera.proj_mode == ProjMode::Ortho;
             let ray = screen_to_world_ray(&view, &proj, vp, (x as f32, y as f32), is_ortho);
             let scale = self.gb.gumball_scale;
+            let show_gumball = self.gb.show_gumball;
             if let Some(gb) = &mut self.gb.gumball {
-                gb.hovered = gb.hit_test(ray, scale);
+                gb.hovered = if show_gumball { gb.hit_test(ray, scale) } else { None };
             }
         }
 
@@ -429,6 +430,8 @@ impl State {
         } else if code == KeyCode::KeyM && is_pressed {
             self.scene.show_tess = !self.scene.show_tess;
             self.rebuild_tess_wireframe();
+        } else if code == KeyCode::KeyG && is_pressed {
+            self.scene.show_grid = !self.scene.show_grid;
         } else if code == KeyCode::KeyB && is_pressed && !self.scene.shift_down {
             // B toggles arctic mode (white + SSAO); Shift+B keeps the bottom view.
             self.scene.arctic = !self.scene.arctic;

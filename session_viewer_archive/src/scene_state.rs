@@ -30,6 +30,8 @@ pub struct SceneState {
     pub backface_highlight: bool,
     /// `m` toggles drawing NURBS / trimmed tessellation as wireframe lines (diagnostic).
     pub show_tess: bool,
+    /// `g` toggles the reference grid.
+    pub show_grid: bool,
     pub pending_pick: Option<(f64, f64)>,
     /// One-shot: a viewport pick changed the selection; the tree should expand
     /// ancestor groups and scroll the selected row into view on the next frame.

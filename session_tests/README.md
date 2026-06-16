@@ -10,3 +10,10 @@ cd ../session_viewer && trunk serve  # the 3D viewer → localhost:8770  (only w
 
 ../bash/git_push.sh "msg"            # deploy: CI builds wasm + site → GitHub Pages
 ```
+
+Chain:
+
+- edit Rust → trunk recompiles wasm → trunk's WS reloads the iframe page
+- Two separate reload systems, each owning its half:
+  - Vite hot-reloads the .md/UI (the outer page).
+  - Trunk hot-reloads the viewer (the inner iframe).

@@ -53,7 +53,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 1.496
+    "time_ms": 0.796
   },
   {
     "checks": [],
@@ -63,7 +63,7 @@
     "line": 49,
     "passed": true,
     "test_name": "Constructor Planar",
-    "time_ms": 544.908
+    "time_ms": 204.804
   },
   {
     "checks": [
@@ -89,7 +89,7 @@
     "line": 136,
     "passed": true,
     "test_name": "Constructor Hole",
-    "time_ms": 2.963
+    "time_ms": 1.534
   },
   {
     "checks": [
@@ -135,7 +135,7 @@
     "line": 183,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 1.574
+    "time_ms": 0.742
   },
   {
     "checks": [
@@ -161,7 +161,7 @@
     "line": 220,
     "passed": true,
     "test_name": "Add Inner Loop",
-    "time_ms": 4.384
+    "time_ms": 2.151
   },
   {
     "checks": [
@@ -192,80 +192,121 @@
     "line": 269,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 1.445
+    "time_ms": 0.747
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_close(pt[0], 10.0)",
-        "line": 435,
+        "line": 469,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pt[1], 20.0)",
-        "line": 436,
+        "line": 470,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(pt[2], 30.0)",
-        "line": 437,
+        "line": 471,
         "passed": true
       }
     ],
     "code": "        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Xform;\n\n\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, &Point::new(1.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 1.0, 0.0));\n        srf.set_cv(1, 1, &Point::new(1.0, 1.0, 0.0));\n\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ]);\n\n        let mut ts = NurbsSurfaceTrimmed::create(&srf, &outer);\n        ts.xform = Xform::translation(10.0, 20.0, 30.0);\n        let ts2 = ts.transformed();\n\n        let (u0, _u1) = ts2.surface().domain(0).unwrap();\n        let (v0, _v1) = ts2.surface().domain(1).unwrap();\n        let pt = ts2.point_at(u0, v0).unwrap();\n",
     "failures": [],
     "group": "NurbsSurfaceTrimmed",
-    "line": 406,
+    "line": 440,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 1.442
+    "time_ms": 0.747
   },
   {
     "checks": [
       {
         "code_line": "loaded_json == ts",
-        "line": 482,
+        "line": 516,
         "passed": true
       },
       {
         "code_line": "loaded_json_string == ts",
-        "line": 483,
+        "line": 517,
         "passed": true
       },
       {
         "code_line": "loaded_from_file == ts",
-        "line": 484,
+        "line": 518,
         "passed": true
       }
     ],
     "code": "        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Color;\n        use std::path::PathBuf;\n\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, &Point::new(5.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 5.0, 0.0));\n        srf.set_cv(1, 1, &Point::new(5.0, 5.0, 0.0));\n\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.1, 0.1, 0.0),\n            Point::new(0.9, 0.1, 0.0),\n            Point::new(0.9, 0.9, 0.0),\n            Point::new(0.1, 0.9, 0.0),\n        ]);\n\n        let mut ts = NurbsSurfaceTrimmed::create(&srf, &outer);\n        ts.name = \"test_nurbssurface_trimmed\".to_string();\n        ts.width = 2.0;\n        ts.surfacecolor = Color::new(1.0, 0.5, 0.25, 1.0);\n\n        // JSON object\n        let json = ts.jsondump().unwrap();\n        let loaded_json = NurbsSurfaceTrimmed::jsonload(&json).unwrap();\n\n        // String\n        let json_string = ts.file_json_dumps();\n        let loaded_json_string = NurbsSurfaceTrimmed::file_json_loads(&json_string);\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbssurface_trimmed.json\");\n        ts.file_json_dump(filename.to_str().unwrap());\n        let loaded_from_file = NurbsSurfaceTrimmed::file_json_load(filename.to_str().unwrap());\n",
     "failures": [],
     "group": "NurbsSurfaceTrimmed",
-    "line": 442,
+    "line": 476,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 29.177
+    "time_ms": 17.49
   },
   {
     "checks": [
       {
         "code_line": "loaded_proto_string == ts",
-        "line": 525,
+        "line": 559,
         "passed": true
       },
       {
         "code_line": "loaded == ts",
-        "line": 526,
+        "line": 560,
         "passed": true
       }
     ],
     "code": "        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        use crate::NurbsSurface;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Color;\n        use std::path::PathBuf;\n\n        let mut srf = NurbsSurface::create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0).unwrap();\n        srf.set_cv(0, 0, &Point::new(0.0, 0.0, 0.0));\n        srf.set_cv(1, 0, &Point::new(5.0, 0.0, 0.0));\n        srf.set_cv(0, 1, &Point::new(0.0, 5.0, 0.0));\n        srf.set_cv(1, 1, &Point::new(5.0, 5.0, 0.0));\n\n        let outer = NurbsCurve::create(true, 1, &[\n            Point::new(0.1, 0.1, 0.0),\n            Point::new(0.9, 0.1, 0.0),\n            Point::new(0.9, 0.9, 0.0),\n            Point::new(0.1, 0.9, 0.0),\n        ]);\n\n        let mut ts = NurbsSurfaceTrimmed::create(&srf, &outer);\n        ts.name = \"test_nurbssurface_trimmed\".to_string();\n        ts.width = 2.0;\n        ts.surfacecolor = Color::new(1.0, 0.5, 0.25, 1.0);\n\n        // String\n        let proto_string = ts.pb_dumps();\n        let loaded_proto_string = NurbsSurfaceTrimmed::pb_loads(&proto_string).unwrap();\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbssurface_trimmed.bin\");\n        ts.pb_dump(filename.to_str().unwrap());\n        let loaded = NurbsSurfaceTrimmed::pb_load(filename.to_str().unwrap());\n",
     "failures": [],
     "group": "NurbsSurfaceTrimmed",
-    "line": 489,
+    "line": 523,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 23.837
+    "time_ms": 14.183
+  },
+  {
+    "checks": [
+      {
+        "code_line": "parts.len() == 2",
+        "line": 420,
+        "passed": true
+      },
+      {
+        "code_line": "parts[0].is_trimmed()",
+        "line": 421,
+        "passed": true
+      },
+      {
+        "code_line": "parts[1].is_trimmed()",
+        "line": 422,
+        "passed": true
+      },
+      {
+        "code_line": "ring.len() == 2",
+        "line": 428,
+        "passed": true
+      },
+      {
+        "code_line": "ring[0].inner_loop_count() + ring[1].inner_loop_count() == 1",
+        "line": 429,
+        "passed": true
+      },
+      {
+        "code_line": "whole.len() == 1",
+        "line": 435,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Primitives;\n\n        let srf = Primitives::wave_surface(10.0, 1.0);\n        let (u0, u1) = srf.domain(0).unwrap();\n        let (v0, v1) = srf.domain(1).unwrap();\n        let pts = vec![Point::new(u0 + (u1-u0)*0.4, v0, 0.0), Point::new(u0 + (u1-u0)*0.6, v1, 0.0)];\n        let line = NurbsCurve::create(false, 1, &pts);\n\n        let parts = NurbsSurfaceTrimmed::split_by_uv_curves(&srf, &[line], None);\n\n\n        let circle = Primitives::circle((u0+u1)*0.5, (v0+v1)*0.5, 0.0, (u1-u0)*0.2);\n\n        let ring = NurbsSurfaceTrimmed::split_by_uv_curves(&srf, &[circle], None);\n\n\n        let dangling = NurbsCurve::create(false, 1, &[Point::new(3.0, 3.0, 0.0), Point::new(5.0, 5.0, 0.0)]);\n\n        let whole = NurbsSurfaceTrimmed::split_by_uv_curves(&srf, &[dangling], None);\n",
+    "failures": [],
+    "group": "NurbsSurfaceTrimmed",
+    "line": 406,
+    "passed": true,
+    "test_name": "Split By UV Curves",
+    "time_ms": 2.179
   },
   {
     "checks": [
@@ -1481,6 +1522,6 @@
     "line": 307,
     "passed": true,
     "test_name": "Mesh",
-    "time_ms": 481.325
+    "time_ms": 203.136
   }
 ]

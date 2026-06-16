@@ -101,12 +101,12 @@ fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f
         return base;
     }
 
-    // Arctic: uniform white, ambient-only with a soft top-down hemisphere
+    // Arctic: object-colored, ambient-only with a soft top-down hemisphere
     // (world Z up) so members read as forms, not flat cutouts. Occlusion is
     // applied later by the composite pass.
     if (camera.flags & 4u) != 0u {
         let amb = mix(0.72, 1.0, 0.5 + 0.5 * n.z);
-        return vec4<f32>(vec3<f32>(amb), in.color.a);
+        return vec4<f32>(in.color.rgb * amb, in.color.a);
     }
 
     // Key light

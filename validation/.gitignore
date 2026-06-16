@@ -1,0 +1,6 @@
+# Heavy/generated artifacts — keep source + scripts, not builds/oracle output
+.venv-occt/
+occt_oracle/build/
+_*.json
+_*.txt
+__pycache__/

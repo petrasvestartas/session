@@ -154,6 +154,7 @@ impl State {
         }
 
         let gumball_hit = self.gb.gumball.as_ref()
+            .filter(|_| self.gb.show_gumball)
             .and_then(|gb| gb.hit_test(ray, self.gb.gumball_scale));
         if let Some(handle) = gumball_hit {
             self.gb.gumball_input = None; // a fresh handle press cancels any open popup

@@ -156,9 +156,11 @@ impl State {
                 render_pass.set_bind_group(0, &self.gpu.bind_group, &[]);
                 stats.draw_calls += 1;
             }
-            render_pass.set_pipeline(&self.gpu.pipelines.grid);
-            render_pass.draw(0..298, 0..1);
-            stats.draw_calls += 1;
+            if self.scene.show_grid {
+                render_pass.set_pipeline(&self.gpu.pipelines.grid);
+                render_pass.draw(0..298, 0..1);
+                stats.draw_calls += 1;
+            }
 
             // Meshes: one batched draw for the whole arena, then template instance groups.
             render_pass.set_bind_group(0, &self.gpu.bind_group, &[]);
@@ -483,7 +485,7 @@ impl State {
         }
 
         // Gumball overlay — cylinders (shafts+arcs), cones (arrowheads), spheres (handles).
-        if let Some(gb) = &self.gb.gumball {
+        if let Some(gb) = self.gb.gumball.as_ref().filter(|_| self.gb.show_gumball) {
             let lines   = gumball::build_lines(gb.origin, self.gb.gumball_scale, gb.hovered);
             let cones   = gumball::build_cones(gb.origin, self.gb.gumball_scale, gb.hovered);
             let spheres = gumball::build_spheres(gb.origin, self.gb.gumball_scale, gb.hovered);

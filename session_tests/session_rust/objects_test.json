@@ -13,64 +13,7 @@
     "line": 16,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 19.822
-  },
-  {
-    "checks": [
-      {
-        "code_line": "obj.name == \"my_objects\"",
-        "line": 9,
-        "passed": true
-      },
-      {
-        "code_line": "!obj.guid().is_empty()",
-        "line": 10,
-        "passed": true
-      },
-      {
-        "code_line": "!obj.to_string().is_empty()",
-        "line": 11,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Objects;\n        let obj = Objects::new();\n",
-    "failures": [],
-    "group": "Objects",
-    "line": 5,
-    "passed": true,
-    "test_name": "Constructor",
-    "time_ms": 0.009
-  },
-  {
-    "checks": [
-      {
-        "code_line": "loaded.components.len() == 1",
-        "line": 123,
-        "passed": true
-      },
-      {
-        "code_line": "loaded.components[0].type_name == \"FloorBuilder\"",
-        "line": 124,
-        "passed": true
-      },
-      {
-        "code_line": "loaded.components[0].guid == original_guid",
-        "line": 125,
-        "passed": true
-      },
-      {
-        "code_line": "loaded.components[0].extra[\"size\"] == serde_json::json!(3000)",
-        "line": 126,
-        "passed": true
-      }
-    ],
-    "code": "        // Custom fields are serialised as a JSON string inside the proto message\n        // and reconstructed into a HashMap on load — all values survive.\n        use crate::{Objects, Component};\n\n        let mut extra = std::collections::HashMap::new();\n        extra.insert(\"size\".to_string(),   serde_json::json!(3000));\n        extra.insert(\"height\".to_string(), serde_json::json!(650));\n\n        let original_guid = uuid::Uuid::new_v4().to_string();\n        let c = Component {\n            type_name: \"FloorBuilder\".to_string(),\n            guid:       original_guid.clone(),\n            name:       \"floor_builder\".to_string(),\n            extra,\n        };\n\n        let mut original = Objects::new();\n        original.components.push(c);\n\n        original.pb_dump(\"serialization/test_objects_component.bin\");\n        let loaded = Objects::pb_load(\"serialization/test_objects_component.bin\");\n",
-    "failures": [],
-    "group": "Objects",
-    "line": 100,
-    "passed": true,
-    "test_name": "Component Protobuf Roundtrip",
-    "time_ms": 17.174
+    "time_ms": 14.032
   },
   {
     "checks": [
@@ -101,7 +44,33 @@
     "line": 41,
     "passed": true,
     "test_name": "Component Constructor",
-    "time_ms": 0.021
+    "time_ms": 0.018
+  },
+  {
+    "checks": [
+      {
+        "code_line": "obj.name == \"my_objects\"",
+        "line": 9,
+        "passed": true
+      },
+      {
+        "code_line": "!obj.guid().is_empty()",
+        "line": 10,
+        "passed": true
+      },
+      {
+        "code_line": "!obj.to_string().is_empty()",
+        "line": 11,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Objects;\n        let obj = Objects::new();\n",
+    "failures": [],
+    "group": "Objects",
+    "line": 5,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -137,7 +106,38 @@
     "line": 65,
     "passed": true,
     "test_name": "Component Json Roundtrip",
-    "time_ms": 17.764
+    "time_ms": 14.006
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded.components.len() == 1",
+        "line": 123,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.components[0].type_name == \"FloorBuilder\"",
+        "line": 124,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.components[0].guid == original_guid",
+        "line": 125,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.components[0].extra[\"size\"] == serde_json::json!(3000)",
+        "line": 126,
+        "passed": true
+      }
+    ],
+    "code": "        // Custom fields are serialised as a JSON string inside the proto message\n        // and reconstructed into a HashMap on load — all values survive.\n        use crate::{Objects, Component};\n\n        let mut extra = std::collections::HashMap::new();\n        extra.insert(\"size\".to_string(),   serde_json::json!(3000));\n        extra.insert(\"height\".to_string(), serde_json::json!(650));\n\n        let original_guid = uuid::Uuid::new_v4().to_string();\n        let c = Component {\n            type_name: \"FloorBuilder\".to_string(),\n            guid:       original_guid.clone(),\n            name:       \"floor_builder\".to_string(),\n            extra,\n        };\n\n        let mut original = Objects::new();\n        original.components.push(c);\n\n        original.pb_dump(\"serialization/test_objects_component.bin\");\n        let loaded = Objects::pb_load(\"serialization/test_objects_component.bin\");\n",
+    "failures": [],
+    "group": "Objects",
+    "line": 100,
+    "passed": true,
+    "test_name": "Component Protobuf Roundtrip",
+    "time_ms": 13.381
   },
   {
     "checks": [
@@ -153,6 +153,6 @@
     "line": 29,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 27.164
+    "time_ms": 12.961
   }
 ]

@@ -17,6 +17,9 @@ pub struct GumballInput {
 
 pub struct GumballState {
     pub gumball: Option<Gumball>,
+    /// When false the gumball gizmo is neither drawn nor interactive (selection
+    /// is unaffected — re-enabling shows it again on the current selection).
+    pub show_gumball: bool,
     pub gumball_scale: f32,
     /// A gumball handle was pressed: (handle, press_x, press_y) in physical px.
     /// Drag only begins once the cursor moves past the click/drag threshold; a

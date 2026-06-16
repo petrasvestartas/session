@@ -1,0 +1,5 @@
+OP ssi
+SURF cylinder 1 4
+SURF cylinder 2 8
+XF 0 0 0 0 1 0 90
+TOL 1e-6

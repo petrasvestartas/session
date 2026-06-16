@@ -23,7 +23,86 @@
     "line": 425,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 20.023
+    "time_ms": 16.611
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(p.x_axis()[0], 0.0)",
+        "line": 260,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(p.x_axis()[1], 1.0)",
+        "line": 261,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(p.y_axis()[0], -1.0)",
+        "line": 262,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(p.y_axis()[1], 0.0)",
+        "line": 263,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q.get_rotation()\n        // WHAT: Apply this rotation to the world XY plane and return the resulting\n        //       Plane. Equivalent to a Plane whose axes are the rotated X, Y, Z.\n        // WHEN TO USE: Visualize a quaternion as a frame, or convert a stored\n        //       quaternion into a Plane for frame-based APIs in the rest of the\n        //       kernel. Inverse of from_rotation(xy_plane(), result).\n        // TEST: 90 deg around Z gives a frame whose x_axis = Y, y_axis = -X.\n\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let p = q.get_rotation();\n",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 245,
+    "passed": true,
+    "test_name": "Get Rotation",
+    "time_ms": 0.023
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(n.magnitude(), 1.0)",
+        "line": 314,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q.normalized()\n        // WHAT: Return a unit-length copy of this quaternion (divides by magnitude).\n        // WHEN TO USE: Periodically after composing many rotations in a loop -\n        //       floating-point drift slowly makes a quaternion non-unit, and a\n        //       non-unit quaternion no longer represents a valid rotation.\n\n        let q = Quaternion::from_components(2.0, Vector::new(0.0, 0.0, 2.0));\n        let n = q.normalized();\n",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 301,
+    "passed": true,
+    "test_name": "Normalized",
+    "time_ms": 0.009
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(q.magnitude_squared(), q.magnitude() * q.magnitude())",
+        "line": 296,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q.magnitude_squared()\n        // WHAT: Same as magnitude() but skips the sqrt. Cheaper.\n        // WHEN TO USE: Comparing relative magnitudes, or in distance-based\n        //       similarity checks where the absolute value isn't needed.\n\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 4.0);\n",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 285,
+    "passed": true,
+    "test_name": "Magnitude Squared",
+    "time_ms": 0.007
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(q.dot(&q), 1.0)",
+        "line": 371,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n\n        // FUNCTION: q1.dot(q2)\n        // WHAT: Algebraic 4D dot product s1*s2 + x1*x2 + y1*y2 + z1*z2. NOT a\n        //       geometric operation - just the dot product of the 4 components.\n        // WHEN TO USE: Inside slerp implementations, or as a similarity measure\n        //       between two unit quaternions (1 = same, 0 = 90 deg apart).\n\n        let q = Quaternion::identity();\n",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 360,
+    "passed": true,
+    "test_name": "Dot",
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -54,59 +133,7 @@
     "line": 74,
     "passed": true,
     "test_name": "Identity",
-    "time_ms": 0.021
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_close(n.magnitude(), 1.0)",
-        "line": 314,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q.normalized()\n        // WHAT: Return a unit-length copy of this quaternion (divides by magnitude).\n        // WHEN TO USE: Periodically after composing many rotations in a loop -\n        //       floating-point drift slowly makes a quaternion non-unit, and a\n        //       non-unit quaternion no longer represents a valid rotation.\n\n        let q = Quaternion::from_components(2.0, Vector::new(0.0, 0.0, 2.0));\n        let n = q.normalized();\n",
-    "failures": [],
-    "group": "Quaternion",
-    "line": 301,
-    "passed": true,
-    "test_name": "Normalized",
-    "time_ms": 0.025
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_close(rotated[0], dst[0])",
-        "line": 164,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(rotated[1], dst[1])",
-        "line": 165,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(rotated[2], dst[2])",
-        "line": 166,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(rot[0], -1.0)",
-        "line": 171,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(rot[1], 0.0)",
-        "line": 172,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: Quaternion::from_arc(src, dst)\n        // WHAT: Build the shortest rotation that maps direction `src` to direction\n        //       `dst`. The rotation axis is perpendicular to both vectors.\n        // WHEN TO USE: Look-at logic (point a camera at a target), aligning a\n        //       model's forward axis with a desired direction, snapping one face\n        //       normal to another.\n        // TEST: Rotate (1,0,0) to (0,1,0); also handles the 180 deg flip case.\n\n        let src = Vector::new(1.0, 0.0, 0.0);\n        let dst = Vector::new(0.0, 1.0, 0.0);\n        let q = Quaternion::from_arc(src.clone(), dst.clone());\n        let rotated = q.rotate_vector(src);\n\n        let src2 = Vector::new(1.0, 0.0, 0.0);\n        let dst2 = Vector::new(-1.0, 0.0, 0.0);\n        let q2 = Quaternion::from_arc(src2.clone(), dst2);\n        let rot = q2.rotate_vector(src2);",
-    "failures": [],
-    "group": "Quaternion",
-    "line": 147,
-    "passed": true,
-    "test_name": "From Arc",
-    "time_ms": 0.087
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -122,151 +149,64 @@
     "line": 268,
     "passed": true,
     "test_name": "Magnitude",
-    "time_ms": 0.019
+    "time_ms": 0.003
   },
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(mid.scalar, expected.scalar)",
-        "line": 393,
+        "code_line": "TOLERANCE.is_close(result.scalar, 1.0)",
+        "line": 352,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(mid.vector[2], expected.vector[2])",
-        "line": 394,
+        "code_line": "TOLERANCE.is_close(result.vector[0], 0.0)",
+        "line": 353,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(mid2.scalar, half.scalar)",
-        "line": 398,
+        "code_line": "TOLERANCE.is_close(result.vector[1], 0.0)",
+        "line": 354,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(result.vector[2], 0.0)",
+        "line": 355,
         "passed": true
       }
     ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q1.slerp(q2, t)\n        // WHAT: Spherical Linear intERPolation. Smoothly blends q1 -> q2 along the\n        //       shortest great-circle path on S^3. Constant angular velocity.\n        // WHEN TO USE: High-quality animation between two orientations - camera\n        //       transitions, character bones, anything where smoothness matters\n        //       more than raw speed.\n        // TEST: Midpoint of slerp(identity, 90 deg) is 45 deg.\n\n        let q1 = Quaternion::identity();\n        let q2 = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let mid = q1.slerp(&q2, 0.5);\n        let expected = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 4.0);\n\n        let q3 = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), 0.001);\n        let mid2 = q1.slerp(&q3, 0.5);\n        let half = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), 0.0005);",
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q.invert()\n        // WHAT: True multiplicative inverse: conjugate / magnitude_squared. Works\n        //       for non-unit quaternions too.\n        // WHEN TO USE: When you need q^-1 and you are NOT sure the quaternion is\n        //       unit. q * q.invert() always equals identity by definition.\n\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 3.0);\n        let result = q.clone() * q.invert();\n",
     "failures": [],
     "group": "Quaternion",
-    "line": 376,
+    "line": 339,
     "passed": true,
-    "test_name": "Slerp",
-    "time_ms": 0.081
+    "test_name": "Invert",
+    "time_ms": 0.014
   },
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(q.scalar, (PI / 4.0).cos())",
-        "line": 141,
+        "code_line": "TOLERANCE.is_close(rotated_x[0], 0.0)",
+        "line": 216,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(q.vector[2], (PI / 4.0).sin())",
-        "line": 142,
+        "code_line": "TOLERANCE.is_close(rotated_x[1], 1.0)",
+        "line": 217,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(rotated_x[2], 0.0)",
+        "line": 218,
         "passed": true
       }
     ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: Quaternion::from_axis_angle(axis, angle)\n        // WHAT: Build a unit quaternion that rotates by `angle` radians around `axis`.\n        //       This is the geometric meaning most people expect.\n        // WHEN TO USE: The everyday rotation builder. Anytime you can describe the\n        //       rotation as \"spin by N radians around this direction\" - turning a\n        //       wheel, opening a door, orbiting a camera - this is the constructor.\n        // TEST: 90 deg around Z. scalar=cos(45 deg), z=sin(45 deg).\n\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n",
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        use crate::Plane;\n        use crate::Point;\n\n        // FUNCTION: Quaternion::from_rotation(plane_a, plane_b)\n        // WHAT: Build the quaternion that maps the basis of plane_a onto the basis\n        //       of plane_b. Equivalent to \"rotate a's frame to match b's frame\".\n        // WHEN TO USE: CAD assembly - aligning two parts by matching their\n        //       reference planes; transferring a local frame between objects;\n        //       expressing the relative rotation between two coordinate systems.\n        // TEST: Maps the world XY plane to a 90-deg-rotated frame; checks x_axis.\n\n        let plane_a = Plane::new(Point::new(0.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let plane_b = Plane::new(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0), Vector::new(-1.0, 0.0, 0.0));\n        let q = Quaternion::from_rotation(&plane_a, &plane_b);\n        let rotated_x = q.rotate_vector(plane_a.x_axis());\n",
     "failures": [],
     "group": "Quaternion",
-    "line": 127,
+    "line": 197,
     "passed": true,
-    "test_name": "From Axis Angle",
-    "time_ms": 0.01
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_close(q.scalar, 2.0)",
-        "line": 100,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(q.vector[0], 1.0)",
-        "line": 101,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(q.vector[1], 2.0)",
-        "line": 102,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(q.vector[2], 3.0)",
-        "line": 103,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(axis[0], 1.0 / sqrt14)",
-        "line": 111,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(axis[1], 2.0 / sqrt14)",
-        "line": 112,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(axis[2], 3.0 / sqrt14)",
-        "line": 113,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(angle, 2.0 * (2.0_f64 / 18.0_f64.sqrt()).acos())",
-        "line": 114,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(q_round.scalar, qn.scalar)",
-        "line": 119,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(q_round.vector[0], qn.vector[0])",
-        "line": 120,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(q_round.vector[1], qn.vector[1])",
-        "line": 121,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(q_round.vector[2], qn.vector[2])",
-        "line": 122,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // q = s + xi + yj + zk: first arg is scalar, second arg is (i,j,k) coefficients (NOT a rotation axis).\n        let q = Quaternion::from_components(2.0, Vector::new(1.0, 2.0, 3.0));\n\n\n        // Geometric meaning of (s, v): a rotation by `angle` around `axis`.\n        // to_axis_angle() extracts these — for q=(2,(1,2,3)):\n        //   axis  = (1,2,3)/sqrt(14)\n        //   angle = 2*acos(2/sqrt(18)) ≈ 2.1617 rad ≈ 123.85°\n        let (axis, angle) = q.to_axis_angle();\n        let sqrt14 = 14.0_f64.sqrt();\n\n        // Round-trip: from_axis_angle(to_axis_angle(q)) == q.normalized()\n        let q_round = Quaternion::from_axis_angle(axis, angle);\n        let qn = q.normalized();",
-    "failures": [],
-    "group": "Quaternion",
-    "line": 93,
-    "passed": true,
-    "test_name": "From Components",
-    "time_ms": 0.028
-  },
-  {
-    "checks": [
-      {
-        "code_line": "loaded.name == \"test_quaternion\"",
-        "line": 471,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(loaded.scalar, q.scalar)",
-        "line": 472,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(loaded.vector[2], q.vector[2])",
-        "line": 473,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q.pb_dump / Quaternion::pb_load\n        // WHAT: Write a quaternion to a binary protobuf file, read it back.\n        // WHEN TO USE: Compact storage, network protocols, or any pipeline that\n        //       needs the smallest serialized footprint and the fastest IO.\n\n        let mut q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        q.name = \"test_quaternion\".to_string();\n\n        let filename = \"serialization/test_quaternion.bin\";\n        q.pb_dump(filename);\n        let loaded = Quaternion::pb_load(filename);\n",
-    "failures": [],
-    "group": "Quaternion",
-    "line": 455,
-    "passed": true,
-    "test_name": "Protobuf Roundtrip",
-    "time_ms": 15.55
+    "test_name": "From Rotation",
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -352,7 +292,125 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.074
+    "time_ms": 0.034
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(q.scalar, 2.0)",
+        "line": 100,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q.vector[0], 1.0)",
+        "line": 101,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q.vector[1], 2.0)",
+        "line": 102,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q.vector[2], 3.0)",
+        "line": 103,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(axis[0], 1.0 / sqrt14)",
+        "line": 111,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(axis[1], 2.0 / sqrt14)",
+        "line": 112,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(axis[2], 3.0 / sqrt14)",
+        "line": 113,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(angle, 2.0 * (2.0_f64 / 18.0_f64.sqrt()).acos())",
+        "line": 114,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q_round.scalar, qn.scalar)",
+        "line": 119,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q_round.vector[0], qn.vector[0])",
+        "line": 120,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q_round.vector[1], qn.vector[1])",
+        "line": 121,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q_round.vector[2], qn.vector[2])",
+        "line": 122,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // q = s + xi + yj + zk: first arg is scalar, second arg is (i,j,k) coefficients (NOT a rotation axis).\n        let q = Quaternion::from_components(2.0, Vector::new(1.0, 2.0, 3.0));\n\n\n        // Geometric meaning of (s, v): a rotation by `angle` around `axis`.\n        // to_axis_angle() extracts these — for q=(2,(1,2,3)):\n        //   axis  = (1,2,3)/sqrt(14)\n        //   angle = 2*acos(2/sqrt(18)) ≈ 2.1617 rad ≈ 123.85°\n        let (axis, angle) = q.to_axis_angle();\n        let sqrt14 = 14.0_f64.sqrt();\n\n        // Round-trip: from_axis_angle(to_axis_angle(q)) == q.normalized()\n        let q_round = Quaternion::from_axis_angle(axis, angle);\n        let qn = q.normalized();",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 93,
+    "passed": true,
+    "test_name": "From Components",
+    "time_ms": 0.009
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(q.scalar, (PI / 4.0).cos())",
+        "line": 141,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(q.vector[2], (PI / 4.0).sin())",
+        "line": 142,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: Quaternion::from_axis_angle(axis, angle)\n        // WHAT: Build a unit quaternion that rotates by `angle` radians around `axis`.\n        //       This is the geometric meaning most people expect.\n        // WHEN TO USE: The everyday rotation builder. Anytime you can describe the\n        //       rotation as \"spin by N radians around this direction\" - turning a\n        //       wheel, opening a door, orbiting a camera - this is the constructor.\n        // TEST: 90 deg around Z. scalar=cos(45 deg), z=sin(45 deg).\n\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 127,
+    "passed": true,
+    "test_name": "From Axis Angle",
+    "time_ms": 0.003
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded.name == \"test_quaternion\"",
+        "line": 471,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded.scalar, q.scalar)",
+        "line": 472,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded.vector[2], q.vector[2])",
+        "line": 473,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q.pb_dump / Quaternion::pb_load\n        // WHAT: Write a quaternion to a binary protobuf file, read it back.\n        // WHEN TO USE: Compact storage, network protocols, or any pipeline that\n        //       needs the smallest serialized footprint and the fastest IO.\n\n        let mut q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        q.name = \"test_quaternion\".to_string();\n\n        let filename = \"serialization/test_quaternion.bin\";\n        q.pb_dump(filename);\n        let loaded = Quaternion::pb_load(filename);\n",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 455,
+    "passed": true,
+    "test_name": "Protobuf Roundtrip",
+    "time_ms": 12.67
   },
   {
     "checks": [
@@ -373,65 +431,90 @@
     "line": 177,
     "passed": true,
     "test_name": "From Euler",
-    "time_ms": 0.01
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_close(q.magnitude_squared(), q.magnitude() * q.magnitude())",
-        "line": 296,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q.magnitude_squared()\n        // WHAT: Same as magnitude() but skips the sqrt. Cheaper.\n        // WHEN TO USE: Comparing relative magnitudes, or in distance-based\n        //       similarity checks where the absolute value isn't needed.\n\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 4.0);\n",
-    "failures": [],
-    "group": "Quaternion",
-    "line": 285,
-    "passed": true,
-    "test_name": "Magnitude Squared",
     "time_ms": 0.008
   },
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(rotated[0], 0.0)",
-        "line": 238,
+        "code_line": "TOLERANCE.is_close(r0.scalar, q1.scalar)",
+        "line": 419,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(rotated[1], 1.0)",
-        "line": 239,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(rotated[2], 0.0)",
-        "line": 240,
+        "code_line": "TOLERANCE.is_close(r1.scalar, q2.scalar)",
+        "line": 420,
         "passed": true
       }
     ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q.rotate_vector(v)\n        // WHAT: Apply this rotation to a 3D vector and return the rotated vector.\n        //       Mathematically: q * v_pure * q.conjugate(), where v_pure = (0, v).\n        // WHEN TO USE: You have a quaternion orientation and need to know where a\n        //       specific direction points after the rotation - the camera's\n        //       forward axis, a bone's tip, the normal of a rotated face.\n        // TEST: Rotating X by 90 deg around Z gives Y.\n\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let rotated = q.rotate_vector(Vector::new(1.0, 0.0, 0.0));\n",
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q1.nlerp(q2, t)\n        // WHAT: Normalized Linear intERPolation. Cheaper than slerp but the\n        //       angular velocity isn't perfectly uniform. Often \"good enough\".\n        // WHEN TO USE: Real-time loops where every microsecond matters and the\n        //       visual difference from slerp is negligible (game animation,\n        //       crowd systems, particle orientations).\n\n        let q1 = Quaternion::identity();\n        let q2 = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let r0 = q1.nlerp(&q2, 0.0);\n        let r1 = q1.nlerp(&q2, 1.0);\n",
     "failures": [],
     "group": "Quaternion",
-    "line": 223,
+    "line": 403,
     "passed": true,
-    "test_name": "Rotate Vector",
+    "test_name": "Nlerp",
     "time_ms": 0.015
   },
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(q.dot(&q), 1.0)",
-        "line": 371,
+        "code_line": "TOLERANCE.is_close(mid.scalar, expected.scalar)",
+        "line": 393,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(mid.vector[2], expected.vector[2])",
+        "line": 394,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(mid2.scalar, half.scalar)",
+        "line": 398,
         "passed": true
       }
     ],
-    "code": "        use crate::Quaternion;\n\n        // FUNCTION: q1.dot(q2)\n        // WHAT: Algebraic 4D dot product s1*s2 + x1*x2 + y1*y2 + z1*z2. NOT a\n        //       geometric operation - just the dot product of the 4 components.\n        // WHEN TO USE: Inside slerp implementations, or as a similarity measure\n        //       between two unit quaternions (1 = same, 0 = 90 deg apart).\n\n        let q = Quaternion::identity();\n",
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q1.slerp(q2, t)\n        // WHAT: Spherical Linear intERPolation. Smoothly blends q1 -> q2 along the\n        //       shortest great-circle path on S^3. Constant angular velocity.\n        // WHEN TO USE: High-quality animation between two orientations - camera\n        //       transitions, character bones, anything where smoothness matters\n        //       more than raw speed.\n        // TEST: Midpoint of slerp(identity, 90 deg) is 45 deg.\n\n        let q1 = Quaternion::identity();\n        let q2 = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let mid = q1.slerp(&q2, 0.5);\n        let expected = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 4.0);\n\n        let q3 = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), 0.001);\n        let mid2 = q1.slerp(&q3, 0.5);\n        let half = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), 0.0005);",
     "failures": [],
     "group": "Quaternion",
-    "line": 360,
+    "line": 376,
     "passed": true,
-    "test_name": "Dot",
-    "time_ms": 0.005
+    "test_name": "Slerp",
+    "time_ms": 0.02
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(rotated[0], dst[0])",
+        "line": 164,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(rotated[1], dst[1])",
+        "line": 165,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(rotated[2], dst[2])",
+        "line": 166,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(rot[0], -1.0)",
+        "line": 171,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(rot[1], 0.0)",
+        "line": 172,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: Quaternion::from_arc(src, dst)\n        // WHAT: Build the shortest rotation that maps direction `src` to direction\n        //       `dst`. The rotation axis is perpendicular to both vectors.\n        // WHEN TO USE: Look-at logic (point a camera at a target), aligning a\n        //       model's forward axis with a desired direction, snapping one face\n        //       normal to another.\n        // TEST: Rotate (1,0,0) to (0,1,0); also handles the 180 deg flip case.\n\n        let src = Vector::new(1.0, 0.0, 0.0);\n        let dst = Vector::new(0.0, 1.0, 0.0);\n        let q = Quaternion::from_arc(src.clone(), dst.clone());\n        let rotated = q.rotate_vector(src);\n\n        let src2 = Vector::new(1.0, 0.0, 0.0);\n        let dst2 = Vector::new(-1.0, 0.0, 0.0);\n        let q2 = Quaternion::from_arc(src2.clone(), dst2);\n        let rot = q2.rotate_vector(src2);",
+    "failures": [],
+    "group": "Quaternion",
+    "line": 147,
+    "passed": true,
+    "test_name": "From Arc",
+    "time_ms": 0.019
   },
   {
     "checks": [
@@ -457,115 +540,32 @@
     "line": 319,
     "passed": true,
     "test_name": "Conjugate",
-    "time_ms": 0.011
+    "time_ms": 0.004
   },
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(rotated_x[0], 0.0)",
-        "line": 216,
+        "code_line": "TOLERANCE.is_close(rotated[0], 0.0)",
+        "line": 238,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(rotated_x[1], 1.0)",
-        "line": 217,
+        "code_line": "TOLERANCE.is_close(rotated[1], 1.0)",
+        "line": 239,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(rotated_x[2], 0.0)",
-        "line": 218,
+        "code_line": "TOLERANCE.is_close(rotated[2], 0.0)",
+        "line": 240,
         "passed": true
       }
     ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n        use crate::Plane;\n        use crate::Point;\n\n        // FUNCTION: Quaternion::from_rotation(plane_a, plane_b)\n        // WHAT: Build the quaternion that maps the basis of plane_a onto the basis\n        //       of plane_b. Equivalent to \"rotate a's frame to match b's frame\".\n        // WHEN TO USE: CAD assembly - aligning two parts by matching their\n        //       reference planes; transferring a local frame between objects;\n        //       expressing the relative rotation between two coordinate systems.\n        // TEST: Maps the world XY plane to a 90-deg-rotated frame; checks x_axis.\n\n        let plane_a = Plane::new(Point::new(0.0, 0.0, 0.0), Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0));\n        let plane_b = Plane::new(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0), Vector::new(-1.0, 0.0, 0.0));\n        let q = Quaternion::from_rotation(&plane_a, &plane_b);\n        let rotated_x = q.rotate_vector(plane_a.x_axis());\n",
+    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q.rotate_vector(v)\n        // WHAT: Apply this rotation to a 3D vector and return the rotated vector.\n        //       Mathematically: q * v_pure * q.conjugate(), where v_pure = (0, v).\n        // WHEN TO USE: You have a quaternion orientation and need to know where a\n        //       specific direction points after the rotation - the camera's\n        //       forward axis, a bone's tip, the normal of a rotated face.\n        // TEST: Rotating X by 90 deg around Z gives Y.\n\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let rotated = q.rotate_vector(Vector::new(1.0, 0.0, 0.0));\n",
     "failures": [],
     "group": "Quaternion",
-    "line": 197,
+    "line": 223,
     "passed": true,
-    "test_name": "From Rotation",
-    "time_ms": 0.055
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_close(r0.scalar, q1.scalar)",
-        "line": 419,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(r1.scalar, q2.scalar)",
-        "line": 420,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q1.nlerp(q2, t)\n        // WHAT: Normalized Linear intERPolation. Cheaper than slerp but the\n        //       angular velocity isn't perfectly uniform. Often \"good enough\".\n        // WHEN TO USE: Real-time loops where every microsecond matters and the\n        //       visual difference from slerp is negligible (game animation,\n        //       crowd systems, particle orientations).\n\n        let q1 = Quaternion::identity();\n        let q2 = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let r0 = q1.nlerp(&q2, 0.0);\n        let r1 = q1.nlerp(&q2, 1.0);\n",
-    "failures": [],
-    "group": "Quaternion",
-    "line": 403,
-    "passed": true,
-    "test_name": "Nlerp",
-    "time_ms": 0.027
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_close(result.scalar, 1.0)",
-        "line": 352,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(result.vector[0], 0.0)",
-        "line": 353,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(result.vector[1], 0.0)",
-        "line": 354,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(result.vector[2], 0.0)",
-        "line": 355,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q.invert()\n        // WHAT: True multiplicative inverse: conjugate / magnitude_squared. Works\n        //       for non-unit quaternions too.\n        // WHEN TO USE: When you need q^-1 and you are NOT sure the quaternion is\n        //       unit. q * q.invert() always equals identity by definition.\n\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 3.0);\n        let result = q.clone() * q.invert();\n",
-    "failures": [],
-    "group": "Quaternion",
-    "line": 339,
-    "passed": true,
-    "test_name": "Invert",
-    "time_ms": 0.018
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_close(p.x_axis()[0], 0.0)",
-        "line": 260,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(p.x_axis()[1], 1.0)",
-        "line": 261,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(p.y_axis()[0], -1.0)",
-        "line": 262,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(p.y_axis()[1], 0.0)",
-        "line": 263,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Quaternion;\n        use crate::Vector;\n\n        // FUNCTION: q.get_rotation()\n        // WHAT: Apply this rotation to the world XY plane and return the resulting\n        //       Plane. Equivalent to a Plane whose axes are the rotated X, Y, Z.\n        // WHEN TO USE: Visualize a quaternion as a frame, or convert a stored\n        //       quaternion into a Plane for frame-based APIs in the rest of the\n        //       kernel. Inverse of from_rotation(xy_plane(), result).\n        // TEST: 90 deg around Z gives a frame whose x_axis = Y, y_axis = -X.\n\n        let q = Quaternion::from_axis_angle(Vector::new(0.0, 0.0, 1.0), PI / 2.0);\n        let p = q.get_rotation();\n",
-    "failures": [],
-    "group": "Quaternion",
-    "line": 245,
-    "passed": true,
-    "test_name": "Get Rotation",
-    "time_ms": 0.016
+    "test_name": "Rotate Vector",
+    "time_ms": 0.006
   }
 ]

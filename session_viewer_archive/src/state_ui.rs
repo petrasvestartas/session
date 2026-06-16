@@ -235,6 +235,8 @@ impl State {
         let hud_backend = self.gpu.backend.clone();
         let hud_ssao_ok = self.gpu.ssao_supported;
         let mut hud_arctic = self.scene.arctic;
+        let mut hud_gumball = self.gb.show_gumball;
+        let mut hud_grid = self.scene.show_grid;
         let mut hud_outline = self.scene.outline;
         let mut hud_outline_px = self.scene.outline_px;
         let mut hud_fxaa = self.scene.fxaa;
@@ -258,6 +260,8 @@ impl State {
                         ui.monospace(format!("draw calls {}", stats.draw_calls));
                         ui.checkbox(&mut hud_cull, "frustum cull");
                         ui.checkbox(&mut hud_arctic, "arctic");
+                        ui.checkbox(&mut hud_gumball, "gumball");
+                        ui.checkbox(&mut hud_grid, "grid");
                         if hud_ssao_ok {
                             ui.checkbox(&mut hud_outline, "outline");
                             if hud_outline {
@@ -540,6 +544,8 @@ impl State {
                                     ("Q",            "toggle shading"),
                                     ("E",            "toggle back-face color"),
                                     ("M",            "tessellation wireframe"),
+                                    ("B",            "toggle arctic mode"),
+                                    ("G",            "toggle grid"),
                                     ("F10",          "edit control points"),
                                     ("Ctrl+Shift+LMB", "F10: pick point · else: move edge"),
                                 ] {
@@ -653,6 +659,8 @@ impl State {
 
         self.scene.frustum_cull = hud_cull;
         self.scene.arctic = hud_arctic;
+        self.gb.show_gumball = hud_gumball;
+        self.scene.show_grid = hud_grid;
         self.scene.outline = hud_outline;
         self.scene.outline_px = hud_outline_px;
         self.scene.fxaa = hud_fxaa;

@@ -38,6 +38,6 @@
     "line": 7,
     "passed": true,
     "test_name": "Runtime Modification",
-    "time_ms": 0.005
+    "time_ms": 0.003
   }
 ]

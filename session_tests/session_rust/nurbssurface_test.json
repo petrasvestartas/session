@@ -273,7 +273,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 11.64
+    "time_ms": 3.817
   },
   {
     "checks": [
@@ -324,7 +324,7 @@
     "line": 106,
     "passed": true,
     "test_name": "Booleans Queries",
-    "time_ms": 0.18
+    "time_ms": 0.091
   },
   {
     "checks": [
@@ -390,7 +390,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.072
+    "time_ms": 0.031
   },
   {
     "checks": [
@@ -446,7 +446,7 @@
     "line": 213,
     "passed": true,
     "test_name": "Control Vertices Access",
-    "time_ms": 0.091
+    "time_ms": 0.028
   },
   {
     "checks": [
@@ -547,7 +547,7 @@
     "line": 274,
     "passed": true,
     "test_name": "NurbsKnot Access",
-    "time_ms": 0.234
+    "time_ms": 0.088
   },
   {
     "checks": [
@@ -588,7 +588,7 @@
     "line": 335,
     "passed": true,
     "test_name": "Domain",
-    "time_ms": 0.045
+    "time_ms": 0.043
   },
   {
     "checks": [
@@ -1059,7 +1059,7 @@
     "line": 388,
     "passed": true,
     "test_name": "Division",
-    "time_ms": 2.174
+    "time_ms": 0.967
   },
   {
     "checks": [
@@ -1110,7 +1110,7 @@
     "line": 521,
     "passed": true,
     "test_name": "Evaluation",
-    "time_ms": 0.19
+    "time_ms": 0.069
   },
   {
     "checks": [
@@ -1201,7 +1201,7 @@
     "line": 582,
     "passed": true,
     "test_name": "Modification",
-    "time_ms": 5.254
+    "time_ms": 2.218
   },
   {
     "checks": [
@@ -1252,7 +1252,7 @@
     "line": 671,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 0.257
+    "time_ms": 0.154
   },
   {
     "checks": [
@@ -1318,53 +1318,223 @@
     "line": 731,
     "passed": true,
     "test_name": "Meshing",
-    "time_ms": 650.565
+    "time_ms": 234.46
   },
   {
     "checks": [
       {
         "code_line": "loaded_json == surface",
-        "line": 907,
+        "line": 1034,
         "passed": true
       },
       {
         "code_line": "loaded_json_string == surface",
-        "line": 908,
+        "line": 1035,
         "passed": true
       },
       {
         "code_line": "loaded_from_file == surface",
-        "line": 909,
+        "line": 1036,
         "passed": true
       }
     ],
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use std::path::PathBuf;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n        let surface = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // JSON object\n        let json = surface.jsondump().unwrap();\n        let loaded_json = NurbsSurface::jsonload(&json).unwrap();\n\n        // String\n        let json_string = surface.file_json_dumps();\n        let loaded_json_string = NurbsSurface::file_json_loads(&json_string);\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbssurface.json\");\n        surface.file_json_dump(filename.to_str().unwrap());\n        let loaded_from_file = NurbsSurface::file_json_load(filename.to_str().unwrap());\n",
     "failures": [],
     "group": "NurbsSurface",
-    "line": 864,
+    "line": 991,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 20.544
+    "time_ms": 16.714
   },
   {
     "checks": [
       {
         "code_line": "loaded_proto_string == surface",
-        "line": 953,
+        "line": 1080,
         "passed": true
       },
       {
         "code_line": "loaded == surface",
-        "line": 954,
+        "line": 1081,
         "passed": true
       }
     ],
     "code": "        use crate::nurbssurface::NurbsSurface;\n        use crate::point::Point;\n        use std::path::PathBuf;\n\n        let points = vec![\n            // i=0\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(-1.0, 0.75, 2.0),\n            Point::new(-1.0, 4.25, 2.0),\n            Point::new(0.0, 5.0, 0.0),\n            // i=1\n            Point::new(0.75, -1.0, 2.0),\n            Point::new(1.25, 1.25, 4.0),\n            Point::new(1.25, 3.75, 4.0),\n            Point::new(0.75, 6.0, 2.0),\n            // i=2\n            Point::new(4.25, -1.0, 2.0),\n            Point::new(3.75, 1.25, 4.0),\n            Point::new(3.75, 3.75, 4.0),\n            Point::new(4.25, 6.0, 2.0),\n            // i=3\n            Point::new(5.0, 0.0, 0.0),\n            Point::new(6.0, 0.75, 2.0),\n            Point::new(6.0, 4.25, 2.0),\n            Point::new(5.0, 5.0, 0.0),\n        ];\n        let surface = NurbsSurface::create(false, false, 3, 3, 4, 4, &points).unwrap();\n\n        // String\n        let proto_string = surface.pb_dumps();\n        let loaded_proto_string = NurbsSurface::pb_loads(&proto_string).unwrap();\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbssurface.bin\");\n        surface.pb_dump(filename.to_str().unwrap());\n        let loaded = NurbsSurface::pb_load(filename.to_str().unwrap());\n",
     "failures": [],
     "group": "NurbsSurface",
-    "line": 914,
+    "line": 1041,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 50.807
+    "time_ms": 14.616
+  },
+  {
+    "checks": [
+      {
+        "code_line": "parts.len() == 2",
+        "line": 981,
+        "passed": true
+      },
+      {
+        "code_line": "ts.is_trimmed()",
+        "line": 983,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() > 0",
+        "line": 985,
+        "passed": true
+      },
+      {
+        "code_line": "ts.is_trimmed()",
+        "line": 983,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() > 0",
+        "line": 985,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n        use crate::brep::BRep;\n\n        let flat = NurbsSurface::create(false, false, 1, 1, 2, 2, &[\n            Point::new(-3.0, -3.0, 0.0),\n            Point::new(-3.0, 3.0, 0.0),\n            Point::new(3.0, -3.0, 0.0),\n            Point::new(3.0, 3.0, 0.0),\n        ]).unwrap();\n        let cutter = BRep::create_box(2.0, 2.0, 2.0);\n\n        let parts = flat.split_by_brep(&cutter, None);\n\n        for ts in &parts {\n            let m = ts.mesh_q(20.0, 0.005);\n        }",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 966,
+    "passed": true,
+    "test_name": "Split By Brep",
+    "time_ms": 514.627
+  },
+  {
+    "checks": [
+      {
+        "code_line": "parts.len() == 2",
+        "line": 875,
+        "passed": true
+      },
+      {
+        "code_line": "ts.is_trimmed()",
+        "line": 877,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() > 0",
+        "line": 879,
+        "passed": true
+      },
+      {
+        "code_line": "ts.is_trimmed()",
+        "line": 877,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() > 0",
+        "line": 879,
+        "passed": true
+      },
+      {
+        "code_line": "caps.len() == 2",
+        "line": 887,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Plane;\n        use crate::Point;\n        use crate::Vector;\n        use crate::Primitives;\n\n        let cyl = Primitives::cylinder_surface(0.0, 0.0, 0.0, 1.0, 4.0);\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 2.0), Vector::new(0.3, 0.0, 1.0));\n\n        let parts = cyl.split_by_plane(&plane, None);\n\n        for ts in &parts {\n            let m = ts.mesh_q(20.0, 0.005);\n        }\n\n        let sphere = Primitives::sphere_surface(0.0, 0.0, 0.0, 1.0);\n        let plane2 = Plane::from_point_normal(Point::new(0.0, 0.0, 0.3), Vector::new(0.0, 0.0, 1.0));\n\n        let caps = sphere.split_by_plane(&plane2, None);\n",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 864,
+    "passed": true,
+    "test_name": "Split By Plane",
+    "time_ms": 424.765
+  },
+  {
+    "checks": [
+      {
+        "code_line": "parts.len() == 2",
+        "line": 911,
+        "passed": true
+      },
+      {
+        "code_line": "parts[0].is_trimmed()",
+        "line": 912,
+        "passed": true
+      },
+      {
+        "code_line": "parts[1].is_trimmed()",
+        "line": 913,
+        "passed": true
+      },
+      {
+        "code_line": "whole.len() == 1",
+        "line": 919,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Closest;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Primitives;\n        use crate::nurbsknot::CurveNurbsKnotStyle;\n\n        let wave = Primitives::wave_surface(10.0, 1.0);\n        let mut lift_pts = Vec::new();\n        for i in 0..21 {\n            let x = 10.0 * i as f64 / 20.0;\n            let y = 5.0 + 2.0 * x.sin();\n            let (u, v, _d) = Closest::surface_point(&wave, &Point::new(x, y, 0.0), 0.0, 0.0, 0.0, 0.0);\n            lift_pts.push(wave.point_at(u, v).unwrap());\n        }\n        let crv = NurbsCurve::create_interpolated(&lift_pts, CurveNurbsKnotStyle::Chord);\n\n        let parts = wave.split_by_curves(&[crv], None);\n\n\n        let off = NurbsCurve::create(false, 1, &[Point::new(50.0, 50.0, 50.0), Point::new(60.0, 60.0, 60.0)]);\n\n        let whole = wave.split_by_curves(&[off], None);\n",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 892,
+    "passed": true,
+    "test_name": "Split By Curves",
+    "time_ms": 95.796
+  },
+  {
+    "checks": [
+      {
+        "code_line": "parts.len() == 2",
+        "line": 934,
+        "passed": true
+      },
+      {
+        "code_line": "parts[0].is_trimmed()",
+        "line": 935,
+        "passed": true
+      },
+      {
+        "code_line": "parts[1].is_trimmed()",
+        "line": 936,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Line;\n        use crate::Point;\n        use crate::Primitives;\n\n        let wave = Primitives::wave_surface(10.0, 1.0);\n        let line = Line::from_points(&Point::new(-1.0, 5.0, 0.0), &Point::new(11.0, 5.0, 0.0));\n\n        let parts = wave.split_by_line(&line, None);\n",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 924,
+    "passed": true,
+    "test_name": "Split By Line",
+    "time_ms": 375.223
+  },
+  {
+    "checks": [
+      {
+        "code_line": "parts.len() == 2",
+        "line": 956,
+        "passed": true
+      },
+      {
+        "code_line": "ts.is_trimmed()",
+        "line": 958,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() > 0",
+        "line": 960,
+        "passed": true
+      },
+      {
+        "code_line": "ts.is_trimmed()",
+        "line": 958,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() > 0",
+        "line": 960,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n        use crate::Primitives;\n\n        let cyl = Primitives::cylinder_surface(0.0, 0.0, -2.0, 1.0, 4.0);\n        let flat = NurbsSurface::create(false, false, 1, 1, 2, 2, &[\n            Point::new(-3.0, -3.0, 0.0),\n            Point::new(-3.0, 3.0, 0.0),\n            Point::new(3.0, -3.0, 0.0),\n            Point::new(3.0, 3.0, 0.0),\n        ]).unwrap();\n\n        let parts = cyl.split_by_surface(&flat, None);\n\n        for ts in &parts {\n            let m = ts.mesh_q(20.0, 0.005);\n        }",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 941,
+    "passed": true,
+    "test_name": "Split By Surface",
+    "time_ms": 1823.916
   }
 ]

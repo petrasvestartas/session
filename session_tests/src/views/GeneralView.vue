@@ -1,14 +1,11 @@
 <template>
   <div class="viewer-root">
-    <!-- Section is chosen in the left sidebar (MainLayout) via ?section=. Live = full-bleed viewer;
-         a section = notes/code on the left, live viewer on the right. -->
+    <!-- Section is chosen in the left sidebar (MainLayout) via ?section=. Live = the viewer;
+         a section = just your notes (no viewer). -->
     <div v-if="active === 'live'" class="live-full">
       <iframe class="viewer-frame" :src="viewerUrl" title="session_viewer"></iframe>
     </div>
-    <div v-else class="section-split">
-      <article ref="contentEl" class="section-content markdown" v-html="renderedHtml"></article>
-      <iframe class="viewer-frame side" :src="viewerUrl" title="session_viewer"></iframe>
-    </div>
+    <article v-else ref="contentEl" class="section-content markdown" v-html="renderedHtml"></article>
   </div>
 </template>
 
@@ -62,16 +59,16 @@ const viewerUrl = import.meta.env.DEV
 .live-full { flex: 1 1 auto; min-height: 0; }
 .viewer-frame { width: 100%; height: 100%; border: none; display: block; background: #000; }
 
-.section-split { flex: 1 1 auto; min-height: 0; display: flex; }
-.section-content { flex: 1 1 auto; overflow-y: auto; padding: 24px 32px; }
-.viewer-frame.side { flex: 0 0 42%; border-left: 1px solid #20242b; }
+.section-content { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 24px 32px; }
 
-.markdown { line-height: 1.6; max-width: 860px; }
+.markdown { line-height: 1.6; }
 .markdown :deep(h1) { font-size: 24px; margin: 0 0 14px; }
 .markdown :deep(h2) { font-size: 18px; margin: 24px 0 8px; color: #cdd3db; }
 .markdown :deep(blockquote) { border-left: 3px solid #2e3a46; margin: 10px 0; padding: 4px 14px; color: #9aa3af; background: #11161c; border-radius: 0 6px 6px 0; }
 .markdown :deep(p) { margin: 9px 0; }
-.markdown :deep(code) { background: #161a20; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+/* Pill only for INLINE code; code blocks keep Shiki's single background. */
+.markdown :deep(:not(pre) > code) { background: #161a20; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
 .markdown :deep(pre) { border-radius: 8px; padding: 14px 16px; overflow-x: auto; font-size: 13px; }
+.markdown :deep(pre code) { background: transparent; padding: 0; }
 .markdown :deep(a) { color: #6fb3ff; }
 </style>

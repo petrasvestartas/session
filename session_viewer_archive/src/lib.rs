@@ -340,6 +340,7 @@ impl State {
             // surface. Pressing `E` toggles the red backface-highlight diagnostic back on.
             backface_highlight: false,
             show_tess: false,
+            show_grid: true,
             pending_pick: None,
             reveal_in_tree: false,
             box_select_start: None,
@@ -373,6 +374,7 @@ impl State {
         // ── GumballState ──────────────────────────────────────
         let gb = GumballState {
             gumball: None,
+            show_gumball: true,
             gumball_scale: 1.0,
             gumball_press: None,
             gumball_input: None,

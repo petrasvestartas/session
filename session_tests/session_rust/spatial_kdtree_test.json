@@ -18,7 +18,28 @@
     "line": 25,
     "passed": true,
     "test_name": "Nearest",
-    "time_ms": 0.086
+    "time_ms": 0.018
+  },
+  {
+    "checks": [
+      {
+        "code_line": "idx == 1",
+        "line": 19,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(dist, 1.0)",
+        "line": 20,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::SpatialKDTree;\n        use crate::Point;\n\n        // SpatialKDTree: O(n log n) build, O(log n) nearest — static point set closest search\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(10.0, 0.0, 0.0),\n        ];\n        let tree = SpatialKDTree::new(pts);\n        let (idx, dist) = tree.nearest(&Point::new(2.0, 0.0, 0.0));\n",
+    "failures": [],
+    "group": "SpatialKDTree",
+    "line": 6,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -44,7 +65,7 @@
     "line": 73,
     "passed": true,
     "test_name": "Radius Search",
-    "time_ms": 0.225
+    "time_ms": 0.028
   },
   {
     "checks": [
@@ -75,27 +96,6 @@
     "line": 48,
     "passed": true,
     "test_name": "Nearest K",
-    "time_ms": 0.061
-  },
-  {
-    "checks": [
-      {
-        "code_line": "idx == 1",
-        "line": 19,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(dist, 1.0)",
-        "line": 20,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::SpatialKDTree;\n        use crate::Point;\n\n        // SpatialKDTree: O(n log n) build, O(log n) nearest — static point set closest search\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n            Point::new(10.0, 0.0, 0.0),\n        ];\n        let tree = SpatialKDTree::new(pts);\n        let (idx, dist) = tree.nearest(&Point::new(2.0, 0.0, 0.0));\n",
-    "failures": [],
-    "group": "SpatialKDTree",
-    "line": 6,
-    "passed": true,
-    "test_name": "Constructor",
-    "time_ms": 0.033
+    "time_ms": 0.014
   }
 ]
