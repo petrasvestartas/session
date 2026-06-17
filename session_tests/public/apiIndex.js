@@ -7012,13 +7012,32 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_closest_point_on_triangle(p, a, b, c)",
-          "code": "def _closest_point_on_triangle(p, a, b, c):\n\n        abx, aby, abz = b[0]-a[0], b[1]-a[1], b[2]-a[2]\n        acx, acy, acz = c[0]-a[0], c[1]-a[1], c[2]-a[2]\n        apx, apy, apz = p[0]-a[0], p[1]-a[1], p[2]-a[2]\n\n        d1 = abx*apx + aby*apy + abz*apz\n        d2 = acx*apx + acy*apy + acz*apz\n        if d1 <= 0.0 and d2 <= 0.0:\n            return a\n\n        bpx, bpy, bpz = p[0]-b[0], p[1]-b[1], p[2]-b[2]\n        d3 = abx*bpx + aby*bpy + abz*bpz\n        d4 = acx*bpx + acy*bpy + acz*bpz\n        if d3 >= 0.0 and d4 <= d3:\n            return b\n\n        vc = d1*d4 - d3*d2\n        if vc <= 0.0 and d1 >= 0.0 and d3 <= 0.0:\n            v = d1 / (d1 - d3)\n            return Point(a[0] + v*abx, a[1] + v*aby, a[2] + v*abz)\n\n        cpx, cpy, cpz = p[0]-c[0], p[1]-c[1], p[2]-c[2]\n        d5 = abx*cpx + aby*cpy + abz*cpz\n        d6 = acx*cpx + acy*cpy + acz*cpz\n        if d6 >= 0.0 and d5 <= d6:\n            return c\n\n        vb = d5*d2 - d1*d6\n        if vb <= 0.0 and d2 >= 0.0 and d6 <= 0.0:\n            w = d2 / (d2 - d6)\n            return Point(a[0] + w*acx, a[1] + w*acy, a[2] + w*acz)\n\n        va = d3*d6 - d5*d4\n        if va <= 0.0 and (d4-d3) >= 0.0 and (d5-d6) >= 0.0:\n            w = (d4-d3) / ((d4-d3) + (d5-d6))\n            return Point(b[0] + w*(c[0]-b[0]), b[1] + w*(c[1]-b[1]), b[2] + w*(c[2]-b[2]))\n\n        denom = 1.0 / (va + vb + vc)\n        v = vb * denom\n        w = vc * denom\n        return Point(a[0] + abx*v + acx*w, a[1] + aby*v + acy*w, a[2] + abz*v + acz*w)\n\n    @staticmethod\n    def mesh_point(mesh, test_point):\n        if mesh.number_of_faces() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        vertices, faces = mesh.to_vertices_and_faces()\n        sorted_face_keys = sorted(mesh.face.keys())\n\n        best_point = Point(0, 0, 0)\n        best_face_key = 0\n        best_dist = float('inf')\n\n        for fi, fv in enumerate(faces):\n            if len(fv) < 3:\n                continue\n            v0 = vertices[fv[0]]\n            for j in range(1, len(fv) - 1):\n                v1 = vertices[fv[j]]\n                v2 = vertices[fv[j + 1]]\n                cp = Closest._closest_point_on_triangle(test_point, v0, v1, v2)\n                dist = cp.distance(test_point)\n                if dist < best_dist:\n                    best_dist = dist\n                    best_point = cp\n                    best_face_key = sorted_face_keys[fi]\n\n        return (best_point, best_face_key, best_dist)\n\n    @staticmethod\n    def mesh_point_aabb(mesh, test_point):\n        if mesh.number_of_faces() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        vertices, faces = mesh.to_vertices_and_faces()\n        sorted_face_keys = sorted(mesh.face.keys())\n\n        tris = []\n        tri_face_idx = []",
+          "code": "def _closest_point_on_triangle(p, a, b, c):\n\n        abx, aby, abz = b[0]-a[0], b[1]-a[1], b[2]-a[2]\n        acx, acy, acz = c[0]-a[0], c[1]-a[1], c[2]-a[2]\n        apx, apy, apz = p[0]-a[0], p[1]-a[1], p[2]-a[2]\n\n        d1 = abx*apx + aby*apy + abz*apz\n        d2 = acx*apx + acy*apy + acz*apz\n        if d1 <= 0.0 and d2 <= 0.0:\n            return a\n\n        bpx, bpy, bpz = p[0]-b[0], p[1]-b[1], p[2]-b[2]\n        d3 = abx*bpx + aby*bpy + abz*bpz\n        d4 = acx*bpx + acy*bpy + acz*bpz\n        if d3 >= 0.0 and d4 <= d3:\n            return b\n\n        vc = d1*d4 - d3*d2\n        if vc <= 0.0 and d1 >= 0.0 and d3 <= 0.0:\n            v = d1 / (d1 - d3)\n            return Point(a[0] + v*abx, a[1] + v*aby, a[2] + v*abz)\n\n        cpx, cpy, cpz = p[0]-c[0], p[1]-c[1], p[2]-c[2]\n        d5 = abx*cpx + aby*cpy + abz*cpz\n        d6 = acx*cpx + acy*cpy + acz*cpz\n        if d6 >= 0.0 and d5 <= d6:\n            return c\n\n        vb = d5*d2 - d1*d6\n        if vb <= 0.0 and d2 >= 0.0 and d6 <= 0.0:\n            w = d2 / (d2 - d6)\n            return Point(a[0] + w*acx, a[1] + w*acy, a[2] + w*acz)\n\n        va = d3*d6 - d5*d4\n        if va <= 0.0 and (d4-d3) >= 0.0 and (d5-d6) >= 0.0:\n            w = (d4-d3) / ((d4-d3) + (d5-d6))\n            return Point(b[0] + w*(c[0]-b[0]), b[1] + w*(c[1]-b[1]), b[2] + w*(c[2]-b[2]))\n\n        denom = 1.0 / (va + vb + vc)\n        v = vb * denom\n        w = vc * denom\n        return Point(a[0] + abx*v + acx*w, a[1] + aby*v + acy*w, a[2] + abz*v + acz*w)\n\n    @staticmethod\n    def _aabb_min_distance(aabb, p):\n        dx = max(0.0, max(aabb.cx - aabb.hx - p[0], p[0] - aabb.cx - aabb.hx))\n        dy = max(0.0, max(aabb.cy - aabb.hy - p[1], p[1] - aabb.cy - aabb.hy))\n        dz = max(0.0, max(aabb.cz - aabb.hz - p[2], p[2] - aabb.cz - aabb.hz))\n        return (dx * dx + dy * dy + dz * dz) ** 0.5\n\n    @staticmethod\n    def mesh_point(mesh, test_point):\n        import heapq\n\n        if mesh.number_of_faces() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        mesh.build_triangle_bvh()\n        bvh = mesh.get_cached_bvh()\n\n        face_keys = sorted(mesh.face.keys())\n\n        best_point = Point(0, 0, 0)\n        best_face_key = 0\n        best_dist = float('inf')\n\n        if bvh is None or bvh.root is None:\n            return (best_point, best_face_key, best_dist)\n\n        counter = 0\n        pq = [(Closest._aabb_min_distance(bvh.root.aabb, test_point), counter, bvh.root)]\n\n        while pq:\n            d, _, node = heapq.heappop(pq)\n            if d >= best_dist:\n                break\n\n            if node.is_leaf():\n                found, face_idx, sub_idx, v0, v1, v2 = mesh.get_triangle_by_id(node.object_id)\n                if found:\n                    cp = Closest._closest_point_on_triangle(test_point, v0, v1, v2)",
           "file": "closest.py"
         }
       },
       "related": [
+        "Closest._aabb_min_distance",
         "Closest.aabb_min_dist",
+        "Closest.build",
         "Closest.build_node",
+        "Closest.mesh_point",
+        "Closest.mesh_point_aabb"
+      ]
+    },
+    {
+      "name": "Closest._aabb_min_distance",
+      "implementations": {
+        "python": {
+          "sig": "_aabb_min_distance(aabb, p)",
+          "code": "def _aabb_min_distance(aabb, p):\n\n        dx = max(0.0, max(aabb.cx - aabb.hx - p[0], p[0] - aabb.cx - aabb.hx))\n        dy = max(0.0, max(aabb.cy - aabb.hy - p[1], p[1] - aabb.cy - aabb.hy))\n        dz = max(0.0, max(aabb.cz - aabb.hz - p[2], p[2] - aabb.cz - aabb.hz))\n        return (dx * dx + dy * dy + dz * dz) ** 0.5\n\n    @staticmethod\n    def mesh_point(mesh, test_point):\n        import heapq\n\n        if mesh.number_of_faces() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        mesh.build_triangle_bvh()\n        bvh = mesh.get_cached_bvh()\n\n        face_keys = sorted(mesh.face.keys())\n\n        best_point = Point(0, 0, 0)\n        best_face_key = 0\n        best_dist = float('inf')\n\n        if bvh is None or bvh.root is None:\n            return (best_point, best_face_key, best_dist)\n\n        counter = 0\n        pq = [(Closest._aabb_min_distance(bvh.root.aabb, test_point), counter, bvh.root)]\n\n        while pq:\n            d, _, node = heapq.heappop(pq)\n            if d >= best_dist:\n                break\n\n            if node.is_leaf():\n                found, face_idx, sub_idx, v0, v1, v2 = mesh.get_triangle_by_id(node.object_id)\n                if found:\n                    cp = Closest._closest_point_on_triangle(test_point, v0, v1, v2)\n                    dist = cp.distance(test_point)\n                    if dist < best_dist:\n                        best_dist = dist\n                        best_point = cp\n                        best_face_key = face_keys[face_idx]\n            else:\n                if node.left is not None:\n                    ld = Closest._aabb_min_distance(node.left.aabb, test_point)\n                    if ld < best_dist:\n                        counter += 1\n                        heapq.heappush(pq, (ld, counter, node.left))\n                if node.right is not None:\n                    rd = Closest._aabb_min_distance(node.right.aabb, test_point)\n                    if rd < best_dist:\n                        counter += 1\n                        heapq.heappush(pq, (rd, counter, node.right))\n\n        return (best_point, best_face_key, best_dist)\n\n    @staticmethod\n    def mesh_point_aabb(mesh, test_point):\n        if mesh.number_of_faces() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        vertices, faces = mesh.to_vertices_and_faces()\n        sorted_face_keys = sorted(mesh.face.keys())\n\n        tris = []\n        tri_face_idx = []\n        for fi, fv in enumerate(faces):\n            if len(fv) < 3:\n                continue\n            v0 = vertices[fv[0]]\n            for j in range(1, len(fv) - 1):\n                tris.append((v0, vertices[fv[j]], vertices[fv[j + 1]]))\n                tri_face_idx.append(fi)\n\n        if not tris:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        boxes = []\n        for v0, v1, v2 in tris:\n            lx = min(v0[0], v1[0], v2[0])",
+          "file": "closest.py"
+        }
+      },
+      "related": [
+        "Closest._closest_point_on_triangle",
+        "Closest.aabb_min_dist",
+        "Closest.build",
         "Closest.mesh_point",
         "Closest.mesh_point_aabb"
       ]
@@ -7028,7 +7047,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "mesh_point(mesh, test_point)",
-          "code": "def mesh_point(mesh, test_point):\n\n        if mesh.number_of_faces() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        vertices, faces = mesh.to_vertices_and_faces()\n        sorted_face_keys = sorted(mesh.face.keys())\n\n        best_point = Point(0, 0, 0)\n        best_face_key = 0\n        best_dist = float('inf')\n\n        for fi, fv in enumerate(faces):\n            if len(fv) < 3:\n                continue\n            v0 = vertices[fv[0]]\n            for j in range(1, len(fv) - 1):\n                v1 = vertices[fv[j]]\n                v2 = vertices[fv[j + 1]]\n                cp = Closest._closest_point_on_triangle(test_point, v0, v1, v2)\n                dist = cp.distance(test_point)\n                if dist < best_dist:\n                    best_dist = dist\n                    best_point = cp\n                    best_face_key = sorted_face_keys[fi]\n\n        return (best_point, best_face_key, best_dist)\n\n    @staticmethod\n    def mesh_point_aabb(mesh, test_point):\n        if mesh.number_of_faces() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        vertices, faces = mesh.to_vertices_and_faces()\n        sorted_face_keys = sorted(mesh.face.keys())\n\n        tris = []\n        tri_face_idx = []\n        for fi, fv in enumerate(faces):\n            if len(fv) < 3:\n                continue\n            v0 = vertices[fv[0]]\n            for j in range(1, len(fv) - 1):\n                tris.append((v0, vertices[fv[j]], vertices[fv[j + 1]]))\n                tri_face_idx.append(fi)\n\n        if not tris:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        boxes = []\n        for v0, v1, v2 in tris:\n            lx = min(v0[0], v1[0], v2[0])\n            ly = min(v0[1], v1[1], v2[1])\n            lz = min(v0[2], v1[2], v2[2])\n            hx = max(v0[0], v1[0], v2[0])\n            hy = max(v0[1], v1[1], v2[1])\n            hz = max(v0[2], v1[2], v2[2])\n            boxes.append(((lx+hx)*0.5, (ly+hy)*0.5, (lz+hz)*0.5,\n                          (hx-lx)*0.5, (hy-ly)*0.5, (hz-lz)*0.5))\n\n        nodes = []\n\n        def build_node(ids):\n            ni = len(nodes)\n            nodes.append([None, -1, -1])\n            lx = ly = lz = 1e308\n            hx = hy = hz = -1e308\n            for i in ids:\n                b = boxes[i]\n                lx = min(lx, b[0]-b[3]); hx = max(hx, b[0]+b[3])\n                ly = min(ly, b[1]-b[4]); hy = max(hy, b[1]+b[4])\n                lz = min(lz, b[2]-b[5]); hz = max(hz, b[2]+b[5])\n            nodes[ni][0] = ((lx+hx)*0.5, (ly+hy)*0.5, (lz+hz)*0.5,\n                            (hx-lx)*0.5, (hy-ly)*0.5, (hz-lz)*0.5)\n            if len(ids) == 1:\n                nodes[ni][2] = ids[0]\n                return\n            dx, dy, dz = hx-lx, hy-ly, hz-lz\n            axis = 0 if dx >= dy and dx >= dz else (1 if dy >= dz else 2)\n            ids.sort(key=lambda i: boxes[i][axis])\n            mid = len(ids) // 2",
+          "code": "def mesh_point(mesh, test_point):\n\n        import heapq\n\n        if mesh.number_of_faces() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        mesh.build_triangle_bvh()\n        bvh = mesh.get_cached_bvh()\n\n        face_keys = sorted(mesh.face.keys())\n\n        best_point = Point(0, 0, 0)\n        best_face_key = 0\n        best_dist = float('inf')\n\n        if bvh is None or bvh.root is None:\n            return (best_point, best_face_key, best_dist)\n\n        counter = 0\n        pq = [(Closest._aabb_min_distance(bvh.root.aabb, test_point), counter, bvh.root)]\n\n        while pq:\n            d, _, node = heapq.heappop(pq)\n            if d >= best_dist:\n                break\n\n            if node.is_leaf():\n                found, face_idx, sub_idx, v0, v1, v2 = mesh.get_triangle_by_id(node.object_id)\n                if found:\n                    cp = Closest._closest_point_on_triangle(test_point, v0, v1, v2)\n                    dist = cp.distance(test_point)\n                    if dist < best_dist:\n                        best_dist = dist\n                        best_point = cp\n                        best_face_key = face_keys[face_idx]\n            else:\n                if node.left is not None:\n                    ld = Closest._aabb_min_distance(node.left.aabb, test_point)\n                    if ld < best_dist:\n                        counter += 1\n                        heapq.heappush(pq, (ld, counter, node.left))\n                if node.right is not None:\n                    rd = Closest._aabb_min_distance(node.right.aabb, test_point)\n                    if rd < best_dist:\n                        counter += 1\n                        heapq.heappush(pq, (rd, counter, node.right))\n\n        return (best_point, best_face_key, best_dist)\n\n    @staticmethod\n    def mesh_point_aabb(mesh, test_point):\n        if mesh.number_of_faces() == 0:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        vertices, faces = mesh.to_vertices_and_faces()\n        sorted_face_keys = sorted(mesh.face.keys())\n\n        tris = []\n        tri_face_idx = []\n        for fi, fv in enumerate(faces):\n            if len(fv) < 3:\n                continue\n            v0 = vertices[fv[0]]\n            for j in range(1, len(fv) - 1):\n                tris.append((v0, vertices[fv[j]], vertices[fv[j + 1]]))\n                tri_face_idx.append(fi)\n\n        if not tris:\n            return (Point(0, 0, 0), 0, float('inf'))\n\n        boxes = []\n        for v0, v1, v2 in tris:\n            lx = min(v0[0], v1[0], v2[0])\n            ly = min(v0[1], v1[1], v2[1])\n            lz = min(v0[2], v1[2], v2[2])\n            hx = max(v0[0], v1[0], v2[0])\n            hy = max(v0[1], v1[1], v2[1])\n            hz = max(v0[2], v1[2], v2[2])\n            boxes.append(((lx+hx)*0.5, (ly+hy)*0.5, (lz+hz)*0.5,\n                          (hx-lx)*0.5, (hy-ly)*0.5, (hz-lz)*0.5))",
           "file": "closest.py"
         },
         "cpp": {
@@ -7043,9 +7062,10 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Closest._aabb_min_distance",
         "Closest._closest_point_on_triangle",
+        "Closest.aabb_min_dist",
         "Closest.build",
-        "Closest.build_node",
         "Closest.mesh_point_aabb"
       ]
     },
@@ -7069,6 +7089,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Closest._aabb_min_distance",
         "Closest._closest_point_on_triangle",
         "Closest.aabb_min_dist",
         "Closest.build",
@@ -7091,7 +7112,6 @@ window.API_INDEX = {
         "Closest.aabb_min_dist",
         "Closest.build",
         "Closest.dfs",
-        "Closest.mesh_point",
         "Closest.mesh_point_aabb",
         "Closest.pointcloud_point",
         "Closest.pointcloud_point_kdtree"
@@ -7107,6 +7127,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Closest._aabb_min_distance",
         "Closest._aabb_to_aabb_min_dist",
         "Closest._build_aabb_nodes",
         "Closest._build_raw_boxes",
@@ -7116,6 +7137,7 @@ window.API_INDEX = {
         "Closest.build",
         "Closest.build_node",
         "Closest.dfs",
+        "Closest.mesh_point",
         "Closest.mesh_point_aabb",
         "Closest.nurbscurves_closest",
         "Closest.overlaps",
@@ -7279,9 +7301,11 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Closest._aabb_min_distance",
         "Closest._aabb_to_aabb_min_dist",
         "Closest._build_aabb_nodes",
         "Closest._build_raw_boxes",
+        "Closest._closest_point_on_triangle",
         "Closest._query_aabb_nodes",
         "Closest.aabb_min_dist",
         "Closest.boxes_closest",
@@ -20984,7 +21008,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__()",
-          "code": "def __init__(self):\n\n        self.mesh = Mesh()\n        self.top_face_key = 0\n        self.bot_face_key = 0\n        self.wall_faces = []\n        self.orig_top_to_local = {}\n        self.orig_bot_to_local = {}\n        self.top_vertices = []\n        self.bot_vertices = []\n        self.face_roles = {}\n\n\nclass LoftAdjPair:\n    def __init__(self, pi, wi, pj, wj):\n        self.pi = pi\n        self.wi = wi\n        self.pj = pj\n        self.wj = wj\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self._guid = None\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._xform = None\n\n    @property\n    def guid(self) -> str:",
+          "code": "def __init__(self):\n\n        self.mesh = Mesh()\n        self.top_face_key = 0\n        self.bot_face_key = 0\n        self.wall_faces = []\n        self.orig_top_to_local = {}\n        self.orig_bot_to_local = {}\n        self.top_vertices = []\n        self.bot_vertices = []\n        self.face_roles = {}\n\n\nclass LoftAdjPair:\n    def __init__(self, pi, wi, pj, wj):\n        self.pi = pi\n        self.wi = wi\n        self.pj = pj\n        self.wj = wj\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self._guid = None\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._xform = None\n        self._triangle_bvh_built = False\n        self._triangle_bvh = None\n        self._triangle_aabbs_cache = []",
           "file": "mesh.py"
         }
       }
@@ -20994,7 +21018,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__(pi, wi, pj, wj)",
-          "code": "def __init__(self, pi, wi, pj, wj):\n\n        self.pi = pi\n        self.wi = wi\n        self.pj = pj\n        self.wj = wj\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self._guid = None\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._xform = None\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform",
+          "code": "def __init__(self, pi, wi, pj, wj):\n\n        self.pi = pi\n        self.wi = wi\n        self.pj = pj\n        self.wj = wj\n\n\nclass Mesh:\n    \"\"\"A halfedge mesh data structure for representing polygonal surfaces.\n\n    Attributes\n    ----------\n    halfedge : dict\n        Halfedge connectivity structure mapping vertex pairs to faces.\n    vertex : dict\n        Vertex data dictionary mapping vertex keys to VertexData.\n    face : dict\n        Face vertex lists mapping face keys to vertex key lists.\n    facedata : dict\n        Face attributes dictionary.\n    edgedata : dict\n        Edge attributes dictionary.\n    default_vertex_attributes : dict\n        Default attributes for new vertices.\n    default_face_attributes : dict\n        Default attributes for new faces.\n    default_edge_attributes : dict\n        Default attributes for new edges.\n    guid : str\n        Unique identifier for the mesh.\n    name : str\n        Name of the mesh.\n    pointcolors : list\n        Vertex colors (one per vertex).\n    facecolors : list\n        Face colors (one per face).\n    linecolors : list\n        Edge colors (one per edge).\n    widths : list\n        Edge widths (one per edge).\n    \"\"\"\n\n    def __init__(self):\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self._guid = None\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._xform = None\n        self._triangle_bvh_built = False\n        self._triangle_bvh = None\n        self._triangle_aabbs_cache = []\n        self._triangle_indices_cache = []\n        self._triangle_face_subidx_cache = []\n        self._vertices_cache = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value",
           "file": "mesh.py"
         }
       }
@@ -21004,13 +21028,12 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__()",
-          "code": "def __init__(self):\n\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self._guid = None\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._xform = None\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m.face_holes = {k: [list(r) for r in v] for k, v in self.face_holes.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m._pointcolors = list(self._pointcolors)\n        m._facecolors = list(self._facecolors)\n        m._linecolors = list(self._linecolors)\n        m._widths = list(self._widths)\n        m._objectcolor = self._objectcolor\n        m.color_mode = self.color_mode\n        m.xform = self.xform\n        return m\n\n    def __eq__(self, other):\n        if not isinstance(other, Mesh):\n            return NotImplemented\n        if self.name != other.name:\n            return False",
+          "code": "def __init__(self):\n\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self._guid = None\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._xform = None\n        self._triangle_bvh_built = False\n        self._triangle_bvh = None\n        self._triangle_aabbs_cache = []\n        self._triangle_indices_cache = []\n        self._triangle_face_subidx_cache = []\n        self._vertices_cache = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m.face_holes = {k: [list(r) for r in v] for k, v in self.face_holes.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m._pointcolors = list(self._pointcolors)\n        m._facecolors = list(self._facecolors)\n        m._linecolors = list(self._linecolors)\n        m._widths = list(self._widths)\n        m._objectcolor = self._objectcolor\n        m.color_mode = self.color_mode\n        m.xform = self.xform\n        return m",
           "file": "mesh.py"
         }
       },
       "related": [
         "Mesh.__copy__",
-        "Mesh.__eq__",
         "Mesh.duplicate",
         "Mesh.edge_attribute",
         "Mesh.face_attribute",
@@ -21021,6 +21044,7 @@ window.API_INDEX = {
         "Mesh.pointcolors",
         "Mesh.str",
         "Mesh.vertex_attribute",
+        "Mesh.vertices",
         "Mesh.widths",
         "Mesh.xform"
       ]
@@ -21048,6 +21072,7 @@ window.API_INDEX = {
         "Mesh.__ne__",
         "Mesh.__repr__",
         "Mesh.__str__",
+        "Mesh.clear_triangle_bvh",
         "Mesh.clone_with_new_guid",
         "Mesh.duplicate",
         "Mesh.edge_attribute",
@@ -21076,7 +21101,6 @@ window.API_INDEX = {
         "Mesh.repr",
         "Mesh.set_guid",
         "Mesh.str",
-        "Mesh.transformed",
         "Mesh.vertex_attribute",
         "Mesh.vertices",
         "Mesh.widths",
@@ -21226,7 +21250,6 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.__copy__",
-        "Mesh.__init__",
         "Mesh.__ne__",
         "Mesh.__repr__",
         "Mesh.__str__",
@@ -22251,7 +22274,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "number_of_vertices() -> int",
-          "code": "def number_of_vertices(self) -> int:\n\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)",
+          "code": "def number_of_vertices(self) -> int:\n\n        \"\"\"Get the number of vertices.\"\"\"\n        return len(self.vertex)\n\n    def number_of_faces(self) -> int:\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._triangle_bvh_built = False\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):",
           "file": "mesh.py"
         },
         "rust": {
@@ -22303,7 +22326,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "number_of_faces() -> int",
-          "code": "def number_of_faces(self) -> int:\n\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)",
+          "code": "def number_of_faces(self) -> int:\n\n        \"\"\"Get the number of faces.\"\"\"\n        return len(self.face)\n\n    def vertices(self) -> List[int]:\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._triangle_bvh_built = False\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):",
           "file": "mesh.py"
         },
         "rust": {
@@ -22355,7 +22378,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "vertices() -> List[int]",
-          "code": "def vertices(self) -> List[int]:\n\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):",
+          "code": "def vertices(self) -> List[int]:\n\n        return sorted(self.vertex.keys())\n\n    def faces(self) -> List[int]:\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._triangle_bvh_built = False\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)",
           "file": "mesh.py"
         },
         "cpp": {
@@ -22372,6 +22395,7 @@ window.API_INDEX = {
       "related": [
         "Mesh.__copy__",
         "Mesh.__eq__",
+        "Mesh.__init__",
         "Mesh.__jsondump__",
         "Mesh.__jsonload__",
         "Mesh.__ne__",
@@ -22431,6 +22455,7 @@ window.API_INDEX = {
         "Mesh.from_polylines",
         "Mesh.from_proto",
         "Mesh.from_vertices_and_faces",
+        "Mesh.get_cached_bvh",
         "Mesh.get_triangle_by_id",
         "Mesh.get_vkey",
         "Mesh.guid",
@@ -22463,7 +22488,6 @@ window.API_INDEX = {
         "Mesh.repr",
         "Mesh.set_facecolors",
         "Mesh.set_linecolors",
-        "Mesh.set_objectcolor",
         "Mesh.set_pointcolors",
         "Mesh.set_vertices_attribute",
         "Mesh.side_faces",
@@ -22500,7 +22524,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "faces() -> List[int]",
-          "code": "def faces(self) -> List[int]:\n\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property",
+          "code": "def faces(self) -> List[int]:\n\n        return sorted(self.face.keys())\n\n    def number_of_edges(self) -> int:\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._triangle_bvh_built = False\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color",
           "file": "mesh.py"
         },
         "cpp": {
@@ -22613,6 +22637,8 @@ window.API_INDEX = {
         "Mesh.side_faces",
         "Mesh.str",
         "Mesh.to_vertices_and_faces",
+        "Mesh.transform",
+        "Mesh.transformed",
         "Mesh.unify_winding",
         "Mesh.update_default_edge_attributes",
         "Mesh.update_default_face_attributes",
@@ -22642,7 +22668,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "number_of_edges() -> int",
-          "code": "def number_of_edges(self) -> int:\n\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors",
+          "code": "def number_of_edges(self) -> int:\n\n        \"\"\"Get the number of edges.\"\"\"\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return len(seen)\n\n    def edges(self) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._triangle_bvh_built = False\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property",
           "file": "mesh.py"
         },
         "cpp": {
@@ -22703,7 +22729,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "edges() -> List[Tuple[int, int]]",
-          "code": "def edges(self) -> List[Tuple[int, int]]:\n\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property",
+          "code": "def edges(self) -> List[Tuple[int, int]]:\n\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return sorted(seen)\n\n    def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._triangle_bvh_built = False\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths",
           "file": "mesh.py"
         },
         "cpp": {
@@ -22830,7 +22856,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "naked_edges(boundary: bool = True) -> List[Tuple[int, int]]",
-          "code": "def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor\n\n    @objectcolor.setter\n    def objectcolor(self, value):",
+          "code": "def naked_edges(self, boundary: bool = True) -> List[Tuple[int, int]]:\n\n        seen = set()\n        for u, neighbors in self.halfedge.items():\n            for v in neighbors:\n                seen.add((min(u, v), max(u, v)))\n        return [e for e in sorted(seen) if self.is_edge_on_boundary(e[0], e[1]) == boundary]\n\n    def naked_vertices(self, boundary: bool = True) -> List[int]:\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._triangle_bvh_built = False\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor\n\n    @objectcolor.setter",
           "file": "mesh.py"
         },
         "cpp": {
@@ -22884,7 +22910,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "naked_vertices(boundary: bool = True) -> List[int]",
-          "code": "def naked_vertices(self, boundary: bool = True) -> List[int]:\n\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor\n\n    @objectcolor.setter\n    def objectcolor(self, value):\n        self._objectcolor = value\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR",
+          "code": "def naked_vertices(self, boundary: bool = True) -> List[int]:\n\n        result = []\n        for vk in sorted(self.vertex.keys()):\n            if self.is_vertex_on_boundary(vk) == boundary:\n                result.append(vk)\n        return result\n\n    def naked_faces(self, boundary: bool = True) -> List[int]:\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._triangle_bvh_built = False\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor\n\n    @objectcolor.setter\n    def objectcolor(self, value):\n        self._objectcolor = value\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR",
           "file": "mesh.py"
         },
         "cpp": {
@@ -22933,7 +22959,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "naked_faces(boundary: bool = True) -> List[int]",
-          "code": "def naked_faces(self, boundary: bool = True) -> List[int]:\n\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor\n\n    @objectcolor.setter\n    def objectcolor(self, value):\n        self._objectcolor = value\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()",
+          "code": "def naked_faces(self, boundary: bool = True) -> List[int]:\n\n        result = []\n        for fk in sorted(self.face.keys()):\n            if self.is_face_on_boundary(fk) == boundary:\n                result.append(fk)\n        return result\n\n    def euler(self) -> int:\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._triangle_bvh_built = False\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor\n\n    @objectcolor.setter\n    def objectcolor(self, value):\n        self._objectcolor = value\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):",
           "file": "mesh.py"
         },
         "cpp": {
@@ -22984,7 +23010,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "euler() -> int",
-          "code": "def euler(self) -> int:\n\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor\n\n    @objectcolor.setter\n    def objectcolor(self, value):\n        self._objectcolor = value\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False",
+          "code": "def euler(self) -> int:\n\n        \"\"\"Calculate Euler characteristic (V - E + F).\"\"\"\n        return (\n            self.number_of_vertices() - self.number_of_edges() + self.number_of_faces()\n        )\n\n    def clear(self):\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._triangle_bvh_built = False\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor\n\n    @objectcolor.setter\n    def objectcolor(self, value):\n        self._objectcolor = value\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False",
           "file": "mesh.py"
         },
         "cpp": {
@@ -23035,7 +23061,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "clear()",
-          "code": "def clear(self):\n\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor\n\n    @objectcolor.setter\n    def objectcolor(self, value):\n        self._objectcolor = value\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]",
+          "code": "def clear(self):\n\n        \"\"\"Clear all mesh data.\"\"\"\n        self.halfedge.clear()\n        self.vertex.clear()\n        self.face.clear()\n        self.facedata.clear()\n        self.edgedata.clear()\n        self.triangulation.clear()\n        self.face_holes.clear()\n        self._max_vertex = 0\n        self._max_face = 0\n        self._pointcolors.clear()\n        self._facecolors.clear()\n        self._linecolors.clear()\n        self._widths.clear()\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._triangle_bvh_built = False\n\n    def set_pointcolors(self, colors):\n        self._pointcolors = list(colors)\n        self.color_mode = ColorMode.POINTCOLORS\n\n    def set_facecolors(self, colors):\n        self._facecolors = list(colors)\n        self.color_mode = ColorMode.FACECOLORS\n\n    def set_linecolors(self, colors, widths=None):\n        self._linecolors = list(colors)\n        if widths is not None:\n            self._widths = list(widths)\n\n    def set_objectcolor(self, color):\n        self._objectcolor = color\n\n    @property\n    def pointcolors(self): return self._pointcolors\n    @property\n    def facecolors(self): return self._facecolors\n    @property\n    def linecolors(self): return self._linecolors\n    def get_pointcolors(self): return self._pointcolors\n    def get_facecolors(self): return self._facecolors\n    def get_linecolors(self): return self._linecolors\n    @property\n    def widths(self): return self._widths\n    @property\n    def objectcolor(self):\n        if getattr(self, '_objectcolor', None) is None:\n            self._objectcolor = Color.white()\n        return self._objectcolor\n\n    @objectcolor.setter\n    def objectcolor(self, value):\n        self._objectcolor = value\n\n    def clear_pointcolors(self):\n        self._pointcolors.clear()\n        if self.color_mode == ColorMode.POINTCOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_facecolors(self):\n        self._facecolors.clear()\n        if self.color_mode == ColorMode.FACECOLORS:\n            self.color_mode = ColorMode.OBJECTCOLOR\n\n    def clear_linecolors(self):\n        self._linecolors.clear()\n        self._widths.clear()\n\n    def unify_winding(self) -> bool:\n        \"\"\"Unify face winding by BFS over face adjacency; returns True if any face was flipped.\"\"\"\n        if len(self.face) < 2:\n            return False\n\n        edge_faces = {}\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]",
           "file": "mesh.py"
         },
         "cpp": {
@@ -23063,9 +23089,11 @@ window.API_INDEX = {
         "Mesh.faces",
         "Mesh.flip",
         "Mesh.flip_face",
+        "Mesh.get_cached_bvh",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
+        "Mesh.get_triangle_by_id",
         "Mesh.invalidate_triangle_bvh",
         "Mesh.is_edge_on_boundary",
         "Mesh.is_face_on_boundary",
@@ -23267,7 +23295,6 @@ window.API_INDEX = {
         "Mesh.set_linecolors",
         "Mesh.set_pointcolors",
         "Mesh.unify_winding",
-        "Mesh.vertices",
         "Mesh.widths"
       ]
     },
@@ -23289,6 +23316,7 @@ window.API_INDEX = {
         "Mesh.clear_facecolors",
         "Mesh.clear_linecolors",
         "Mesh.clear_pointcolors",
+        "Mesh.clear_triangle_bvh",
         "Mesh.duplicate",
         "Mesh.edge_faces",
         "Mesh.edges",
@@ -23300,9 +23328,11 @@ window.API_INDEX = {
         "Mesh.find",
         "Mesh.flip",
         "Mesh.from_proto",
+        "Mesh.get_cached_bvh",
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
+        "Mesh.get_triangle_by_id",
         "Mesh.guid",
         "Mesh.is_face_on_boundary",
         "Mesh.jsondump",
@@ -23330,8 +23360,6 @@ window.API_INDEX = {
         "Mesh.set_pointcolors",
         "Mesh.set_vertex_color",
         "Mesh.strip_render_data",
-        "Mesh.transform",
-        "Mesh.transformed",
         "Mesh.unify_winding",
         "Mesh.vertices",
         "Mesh.weld",
@@ -23358,6 +23386,7 @@ window.API_INDEX = {
         "Mesh.clear_facecolors",
         "Mesh.clear_linecolors",
         "Mesh.clear_pointcolors",
+        "Mesh.clear_triangle_bvh",
         "Mesh.duplicate",
         "Mesh.edge_faces",
         "Mesh.edges",
@@ -23369,6 +23398,7 @@ window.API_INDEX = {
         "Mesh.get_facecolors",
         "Mesh.get_linecolors",
         "Mesh.get_pointcolors",
+        "Mesh.get_triangle_by_id",
         "Mesh.guid",
         "Mesh.is_face_on_boundary",
         "Mesh.jsondump",
@@ -23396,8 +23426,6 @@ window.API_INDEX = {
         "Mesh.set_pointcolors",
         "Mesh.set_vertex_color",
         "Mesh.strip_render_data",
-        "Mesh.transform",
-        "Mesh.transformed",
         "Mesh.unify_winding",
         "Mesh.vertices",
         "Mesh.widths",
@@ -23422,6 +23450,7 @@ window.API_INDEX = {
         "Mesh.clear_facecolors",
         "Mesh.clear_linecolors",
         "Mesh.clear_pointcolors",
+        "Mesh.clear_triangle_bvh",
         "Mesh.duplicate",
         "Mesh.edge_faces",
         "Mesh.edges",
@@ -23462,8 +23491,6 @@ window.API_INDEX = {
         "Mesh.set_pointcolors",
         "Mesh.set_vertex_color",
         "Mesh.strip_render_data",
-        "Mesh.transform",
-        "Mesh.transformed",
         "Mesh.unify_winding",
         "Mesh.vertices",
         "Mesh.widths",
@@ -23967,7 +23994,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "weld(tolerance: float = 0.001) -> \"Mesh\"",
-          "code": "def weld(self, tolerance: float = 0.001) -> \"Mesh\":\n\n        if not self.vertex:\n            return Mesh()\n\n        vkeys = sorted(self.vertex.keys())\n        positions = [Point(self.vertex[k][0], self.vertex[k][1], self.vertex[k][2]) for k in vkeys]\n        n = len(vkeys)\n\n        parent = list(range(n))\n\n        def find(x):\n            while parent[x] != x:\n                parent[x] = parent[parent[x]]\n                x = parent[x]\n            return x\n\n        if tolerance > 0.0:\n            boxes = [OBB.from_point(p, tolerance) for p in positions]\n            ws = SpatialBVH.compute_world_size(boxes)\n            bvh = SpatialBVH.from_boxes(boxes, ws)\n            pairs, _, _ = bvh.check_all_collisions(boxes)\n            for i, j in pairs:\n                if positions[i].distance(positions[j]) <= tolerance:\n                    ri = find(i)\n                    rj = find(j)\n                    if ri != rj:\n                        parent[ri] = rj\n\n        root_to_rep = {}\n        for i in range(n):\n            root = find(i)\n            if root not in root_to_rep or vkeys[i] < root_to_rep[root]:\n                root_to_rep[root] = vkeys[i]\n        vkey_to_rep = {vkeys[i]: root_to_rep[find(i)] for i in range(n)}\n\n        m = Mesh()\n        added = set()\n        for i in range(n):\n            rep = vkey_to_rep[vkeys[i]]\n            if rep not in added:\n                added.add(rep)\n                pt = self.vertex[rep]\n                m.add_vertex(Point(pt[0], pt[1], pt[2]), rep)\n        for fk in sorted(self.face):\n            new_vkeys = [vkey_to_rep[vk] for vk in self.face[fk]]\n            m.add_face(new_vkeys, fk)\n        return m\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1\n        else:\n            vertex_key = vkey\n            if vertex_key >= self._max_vertex:\n                self._max_vertex = vertex_key + 1\n\n        self.vertex[vertex_key] = VertexData(position)\n        self.halfedge[vertex_key] = {}\n        self._pointcolors.append(Color.white())\n\n        return vertex_key",
+          "code": "def weld(self, tolerance: float = 0.001) -> \"Mesh\":\n\n        if not self.vertex:\n            return Mesh()\n\n        vkeys = sorted(self.vertex.keys())\n        positions = [Point(self.vertex[k][0], self.vertex[k][1], self.vertex[k][2]) for k in vkeys]\n        n = len(vkeys)\n\n        parent = list(range(n))\n\n        def find(x):\n            while parent[x] != x:\n                parent[x] = parent[parent[x]]\n                x = parent[x]\n            return x\n\n        if tolerance > 0.0:\n            boxes = [OBB.from_point(p, tolerance) for p in positions]\n            ws = SpatialBVH.compute_world_size(boxes)\n            bvh = SpatialBVH.from_boxes(boxes, ws)\n            pairs, _, _ = bvh.check_all_collisions(boxes)\n            for i, j in pairs:\n                if positions[i].distance(positions[j]) <= tolerance:\n                    ri = find(i)\n                    rj = find(j)\n                    if ri != rj:\n                        parent[ri] = rj\n\n        root_to_rep = {}\n        for i in range(n):\n            root = find(i)\n            if root not in root_to_rep or vkeys[i] < root_to_rep[root]:\n                root_to_rep[root] = vkeys[i]\n        vkey_to_rep = {vkeys[i]: root_to_rep[find(i)] for i in range(n)}\n\n        m = Mesh()\n        added = set()\n        for i in range(n):\n            rep = vkey_to_rep[vkeys[i]]\n            if rep not in added:\n                added.add(rep)\n                pt = self.vertex[rep]\n                m.add_vertex(Point(pt[0], pt[1], pt[2]), rep)\n        for fk in sorted(self.face):\n            new_vkeys = [vkey_to_rep[vk] for vk in self.face[fk]]\n            m.add_face(new_vkeys, fk)\n        return m\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1\n        else:\n            vertex_key = vkey\n            if vertex_key >= self._max_vertex:\n                self._max_vertex = vertex_key + 1\n\n        self.vertex[vertex_key] = VertexData(position)\n        self.halfedge[vertex_key] = {}\n        self._pointcolors.append(Color.white())\n        self._triangle_bvh_built = False",
           "file": "mesh.py"
         },
         "cpp": {
@@ -23997,7 +24024,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "find(x)",
-          "code": "def find(x):\n\n            while parent[x] != x:\n                parent[x] = parent[parent[x]]\n                x = parent[x]\n            return x\n\n        if tolerance > 0.0:\n            boxes = [OBB.from_point(p, tolerance) for p in positions]\n            ws = SpatialBVH.compute_world_size(boxes)\n            bvh = SpatialBVH.from_boxes(boxes, ws)\n            pairs, _, _ = bvh.check_all_collisions(boxes)\n            for i, j in pairs:\n                if positions[i].distance(positions[j]) <= tolerance:\n                    ri = find(i)\n                    rj = find(j)\n                    if ri != rj:\n                        parent[ri] = rj\n\n        root_to_rep = {}\n        for i in range(n):\n            root = find(i)\n            if root not in root_to_rep or vkeys[i] < root_to_rep[root]:\n                root_to_rep[root] = vkeys[i]\n        vkey_to_rep = {vkeys[i]: root_to_rep[find(i)] for i in range(n)}\n\n        m = Mesh()\n        added = set()\n        for i in range(n):\n            rep = vkey_to_rep[vkeys[i]]\n            if rep not in added:\n                added.add(rep)\n                pt = self.vertex[rep]\n                m.add_vertex(Point(pt[0], pt[1], pt[2]), rep)\n        for fk in sorted(self.face):\n            new_vkeys = [vkey_to_rep[vk] for vk in self.face[fk]]\n            m.add_face(new_vkeys, fk)\n        return m\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1\n        else:\n            vertex_key = vkey\n            if vertex_key >= self._max_vertex:\n                self._max_vertex = vertex_key + 1\n\n        self.vertex[vertex_key] = VertexData(position)\n        self.halfedge[vertex_key] = {}\n        self._pointcolors.append(Color.white())\n\n        return vertex_key\n\n    def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.",
+          "code": "def find(x):\n\n            while parent[x] != x:\n                parent[x] = parent[parent[x]]\n                x = parent[x]\n            return x\n\n        if tolerance > 0.0:\n            boxes = [OBB.from_point(p, tolerance) for p in positions]\n            ws = SpatialBVH.compute_world_size(boxes)\n            bvh = SpatialBVH.from_boxes(boxes, ws)\n            pairs, _, _ = bvh.check_all_collisions(boxes)\n            for i, j in pairs:\n                if positions[i].distance(positions[j]) <= tolerance:\n                    ri = find(i)\n                    rj = find(j)\n                    if ri != rj:\n                        parent[ri] = rj\n\n        root_to_rep = {}\n        for i in range(n):\n            root = find(i)\n            if root not in root_to_rep or vkeys[i] < root_to_rep[root]:\n                root_to_rep[root] = vkeys[i]\n        vkey_to_rep = {vkeys[i]: root_to_rep[find(i)] for i in range(n)}\n\n        m = Mesh()\n        added = set()\n        for i in range(n):\n            rep = vkey_to_rep[vkeys[i]]\n            if rep not in added:\n                added.add(rep)\n                pt = self.vertex[rep]\n                m.add_vertex(Point(pt[0], pt[1], pt[2]), rep)\n        for fk in sorted(self.face):\n            new_vkeys = [vkey_to_rep[vk] for vk in self.face[fk]]\n            m.add_face(new_vkeys, fk)\n        return m\n\n    ###########################################################################################\n    # Vertex and Face Operations\n    ###########################################################################################\n\n    def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1\n        else:\n            vertex_key = vkey\n            if vertex_key >= self._max_vertex:\n                self._max_vertex = vertex_key + 1\n\n        self.vertex[vertex_key] = VertexData(position)\n        self.halfedge[vertex_key] = {}\n        self._pointcolors.append(Color.white())\n        self._triangle_bvh_built = False\n\n        return vertex_key\n\n    def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int",
           "file": "mesh.py"
         }
       },
@@ -24049,7 +24076,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_vertex(position: Point, vkey: Optional[int] = None) -> int",
-          "code": "def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1\n        else:\n            vertex_key = vkey\n            if vertex_key >= self._max_vertex:\n                self._max_vertex = vertex_key + 1\n\n        self.vertex[vertex_key] = VertexData(position)\n        self.halfedge[vertex_key] = {}\n        self._pointcolors.append(Color.white())\n\n        return vertex_key\n\n    def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.\n        fkey : int, optional\n            Optional face key. If None, auto-generated.\n\n        Returns\n        -------\n        int or None\n            The face key, or None if the face is invalid.\n        \"\"\"\n        if len(vertices) < 3:\n            return None\n\n        if not all(v in self.vertex for v in vertices):\n            return None\n\n        if len(set(vertices)) != len(vertices):\n            return None\n\n        if fkey is None:\n            face_key = self._max_face\n            self._max_face += 1\n        else:\n            face_key = fkey\n            if face_key >= self._max_face:\n                self._max_face = face_key + 1\n\n        self.face[face_key] = vertices.copy()\n        self.triangulation.pop(face_key, None)\n        self._facecolors.append(Color.white())\n\n        for i in range(len(vertices)):\n            u = vertices[i]\n            v = vertices[(i + 1) % len(vertices)]\n\n            if u not in self.halfedge:\n                self.halfedge[u] = {}\n            if v not in self.halfedge:\n                self.halfedge[v] = {}\n\n            is_new_edge = u not in self.halfedge[v]\n\n            self.halfedge[u][v] = face_key",
+          "code": "def add_vertex(self, position: Point, vkey: Optional[int] = None) -> int:\n\n        \"\"\"Add a vertex to the mesh.\n\n        Parameters\n        ----------\n        position : Point\n            The position of the vertex.\n        vkey : int, optional\n            Optional vertex key. If None, auto-generated.\n\n        Returns\n        -------\n        int\n            The vertex key.\n        \"\"\"\n        if vkey is None:\n            vertex_key = self._max_vertex\n            self._max_vertex += 1\n        else:\n            vertex_key = vkey\n            if vertex_key >= self._max_vertex:\n                self._max_vertex = vertex_key + 1\n\n        self.vertex[vertex_key] = VertexData(position)\n        self.halfedge[vertex_key] = {}\n        self._pointcolors.append(Color.white())\n        self._triangle_bvh_built = False\n\n        return vertex_key\n\n    def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.\n        fkey : int, optional\n            Optional face key. If None, auto-generated.\n\n        Returns\n        -------\n        int or None\n            The face key, or None if the face is invalid.\n        \"\"\"\n        if len(vertices) < 3:\n            return None\n\n        if not all(v in self.vertex for v in vertices):\n            return None\n\n        if len(set(vertices)) != len(vertices):\n            return None\n\n        if fkey is None:\n            face_key = self._max_face\n            self._max_face += 1\n        else:\n            face_key = fkey\n            if face_key >= self._max_face:\n                self._max_face = face_key + 1\n\n        self.face[face_key] = vertices.copy()\n        self.triangulation.pop(face_key, None)\n        self._facecolors.append(Color.white())\n        self._triangle_bvh_built = False\n\n        for i in range(len(vertices)):\n            u = vertices[i]\n            v = vertices[(i + 1) % len(vertices)]\n\n            if u not in self.halfedge:\n                self.halfedge[u] = {}\n            if v not in self.halfedge:\n                self.halfedge[v] = {}\n\n            is_new_edge = u not in self.halfedge[v]",
           "file": "mesh.py"
         },
         "cpp": {
@@ -24098,7 +24125,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_face(\n        vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]",
-          "code": "def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.\n        fkey : int, optional\n            Optional face key. If None, auto-generated.\n\n        Returns\n        -------\n        int or None\n            The face key, or None if the face is invalid.\n        \"\"\"\n        if len(vertices) < 3:\n            return None\n\n        if not all(v in self.vertex for v in vertices):\n            return None\n\n        if len(set(vertices)) != len(vertices):\n            return None\n\n        if fkey is None:\n            face_key = self._max_face\n            self._max_face += 1\n        else:\n            face_key = fkey\n            if face_key >= self._max_face:\n                self._max_face = face_key + 1\n\n        self.face[face_key] = vertices.copy()\n        self.triangulation.pop(face_key, None)\n        self._facecolors.append(Color.white())\n\n        for i in range(len(vertices)):\n            u = vertices[i]\n            v = vertices[(i + 1) % len(vertices)]\n\n            if u not in self.halfedge:\n                self.halfedge[u] = {}\n            if v not in self.halfedge:\n                self.halfedge[v] = {}\n\n            is_new_edge = u not in self.halfedge[v]\n\n            self.halfedge[u][v] = face_key\n\n            if is_new_edge:\n                self.halfedge[v][u] = None\n                self._linecolors.append(Color.white())\n                self._widths.append(1.0)\n\n        return face_key\n\n    def remove_face(self, fkey: int) -> None:\n        if fkey not in self.face:\n            return\n        vertices = self.face[fkey]\n        n = len(vertices)\n        for i in range(n):\n            u = vertices[i]\n            v = vertices[(i + 1) % n]\n            if v in self.halfedge.get(u, {}):\n                self.halfedge[u][v] = None\n                if self.halfedge.get(v, {}).get(u) is None:\n                    del self.halfedge[u][v]\n                    del self.halfedge[v][u]\n        del self.face[fkey]\n        self.triangulation.pop(fkey, None)\n        self.facedata.pop(fkey, None)\n        self.face_holes.pop(fkey, None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n        n_faces = len(self.face)\n        if len(self._facecolors) > n_faces:\n            self._facecolors = self._facecolors[:n_faces]",
+          "code": "def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.\n        fkey : int, optional\n            Optional face key. If None, auto-generated.\n\n        Returns\n        -------\n        int or None\n            The face key, or None if the face is invalid.\n        \"\"\"\n        if len(vertices) < 3:\n            return None\n\n        if not all(v in self.vertex for v in vertices):\n            return None\n\n        if len(set(vertices)) != len(vertices):\n            return None\n\n        if fkey is None:\n            face_key = self._max_face\n            self._max_face += 1\n        else:\n            face_key = fkey\n            if face_key >= self._max_face:\n                self._max_face = face_key + 1\n\n        self.face[face_key] = vertices.copy()\n        self.triangulation.pop(face_key, None)\n        self._facecolors.append(Color.white())\n        self._triangle_bvh_built = False\n\n        for i in range(len(vertices)):\n            u = vertices[i]\n            v = vertices[(i + 1) % len(vertices)]\n\n            if u not in self.halfedge:\n                self.halfedge[u] = {}\n            if v not in self.halfedge:\n                self.halfedge[v] = {}\n\n            is_new_edge = u not in self.halfedge[v]\n\n            self.halfedge[u][v] = face_key\n\n            if is_new_edge:\n                self.halfedge[v][u] = None\n                self._linecolors.append(Color.white())\n                self._widths.append(1.0)\n\n        return face_key\n\n    def remove_face(self, fkey: int) -> None:\n        if fkey not in self.face:\n            return\n        vertices = self.face[fkey]\n        n = len(vertices)\n        for i in range(n):\n            u = vertices[i]\n            v = vertices[(i + 1) % n]\n            if v in self.halfedge.get(u, {}):\n                self.halfedge[u][v] = None\n                if self.halfedge.get(v, {}).get(u) is None:\n                    del self.halfedge[u][v]\n                    del self.halfedge[v][u]\n        del self.face[fkey]\n        self.triangulation.pop(fkey, None)\n        self.facedata.pop(fkey, None)\n        self.face_holes.pop(fkey, None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n        n_faces = len(self.face)\n        if len(self._facecolors) > n_faces:",
           "file": "mesh.py"
         },
         "cpp": {
@@ -24159,7 +24186,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "remove_face(fkey: int) -> None",
-          "code": "def remove_face(self, fkey: int) -> None:\n\n        if fkey not in self.face:\n            return\n        vertices = self.face[fkey]\n        n = len(vertices)\n        for i in range(n):\n            u = vertices[i]\n            v = vertices[(i + 1) % n]\n            if v in self.halfedge.get(u, {}):\n                self.halfedge[u][v] = None\n                if self.halfedge.get(v, {}).get(u) is None:\n                    del self.halfedge[u][v]\n                    del self.halfedge[v][u]\n        del self.face[fkey]\n        self.triangulation.pop(fkey, None)\n        self.facedata.pop(fkey, None)\n        self.face_holes.pop(fkey, None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n        n_faces = len(self.face)\n        if len(self._facecolors) > n_faces:\n            self._facecolors = self._facecolors[:n_faces]\n\n    def remove_vertex(self, vkey: int) -> None:\n        if vkey not in self.vertex:\n            return\n        faces_to_remove = [fk for fk, verts in self.face.items() if vkey in verts]\n        for fk in faces_to_remove:\n            self.remove_face(fk)\n        if vkey in self.halfedge:\n            for v in list(self.halfedge[vkey].keys()):\n                if vkey in self.halfedge.get(v, {}):\n                    del self.halfedge[v][vkey]\n            del self.halfedge[vkey]\n        self.edgedata = {k: w for k, w in self.edgedata.items() if vkey not in k}\n        del self.vertex[vkey]\n        n_vertices = len(self.vertex)\n        if len(self._pointcolors) > n_vertices:\n            self._pointcolors = self._pointcolors[:n_vertices]\n\n    def remove_edge(self, u: int, v: int) -> None:\n        faces_to_remove = set()\n        f0 = self.halfedge.get(u, {}).get(v)\n        if f0 is not None:\n            faces_to_remove.add(f0)\n        f1 = self.halfedge.get(v, {}).get(u)\n        if f1 is not None:\n            faces_to_remove.add(f1)\n        for fk in faces_to_remove:\n            self.remove_face(fk)\n        if v in self.halfedge.get(u, {}):\n            del self.halfedge[u][v]\n        if u in self.halfedge.get(v, {}):\n            del self.halfedge[v][u]\n        self.edgedata.pop((u, v), None)\n        self.edgedata.pop((v, u), None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n\n    def flip_face(self, fkey: int) -> None:\n        if fkey not in self.face:\n            return\n        fv = self.face[fkey][:]\n        self.remove_face(fkey)\n        self.add_face(fv[::-1], fkey)\n\n    def flip(self) -> None:\n        for fkey in self.face:\n            self.face[fkey].reverse()\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]",
+          "code": "def remove_face(self, fkey: int) -> None:\n\n        if fkey not in self.face:\n            return\n        vertices = self.face[fkey]\n        n = len(vertices)\n        for i in range(n):\n            u = vertices[i]\n            v = vertices[(i + 1) % n]\n            if v in self.halfedge.get(u, {}):\n                self.halfedge[u][v] = None\n                if self.halfedge.get(v, {}).get(u) is None:\n                    del self.halfedge[u][v]\n                    del self.halfedge[v][u]\n        del self.face[fkey]\n        self.triangulation.pop(fkey, None)\n        self.facedata.pop(fkey, None)\n        self.face_holes.pop(fkey, None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n        n_faces = len(self.face)\n        if len(self._facecolors) > n_faces:\n            self._facecolors = self._facecolors[:n_faces]\n        self._triangle_bvh_built = False\n\n    def remove_vertex(self, vkey: int) -> None:\n        if vkey not in self.vertex:\n            return\n        faces_to_remove = [fk for fk, verts in self.face.items() if vkey in verts]\n        for fk in faces_to_remove:\n            self.remove_face(fk)\n        if vkey in self.halfedge:\n            for v in list(self.halfedge[vkey].keys()):\n                if vkey in self.halfedge.get(v, {}):\n                    del self.halfedge[v][vkey]\n            del self.halfedge[vkey]\n        self.edgedata = {k: w for k, w in self.edgedata.items() if vkey not in k}\n        del self.vertex[vkey]\n        n_vertices = len(self.vertex)\n        if len(self._pointcolors) > n_vertices:\n            self._pointcolors = self._pointcolors[:n_vertices]\n        self._triangle_bvh_built = False\n\n    def remove_edge(self, u: int, v: int) -> None:\n        faces_to_remove = set()\n        f0 = self.halfedge.get(u, {}).get(v)\n        if f0 is not None:\n            faces_to_remove.add(f0)\n        f1 = self.halfedge.get(v, {}).get(u)\n        if f1 is not None:\n            faces_to_remove.add(f1)\n        for fk in faces_to_remove:\n            self.remove_face(fk)\n        if v in self.halfedge.get(u, {}):\n            del self.halfedge[u][v]\n        if u in self.halfedge.get(v, {}):\n            del self.halfedge[v][u]\n        self.edgedata.pop((u, v), None)\n        self.edgedata.pop((v, u), None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n        self._triangle_bvh_built = False\n\n    def flip_face(self, fkey: int) -> None:\n        if fkey not in self.face:\n            return\n        fv = self.face[fkey][:]\n        self.remove_face(fkey)\n        self.add_face(fv[::-1], fkey)\n\n    def flip(self) -> None:\n        for fkey in self.face:\n            self.face[fkey].reverse()\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)",
           "file": "mesh.py"
         },
         "cpp": {
@@ -24197,7 +24224,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "remove_vertex(vkey: int) -> None",
-          "code": "def remove_vertex(self, vkey: int) -> None:\n\n        if vkey not in self.vertex:\n            return\n        faces_to_remove = [fk for fk, verts in self.face.items() if vkey in verts]\n        for fk in faces_to_remove:\n            self.remove_face(fk)\n        if vkey in self.halfedge:\n            for v in list(self.halfedge[vkey].keys()):\n                if vkey in self.halfedge.get(v, {}):\n                    del self.halfedge[v][vkey]\n            del self.halfedge[vkey]\n        self.edgedata = {k: w for k, w in self.edgedata.items() if vkey not in k}\n        del self.vertex[vkey]\n        n_vertices = len(self.vertex)\n        if len(self._pointcolors) > n_vertices:\n            self._pointcolors = self._pointcolors[:n_vertices]\n\n    def remove_edge(self, u: int, v: int) -> None:\n        faces_to_remove = set()\n        f0 = self.halfedge.get(u, {}).get(v)\n        if f0 is not None:\n            faces_to_remove.add(f0)\n        f1 = self.halfedge.get(v, {}).get(u)\n        if f1 is not None:\n            faces_to_remove.add(f1)\n        for fk in faces_to_remove:\n            self.remove_face(fk)\n        if v in self.halfedge.get(u, {}):\n            del self.halfedge[u][v]\n        if u in self.halfedge.get(v, {}):\n            del self.halfedge[v][u]\n        self.edgedata.pop((u, v), None)\n        self.edgedata.pop((v, u), None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n\n    def flip_face(self, fkey: int) -> None:\n        if fkey not in self.face:\n            return\n        fv = self.face[fkey][:]\n        self.remove_face(fkey)\n        self.add_face(fv[::-1], fkey)\n\n    def flip(self) -> None:\n        for fkey in self.face:\n            self.face[fkey].reverse()\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n\n    ###########################################################################################\n    # Connectivity Queries\n    ###########################################################################################\n\n    def edge_edges(self, u: int, v: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get all edges sharing a vertex with (u,v), excluding (u,v) and (v,u).\"\"\"\n        uv = v in self.halfedge.get(u, {})\n        vu = u in self.halfedge.get(v, {})\n        if not uv and not vu:\n            return None\n        edges = []\n        for w in self.halfedge.get(u, {}):\n            if w != v:\n                edges.append((u, w))\n        for w in self.halfedge.get(v, {}):\n            if w != u:\n                edges.append((v, w))\n        return edges\n\n    def edge_faces(self, u: int, v: int) -> Optional[List[int]]:\n        \"\"\"Get the faces adjacent to an edge.\"\"\"",
+          "code": "def remove_vertex(self, vkey: int) -> None:\n\n        if vkey not in self.vertex:\n            return\n        faces_to_remove = [fk for fk, verts in self.face.items() if vkey in verts]\n        for fk in faces_to_remove:\n            self.remove_face(fk)\n        if vkey in self.halfedge:\n            for v in list(self.halfedge[vkey].keys()):\n                if vkey in self.halfedge.get(v, {}):\n                    del self.halfedge[v][vkey]\n            del self.halfedge[vkey]\n        self.edgedata = {k: w for k, w in self.edgedata.items() if vkey not in k}\n        del self.vertex[vkey]\n        n_vertices = len(self.vertex)\n        if len(self._pointcolors) > n_vertices:\n            self._pointcolors = self._pointcolors[:n_vertices]\n        self._triangle_bvh_built = False\n\n    def remove_edge(self, u: int, v: int) -> None:\n        faces_to_remove = set()\n        f0 = self.halfedge.get(u, {}).get(v)\n        if f0 is not None:\n            faces_to_remove.add(f0)\n        f1 = self.halfedge.get(v, {}).get(u)\n        if f1 is not None:\n            faces_to_remove.add(f1)\n        for fk in faces_to_remove:\n            self.remove_face(fk)\n        if v in self.halfedge.get(u, {}):\n            del self.halfedge[u][v]\n        if u in self.halfedge.get(v, {}):\n            del self.halfedge[v][u]\n        self.edgedata.pop((u, v), None)\n        self.edgedata.pop((v, u), None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n        self._triangle_bvh_built = False\n\n    def flip_face(self, fkey: int) -> None:\n        if fkey not in self.face:\n            return\n        fv = self.face[fkey][:]\n        self.remove_face(fkey)\n        self.add_face(fv[::-1], fkey)\n\n    def flip(self) -> None:\n        for fkey in self.face:\n            self.face[fkey].reverse()\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n\n    ###########################################################################################\n    # Connectivity Queries\n    ###########################################################################################\n\n    def edge_edges(self, u: int, v: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get all edges sharing a vertex with (u,v), excluding (u,v) and (v,u).\"\"\"\n        uv = v in self.halfedge.get(u, {})\n        vu = u in self.halfedge.get(v, {})\n        if not uv and not vu:\n            return None\n        edges = []\n        for w in self.halfedge.get(u, {}):\n            if w != v:\n                edges.append((u, w))\n        for w in self.halfedge.get(v, {}):\n            if w != u:\n                edges.append((v, w))\n        return edges",
           "file": "mesh.py"
         },
         "cpp": {
@@ -24215,7 +24242,6 @@ window.API_INDEX = {
         "Mesh.add_face",
         "Mesh.clear",
         "Mesh.edge_edges",
-        "Mesh.edge_faces",
         "Mesh.edges",
         "Mesh.faces",
         "Mesh.find",
@@ -24236,7 +24262,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "remove_edge(u: int, v: int) -> None",
-          "code": "def remove_edge(self, u: int, v: int) -> None:\n\n        faces_to_remove = set()\n        f0 = self.halfedge.get(u, {}).get(v)\n        if f0 is not None:\n            faces_to_remove.add(f0)\n        f1 = self.halfedge.get(v, {}).get(u)\n        if f1 is not None:\n            faces_to_remove.add(f1)\n        for fk in faces_to_remove:\n            self.remove_face(fk)\n        if v in self.halfedge.get(u, {}):\n            del self.halfedge[u][v]\n        if u in self.halfedge.get(v, {}):\n            del self.halfedge[v][u]\n        self.edgedata.pop((u, v), None)\n        self.edgedata.pop((v, u), None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n\n    def flip_face(self, fkey: int) -> None:\n        if fkey not in self.face:\n            return\n        fv = self.face[fkey][:]\n        self.remove_face(fkey)\n        self.add_face(fv[::-1], fkey)\n\n    def flip(self) -> None:\n        for fkey in self.face:\n            self.face[fkey].reverse()\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n\n    ###########################################################################################\n    # Connectivity Queries\n    ###########################################################################################\n\n    def edge_edges(self, u: int, v: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get all edges sharing a vertex with (u,v), excluding (u,v) and (v,u).\"\"\"\n        uv = v in self.halfedge.get(u, {})\n        vu = u in self.halfedge.get(v, {})\n        if not uv and not vu:\n            return None\n        edges = []\n        for w in self.halfedge.get(u, {}):\n            if w != v:\n                edges.append((u, w))\n        for w in self.halfedge.get(v, {}):\n            if w != u:\n                edges.append((v, w))\n        return edges\n\n    def edge_faces(self, u: int, v: int) -> Optional[List[int]]:\n        \"\"\"Get the faces adjacent to an edge.\"\"\"\n        f0 = self.halfedge.get(u, {}).get(v)\n        f1 = self.halfedge.get(v, {}).get(u)\n        if f0 is None and f1 is None:\n            return None\n        return [f for f in (f0, f1) if f is not None]\n\n    def edge_line(self, u: int, v: int):\n        \"\"\"Get the edge as a Line.\"\"\"\n        uv = v in self.halfedge.get(u, {})\n        vu = u in self.halfedge.get(v, {})\n        if not uv and not vu:\n            return None\n        from .line import Line\n        return Line.from_points(self.vertex_point(u), self.vertex_point(v))\n\n    def face_edges(self, face_key: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get edges of a face as (vi, vi+1) pairs.\"\"\"",
+          "code": "def remove_edge(self, u: int, v: int) -> None:\n\n        faces_to_remove = set()\n        f0 = self.halfedge.get(u, {}).get(v)\n        if f0 is not None:\n            faces_to_remove.add(f0)\n        f1 = self.halfedge.get(v, {}).get(u)\n        if f1 is not None:\n            faces_to_remove.add(f1)\n        for fk in faces_to_remove:\n            self.remove_face(fk)\n        if v in self.halfedge.get(u, {}):\n            del self.halfedge[u][v]\n        if u in self.halfedge.get(v, {}):\n            del self.halfedge[v][u]\n        self.edgedata.pop((u, v), None)\n        self.edgedata.pop((v, u), None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n        self._triangle_bvh_built = False\n\n    def flip_face(self, fkey: int) -> None:\n        if fkey not in self.face:\n            return\n        fv = self.face[fkey][:]\n        self.remove_face(fkey)\n        self.add_face(fv[::-1], fkey)\n\n    def flip(self) -> None:\n        for fkey in self.face:\n            self.face[fkey].reverse()\n        for u in self.halfedge:\n            self.halfedge[u].clear()\n        for fkey, verts in self.face.items():\n            n = len(verts)\n            for i in range(n):\n                u = verts[i]\n                v = verts[(i + 1) % n]\n                self.halfedge[u][v] = fkey\n                if u not in self.halfedge[v]:\n                    self.halfedge[v][u] = None\n\n    ###########################################################################################\n    # Connectivity Queries\n    ###########################################################################################\n\n    def edge_edges(self, u: int, v: int) -> Optional[List[Tuple[int, int]]]:\n        \"\"\"Get all edges sharing a vertex with (u,v), excluding (u,v) and (v,u).\"\"\"\n        uv = v in self.halfedge.get(u, {})\n        vu = u in self.halfedge.get(v, {})\n        if not uv and not vu:\n            return None\n        edges = []\n        for w in self.halfedge.get(u, {}):\n            if w != v:\n                edges.append((u, w))\n        for w in self.halfedge.get(v, {}):\n            if w != u:\n                edges.append((v, w))\n        return edges\n\n    def edge_faces(self, u: int, v: int) -> Optional[List[int]]:\n        \"\"\"Get the faces adjacent to an edge.\"\"\"\n        f0 = self.halfedge.get(u, {}).get(v)\n        f1 = self.halfedge.get(v, {}).get(u)\n        if f0 is None and f1 is None:\n            return None\n        return [f for f in (f0, f1) if f is not None]\n\n    def edge_line(self, u: int, v: int):\n        \"\"\"Get the edge as a Line.\"\"\"\n        uv = v in self.halfedge.get(u, {})\n        vu = u in self.halfedge.get(v, {})\n        if not uv and not vu:\n            return None\n        from .line import Line\n        return Line.from_points(self.vertex_point(u), self.vertex_point(v))\n\n    def face_edges(self, face_key: int) -> Optional[List[Tuple[int, int]]]:",
           "file": "mesh.py"
         },
         "cpp": {
@@ -24469,7 +24495,6 @@ window.API_INDEX = {
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.remove_edge",
-        "Mesh.remove_vertex",
         "Mesh.set_facecolors",
         "Mesh.set_linecolors",
         "Mesh.set_objectcolor",
@@ -25689,6 +25714,7 @@ window.API_INDEX = {
         "Mesh.__jsondump__",
         "Mesh.__jsonload__",
         "Mesh._lcg_sample",
+        "Mesh.clear_triangle_bvh",
         "Mesh.constructor",
         "Mesh.duplicate",
         "Mesh.edge_attribute",
@@ -25717,8 +25743,6 @@ window.API_INDEX = {
         "Mesh.pb_loads",
         "Mesh.set_vertex_attribute",
         "Mesh.str",
-        "Mesh.transform",
-        "Mesh.transformed",
         "Mesh.update_default_edge_attributes",
         "Mesh.update_default_face_attributes",
         "Mesh.update_default_vertex_attributes",
@@ -25750,6 +25774,7 @@ window.API_INDEX = {
         "Mesh.__jsondump__",
         "Mesh.__jsonload__",
         "Mesh._lcg_sample",
+        "Mesh.clear_triangle_bvh",
         "Mesh.duplicate",
         "Mesh.edge_attribute",
         "Mesh.edge_sample",
@@ -25777,8 +25802,6 @@ window.API_INDEX = {
         "Mesh.pb_loads",
         "Mesh.set_face_attribute",
         "Mesh.str",
-        "Mesh.transform",
-        "Mesh.transformed",
         "Mesh.update_default_edge_attributes",
         "Mesh.update_default_face_attributes",
         "Mesh.update_default_vertex_attributes",
@@ -25811,6 +25834,7 @@ window.API_INDEX = {
         "Mesh.__jsondump__",
         "Mesh.__jsonload__",
         "Mesh._lcg_sample",
+        "Mesh.clear_triangle_bvh",
         "Mesh.duplicate",
         "Mesh.edge_sample",
         "Mesh.edges",
@@ -25838,8 +25862,6 @@ window.API_INDEX = {
         "Mesh.pb_loads",
         "Mesh.set_edge_attribute",
         "Mesh.str",
-        "Mesh.transform",
-        "Mesh.transformed",
         "Mesh.update_default_edge_attributes",
         "Mesh.update_default_face_attributes",
         "Mesh.update_default_vertex_attributes",
@@ -26715,7 +26737,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "volume() -> float",
-          "code": "def volume(self) -> float:\n\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                total += (x0 * (vd1.y * vd2.z - vd1.z * vd2.y)\n                        + y0 * (vd1.z * vd2.x - vd1.x * vd2.z)\n                        + z0 * (vd1.x * vd2.y - vd1.y * vd2.x))\n        return abs(total) / 6.0\n\n    ###########################################################################################\n    # Export\n    ###########################################################################################\n\n    def vertex_index(self) -> Dict[int, int]:\n        \"\"\"Create a mapping from sparse vertex keys to sequential indices.\n\n        Returns\n        -------\n        dict[int, int]\n            A dictionary mapping vertex_key -> sequential_index (0, 1, 2, ...).\n        \"\"\"\n        # Sort keys to ensure consistent ordering\n        sorted_keys = sorted(self.vertex.keys())\n        return {key: index for index, key in enumerate(sorted_keys)}\n\n    def to_vertices_and_faces(self) -> Tuple[List[Point], List[List[int]]]:\n        \"\"\"Export vertices and faces with sequential 0-based indices.\n\n        Returns\n        -------\n        tuple\n            A tuple of (vertices, faces) where:\n            - vertices: List of Point objects in sequential order\n            - faces: List of face vertex lists using sequential indices\n        \"\"\"\n        vertex_idx = self.vertex_index()\n        vertices = [None] * len(self.vertex)\n\n        for key, vdata in self.vertex.items():\n            idx = vertex_idx[key]\n            vertices[idx] = vdata.position()\n\n        # Sort face keys to ensure consistent ordering\n        sorted_face_keys = sorted(self.face.keys())\n        faces = []\n        for face_key in sorted_face_keys:\n            face_vertices = self.face[face_key]\n            remapped = [vertex_idx[v] for v in face_vertices]\n            faces.append(remapped)\n\n        return vertices, faces\n\n    ###########################################################################################\n    # Transformation\n    ###########################################################################################\n\n    def transform(self, xf=None):\n        xform = xf if xf is not None else self.xform\n        for vdata in self.vertex.values():\n            pos = vdata.position()\n            pos.xform = xform\n            pos.transform()\n            vdata[0] = pos[0]\n            vdata[1] = pos[1]\n            vdata[2] = pos[2]\n\n    def transformed(self, xf=None):\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(xf)",
+          "code": "def volume(self) -> float:\n\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                total += (x0 * (vd1.y * vd2.z - vd1.z * vd2.y)\n                        + y0 * (vd1.z * vd2.x - vd1.x * vd2.z)\n                        + z0 * (vd1.x * vd2.y - vd1.y * vd2.x))\n        return abs(total) / 6.0\n\n    ###########################################################################################\n    # Export\n    ###########################################################################################\n\n    def vertex_index(self) -> Dict[int, int]:\n        \"\"\"Create a mapping from sparse vertex keys to sequential indices.\n\n        Returns\n        -------\n        dict[int, int]\n            A dictionary mapping vertex_key -> sequential_index (0, 1, 2, ...).\n        \"\"\"\n        # Sort keys to ensure consistent ordering\n        sorted_keys = sorted(self.vertex.keys())\n        return {key: index for index, key in enumerate(sorted_keys)}\n\n    def to_vertices_and_faces(self) -> Tuple[List[Point], List[List[int]]]:\n        \"\"\"Export vertices and faces with sequential 0-based indices.\n\n        Returns\n        -------\n        tuple\n            A tuple of (vertices, faces) where:\n            - vertices: List of Point objects in sequential order\n            - faces: List of face vertex lists using sequential indices\n        \"\"\"\n        vertex_idx = self.vertex_index()\n        vertices = [None] * len(self.vertex)\n\n        for key, vdata in self.vertex.items():\n            idx = vertex_idx[key]\n            vertices[idx] = vdata.position()\n\n        # Sort face keys to ensure consistent ordering\n        sorted_face_keys = sorted(self.face.keys())\n        faces = []\n        for face_key in sorted_face_keys:\n            face_vertices = self.face[face_key]\n            remapped = [vertex_idx[v] for v in face_vertices]\n            faces.append(remapped)\n\n        return vertices, faces\n\n    ###########################################################################################\n    # Transformation\n    ###########################################################################################\n\n    def transform(self, xf=None):\n        xform = xf if xf is not None else self.xform\n        for vdata in self.vertex.values():\n            pos = vdata.position()\n            pos.xform = xform\n            pos.transform()\n            vdata[0] = pos[0]\n            vdata[1] = pos[1]\n            vdata[2] = pos[2]\n        self._triangle_bvh_built = False\n\n    def transformed(self, xf=None):\n        import copy\n        result = copy.deepcopy(self)",
           "file": "mesh.py"
         },
         "cpp": {
@@ -26748,7 +26770,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "vertex_index() -> Dict[int, int]",
-          "code": "def vertex_index(self) -> Dict[int, int]:\n\n        \"\"\"Create a mapping from sparse vertex keys to sequential indices.\n\n        Returns\n        -------\n        dict[int, int]\n            A dictionary mapping vertex_key -> sequential_index (0, 1, 2, ...).\n        \"\"\"\n        # Sort keys to ensure consistent ordering\n        sorted_keys = sorted(self.vertex.keys())\n        return {key: index for index, key in enumerate(sorted_keys)}\n\n    def to_vertices_and_faces(self) -> Tuple[List[Point], List[List[int]]]:\n        \"\"\"Export vertices and faces with sequential 0-based indices.\n\n        Returns\n        -------\n        tuple\n            A tuple of (vertices, faces) where:\n            - vertices: List of Point objects in sequential order\n            - faces: List of face vertex lists using sequential indices\n        \"\"\"\n        vertex_idx = self.vertex_index()\n        vertices = [None] * len(self.vertex)\n\n        for key, vdata in self.vertex.items():\n            idx = vertex_idx[key]\n            vertices[idx] = vdata.position()\n\n        # Sort face keys to ensure consistent ordering\n        sorted_face_keys = sorted(self.face.keys())\n        faces = []\n        for face_key in sorted_face_keys:\n            face_vertices = self.face[face_key]\n            remapped = [vertex_idx[v] for v in face_vertices]\n            faces.append(remapped)\n\n        return vertices, faces\n\n    ###########################################################################################\n    # Transformation\n    ###########################################################################################\n\n    def transform(self, xf=None):\n        xform = xf if xf is not None else self.xform\n        for vdata in self.vertex.values():\n            pos = vdata.position()\n            pos.xform = xform\n            pos.transform()\n            vdata[0] = pos[0]\n            vdata[1] = pos[1]\n            vdata[2] = pos[2]\n\n    def transformed(self, xf=None):\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(xf)\n        return result\n\n    ###########################################################################################\n    # JSON\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with fields in alphabetical order (matching Rust).\n\n        \"\"\"\n        # Halfedge connectivity\n        halfedge_data = {}\n        for u, neighbors in self.halfedge.items():\n            halfedge_data[str(u)] = {\n                str(v): face_key for v, face_key in neighbors.items()\n            }\n\n        # Vertex data (alphabetical: attributes, x, y, z)",
+          "code": "def vertex_index(self) -> Dict[int, int]:\n\n        \"\"\"Create a mapping from sparse vertex keys to sequential indices.\n\n        Returns\n        -------\n        dict[int, int]\n            A dictionary mapping vertex_key -> sequential_index (0, 1, 2, ...).\n        \"\"\"\n        # Sort keys to ensure consistent ordering\n        sorted_keys = sorted(self.vertex.keys())\n        return {key: index for index, key in enumerate(sorted_keys)}\n\n    def to_vertices_and_faces(self) -> Tuple[List[Point], List[List[int]]]:\n        \"\"\"Export vertices and faces with sequential 0-based indices.\n\n        Returns\n        -------\n        tuple\n            A tuple of (vertices, faces) where:\n            - vertices: List of Point objects in sequential order\n            - faces: List of face vertex lists using sequential indices\n        \"\"\"\n        vertex_idx = self.vertex_index()\n        vertices = [None] * len(self.vertex)\n\n        for key, vdata in self.vertex.items():\n            idx = vertex_idx[key]\n            vertices[idx] = vdata.position()\n\n        # Sort face keys to ensure consistent ordering\n        sorted_face_keys = sorted(self.face.keys())\n        faces = []\n        for face_key in sorted_face_keys:\n            face_vertices = self.face[face_key]\n            remapped = [vertex_idx[v] for v in face_vertices]\n            faces.append(remapped)\n\n        return vertices, faces\n\n    ###########################################################################################\n    # Transformation\n    ###########################################################################################\n\n    def transform(self, xf=None):\n        xform = xf if xf is not None else self.xform\n        for vdata in self.vertex.values():\n            pos = vdata.position()\n            pos.xform = xform\n            pos.transform()\n            vdata[0] = pos[0]\n            vdata[1] = pos[1]\n            vdata[2] = pos[2]\n        self._triangle_bvh_built = False\n\n    def transformed(self, xf=None):\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(xf)\n        return result\n\n    ###########################################################################################\n    # Triangle BVH (closest point / ray queries)\n    ###########################################################################################\n\n    def build_triangle_bvh(self, force: bool = False) -> None:\n        \"\"\"Build (and cache) a BVH over the mesh's triangulated faces.\"\"\"\n        if self._triangle_bvh_built and not force:\n            return\n\n        from session_py.spatial_bvh import SpatialBVH\n        from session_py.aabb import AABB\n\n        self._triangle_aabbs_cache = []\n        self._triangle_indices_cache = []\n        self._triangle_face_subidx_cache = []\n        self._vertices_cache = []\n\n        vertices, faces_vec = self.to_vertices_and_faces()\n        self._vertices_cache = vertices",
           "file": "mesh.py"
         },
         "cpp": {
@@ -26763,15 +26785,13 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.__jsondump__",
+        "Mesh.build_triangle_bvh",
         "Mesh.face_area",
         "Mesh.face_centroid",
         "Mesh.face_normal",
         "Mesh.face_normals",
         "Mesh.face_vertices",
         "Mesh.faces",
-        "Mesh.jsondump",
-        "Mesh.str",
         "Mesh.to_vertices_and_faces",
         "Mesh.transform",
         "Mesh.transformed",
@@ -26786,7 +26806,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "to_vertices_and_faces() -> Tuple[List[Point], List[List[int]]]",
-          "code": "def to_vertices_and_faces(self) -> Tuple[List[Point], List[List[int]]]:\n\n        \"\"\"Export vertices and faces with sequential 0-based indices.\n\n        Returns\n        -------\n        tuple\n            A tuple of (vertices, faces) where:\n            - vertices: List of Point objects in sequential order\n            - faces: List of face vertex lists using sequential indices\n        \"\"\"\n        vertex_idx = self.vertex_index()\n        vertices = [None] * len(self.vertex)\n\n        for key, vdata in self.vertex.items():\n            idx = vertex_idx[key]\n            vertices[idx] = vdata.position()\n\n        # Sort face keys to ensure consistent ordering\n        sorted_face_keys = sorted(self.face.keys())\n        faces = []\n        for face_key in sorted_face_keys:\n            face_vertices = self.face[face_key]\n            remapped = [vertex_idx[v] for v in face_vertices]\n            faces.append(remapped)\n\n        return vertices, faces\n\n    ###########################################################################################\n    # Transformation\n    ###########################################################################################\n\n    def transform(self, xf=None):\n        xform = xf if xf is not None else self.xform\n        for vdata in self.vertex.values():\n            pos = vdata.position()\n            pos.xform = xform\n            pos.transform()\n            vdata[0] = pos[0]\n            vdata[1] = pos[1]\n            vdata[2] = pos[2]\n\n    def transformed(self, xf=None):\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(xf)\n        return result\n\n    ###########################################################################################\n    # JSON\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with fields in alphabetical order (matching Rust).\n\n        \"\"\"\n        # Halfedge connectivity\n        halfedge_data = {}\n        for u, neighbors in self.halfedge.items():\n            halfedge_data[str(u)] = {\n                str(v): face_key for v, face_key in neighbors.items()\n            }\n\n        # Vertex data (alphabetical: attributes, x, y, z)\n        vertex_data = {}\n        for key, vdata in self.vertex.items():\n            vertex_data[str(key)] = {\n                \"attributes\": vdata.attributes,\n                \"x\": vdata[0],\n                \"y\": vdata[1],\n                \"z\": vdata[2],\n            }\n\n        # Face data\n        face_data = {}\n        for key, vertices in self.face.items():",
+          "code": "def to_vertices_and_faces(self) -> Tuple[List[Point], List[List[int]]]:\n\n        \"\"\"Export vertices and faces with sequential 0-based indices.\n\n        Returns\n        -------\n        tuple\n            A tuple of (vertices, faces) where:\n            - vertices: List of Point objects in sequential order\n            - faces: List of face vertex lists using sequential indices\n        \"\"\"\n        vertex_idx = self.vertex_index()\n        vertices = [None] * len(self.vertex)\n\n        for key, vdata in self.vertex.items():\n            idx = vertex_idx[key]\n            vertices[idx] = vdata.position()\n\n        # Sort face keys to ensure consistent ordering\n        sorted_face_keys = sorted(self.face.keys())\n        faces = []\n        for face_key in sorted_face_keys:\n            face_vertices = self.face[face_key]\n            remapped = [vertex_idx[v] for v in face_vertices]\n            faces.append(remapped)\n\n        return vertices, faces\n\n    ###########################################################################################\n    # Transformation\n    ###########################################################################################\n\n    def transform(self, xf=None):\n        xform = xf if xf is not None else self.xform\n        for vdata in self.vertex.values():\n            pos = vdata.position()\n            pos.xform = xform\n            pos.transform()\n            vdata[0] = pos[0]\n            vdata[1] = pos[1]\n            vdata[2] = pos[2]\n        self._triangle_bvh_built = False\n\n    def transformed(self, xf=None):\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(xf)\n        return result\n\n    ###########################################################################################\n    # Triangle BVH (closest point / ray queries)\n    ###########################################################################################\n\n    def build_triangle_bvh(self, force: bool = False) -> None:\n        \"\"\"Build (and cache) a BVH over the mesh's triangulated faces.\"\"\"\n        if self._triangle_bvh_built and not force:\n            return\n\n        from session_py.spatial_bvh import SpatialBVH\n        from session_py.aabb import AABB\n\n        self._triangle_aabbs_cache = []\n        self._triangle_indices_cache = []\n        self._triangle_face_subidx_cache = []\n        self._vertices_cache = []\n\n        vertices, faces_vec = self.to_vertices_and_faces()\n        self._vertices_cache = vertices\n\n        vertex_keys = sorted(self.vertex.keys())\n        vkey_to_idx = {}\n        for i in range(len(vertex_keys)):\n            vkey_to_idx[vertex_keys[i]] = i\n\n        face_keys = sorted(self.face.keys())\n\n        tasks = []\n        for fi in range(len(faces_vec)):\n            fv = faces_vec[fi]\n            if len(fv) < 3:\n                continue",
           "file": "mesh.py"
         },
         "cpp": {
@@ -26801,14 +26821,11 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.__jsondump__",
         "Mesh.build_triangle_bvh",
         "Mesh.ensure_triangle_bvh",
         "Mesh.face_vertices",
         "Mesh.faces",
-        "Mesh.jsondump",
         "Mesh.new",
-        "Mesh.str",
         "Mesh.transform",
         "Mesh.transformed",
         "Mesh.vertex_index",
@@ -26822,7 +26839,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "transform(xf=None)",
-          "code": "def transform(self, xf=None):\n\n        xform = xf if xf is not None else self.xform\n        for vdata in self.vertex.values():\n            pos = vdata.position()\n            pos.xform = xform\n            pos.transform()\n            vdata[0] = pos[0]\n            vdata[1] = pos[1]\n            vdata[2] = pos[2]\n\n    def transformed(self, xf=None):\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(xf)\n        return result\n\n    ###########################################################################################\n    # JSON\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with fields in alphabetical order (matching Rust).\n\n        \"\"\"\n        # Halfedge connectivity\n        halfedge_data = {}\n        for u, neighbors in self.halfedge.items():\n            halfedge_data[str(u)] = {\n                str(v): face_key for v, face_key in neighbors.items()\n            }\n\n        # Vertex data (alphabetical: attributes, x, y, z)\n        vertex_data = {}\n        for key, vdata in self.vertex.items():\n            vertex_data[str(key)] = {\n                \"attributes\": vdata.attributes,\n                \"x\": vdata[0],\n                \"y\": vdata[1],\n                \"z\": vdata[2],\n            }\n\n        # Face data\n        face_data = {}\n        for key, vertices in self.face.items():\n            face_data[str(key)] = vertices\n\n        # Face attributes\n        facedata_json = {}\n        for key, attrs in self.facedata.items():\n            facedata_json[str(key)] = attrs\n\n        # Edge attributes\n        edgedata_json = {}\n        for (u, v), attrs in self.edgedata.items():\n            edgedata_json[f\"{u},{v}\"] = attrs\n\n        # Colors as flat RGBA arrays\n        pointcolors_flat = []\n        for c in self._pointcolors:\n            pointcolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        facecolors_flat = []\n        for c in self._facecolors:\n            facecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        linecolors_flat = []\n        for c in self._linecolors:\n            linecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        # Return fields in alphabetical order to match Rust's serde_json\n        return {\n            \"color_mode\": self.color_mode.value,\n            \"default_edge_attributes\": self.default_edge_attributes,\n            \"default_face_attributes\": self.default_face_attributes,\n            \"default_vertex_attributes\": self.default_vertex_attributes,",
+          "code": "def transform(self, xf=None):\n\n        xform = xf if xf is not None else self.xform\n        for vdata in self.vertex.values():\n            pos = vdata.position()\n            pos.xform = xform\n            pos.transform()\n            vdata[0] = pos[0]\n            vdata[1] = pos[1]\n            vdata[2] = pos[2]\n        self._triangle_bvh_built = False\n\n    def transformed(self, xf=None):\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(xf)\n        return result\n\n    ###########################################################################################\n    # Triangle BVH (closest point / ray queries)\n    ###########################################################################################\n\n    def build_triangle_bvh(self, force: bool = False) -> None:\n        \"\"\"Build (and cache) a BVH over the mesh's triangulated faces.\"\"\"\n        if self._triangle_bvh_built and not force:\n            return\n\n        from session_py.spatial_bvh import SpatialBVH\n        from session_py.aabb import AABB\n\n        self._triangle_aabbs_cache = []\n        self._triangle_indices_cache = []\n        self._triangle_face_subidx_cache = []\n        self._vertices_cache = []\n\n        vertices, faces_vec = self.to_vertices_and_faces()\n        self._vertices_cache = vertices\n\n        vertex_keys = sorted(self.vertex.keys())\n        vkey_to_idx = {}\n        for i in range(len(vertex_keys)):\n            vkey_to_idx[vertex_keys[i]] = i\n\n        face_keys = sorted(self.face.keys())\n\n        tasks = []\n        for fi in range(len(faces_vec)):\n            fv = faces_vec[fi]\n            if len(fv) < 3:\n                continue\n            if len(fv) >= 5 and fi < len(face_keys):\n                tri = self.triangulation.get(face_keys[fi])\n                if tri is not None:\n                    for j in range(len(tri)):\n                        t = tri[j]\n                        tasks.append((vkey_to_idx[t[0]], vkey_to_idx[t[1]], vkey_to_idx[t[2]], fi, j))\n                    continue\n            for j in range(1, len(fv) - 1):\n                tasks.append((fv[0], fv[j], fv[j + 1], fi, j))\n\n        for i0, i1, i2, face_idx, sub_idx in tasks:\n            p0 = self._vertices_cache[i0]\n            p1 = self._vertices_cache[i1]\n            p2 = self._vertices_cache[i2]\n\n            min_x = min(p0[0], p1[0], p2[0]) - 0.001\n            min_y = min(p0[1], p1[1], p2[1]) - 0.001\n            min_z = min(p0[2], p1[2], p2[2]) - 0.001\n            max_x = max(p0[0], p1[0], p2[0]) + 0.001\n            max_y = max(p0[1], p1[1], p2[1]) + 0.001\n            max_z = max(p0[2], p1[2], p2[2]) + 0.001\n\n            cx = (min_x + max_x) * 0.5\n            cy = (min_y + max_y) * 0.5\n            cz = (min_z + max_z) * 0.5\n            hx = (max_x - min_x) * 0.5\n            hy = (max_y - min_y) * 0.5\n            hz = (max_z - min_z) * 0.5\n\n            self._triangle_aabbs_cache.append(AABB(cx, cy, cz, hx, hy, hz))\n            self._triangle_indices_cache.append((i0, i1, i2))",
           "file": "mesh.py"
         },
         "cpp": {
@@ -26837,19 +26854,12 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Mesh.__jsondump__",
-        "Mesh.edge_attribute",
-        "Mesh.face_attribute",
-        "Mesh.facecolors",
+        "Mesh.build_triangle_bvh",
+        "Mesh.faces",
         "Mesh.invalidate_triangle_bvh",
-        "Mesh.jsondump",
-        "Mesh.linecolors",
         "Mesh.new",
-        "Mesh.pointcolors",
-        "Mesh.str",
         "Mesh.to_vertices_and_faces",
         "Mesh.transformed",
-        "Mesh.vertex_attribute",
         "Mesh.vertex_index",
         "Mesh.vertices",
         "Mesh.volume",
@@ -26861,7 +26871,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "transformed(xf=None)",
-          "code": "def transformed(self, xf=None):\n\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(xf)\n        return result\n\n    ###########################################################################################\n    # JSON\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with fields in alphabetical order (matching Rust).\n\n        \"\"\"\n        # Halfedge connectivity\n        halfedge_data = {}\n        for u, neighbors in self.halfedge.items():\n            halfedge_data[str(u)] = {\n                str(v): face_key for v, face_key in neighbors.items()\n            }\n\n        # Vertex data (alphabetical: attributes, x, y, z)\n        vertex_data = {}\n        for key, vdata in self.vertex.items():\n            vertex_data[str(key)] = {\n                \"attributes\": vdata.attributes,\n                \"x\": vdata[0],\n                \"y\": vdata[1],\n                \"z\": vdata[2],\n            }\n\n        # Face data\n        face_data = {}\n        for key, vertices in self.face.items():\n            face_data[str(key)] = vertices\n\n        # Face attributes\n        facedata_json = {}\n        for key, attrs in self.facedata.items():\n            facedata_json[str(key)] = attrs\n\n        # Edge attributes\n        edgedata_json = {}\n        for (u, v), attrs in self.edgedata.items():\n            edgedata_json[f\"{u},{v}\"] = attrs\n\n        # Colors as flat RGBA arrays\n        pointcolors_flat = []\n        for c in self._pointcolors:\n            pointcolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        facecolors_flat = []\n        for c in self._facecolors:\n            facecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        linecolors_flat = []\n        for c in self._linecolors:\n            linecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        # Return fields in alphabetical order to match Rust's serde_json\n        return {\n            \"color_mode\": self.color_mode.value,\n            \"default_edge_attributes\": self.default_edge_attributes,\n            \"default_face_attributes\": self.default_face_attributes,\n            \"default_vertex_attributes\": self.default_vertex_attributes,\n            \"edgedata\": edgedata_json,\n            \"face\": face_data,\n            \"face_holes\": {str(fk): [list(r) for r in rings] for fk, rings in self.face_holes.items()},\n            \"facecolors\": facecolors_flat,\n            \"facedata\": facedata_json,\n            \"guid\": self.guid,\n            \"halfedge\": halfedge_data,\n            \"linecolors\": linecolors_flat,\n            \"max_face\": self._max_face,\n            \"max_vertex\": self._max_vertex,",
+          "code": "def transformed(self, xf=None):\n\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(xf)\n        return result\n\n    ###########################################################################################\n    # Triangle BVH (closest point / ray queries)\n    ###########################################################################################\n\n    def build_triangle_bvh(self, force: bool = False) -> None:\n        \"\"\"Build (and cache) a BVH over the mesh's triangulated faces.\"\"\"\n        if self._triangle_bvh_built and not force:\n            return\n\n        from session_py.spatial_bvh import SpatialBVH\n        from session_py.aabb import AABB\n\n        self._triangle_aabbs_cache = []\n        self._triangle_indices_cache = []\n        self._triangle_face_subidx_cache = []\n        self._vertices_cache = []\n\n        vertices, faces_vec = self.to_vertices_and_faces()\n        self._vertices_cache = vertices\n\n        vertex_keys = sorted(self.vertex.keys())\n        vkey_to_idx = {}\n        for i in range(len(vertex_keys)):\n            vkey_to_idx[vertex_keys[i]] = i\n\n        face_keys = sorted(self.face.keys())\n\n        tasks = []\n        for fi in range(len(faces_vec)):\n            fv = faces_vec[fi]\n            if len(fv) < 3:\n                continue\n            if len(fv) >= 5 and fi < len(face_keys):\n                tri = self.triangulation.get(face_keys[fi])\n                if tri is not None:\n                    for j in range(len(tri)):\n                        t = tri[j]\n                        tasks.append((vkey_to_idx[t[0]], vkey_to_idx[t[1]], vkey_to_idx[t[2]], fi, j))\n                    continue\n            for j in range(1, len(fv) - 1):\n                tasks.append((fv[0], fv[j], fv[j + 1], fi, j))\n\n        for i0, i1, i2, face_idx, sub_idx in tasks:\n            p0 = self._vertices_cache[i0]\n            p1 = self._vertices_cache[i1]\n            p2 = self._vertices_cache[i2]\n\n            min_x = min(p0[0], p1[0], p2[0]) - 0.001\n            min_y = min(p0[1], p1[1], p2[1]) - 0.001\n            min_z = min(p0[2], p1[2], p2[2]) - 0.001\n            max_x = max(p0[0], p1[0], p2[0]) + 0.001\n            max_y = max(p0[1], p1[1], p2[1]) + 0.001\n            max_z = max(p0[2], p1[2], p2[2]) + 0.001\n\n            cx = (min_x + max_x) * 0.5\n            cy = (min_y + max_y) * 0.5\n            cz = (min_z + max_z) * 0.5\n            hx = (max_x - min_x) * 0.5\n            hy = (max_y - min_y) * 0.5\n            hz = (max_z - min_z) * 0.5\n\n            self._triangle_aabbs_cache.append(AABB(cx, cy, cz, hx, hy, hz))\n            self._triangle_indices_cache.append((i0, i1, i2))\n            self._triangle_face_subidx_cache.append((face_idx, sub_idx))\n\n        # Compute world size from object bounds (triangle AABBs)\n        min_x = float('inf')\n        min_y = float('inf')\n        min_z = float('inf')\n        max_x = float('-inf')\n        max_y = float('-inf')\n        max_z = float('-inf')\n        for bb in self._triangle_aabbs_cache:\n            bx0 = bb.cx - bb.hx",
           "file": "mesh.py"
         },
         "cpp": {
@@ -26876,21 +26886,123 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.build_triangle_bvh",
+        "Mesh.faces",
+        "Mesh.to_vertices_and_faces",
+        "Mesh.transform",
+        "Mesh.vertex_index",
+        "Mesh.vertices",
+        "Mesh.volume"
+      ]
+    },
+    {
+      "name": "Mesh.build_triangle_bvh",
+      "implementations": {
+        "python": {
+          "sig": "build_triangle_bvh(force: bool = False) -> None",
+          "code": "def build_triangle_bvh(self, force: bool = False) -> None:\n\n        \"\"\"Build (and cache) a BVH over the mesh's triangulated faces.\"\"\"\n        if self._triangle_bvh_built and not force:\n            return\n\n        from session_py.spatial_bvh import SpatialBVH\n        from session_py.aabb import AABB\n\n        self._triangle_aabbs_cache = []\n        self._triangle_indices_cache = []\n        self._triangle_face_subidx_cache = []\n        self._vertices_cache = []\n\n        vertices, faces_vec = self.to_vertices_and_faces()\n        self._vertices_cache = vertices\n\n        vertex_keys = sorted(self.vertex.keys())\n        vkey_to_idx = {}\n        for i in range(len(vertex_keys)):\n            vkey_to_idx[vertex_keys[i]] = i\n\n        face_keys = sorted(self.face.keys())\n\n        tasks = []\n        for fi in range(len(faces_vec)):\n            fv = faces_vec[fi]\n            if len(fv) < 3:\n                continue\n            if len(fv) >= 5 and fi < len(face_keys):\n                tri = self.triangulation.get(face_keys[fi])\n                if tri is not None:\n                    for j in range(len(tri)):\n                        t = tri[j]\n                        tasks.append((vkey_to_idx[t[0]], vkey_to_idx[t[1]], vkey_to_idx[t[2]], fi, j))\n                    continue\n            for j in range(1, len(fv) - 1):\n                tasks.append((fv[0], fv[j], fv[j + 1], fi, j))\n\n        for i0, i1, i2, face_idx, sub_idx in tasks:\n            p0 = self._vertices_cache[i0]\n            p1 = self._vertices_cache[i1]\n            p2 = self._vertices_cache[i2]\n\n            min_x = min(p0[0], p1[0], p2[0]) - 0.001\n            min_y = min(p0[1], p1[1], p2[1]) - 0.001\n            min_z = min(p0[2], p1[2], p2[2]) - 0.001\n            max_x = max(p0[0], p1[0], p2[0]) + 0.001\n            max_y = max(p0[1], p1[1], p2[1]) + 0.001\n            max_z = max(p0[2], p1[2], p2[2]) + 0.001\n\n            cx = (min_x + max_x) * 0.5\n            cy = (min_y + max_y) * 0.5\n            cz = (min_z + max_z) * 0.5\n            hx = (max_x - min_x) * 0.5\n            hy = (max_y - min_y) * 0.5\n            hz = (max_z - min_z) * 0.5\n\n            self._triangle_aabbs_cache.append(AABB(cx, cy, cz, hx, hy, hz))\n            self._triangle_indices_cache.append((i0, i1, i2))\n            self._triangle_face_subidx_cache.append((face_idx, sub_idx))\n\n        # Compute world size from object bounds (triangle AABBs)\n        min_x = float('inf')\n        min_y = float('inf')\n        min_z = float('inf')\n        max_x = float('-inf')\n        max_y = float('-inf')\n        max_z = float('-inf')\n        for bb in self._triangle_aabbs_cache:\n            bx0 = bb.cx - bb.hx\n            bx1 = bb.cx + bb.hx\n            by0 = bb.cy - bb.hy\n            by1 = bb.cy + bb.hy\n            bz0 = bb.cz - bb.hz\n            bz1 = bb.cz + bb.hz\n            if bx0 < min_x:\n                min_x = bx0\n            if bx1 > max_x:\n                max_x = bx1\n            if by0 < min_y:",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "void build_triangle_bvh(bool force)",
+          "code": "void Mesh::build_triangle_bvh(bool force) const {\n    if (triangle_bvh_built && !force) return;\n\n    triangle_boxes_cache.clear();\n    triangle_aabbs_cache.clear();\n    triangle_indices_cache.clear();\n    triangle_face_subidx_cache.clear();\n    vertices_cache.clear();\n\n    auto vf = to_vertices_and_faces();\n    vertices_cache = vf.first;\n    const std::vector<std::vector<size_t>>& faces_vec = vf.second;\n\n    std::vector<size_t> vertex_keys;\n    vertex_keys.reserve(vertex.size());\n    for (const auto& kv : vertex) vertex_keys.push_back(kv.first);\n    std::sort(vertex_keys.begin(), vertex_keys.end());\n    std::unordered_map<size_t, size_t> vkey_to_idx;\n    vkey_to_idx.reserve(vertex_keys.size());\n    for (size_t i = 0; i < vertex_keys.size(); ++i) vkey_to_idx[vertex_keys[i]] = i;\n\n    std::vector<size_t> face_keys;\n    face_keys.reserve(face.size());\n    for (const auto& kv : face) face_keys.push_back(kv.first);\n    std::sort(face_keys.begin(), face_keys.end());\n\n    size_t tri_count = 0;\n    for (size_t fi = 0; fi < faces_vec.size(); ++fi) {\n        const auto& fv = faces_vec[fi];\n        if (fv.size() < 3) continue;\n        if (fv.size() >= 5 && fi < face_keys.size()) {\n            auto it = triangulation.find(face_keys[fi]);\n            if (it != triangulation.end()) { tri_count += it->second.size(); continue; }",
+          "file": "mesh.cpp"
+        },
+        "rust": {
+          "sig": "build_triangle_bvh()",
+          "code": "pub fn build_triangle_bvh(&mut self) {\n        self.ensure_triangle_bvh();\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.build_triangle_aabb_tree",
+        "Mesh.clear",
+        "Mesh.ensure_triangle_bvh",
+        "Mesh.faces",
+        "Mesh.find",
+        "Mesh.to_vertices_and_faces",
+        "Mesh.transform",
+        "Mesh.transformed",
+        "Mesh.triangle_bvh_ray_cast",
+        "Mesh.vertex_index",
+        "Mesh.vertices"
+      ]
+    },
+    {
+      "name": "Mesh.get_cached_bvh",
+      "implementations": {
+        "python": {
+          "sig": "get_cached_bvh()",
+          "code": "def get_cached_bvh(self):\n\n        \"\"\"Return the cached triangle BVH (or None if not built).\"\"\"\n        return self._triangle_bvh\n\n    def get_triangle_by_id(self, tri_id: int):\n        \"\"\"Return (found, face_idx, sub_idx, v0, v1, v2) for a cached triangle id.\"\"\"\n        if tri_id < 0:\n            return (False, 0, 0, None, None, None)\n        if tri_id >= len(self._triangle_indices_cache) or tri_id >= len(self._triangle_face_subidx_cache):\n            return (False, 0, 0, None, None, None)\n        tri = self._triangle_indices_cache[tri_id]\n        fs = self._triangle_face_subidx_cache[tri_id]\n        face_idx = fs[0]\n        sub_idx = fs[1]\n        if tri[0] >= len(self._vertices_cache) or tri[1] >= len(self._vertices_cache) or tri[2] >= len(self._vertices_cache):\n            return (False, 0, 0, None, None, None)\n        v0 = self._vertices_cache[tri[0]]\n        v1 = self._vertices_cache[tri[1]]\n        v2 = self._vertices_cache[tri[2]]\n        return (True, face_idx, sub_idx, v0, v1, v2)\n\n    def clear_triangle_bvh(self) -> None:\n        \"\"\"Drop the cached triangle BVH.\"\"\"\n        self._triangle_bvh_built = False\n        self._triangle_bvh = None\n        self._triangle_aabbs_cache = []\n        self._triangle_indices_cache = []\n        self._triangle_face_subidx_cache = []\n        self._vertices_cache = []\n\n    ###########################################################################################\n    # JSON\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with fields in alphabetical order (matching Rust).\n\n        \"\"\"\n        # Halfedge connectivity\n        halfedge_data = {}\n        for u, neighbors in self.halfedge.items():\n            halfedge_data[str(u)] = {\n                str(v): face_key for v, face_key in neighbors.items()\n            }\n\n        # Vertex data (alphabetical: attributes, x, y, z)\n        vertex_data = {}\n        for key, vdata in self.vertex.items():\n            vertex_data[str(key)] = {\n                \"attributes\": vdata.attributes,\n                \"x\": vdata[0],\n                \"y\": vdata[1],\n                \"z\": vdata[2],\n            }\n\n        # Face data\n        face_data = {}\n        for key, vertices in self.face.items():\n            face_data[str(key)] = vertices\n\n        # Face attributes\n        facedata_json = {}\n        for key, attrs in self.facedata.items():\n            facedata_json[str(key)] = attrs\n\n        # Edge attributes\n        edgedata_json = {}\n        for (u, v), attrs in self.edgedata.items():\n            edgedata_json[f\"{u},{v}\"] = attrs\n\n        # Colors as flat RGBA arrays\n        pointcolors_flat = []\n        for c in self._pointcolors:\n            pointcolors_flat.extend([c[0], c[1], c[2], c[3]])",
+          "file": "mesh.py"
+        }
+      },
+      "related": [
         "Mesh.__jsondump__",
+        "Mesh.clear",
+        "Mesh.clear_triangle_bvh",
+        "Mesh.get_triangle_by_id",
+        "Mesh.jsondump",
+        "Mesh.pointcolors",
+        "Mesh.str",
+        "Mesh.vertices"
+      ]
+    },
+    {
+      "name": "Mesh.get_triangle_by_id",
+      "implementations": {
+        "python": {
+          "sig": "get_triangle_by_id(tri_id: int)",
+          "code": "def get_triangle_by_id(self, tri_id: int):\n\n        \"\"\"Return (found, face_idx, sub_idx, v0, v1, v2) for a cached triangle id.\"\"\"\n        if tri_id < 0:\n            return (False, 0, 0, None, None, None)\n        if tri_id >= len(self._triangle_indices_cache) or tri_id >= len(self._triangle_face_subidx_cache):\n            return (False, 0, 0, None, None, None)\n        tri = self._triangle_indices_cache[tri_id]\n        fs = self._triangle_face_subidx_cache[tri_id]\n        face_idx = fs[0]\n        sub_idx = fs[1]\n        if tri[0] >= len(self._vertices_cache) or tri[1] >= len(self._vertices_cache) or tri[2] >= len(self._vertices_cache):\n            return (False, 0, 0, None, None, None)\n        v0 = self._vertices_cache[tri[0]]\n        v1 = self._vertices_cache[tri[1]]\n        v2 = self._vertices_cache[tri[2]]\n        return (True, face_idx, sub_idx, v0, v1, v2)\n\n    def clear_triangle_bvh(self) -> None:\n        \"\"\"Drop the cached triangle BVH.\"\"\"\n        self._triangle_bvh_built = False\n        self._triangle_bvh = None\n        self._triangle_aabbs_cache = []\n        self._triangle_indices_cache = []\n        self._triangle_face_subidx_cache = []\n        self._vertices_cache = []\n\n    ###########################################################################################\n    # JSON\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with fields in alphabetical order (matching Rust).\n\n        \"\"\"\n        # Halfedge connectivity\n        halfedge_data = {}\n        for u, neighbors in self.halfedge.items():\n            halfedge_data[str(u)] = {\n                str(v): face_key for v, face_key in neighbors.items()\n            }\n\n        # Vertex data (alphabetical: attributes, x, y, z)\n        vertex_data = {}\n        for key, vdata in self.vertex.items():\n            vertex_data[str(key)] = {\n                \"attributes\": vdata.attributes,\n                \"x\": vdata[0],\n                \"y\": vdata[1],\n                \"z\": vdata[2],\n            }\n\n        # Face data\n        face_data = {}\n        for key, vertices in self.face.items():\n            face_data[str(key)] = vertices\n\n        # Face attributes\n        facedata_json = {}\n        for key, attrs in self.facedata.items():\n            facedata_json[str(key)] = attrs\n\n        # Edge attributes\n        edgedata_json = {}\n        for (u, v), attrs in self.edgedata.items():\n            edgedata_json[f\"{u},{v}\"] = attrs\n\n        # Colors as flat RGBA arrays\n        pointcolors_flat = []\n        for c in self._pointcolors:\n            pointcolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        facecolors_flat = []\n        for c in self._facecolors:\n            facecolors_flat.extend([c[0], c[1], c[2], c[3]])",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "bool get_triangle_by_id(int tri_id, size_t& face_idx, size_t& sub_idx, Point& v0, Point& v1, Point& v2)",
+          "code": "bool Mesh::get_triangle_by_id(int tri_id, size_t& face_idx, size_t& sub_idx, Point& v0, Point& v1, Point& v2) const {\n    if (tri_id < 0) return false;\n    size_t id = static_cast<size_t>(tri_id);\n    if (id >= triangle_indices_cache.size() || id >= triangle_face_subidx_cache.size()) return false;\n    const auto& tri = triangle_indices_cache[id];\n    const auto& fs = triangle_face_subidx_cache[id];\n    face_idx = fs.first;\n    sub_idx = fs.second;\n    if (tri.i0 >= vertices_cache.size() || tri.i1 >= vertices_cache.size() || tri.i2 >= vertices_cache.size()) return false;\n    v0 = vertices_cache[tri.i0];\n    v1 = vertices_cache[tri.i1];\n    v2 = vertices_cache[tri.i2];\n    return true;\n}",
+          "file": "mesh.cpp"
+        }
+      },
+      "related": [
+        "Mesh.__jsondump__",
+        "Mesh.clear",
+        "Mesh.clear_triangle_bvh",
+        "Mesh.facecolors",
+        "Mesh.get_cached_bvh",
+        "Mesh.jsondump",
+        "Mesh.pointcolors",
+        "Mesh.str",
+        "Mesh.vertices"
+      ]
+    },
+    {
+      "name": "Mesh.clear_triangle_bvh",
+      "implementations": {
+        "python": {
+          "sig": "clear_triangle_bvh() -> None",
+          "code": "def clear_triangle_bvh(self) -> None:\n\n        \"\"\"Drop the cached triangle BVH.\"\"\"\n        self._triangle_bvh_built = False\n        self._triangle_bvh = None\n        self._triangle_aabbs_cache = []\n        self._triangle_indices_cache = []\n        self._triangle_face_subidx_cache = []\n        self._vertices_cache = []\n\n    ###########################################################################################\n    # JSON\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\n\n        Returns\n        -------\n        dict\n            Dictionary with fields in alphabetical order (matching Rust).\n\n        \"\"\"\n        # Halfedge connectivity\n        halfedge_data = {}\n        for u, neighbors in self.halfedge.items():\n            halfedge_data[str(u)] = {\n                str(v): face_key for v, face_key in neighbors.items()\n            }\n\n        # Vertex data (alphabetical: attributes, x, y, z)\n        vertex_data = {}\n        for key, vdata in self.vertex.items():\n            vertex_data[str(key)] = {\n                \"attributes\": vdata.attributes,\n                \"x\": vdata[0],\n                \"y\": vdata[1],\n                \"z\": vdata[2],\n            }\n\n        # Face data\n        face_data = {}\n        for key, vertices in self.face.items():\n            face_data[str(key)] = vertices\n\n        # Face attributes\n        facedata_json = {}\n        for key, attrs in self.facedata.items():\n            facedata_json[str(key)] = attrs\n\n        # Edge attributes\n        edgedata_json = {}\n        for (u, v), attrs in self.edgedata.items():\n            edgedata_json[f\"{u},{v}\"] = attrs\n\n        # Colors as flat RGBA arrays\n        pointcolors_flat = []\n        for c in self._pointcolors:\n            pointcolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        facecolors_flat = []\n        for c in self._facecolors:\n            facecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        linecolors_flat = []\n        for c in self._linecolors:\n            linecolors_flat.extend([c[0], c[1], c[2], c[3]])\n\n        # Return fields in alphabetical order to match Rust's serde_json\n        return {\n            \"color_mode\": self.color_mode.value,\n            \"default_edge_attributes\": self.default_edge_attributes,\n            \"default_face_attributes\": self.default_face_attributes,\n            \"default_vertex_attributes\": self.default_vertex_attributes,\n            \"edgedata\": edgedata_json,\n            \"face\": face_data,\n            \"face_holes\": {str(fk): [list(r) for r in rings] for fk, rings in self.face_holes.items()},\n            \"facecolors\": facecolors_flat,\n            \"facedata\": facedata_json,\n            \"guid\": self.guid,\n            \"halfedge\": halfedge_data,",
+          "file": "mesh.py"
+        },
+        "cpp": {
+          "sig": "void clear_triangle_bvh()",
+          "code": "void Mesh::clear_triangle_bvh() const {\n    triangle_bvh_built = false;\n    triangle_bvh.reset();\n    triangle_aabb_tree.reset();\n    triangle_boxes_cache.clear();\n    triangle_aabbs_cache.clear();\n    triangle_indices_cache.clear();\n    triangle_face_subidx_cache.clear();\n    vertices_cache.clear();\n}",
+          "file": "mesh.cpp"
+        }
+      },
+      "related": [
+        "Mesh.__jsondump__",
+        "Mesh.clear",
         "Mesh.edge_attribute",
         "Mesh.face_attribute",
         "Mesh.facecolors",
+        "Mesh.get_cached_bvh",
+        "Mesh.get_triangle_by_id",
         "Mesh.guid",
         "Mesh.jsondump",
         "Mesh.linecolors",
         "Mesh.pointcolors",
         "Mesh.str",
-        "Mesh.to_vertices_and_faces",
-        "Mesh.transform",
         "Mesh.vertex_attribute",
-        "Mesh.vertex_index",
-        "Mesh.vertices",
-        "Mesh.volume"
+        "Mesh.vertices"
       ]
     },
     {
@@ -26903,23 +27015,22 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.clear_triangle_bvh",
         "Mesh.edge_attribute",
         "Mesh.face_attribute",
         "Mesh.facecolors",
         "Mesh.file_json_dump",
         "Mesh.file_json_dumps",
         "Mesh.file_json_load",
+        "Mesh.get_cached_bvh",
+        "Mesh.get_triangle_by_id",
         "Mesh.guid",
         "Mesh.jsondump",
         "Mesh.linecolors",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.str",
-        "Mesh.to_vertices_and_faces",
-        "Mesh.transform",
-        "Mesh.transformed",
         "Mesh.vertex_attribute",
-        "Mesh.vertex_index",
         "Mesh.vertices",
         "Mesh.widths"
       ]
@@ -61067,7 +61178,6 @@ window.API_INDEX = {
         "SpatialBVH.build_with_guids",
         "SpatialBVH.calculate_morton_code",
         "SpatialBVH.common_prefix",
-        "SpatialBVH.compute_aabb",
         "SpatialBVH.compute_world_size",
         "SpatialBVH.determine_range",
         "SpatialBVH.find_split",
@@ -61081,13 +61191,16 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "common_prefix(i: int, j: int) -> int",
-          "code": "def common_prefix(i: int, j: int) -> int:\n\n            \"\"\"Calculate common prefix length between two codes.\"\"\"\n            if j < 0 or j >= N:\n                return -1\n            ci = codes[i]\n            cj = codes[j]\n            if ci != cj:\n                return _clz32(ci ^ cj)\n            return 32 + _clz32(i ^ j)\n\n        def determine_range(i: int) -> Tuple[int, int]:\n            \"\"\"Determine the range of keys covered by internal node i.\"\"\"\n            d = 1 if common_prefix(i, i + 1) - common_prefix(i, i - 1) > 0 else -1\n            delta_min = common_prefix(i, i - d)\n\n            length = 1\n            while common_prefix(i, i + length * d) > delta_min:\n                length <<= 1\n\n            bound = 0\n            t = length >> 1\n            while t > 0:\n                if common_prefix(i, i + (bound + t) * d) > delta_min:\n                    bound += t\n                t >>= 1\n\n            j = i + bound * d\n            return (min(i, j), max(i, j))\n\n        def find_split(first: int, last: int) -> int:\n            \"\"\"Find split position for range [first, last].\"\"\"\n            common = common_prefix(first, last)\n            split = first\n            step = last - first\n\n            while step > 1:\n                step = (step + 1) >> 1\n                new_split = split + step\n                if new_split < last:\n                    split_prefix = common_prefix(first, new_split)\n                    if split_prefix > common:\n                        split = new_split\n\n            return split\n\n        # Allocate leaves\n        leaves = []\n        for i in range(N):\n            leaf = SpatialBVHNode()\n            leaf.object_id = objects[i][\"id\"]\n            leaf.aabb = objects[i][\"aabb\"]\n            leaves.append(leaf)\n\n        # Allocate internal nodes\n        internals = []\n        for i in range(N - 1):\n            node = SpatialBVHNode()\n            internals.append(node)\n\n        # Build topology\n        has_parent = [False] * (N - 1)\n        for i in range(N - 1):\n            first, last = determine_range(i)\n            split = find_split(first, last)\n\n            if split == first:\n                internals[i].left = leaves[split]\n            else:\n                internals[i].left = internals[split]\n                has_parent[split] = True\n\n            if split + 1 == last:\n                internals[i].right = leaves[split + 1]\n            else:\n                internals[i].right = internals[split + 1]\n                has_parent[split + 1] = True\n\n        # Find root\n        root_idx = 0\n        for i in range(N - 1):",
+          "code": "def common_prefix(i: int, j: int) -> int:\n\n            if j < 0 or j >= N:\n                return -1\n            ci = codes[i]\n            cj = codes[j]\n            if ci != cj:\n                return _clz32(ci ^ cj)\n            return 32 + _clz32(i ^ j)\n\n        def determine_range(i: int) -> Tuple[int, int]:\n            d = 1 if common_prefix(i, i + 1) - common_prefix(i, i - 1) > 0 else -1\n            delta_min = common_prefix(i, i - d)\n\n            length = 1\n            while common_prefix(i, i + length * d) > delta_min:\n                length <<= 1\n\n            bound = 0\n            t = length >> 1\n            while t > 0:\n                if common_prefix(i, i + (bound + t) * d) > delta_min:\n                    bound += t\n                t >>= 1\n\n            j = i + bound * d\n            return (min(i, j), max(i, j))\n\n        def find_split(first: int, last: int) -> int:\n            common = common_prefix(first, last)\n            split = first\n            step = last - first\n\n            while step > 1:\n                step = (step + 1) >> 1\n                new_split = split + step\n                if new_split < last:\n                    split_prefix = common_prefix(first, new_split)\n                    if split_prefix > common:\n                        split = new_split\n\n            return split\n\n        leaves = []\n        for i in range(N):\n            leaf = SpatialBVHNode()\n            leaf.object_id = objects[i][\"id\"]\n            leaf.aabb = objects[i][\"aabb\"]\n            leaves.append(leaf)\n\n        internals = []\n        for i in range(N - 1):\n            internals.append(SpatialBVHNode())\n\n        has_parent = [False] * (N - 1)\n        for i in range(N - 1):\n            first, last = determine_range(i)\n            split = find_split(first, last)\n\n            if split == first:\n                internals[i].left = leaves[split]\n            else:\n                internals[i].left = internals[split]\n                has_parent[split] = True\n\n            if split + 1 == last:\n                internals[i].right = leaves[split + 1]\n            else:\n                internals[i].right = internals[split + 1]\n                has_parent[split + 1] = True\n\n        root_idx = 0\n        for i in range(N - 1):\n            if not has_parent[i]:\n                root_idx = i\n                break\n        self.root = internals[root_idx]\n\n        def compute_aabb(node: SpatialBVHNode) -> None:\n            if not node or node.is_leaf():\n                return",
           "file": "spatial_bvh.py"
         }
       },
       "related": [
         "SpatialBVH.build",
+        "SpatialBVH.build_arena",
+        "SpatialBVH.build_from_aabbs",
         "SpatialBVH.build_with_guids",
+        "SpatialBVH.compute_aabb",
         "SpatialBVH.determine_range",
         "SpatialBVH.find_split",
         "SpatialBVH.from_boxes",
@@ -61099,12 +61212,14 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "determine_range(i: int) -> Tuple[int, int]",
-          "code": "def determine_range(i: int) -> Tuple[int, int]:\n\n            \"\"\"Determine the range of keys covered by internal node i.\"\"\"\n            d = 1 if common_prefix(i, i + 1) - common_prefix(i, i - 1) > 0 else -1\n            delta_min = common_prefix(i, i - d)\n\n            length = 1\n            while common_prefix(i, i + length * d) > delta_min:\n                length <<= 1\n\n            bound = 0\n            t = length >> 1\n            while t > 0:\n                if common_prefix(i, i + (bound + t) * d) > delta_min:\n                    bound += t\n                t >>= 1\n\n            j = i + bound * d\n            return (min(i, j), max(i, j))\n\n        def find_split(first: int, last: int) -> int:\n            \"\"\"Find split position for range [first, last].\"\"\"\n            common = common_prefix(first, last)\n            split = first\n            step = last - first\n\n            while step > 1:\n                step = (step + 1) >> 1\n                new_split = split + step\n                if new_split < last:\n                    split_prefix = common_prefix(first, new_split)\n                    if split_prefix > common:\n                        split = new_split\n\n            return split\n\n        # Allocate leaves\n        leaves = []\n        for i in range(N):\n            leaf = SpatialBVHNode()\n            leaf.object_id = objects[i][\"id\"]\n            leaf.aabb = objects[i][\"aabb\"]\n            leaves.append(leaf)\n\n        # Allocate internal nodes\n        internals = []\n        for i in range(N - 1):\n            node = SpatialBVHNode()\n            internals.append(node)\n\n        # Build topology\n        has_parent = [False] * (N - 1)\n        for i in range(N - 1):\n            first, last = determine_range(i)\n            split = find_split(first, last)\n\n            if split == first:\n                internals[i].left = leaves[split]\n            else:\n                internals[i].left = internals[split]\n                has_parent[split] = True\n\n            if split + 1 == last:\n                internals[i].right = leaves[split + 1]\n            else:\n                internals[i].right = internals[split + 1]\n                has_parent[split + 1] = True\n\n        # Find root\n        root_idx = 0\n        for i in range(N - 1):\n            if not has_parent[i]:\n                root_idx = i\n                break\n        self.root = internals[root_idx]\n\n        # Post-order compute internal AABBs\n        def compute_aabb(node: SpatialBVHNode) -> None:\n            if not node or node.is_leaf():\n                return",
+          "code": "def determine_range(i: int) -> Tuple[int, int]:\n\n            d = 1 if common_prefix(i, i + 1) - common_prefix(i, i - 1) > 0 else -1\n            delta_min = common_prefix(i, i - d)\n\n            length = 1\n            while common_prefix(i, i + length * d) > delta_min:\n                length <<= 1\n\n            bound = 0\n            t = length >> 1\n            while t > 0:\n                if common_prefix(i, i + (bound + t) * d) > delta_min:\n                    bound += t\n                t >>= 1\n\n            j = i + bound * d\n            return (min(i, j), max(i, j))\n\n        def find_split(first: int, last: int) -> int:\n            common = common_prefix(first, last)\n            split = first\n            step = last - first\n\n            while step > 1:\n                step = (step + 1) >> 1\n                new_split = split + step\n                if new_split < last:\n                    split_prefix = common_prefix(first, new_split)\n                    if split_prefix > common:\n                        split = new_split\n\n            return split\n\n        leaves = []\n        for i in range(N):\n            leaf = SpatialBVHNode()\n            leaf.object_id = objects[i][\"id\"]\n            leaf.aabb = objects[i][\"aabb\"]\n            leaves.append(leaf)\n\n        internals = []\n        for i in range(N - 1):\n            internals.append(SpatialBVHNode())\n\n        has_parent = [False] * (N - 1)\n        for i in range(N - 1):\n            first, last = determine_range(i)\n            split = find_split(first, last)\n\n            if split == first:\n                internals[i].left = leaves[split]\n            else:\n                internals[i].left = internals[split]\n                has_parent[split] = True\n\n            if split + 1 == last:\n                internals[i].right = leaves[split + 1]\n            else:\n                internals[i].right = internals[split + 1]\n                has_parent[split + 1] = True\n\n        root_idx = 0\n        for i in range(N - 1):\n            if not has_parent[i]:\n                root_idx = i\n                break\n        self.root = internals[root_idx]\n\n        def compute_aabb(node: SpatialBVHNode) -> None:\n            if not node or node.is_leaf():\n                return\n\n            compute_aabb(node.left)\n            compute_aabb(node.right)\n\n            a = node.left.aabb\n            b = node.right.aabb\n\n            min_x = min(a.cx - a.hx, b.cx - b.hx)\n            min_y = min(a.cy - a.hy, b.cy - b.hy)",
           "file": "spatial_bvh.py"
         }
       },
       "related": [
         "SpatialBVH.build",
+        "SpatialBVH.build_arena",
+        "SpatialBVH.build_from_aabbs",
         "SpatialBVH.build_with_guids",
         "SpatialBVH.common_prefix",
         "SpatialBVH.compute_aabb",
@@ -61118,15 +61233,17 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "find_split(first: int, last: int) -> int",
-          "code": "def find_split(first: int, last: int) -> int:\n\n            \"\"\"Find split position for range [first, last].\"\"\"\n            common = common_prefix(first, last)\n            split = first\n            step = last - first\n\n            while step > 1:\n                step = (step + 1) >> 1\n                new_split = split + step\n                if new_split < last:\n                    split_prefix = common_prefix(first, new_split)\n                    if split_prefix > common:\n                        split = new_split\n\n            return split\n\n        # Allocate leaves\n        leaves = []\n        for i in range(N):\n            leaf = SpatialBVHNode()\n            leaf.object_id = objects[i][\"id\"]\n            leaf.aabb = objects[i][\"aabb\"]\n            leaves.append(leaf)\n\n        # Allocate internal nodes\n        internals = []\n        for i in range(N - 1):\n            node = SpatialBVHNode()\n            internals.append(node)\n\n        # Build topology\n        has_parent = [False] * (N - 1)\n        for i in range(N - 1):\n            first, last = determine_range(i)\n            split = find_split(first, last)\n\n            if split == first:\n                internals[i].left = leaves[split]\n            else:\n                internals[i].left = internals[split]\n                has_parent[split] = True\n\n            if split + 1 == last:\n                internals[i].right = leaves[split + 1]\n            else:\n                internals[i].right = internals[split + 1]\n                has_parent[split + 1] = True\n\n        # Find root\n        root_idx = 0\n        for i in range(N - 1):\n            if not has_parent[i]:\n                root_idx = i\n                break\n        self.root = internals[root_idx]\n\n        # Post-order compute internal AABBs\n        def compute_aabb(node: SpatialBVHNode) -> None:\n            if not node or node.is_leaf():\n                return\n\n            compute_aabb(node.left)\n            compute_aabb(node.right)\n\n            a = node.left.aabb\n            b = node.right.aabb\n\n            min_x = min(a.cx - a.hx, b.cx - b.hx)\n            min_y = min(a.cy - a.hy, b.cy - b.hy)\n            min_z = min(a.cz - a.hz, b.cz - b.hz)\n            max_x = max(a.cx + a.hx, b.cx + b.hx)\n            max_y = max(a.cy + a.hy, b.cy + b.hy)\n            max_z = max(a.cz + a.hz, b.cz + b.hz)\n\n            node.aabb = AABB(\n                (min_x + max_x) * 0.5,\n                (min_y + max_y) * 0.5,\n                (min_z + max_z) * 0.5,\n                (max_x - min_x) * 0.5,\n                (max_y - min_y) * 0.5,",
+          "code": "def find_split(first: int, last: int) -> int:\n\n            common = common_prefix(first, last)\n            split = first\n            step = last - first\n\n            while step > 1:\n                step = (step + 1) >> 1\n                new_split = split + step\n                if new_split < last:\n                    split_prefix = common_prefix(first, new_split)\n                    if split_prefix > common:\n                        split = new_split\n\n            return split\n\n        leaves = []\n        for i in range(N):\n            leaf = SpatialBVHNode()\n            leaf.object_id = objects[i][\"id\"]\n            leaf.aabb = objects[i][\"aabb\"]\n            leaves.append(leaf)\n\n        internals = []\n        for i in range(N - 1):\n            internals.append(SpatialBVHNode())\n\n        has_parent = [False] * (N - 1)\n        for i in range(N - 1):\n            first, last = determine_range(i)\n            split = find_split(first, last)\n\n            if split == first:\n                internals[i].left = leaves[split]\n            else:\n                internals[i].left = internals[split]\n                has_parent[split] = True\n\n            if split + 1 == last:\n                internals[i].right = leaves[split + 1]\n            else:\n                internals[i].right = internals[split + 1]\n                has_parent[split + 1] = True\n\n        root_idx = 0\n        for i in range(N - 1):\n            if not has_parent[i]:\n                root_idx = i\n                break\n        self.root = internals[root_idx]\n\n        def compute_aabb(node: SpatialBVHNode) -> None:\n            if not node or node.is_leaf():\n                return\n\n            compute_aabb(node.left)\n            compute_aabb(node.right)\n\n            a = node.left.aabb\n            b = node.right.aabb\n\n            min_x = min(a.cx - a.hx, b.cx - b.hx)\n            min_y = min(a.cy - a.hy, b.cy - b.hy)\n            min_z = min(a.cz - a.hz, b.cz - b.hz)\n            max_x = max(a.cx + a.hx, b.cx + b.hx)\n            max_y = max(a.cy + a.hy, b.cy + b.hy)\n            max_z = max(a.cz + a.hz, b.cz + b.hz)\n\n            node.aabb = AABB(\n                (min_x + max_x) * 0.5,\n                (min_y + max_y) * 0.5,\n                (min_z + max_z) * 0.5,\n                (max_x - min_x) * 0.5,\n                (max_y - min_y) * 0.5,\n                (max_z - min_z) * 0.5,\n            )\n\n        compute_aabb(self.root)\n\n    def merge_aabb(self, aabb1: OBB, aabb2: OBB) -> OBB:\n        \"\"\"Merge two AABBs into a single encompassing AABB.\"\"\"",
           "file": "spatial_bvh.py"
         }
       },
       "related": [
         "SpatialBVH.build",
+        "SpatialBVH.build_from_aabbs",
         "SpatialBVH.common_prefix",
         "SpatialBVH.compute_aabb",
         "SpatialBVH.determine_range",
+        "SpatialBVH.merge_aabb",
         "SpatialBVH.new"
       ]
     },
@@ -61135,13 +61252,13 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "compute_aabb(node: SpatialBVHNode) -> None",
-          "code": "def compute_aabb(node: SpatialBVHNode) -> None:\n\n            if not node or node.is_leaf():\n                return\n\n            compute_aabb(node.left)\n            compute_aabb(node.right)\n\n            a = node.left.aabb\n            b = node.right.aabb\n\n            min_x = min(a.cx - a.hx, b.cx - b.hx)\n            min_y = min(a.cy - a.hy, b.cy - b.hy)\n            min_z = min(a.cz - a.hz, b.cz - b.hz)\n            max_x = max(a.cx + a.hx, b.cx + b.hx)\n            max_y = max(a.cy + a.hy, b.cy + b.hy)\n            max_z = max(a.cz + a.hz, b.cz + b.hz)\n\n            node.aabb = AABB(\n                (min_x + max_x) * 0.5,\n                (min_y + max_y) * 0.5,\n                (min_z + max_z) * 0.5,\n                (max_x - min_x) * 0.5,\n                (max_y - min_y) * 0.5,\n                (max_z - min_z) * 0.5,\n            )\n\n        compute_aabb(self.root)\n\n        # Build flat arena for fast queries (NumPy arrays)\n        total_nodes = N + (N - 1)  # leaves + internals\n        self.arena_left = np.full(total_nodes, -1, dtype=np.int32)\n        self.arena_right = np.full(total_nodes, -1, dtype=np.int32)\n        self.arena_object_id = np.full(total_nodes, -1, dtype=np.int32)\n        self.arena_aabb = np.zeros((total_nodes, 6), dtype=np.float64)\n\n        arena_idx = [0]  # Use list to allow mutation in nested function\n\n        def build_arena(node: Optional[SpatialBVHNode]) -> int:\n            \"\"\"Build flat arena from tree, return index.\"\"\"\n            if not node:\n                return -1\n\n            idx = arena_idx[0]\n            arena_idx[0] += 1\n\n            # Store AABB\n            if node.aabb:\n                self.arena_aabb[idx] = [\n                    node.aabb.cx,\n                    node.aabb.cy,\n                    node.aabb.cz,\n                    node.aabb.hx,\n                    node.aabb.hy,\n                    node.aabb.hz,\n                ]\n\n            # Leaf node\n            if node.is_leaf():\n                self.arena_object_id[idx] = node.object_id\n                return idx\n\n            # Internal node - build children first\n            self.arena_object_id[idx] = -1\n            left_idx = build_arena(node.left) if node.left else -1\n            right_idx = build_arena(node.right) if node.right else -1\n            self.arena_left[idx] = left_idx\n            self.arena_right[idx] = right_idx\n\n            return idx\n\n        self.arena_root = build_arena(self.root)\n        # Don't build Box tree - arena is sufficient\n        self.root = None\n\n    def merge_aabb(self, aabb1: OBB, aabb2: OBB) -> OBB:\n        \"\"\"Merge two AABBs into a single encompassing AABB.\"\"\"\n        min_x = min(\n            aabb1.center[0] - aabb1.half_size[0], aabb2.center[0] - aabb2.half_size[0]\n        )\n        min_y = min(",
+          "code": "def compute_aabb(node: SpatialBVHNode) -> None:\n\n            if not node or node.is_leaf():\n                return\n\n            compute_aabb(node.left)\n            compute_aabb(node.right)\n\n            a = node.left.aabb\n            b = node.right.aabb\n\n            min_x = min(a.cx - a.hx, b.cx - b.hx)\n            min_y = min(a.cy - a.hy, b.cy - b.hy)\n            min_z = min(a.cz - a.hz, b.cz - b.hz)\n            max_x = max(a.cx + a.hx, b.cx + b.hx)\n            max_y = max(a.cy + a.hy, b.cy + b.hy)\n            max_z = max(a.cz + a.hz, b.cz + b.hz)\n\n            node.aabb = AABB(\n                (min_x + max_x) * 0.5,\n                (min_y + max_y) * 0.5,\n                (min_z + max_z) * 0.5,\n                (max_x - min_x) * 0.5,\n                (max_y - min_y) * 0.5,\n                (max_z - min_z) * 0.5,\n            )\n\n        compute_aabb(self.root)\n\n    def merge_aabb(self, aabb1: OBB, aabb2: OBB) -> OBB:\n        \"\"\"Merge two AABBs into a single encompassing AABB.\"\"\"\n        min_x = min(\n            aabb1.center[0] - aabb1.half_size[0], aabb2.center[0] - aabb2.half_size[0]\n        )\n        min_y = min(\n            aabb1.center[1] - aabb1.half_size[1], aabb2.center[1] - aabb2.half_size[1]\n        )\n        min_z = min(\n            aabb1.center[2] - aabb1.half_size[2], aabb2.center[2] - aabb2.half_size[2]\n        )\n\n        max_x = max(\n            aabb1.center[0] + aabb1.half_size[0], aabb2.center[0] + aabb2.half_size[0]\n        )\n        max_y = max(\n            aabb1.center[1] + aabb1.half_size[1], aabb2.center[1] + aabb2.half_size[1]\n        )\n        max_z = max(\n            aabb1.center[2] + aabb1.half_size[2], aabb2.center[2] + aabb2.half_size[2]\n        )\n\n        center = Point((min_x + max_x) / 2, (min_y + max_y) / 2, (min_z + max_z) / 2)\n        half_size = Vector(\n            (max_x - min_x) / 2, (max_y - min_y) / 2, (max_z - min_z) / 2\n        )\n\n        return OBB(\n            center, Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), half_size\n        )\n\n    def aabb_intersect(self, aabb1: OBB, aabb2: OBB) -> bool:\n        \"\"\"Check if two AABBs intersect.\"\"\"\n        min1_x = aabb1.center[0] - aabb1.half_size[0]\n        max1_x = aabb1.center[0] + aabb1.half_size[0]\n        min1_y = aabb1.center[1] - aabb1.half_size[1]\n        max1_y = aabb1.center[1] + aabb1.half_size[1]\n        min1_z = aabb1.center[2] - aabb1.half_size[2]\n        max1_z = aabb1.center[2] + aabb1.half_size[2]\n\n        min2_x = aabb2.center[0] - aabb2.half_size[0]\n        max2_x = aabb2.center[0] + aabb2.half_size[0]\n        min2_y = aabb2.center[1] - aabb2.half_size[1]\n        max2_y = aabb2.center[1] + aabb2.half_size[1]\n        min2_z = aabb2.center[2] - aabb2.half_size[2]\n        max2_z = aabb2.center[2] + aabb2.half_size[2]\n\n        return (\n            min1_x <= max2_x\n            and max1_x >= min2_x\n            and min1_y <= max2_y\n            and max1_y >= min2_y",
           "file": "spatial_bvh.py"
         }
       },
       "related": [
-        "SpatialBVH.build",
-        "SpatialBVH.build_arena",
+        "SpatialBVH.aabb_intersect",
+        "SpatialBVH.common_prefix",
         "SpatialBVH.determine_range",
         "SpatialBVH.find_split",
         "SpatialBVH.merge_aabb"
@@ -61152,15 +61269,40 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "build_arena(node: Optional[SpatialBVHNode]) -> int",
-          "code": "def build_arena(node: Optional[SpatialBVHNode]) -> int:\n\n            \"\"\"Build flat arena from tree, return index.\"\"\"\n            if not node:\n                return -1\n\n            idx = arena_idx[0]\n            arena_idx[0] += 1\n\n            # Store AABB\n            if node.aabb:\n                self.arena_aabb[idx] = [\n                    node.aabb.cx,\n                    node.aabb.cy,\n                    node.aabb.cz,\n                    node.aabb.hx,\n                    node.aabb.hy,\n                    node.aabb.hz,\n                ]\n\n            # Leaf node\n            if node.is_leaf():\n                self.arena_object_id[idx] = node.object_id\n                return idx\n\n            # Internal node - build children first\n            self.arena_object_id[idx] = -1\n            left_idx = build_arena(node.left) if node.left else -1\n            right_idx = build_arena(node.right) if node.right else -1\n            self.arena_left[idx] = left_idx\n            self.arena_right[idx] = right_idx\n\n            return idx\n\n        self.arena_root = build_arena(self.root)\n        # Don't build Box tree - arena is sufficient\n        self.root = None\n\n    def merge_aabb(self, aabb1: OBB, aabb2: OBB) -> OBB:\n        \"\"\"Merge two AABBs into a single encompassing AABB.\"\"\"\n        min_x = min(\n            aabb1.center[0] - aabb1.half_size[0], aabb2.center[0] - aabb2.half_size[0]\n        )\n        min_y = min(\n            aabb1.center[1] - aabb1.half_size[1], aabb2.center[1] - aabb2.half_size[1]\n        )\n        min_z = min(\n            aabb1.center[2] - aabb1.half_size[2], aabb2.center[2] - aabb2.half_size[2]\n        )\n\n        max_x = max(\n            aabb1.center[0] + aabb1.half_size[0], aabb2.center[0] + aabb2.half_size[0]\n        )\n        max_y = max(\n            aabb1.center[1] + aabb1.half_size[1], aabb2.center[1] + aabb2.half_size[1]\n        )\n        max_z = max(\n            aabb1.center[2] + aabb1.half_size[2], aabb2.center[2] + aabb2.half_size[2]\n        )\n\n        center = Point((min_x + max_x) / 2, (min_y + max_y) / 2, (min_z + max_z) / 2)\n        half_size = Vector(\n            (max_x - min_x) / 2, (max_y - min_y) / 2, (max_z - min_z) / 2\n        )\n\n        return OBB(\n            center, Vector(1, 0, 0), Vector(0, 1, 0), Vector(0, 0, 1), half_size\n        )\n\n    def aabb_intersect(self, aabb1: OBB, aabb2: OBB) -> bool:\n        \"\"\"Check if two AABBs intersect.\"\"\"\n        min1_x = aabb1.center[0] - aabb1.half_size[0]\n        max1_x = aabb1.center[0] + aabb1.half_size[0]\n        min1_y = aabb1.center[1] - aabb1.half_size[1]\n        max1_y = aabb1.center[1] + aabb1.half_size[1]\n        min1_z = aabb1.center[2] - aabb1.half_size[2]\n        max1_z = aabb1.center[2] + aabb1.half_size[2]\n\n        min2_x = aabb2.center[0] - aabb2.half_size[0]\n        max2_x = aabb2.center[0] + aabb2.half_size[0]\n        min2_y = aabb2.center[1] - aabb2.half_size[1]",
+          "code": "def build_arena(node: Optional[SpatialBVHNode]) -> int:\n\n            \"\"\"Build flat arena from tree, return index.\"\"\"\n            if not node:\n                return -1\n\n            idx = arena_idx[0]\n            arena_idx[0] += 1\n\n            # Store AABB\n            if node.aabb:\n                self.arena_aabb[idx] = [\n                    node.aabb.cx,\n                    node.aabb.cy,\n                    node.aabb.cz,\n                    node.aabb.hx,\n                    node.aabb.hy,\n                    node.aabb.hz,\n                ]\n\n            # Leaf node\n            if node.is_leaf():\n                self.arena_object_id[idx] = node.object_id\n                return idx\n\n            # Internal node - build children first\n            self.arena_object_id[idx] = -1\n            left_idx = build_arena(node.left) if node.left else -1\n            right_idx = build_arena(node.right) if node.right else -1\n            self.arena_left[idx] = left_idx\n            self.arena_right[idx] = right_idx\n\n            return idx\n\n        self.arena_root = build_arena(self.root)\n        # Don't build Box tree - arena is sufficient\n        self.root = None\n\n    def build_from_aabbs(self, aabbs: List[AABB], world_size: float) -> None:\n        \"\"\"Build the BVH directly from axis-aligned AABBs, keeping the pointer tree (`root`).\"\"\"\n        if not aabbs:\n            self.root = None\n            return\n\n        self.world_size = world_size\n        N = len(aabbs)\n\n        objects = []\n        for i in range(N):\n            ab = aabbs[i]\n            morton_code = calculate_morton_code(ab.cx, ab.cy, ab.cz, self.world_size)\n            objects.append({\"id\": i, \"morton_code\": morton_code, \"aabb\": ab})\n\n        _radix_sort(objects)\n\n        if N == 1:\n            leaf = SpatialBVHNode()\n            leaf.object_id = objects[0][\"id\"]\n            leaf.aabb = objects[0][\"aabb\"]\n            self.root = leaf\n            return\n\n        codes = [obj[\"morton_code\"] for obj in objects]\n\n        def common_prefix(i: int, j: int) -> int:\n            if j < 0 or j >= N:\n                return -1\n            ci = codes[i]\n            cj = codes[j]\n            if ci != cj:\n                return _clz32(ci ^ cj)\n            return 32 + _clz32(i ^ j)\n\n        def determine_range(i: int) -> Tuple[int, int]:\n            d = 1 if common_prefix(i, i + 1) - common_prefix(i, i - 1) > 0 else -1\n            delta_min = common_prefix(i, i - d)\n\n            length = 1\n            while common_prefix(i, i + length * d) > delta_min:\n                length <<= 1",
           "file": "spatial_bvh.py"
         }
       },
       "related": [
-        "SpatialBVH.aabb_intersect",
         "SpatialBVH.build",
-        "SpatialBVH.compute_aabb",
-        "SpatialBVH.merge_aabb"
+        "SpatialBVH.build_from_aabbs",
+        "SpatialBVH.calculate_morton_code",
+        "SpatialBVH.common_prefix",
+        "SpatialBVH.determine_range"
+      ]
+    },
+    {
+      "name": "SpatialBVH.build_from_aabbs",
+      "implementations": {
+        "python": {
+          "sig": "build_from_aabbs(aabbs: List[AABB], world_size: float) -> None",
+          "code": "def build_from_aabbs(self, aabbs: List[AABB], world_size: float) -> None:\n\n        \"\"\"Build the BVH directly from axis-aligned AABBs, keeping the pointer tree (`root`).\"\"\"\n        if not aabbs:\n            self.root = None\n            return\n\n        self.world_size = world_size\n        N = len(aabbs)\n\n        objects = []\n        for i in range(N):\n            ab = aabbs[i]\n            morton_code = calculate_morton_code(ab.cx, ab.cy, ab.cz, self.world_size)\n            objects.append({\"id\": i, \"morton_code\": morton_code, \"aabb\": ab})\n\n        _radix_sort(objects)\n\n        if N == 1:\n            leaf = SpatialBVHNode()\n            leaf.object_id = objects[0][\"id\"]\n            leaf.aabb = objects[0][\"aabb\"]\n            self.root = leaf\n            return\n\n        codes = [obj[\"morton_code\"] for obj in objects]\n\n        def common_prefix(i: int, j: int) -> int:\n            if j < 0 or j >= N:\n                return -1\n            ci = codes[i]\n            cj = codes[j]\n            if ci != cj:\n                return _clz32(ci ^ cj)\n            return 32 + _clz32(i ^ j)\n\n        def determine_range(i: int) -> Tuple[int, int]:\n            d = 1 if common_prefix(i, i + 1) - common_prefix(i, i - 1) > 0 else -1\n            delta_min = common_prefix(i, i - d)\n\n            length = 1\n            while common_prefix(i, i + length * d) > delta_min:\n                length <<= 1\n\n            bound = 0\n            t = length >> 1\n            while t > 0:\n                if common_prefix(i, i + (bound + t) * d) > delta_min:\n                    bound += t\n                t >>= 1\n\n            j = i + bound * d\n            return (min(i, j), max(i, j))\n\n        def find_split(first: int, last: int) -> int:\n            common = common_prefix(first, last)\n            split = first\n            step = last - first\n\n            while step > 1:\n                step = (step + 1) >> 1\n                new_split = split + step\n                if new_split < last:\n                    split_prefix = common_prefix(first, new_split)\n                    if split_prefix > common:\n                        split = new_split\n\n            return split\n\n        leaves = []\n        for i in range(N):\n            leaf = SpatialBVHNode()\n            leaf.object_id = objects[i][\"id\"]\n            leaf.aabb = objects[i][\"aabb\"]\n            leaves.append(leaf)\n\n        internals = []\n        for i in range(N - 1):\n            internals.append(SpatialBVHNode())\n\n        has_parent = [False] * (N - 1)",
+          "file": "spatial_bvh.py"
+        },
+        "cpp": {
+          "sig": "void build_from_aabbs(const AABB* aabbs, size_t count, double ws)",
+          "code": "void SpatialBVH::build_from_aabbs(const AABB* aabbs, size_t count, double ws) {\n    if (count == 0) {\n        root = nullptr;\n        node_arena.clear();\n        return;\n    }",
+          "file": "spatial_bvh.cpp"
+        }
+      },
+      "related": [
+        "SpatialBVH.build",
+        "SpatialBVH.build_arena",
+        "SpatialBVH.calculate_morton_code",
+        "SpatialBVH.common_prefix",
+        "SpatialBVH.determine_range",
+        "SpatialBVH.find_split",
+        "SpatialBVH.new"
       ]
     },
     {
@@ -61185,8 +61327,8 @@ window.API_INDEX = {
       "related": [
         "SpatialBVH._aabb_intersect_internal",
         "SpatialBVH.aabb_intersect",
-        "SpatialBVH.build_arena",
         "SpatialBVH.compute_aabb",
+        "SpatialBVH.find_split",
         "SpatialBVH.new"
       ]
     },
@@ -61212,9 +61354,9 @@ window.API_INDEX = {
       "related": [
         "SpatialBVH._aabb_intersect_fast",
         "SpatialBVH._aabb_intersect_internal",
-        "SpatialBVH.build_arena",
         "SpatialBVH.check_all_collisions",
         "SpatialBVH.check_all_collisions_guids",
+        "SpatialBVH.compute_aabb",
         "SpatialBVH.find_collisions",
         "SpatialBVH.merge_aabb",
         "SpatialBVH.query_aabb",
@@ -77839,23 +77981,22 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.__jsondump__",
+        "Mesh.clear_triangle_bvh",
         "Mesh.edge_attribute",
         "Mesh.face_attribute",
         "Mesh.facecolors",
         "Mesh.file_json_dump",
         "Mesh.file_json_dumps",
         "Mesh.file_json_load",
+        "Mesh.get_cached_bvh",
+        "Mesh.get_triangle_by_id",
         "Mesh.guid",
         "Mesh.linecolors",
         "Mesh.new",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
         "Mesh.str",
-        "Mesh.to_vertices_and_faces",
-        "Mesh.transform",
-        "Mesh.transformed",
         "Mesh.vertex_attribute",
-        "Mesh.vertex_index",
         "Mesh.widths",
         "Mesh.xform"
       ]
@@ -77893,31 +78034,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Mesh.build_triangle_bvh",
-      "implementations": {
-        "cpp": {
-          "sig": "void build_triangle_bvh(bool force)",
-          "code": "void Mesh::build_triangle_bvh(bool force) const {\n    if (triangle_bvh_built && !force) return;\n\n    triangle_boxes_cache.clear();\n    triangle_aabbs_cache.clear();\n    triangle_indices_cache.clear();\n    triangle_face_subidx_cache.clear();\n    vertices_cache.clear();\n\n    auto vf = to_vertices_and_faces();\n    vertices_cache = vf.first;\n    const std::vector<std::vector<size_t>>& faces_vec = vf.second;\n\n    std::vector<size_t> vertex_keys;\n    vertex_keys.reserve(vertex.size());\n    for (const auto& kv : vertex) vertex_keys.push_back(kv.first);\n    std::sort(vertex_keys.begin(), vertex_keys.end());\n    std::unordered_map<size_t, size_t> vkey_to_idx;\n    vkey_to_idx.reserve(vertex_keys.size());\n    for (size_t i = 0; i < vertex_keys.size(); ++i) vkey_to_idx[vertex_keys[i]] = i;\n\n    std::vector<size_t> face_keys;\n    face_keys.reserve(face.size());\n    for (const auto& kv : face) face_keys.push_back(kv.first);\n    std::sort(face_keys.begin(), face_keys.end());\n\n    size_t tri_count = 0;\n    for (size_t fi = 0; fi < faces_vec.size(); ++fi) {\n        const auto& fv = faces_vec[fi];\n        if (fv.size() < 3) continue;\n        if (fv.size() >= 5 && fi < face_keys.size()) {\n            auto it = triangulation.find(face_keys[fi]);\n            if (it != triangulation.end()) { tri_count += it->second.size(); continue; }",
-          "file": "mesh.cpp"
-        },
-        "rust": {
-          "sig": "build_triangle_bvh()",
-          "code": "pub fn build_triangle_bvh(&mut self) {\n        self.ensure_triangle_bvh();\n    }",
-          "file": "mesh.rs"
-        }
-      },
-      "related": [
-        "Mesh.build_triangle_aabb_tree",
-        "Mesh.clear",
-        "Mesh.ensure_triangle_bvh",
-        "Mesh.faces",
-        "Mesh.find",
-        "Mesh.to_vertices_and_faces",
-        "Mesh.triangle_bvh_ray_cast",
-        "Mesh.vertices"
-      ]
-    },
-    {
       "name": "Mesh.triangle_bvh_ray_cast",
       "implementations": {
         "cpp": {
@@ -77935,33 +78051,6 @@ window.API_INDEX = {
         "Mesh.build_triangle_bvh",
         "Mesh.find",
         "Mesh.ray_cast_bvh"
-      ]
-    },
-    {
-      "name": "Mesh.get_triangle_by_id",
-      "implementations": {
-        "cpp": {
-          "sig": "bool get_triangle_by_id(int tri_id, size_t& face_idx, size_t& sub_idx, Point& v0, Point& v1, Point& v2)",
-          "code": "bool Mesh::get_triangle_by_id(int tri_id, size_t& face_idx, size_t& sub_idx, Point& v0, Point& v1, Point& v2) const {\n    if (tri_id < 0) return false;\n    size_t id = static_cast<size_t>(tri_id);\n    if (id >= triangle_indices_cache.size() || id >= triangle_face_subidx_cache.size()) return false;\n    const auto& tri = triangle_indices_cache[id];\n    const auto& fs = triangle_face_subidx_cache[id];\n    face_idx = fs.first;\n    sub_idx = fs.second;\n    if (tri.i0 >= vertices_cache.size() || tri.i1 >= vertices_cache.size() || tri.i2 >= vertices_cache.size()) return false;\n    v0 = vertices_cache[tri.i0];\n    v1 = vertices_cache[tri.i1];\n    v2 = vertices_cache[tri.i2];\n    return true;\n}",
-          "file": "mesh.cpp"
-        }
-      },
-      "related": [
-        "Mesh.vertices"
-      ]
-    },
-    {
-      "name": "Mesh.clear_triangle_bvh",
-      "implementations": {
-        "cpp": {
-          "sig": "void clear_triangle_bvh()",
-          "code": "void Mesh::clear_triangle_bvh() const {\n    triangle_bvh_built = false;\n    triangle_bvh.reset();\n    triangle_aabb_tree.reset();\n    triangle_boxes_cache.clear();\n    triangle_aabbs_cache.clear();\n    triangle_indices_cache.clear();\n    triangle_face_subidx_cache.clear();\n    vertices_cache.clear();\n}",
-          "file": "mesh.cpp"
-        }
-      },
-      "related": [
-        "Mesh.clear",
-        "Mesh.vertices"
       ]
     },
     {
@@ -78004,6 +78093,7 @@ window.API_INDEX = {
         "Mesh._lcg_sample",
         "Mesh.area",
         "Mesh.centroid",
+        "Mesh.clear_triangle_bvh",
         "Mesh.cross_q",
         "Mesh.dihedral_angle",
         "Mesh.dihedral_angles",
@@ -78028,7 +78118,9 @@ window.API_INDEX = {
         "Mesh.flip_cycles",
         "Mesh.from_polygon_with_holes",
         "Mesh.from_polylines",
+        "Mesh.get_cached_bvh",
         "Mesh.get_open",
+        "Mesh.get_triangle_by_id",
         "Mesh.guid",
         "Mesh.halfedge_before",
         "Mesh.halfedge_loop",
@@ -78054,14 +78146,10 @@ window.API_INDEX = {
         "Mesh.set_vertices_attribute",
         "Mesh.strip_render_data",
         "Mesh.strip_shared_collinear",
-        "Mesh.to_vertices_and_faces",
-        "Mesh.transform",
-        "Mesh.transformed",
         "Mesh.update_default_edge_attributes",
         "Mesh.update_default_face_attributes",
         "Mesh.update_default_vertex_attributes",
         "Mesh.vertex_attribute",
-        "Mesh.vertex_index",
         "Mesh.vertex_sample",
         "Mesh.vertices",
         "Mesh.vertices_attribute",
@@ -82813,19 +82901,6 @@ window.API_INDEX = {
           "file": "spatial_bvh.cpp"
         }
       }
-    },
-    {
-      "name": "SpatialBVH.build_from_aabbs",
-      "implementations": {
-        "cpp": {
-          "sig": "void build_from_aabbs(const AABB* aabbs, size_t count, double ws)",
-          "code": "void SpatialBVH::build_from_aabbs(const AABB* aabbs, size_t count, double ws) {\n    if (count == 0) {\n        root = nullptr;\n        node_arena.clear();\n        return;\n    }",
-          "file": "spatial_bvh.cpp"
-        }
-      },
-      "related": [
-        "SpatialBVH.build"
-      ]
     },
     {
       "name": "SpatialBVH.build_from_boxes",
@@ -87696,6 +87771,7 @@ window.API_INDEX = {
       },
       "related": [
         "SpatialBVH.build",
+        "SpatialBVH.build_from_aabbs",
         "SpatialBVH.check_all_collisions",
         "SpatialBVH.common_prefix",
         "SpatialBVH.determine_range",
@@ -87760,6 +87836,8 @@ window.API_INDEX = {
       },
       "related": [
         "SpatialBVH.build",
+        "SpatialBVH.build_arena",
+        "SpatialBVH.build_from_aabbs",
         "SpatialBVH.build_with_guids",
         "SpatialBVH.compute_world_size",
         "SpatialBVH.expand_bits",
@@ -102822,11 +102900,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
+        "subdivide",
         "n",
+        "into",
         "circle",
         "points",
-        "into",
-        "subdivide",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -102840,11 +102918,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "arc",
-        "length",
-        "by",
-        "ellipse",
         "subdivide",
+        "by",
+        "length",
+        "ellipse",
+        "arc",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -102874,12 +102952,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
+        "open",
+        "adaptive",
+        "curve",
         "from",
         "polyline",
         "points",
-        "curve",
-        "adaptive",
-        "open",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -102894,10 +102972,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "at",
-        "curve",
-        "parameter",
         "evaluation",
+        "curve",
+        "at",
+        "parameter",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -102941,9 +103019,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "ellipse",
         "frames",
         "perpendicular",
+        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -102965,9 +103043,9 @@ window.API_INDEX = {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
         "evaluate",
+        "cylinder",
         "point",
         "surface",
-        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -102982,11 +103060,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "vertices",
-        "and",
         "mesh",
-        "faces",
+        "vertices",
         "from",
+        "faces",
+        "and",
         "add_vertex",
         "add_face",
         "vertex"
@@ -103120,6 +103198,18 @@ window.API_INDEX = {
       ],
       "summary": "RemeshNurbsSurfaceGrid geometry class"
     },
+    "GlobalSessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "GlobalSessionConfig geometry class"
+    },
+    "CurveNurbsKnotStyle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
+    },
     "GeometryFileDecoder": {
       "composition": [],
       "factories": [],
@@ -103145,18 +103235,6 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
     },
-    "GlobalSessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "GlobalSessionConfig geometry class"
-    },
-    "CurveNurbsKnotStyle": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
-    },
     "TriangulateResult": {
       "composition": [],
       "factories": [],
@@ -103168,12 +103246,6 @@ window.API_INDEX = {
       ],
       "summary": "TriangulateResult geometry class"
     },
-    "ElementSchoring": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
-    },
     "BooleanPolyline": {
       "composition": [],
       "factories": [],
@@ -103181,6 +103253,12 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "BooleanPolyline geometry class"
+    },
+    "ElementSchoring": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
     },
     "SpatialAABBTree": {
       "composition": [],
@@ -103206,12 +103284,6 @@ window.API_INDEX = {
       "uses": [],
       "summary": "VIntersectNode geometry class"
     },
-    "_PartitionVars": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_PartitionVars geometry class"
-    },
     "ToleranceGuard": {
       "composition": [],
       "factories": [],
@@ -103219,6 +103291,12 @@ window.API_INDEX = {
         "Tolerance"
       ],
       "summary": "ToleranceGuard geometry class"
+    },
+    "_PartitionVars": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_PartitionVars geometry class"
     },
     "SpatialBVHNode": {
       "composition": [],
@@ -103231,12 +103309,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "A node in the SpatialBVH tree."
-    },
-    "SessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SessionConfig geometry class"
     },
     "SpatialKDTree": {
       "composition": [],
@@ -103260,11 +103332,69 @@ window.API_INDEX = {
       ],
       "summary": "ElementColumn geometry class"
     },
-    "ScanlineHeap": {
+    "SessionConfig": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "ScanlineHeap geometry class"
+      "summary": "SessionConfig geometry class"
+    },
+    "LoftWallFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftWallFace geometry class"
+    },
+    "ElementPlate": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "ElementPlate geometry class"
+    },
+    "Intersection": {
+      "composition": [
+        "Element",
+        "Line",
+        "Polyline",
+        "Tolerance",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point"
+      ],
+      "summary": "Intersection geometry class"
+    },
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
+    },
+    "BRepLoopType": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoopType geometry class"
+    },
+    "SpatialRTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SpatialRTree geometry class"
     },
     "NurbsSurface": {
       "composition": [
@@ -103289,39 +103419,6 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
-    "BRepLoopType": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoopType geometry class"
-    },
-    "ElementPlate": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "ElementPlate geometry class"
-    },
-    "SpatialRTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SpatialRTree geometry class"
-    },
-    "VLocalMinima": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VLocalMinima geometry class"
-    },
     "BRepTrimType": {
       "composition": [],
       "factories": [],
@@ -103339,42 +103436,17 @@ window.API_INDEX = {
       ],
       "summary": "BRepTrimType geometry class"
     },
+    "ScanlineHeap": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "ScanlineHeap geometry class"
+    },
     "VattiScratch": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VattiScratch geometry class"
-    },
-    "Intersection": {
-      "composition": [
-        "Element",
-        "Line",
-        "Polyline",
-        "Tolerance",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point"
-      ],
-      "summary": "Intersection geometry class"
-    },
-    "LoftWallFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftWallFace geometry class"
-    },
-    "LoftAdjPair": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftAdjPair geometry class"
     },
     "session_cpp": {
       "composition": [],
@@ -103403,6 +103475,18 @@ window.API_INDEX = {
       ],
       "summary": "ElementBeam geometry class"
     },
+    "LoftAdjPair": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftAdjPair geometry class"
+    },
+    "BRepVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepVertex geometry class"
+    },
     "SpatialBVH": {
       "composition": [],
       "factories": [
@@ -103416,13 +103500,46 @@ window.API_INDEX = {
       ],
       "summary": "Boundary Volume Hierarchy for spatial acceleration."
     },
-    "VertexData": {
+    "MeshOffset": {
       "composition": [],
       "factories": [],
       "uses": [
+        "Mesh",
+        "Plane",
         "Point"
       ],
-      "summary": "Vertex data containing position and attributes."
+      "summary": "MeshOffset geometry class"
+    },
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
+    },
+    "ConvexHull": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Point"
+      ],
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+    },
+    "Primitives": {
+      "composition": [
+        "CurveNurbsKnotStyle",
+        "NurbsCurve",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsSurface",
+        "Point",
+        "Xform"
+      ],
+      "summary": "Static factory methods for creating NURBS curve primitives."
     },
     "NurbsCurve": {
       "composition": [
@@ -103445,6 +103562,14 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
+    "VertexData": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "Vertex data containing position and attributes."
+    },
     "PointCloud": {
       "composition": [
         "Color",
@@ -103460,22 +103585,6 @@ window.API_INDEX = {
       ],
       "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
     },
-    "Primitives": {
-      "composition": [
-        "CurveNurbsKnotStyle",
-        "NurbsCurve",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsSurface",
-        "Point",
-        "Xform"
-      ],
-      "summary": "Static factory methods for creating NURBS curve primitives."
-    },
     "Quaternion": {
       "composition": [
         "Vector"
@@ -103486,48 +103595,42 @@ window.API_INDEX = {
       ],
       "summary": "A quaternion for 3D rotations (scalar + vector)."
     },
-    "Delaunay2D": {
+    "_Vertex2D": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Delaunay2D geometry class"
+      "summary": "_Vertex2D geometry class"
     },
-    "ConvexHull": {
+    "RemeshCDT": {
       "composition": [],
       "factories": [],
       "uses": [
         "Mesh",
-        "Point"
+        "Polyline"
       ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+      "summary": "RemeshCDT geometry class"
     },
-    "MeshOffset": {
+    "LoftPanel": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftPanel geometry class"
+    },
+    "Tolerance": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Mesh",
-        "Plane",
-        "Point"
+        "Point",
+        "ToleranceGuard",
+        "Vector"
       ],
-      "summary": "MeshOffset geometry class"
+      "summary": "Tolerance settings for geometric operations."
     },
-    "BRepVertex": {
+    "_Delaunay": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepVertex geometry class"
-    },
-    "_Triangle": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Triangle geometry class"
-    },
-    "VHorzJoin": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzJoin geometry class"
+      "summary": "_Delaunay geometry class"
     },
     "ColorMode": {
       "composition": [],
@@ -103545,11 +103648,17 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
-    "_Vertex2D": {
+    "Component": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Vertex2D geometry class"
+      "summary": "Component geometry class"
+    },
+    "_Triangle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Triangle geometry class"
     },
     "FlatMap64": {
       "composition": [],
@@ -103562,42 +103671,11 @@ window.API_INDEX = {
       ],
       "summary": "FlatMap64 geometry class"
     },
-    "Tolerance": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "ToleranceGuard",
-        "Vector"
-      ],
-      "summary": "Tolerance settings for geometric operations."
-    },
-    "RemeshCDT": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Polyline"
-      ],
-      "summary": "RemeshCDT geometry class"
-    },
-    "_Delaunay": {
+    "VHorzJoin": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Delaunay geometry class"
-    },
-    "LoftPanel": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftPanel geometry class"
-    },
-    "Component": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Component geometry class"
+      "summary": "VHorzJoin geometry class"
     },
     "Delaunay": {
       "composition": [],
@@ -103608,11 +103686,29 @@ window.API_INDEX = {
       ],
       "summary": "Delaunay geometry class"
     },
+    "BRepLoop": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoop geometry class"
+    },
+    "VHorzSeg": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzSeg geometry class"
+    },
     "BRepTrim": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepTrim geometry class"
+    },
+    "Geometry": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Geometry geometry class"
     },
     "TreeNode": {
       "composition": [],
@@ -103621,6 +103717,18 @@ window.API_INDEX = {
         "Tree"
       ],
       "summary": "A node of a tree data structure."
+    },
+    "BRepFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepFace geometry class"
+    },
+    "BRepEdge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepEdge geometry class"
     },
     "Polyline": {
       "composition": [
@@ -103646,35 +103754,46 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "BRepLoop": {
+    "VActive": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepLoop geometry class"
+      "summary": "VActive geometry class"
     },
-    "VHorzSeg": {
-      "composition": [],
+    "Element": {
+      "composition": [
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
       "factories": [],
-      "uses": [],
-      "summary": "VHorzSeg geometry class"
+      "uses": [
+        "AABB",
+        "BRep",
+        "Xform"
+      ],
+      "summary": "Element geometry class"
     },
-    "Geometry": {
+    "Default": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "Geometry geometry class"
+      "uses": [
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "Default geometry class"
     },
-    "BRepEdge": {
+    "Dataset": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepEdge geometry class"
-    },
-    "BRepFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepFace geometry class"
+      "summary": "Dataset geometry class"
     },
     "Session": {
       "composition": [
@@ -103704,27 +103823,6 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "Dataset": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Dataset geometry class"
-    },
-    "Closest": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Static methods for finding closest points between geometry objects."
-    },
     "VVertex": {
       "composition": [],
       "factories": [],
@@ -103752,46 +103850,20 @@ window.API_INDEX = {
       ],
       "summary": "A collection of all geometry objects."
     },
-    "VActive": {
+    "Closest": {
       "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VActive geometry class"
-    },
-    "Default": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "Default geometry class"
-    },
-    "Element": {
-      "composition": [
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
       "factories": [],
       "uses": [
         "AABB",
-        "BRep",
-        "Xform"
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
       ],
-      "summary": "Element geometry class"
-    },
-    "_Branch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Branch geometry class"
+      "summary": "Static methods for finding closest points between geometry objects."
     },
     "VOutRec": {
       "composition": [],
@@ -103799,11 +103871,44 @@ window.API_INDEX = {
       "uses": [],
       "summary": "VOutRec geometry class"
     },
+    "_Branch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Branch geometry class"
+    },
+    "Vertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Graph",
+        "session_cpp"
+      ],
+      "summary": "A graph vertex with a unique identifier and attribute string."
+    },
     "VOutPt": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VOutPt geometry class"
+    },
+    "BIVec2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BIVec2 geometry class"
+    },
+    "RayHit": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "RayHit geometry class"
+    },
+    "Matrix": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Matrix geometry class"
     },
     "Vector": {
       "composition": [],
@@ -103819,38 +103924,53 @@ window.API_INDEX = {
       ],
       "summary": "A 3D vector with visual properties."
     },
-    "Matrix": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Matrix geometry class"
-    },
-    "Vertex": {
+    "Color": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Graph",
         "session_cpp"
       ],
-      "summary": "A graph vertex with a unique identifier and attribute string."
+      "summary": "An index-based 0.0-1.0 color with RGBA values."
     },
-    "RayHit": {
+    "Plane": {
+      "composition": [],
+      "factories": [
+        "OBB",
+        "Quaternion"
+      ],
+      "uses": [
+        "Point",
+        "Polyline",
+        "Vector",
+        "session_cpp"
+      ],
+      "summary": "A 3D plane defined by origin and coordinate axes."
+    },
+    "_Node": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "RayHit geometry class"
+      "summary": "_Node geometry class"
     },
-    "BIVec2": {
+    "_Rect": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BIVec2 geometry class"
+      "summary": "_Rect geometry class"
     },
-    "_Edge": {
+    "Point": {
       "composition": [],
-      "factories": [],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Vector"
+      ],
       "uses": [],
-      "summary": "_Edge geometry class"
+      "summary": "A 3D point with visual properties."
     },
     "Xform": {
       "composition": [
@@ -103867,39 +103987,11 @@ window.API_INDEX = {
       ],
       "summary": "Xform geometry class"
     },
-    "_Node": {
+    "_Edge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Node geometry class"
-    },
-    "Plane": {
-      "composition": [],
-      "factories": [
-        "OBB",
-        "Quaternion"
-      ],
-      "uses": [
-        "Point",
-        "Polyline",
-        "Vector",
-        "session_cpp"
-      ],
-      "summary": "A 3D plane defined by origin and coordinate axes."
-    },
-    "Color": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "An index-based 0.0-1.0 color with RGBA values."
-    },
-    "_Rect": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Rect geometry class"
+      "summary": "_Edge geometry class"
     },
     "Graph": {
       "composition": [
@@ -103911,25 +104003,37 @@ window.API_INDEX = {
       ],
       "summary": "A graph data structure with string-only vertices and attributes."
     },
-    "Point": {
-      "composition": [],
+    "Line": {
+      "composition": [
+        "Point"
+      ],
       "factories": [
         "AABB",
         "ColorMode",
+        "Mesh",
+        "OBB"
+      ],
+      "uses": [
+        "Vector",
+        "session_cpp"
+      ],
+      "summary": "A 3D line segment with visual properties."
+    },
+    "AABB": {
+      "composition": [],
+      "factories": [
+        "OBB"
+      ],
+      "uses": [
         "Line",
         "Mesh",
-        "OBB",
-        "Plane",
-        "Vector"
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
       ],
-      "uses": [],
-      "summary": "A 3D point with visual properties."
-    },
-    "_P64": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_P64 geometry class"
+      "summary": "Axis-aligned bounding box (center + half-size)."
     },
     "BRep": {
       "composition": [
@@ -103957,11 +104061,26 @@ window.API_INDEX = {
       ],
       "summary": "BRep geometry class"
     },
-    "_Tri": {
+    "_P64": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Tri geometry class"
+      "summary": "_P64 geometry class"
+    },
+    "Tree": {
+      "composition": [
+        "Color",
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A hierarchical data structure with parent-child relationships."
+    },
+    "Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "A graph edge connecting two vertices with an attribute string."
     },
     "Mesh": {
       "composition": [
@@ -103990,58 +104109,11 @@ window.API_INDEX = {
       ],
       "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
-    "AABB": {
-      "composition": [],
-      "factories": [
-        "OBB"
-      ],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Axis-aligned bounding box (center + half-size)."
-    },
-    "Edge": {
+    "_Tri": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
-    },
-    "Tree": {
-      "composition": [
-        "Color",
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
-    },
-    "Line": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Mesh",
-        "OBB"
-      ],
-      "uses": [
-        "Vector",
-        "session_cpp"
-      ],
-      "summary": "A 3D line segment with visual properties."
-    },
-    "_V2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_V2 geometry class"
+      "summary": "_Tri geometry class"
     },
     "OBB": {
       "composition": [
@@ -104064,6 +104136,12 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
+    },
+    "_V2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],
@@ -105289,6 +105367,9 @@ window.API_INDEX = {
     ],
     "_closest_point_on_triangle": [
       "Closest._closest_point_on_triangle"
+    ],
+    "_aabb_min_distance": [
+      "Closest._aabb_min_distance"
     ],
     "mesh_point": [
       "Closest.mesh_point"
@@ -106521,6 +106602,22 @@ window.API_INDEX = {
     "to_vertices_and_faces": [
       "Mesh.to_vertices_and_faces",
       "ColorMode.to_vertices_and_faces"
+    ],
+    "build_triangle_bvh": [
+      "Mesh.build_triangle_bvh",
+      "ColorMode.build_triangle_bvh"
+    ],
+    "get_cached_bvh": [
+      "Mesh.get_cached_bvh",
+      "ColorMode.get_cached_bvh"
+    ],
+    "get_triangle_by_id": [
+      "Mesh.get_triangle_by_id",
+      "ColorMode.get_triangle_by_id"
+    ],
+    "clear_triangle_bvh": [
+      "Mesh.clear_triangle_bvh",
+      "ColorMode.clear_triangle_bvh"
     ],
     "pb_fill": [
       "Mesh.pb_fill",
@@ -108260,6 +108357,10 @@ window.API_INDEX = {
     "build_arena": [
       "SpatialBVH.build_arena"
     ],
+    "build_from_aabbs": [
+      "SpatialBVH.build_from_aabbs",
+      "SpatialBVHNode.build_from_aabbs"
+    ],
     "merge_aabb": [
       "SpatialBVH.merge_aabb",
       "SpatialBVHNode.merge_aabb"
@@ -109167,28 +109268,13 @@ window.API_INDEX = {
       "ColorMode.face_normal_unitized",
       "Mesh.face_normal_unitized"
     ],
-    "build_triangle_bvh": [
-      "ColorMode.build_triangle_bvh",
-      "Mesh.build_triangle_bvh"
-    ],
     "triangle_bvh_ray_cast": [
       "ColorMode.triangle_bvh_ray_cast",
       "Mesh.triangle_bvh_ray_cast"
     ],
-    "get_triangle_by_id": [
-      "ColorMode.get_triangle_by_id",
-      "Mesh.get_triangle_by_id"
-    ],
-    "clear_triangle_bvh": [
-      "ColorMode.clear_triangle_bvh",
-      "Mesh.clear_triangle_bvh"
-    ],
     "build_triangle_aabb_tree": [
       "ColorMode.build_triangle_aabb_tree",
       "Mesh.build_triangle_aabb_tree"
-    ],
-    "get_cached_bvh": [
-      "ColorMode.get_cached_bvh"
     ],
     "get_cached_aabb_tree": [
       "ColorMode.get_cached_aabb_tree"
@@ -109569,10 +109655,6 @@ window.API_INDEX = {
     "build_from_boxes": [
       "SpatialBVHNode.build_from_boxes",
       "SpatialBVH.build_from_boxes"
-    ],
-    "build_from_aabbs": [
-      "SpatialBVHNode.build_from_aabbs",
-      "SpatialBVH.build_from_aabbs"
     ],
     "alloc_node": [
       "SpatialBVHNode.alloc_node",
@@ -110234,9 +110316,9 @@ window.API_INDEX = {
     },
     "Closest": {
       "cpp": 13,
-      "python": 27,
+      "python": 28,
       "rust": 13,
-      "gaps": 14,
+      "gaps": 15,
       "present_in": [
         "cpp",
         "python",
@@ -110456,7 +110538,7 @@ window.API_INDEX = {
     },
     "Mesh": {
       "cpp": 124,
-      "python": 153,
+      "python": 157,
       "rust": 112,
       "gaps": 113,
       "present_in": [
@@ -110797,7 +110879,7 @@ window.API_INDEX = {
     },
     "SpatialBVH": {
       "cpp": 14,
-      "python": 20,
+      "python": 21,
       "rust": 17,
       "gaps": 21,
       "present_in": [

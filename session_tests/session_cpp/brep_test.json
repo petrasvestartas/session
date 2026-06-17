@@ -3,7 +3,7 @@
     "group": "BRep",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.026,
     "line": 23,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"point.h\"\n\n        BRep b;\n\n        // String representations\n        std::string sstr = b.str();\n        std::string srepr = b.repr();\n\n        // Copy (new guid())\n        BRep bcopy = b;",
     "checks": [
@@ -59,7 +59,7 @@
     "group": "BRep",
     "test_name": "Create Box",
     "passed": true,
-    "time_ms": 0.208,
+    "time_ms": 0.242,
     "line": 47,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"point.h\"\n\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);",
     "checks": [
@@ -100,7 +100,7 @@
     "group": "BRep",
     "test_name": "Accessors",
     "passed": true,
-    "time_ms": 0.197,
+    "time_ms": 0.189,
     "line": 61,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"nurbssurface.h\"\n\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);\n\n        int fc = box.face_count();\n        int ec = box.edge_count();\n        int vc = box.vertex_count();",
     "checks": [
@@ -141,7 +141,7 @@
     "group": "BRep",
     "test_name": "Add Face",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.014,
     "line": 80,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        BRep b;\n        NurbsSurface srf;\n        srf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n        srf.set_cv(0, 0, Point(0, 0, 0)); srf.set_cv(1, 0, Point(1, 0, 0));\n        srf.set_cv(0, 1, Point(0, 1, 0)); srf.set_cv(1, 1, Point(1, 1, 0));\n\n        int si = b.add_surface(srf);\n        int fi = b.add_face(si, false);\n        int li = b.add_loop(fi, BRepLoopType::Outer);\n\n        NurbsCurve trim = NurbsCurve::create(false, 1, {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n        });\n        int ci = b.add_curve_2d(trim);\n        b.add_trim(ci, -1, li, false, BRepTrimType::Boundary);",
     "checks": [
@@ -172,7 +172,7 @@
     "group": "BRep",
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 0.588,
+    "time_ms": 0.597,
     "line": 109,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"mesh.h\"\n\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);\n        Mesh m = box.mesh();",
     "checks": [
@@ -198,7 +198,7 @@
     "group": "BRep",
     "test_name": "Point At",
     "passed": true,
-    "time_ms": 0.183,
+    "time_ms": 0.175,
     "line": 121,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"tolerance.h\"\n\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);\n        Point pt = box.point_at(0, 0.5, 0.5);\n\n                   std::abs(pt[1] + 1.5) < 0.01 || std::abs(pt[1] - 1.5) < 0.01 ||\n                   std::abs(pt[0] + 1.0) < 0.01 || std::abs(pt[0] - 1.0) < 0.01);",
     "checks": [
@@ -214,7 +214,7 @@
     "group": "BRep",
     "test_name": "Is Solid",
     "passed": true,
-    "time_ms": 0.154,
+    "time_ms": 0.149,
     "line": 134,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        // Box is solid\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);\n\n        // Single face is not solid\n        BRep single;\n        NurbsSurface srf;\n        srf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n        srf.set_cv(0, 0, Point(0, 0, 0)); srf.set_cv(1, 0, Point(1, 0, 0));\n        srf.set_cv(0, 1, Point(0, 1, 0)); srf.set_cv(1, 1, Point(1, 1, 0));\n        int si = single.add_surface(srf);\n        single.add_face(si, false);\n        single.add_vertex(Point(0, 0, 0));",
     "checks": [
@@ -235,7 +235,7 @@
     "group": "BRep",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.202,
+    "time_ms": 0.212,
     "line": 157,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"xform.h\"\n        // uncomment #include \"tolerance.h\"\n\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);\n        box.xform = Xform::translation(10.0, 20.0, 30.0);\n        BRep moved = box.transformed();\n\n        Point pt = moved.point_at(0, 0.0, 0.0);\n        Point pt_orig = box.point_at(0, 0.0, 0.0);",
     "checks": [
@@ -261,7 +261,7 @@
     "group": "BRep",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 29.44,
+    "time_ms": 28.523,
     "line": 175,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"color.h\"\n        // uncomment #include <filesystem>\n\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);\n        box.name = \"test_brep\";\n        box.width = 2.0;\n        box.surfacecolor = Color(255, 128, 64, 255);\n\n        // JSON object\n        nlohmann::ordered_json json = box.jsondump();\n        BRep loaded_json = BRep::jsonload(json);\n\n        // String\n        std::string json_string = box.file_json_dumps();\n        BRep loaded_json_string = BRep::file_json_loads(json_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_brep.json\").string();\n        box.file_json_dump(filename);\n        BRep loaded_from_file = BRep::file_json_load(filename);",
     "checks": [
@@ -287,7 +287,7 @@
     "group": "BRep",
     "test_name": "Create Cylinder",
     "passed": true,
-    "time_ms": 5.811,
+    "time_ms": 5.916,
     "line": 203,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"mesh.h\"\n\n        BRep cyl = BRep::create_cylinder(1.0, 2.0);\n        Mesh m = cyl.mesh();",
     "checks": [
@@ -328,7 +328,7 @@
     "group": "BRep",
     "test_name": "Create Sphere",
     "passed": true,
-    "time_ms": 5.455,
+    "time_ms": 5.8,
     "line": 218,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"mesh.h\"\n\n        BRep sph = BRep::create_sphere(2.0);\n        Mesh m = sph.mesh();",
     "checks": [
@@ -369,7 +369,7 @@
     "group": "BRep",
     "test_name": "From Polylines",
     "passed": true,
-    "time_ms": 2.605,
+    "time_ms": 2.522,
     "line": 233,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"polyline.h\"\n        // uncomment #include \"mesh.h\"\n\n        double hx = 1.0, hy = 1.5, hz = 2.0;\n        Point c[8] = {\n            Point(-hx, -hy, -hz),\n            Point( hx, -hy, -hz),\n            Point( hx,  hy, -hz),\n            Point(-hx,  hy, -hz),\n            Point(-hx, -hy,  hz),\n            Point( hx, -hy,  hz),\n            Point( hx,  hy,  hz),\n            Point(-hx,  hy,  hz),\n        };\n\n        Polyline bottom(std::vector<Point>{\n            c[0],\n            c[3],\n            c[2],\n            c[1],\n            c[0],\n        });\n        Polyline top(std::vector<Point>{\n            c[4],\n            c[5],\n            c[6],\n            c[7],\n            c[4],\n        });\n        Polyline front(std::vector<Point>{\n            c[0],\n            c[1],\n            c[5],\n            c[4],\n            c[0],\n        });\n        Polyline right(std::vector<Point>{\n            c[1],\n            c[2],\n            c[6],\n            c[5],\n            c[1],\n        });\n        Polyline back(std::vector<Point>{\n            c[2],\n            c[3],\n            c[7],\n            c[6],\n            c[2],\n        });\n        Polyline left(std::vector<Point>{\n            c[3],\n            c[0],\n            c[4],\n            c[7],\n            c[3],\n        });\n\n        BRep b = BRep::from_polylines({bottom, top, front, right, back, left});\n        Mesh m = b.mesh();",
     "checks": [
@@ -415,7 +415,7 @@
     "group": "BRep",
     "test_name": "From Nurbscurves",
     "passed": true,
-    "time_ms": 3.703,
+    "time_ms": 3.825,
     "line": 305,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"mesh.h\"\n\n        double hx = 1.0, hy = 1.5, hz = 2.0;\n        Point c[8] = {\n            Point(-hx, -hy, -hz),\n            Point( hx, -hy, -hz),\n            Point( hx,  hy, -hz),\n            Point(-hx,  hy, -hz),\n            Point(-hx, -hy,  hz),\n            Point( hx, -hy,  hz),\n            Point( hx,  hy,  hz),\n            Point(-hx,  hy,  hz),\n        };\n\n        auto bottom = NurbsCurve::create(false, 1, {\n            c[0],\n            c[3],\n            c[2],\n            c[1],\n            c[0],\n        });\n        auto top = NurbsCurve::create(false, 1, {\n            c[4],\n            c[5],\n            c[6],\n            c[7],\n            c[4],\n        });\n        auto front = NurbsCurve::create(false, 1, {\n            c[0],\n            c[1],\n            c[5],\n            c[4],\n            c[0],\n        });\n        auto right = NurbsCurve::create(false, 1, {\n            c[1],\n            c[2],\n            c[6],\n            c[5],\n            c[1],\n        });\n        auto back = NurbsCurve::create(false, 1, {\n            c[2],\n            c[3],\n            c[7],\n            c[6],\n            c[2],\n        });\n        auto left = NurbsCurve::create(false, 1, {\n            c[3],\n            c[0],\n            c[4],\n            c[7],\n            c[3],\n        });\n\n        BRep b = BRep::from_nurbscurves({bottom, top, front, right, back, left});\n        Mesh m = b.mesh();",
     "checks": [
@@ -446,7 +446,7 @@
     "group": "BRep",
     "test_name": "From Nurbscurves Holes",
     "passed": true,
-    "time_ms": 22.389,
+    "time_ms": 23.228,
     "line": 374,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"mesh.h\"\n        // uncomment #include \"primitives.h\"\n\n        auto outer = NurbsCurve::create(false, 1, {\n            Point(-5, -5, 0),\n            Point(5, -5, 0),\n            Point(5, 5, 0),\n            Point(-5, 5, 0),\n            Point(-5, -5, 0),\n        });\n        auto hole = Primitives::circle(0.0, 0.0, 0.0, 2.0);\n\n        BRep b = BRep::from_nurbscurves({outer}, {{hole}});\n        Mesh m = b.mesh();",
     "checks": [
@@ -492,7 +492,7 @@
     "group": "BRep",
     "test_name": "Create Block With Hole",
     "passed": true,
-    "time_ms": 6.246,
+    "time_ms": 6.232,
     "line": 401,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"mesh.h\"\n\n        BRep bh = BRep::create_block_with_hole(8.0, 6.0, 4.0, 1.5);\n        Mesh m = bh.mesh();",
     "checks": [
@@ -533,7 +533,7 @@
     "group": "BRep",
     "test_name": "Mesh Orientation",
     "passed": true,
-    "time_ms": 6.4,
+    "time_ms": 6.294,
     "line": 416,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"mesh.h\"\n\n        // Reversed faces must flip winding; the bug inflated volume() past the solid box.\n        BRep bh = BRep::create_block_with_hole(8.0, 6.0, 4.0, 1.5);\n        double vol = bh.mesh().volume();",
     "checks": [
@@ -554,7 +554,7 @@
     "group": "BRep",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 16.414,
+    "time_ms": 15.856,
     "line": 428,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"color.h\"\n        // uncomment #include <filesystem>\n\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);\n        box.name = \"test_brep\";\n        box.width = 2.0;\n        box.surfacecolor = Color(255, 128, 64, 255);\n\n        // String\n        std::string proto_string = box.pb_dumps();\n        BRep loaded_proto_string = BRep::pb_loads(proto_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_brep.bin\").string();\n        box.pb_dump(filename);\n        BRep loaded = BRep::pb_load(filename);",
     "checks": [
@@ -575,7 +575,7 @@
     "group": "BRep",
     "test_name": "Split By Plane",
     "passed": true,
-    "time_ms": 501.449,
+    "time_ms": 489.924,
     "line": 451,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"plane.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n\n        BRep box = BRep::create_box(2.0, 2.0, 2.0);\n        Point origin(0.0, 0.0, 0.0);\n        Vector normal(0.0, 0.0, 1.0);\n        Plane plane = Plane::from_point_normal(origin, normal);\n        BRep split = box.split_by_plane(plane);\n        double box_area = box.mesh().area();\n        double split_area = split.mesh().area();\n        int inner = 0;\n        for (const auto& face : split.m_faces)\n            for (int li : face.loop_indices)\n                if (split.m_loops[li].type == BRepLoopType::Inner)\n                    inner += 1;\n\n\n        BRep cylinder = BRep::create_cylinder(1.0, 4.0);\n        Point mid_origin(0.0, 0.0, 1.0);\n        Vector mid_normal(0.0, 0.0, 1.0);\n        Plane mid = Plane::from_point_normal(mid_origin, mid_normal);\n        BRep cut = cylinder.split_by_plane(mid);",
     "checks": [
@@ -616,7 +616,7 @@
     "group": "BRep",
     "test_name": "Split By Plane Pieces",
     "passed": true,
-    "time_ms": 487.194,
+    "time_ms": 472.335,
     "line": 485,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"plane.h\"\n\n        BRep box = BRep::create_box(2.0, 2.0, 2.0);\n        Point origin(0.0, 0.0, 0.0);\n        Vector normal(0.0, 0.0, 1.0);\n        Plane plane = Plane::from_point_normal(origin, normal);\n        std::vector<BRep> pieces = box.split_by_plane_pieces(plane);\n        double total = 0.0;\n        for (const auto& piece : pieces) total += piece.mesh().area();\n\n\n        Point far_o(0.0, 0.0, 5.0);\n        Vector far_n(0.0, 0.0, 1.0);\n        Plane far = Plane::from_point_normal(far_o, far_n);\n        std::vector<BRep> whole = box.split_by_plane_pieces(far);",
     "checks": [
@@ -657,7 +657,7 @@
     "group": "BRep",
     "test_name": "Split By Line",
     "passed": true,
-    "time_ms": 140.656,
+    "time_ms": 136.658,
     "line": 511,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"line.h\"\n        // uncomment #include \"point.h\"\n\n        BRep box = BRep::create_box(2.0, 2.0, 2.0);\n        Line line = Line::from_points(Point(0.0, -2.0, 1.0), Point(0.0, 2.0, 1.0));\n        BRep split = box.split_by_line(line);\n        double box_area = box.mesh().area();\n        double split_area = split.mesh().area();",
     "checks": [
@@ -683,7 +683,7 @@
     "group": "BRep",
     "test_name": "Split By Brep",
     "passed": true,
-    "time_ms": 374.195,
+    "time_ms": 376.115,
     "line": 527,
     "code": "        // uncomment #include \"brep.h\"\n\n        BRep target = BRep::create_box(4.0, 4.0, 2.0);\n        BRep cutter = BRep::create_box(2.0, 2.0, 6.0);\n        BRep split = target.split_by_brep(cutter);\n        double target_area = target.mesh().area();\n        double split_area = split.mesh().area();",
     "checks": [

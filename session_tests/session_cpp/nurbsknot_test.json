@@ -3,7 +3,7 @@
     "group": "NurbsKnot",
     "test_name": "Make Clamped Uniform",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.009,
     "line": 15,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots = nurbsknot::make_clamped_uniform(order, cv_count);",
     "checks": [
@@ -19,7 +19,7 @@
     "group": "NurbsKnot",
     "test_name": "Make Periodic Uniform",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 25,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // 0 1 2 3 4 5 6\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots = nurbsknot::make_periodic_uniform(order, cv_count);",
     "checks": [
@@ -88,7 +88,7 @@
     "group": "NurbsKnot",
     "test_name": "Solve Tridiagonal",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 85,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // Thomas algorithm -- an O(n) solver for tridiagonal linear systems\n    //   | 2 1 | |x0|   |3|\n    //   | 1 2 | |x1| = |3|\n    //   -> solution: x0 = 1, x1 = 1\n    std::vector<double> lo={0,1}, di={2,2}, up={1,0}, rh={3,3}, sol;\n    nurbsknot::solve_tridiagonal(1, 2, lo, di, up, rh, sol);",
     "checks": [

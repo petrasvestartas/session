@@ -273,7 +273,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 3.826
+    "time_ms": 4.103
   },
   {
     "checks": [
@@ -324,7 +324,7 @@
     "line": 106,
     "passed": true,
     "test_name": "Booleans Queries",
-    "time_ms": 0.09
+    "time_ms": 0.104
   },
   {
     "checks": [
@@ -390,7 +390,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.022
+    "time_ms": 0.024
   },
   {
     "checks": [
@@ -446,7 +446,7 @@
     "line": 213,
     "passed": true,
     "test_name": "Control Vertices Access",
-    "time_ms": 0.024
+    "time_ms": 0.025
   },
   {
     "checks": [
@@ -547,7 +547,7 @@
     "line": 274,
     "passed": true,
     "test_name": "NurbsKnot Access",
-    "time_ms": 0.086
+    "time_ms": 0.088
   },
   {
     "checks": [
@@ -1059,7 +1059,7 @@
     "line": 388,
     "passed": true,
     "test_name": "Division",
-    "time_ms": 0.986
+    "time_ms": 1.198
   },
   {
     "checks": [
@@ -1110,7 +1110,7 @@
     "line": 521,
     "passed": true,
     "test_name": "Evaluation",
-    "time_ms": 0.076
+    "time_ms": 0.091
   },
   {
     "checks": [
@@ -1201,7 +1201,7 @@
     "line": 582,
     "passed": true,
     "test_name": "Modification",
-    "time_ms": 2.176
+    "time_ms": 1.982
   },
   {
     "checks": [
@@ -1252,7 +1252,7 @@
     "line": 671,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 0.113
+    "time_ms": 0.116
   },
   {
     "checks": [
@@ -1318,7 +1318,7 @@
     "line": 731,
     "passed": true,
     "test_name": "Meshing",
-    "time_ms": 305.957
+    "time_ms": 237.463
   },
   {
     "checks": [
@@ -1344,7 +1344,7 @@
     "line": 991,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 23.223
+    "time_ms": 14.662
   },
   {
     "checks": [
@@ -1365,7 +1365,7 @@
     "line": 1041,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 13.95
+    "time_ms": 15.32
   },
   {
     "checks": [
@@ -1391,7 +1391,7 @@
     "line": 924,
     "passed": true,
     "test_name": "Split By Line",
-    "time_ms": 615.31
+    "time_ms": 409.466
   },
   {
     "checks": [
@@ -1422,7 +1422,7 @@
     "line": 892,
     "passed": true,
     "test_name": "Split By Curves",
-    "time_ms": 159.597
+    "time_ms": 97.096
   },
   {
     "checks": [
@@ -1463,7 +1463,7 @@
     "line": 864,
     "passed": true,
     "test_name": "Split By Plane",
-    "time_ms": 688.258
+    "time_ms": 456.753
   },
   {
     "checks": [
@@ -1499,7 +1499,7 @@
     "line": 966,
     "passed": true,
     "test_name": "Split By Brep",
-    "time_ms": 708.637
+    "time_ms": 523.682
   },
   {
     "checks": [
@@ -1535,6 +1535,6 @@
     "line": 941,
     "passed": true,
     "test_name": "Split By Surface",
-    "time_ms": 2644.036
+    "time_ms": 1895.851
   }
 ]

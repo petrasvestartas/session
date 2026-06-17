@@ -171,41 +171,10 @@ cd session_py && uv pip install -e . && cd ..
 | `./bash/minitest.sh --fast` | Skip dependency installs |
 | `./bash/minitest.sh` | Full test + web viewer at localhost:8769 |
 
-## Cross-Repo Dependency Testing
+## Breaking-Change Detection
 
-Breaking changes in `session-py` or protobuf schemas are caught at two layers.
-
-### Layer 1 — Before a breaking change ships
+Breaking changes in `session-py` or protobuf schemas are caught before they ship:
 
 **Python API diff (`griffe`)** — runs in CI on every push to `main`. Compares the current branch against the last published PyPI version. Reports exactly which class, method, or parameter was removed or renamed with file path and line number.
 
 **Protobuf schema diff (`buf`)** — runs in `session_proto` CI on every push/PR. Catches removed fields, renamed messages, and changed field numbers before they break serialization silently. Config: `session_proto/buf.yaml`.
-
-### Layer 2 — After publish, verify downstream still works
-
-**`dependents.json`** (session root) — registry of downstream repos. Add one entry per dependent:
-
-```json
-{
-  "repos": [
-    { "owner": "petrasvestartas", "repo": "PolygonEngineering", "workflow": "test.yml" }
-  ]
-}
-```
-
-After `deploy` succeeds on `main`, the **`dispatch` CI job** fires a `repository_dispatch` event (`session-py-updated`) to every repo listed. Each dependent runs its own test suite against the freshly published `session-py`. On failure it opens a GitHub issue in this repo with a direct link to the failed run.
-
-**Template workflow** for dependent repos: `templates/session-compat.yml` — copy to `.github/workflows/session-compat.yml` in the dependent repo.
-
-### Required secrets
-
-| Secret | Repo | Purpose |
-|--------|------|---------|
-| `DOWNSTREAM_DISPATCH_TOKEN` | session | PAT with `repo` scope to trigger dispatches |
-| `SESSION_ISSUE_TOKEN` | each dependent | PAT with `issues:write` on the session repo |
-
-### Adding a new dependent repo
-
-1. Add an entry to `dependents.json` via PR
-2. Copy `templates/session-compat.yml` into the dependent repo as `.github/workflows/session-compat.yml`
-3. Add the `SESSION_ISSUE_TOKEN` secret to the dependent repo
