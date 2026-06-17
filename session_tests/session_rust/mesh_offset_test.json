@@ -33,7 +33,7 @@
     "line": 5,
     "passed": true,
     "test_name": "from_mesh",
-    "time_ms": 0.281
+    "time_ms": 0.468
   },
   {
     "checks": [
@@ -59,7 +59,7 @@
     "line": 28,
     "passed": true,
     "test_name": "from_mesh_grid",
-    "time_ms": 0.518
+    "time_ms": 0.977
   },
   {
     "checks": [
@@ -110,110 +110,110 @@
     "line": 59,
     "passed": true,
     "test_name": "from_mesh_layers",
-    "time_ms": 0.25
+    "time_ms": 0.475
   },
   {
     "checks": [
       {
         "code_line": "loaded.is_valid()",
-        "line": 98,
-        "passed": true
-      },
-      {
-        "code_line": "loaded.number_of_vertices() == result.number_of_vertices()",
         "line": 99,
         "passed": true
       },
       {
-        "code_line": "loaded.number_of_faces() == result.number_of_faces()",
+        "code_line": "loaded.number_of_vertices() == result.number_of_vertices()",
         "line": 100,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.number_of_faces() == result.number_of_faces()",
+        "line": 101,
         "passed": true
       }
     ],
-    "code": "        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2, 3]]);\n        let result = MeshOffset::from_mesh(&mesh, 1.0);\n        let _ = result.file_json_dump(\"mesh_offset_test_dump.json\");\n        let loaded = Mesh::file_json_load(\"mesh_offset_test_dump.json\").unwrap();",
+    "code": "        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2, 3]]);\n        let result = MeshOffset::from_mesh(&mesh, 1.0);\n        let filename = \"serialization/test_mesh_offset.json\";\n        let _ = result.file_json_dump(filename);\n        let loaded = Mesh::file_json_load(filename).unwrap();",
     "failures": [],
     "group": "MeshOffset",
     "line": 84,
     "passed": true,
     "test_name": "file_json_dump",
-    "time_ms": 15.117
+    "time_ms": 17.29
   },
   {
     "checks": [
       {
         "code_line": "loaded.is_valid()",
-        "line": 109,
+        "line": 111,
         "passed": true
       },
       {
         "code_line": "loaded.number_of_vertices() == 8",
-        "line": 110,
+        "line": 112,
         "passed": true
       },
       {
         "code_line": "loaded.number_of_faces() == 6",
-        "line": 111,
+        "line": 113,
         "passed": true
       }
     ],
-    "code": "        use crate::Mesh;\n        let loaded = Mesh::file_json_load(\"mesh_offset_test_dump.json\").unwrap();",
+    "code": "        use crate::Mesh;\n        let filename = \"serialization/test_mesh_offset.json\";\n        let loaded = Mesh::file_json_load(filename).unwrap();",
     "failures": [],
     "group": "MeshOffset",
-    "line": 106,
+    "line": 107,
     "passed": true,
     "test_name": "file_json_load",
-    "time_ms": 0.39
+    "time_ms": 0.823
   },
   {
     "checks": [
       {
         "code_line": "loaded.is_valid()",
-        "line": 131,
+        "line": 134,
         "passed": true
       },
       {
         "code_line": "loaded.number_of_vertices() == result.number_of_vertices()",
-        "line": 132,
+        "line": 135,
         "passed": true
       },
       {
         "code_line": "loaded.number_of_faces() == result.number_of_faces()",
-        "line": 133,
+        "line": 136,
         "passed": true
       }
     ],
-    "code": "        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2, 3]]);\n        let result = MeshOffset::from_mesh(&mesh, 1.0);\n        result.pb_dump(\"mesh_offset_test.pb\");\n        let loaded = Mesh::pb_load(\"mesh_offset_test.pb\");",
+    "code": "        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2, 3]]);\n        let result = MeshOffset::from_mesh(&mesh, 1.0);\n        let filename = \"serialization/test_mesh_offset.bin\";\n        result.pb_dump(filename);\n        let loaded = Mesh::pb_load(filename);",
     "failures": [],
     "group": "MeshOffset",
-    "line": 117,
+    "line": 119,
     "passed": true,
     "test_name": "to_proto",
-    "time_ms": 14.214
+    "time_ms": 16.251
   },
   {
     "checks": [
       {
         "code_line": "loaded.is_valid()",
-        "line": 142,
+        "line": 146,
         "passed": true
       },
       {
         "code_line": "loaded.number_of_vertices() == 8",
-        "line": 143,
+        "line": 147,
         "passed": true
       },
       {
         "code_line": "loaded.number_of_faces() == 6",
-        "line": 144,
+        "line": 148,
         "passed": true
       }
     ],
-    "code": "        use crate::Mesh;\n        let loaded = Mesh::pb_load(\"mesh_offset_test.pb\");",
+    "code": "        use crate::Mesh;\n        let filename = \"serialization/test_mesh_offset.bin\";\n        let loaded = Mesh::pb_load(filename);",
     "failures": [],
     "group": "MeshOffset",
-    "line": 139,
+    "line": 142,
     "passed": true,
     "test_name": "from_proto",
-    "time_ms": 0.235
+    "time_ms": 0.7
   }
 ]

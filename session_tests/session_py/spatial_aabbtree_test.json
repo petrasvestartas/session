@@ -3,7 +3,7 @@
     "group": "SpatialAABBTree",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.127,
+    "time_ms": 0.19,
     "line": 7,
     "code": "    from session_py import AABB\n    from session_py import Closest\n\n    # SpatialAABBTree: O(n log n) build, O(log n) cull \u2014 prune candidates before exact test\n    box0 = AABB(0.0, 0.0, 0.0, 0.5, 0.5, 0.5)\n    box1 = AABB(5.0, 0.0, 0.0, 0.5, 0.5, 0.5)\n    box2 = AABB(10.0, 0.0, 0.0, 0.5, 0.5, 0.5)\n    pairs = Closest.boxes_closest([box0, box1, box2], 0.0)\n\n\n    pairs_near = Closest.boxes_closest([box0, AABB(1.0, 0.0, 0.0, 0.5, 0.5, 0.5)], 0.0)",
     "checks": [
@@ -34,7 +34,7 @@
     "group": "SpatialAABBTree",
     "test_name": "Build Empty",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.025,
     "line": 27,
     "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    cp, fk, d = Closest.mesh_point_aabb(m, Point(0.0, 0.0, 0.0))",
     "checks": [
@@ -71,7 +71,7 @@
     "group": "SpatialAABBTree",
     "test_name": "Build Multiple",
     "passed": true,
-    "time_ms": 0.107,
+    "time_ms": 0.102,
     "line": 56,
     "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    vk0 = m.add_vertex(Point(0.0, 0.0, 0.0))\n    vk1 = m.add_vertex(Point(1.0, 0.0, 0.0))\n    vk2 = m.add_vertex(Point(0.0, 1.0, 0.0))\n    vk3 = m.add_vertex(Point(5.0, 0.0, 0.0))\n    vk4 = m.add_vertex(Point(6.0, 0.0, 0.0))\n    vk5 = m.add_vertex(Point(5.0, 1.0, 0.0))\n    vk6 = m.add_vertex(Point(10.0, 0.0, 0.0))\n    vk7 = m.add_vertex(Point(11.0, 0.0, 0.0))\n    vk8 = m.add_vertex(Point(10.0, 1.0, 0.0))\n    m.add_face([vk0, vk1, vk2])\n    m.add_face([vk3, vk4, vk5])\n    m.add_face([vk6, vk7, vk8])\n    cp, fk, d = Closest.mesh_point_aabb(m, Point(0.5, 0.0, 0.0))",
     "checks": [
@@ -87,7 +87,7 @@
     "group": "SpatialAABBTree",
     "test_name": "Node Count",
     "passed": true,
-    "time_ms": 2.036,
+    "time_ms": 2.016,
     "line": 80,
     "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    vkeys = []\n    for i in range(100):\n        vkeys.append(m.add_vertex(Point(float(i), 0.0, 0.0)))\n        vkeys.append(m.add_vertex(Point(float(i) + 0.5, 0.5, 0.0)))\n        vkeys.append(m.add_vertex(Point(float(i), 0.5, 0.0)))\n    for i in range(100):\n        m.add_face([vkeys[i*3], vkeys[i*3+1], vkeys[i*3+2]])\n    cp, fk, d = Closest.mesh_point_aabb(m, Point(50.0, 0.0, 0.0))",
     "checks": [
@@ -103,7 +103,7 @@
     "group": "SpatialAABBTree",
     "test_name": "Mesh Point Aabb",
     "passed": true,
-    "time_ms": 0.976,
+    "time_ms": 1.301,
     "line": 99,
     "code": "    from session_py import Closest\n    from session_py import Primitives\n    from session_py import Point\n\n    m = Primitives.cube(2.0)\n    cp1, fk1, d1 = Closest.mesh_point_aabb(m, Point(0.0, 0.0, 2.0))\n\n    cp2, fk2, d2 = Closest.mesh_point_aabb(m, Point(1.0, 1.0, 1.0))",
     "checks": [
@@ -129,7 +129,7 @@
     "group": "SpatialAABBTree",
     "test_name": "Mesh Point Aabb Matches Bvh",
     "passed": true,
-    "time_ms": 0.864,
+    "time_ms": 1.047,
     "line": 114,
     "code": "    from session_py import Closest\n    from session_py import Primitives\n    from session_py import Point\n\n    m = Primitives.cube(2.0)\n    tp = Point(0.3, 0.7, 1.5)\n    cp_bvh, fk_bvh, d_bvh = Closest.mesh_point(m, tp)\n    cp_aabb, fk_aabb, d_aabb = Closest.mesh_point_aabb(m, tp)",
     "checks": [
@@ -160,7 +160,7 @@
     "group": "SpatialAABBTree",
     "test_name": "Query Aabb",
     "passed": true,
-    "time_ms": 0.121,
+    "time_ms": 0.127,
     "line": 131,
     "code": "    from session_py import Closest\n    from session_py import Mesh\n    from session_py import Point\n\n    m = Mesh()\n    vk0 = m.add_vertex(Point(0.0, 0.0, 0.0))\n    vk1 = m.add_vertex(Point(1.0, 0.0, 0.0))\n    vk2 = m.add_vertex(Point(0.5, 1.0, 0.0))\n    vk3 = m.add_vertex(Point(20.0, 0.0, 0.0))\n    vk4 = m.add_vertex(Point(21.0, 0.0, 0.0))\n    vk5 = m.add_vertex(Point(20.5, 1.0, 0.0))\n    m.add_face([vk0, vk1, vk2])\n    m.add_face([vk3, vk4, vk5])\n    cp_near, fk_near, d_near = Closest.mesh_point_aabb(m, Point(0.5, 0.25, 0.0))\n    cp_far, fk_far, d_far = Closest.mesh_point_aabb(m, Point(20.5, 0.25, 0.0))",
     "checks": [

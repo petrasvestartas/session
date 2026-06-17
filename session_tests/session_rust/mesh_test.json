@@ -83,7 +83,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.185
+    "time_ms": 0.17
   },
   {
     "checks": [
@@ -99,7 +99,7 @@
     "line": 80,
     "passed": true,
     "test_name": "From Polylines",
-    "time_ms": 0.325
+    "time_ms": 0.608
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 116,
     "passed": true,
     "test_name": "From Lines",
-    "time_ms": 0.354
+    "time_ms": 0.574
   },
   {
     "checks": [
@@ -136,7 +136,7 @@
     "line": 150,
     "passed": true,
     "test_name": "From Polygon With Holes",
-    "time_ms": 0.874
+    "time_ms": 0.876
   },
   {
     "checks": [
@@ -167,7 +167,7 @@
     "line": 205,
     "passed": true,
     "test_name": "Loft",
-    "time_ms": 2.466
+    "time_ms": 3.229
   },
   {
     "checks": [
@@ -218,7 +218,7 @@
     "line": 286,
     "passed": true,
     "test_name": "Loft concave with holes and collinear",
-    "time_ms": 2.087
+    "time_ms": 2.426
   },
   {
     "checks": [
@@ -254,7 +254,7 @@
     "line": 390,
     "passed": true,
     "test_name": "From Polygon With Holes Many",
-    "time_ms": 3.061
+    "time_ms": 3.881
   },
   {
     "checks": [
@@ -385,7 +385,7 @@
     "line": 424,
     "passed": true,
     "test_name": "Loft Many",
-    "time_ms": 3.017
+    "time_ms": 4.561
   },
   {
     "checks": [
@@ -431,7 +431,7 @@
     "line": 642,
     "passed": true,
     "test_name": "Boolean Queries",
-    "time_ms": 0.357
+    "time_ms": 0.343
   },
   {
     "checks": [
@@ -777,7 +777,7 @@
     "line": 702,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.389
+    "time_ms": 0.384
   },
   {
     "checks": [
@@ -803,7 +803,7 @@
     "line": 820,
     "passed": true,
     "test_name": "Create Dodecahedron",
-    "time_ms": 0.804
+    "time_ms": 0.957
   },
   {
     "checks": [
@@ -1014,7 +1014,7 @@
     "line": 832,
     "passed": true,
     "test_name": "Vertex and Face Operations",
-    "time_ms": 1.244
+    "time_ms": 2.194
   },
   {
     "checks": [
@@ -1185,7 +1185,7 @@
     "line": 956,
     "passed": true,
     "test_name": "Connectivity Queries",
-    "time_ms": 0.264
+    "time_ms": 0.434
   },
   {
     "checks": [
@@ -2301,7 +2301,7 @@
     "line": 1144,
     "passed": true,
     "test_name": "Geometric Properties",
-    "time_ms": 4.902
+    "time_ms": 9.635
   },
   {
     "checks": [
@@ -2352,7 +2352,7 @@
     "line": 1289,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.109
+    "time_ms": 0.199
   },
   {
     "checks": [
@@ -2398,7 +2398,7 @@
     "line": 1334,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 17.836
+    "time_ms": 19.947
   },
   {
     "checks": [
@@ -2439,7 +2439,7 @@
     "line": 1398,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 14.918
+    "time_ms": 16.865
   },
   {
     "checks": [
@@ -2455,28 +2455,7 @@
     "line": 1505,
     "passed": true,
     "test_name": "Loft plate_v2 15-vert outer + 3 holes",
-    "time_ms": 2.29
-  },
-  {
-    "checks": [
-      {
-        "code_line": "edges.len() == 12",
-        "line": 814,
-        "passed": true
-      },
-      {
-        "code_line": "edges[0] == (v0, v1)",
-        "line": 815,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Mesh;\n\n        let mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        let v0 = mesh.vertices()[0];\n        let v1 = mesh.vertices()[1];\n        let edges = mesh.edges();\n",
-    "failures": [],
-    "group": "Mesh",
-    "line": 806,
-    "passed": true,
-    "test_name": "Edges",
-    "time_ms": 0.161
+    "time_ms": 3.921
   },
   {
     "checks": [
@@ -2577,7 +2556,28 @@
     "line": 479,
     "passed": true,
     "test_name": "Loft with quads and triangles",
-    "time_ms": 3.672
+    "time_ms": 5.953
+  },
+  {
+    "checks": [
+      {
+        "code_line": "edges.len() == 12",
+        "line": 814,
+        "passed": true
+      },
+      {
+        "code_line": "edges[0] == (v0, v1)",
+        "line": 815,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Mesh;\n\n        let mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        let v0 = mesh.vertices()[0];\n        let v1 = mesh.vertices()[1];\n        let edges = mesh.edges();\n",
+    "failures": [],
+    "group": "Mesh",
+    "line": 806,
+    "passed": true,
+    "test_name": "Edges",
+    "time_ms": 0.297
   },
   {
     "checks": [
@@ -2593,6 +2593,6 @@
     "line": 1456,
     "passed": true,
     "test_name": "Loft plate_failing 15-vert outer + 3 holes",
-    "time_ms": 1.74
+    "time_ms": 3.016
   }
 ]

@@ -91,6 +91,40 @@ If you already cloned without submodules:
 git submodule update --init --recursive
 ```
 
+### Working with submodules
+
+The language kernels and shared data/proto definitions are Git submodules:
+
+| Submodule | Remote |
+|-----------|--------|
+| `session_cpp` | https://github.com/petrasvestartas/session_cpp.git |
+| `session_py` | https://github.com/petrasvestartas/session_py.git |
+| `session_rust` | https://github.com/petrasvestartas/session_rust.git |
+| `session_rhino` | https://github.com/petrasvestartas/session_rhino.git |
+| `session_data` | https://github.com/petrasvestartas/session_data.git |
+| `session_proto` | https://github.com/petrasvestartas/session_proto.git |
+
+Pull the main repo and all submodules:
+
+```bash
+./bash/git_pull.sh          # or: git pull && git submodule update --init --recursive
+```
+
+Commit and push changes across all submodules **and** the main repo in one step:
+
+```bash
+./bash/git_push.sh "your commit message"
+```
+
+Add a new submodule:
+
+```bash
+git submodule add <repo-url> <folder-name>
+git submodule update --init --recursive
+git commit -am "Add submodule <folder-name>"
+git push
+```
+
 ## New PC Setup
 
 ### 1. Install uv (Python package manager)

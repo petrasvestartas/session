@@ -3,7 +3,7 @@
     "group": "SpatialRTree",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.005,
     "line": 7,
     "code": "    // uncomment #include \"spatial_rtree.h\"\n    // RTree3: dynamic spatial index — insert/remove support, O(log n) overlap search\n    RTree3 t;\n    double a0[3] = {0, 0, 0}, b0[3] = {1, 1, 1};\n    t.insert(a0, b0, 0);\n    double a1[3] = {5, 0, 0}, b1[3] = {6, 1, 1};\n    t.insert(a1, b1, 1);\n    double a2[3] = {10, 0, 0}, b2[3] = {11, 1, 1};\n    t.insert(a2, b2, 2);\n    int found = -1;\n    t.search(a0, b0, [&](int id) -> bool { found = id; return true; });",
     "checks": [
@@ -19,7 +19,7 @@
     "group": "SpatialRTree",
     "test_name": "Creation",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.004,
     "line": 23,
     "code": "    // uncomment #include \"spatial_rtree.h\"\n    RTree3 t;",
     "checks": [
@@ -35,7 +35,7 @@
     "group": "SpatialRTree",
     "test_name": "Insert",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 30,
     "code": "    // uncomment #include \"spatial_rtree.h\"\n    RTree3 t;\n    double a_min[3] = {0, 0, 0}, a_max[3] = {1, 1, 1};\n    t.insert(a_min, a_max, 42);",
     "checks": [
@@ -51,7 +51,7 @@
     "group": "SpatialRTree",
     "test_name": "Insert Multiple",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 39,
     "code": "    // uncomment #include \"spatial_rtree.h\"\n    RTree3 t;\n    double a0[3] = {0, 0, 0}, b0[3] = {1, 1, 1};\n    t.insert(a0, b0, 0);\n    double a1[3] = {2, 2, 2}, b1[3] = {3, 3, 3};\n    t.insert(a1, b1, 1);\n    double a2[3] = {4, 4, 4}, b2[3] = {5, 5, 5};\n    t.insert(a2, b2, 2);",
     "checks": [
@@ -136,7 +136,7 @@
     "group": "SpatialRTree",
     "test_name": "Search Count",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.004,
     "line": 103,
     "code": "    // uncomment #include \"spatial_rtree.h\"\n    RTree3 t;\n    double a0[3] = {0, 0, 0}, b0[3] = {1, 1, 1};\n    t.insert(a0, b0, 0);\n    double a1[3] = {2, 2, 2}, b1[3] = {3, 3, 3};\n    t.insert(a1, b1, 1);\n    double a2[3] = {3, 3, 3}, b2[3] = {4, 4, 4};\n    t.insert(a2, b2, 2);\n    double a3[3] = {10, 0, 0}, b3[3] = {11, 1, 1};\n    t.insert(a3, b3, 3);\n    double a4[3] = {0, 10, 0}, b4[3] = {1, 11, 1};\n    t.insert(a4, b4, 4);\n    double q_min[3] = {0, 0, 0}, q_max[3] = {4, 4, 4};\n    int hits = t.search(q_min, q_max, [](int) -> bool { return true; });",
     "checks": [

@@ -3,6 +3,7 @@ build/
 target/
 dist/
 out/
+node_modules/
 
 # CMake
 CMakeCache.txt

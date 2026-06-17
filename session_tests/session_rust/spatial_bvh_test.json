@@ -33,7 +33,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Expand Bits",
-    "time_ms": 0.013
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 46,
     "passed": true,
     "test_name": "Morton Code Origin",
-    "time_ms": 0.007
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -70,7 +70,7 @@
     "line": 55,
     "passed": true,
     "test_name": "Morton Code Corners",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -86,7 +86,7 @@
     "line": 66,
     "passed": true,
     "test_name": "Morton Code Spatial Locality",
-    "time_ms": 0.001
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -117,7 +117,7 @@
     "line": 79,
     "passed": true,
     "test_name": "Node Creation",
-    "time_ms": 0.007
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -185,7 +185,7 @@
     "line": 114,
     "passed": true,
     "test_name": "Build Empty",
-    "time_ms": 0.036
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -201,7 +201,7 @@
     "line": 124,
     "passed": true,
     "test_name": "Build Single",
-    "time_ms": 0.032
+    "time_ms": 0.031
   },
   {
     "checks": [
@@ -222,7 +222,7 @@
     "line": 142,
     "passed": true,
     "test_name": "Build Multiple",
-    "time_ms": 0.046
+    "time_ms": 0.044
   },
   {
     "checks": [
@@ -295,7 +295,7 @@
     "line": 207,
     "passed": true,
     "test_name": "Merge Aabb",
-    "time_ms": 0.017
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -516,59 +516,7 @@
     "line": 224,
     "passed": true,
     "test_name": "Fixed 100 Boxes",
-    "time_ms": 0.578
-  },
-  {
-    "checks": [
-      {
-        "code_line": "n0.len() == 1",
-        "line": 374,
-        "passed": true
-      },
-      {
-        "code_line": "n0[0] == 1",
-        "line": 375,
-        "passed": true
-      },
-      {
-        "code_line": "n2.is_empty()",
-        "line": 378,
-        "passed": true
-      },
-      {
-        "code_line": "n2_wide.len() == 2",
-        "line": 381,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::{SpatialBVH, OBB, Point, Vector};\n        let bboxes = vec![\n            OBB::new(Point::new(0.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(0.5, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(10.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n        ];\n        let bvh = SpatialBVH::from_boxes(&bboxes, 100.0);\n\n        let n0 = bvh.nearest_neighbors(0, &bboxes, 1.2);\n\n        let n2 = bvh.nearest_neighbors(2, &bboxes, 1.2);\n\n        let n2_wide = bvh.nearest_neighbors(2, &bboxes, 10.0);",
-    "failures": [],
-    "group": "SpatialBVH",
-    "line": 358,
-    "passed": true,
-    "test_name": "Nearest Neighbors",
-    "time_ms": 0.072
-  },
-  {
-    "checks": [
-      {
-        "code_line": "n.len() == 1",
-        "line": 27,
-        "passed": true
-      },
-      {
-        "code_line": "n[0] == 1",
-        "line": 28,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::spatial_bvh::SpatialBVH;\n        use crate::OBB;\n        use crate::Point;\n        use crate::Vector;\n\n        // SpatialBVH: Morton-ordered static hierarchy — O(log n) nearest-neighbour for OBBs\n        let boxes = vec![\n            OBB::new(Point::new(0.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(2.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(20.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n        ];\n        let bvh = SpatialBVH::from_boxes(&boxes, 100.0);\n        let n = bvh.nearest_neighbors(0, &boxes, 1.5);\n",
-    "failures": [],
-    "group": "SpatialBVH",
-    "line": 6,
-    "passed": true,
-    "test_name": "Constructor",
-    "time_ms": 0.034
+    "time_ms": 0.832
   },
   {
     "checks": [
@@ -604,6 +552,58 @@
     "line": 386,
     "passed": true,
     "test_name": "Query Aabb",
-    "time_ms": 0.038
+    "time_ms": 0.085
+  },
+  {
+    "checks": [
+      {
+        "code_line": "n.len() == 1",
+        "line": 27,
+        "passed": true
+      },
+      {
+        "code_line": "n[0] == 1",
+        "line": 28,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::spatial_bvh::SpatialBVH;\n        use crate::OBB;\n        use crate::Point;\n        use crate::Vector;\n\n        // SpatialBVH: Morton-ordered static hierarchy — O(log n) nearest-neighbour for OBBs\n        let boxes = vec![\n            OBB::new(Point::new(0.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(2.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(20.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n        ];\n        let bvh = SpatialBVH::from_boxes(&boxes, 100.0);\n        let n = bvh.nearest_neighbors(0, &boxes, 1.5);\n",
+    "failures": [],
+    "group": "SpatialBVH",
+    "line": 6,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.078
+  },
+  {
+    "checks": [
+      {
+        "code_line": "n0.len() == 1",
+        "line": 374,
+        "passed": true
+      },
+      {
+        "code_line": "n0[0] == 1",
+        "line": 375,
+        "passed": true
+      },
+      {
+        "code_line": "n2.is_empty()",
+        "line": 378,
+        "passed": true
+      },
+      {
+        "code_line": "n2_wide.len() == 2",
+        "line": 381,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{SpatialBVH, OBB, Point, Vector};\n        let bboxes = vec![\n            OBB::new(Point::new(0.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(0.5, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n            OBB::new(Point::new(10.0, 0.0, 0.0),\n                Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0),\n                Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 1.0, 1.0)),\n        ];\n        let bvh = SpatialBVH::from_boxes(&bboxes, 100.0);\n\n        let n0 = bvh.nearest_neighbors(0, &bboxes, 1.2);\n\n        let n2 = bvh.nearest_neighbors(2, &bboxes, 1.2);\n\n        let n2_wide = bvh.nearest_neighbors(2, &bboxes, 10.0);",
+    "failures": [],
+    "group": "SpatialBVH",
+    "line": 358,
+    "passed": true,
+    "test_name": "Nearest Neighbors",
+    "time_ms": 0.089
   }
 ]

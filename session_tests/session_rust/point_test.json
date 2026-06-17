@@ -88,7 +88,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.038
+    "time_ms": 0.066
   },
   {
     "checks": [
@@ -170,7 +170,7 @@
     "line": 98,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 16.394
+    "time_ms": 13.097
   },
   {
     "checks": [
@@ -226,7 +226,7 @@
     "line": 129,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 13.537
+    "time_ms": 14.411
   },
   {
     "checks": [
@@ -247,7 +247,7 @@
     "line": 155,
     "passed": true,
     "test_name": "Is Ccw",
-    "time_ms": 0.008
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -311,7 +311,7 @@
     "line": 210,
     "passed": true,
     "test_name": "Area",
-    "time_ms": 0.007
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -353,7 +353,7 @@
     "line": 257,
     "passed": true,
     "test_name": "Dihedral Angle Deg",
-    "time_ms": 0.007
+    "time_ms": 0.008
   },
   {
     "checks": [

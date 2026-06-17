@@ -273,7 +273,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 3.817
+    "time_ms": 3.826
   },
   {
     "checks": [
@@ -324,7 +324,7 @@
     "line": 106,
     "passed": true,
     "test_name": "Booleans Queries",
-    "time_ms": 0.091
+    "time_ms": 0.09
   },
   {
     "checks": [
@@ -390,7 +390,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.031
+    "time_ms": 0.022
   },
   {
     "checks": [
@@ -446,7 +446,7 @@
     "line": 213,
     "passed": true,
     "test_name": "Control Vertices Access",
-    "time_ms": 0.028
+    "time_ms": 0.024
   },
   {
     "checks": [
@@ -547,7 +547,7 @@
     "line": 274,
     "passed": true,
     "test_name": "NurbsKnot Access",
-    "time_ms": 0.088
+    "time_ms": 0.086
   },
   {
     "checks": [
@@ -588,7 +588,7 @@
     "line": 335,
     "passed": true,
     "test_name": "Domain",
-    "time_ms": 0.043
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -1059,7 +1059,7 @@
     "line": 388,
     "passed": true,
     "test_name": "Division",
-    "time_ms": 0.967
+    "time_ms": 0.986
   },
   {
     "checks": [
@@ -1110,7 +1110,7 @@
     "line": 521,
     "passed": true,
     "test_name": "Evaluation",
-    "time_ms": 0.069
+    "time_ms": 0.076
   },
   {
     "checks": [
@@ -1201,7 +1201,7 @@
     "line": 582,
     "passed": true,
     "test_name": "Modification",
-    "time_ms": 2.218
+    "time_ms": 2.176
   },
   {
     "checks": [
@@ -1252,7 +1252,7 @@
     "line": 671,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 0.154
+    "time_ms": 0.113
   },
   {
     "checks": [
@@ -1318,7 +1318,7 @@
     "line": 731,
     "passed": true,
     "test_name": "Meshing",
-    "time_ms": 234.46
+    "time_ms": 305.957
   },
   {
     "checks": [
@@ -1344,7 +1344,7 @@
     "line": 991,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 16.714
+    "time_ms": 23.223
   },
   {
     "checks": [
@@ -1365,43 +1365,64 @@
     "line": 1041,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 14.616
+    "time_ms": 13.95
   },
   {
     "checks": [
       {
         "code_line": "parts.len() == 2",
-        "line": 981,
+        "line": 934,
         "passed": true
       },
       {
-        "code_line": "ts.is_trimmed()",
-        "line": 983,
+        "code_line": "parts[0].is_trimmed()",
+        "line": 935,
         "passed": true
       },
       {
-        "code_line": "m.number_of_faces() > 0",
-        "line": 985,
-        "passed": true
-      },
-      {
-        "code_line": "ts.is_trimmed()",
-        "line": 983,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_faces() > 0",
-        "line": 985,
+        "code_line": "parts[1].is_trimmed()",
+        "line": 936,
         "passed": true
       }
     ],
-    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n        use crate::brep::BRep;\n\n        let flat = NurbsSurface::create(false, false, 1, 1, 2, 2, &[\n            Point::new(-3.0, -3.0, 0.0),\n            Point::new(-3.0, 3.0, 0.0),\n            Point::new(3.0, -3.0, 0.0),\n            Point::new(3.0, 3.0, 0.0),\n        ]).unwrap();\n        let cutter = BRep::create_box(2.0, 2.0, 2.0);\n\n        let parts = flat.split_by_brep(&cutter, None);\n\n        for ts in &parts {\n            let m = ts.mesh_q(20.0, 0.005);\n        }",
+    "code": "        use crate::Line;\n        use crate::Point;\n        use crate::Primitives;\n\n        let wave = Primitives::wave_surface(10.0, 1.0);\n        let line = Line::from_points(&Point::new(-1.0, 5.0, 0.0), &Point::new(11.0, 5.0, 0.0));\n\n        let parts = wave.split_by_line(&line, None);\n",
     "failures": [],
     "group": "NurbsSurface",
-    "line": 966,
+    "line": 924,
     "passed": true,
-    "test_name": "Split By Brep",
-    "time_ms": 514.627
+    "test_name": "Split By Line",
+    "time_ms": 615.31
+  },
+  {
+    "checks": [
+      {
+        "code_line": "parts.len() == 2",
+        "line": 911,
+        "passed": true
+      },
+      {
+        "code_line": "parts[0].is_trimmed()",
+        "line": 912,
+        "passed": true
+      },
+      {
+        "code_line": "parts[1].is_trimmed()",
+        "line": 913,
+        "passed": true
+      },
+      {
+        "code_line": "whole.len() == 1",
+        "line": 919,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Closest;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Primitives;\n        use crate::nurbsknot::CurveNurbsKnotStyle;\n\n        let wave = Primitives::wave_surface(10.0, 1.0);\n        let mut lift_pts = Vec::new();\n        for i in 0..21 {\n            let x = 10.0 * i as f64 / 20.0;\n            let y = 5.0 + 2.0 * x.sin();\n            let (u, v, _d) = Closest::surface_point(&wave, &Point::new(x, y, 0.0), 0.0, 0.0, 0.0, 0.0);\n            lift_pts.push(wave.point_at(u, v).unwrap());\n        }\n        let crv = NurbsCurve::create_interpolated(&lift_pts, CurveNurbsKnotStyle::Chord);\n\n        let parts = wave.split_by_curves(&[crv], None);\n\n\n        let off = NurbsCurve::create(false, 1, &[Point::new(50.0, 50.0, 50.0), Point::new(60.0, 60.0, 60.0)]);\n\n        let whole = wave.split_by_curves(&[off], None);\n",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 892,
+    "passed": true,
+    "test_name": "Split By Curves",
+    "time_ms": 159.597
   },
   {
     "checks": [
@@ -1442,64 +1463,43 @@
     "line": 864,
     "passed": true,
     "test_name": "Split By Plane",
-    "time_ms": 424.765
+    "time_ms": 688.258
   },
   {
     "checks": [
       {
         "code_line": "parts.len() == 2",
-        "line": 911,
+        "line": 981,
         "passed": true
       },
       {
-        "code_line": "parts[0].is_trimmed()",
-        "line": 912,
+        "code_line": "ts.is_trimmed()",
+        "line": 983,
         "passed": true
       },
       {
-        "code_line": "parts[1].is_trimmed()",
-        "line": 913,
+        "code_line": "m.number_of_faces() > 0",
+        "line": 985,
         "passed": true
       },
       {
-        "code_line": "whole.len() == 1",
-        "line": 919,
+        "code_line": "ts.is_trimmed()",
+        "line": 983,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() > 0",
+        "line": 985,
         "passed": true
       }
     ],
-    "code": "        use crate::Closest;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Primitives;\n        use crate::nurbsknot::CurveNurbsKnotStyle;\n\n        let wave = Primitives::wave_surface(10.0, 1.0);\n        let mut lift_pts = Vec::new();\n        for i in 0..21 {\n            let x = 10.0 * i as f64 / 20.0;\n            let y = 5.0 + 2.0 * x.sin();\n            let (u, v, _d) = Closest::surface_point(&wave, &Point::new(x, y, 0.0), 0.0, 0.0, 0.0, 0.0);\n            lift_pts.push(wave.point_at(u, v).unwrap());\n        }\n        let crv = NurbsCurve::create_interpolated(&lift_pts, CurveNurbsKnotStyle::Chord);\n\n        let parts = wave.split_by_curves(&[crv], None);\n\n\n        let off = NurbsCurve::create(false, 1, &[Point::new(50.0, 50.0, 50.0), Point::new(60.0, 60.0, 60.0)]);\n\n        let whole = wave.split_by_curves(&[off], None);\n",
+    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n        use crate::brep::BRep;\n\n        let flat = NurbsSurface::create(false, false, 1, 1, 2, 2, &[\n            Point::new(-3.0, -3.0, 0.0),\n            Point::new(-3.0, 3.0, 0.0),\n            Point::new(3.0, -3.0, 0.0),\n            Point::new(3.0, 3.0, 0.0),\n        ]).unwrap();\n        let cutter = BRep::create_box(2.0, 2.0, 2.0);\n\n        let parts = flat.split_by_brep(&cutter, None);\n\n        for ts in &parts {\n            let m = ts.mesh_q(20.0, 0.005);\n        }",
     "failures": [],
     "group": "NurbsSurface",
-    "line": 892,
+    "line": 966,
     "passed": true,
-    "test_name": "Split By Curves",
-    "time_ms": 95.796
-  },
-  {
-    "checks": [
-      {
-        "code_line": "parts.len() == 2",
-        "line": 934,
-        "passed": true
-      },
-      {
-        "code_line": "parts[0].is_trimmed()",
-        "line": 935,
-        "passed": true
-      },
-      {
-        "code_line": "parts[1].is_trimmed()",
-        "line": 936,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Line;\n        use crate::Point;\n        use crate::Primitives;\n\n        let wave = Primitives::wave_surface(10.0, 1.0);\n        let line = Line::from_points(&Point::new(-1.0, 5.0, 0.0), &Point::new(11.0, 5.0, 0.0));\n\n        let parts = wave.split_by_line(&line, None);\n",
-    "failures": [],
-    "group": "NurbsSurface",
-    "line": 924,
-    "passed": true,
-    "test_name": "Split By Line",
-    "time_ms": 375.223
+    "test_name": "Split By Brep",
+    "time_ms": 708.637
   },
   {
     "checks": [
@@ -1535,6 +1535,6 @@
     "line": 941,
     "passed": true,
     "test_name": "Split By Surface",
-    "time_ms": 1823.916
+    "time_ms": 2644.036
   }
 ]

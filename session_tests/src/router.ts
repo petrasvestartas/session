@@ -6,8 +6,7 @@ import { ensureTestData } from './dataLoader';
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
-    { path: '/', redirect: '/viewer' },
-    { path: '/viewer', component: () => import('./views/GeneralView.vue') },
+    { path: '/', redirect: '/tests' },
     { path: '/tests', component: () => import('./views/TestsView.vue'),
       beforeEnter: async () => { await ensureTestData(); } },
     { path: '/install', component: () => import('./views/InstallView.vue') },

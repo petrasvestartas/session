@@ -46,7 +46,7 @@ jobs:
       if: runner.os == 'Linux'
       uses: arduino/setup-protoc@v3
       with:
-        version: '33.2'
+        version: '33.6'
         repo-token: ${{ secrets.GITHUB_TOKEN }}
 
     # ============ CACHING ============

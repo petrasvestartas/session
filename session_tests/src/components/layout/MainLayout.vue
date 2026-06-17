@@ -29,31 +29,6 @@
           </a>
         </div>
 
-        <router-link
-          :to="'/viewer'"
-          class="nav-button"
-          active-class="active">
-          Viewer
-        </router-link>
-
-        <div v-if="currentRoute === 'viewer'" class="suites-section">
-          <button
-            type="button"
-            class="suite-button"
-            :class="{ active: activeSection === 'live' }"
-            @click="selectSection('live')">
-            Live
-          </button>
-          <button
-            v-for="s in viewerSections" :key="s.id"
-            type="button"
-            class="suite-button"
-            :class="{ active: activeSection === s.id }"
-            @click="selectSection(s.id)">
-            {{ s.title }}
-          </button>
-        </div>
-
         <div
           class="nav-button"
           :class="{ active: currentRoute === 'tests' }"
@@ -106,7 +81,7 @@
       </div>
     </nav>
 
-    <div class="main-content" :class="{ 'viewer-mode': viewerMode }">
+    <div class="main-content">
       <div class="content-area">
         <router-view></router-view>
       </div>
@@ -118,20 +93,10 @@
 import { computed, ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ensureTestData } from '../../dataLoader';
-import { sections as viewerSections } from '../../viewerSections';
 import { sections as installSections } from '../../installSections';
 
 const route = useRoute();
 const router = useRouter();
-
-// Viewer sub-sections (Live + each viewer_sections/*.md), chosen here in the sidebar via ?section=.
-const activeSection = computed(() => {
-  const q = route.query.section;
-  return typeof q === 'string' && viewerSections.some((s) => s.id === q) ? q : 'live';
-});
-const selectSection = (id: string) => {
-  router.push({ path: '/viewer', query: id === 'live' ? undefined : { section: id } });
-};
 
 // Install page sub-sections — each install_sections/*.md is its own page via ?section=.
 const activeInstall = computed(() => {
@@ -146,14 +111,9 @@ const selectInstall = (id: string) => {
 
 const currentRoute = computed(() => {
   const path = route.path;
-  if (path.includes('/viewer')) return 'viewer';
-  if (path.includes('/tests')) return 'tests';
   if (path.includes('/install')) return 'install';
-  return 'viewer';
+  return 'tests';
 });
-
-// Viewer is full-bleed (no padding around the iframe).
-const viewerMode = computed(() => currentRoute.value === 'viewer');
 
 const testsSuites = ref<string[]>([]);
 const selectedSuite = ref('');
@@ -526,11 +486,5 @@ img.repo-icon {
   padding: 0.25rem 1rem 1rem 1rem;
   box-sizing: border-box;
   background: #000000;
-}
-
-/* Viewer: full-bleed, no padding around the iframe. */
-.viewer-mode .content-area {
-  padding: 0;
-  overflow: hidden;
 }
 </style>

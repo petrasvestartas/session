@@ -39732,7 +39732,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "mesh_by_plane(q0: &Point, normal: &Vector, max_angle_deg: f64, chord_factor: f64) -> Mesh",
-          "code": "pub fn mesh_by_plane(&self, q0: &Point, normal: &Vector, max_angle_deg: f64, chord_factor: f64) -> Mesh {\n        let srf = &self.m_surface;\n        let (mut nx, mut ny, mut nz) = (normal[0] as f64, normal[1] as f64, normal[2] as f64);\n        let nl = (nx*nx+ny*ny+nz*nz).sqrt();\n        if nl < 1e-12 { return srf.mesh(); }\n        nx/=nl; ny/=nl; nz/=nl;\n        let (qx, qy, qz) = (q0[0] as f64, q0[1] as f64, q0[2] as f64);\n        let e3 = |u: f64, v: f64| -> [f64;3] {\n            let p = srf.point_at(u,v).unwrap_or(Point::new(0.0,0.0,0.0)); [p[0] as f64, p[1] as f64, p[2] as f64]\n        };\n        let field = |u: f64, v: f64| -> f64 { let p=e3(u,v); (p[0]-qx)*nx+(p[1]-qy)*ny+(p[2]-qz)*nz };\n        let refine = |mut u: f64, mut v: f64| -> (f64,f64) {\n            for _ in 0..12 {\n                let fv = field(u,v);\n                if fv.abs() < 1e-9 { break; }\n                let h = 1e-4; let a=e3(u+h,v); let b=e3(u-h,v); let c=e3(u,v+h); let d=e3(u,v-h);\n                let gu = ((a[0]-b[0])*nx+(a[1]-b[1])*ny+(a[2]-b[2])*nz)/(2.0*h);\n                let gv = ((c[0]-d[0])*nx+(c[1]-d[1])*ny+(c[2]-d[2])*nz)/(2.0*h);\n                let g2 = gu*gu+gv*gv;\n                if g2 < 1e-20 { break; }\n                u -= fv*gu/g2; v -= fv*gv/g2;\n            }\n            (u,v)\n        };\n        let usp: Vec<f64> = srf.get_span_vector(0).iter().map(|&x| x as f64).collect();\n        let vsp: Vec<f64> = srf.get_span_vector(1).iter().map(|&x| x as f64).collect();\n        if usp.len() < 2 || vsp.len() < 2 { return srf.mesh(); }\n        let deg_u = srf.degree(0); let deg_v = srf.degree(1);\n        let mut bmin=[1e30f64;3]; let mut bmax=[-1e30f64;3];\n        for i in 0..srf.cv_count_dir(Some(0)) { for j in 0..srf.cv_count_dir(Some(1)) {\n            if let Some(p)=srf.get_cv(i,j) { for k in 0..3 { let c=p[k] as f64; if c<bmin[k]{bmin[k]=c;} if c>bmax[k]{bmax[k]=c;} } }\n        }}\n        let mut diag=(0..3).map(|k|(bmax[k]-bmin[k]).powi(2)).sum::<f64>().sqrt(); if diag<1e-12 { diag=1.0; }\n        let ctol = diag*chord_factor;\n        let span_subs = |dr: usize, sp: &[f64], osp: &[f64], deg: usize| -> Vec<usize> {\n            let n = sp.len()-1; let mut out = vec![if deg>1 {2usize} else {1}; n];\n            let smid = (osp[0]+osp[osp.len()-1])*0.5;\n            for i in 0..n {\n                let (t0,t1)=(sp[i],sp[i+1]);\n                if deg>1 {\n                    let mut ma=0.0_f64; let mut pn=[0.0f64;3];\n                    for k in 0..=4 {\n                        let t=t0+k as f64*(t1-t0)/4.0;\n                        let nm = if dr==0 { srf.normal_at(t,smid) } else { srf.normal_at(smid,t) };\n                        if k>0 { let d=(pn[0]*nm[0]+pn[1]*nm[1]+pn[2]*nm[2]).max(-1.0).min(1.0); ma+=d.acos()*180.0/std::f64::consts::PI; }\n                        pn=[nm[0],nm[1],nm[2]];\n                    }\n                    out[i]=out[i].max(1.max(((ma/max_angle_deg).ceil() as usize).min(64)));\n                }\n                let p0 = if dr==0 { e3(t0,smid) } else { e3(smid,t0) };\n                let p1 = if dr==0 { e3(t1,smid) } else { e3(smid,t1) };\n                let mut dev=0.0_f64;\n                for k in 1..=3 {\n                    let fr=k as f64/4.0; let tm=t0+fr*(t1-t0);\n                    let pm = if dr==0 { e3(tm,smid) } else { e3(smid,tm) };\n                    let (lx,ly,lz)=(p0[0]+fr*(p1[0]-p0[0]),p0[1]+fr*(p1[1]-p0[1]),p0[2]+fr*(p1[2]-p0[2]));\n                    dev=dev.max(((pm[0]-lx).powi(2)+(pm[1]-ly).powi(2)+(pm[2]-lz).powi(2)).sqrt());\n                }\n                if dev>ctol { out[i]=out[i].max(((dev/ctol).sqrt().ceil() as usize).min(64)); }\n            }\n            out\n        };\n        let us_subs=span_subs(0,&usp,&vsp,deg_u); let vs_subs=span_subs(1,&vsp,&usp,deg_v);\n        let mut us=Vec::new();\n        for i in 0..usp.len()-1 { for s in 0..us_subs[i] { us.push(usp[i]+(s as f64)*(usp[i+1]-usp[i])/(us_subs[i] as f64)); } }\n        us.push(*usp.last().unwrap());\n        let mut vs=Vec::new();\n        for i in 0..vsp.len()-1 { for s in 0..vs_subs[i] { vs.push(vsp[i]+(s as f64)*(vsp[i+1]-vsp[i])/(vs_subs[i] as f64)); } }\n        vs.push(*vsp.last().unwrap());\n        let nu=us.len(); let nv=vs.len();\n        if nu<2 || nv<2 { return srf.mesh(); }\n        let f_grid: Vec<Vec<f64>> = (0..nu).map(|i| (0..nv).map(|j| field(us[i],vs[j])).collect()).collect();\n        let mut result = Mesh::new();\n        let wt = diag*1e-5; let cell = if wt>0.0 { wt } else { 1.0 };\n        let mut cmap: std::collections::HashMap<(i64,i64,i64), Vec<([f64;3],usize)>> = std::collections::HashMap::new();\n        let mut weld = |result: &mut Mesh, cmap: &mut std::collections::HashMap<(i64,i64,i64),Vec<([f64;3],usize)>>, u: f64, v: f64| -> usize {\n            let p = srf.point_at(u,v).unwrap_or(Point::new(0.0,0.0,0.0));\n            let (x,y,z)=(p[0] as f64,p[1] as f64,p[2] as f64);\n            let (ci,cj,ck)=((x/cell).floor() as i64,(y/cell).floor() as i64,(z/cell).floor() as i64);\n            for di in -1..=1 { for dj in -1..=1 { for dk in -1..=1 {\n                if let Some(b)=cmap.get(&(ci+di,cj+dj,ck+dk)) { for &(pp,vk) in b { if (pp[0]-x).powi(2)+(pp[1]-y).powi(2)+(pp[2]-z).powi(2)<=wt*wt { return vk; } } }\n            }}}\n            let vk=result.add_vertex(p,None); let nm=srf.normal_at(u,v);\n            if let Some(vd)=result.vertex.get_mut(&vk){vd.set_normal(nm[0],nm[1],nm[2]);}\n            cmap.entry((ci,cj,ck)).or_default().push(([x,y,z],vk)); vk\n        };\n        for i in 0..nu-1 { for j in 0..nv-1 {\n            let cu=[us[i],us[i+1],us[i+1],us[i]]; let cv=[vs[j],vs[j],vs[j+1],vs[j+1]];\n            let inn=[f_grid[i][j]<=0.0,f_grid[i+1][j]<=0.0,f_grid[i+1][j+1]<=0.0,f_grid[i][j+1]<=0.0];\n            if !inn.iter().any(|&b|b) { continue; }\n            let mut poly: Vec<usize>=Vec::new();\n            for k in 0..4 {\n                let kn=(k+1)%4;\n                if inn[k] { poly.push(weld(&mut result,&mut cmap,cu[k],cv[k])); }\n                if inn[k]!=inn[kn] {\n                    let (fa,fb)=(f_grid[[i,i+1,i+1,i][k]][[j,j,j+1,j+1][k]], f_grid[[i,i+1,i+1,i][kn]][[j,j,j+1,j+1][kn]]);\n                    let t = if (fa-fb).abs()>1e-30 { fa/(fa-fb) } else { 0.5 };\n                    let (cx,cyv)=(cu[k]+(cu[kn]-cu[k])*t, cv[k]+(cv[kn]-cv[k])*t);\n                    let (ru,rv)=refine(cx,cyv);\n                    poly.push(weld(&mut result,&mut cmap,ru,rv));\n                }\n            }\n            for t in 1..poly.len().saturating_sub(1) {\n                let (a,b,c)=(poly[0],poly[t],poly[t+1]);\n                if a==b||b==c||c==a { continue; }\n                result.add_face(vec![a,b,c],None);\n            }\n        }}\n        if result.face.is_empty() { return srf.mesh(); }\n        result\n    }",
+          "code": "pub fn mesh_by_plane(&self, q0: &Point, normal: &Vector, max_angle_deg: f64, chord_factor: f64) -> Mesh {\n        let srf = &self.m_surface;\n        let (mut nx, mut ny, mut nz) = (normal[0] as f64, normal[1] as f64, normal[2] as f64);\n        let nl = (nx*nx+ny*ny+nz*nz).sqrt();\n        if nl < 1e-12 { return srf.mesh(); }\n        nx/=nl; ny/=nl; nz/=nl;\n        let (qx, qy, qz) = (q0[0] as f64, q0[1] as f64, q0[2] as f64);\n        let e3 = |u: f64, v: f64| -> [f64;3] {\n            let p = srf.point_at(u,v).unwrap_or(Point::new(0.0,0.0,0.0)); [p[0] as f64, p[1] as f64, p[2] as f64]\n        };\n        let field = |u: f64, v: f64| -> f64 { let p=e3(u,v); (p[0]-qx)*nx+(p[1]-qy)*ny+(p[2]-qz)*nz };\n        let refine = |mut u: f64, mut v: f64| -> (f64,f64) {\n            for _ in 0..12 {\n                let fv = field(u,v);\n                if fv.abs() < 1e-9 { break; }\n                let h = 1e-4; let a=e3(u+h,v); let b=e3(u-h,v); let c=e3(u,v+h); let d=e3(u,v-h);\n                let gu = ((a[0]-b[0])*nx+(a[1]-b[1])*ny+(a[2]-b[2])*nz)/(2.0*h);\n                let gv = ((c[0]-d[0])*nx+(c[1]-d[1])*ny+(c[2]-d[2])*nz)/(2.0*h);\n                let g2 = gu*gu+gv*gv;\n                if g2 < 1e-20 { break; }\n                u -= fv*gu/g2; v -= fv*gv/g2;\n            }\n            (u,v)\n        };\n        let usp: Vec<f64> = srf.get_span_vector(0).iter().map(|&x| x as f64).collect();\n        let vsp: Vec<f64> = srf.get_span_vector(1).iter().map(|&x| x as f64).collect();\n        if usp.len() < 2 || vsp.len() < 2 { return srf.mesh(); }\n        let deg_u = srf.degree(0); let deg_v = srf.degree(1);\n        let mut bmin=[1e30f64;3]; let mut bmax=[-1e30f64;3];\n        for i in 0..srf.cv_count_dir(Some(0)) { for j in 0..srf.cv_count_dir(Some(1)) {\n            if let Some(p)=srf.get_cv(i,j) { for k in 0..3 { let c=p[k] as f64; if c<bmin[k]{bmin[k]=c;} if c>bmax[k]{bmax[k]=c;} } }\n        }}\n        let mut diag=(0..3).map(|k|(bmax[k]-bmin[k]).powi(2)).sum::<f64>().sqrt(); if diag<1e-12 { diag=1.0; }\n        let ctol = diag*chord_factor;\n        let span_subs = |dr: usize, sp: &[f64], osp: &[f64], deg: usize| -> Vec<usize> {\n            let n = sp.len()-1; let mut out = vec![if deg>1 {2usize} else {1}; n];\n            let smid = (osp[0]+osp[osp.len()-1])*0.5;\n            for i in 0..n {\n                let (t0,t1)=(sp[i],sp[i+1]);\n                if deg>1 {\n                    let mut ma=0.0_f64; let mut pn=[0.0f64;3];\n                    for k in 0..=4 {\n                        let t=t0+k as f64*(t1-t0)/4.0;\n                        let nm = if dr==0 { srf.normal_at(t,smid) } else { srf.normal_at(smid,t) };\n                        if k>0 { let d=(pn[0]*nm[0]+pn[1]*nm[1]+pn[2]*nm[2]).max(-1.0).min(1.0); ma+=d.acos()*180.0/std::f64::consts::PI; }\n                        pn=[nm[0],nm[1],nm[2]];\n                    }\n                    out[i]=out[i].max(1.max(((ma/max_angle_deg).ceil() as usize).min(64)));\n                }\n                let p0 = if dr==0 { e3(t0,smid) } else { e3(smid,t0) };\n                let p1 = if dr==0 { e3(t1,smid) } else { e3(smid,t1) };\n                let mut dev=0.0_f64;\n                for k in 1..=3 {\n                    let fr=k as f64/4.0; let tm=t0+fr*(t1-t0);\n                    let pm = if dr==0 { e3(tm,smid) } else { e3(smid,tm) };\n                    let (lx,ly,lz)=(p0[0]+fr*(p1[0]-p0[0]),p0[1]+fr*(p1[1]-p0[1]),p0[2]+fr*(p1[2]-p0[2]));\n                    dev=dev.max(((pm[0]-lx).powi(2)+(pm[1]-ly).powi(2)+(pm[2]-lz).powi(2)).sqrt());\n                }\n                if dev>ctol { out[i]=out[i].max(((dev/ctol).sqrt().ceil() as usize).min(64)); }\n            }\n            out\n        };\n        let us_subs=span_subs(0,&usp,&vsp,deg_u); let vs_subs=span_subs(1,&vsp,&usp,deg_v);\n        let mut us=Vec::new();\n        for i in 0..usp.len()-1 { for s in 0..us_subs[i] { us.push(usp[i]+(s as f64)*(usp[i+1]-usp[i])/(us_subs[i] as f64)); } }\n        us.push(*usp.last().unwrap());\n        let mut vs=Vec::new();\n        for i in 0..vsp.len()-1 { for s in 0..vs_subs[i] { vs.push(vsp[i]+(s as f64)*(vsp[i+1]-vsp[i])/(vs_subs[i] as f64)); } }\n        vs.push(*vsp.last().unwrap());\n        let nu=us.len(); let nv=vs.len();\n        if nu<2 || nv<2 { return srf.mesh(); }\n        let f_grid: Vec<Vec<f64>> = (0..nu).map(|i| (0..nv).map(|j| field(us[i],vs[j])).collect()).collect();\n        let mut result = Mesh::new();\n        let wt = diag*1e-5; let cell = if wt>0.0 { wt } else { 1.0 };\n        let mut cmap: std::collections::HashMap<(i64,i64,i64), Vec<([f64;3],usize)>> = std::collections::HashMap::new();\n        let weld = |result: &mut Mesh, cmap: &mut std::collections::HashMap<(i64,i64,i64),Vec<([f64;3],usize)>>, u: f64, v: f64| -> usize {\n            let p = srf.point_at(u,v).unwrap_or(Point::new(0.0,0.0,0.0));\n            let (x,y,z)=(p[0] as f64,p[1] as f64,p[2] as f64);\n            let (ci,cj,ck)=((x/cell).floor() as i64,(y/cell).floor() as i64,(z/cell).floor() as i64);\n            for di in -1..=1 { for dj in -1..=1 { for dk in -1..=1 {\n                if let Some(b)=cmap.get(&(ci+di,cj+dj,ck+dk)) { for &(pp,vk) in b { if (pp[0]-x).powi(2)+(pp[1]-y).powi(2)+(pp[2]-z).powi(2)<=wt*wt { return vk; } } }\n            }}}\n            let vk=result.add_vertex(p,None); let nm=srf.normal_at(u,v);\n            if let Some(vd)=result.vertex.get_mut(&vk){vd.set_normal(nm[0],nm[1],nm[2]);}\n            cmap.entry((ci,cj,ck)).or_default().push(([x,y,z],vk)); vk\n        };\n        for i in 0..nu-1 { for j in 0..nv-1 {\n            let cu=[us[i],us[i+1],us[i+1],us[i]]; let cv=[vs[j],vs[j],vs[j+1],vs[j+1]];\n            let inn=[f_grid[i][j]<=0.0,f_grid[i+1][j]<=0.0,f_grid[i+1][j+1]<=0.0,f_grid[i][j+1]<=0.0];\n            if !inn.iter().any(|&b|b) { continue; }\n            let mut poly: Vec<usize>=Vec::new();\n            for k in 0..4 {\n                let kn=(k+1)%4;\n                if inn[k] { poly.push(weld(&mut result,&mut cmap,cu[k],cv[k])); }\n                if inn[k]!=inn[kn] {\n                    let (fa,fb)=(f_grid[[i,i+1,i+1,i][k]][[j,j,j+1,j+1][k]], f_grid[[i,i+1,i+1,i][kn]][[j,j,j+1,j+1][kn]]);\n                    let t = if (fa-fb).abs()>1e-30 { fa/(fa-fb) } else { 0.5 };\n                    let (cx,cyv)=(cu[k]+(cu[kn]-cu[k])*t, cv[k]+(cv[kn]-cv[k])*t);\n                    let (ru,rv)=refine(cx,cyv);\n                    poly.push(weld(&mut result,&mut cmap,ru,rv));\n                }\n            }\n            for t in 1..poly.len().saturating_sub(1) {\n                let (a,b,c)=(poly[0],poly[t],poly[t+1]);\n                if a==b||b==c||c==a { continue; }\n                result.add_face(vec![a,b,c],None);\n            }\n        }}\n        if result.face.is_empty() { return srf.mesh(); }\n        result\n    }",
           "file": "nurbssurface_trimmed.rs"
         }
       },
@@ -86582,7 +86582,7 @@ window.API_INDEX = {
       "implementations": {
         "rust": {
           "sig": "mesh_by_planes(planes: &[(Point, Vector)",
-          "code": "pub fn mesh_by_planes(&self, planes: &[(Point, Vector)], max_angle_deg: f64, chord_factor: f64) -> Mesh {\n        let srf = &self.m_surface;\n        let pl: Vec<([f64;3],[f64;3])> = planes.iter().filter_map(|(q,n)| {\n            let (nx,ny,nz)=(n[0] as f64,n[1] as f64,n[2] as f64);\n            let l=(nx*nx+ny*ny+nz*nz).sqrt();\n            if l<1e-12 { None } else { Some(([q[0] as f64,q[1] as f64,q[2] as f64],[nx/l,ny/l,nz/l])) }\n        }).collect();\n        if pl.is_empty() { return srf.mesh(); }\n        let e3 = |u: f64, v: f64| -> [f64;3] { let p=srf.point_at(u,v).unwrap_or(Point::new(0.0,0.0,0.0)); [p[0] as f64,p[1] as f64,p[2] as f64] };\n        let field_k = |k: usize, u: f64, v: f64| -> f64 { let p=e3(u,v); let (q,n)=&pl[k]; (p[0]-q[0])*n[0]+(p[1]-q[1])*n[1]+(p[2]-q[2])*n[2] };\n        let refine_k = |k: usize, mut u: f64, mut v: f64| -> (f64,f64) {\n            let (_q,n)=&pl[k];\n            for _ in 0..12 {\n                let fv=field_k(k,u,v); if fv.abs()<1e-9 { break; }\n                let h=1e-4; let a=e3(u+h,v); let b=e3(u-h,v); let c=e3(u,v+h); let d=e3(u,v-h);\n                let gu=((a[0]-b[0])*n[0]+(a[1]-b[1])*n[1]+(a[2]-b[2])*n[2])/(2.0*h);\n                let gv=((c[0]-d[0])*n[0]+(c[1]-d[1])*n[1]+(c[2]-d[2])*n[2])/(2.0*h);\n                let g2=gu*gu+gv*gv; if g2<1e-20 { break; }\n                u-=fv*gu/g2; v-=fv*gv/g2;\n            }\n            (u,v)\n        };\n        let usp: Vec<f64> = srf.get_span_vector(0).iter().map(|&x| x as f64).collect();\n        let vsp: Vec<f64> = srf.get_span_vector(1).iter().map(|&x| x as f64).collect();\n        if usp.len()<2 || vsp.len()<2 { return srf.mesh(); }\n        let deg_u=srf.degree(0); let deg_v=srf.degree(1);\n        let mut bmin=[1e30f64;3]; let mut bmax=[-1e30f64;3];\n        for i in 0..srf.cv_count_dir(Some(0)) { for j in 0..srf.cv_count_dir(Some(1)) {\n            if let Some(p)=srf.get_cv(i,j) { for k in 0..3 { let c=p[k] as f64; if c<bmin[k]{bmin[k]=c;} if c>bmax[k]{bmax[k]=c;} } }\n        }}\n        let mut diag=(0..3).map(|k|(bmax[k]-bmin[k]).powi(2)).sum::<f64>().sqrt(); if diag<1e-12 { diag=1.0; }\n        let ctol=diag*chord_factor;\n        let span_subs = |dr: usize, sp: &[f64], osp: &[f64], deg: usize| -> Vec<usize> {\n            let n=sp.len()-1; let mut out=vec![if deg>1 {2usize} else {1}; n];\n            let smid=(osp[0]+osp[osp.len()-1])*0.5;\n            for i in 0..n {\n                let (t0,t1)=(sp[i],sp[i+1]);\n                if deg>1 {\n                    let mut ma=0.0f64; let mut pn=[0.0f64;3];\n                    for k in 0..=4 { let t=t0+k as f64*(t1-t0)/4.0; let nm=if dr==0 {srf.normal_at(t,smid)} else {srf.normal_at(smid,t)};\n                        if k>0 { let d=(pn[0]*nm[0]+pn[1]*nm[1]+pn[2]*nm[2]).max(-1.0).min(1.0); ma+=d.acos()*180.0/std::f64::consts::PI; } pn=[nm[0],nm[1],nm[2]]; }\n                    out[i]=out[i].max(1.max(((ma/max_angle_deg).ceil() as usize).min(64)));\n                }\n                let p0=if dr==0 {e3(t0,smid)} else {e3(smid,t0)}; let p1=if dr==0 {e3(t1,smid)} else {e3(smid,t1)};\n                let mut dev=0.0f64;\n                for k in 1..=3 { let fr=k as f64/4.0; let tm=t0+fr*(t1-t0); let pm=if dr==0 {e3(tm,smid)} else {e3(smid,tm)};\n                    let (lx,ly,lz)=(p0[0]+fr*(p1[0]-p0[0]),p0[1]+fr*(p1[1]-p0[1]),p0[2]+fr*(p1[2]-p0[2]));\n                    dev=dev.max(((pm[0]-lx).powi(2)+(pm[1]-ly).powi(2)+(pm[2]-lz).powi(2)).sqrt()); }\n                if dev>ctol { out[i]=out[i].max(((dev/ctol).sqrt().ceil() as usize).min(64)); }\n            }\n            out\n        };\n        let us_subs=span_subs(0,&usp,&vsp,deg_u); let vs_subs=span_subs(1,&vsp,&usp,deg_v);\n        let mut us=Vec::new(); for i in 0..usp.len()-1 { for s in 0..us_subs[i] { us.push(usp[i]+(s as f64)*(usp[i+1]-usp[i])/(us_subs[i] as f64)); } } us.push(*usp.last().unwrap());\n        let mut vs=Vec::new(); for i in 0..vsp.len()-1 { for s in 0..vs_subs[i] { vs.push(vsp[i]+(s as f64)*(vsp[i+1]-vsp[i])/(vs_subs[i] as f64)); } } vs.push(*vsp.last().unwrap());\n        let nu=us.len(); let nv=vs.len(); if nu<2||nv<2 { return srf.mesh(); }\n        let mut tris: Vec<[(f64,f64);3]> = Vec::with_capacity((nu-1)*(nv-1)*2);\n        for i in 0..nu-1 { for j in 0..nv-1 {\n            let a=(us[i],vs[j]); let b=(us[i+1],vs[j]); let c=(us[i+1],vs[j+1]); let d=(us[i],vs[j+1]);\n            tris.push([a,b,c]); tris.push([a,c,d]);\n        }}\n        let eps=1e-9;\n        for k in 0..pl.len() {\n            let mut next: Vec<[(f64,f64);3]> = Vec::new();\n            for t in &tris {\n                let mut poly: Vec<(f64,f64)> = Vec::new();\n                for e in 0..3 {\n                    let p=t[e]; let q=t[(e+1)%3];\n                    let fp=field_k(k,p.0,p.1); let fq=field_k(k,q.0,q.1);\n                    let (pin,qin)=(fp<=eps, fq<=eps);\n                    if pin { poly.push(p); }\n                    if pin!=qin {\n                        let tt= if (fp-fq).abs()>1e-30 { fp/(fp-fq) } else { 0.5 };\n                        let cu=p.0+(q.0-p.0)*tt; let cv=p.1+(q.1-p.1)*tt;\n                        poly.push(refine_k(k,cu,cv));\n                    }\n                }\n                for w in 1..poly.len().saturating_sub(1) { next.push([poly[0],poly[w],poly[w+1]]); }\n            }\n            tris=next;\n            if tris.is_empty() { break; }\n        }\n        if tris.is_empty() { return Mesh::new(); }\n        let mut result=Mesh::new();\n        let wt=diag*1e-5; let cell=if wt>0.0 {wt} else {1.0};\n        let mut cmap: std::collections::HashMap<(i64,i64,i64),Vec<([f64;3],usize)>> = std::collections::HashMap::new();\n        let mut weld = |result:&mut Mesh, cmap:&mut std::collections::HashMap<(i64,i64,i64),Vec<([f64;3],usize)>>, u:f64,v:f64| -> usize {\n            let p=srf.point_at(u,v).unwrap_or(Point::new(0.0,0.0,0.0));\n            let (x,y,z)=(p[0] as f64,p[1] as f64,p[2] as f64);\n            let (ci,cj,ck)=((x/cell).floor() as i64,(y/cell).floor() as i64,(z/cell).floor() as i64);\n            for di in -1..=1 { for dj in -1..=1 { for dk in -1..=1 {\n                if let Some(b)=cmap.get(&(ci+di,cj+dj,ck+dk)) { for &(pp,vk) in b { if (pp[0]-x).powi(2)+(pp[1]-y).powi(2)+(pp[2]-z).powi(2)<=wt*wt { return vk; } } }\n            }}}\n            let vk=result.add_vertex(p,None); let nm=srf.normal_at(u,v);\n            if let Some(vd)=result.vertex.get_mut(&vk){vd.set_normal(nm[0],nm[1],nm[2]);}\n            cmap.entry((ci,cj,ck)).or_default().push(([x,y,z],vk)); vk\n        };\n        for t in &tris {\n            let a=weld(&mut result,&mut cmap,t[0].0,t[0].1);\n            let b=weld(&mut result,&mut cmap,t[1].0,t[1].1);\n            let c=weld(&mut result,&mut cmap,t[2].0,t[2].1);\n            if a==b||b==c||c==a { continue; }\n            result.add_face(vec![a,b,c],None);\n        }\n        if result.face.is_empty() { return Mesh::new(); }\n        result\n    }",
+          "code": "pub fn mesh_by_planes(&self, planes: &[(Point, Vector)], max_angle_deg: f64, chord_factor: f64) -> Mesh {\n        let srf = &self.m_surface;\n        let pl: Vec<([f64;3],[f64;3])> = planes.iter().filter_map(|(q,n)| {\n            let (nx,ny,nz)=(n[0] as f64,n[1] as f64,n[2] as f64);\n            let l=(nx*nx+ny*ny+nz*nz).sqrt();\n            if l<1e-12 { None } else { Some(([q[0] as f64,q[1] as f64,q[2] as f64],[nx/l,ny/l,nz/l])) }\n        }).collect();\n        if pl.is_empty() { return srf.mesh(); }\n        let e3 = |u: f64, v: f64| -> [f64;3] { let p=srf.point_at(u,v).unwrap_or(Point::new(0.0,0.0,0.0)); [p[0] as f64,p[1] as f64,p[2] as f64] };\n        let field_k = |k: usize, u: f64, v: f64| -> f64 { let p=e3(u,v); let (q,n)=&pl[k]; (p[0]-q[0])*n[0]+(p[1]-q[1])*n[1]+(p[2]-q[2])*n[2] };\n        let refine_k = |k: usize, mut u: f64, mut v: f64| -> (f64,f64) {\n            let (_q,n)=&pl[k];\n            for _ in 0..12 {\n                let fv=field_k(k,u,v); if fv.abs()<1e-9 { break; }\n                let h=1e-4; let a=e3(u+h,v); let b=e3(u-h,v); let c=e3(u,v+h); let d=e3(u,v-h);\n                let gu=((a[0]-b[0])*n[0]+(a[1]-b[1])*n[1]+(a[2]-b[2])*n[2])/(2.0*h);\n                let gv=((c[0]-d[0])*n[0]+(c[1]-d[1])*n[1]+(c[2]-d[2])*n[2])/(2.0*h);\n                let g2=gu*gu+gv*gv; if g2<1e-20 { break; }\n                u-=fv*gu/g2; v-=fv*gv/g2;\n            }\n            (u,v)\n        };\n        let usp: Vec<f64> = srf.get_span_vector(0).iter().map(|&x| x as f64).collect();\n        let vsp: Vec<f64> = srf.get_span_vector(1).iter().map(|&x| x as f64).collect();\n        if usp.len()<2 || vsp.len()<2 { return srf.mesh(); }\n        let deg_u=srf.degree(0); let deg_v=srf.degree(1);\n        let mut bmin=[1e30f64;3]; let mut bmax=[-1e30f64;3];\n        for i in 0..srf.cv_count_dir(Some(0)) { for j in 0..srf.cv_count_dir(Some(1)) {\n            if let Some(p)=srf.get_cv(i,j) { for k in 0..3 { let c=p[k] as f64; if c<bmin[k]{bmin[k]=c;} if c>bmax[k]{bmax[k]=c;} } }\n        }}\n        let mut diag=(0..3).map(|k|(bmax[k]-bmin[k]).powi(2)).sum::<f64>().sqrt(); if diag<1e-12 { diag=1.0; }\n        let ctol=diag*chord_factor;\n        let span_subs = |dr: usize, sp: &[f64], osp: &[f64], deg: usize| -> Vec<usize> {\n            let n=sp.len()-1; let mut out=vec![if deg>1 {2usize} else {1}; n];\n            let smid=(osp[0]+osp[osp.len()-1])*0.5;\n            for i in 0..n {\n                let (t0,t1)=(sp[i],sp[i+1]);\n                if deg>1 {\n                    let mut ma=0.0f64; let mut pn=[0.0f64;3];\n                    for k in 0..=4 { let t=t0+k as f64*(t1-t0)/4.0; let nm=if dr==0 {srf.normal_at(t,smid)} else {srf.normal_at(smid,t)};\n                        if k>0 { let d=(pn[0]*nm[0]+pn[1]*nm[1]+pn[2]*nm[2]).max(-1.0).min(1.0); ma+=d.acos()*180.0/std::f64::consts::PI; } pn=[nm[0],nm[1],nm[2]]; }\n                    out[i]=out[i].max(1.max(((ma/max_angle_deg).ceil() as usize).min(64)));\n                }\n                let p0=if dr==0 {e3(t0,smid)} else {e3(smid,t0)}; let p1=if dr==0 {e3(t1,smid)} else {e3(smid,t1)};\n                let mut dev=0.0f64;\n                for k in 1..=3 { let fr=k as f64/4.0; let tm=t0+fr*(t1-t0); let pm=if dr==0 {e3(tm,smid)} else {e3(smid,tm)};\n                    let (lx,ly,lz)=(p0[0]+fr*(p1[0]-p0[0]),p0[1]+fr*(p1[1]-p0[1]),p0[2]+fr*(p1[2]-p0[2]));\n                    dev=dev.max(((pm[0]-lx).powi(2)+(pm[1]-ly).powi(2)+(pm[2]-lz).powi(2)).sqrt()); }\n                if dev>ctol { out[i]=out[i].max(((dev/ctol).sqrt().ceil() as usize).min(64)); }\n            }\n            out\n        };\n        let us_subs=span_subs(0,&usp,&vsp,deg_u); let vs_subs=span_subs(1,&vsp,&usp,deg_v);\n        let mut us=Vec::new(); for i in 0..usp.len()-1 { for s in 0..us_subs[i] { us.push(usp[i]+(s as f64)*(usp[i+1]-usp[i])/(us_subs[i] as f64)); } } us.push(*usp.last().unwrap());\n        let mut vs=Vec::new(); for i in 0..vsp.len()-1 { for s in 0..vs_subs[i] { vs.push(vsp[i]+(s as f64)*(vsp[i+1]-vsp[i])/(vs_subs[i] as f64)); } } vs.push(*vsp.last().unwrap());\n        let nu=us.len(); let nv=vs.len(); if nu<2||nv<2 { return srf.mesh(); }\n        let mut tris: Vec<[(f64,f64);3]> = Vec::with_capacity((nu-1)*(nv-1)*2);\n        for i in 0..nu-1 { for j in 0..nv-1 {\n            let a=(us[i],vs[j]); let b=(us[i+1],vs[j]); let c=(us[i+1],vs[j+1]); let d=(us[i],vs[j+1]);\n            tris.push([a,b,c]); tris.push([a,c,d]);\n        }}\n        let eps=1e-9;\n        for k in 0..pl.len() {\n            let mut next: Vec<[(f64,f64);3]> = Vec::new();\n            for t in &tris {\n                let mut poly: Vec<(f64,f64)> = Vec::new();\n                for e in 0..3 {\n                    let p=t[e]; let q=t[(e+1)%3];\n                    let fp=field_k(k,p.0,p.1); let fq=field_k(k,q.0,q.1);\n                    let (pin,qin)=(fp<=eps, fq<=eps);\n                    if pin { poly.push(p); }\n                    if pin!=qin {\n                        let tt= if (fp-fq).abs()>1e-30 { fp/(fp-fq) } else { 0.5 };\n                        let cu=p.0+(q.0-p.0)*tt; let cv=p.1+(q.1-p.1)*tt;\n                        poly.push(refine_k(k,cu,cv));\n                    }\n                }\n                for w in 1..poly.len().saturating_sub(1) { next.push([poly[0],poly[w],poly[w+1]]); }\n            }\n            tris=next;\n            if tris.is_empty() { break; }\n        }\n        if tris.is_empty() { return Mesh::new(); }\n        let mut result=Mesh::new();\n        let wt=diag*1e-5; let cell=if wt>0.0 {wt} else {1.0};\n        let mut cmap: std::collections::HashMap<(i64,i64,i64),Vec<([f64;3],usize)>> = std::collections::HashMap::new();\n        let weld = |result:&mut Mesh, cmap:&mut std::collections::HashMap<(i64,i64,i64),Vec<([f64;3],usize)>>, u:f64,v:f64| -> usize {\n            let p=srf.point_at(u,v).unwrap_or(Point::new(0.0,0.0,0.0));\n            let (x,y,z)=(p[0] as f64,p[1] as f64,p[2] as f64);\n            let (ci,cj,ck)=((x/cell).floor() as i64,(y/cell).floor() as i64,(z/cell).floor() as i64);\n            for di in -1..=1 { for dj in -1..=1 { for dk in -1..=1 {\n                if let Some(b)=cmap.get(&(ci+di,cj+dj,ck+dk)) { for &(pp,vk) in b { if (pp[0]-x).powi(2)+(pp[1]-y).powi(2)+(pp[2]-z).powi(2)<=wt*wt { return vk; } } }\n            }}}\n            let vk=result.add_vertex(p,None); let nm=srf.normal_at(u,v);\n            if let Some(vd)=result.vertex.get_mut(&vk){vd.set_normal(nm[0],nm[1],nm[2]);}\n            cmap.entry((ci,cj,ck)).or_default().push(([x,y,z],vk)); vk\n        };\n        for t in &tris {\n            let a=weld(&mut result,&mut cmap,t[0].0,t[0].1);\n            let b=weld(&mut result,&mut cmap,t[1].0,t[1].1);\n            let c=weld(&mut result,&mut cmap,t[2].0,t[2].1);\n            if a==b||b==c||c==a { continue; }\n            result.add_face(vec![a,b,c],None);\n        }\n        if result.face.is_empty() { return Mesh::new(); }\n        result\n    }",
           "file": "nurbssurface_trimmed.rs"
         }
       },
@@ -94387,7 +94387,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"MeshOffset\", \"from_mesh_layers\")",
-          "code": "MINI_TEST!(\"MeshOffset\", \"from_mesh_layers\", crate::mesh_offset_test::run_mesh_offset_from_mesh_layers);\n\npub fn run_mesh_offset_file_json_dump() -> TestResult {\n    MINI_TEST!(\"file_json_dump\", {\n        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2, 3]]);\n        let result = MeshOffset::from_mesh(&mesh, 1.0);\n        let _ = result.file_json_dump(\"mesh_offset_test_dump.json\");\n        let loaded = Mesh::file_json_load(\"mesh_offset_test_dump.json\").unwrap();\n        MINI_CHECK!(loaded.is_valid());\n        MINI_CHECK!(loaded.number_of_vertices() == result.number_of_vertices());\n        MINI_CHECK!(loaded.number_of_faces() == result.number_of_faces());\n    })\n}",
+          "code": "MINI_TEST!(\"MeshOffset\", \"from_mesh_layers\", crate::mesh_offset_test::run_mesh_offset_from_mesh_layers);\n\npub fn run_mesh_offset_file_json_dump() -> TestResult {\n    MINI_TEST!(\"file_json_dump\", {\n        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2, 3]]);\n        let result = MeshOffset::from_mesh(&mesh, 1.0);\n        let filename = \"serialization/test_mesh_offset.json\";\n        let _ = result.file_json_dump(filename);\n        let loaded = Mesh::file_json_load(filename).unwrap();\n        MINI_CHECK!(loaded.is_valid());\n        MINI_CHECK!(loaded.number_of_vertices() == result.number_of_vertices());\n        MINI_CHECK!(loaded.number_of_faces() == result.number_of_faces());\n    })\n}",
           "file": "mesh_offset_test.rs"
         }
       }
@@ -94397,17 +94397,17 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"MeshOffset\", \"file_json_dump\")",
-          "code": "MINI_TEST(\"MeshOffset\", \"file_json_dump\") {\n        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        Mesh result = MeshOffset::from_mesh(mesh, 1.0);\n        result.file_json_dump(\"mesh_offset_test_dump.json\");\n        Mesh loaded = Mesh::file_json_load(\"mesh_offset_test_dump.json\");\n        MINI_CHECK(loaded.is_valid());\n        MINI_CHECK(loaded.number_of_vertices() == result.number_of_vertices());\n        MINI_CHECK(loaded.number_of_faces() == result.number_of_faces());\n    }",
+          "code": "MINI_TEST(\"MeshOffset\", \"file_json_dump\") {\n        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        Mesh result = MeshOffset::from_mesh(mesh, 1.0);\n        std::string filename = \"serialization/test_mesh_offset.json\";\n        result.file_json_dump(filename);\n        Mesh loaded = Mesh::file_json_load(filename);\n        MINI_CHECK(loaded.is_valid());\n        MINI_CHECK(loaded.number_of_vertices() == result.number_of_vertices());\n        MINI_CHECK(loaded.number_of_faces() == result.number_of_faces());\n    }",
           "file": "mesh_offset_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"MeshOffset\", \"file_json_dump\")",
-          "code": "@MINI_TEST(\"MeshOffset\", \"file_json_dump\")\ndef test_mesh_offset_file_json_dump():\n    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    result = MeshOffset.from_mesh(mesh, 1.0)\n    result.file_json_dump(\"mesh_offset_test_dump.json\")\n    loaded = Mesh.file_json_load(\"mesh_offset_test_dump.json\")\n    MINI_CHECK(loaded.is_valid())\n    MINI_CHECK(loaded.number_of_vertices() == result.number_of_vertices())\n    MINI_CHECK(loaded.number_of_faces() == result.number_of_faces())",
+          "code": "@MINI_TEST(\"MeshOffset\", \"file_json_dump\")\ndef test_mesh_offset_file_json_dump():\n    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    from pathlib import Path\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    result = MeshOffset.from_mesh(mesh, 1.0)\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh_offset.json\"\n    result.file_json_dump(fname)\n    loaded = Mesh.file_json_load(fname)\n    MINI_CHECK(loaded.is_valid())\n    MINI_CHECK(loaded.number_of_vertices() == result.number_of_vertices())\n    MINI_CHECK(loaded.number_of_faces() == result.number_of_faces())",
           "file": "mesh_offset_test.py"
         },
         "rust": {
           "sig": "MINI_TEST!(\"MeshOffset\", \"file_json_dump\")",
-          "code": "MINI_TEST!(\"MeshOffset\", \"file_json_dump\", crate::mesh_offset_test::run_mesh_offset_file_json_dump);\n\npub fn run_mesh_offset_file_json_load() -> TestResult {\n    MINI_TEST!(\"file_json_load\", {\n        use crate::Mesh;\n        let loaded = Mesh::file_json_load(\"mesh_offset_test_dump.json\").unwrap();\n        MINI_CHECK!(loaded.is_valid());\n        MINI_CHECK!(loaded.number_of_vertices() == 8);\n        MINI_CHECK!(loaded.number_of_faces() == 6);\n    })\n}",
+          "code": "MINI_TEST!(\"MeshOffset\", \"file_json_dump\", crate::mesh_offset_test::run_mesh_offset_file_json_dump);\n\npub fn run_mesh_offset_file_json_load() -> TestResult {\n    MINI_TEST!(\"file_json_load\", {\n        use crate::Mesh;\n        let filename = \"serialization/test_mesh_offset.json\";\n        let loaded = Mesh::file_json_load(filename).unwrap();\n        MINI_CHECK!(loaded.is_valid());\n        MINI_CHECK!(loaded.number_of_vertices() == 8);\n        MINI_CHECK!(loaded.number_of_faces() == 6);\n    })\n}",
           "file": "mesh_offset_test.rs"
         }
       }
@@ -94417,17 +94417,17 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"MeshOffset\", \"file_json_load\")",
-          "code": "MINI_TEST(\"MeshOffset\", \"file_json_load\") {\n        Mesh loaded = Mesh::file_json_load(\"mesh_offset_test_dump.json\");\n        MINI_CHECK(loaded.is_valid());\n        MINI_CHECK(loaded.number_of_vertices() == 8);\n        MINI_CHECK(loaded.number_of_faces() == 6);\n    }",
+          "code": "MINI_TEST(\"MeshOffset\", \"file_json_load\") {\n        std::string filename = \"serialization/test_mesh_offset.json\";\n        Mesh loaded = Mesh::file_json_load(filename);\n        MINI_CHECK(loaded.is_valid());\n        MINI_CHECK(loaded.number_of_vertices() == 8);\n        MINI_CHECK(loaded.number_of_faces() == 6);\n    }",
           "file": "mesh_offset_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"MeshOffset\", \"file_json_load\")",
-          "code": "@MINI_TEST(\"MeshOffset\", \"file_json_load\")\ndef test_mesh_offset_file_json_load():\n    from session_py import Mesh\n    loaded = Mesh.file_json_load(\"mesh_offset_test_dump.json\")\n    MINI_CHECK(loaded.is_valid())\n    MINI_CHECK(loaded.number_of_vertices() == 8)\n    MINI_CHECK(loaded.number_of_faces() == 6)",
+          "code": "@MINI_TEST(\"MeshOffset\", \"file_json_load\")\ndef test_mesh_offset_file_json_load():\n    from session_py import Mesh\n    from pathlib import Path\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh_offset.json\"\n    loaded = Mesh.file_json_load(fname)\n    MINI_CHECK(loaded.is_valid())\n    MINI_CHECK(loaded.number_of_vertices() == 8)\n    MINI_CHECK(loaded.number_of_faces() == 6)",
           "file": "mesh_offset_test.py"
         },
         "rust": {
           "sig": "MINI_TEST!(\"MeshOffset\", \"file_json_load\")",
-          "code": "MINI_TEST!(\"MeshOffset\", \"file_json_load\", crate::mesh_offset_test::run_mesh_offset_file_json_load);\n\npub fn run_mesh_offset_to_proto() -> TestResult {\n    MINI_TEST!(\"to_proto\", {\n        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2, 3]]);\n        let result = MeshOffset::from_mesh(&mesh, 1.0);\n        result.pb_dump(\"mesh_offset_test.pb\");\n        let loaded = Mesh::pb_load(\"mesh_offset_test.pb\");\n        MINI_CHECK!(loaded.is_valid());\n        MINI_CHECK!(loaded.number_of_vertices() == result.number_of_vertices());\n        MINI_CHECK!(loaded.number_of_faces() == result.number_of_faces());\n    })\n}",
+          "code": "MINI_TEST!(\"MeshOffset\", \"file_json_load\", crate::mesh_offset_test::run_mesh_offset_file_json_load);\n\npub fn run_mesh_offset_to_proto() -> TestResult {\n    MINI_TEST!(\"to_proto\", {\n        use crate::mesh_offset::MeshOffset;\n        use crate::Mesh;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n        ];\n        let mesh = Mesh::from_vertices_and_faces(pts, vec![vec![0, 1, 2, 3]]);\n        let result = MeshOffset::from_mesh(&mesh, 1.0);\n        let filename = \"serialization/test_mesh_offset.bin\";\n        result.pb_dump(filename);\n        let loaded = Mesh::pb_load(filename);\n        MINI_CHECK!(loaded.is_valid());\n        MINI_CHECK!(loaded.number_of_vertices() == result.number_of_vertices());\n        MINI_CHECK!(loaded.number_of_faces() == result.number_of_faces());\n    })\n}",
           "file": "mesh_offset_test.rs"
         }
       }
@@ -94437,17 +94437,17 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"MeshOffset\", \"to_proto\")",
-          "code": "MINI_TEST(\"MeshOffset\", \"to_proto\") {\n        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        Mesh result = MeshOffset::from_mesh(mesh, 1.0);\n        result.pb_dump(\"mesh_offset_test.pb\");\n        Mesh loaded = Mesh::pb_load(\"mesh_offset_test.pb\");\n        MINI_CHECK(loaded.is_valid());\n        MINI_CHECK(loaded.number_of_vertices() == result.number_of_vertices());\n        MINI_CHECK(loaded.number_of_faces() == result.number_of_faces());\n    }",
+          "code": "MINI_TEST(\"MeshOffset\", \"to_proto\") {\n        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        Mesh result = MeshOffset::from_mesh(mesh, 1.0);\n        std::string filename = \"serialization/test_mesh_offset.bin\";\n        result.pb_dump(filename);\n        Mesh loaded = Mesh::pb_load(filename);\n        MINI_CHECK(loaded.is_valid());\n        MINI_CHECK(loaded.number_of_vertices() == result.number_of_vertices());\n        MINI_CHECK(loaded.number_of_faces() == result.number_of_faces());\n    }",
           "file": "mesh_offset_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"MeshOffset\", \"to_proto\")",
-          "code": "@MINI_TEST(\"MeshOffset\", \"to_proto\")\ndef test_mesh_offset_to_proto():\n    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    result = MeshOffset.from_mesh(mesh, 1.0)\n    result.pb_dump(\"mesh_offset_test.pb\")\n    loaded = Mesh.pb_load(\"mesh_offset_test.pb\")\n    MINI_CHECK(loaded.is_valid())\n    MINI_CHECK(loaded.number_of_vertices() == result.number_of_vertices())\n    MINI_CHECK(loaded.number_of_faces() == result.number_of_faces())",
+          "code": "@MINI_TEST(\"MeshOffset\", \"to_proto\")\ndef test_mesh_offset_to_proto():\n    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    from pathlib import Path\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    result = MeshOffset.from_mesh(mesh, 1.0)\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh_offset.bin\"\n    result.pb_dump(fname)\n    loaded = Mesh.pb_load(fname)\n    MINI_CHECK(loaded.is_valid())\n    MINI_CHECK(loaded.number_of_vertices() == result.number_of_vertices())\n    MINI_CHECK(loaded.number_of_faces() == result.number_of_faces())",
           "file": "mesh_offset_test.py"
         },
         "rust": {
           "sig": "MINI_TEST!(\"MeshOffset\", \"to_proto\")",
-          "code": "MINI_TEST!(\"MeshOffset\", \"to_proto\", crate::mesh_offset_test::run_mesh_offset_to_proto);\n\npub fn run_mesh_offset_from_proto() -> TestResult {\n    MINI_TEST!(\"from_proto\", {\n        use crate::Mesh;\n        let loaded = Mesh::pb_load(\"mesh_offset_test.pb\");\n        MINI_CHECK!(loaded.is_valid());\n        MINI_CHECK!(loaded.number_of_vertices() == 8);\n        MINI_CHECK!(loaded.number_of_faces() == 6);\n    })\n}",
+          "code": "MINI_TEST!(\"MeshOffset\", \"to_proto\", crate::mesh_offset_test::run_mesh_offset_to_proto);\n\npub fn run_mesh_offset_from_proto() -> TestResult {\n    MINI_TEST!(\"from_proto\", {\n        use crate::Mesh;\n        let filename = \"serialization/test_mesh_offset.bin\";\n        let loaded = Mesh::pb_load(filename);\n        MINI_CHECK!(loaded.is_valid());\n        MINI_CHECK!(loaded.number_of_vertices() == 8);\n        MINI_CHECK!(loaded.number_of_faces() == 6);\n    })\n}",
           "file": "mesh_offset_test.rs"
         }
       }
@@ -94457,12 +94457,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"MeshOffset\", \"from_proto\")",
-          "code": "MINI_TEST(\"MeshOffset\", \"from_proto\") {\n        Mesh loaded = Mesh::pb_load(\"mesh_offset_test.pb\");\n        MINI_CHECK(loaded.is_valid());\n        MINI_CHECK(loaded.number_of_vertices() == 8);\n        MINI_CHECK(loaded.number_of_faces() == 6);\n    }",
+          "code": "MINI_TEST(\"MeshOffset\", \"from_proto\") {\n        std::string filename = \"serialization/test_mesh_offset.bin\";\n        Mesh loaded = Mesh::pb_load(filename);\n        MINI_CHECK(loaded.is_valid());\n        MINI_CHECK(loaded.number_of_vertices() == 8);\n        MINI_CHECK(loaded.number_of_faces() == 6);\n    }",
           "file": "mesh_offset_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"MeshOffset\", \"from_proto\")",
-          "code": "@MINI_TEST(\"MeshOffset\", \"from_proto\")\ndef test_mesh_offset_from_proto():\n    from session_py import Mesh\n    loaded = Mesh.pb_load(\"mesh_offset_test.pb\")\n    MINI_CHECK(loaded.is_valid())\n    MINI_CHECK(loaded.number_of_vertices() == 8)\n    MINI_CHECK(loaded.number_of_faces() == 6)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "code": "@MINI_TEST(\"MeshOffset\", \"from_proto\")\ndef test_mesh_offset_from_proto():\n    from session_py import Mesh\n    from pathlib import Path\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh_offset.bin\"\n    loaded = Mesh.pb_load(fname)\n    MINI_CHECK(loaded.is_valid())\n    MINI_CHECK(loaded.number_of_vertices() == 8)\n    MINI_CHECK(loaded.number_of_faces() == 6)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
           "file": "mesh_offset_test.py"
         },
         "rust": {
@@ -102823,9 +102823,9 @@ window.API_INDEX = {
       "title": "Circle + Subdivide into N Points",
       "tags": [
         "n",
+        "circle",
         "points",
         "into",
-        "circle",
         "subdivide",
         "divide_by_count",
         "nurbscurve",
@@ -102840,10 +102840,10 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
+        "arc",
+        "length",
         "by",
         "ellipse",
-        "length",
-        "arc",
         "subdivide",
         "divide_by_length",
         "nurbscurve",
@@ -102858,9 +102858,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
+        "through",
         "points",
         "arc",
-        "through",
         "nurbscurve",
         "primitives",
         "point"
@@ -102875,11 +102875,11 @@ window.API_INDEX = {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
         "from",
-        "open",
-        "points",
-        "adaptive",
         "polyline",
+        "points",
         "curve",
+        "adaptive",
+        "open",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -102894,10 +102894,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
+        "at",
+        "curve",
         "parameter",
         "evaluation",
-        "curve",
-        "at",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -102916,9 +102916,9 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "along",
         "frames",
         "curve",
+        "along",
         "length",
         "divide_by_count",
         "frame_at",
@@ -102941,9 +102941,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "ellipse",
         "frames",
         "perpendicular",
-        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -102964,10 +102964,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "cylinder",
-        "surface",
-        "point",
         "evaluate",
+        "point",
+        "surface",
+        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -102982,11 +102982,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "from",
-        "faces",
-        "and",
         "vertices",
+        "and",
         "mesh",
+        "faces",
+        "from",
         "add_vertex",
         "add_face",
         "vertex"
@@ -103126,12 +103126,6 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
     },
-    "GeometryFileEncoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
-    },
     "NurbsSurfaceTrimmed": {
       "composition": [],
       "factories": [],
@@ -103145,17 +103139,23 @@ window.API_INDEX = {
       ],
       "summary": "NurbsSurfaceTrimmed geometry class"
     },
-    "CurveNurbsKnotStyle": {
+    "GeometryFileEncoder": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
+      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
     },
     "GlobalSessionConfig": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "GlobalSessionConfig geometry class"
+    },
+    "CurveNurbsKnotStyle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
     },
     "TriangulateResult": {
       "composition": [],
@@ -103168,6 +103168,12 @@ window.API_INDEX = {
       ],
       "summary": "TriangulateResult geometry class"
     },
+    "ElementSchoring": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
+    },
     "BooleanPolyline": {
       "composition": [],
       "factories": [],
@@ -103175,12 +103181,6 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "BooleanPolyline geometry class"
-    },
-    "ElementSchoring": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
     },
     "SpatialAABBTree": {
       "composition": [],
@@ -103200,6 +103200,26 @@ window.API_INDEX = {
       ],
       "summary": "GlobalTolerance geometry class"
     },
+    "VIntersectNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VIntersectNode geometry class"
+    },
+    "_PartitionVars": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_PartitionVars geometry class"
+    },
+    "ToleranceGuard": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Tolerance"
+      ],
+      "summary": "ToleranceGuard geometry class"
+    },
     "SpatialBVHNode": {
       "composition": [],
       "factories": [],
@@ -103212,25 +103232,20 @@ window.API_INDEX = {
       ],
       "summary": "A node in the SpatialBVH tree."
     },
-    "ToleranceGuard": {
+    "SessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SessionConfig geometry class"
+    },
+    "SpatialKDTree": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Tolerance"
+        "Point",
+        "_Node"
       ],
-      "summary": "ToleranceGuard geometry class"
-    },
-    "_PartitionVars": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_PartitionVars geometry class"
-    },
-    "VIntersectNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VIntersectNode geometry class"
+      "summary": "KD-tree for point-to-point nearest-neighbor queries."
     },
     "ElementColumn": {
       "composition": [],
@@ -103245,45 +103260,11 @@ window.API_INDEX = {
       ],
       "summary": "ElementColumn geometry class"
     },
-    "SpatialKDTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "_Node"
-      ],
-      "summary": "KD-tree for point-to-point nearest-neighbor queries."
-    },
-    "SessionConfig": {
+    "ScanlineHeap": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "SessionConfig geometry class"
-    },
-    "Intersection": {
-      "composition": [
-        "Element",
-        "Line",
-        "Polyline",
-        "Tolerance",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point"
-      ],
-      "summary": "Intersection geometry class"
-    },
-    "BRepLoopType": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoopType geometry class"
+      "summary": "ScanlineHeap geometry class"
     },
     "NurbsSurface": {
       "composition": [
@@ -103308,35 +103289,11 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
-    "VLocalMinima": {
+    "BRepLoopType": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VLocalMinima geometry class"
-    },
-    "SpatialRTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SpatialRTree geometry class"
-    },
-    "VattiScratch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VattiScratch geometry class"
-    },
-    "ScanlineHeap": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "ScanlineHeap geometry class"
-    },
-    "LoftWallFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftWallFace geometry class"
+      "summary": "BRepLoopType geometry class"
     },
     "ElementPlate": {
       "composition": [],
@@ -103352,6 +103309,18 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "ElementPlate geometry class"
+    },
+    "SpatialRTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SpatialRTree geometry class"
+    },
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
     },
     "BRepTrimType": {
       "composition": [],
@@ -103370,6 +103339,57 @@ window.API_INDEX = {
       ],
       "summary": "BRepTrimType geometry class"
     },
+    "VattiScratch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VattiScratch geometry class"
+    },
+    "Intersection": {
+      "composition": [
+        "Element",
+        "Line",
+        "Polyline",
+        "Tolerance",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point"
+      ],
+      "summary": "Intersection geometry class"
+    },
+    "LoftWallFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftWallFace geometry class"
+    },
+    "LoftAdjPair": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftAdjPair geometry class"
+    },
+    "session_cpp": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "session_cpp geometry class"
+    },
+    "_Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay2D geometry class"
+    },
     "ElementBeam": {
       "composition": [],
       "factories": [],
@@ -103382,90 +103402,6 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "ElementBeam geometry class"
-    },
-    "_Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay2D geometry class"
-    },
-    "session_cpp": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "session_cpp geometry class"
-    },
-    "LoftAdjPair": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftAdjPair geometry class"
-    },
-    "BRepVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepVertex geometry class"
-    },
-    "PointCloud": {
-      "composition": [
-        "Color",
-        "Xform"
-      ],
-      "factories": [
-        "AABB",
-        "OBB"
-      ],
-      "uses": [
-        "Point",
-        "Vector"
-      ],
-      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
-    },
-    "Quaternion": {
-      "composition": [
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Plane"
-      ],
-      "summary": "A quaternion for 3D rotations (scalar + vector)."
-    },
-    "ConvexHull": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Point"
-      ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
-    },
-    "Primitives": {
-      "composition": [
-        "CurveNurbsKnotStyle",
-        "NurbsCurve",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsSurface",
-        "Point",
-        "Xform"
-      ],
-      "summary": "Static factory methods for creating NURBS curve primitives."
-    },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "Vertex data containing position and attributes."
     },
     "SpatialBVH": {
       "composition": [],
@@ -103480,11 +103416,13 @@ window.API_INDEX = {
       ],
       "summary": "Boundary Volume Hierarchy for spatial acceleration."
     },
-    "Delaunay2D": {
+    "VertexData": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "Delaunay2D geometry class"
+      "uses": [
+        "Point"
+      ],
+      "summary": "Vertex data containing position and attributes."
     },
     "NurbsCurve": {
       "composition": [
@@ -103507,6 +103445,62 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
+    "PointCloud": {
+      "composition": [
+        "Color",
+        "Xform"
+      ],
+      "factories": [
+        "AABB",
+        "OBB"
+      ],
+      "uses": [
+        "Point",
+        "Vector"
+      ],
+      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
+    },
+    "Primitives": {
+      "composition": [
+        "CurveNurbsKnotStyle",
+        "NurbsCurve",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsSurface",
+        "Point",
+        "Xform"
+      ],
+      "summary": "Static factory methods for creating NURBS curve primitives."
+    },
+    "Quaternion": {
+      "composition": [
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Plane"
+      ],
+      "summary": "A quaternion for 3D rotations (scalar + vector)."
+    },
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
+    },
+    "ConvexHull": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Point"
+      ],
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+    },
     "MeshOffset": {
       "composition": [],
       "factories": [],
@@ -103517,32 +103511,23 @@ window.API_INDEX = {
       ],
       "summary": "MeshOffset geometry class"
     },
-    "FlatMap64": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Delaunay2D",
-        "NurbsCurve",
-        "Point",
-        "Vector"
-      ],
-      "summary": "FlatMap64 geometry class"
-    },
-    "LoftPanel": {
+    "BRepVertex": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "LoftPanel geometry class"
+      "summary": "BRepVertex geometry class"
     },
-    "Tolerance": {
+    "_Triangle": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Point",
-        "ToleranceGuard",
-        "Vector"
-      ],
-      "summary": "Tolerance settings for geometric operations."
+      "uses": [],
+      "summary": "_Triangle geometry class"
+    },
+    "VHorzJoin": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzJoin geometry class"
     },
     "ColorMode": {
       "composition": [],
@@ -103560,23 +103545,32 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
-    "Component": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Component geometry class"
-    },
     "_Vertex2D": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Vertex2D geometry class"
     },
-    "_Delaunay": {
+    "FlatMap64": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "_Delaunay geometry class"
+      "uses": [
+        "Delaunay2D",
+        "NurbsCurve",
+        "Point",
+        "Vector"
+      ],
+      "summary": "FlatMap64 geometry class"
+    },
+    "Tolerance": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "ToleranceGuard",
+        "Vector"
+      ],
+      "summary": "Tolerance settings for geometric operations."
     },
     "RemeshCDT": {
       "composition": [],
@@ -103587,17 +103581,23 @@ window.API_INDEX = {
       ],
       "summary": "RemeshCDT geometry class"
     },
-    "VHorzJoin": {
+    "_Delaunay": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VHorzJoin geometry class"
+      "summary": "_Delaunay geometry class"
     },
-    "_Triangle": {
+    "LoftPanel": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Triangle geometry class"
+      "summary": "LoftPanel geometry class"
+    },
+    "Component": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Component geometry class"
     },
     "Delaunay": {
       "composition": [],
@@ -103608,35 +103608,19 @@ window.API_INDEX = {
       ],
       "summary": "Delaunay geometry class"
     },
-    "BRepFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepFace geometry class"
-    },
-    "VHorzSeg": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzSeg geometry class"
-    },
-    "BRepLoop": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoop geometry class"
-    },
-    "BRepEdge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
-    },
     "BRepTrim": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepTrim geometry class"
+    },
+    "TreeNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Tree"
+      ],
+      "summary": "A node of a tree data structure."
     },
     "Polyline": {
       "composition": [
@@ -103662,58 +103646,35 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
+    "BRepLoop": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoop geometry class"
+    },
+    "VHorzSeg": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzSeg geometry class"
+    },
     "Geometry": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Geometry geometry class"
     },
-    "TreeNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tree"
-      ],
-      "summary": "A node of a tree data structure."
-    },
-    "_Branch": {
+    "BRepEdge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Branch geometry class"
+      "summary": "BRepEdge geometry class"
     },
-    "Dataset": {
+    "BRepFace": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Dataset geometry class"
-    },
-    "Objects": {
-      "composition": [
-        "BRep",
-        "Component",
-        "Element",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "A collection of all geometry objects."
-    },
-    "VOutRec": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutRec geometry class"
+      "summary": "BRepFace geometry class"
     },
     "Session": {
       "composition": [
@@ -103743,23 +103704,11 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "Element": {
-      "composition": [
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
+    "Dataset": {
+      "composition": [],
       "factories": [],
-      "uses": [
-        "AABB",
-        "BRep",
-        "Xform"
-      ],
-      "summary": "Element geometry class"
+      "uses": [],
+      "summary": "Dataset geometry class"
     },
     "Closest": {
       "composition": [],
@@ -103782,6 +103731,33 @@ window.API_INDEX = {
       "uses": [],
       "summary": "VVertex geometry class"
     },
+    "Objects": {
+      "composition": [
+        "BRep",
+        "Component",
+        "Element",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "factories": [],
+      "uses": [
+        "session_cpp"
+      ],
+      "summary": "A collection of all geometry objects."
+    },
+    "VActive": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VActive geometry class"
+    },
     "Default": {
       "composition": [],
       "factories": [],
@@ -103793,11 +103769,41 @@ window.API_INDEX = {
       ],
       "summary": "Default geometry class"
     },
-    "VActive": {
+    "Element": {
+      "composition": [
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "BRep",
+        "Xform"
+      ],
+      "summary": "Element geometry class"
+    },
+    "_Branch": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VActive geometry class"
+      "summary": "_Branch geometry class"
+    },
+    "VOutRec": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutRec geometry class"
+    },
+    "VOutPt": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutPt geometry class"
     },
     "Vector": {
       "composition": [],
@@ -103812,24 +103818,6 @@ window.API_INDEX = {
         "session_cpp"
       ],
       "summary": "A 3D vector with visual properties."
-    },
-    "BIVec2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BIVec2 geometry class"
-    },
-    "RayHit": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RayHit geometry class"
-    },
-    "VOutPt": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutPt geometry class"
     },
     "Matrix": {
       "composition": [],
@@ -103846,19 +103834,23 @@ window.API_INDEX = {
       ],
       "summary": "A graph vertex with a unique identifier and attribute string."
     },
-    "Point": {
+    "RayHit": {
       "composition": [],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Vector"
-      ],
+      "factories": [],
       "uses": [],
-      "summary": "A 3D point with visual properties."
+      "summary": "RayHit geometry class"
+    },
+    "BIVec2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BIVec2 geometry class"
+    },
+    "_Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Edge geometry class"
     },
     "Xform": {
       "composition": [
@@ -103875,13 +103867,11 @@ window.API_INDEX = {
       ],
       "summary": "Xform geometry class"
     },
-    "Color": {
+    "_Node": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "An index-based 0.0-1.0 color with RGBA values."
+      "uses": [],
+      "summary": "_Node geometry class"
     },
     "Plane": {
       "composition": [],
@@ -103897,23 +103887,19 @@ window.API_INDEX = {
       ],
       "summary": "A 3D plane defined by origin and coordinate axes."
     },
-    "_Edge": {
+    "Color": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "_Edge geometry class"
+      "uses": [
+        "session_cpp"
+      ],
+      "summary": "An index-based 0.0-1.0 color with RGBA values."
     },
     "_Rect": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Rect geometry class"
-    },
-    "_Node": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Node geometry class"
     },
     "Graph": {
       "composition": [
@@ -103925,42 +103911,25 @@ window.API_INDEX = {
       ],
       "summary": "A graph data structure with string-only vertices and attributes."
     },
-    "AABB": {
+    "Point": {
       "composition": [],
       "factories": [
-        "OBB"
-      ],
-      "uses": [
+        "AABB",
+        "ColorMode",
         "Line",
         "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
+        "OBB",
+        "Plane",
+        "Vector"
       ],
-      "summary": "Axis-aligned bounding box (center + half-size)."
-    },
-    "Tree": {
-      "composition": [
-        "Color",
-        "TreeNode"
-      ],
-      "factories": [],
       "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
+      "summary": "A 3D point with visual properties."
     },
-    "Edge": {
+    "_P64": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
-    },
-    "_Tri": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Tri geometry class"
+      "summary": "_P64 geometry class"
     },
     "BRep": {
       "composition": [
@@ -103987,6 +103956,12 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "BRep geometry class"
+    },
+    "_Tri": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Tri geometry class"
     },
     "Mesh": {
       "composition": [
@@ -104015,11 +103990,36 @@ window.API_INDEX = {
       ],
       "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
-    "_P64": {
+    "AABB": {
+      "composition": [],
+      "factories": [
+        "OBB"
+      ],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Axis-aligned bounding box (center + half-size)."
+    },
+    "Edge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_P64 geometry class"
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
+    "Tree": {
+      "composition": [
+        "Color",
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A hierarchical data structure with parent-child relationships."
     },
     "Line": {
       "composition": [
@@ -104036,6 +104036,12 @@ window.API_INDEX = {
         "session_cpp"
       ],
       "summary": "A 3D line segment with visual properties."
+    },
+    "_V2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_V2 geometry class"
     },
     "OBB": {
       "composition": [
@@ -104058,12 +104064,6 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
-    },
-    "_V2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],

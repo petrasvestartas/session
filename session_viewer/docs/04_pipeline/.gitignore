@@ -1,0 +1,4 @@
+# Build artifacts created by `trunk serve` / `cargo build` — never commit these.
+/target
+/dist
+Cargo.lock

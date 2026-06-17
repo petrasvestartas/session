@@ -53,7 +53,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.796
+    "time_ms": 1.612
   },
   {
     "checks": [],
@@ -63,7 +63,7 @@
     "line": 49,
     "passed": true,
     "test_name": "Constructor Planar",
-    "time_ms": 204.804
+    "time_ms": 283.365
   },
   {
     "checks": [
@@ -89,7 +89,7 @@
     "line": 136,
     "passed": true,
     "test_name": "Constructor Hole",
-    "time_ms": 1.534
+    "time_ms": 3.296
   },
   {
     "checks": [
@@ -135,7 +135,7 @@
     "line": 183,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 0.742
+    "time_ms": 1.782
   },
   {
     "checks": [
@@ -161,7 +161,7 @@
     "line": 220,
     "passed": true,
     "test_name": "Add Inner Loop",
-    "time_ms": 2.151
+    "time_ms": 2.324
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 269,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.747
+    "time_ms": 0.85
   },
   {
     "checks": [
@@ -218,7 +218,7 @@
     "line": 440,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.747
+    "time_ms": 0.768
   },
   {
     "checks": [
@@ -244,7 +244,7 @@
     "line": 476,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 17.49
+    "time_ms": 19.776
   },
   {
     "checks": [
@@ -265,48 +265,7 @@
     "line": 523,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 14.183
-  },
-  {
-    "checks": [
-      {
-        "code_line": "parts.len() == 2",
-        "line": 420,
-        "passed": true
-      },
-      {
-        "code_line": "parts[0].is_trimmed()",
-        "line": 421,
-        "passed": true
-      },
-      {
-        "code_line": "parts[1].is_trimmed()",
-        "line": 422,
-        "passed": true
-      },
-      {
-        "code_line": "ring.len() == 2",
-        "line": 428,
-        "passed": true
-      },
-      {
-        "code_line": "ring[0].inner_loop_count() + ring[1].inner_loop_count() == 1",
-        "line": 429,
-        "passed": true
-      },
-      {
-        "code_line": "whole.len() == 1",
-        "line": 435,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Primitives;\n\n        let srf = Primitives::wave_surface(10.0, 1.0);\n        let (u0, u1) = srf.domain(0).unwrap();\n        let (v0, v1) = srf.domain(1).unwrap();\n        let pts = vec![Point::new(u0 + (u1-u0)*0.4, v0, 0.0), Point::new(u0 + (u1-u0)*0.6, v1, 0.0)];\n        let line = NurbsCurve::create(false, 1, &pts);\n\n        let parts = NurbsSurfaceTrimmed::split_by_uv_curves(&srf, &[line], None);\n\n\n        let circle = Primitives::circle((u0+u1)*0.5, (v0+v1)*0.5, 0.0, (u1-u0)*0.2);\n\n        let ring = NurbsSurfaceTrimmed::split_by_uv_curves(&srf, &[circle], None);\n\n\n        let dangling = NurbsCurve::create(false, 1, &[Point::new(3.0, 3.0, 0.0), Point::new(5.0, 5.0, 0.0)]);\n\n        let whole = NurbsSurfaceTrimmed::split_by_uv_curves(&srf, &[dangling], None);\n",
-    "failures": [],
-    "group": "NurbsSurfaceTrimmed",
-    "line": 406,
-    "passed": true,
-    "test_name": "Split By UV Curves",
-    "time_ms": 2.179
+    "time_ms": 15.227
   },
   {
     "checks": [
@@ -1522,6 +1481,47 @@
     "line": 307,
     "passed": true,
     "test_name": "Mesh",
-    "time_ms": 203.136
+    "time_ms": 290.481
+  },
+  {
+    "checks": [
+      {
+        "code_line": "parts.len() == 2",
+        "line": 420,
+        "passed": true
+      },
+      {
+        "code_line": "parts[0].is_trimmed()",
+        "line": 421,
+        "passed": true
+      },
+      {
+        "code_line": "parts[1].is_trimmed()",
+        "line": 422,
+        "passed": true
+      },
+      {
+        "code_line": "ring.len() == 2",
+        "line": 428,
+        "passed": true
+      },
+      {
+        "code_line": "ring[0].inner_loop_count() + ring[1].inner_loop_count() == 1",
+        "line": 429,
+        "passed": true
+      },
+      {
+        "code_line": "whole.len() == 1",
+        "line": 435,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::nurbssurface_trimmed::NurbsSurfaceTrimmed;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Primitives;\n\n        let srf = Primitives::wave_surface(10.0, 1.0);\n        let (u0, u1) = srf.domain(0).unwrap();\n        let (v0, v1) = srf.domain(1).unwrap();\n        let pts = vec![Point::new(u0 + (u1-u0)*0.4, v0, 0.0), Point::new(u0 + (u1-u0)*0.6, v1, 0.0)];\n        let line = NurbsCurve::create(false, 1, &pts);\n\n        let parts = NurbsSurfaceTrimmed::split_by_uv_curves(&srf, &[line], None);\n\n\n        let circle = Primitives::circle((u0+u1)*0.5, (v0+v1)*0.5, 0.0, (u1-u0)*0.2);\n\n        let ring = NurbsSurfaceTrimmed::split_by_uv_curves(&srf, &[circle], None);\n\n\n        let dangling = NurbsCurve::create(false, 1, &[Point::new(3.0, 3.0, 0.0), Point::new(5.0, 5.0, 0.0)]);\n\n        let whole = NurbsSurfaceTrimmed::split_by_uv_curves(&srf, &[dangling], None);\n",
+    "failures": [],
+    "group": "NurbsSurfaceTrimmed",
+    "line": 406,
+    "passed": true,
+    "test_name": "Split By UV Curves",
+    "time_ms": 2.839
   }
 ]

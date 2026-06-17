@@ -7,6 +7,16 @@
       "icon": "terminal-bash"
     }
   },
+  "editor.suggestOnTriggerCharacters": true,
+  "editor.inlineSuggest.enabled": false,
+  "github.copilot.enable": { "*": false },
+  "rust-analyzer.linkedProjects": [
+    "session_rust/Cargo.toml",
+    "session_viewer/Cargo.toml",
+    "session_viewer_archive/Cargo.toml",
+    "session_server/Cargo.toml"
+  ],
+  "editor.hover.enabled": true,
   "VsCodeTaskButtons.showCounter": false,
   "VsCodeTaskButtons.tasks": [
     { "label": "$(tools) cpp",         "task": "cpp" },
