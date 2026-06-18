@@ -3,7 +3,7 @@
     "group": "Session",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.033,
     "line": 11,
     "code": "    // uncomment #include \"session.h\"\n\n    Session session;\n    Session named(\"my_named_session\");",
     "checks": [
@@ -29,7 +29,7 @@
     "group": "Session",
     "test_name": "Add Point",
     "passed": true,
-    "time_ms": 0.041,
+    "time_ms": 0.049,
     "line": 22,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n\n    Session session;\n    auto point = std::make_shared<Point>(1.0, 2.0, 3.0);\n    session.add_point(point);",
     "checks": [
@@ -55,7 +55,7 @@
     "group": "Session",
     "test_name": "Add Line",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.106,
     "line": 35,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"line.h\"\n\n    Session session;\n    auto line = std::make_shared<Line>(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    session.add_line(line);",
     "checks": [
@@ -76,7 +76,7 @@
     "group": "Session",
     "test_name": "Add Plane",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.046,
     "line": 47,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"plane.h\"\n\n    Session session;\n    auto plane = std::make_shared<Plane>(Plane::xy_plane());\n    session.add_plane(plane);",
     "checks": [
@@ -97,7 +97,7 @@
     "group": "Session",
     "test_name": "Add OBB",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.031,
     "line": 59,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"obb.h\"\n\n    Session session;\n    auto obb = std::make_shared<OBB>(\n        Point(0.0, 0.0, 0.0),\n        Vector(1.0, 0.0, 0.0),\n        Vector(0.0, 1.0, 0.0),\n        Vector(0.0, 0.0, 1.0),\n        Vector(1.0, 1.0, 1.0)\n    );\n    session.add_obb(obb);",
     "checks": [
@@ -118,7 +118,7 @@
     "group": "Session",
     "test_name": "Add Polyline",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.025,
     "line": 77,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"polyline.h\"\n\n    Session session;\n    auto pl = std::make_shared<Polyline>(std::vector<Point>{Point(0,0,0), Point(1,0,0), Point(1,1,0)});\n    session.add_polyline(pl);",
     "checks": [
@@ -139,7 +139,7 @@
     "group": "Session",
     "test_name": "Add Pointcloud",
     "passed": true,
-    "time_ms": 0.016,
+    "time_ms": 0.02,
     "line": 89,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"pointcloud.h\"\n\n    Session session;\n    auto pc = std::make_shared<PointCloud>(std::vector<Point>{Point(0,0,0), Point(1,0,0)}, std::vector<Vector>{}, std::vector<Color>{});\n    session.add_pointcloud(pc);",
     "checks": [
@@ -160,7 +160,7 @@
     "group": "Session",
     "test_name": "Add Mesh",
     "passed": true,
-    "time_ms": 0.036,
+    "time_ms": 0.04,
     "line": 101,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"mesh.h\"\n\n    Session session;\n    auto mesh = std::make_shared<Mesh>();\n    mesh->add_vertex(Point(0,0,0), 0);\n    mesh->add_vertex(Point(1,0,0), 1);\n    mesh->add_vertex(Point(0,1,0), 2);\n    mesh->add_face(std::vector<size_t>{0, 1, 2});\n    session.add_mesh(mesh);",
     "checks": [
@@ -181,7 +181,7 @@
     "group": "Session",
     "test_name": "Add Nurbscurve",
     "passed": true,
-    "time_ms": 0.278,
+    "time_ms": 0.273,
     "line": 117,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"nurbscurve.h\"\n\n    Session session;\n    std::vector<Point> pts = {Point(0,0,0), Point(1,1,0), Point(2,0,0), Point(3,1,0)};\n    auto nc = std::make_shared<NurbsCurve>(NurbsCurve::create(false, 2, pts));\n    session.add_nurbscurve(nc);",
     "checks": [
@@ -202,7 +202,7 @@
     "group": "Session",
     "test_name": "Add Nurbssurface",
     "passed": true,
-    "time_ms": 0.047,
+    "time_ms": 0.071,
     "line": 130,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"nurbssurface.h\"\n\n    Session session;\n    std::vector<Point> pts = {\n        Point(0,0,0), Point(0,1,0), Point(0,2,0), Point(0,3,0),\n        Point(1,0,0), Point(1,1,0), Point(1,2,0), Point(1,3,0),\n        Point(2,0,0), Point(2,1,0), Point(2,2,0), Point(2,3,0),\n        Point(3,0,0), Point(3,1,0), Point(3,2,0), Point(3,3,0),\n    };\n    auto ns = std::make_shared<NurbsSurface>(NurbsSurface::create(false, false, 3, 3, 4, 4, pts));\n    session.add_nurbssurface(ns);",
     "checks": [
@@ -223,7 +223,7 @@
     "group": "Session",
     "test_name": "Add Brep",
     "passed": true,
-    "time_ms": 0.33,
+    "time_ms": 0.548,
     "line": 148,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"brep.h\"\n\n    Session session;\n    auto brep = std::make_shared<BRep>(BRep::create_box(1.0, 1.0, 1.0));\n    session.add_brep(brep);",
     "checks": [
@@ -244,7 +244,7 @@
     "group": "Session",
     "test_name": "Add Element",
     "passed": true,
-    "time_ms": 0.088,
+    "time_ms": 0.092,
     "line": 160,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"element_plate.h\"\n\n    Session session;\n    std::vector<Point> polygon = {Point(0,0,0), Point(2,0,0), Point(2,2,0), Point(0,2,0)};\n    auto plate = std::make_shared<ElementPlate>(polygon, 0.2, \"p1\");\n    session.add_element(plate);",
     "checks": [
@@ -270,7 +270,7 @@
     "group": "Session",
     "test_name": "Add Group",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.009,
     "line": 174,
     "code": "    // uncomment #include \"session.h\"\n\n    Session session;\n    auto group = session.add_group(\"my_group\");",
     "checks": [
@@ -291,7 +291,7 @@
     "group": "Session",
     "test_name": "Add Edge",
     "passed": true,
-    "time_ms": 0.026,
+    "time_ms": 0.038,
     "line": 184,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n\n    Session session;\n    auto p1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto p2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(p1);\n    session.add_point(p2);\n    session.add_edge(p1->guid(), p2->guid(), \"connection\");",
     "checks": [
@@ -307,7 +307,7 @@
     "group": "Session",
     "test_name": "Add ElementFeature",
     "passed": true,
-    "time_ms": 0.026,
+    "time_ms": 0.035,
     "line": 198,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"elementfeature.h\"\n    // uncomment #include \"point.h\"\n\n    Session session;\n    auto p1 = std::make_shared<Point>(0.0, 0.0, 0.0);\n    auto p2 = std::make_shared<Point>(1.0, 0.0, 0.0);\n    session.add_point(p1);\n    session.add_point(p2);\n    FaceElementFeature f;\n    f.face_id_a = 0;\n    f.face_id_b = 0;\n    std::string fguid = session.add_elementfeature(p1->guid(), p2->guid(), EdgeElementFeature{f});",
     "checks": [
@@ -333,7 +333,7 @@
     "group": "Session",
     "test_name": "Add Hierarchy",
     "passed": true,
-    "time_ms": 0.032,
+    "time_ms": 0.039,
     "line": 218,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n\n    Session session;\n    auto p1 = std::make_shared<Point>(0,0,0);\n    auto p2 = std::make_shared<Point>(1,0,0);\n    auto n1 = session.add_point(p1);\n    auto n2 = session.add_point(p2);\n    session.add(n1);\n    session.add(n2);\n    bool ok = session.add_hierarchy(n1->guid(), n2->guid());",
     "checks": [
@@ -349,7 +349,7 @@
     "group": "Session",
     "test_name": "Get Children",
     "passed": true,
-    "time_ms": 0.028,
+    "time_ms": 0.037,
     "line": 234,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n\n    Session session;\n    auto p1 = std::make_shared<Point>(0,0,0);\n    auto p2 = std::make_shared<Point>(1,0,0);\n    auto n1 = session.add_point(p1);\n    auto n2 = session.add_point(p2);\n    session.add(n1);\n    session.add(n2);\n    session.add_hierarchy(n1->guid(), n2->guid());\n\n    auto children = session.get_children(n1->guid());",
     "checks": [
@@ -370,7 +370,7 @@
     "group": "Session",
     "test_name": "Add Relationship",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.03,
     "line": 253,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n\n    Session session;\n    auto p1 = std::make_shared<Point>(0,0,0);\n    auto p2 = std::make_shared<Point>(1,0,0);\n    session.add_point(p1);\n    session.add_point(p2);\n    session.add_relationship(p1->guid(), p2->guid(), \"connects_to\");",
     "checks": [
@@ -386,7 +386,7 @@
     "group": "Session",
     "test_name": "Get Neighbours",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.032,
     "line": 267,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n\n    Session session;\n    auto p1 = std::make_shared<Point>(0,0,0);\n    auto p2 = std::make_shared<Point>(1,0,0);\n    session.add_point(p1);\n    session.add_point(p2);\n    session.add_edge(p1->guid(), p2->guid(), \"connection\");\n\n    auto neighbours = session.get_neighbours(p1->guid());",
     "checks": [
@@ -407,7 +407,7 @@
     "group": "Session",
     "test_name": "Get Collisions",
     "passed": true,
-    "time_ms": 0.05,
+    "time_ms": 0.052,
     "line": 284,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"obb.h\"\n\n    Session session;\n    auto obb1 = std::make_shared<OBB>(\n        Point(0.0, 0.0, 0.0),\n        Vector(1.0, 0.0, 0.0),\n        Vector(0.0, 1.0, 0.0),\n        Vector(0.0, 0.0, 1.0),\n        Vector(2.0, 2.0, 2.0)\n    );\n    auto obb2 = std::make_shared<OBB>(\n        Point(1.0, 0.0, 0.0),\n        Vector(1.0, 0.0, 0.0),\n        Vector(0.0, 1.0, 0.0),\n        Vector(0.0, 0.0, 1.0),\n        Vector(2.0, 2.0, 2.0)\n    );\n    session.add_obb(obb1);\n    session.add_obb(obb2);\n    auto pairs = session.get_collisions();",
     "checks": [
@@ -423,7 +423,7 @@
     "group": "Session",
     "test_name": "Ray Cast",
     "passed": true,
-    "time_ms": 0.505,
+    "time_ms": 0.777,
     "line": 310,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"mesh.h\"\n\n    Session session;\n    auto mesh = std::make_shared<Mesh>();\n    mesh->add_vertex(Point(-1.0, -1.0, 0.0), 0);\n    mesh->add_vertex(Point(1.0, -1.0, 0.0), 1);\n    mesh->add_vertex(Point(0.0, 1.0, 0.0), 2);\n    mesh->add_face(std::vector<size_t>{0, 1, 2});\n    session.add_mesh(mesh);\n    auto hits = session.ray_cast(Point(0.0, 0.0, 2.0), Vector(0.0, 0.0, -1.0));",
     "checks": [
@@ -460,7 +460,7 @@
     "group": "Session",
     "test_name": "Remove Object",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.014,
     "line": 340,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n\n    Session session;\n    auto point = std::make_shared<Point>(1.0, 2.0, 3.0);\n    session.add_point(point);\n    bool removed = session.remove_object(point->guid());",
     "checks": [
@@ -481,7 +481,7 @@
     "group": "Session",
     "test_name": "Get Geometry",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.01,
     "line": 353,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n\n    Session session;\n    auto point = std::make_shared<Point>(1.0, 2.0, 3.0);\n    session.add_point(point);\n\n    Objects geom = session.get_geometry();",
     "checks": [
@@ -497,7 +497,7 @@
     "group": "Session",
     "test_name": "Compute Face To Face",
     "passed": true,
-    "time_ms": 0.399,
+    "time_ms": 0.252,
     "line": 366,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"element_plate.h\"\n\n    Session session;\n    auto p1 = std::make_shared<ElementPlate>(std::vector<Point>{Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0)}, 0.2, \"p1\");\n    auto p2 = std::make_shared<ElementPlate>(std::vector<Point>{Point(0,0,-0.2), Point(1,0,-0.2), Point(1,1,-0.2), Point(0,1,-0.2)}, 0.2, \"p2\");\n    session.add_element(p1);\n    session.add_element(p2);\n    session.compute_face_to_face(5.0, 0.001);",
     "checks": [
@@ -518,7 +518,7 @@
     "group": "Session",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 16.837,
+    "time_ms": 16.752,
     "line": 381,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n\n    Session session;\n    auto p1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto p2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(p1);\n    session.add_point(p2);\n    session.add_edge(p1->guid(), p2->guid(), \"connection\");\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_session.json\";\n    session.file_json_dump(fname);\n    Session loaded = Session::file_json_load(fname);",
     "checks": [
@@ -544,7 +544,7 @@
     "group": "Session",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 18.294,
+    "time_ms": 15.891,
     "line": 408,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n\n    Session session;\n    auto p1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto p2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    session.add_point(p1);\n    session.add_point(p2);\n    session.add_edge(p1->guid(), p2->guid(), \"connection\");\n\n    std::string fname = \"serialization/test_session.bin\";\n    session.pb_dump(fname);\n    Session loaded = Session::pb_load(fname);",
     "checks": [
@@ -565,7 +565,7 @@
     "group": "Session",
     "test_name": "Tree Transformation Hierarchy",
     "passed": true,
-    "time_ms": 0.136,
+    "time_ms": 0.235,
     "line": 427,
     "code": "    // uncomment #include \"session.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"xform.h\"\n\n    Session scene(\"tree_transformation_test\");\n\n    auto create_box = [](const Point& center, double size) -> std::shared_ptr<Mesh> {\n        auto mesh = std::make_shared<Mesh>();\n        double h = size * 0.5;\n        std::vector<Point> verts = {\n            Point(center[0] - h, center[1] - h, center[2] - h),\n            Point(center[0] + h, center[1] - h, center[2] - h),\n            Point(center[0] + h, center[1] + h, center[2] - h),\n            Point(center[0] - h, center[1] + h, center[2] - h),\n            Point(center[0] - h, center[1] - h, center[2] + h),\n            Point(center[0] + h, center[1] - h, center[2] + h),\n            Point(center[0] + h, center[1] + h, center[2] + h),\n            Point(center[0] - h, center[1] + h, center[2] + h)\n        };\n        for (size_t i = 0; i < verts.size(); ++i) mesh->add_vertex(verts[i], i);\n        std::vector<std::vector<size_t>> faces = {\n            {0,1,2,3}, {4,7,6,5}, {0,4,5,1}, {2,6,7,3}, {0,3,7,4}, {1,5,6,2}\n        };\n        for (const auto& f : faces) mesh->add_face(f);\n        return mesh;\n    };\n\n    auto box1 = create_box(Point(0, 0, 0), 2.0);\n    auto box1_node = scene.add_mesh(box1);\n    auto box2 = create_box(Point(0, 0, 0), 2.0);\n    auto box2_node = scene.add_mesh(box2);\n    auto box3 = create_box(Point(0, 0, 0), 2.0);\n    auto box3_node = scene.add_mesh(box3);\n\n    scene.add(box1_node);\n    scene.add(box2_node, box1_node);\n    scene.add(box3_node, box2_node);\n\n    Plane plane_from(Point(0,0,0), Vector(1,0,0), Vector(0,1,0));\n    Plane plane_to(Point(0,0,1.0), Vector(1,0,0), Vector(0,1,0));\n    Xform xy_to_top = Xform::plane_to_plane(plane_from, plane_to);\n    box1->xform = Xform::rotation_z(Tolerance::PI / 1.5) * xy_to_top;\n    box2->xform = Xform::translation(2.0, 0, 0) * Xform::rotation_z(Tolerance::PI / 6.0);\n    box3->xform = Xform::translation(2.0, 0, 0);\n\n    Objects transformed = scene.get_geometry();\n\n    auto& m1 = (*transformed.meshes)[0];\n    Point v0 = m1->vertex.at(0).position();",
     "checks": [
@@ -596,7 +596,7 @@
     "group": "Session",
     "test_name": "Add Component",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.034,
     "line": 486,
     "code": "    // add_component stores a custom domain object in the session.\n    // It is indexed by guid in component_lookup and registered in the graph.\n    // uncomment #include \"session.h\"\n\n    Session session;\n\n    Component c;\n    c.type_name = \"FloorBuilder\";\n    c.name      = \"floor_builder\";\n    c.extra     = {{\"size\", 3000}, {\"height\", 650}};\n    std::string guid = c.guid();\n\n    session.add_component(c);",
     "checks": [
@@ -622,7 +622,7 @@
     "group": "Session",
     "test_name": "Component Json Roundtrip",
     "passed": true,
-    "time_ms": 15.039,
+    "time_ms": 16.109,
     "line": 506,
     "code": "    // A session with a component round-trips through JSON:\n    // the component survives with all custom fields intact.\n    // uncomment #include \"session.h\"\n    // uncomment #include \"file_encoders.h\"\n\n    Session original;\n    Component c;\n    c.type_name = \"FloorBuilder\";\n    c.name      = \"floor_builder\";\n    c.extra     = {{\"size\", 3000}, {\"height\", 650}, {\"rise\", 453}};\n    std::string guid = c.guid();\n    original.add_component(c);\n\n    std::string filename = \"serialization/test_session_component.json\";\n    file_encoders::file_json_dump(original, filename);\n    Session loaded = file_encoders::file_json_load<Session>(filename);",
     "checks": [

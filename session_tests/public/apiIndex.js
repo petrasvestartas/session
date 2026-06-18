@@ -4220,7 +4220,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "v_build_path(op)",
-          "code": "def v_build_path(op):\n\n    if op is None or op.next is op or op.next is op.prev:\n        return None\n    path = []\n    last = op.next.pt\n    path.append(BIVec2(last.x, last.y))\n    op2 = op.next.next\n    while op2 is not op.next:\n        if op2.pt != last:\n            last = op2.pt\n            path.append(BIVec2(last.x, last.y))\n        op2 = op2.next\n    if len(path) < 3 or v_very_small_tri(op):\n        return None\n    return path\n\n\n# -- Public API --\n\nclass BooleanPolyline:\n    @staticmethod\n    def compute(a, b, clip_type):\n        ca = a.coords\n        cb = b.coords\n        na = len(ca) // 3\n        nb = len(cb) // 3\n\n        # Strip closing duplicate\n        if na >= 2:\n            dx = ca[(na - 1) * 3] - ca[0]\n            dy = ca[(na - 1) * 3 + 1] - ca[1]\n            if dx * dx + dy * dy < 1e-20:\n                na -= 1\n        if nb >= 2:\n            dx = cb[(nb - 1) * 3] - cb[0]\n            dy = cb[(nb - 1) * 3 + 1] - cb[1]\n            if dx * dx + dy * dy < 1e-20:\n                nb -= 1\n        if na < 3 or nb < 3:\n            return []\n\n        # Compute safe scale from actual coordinate range to prevent int64 overflow\n        # in cross products: (max_coord * scale)^2 must fit in int64\n        max_coord = 0.0\n        for i in range(na):\n            max_coord = max(max_coord, abs(ca[i * 3]), abs(ca[i * 3 + 1]))\n        for i in range(nb):\n            max_coord = max(max_coord, abs(cb[i * 3]), abs(cb[i * 3 + 1]))\n        if max_coord < 1e-12:\n            max_coord = 1.0\n        bool_scale = math.floor(math.sqrt(float(2**63 - 1)) / max_coord * 0.99)\n        bool_inv_scale = 1.0 / bool_scale\n\n        sc = VattiScratch()\n\n        # Small polygons: use intermediate arrays for containment check\n        if na * nb <= 400:\n            va = []\n            vb = []\n            for i in range(na):\n                va.append(BIVec2(round(ca[i * 3] * bool_scale), round(ca[i * 3 + 1] * bool_scale)))\n            aMinX = aMaxX = va[0].x\n            aMinY = aMaxY = va[0].y\n            for i in range(1, na):\n                x, y = va[i].x, va[i].y\n                if x < aMinX:\n                    aMinX = x\n                elif x > aMaxX:\n                    aMaxX = x\n                if y < aMinY:\n                    aMinY = y\n                elif y > aMaxY:\n                    aMaxY = y\n\n            for i in range(nb):\n                vb.append(BIVec2(round(cb[i * 3] * bool_scale), round(cb[i * 3 + 1] * bool_scale)))\n            bMinX = bMaxX = vb[0].x\n            bMinY = bMaxY = vb[0].y\n            for i in range(1, nb):\n                x, y = vb[i].x, vb[i].y",
+          "code": "def v_build_path(op):\n\n    if op is None or op.next is op or op.next is op.prev:\n        return None\n    path = []\n    last = op.next.pt\n    path.append(BIVec2(last.x, last.y))\n    op2 = op.next.next\n    while op2 is not op.next:\n        if op2.pt != last:\n            last = op2.pt\n            path.append(BIVec2(last.x, last.y))\n        op2 = op2.next\n    if len(path) < 3 or v_very_small_tri(op):\n        return None\n    return path\n\n\n# -- Public API --\n\nclass BooleanPolyline:\n    @staticmethod\n    def compute(a, b, clip_type):\n        ca = a.coords\n        cb = b.coords\n        na = len(ca) // 3\n        nb = len(cb) // 3\n\n        # Strip closing duplicate\n        if na >= 2:\n            dx = ca[(na - 1) * 3] - ca[0]\n            dy = ca[(na - 1) * 3 + 1] - ca[1]\n            if dx * dx + dy * dy < 1e-20:\n                na -= 1\n        if nb >= 2:\n            dx = cb[(nb - 1) * 3] - cb[0]\n            dy = cb[(nb - 1) * 3 + 1] - cb[1]\n            if dx * dx + dy * dy < 1e-20:\n                nb -= 1\n        if na < 3 or nb < 3:\n            return []\n\n        # Compute safe scale from actual coordinate range to prevent int64 overflow\n        # in cross products: (max_coord * scale)^2 must fit in int64\n        max_coord = 0.0\n        for i in range(na):\n            max_coord = max(max_coord, abs(ca[i * 3]), abs(ca[i * 3 + 1]))\n        for i in range(nb):\n            max_coord = max(max_coord, abs(cb[i * 3]), abs(cb[i * 3 + 1]))\n        if max_coord < 1e-12:\n            max_coord = 1.0\n        bool_scale = math.floor(math.sqrt(float(2**63 - 1)) / (2.0 * max_coord))\n        bool_inv_scale = 1.0 / bool_scale\n\n        sc = VattiScratch()\n\n        # Small polygons: use intermediate arrays for containment check\n        if na * nb <= 400:\n            va = []\n            vb = []\n            for i in range(na):\n                va.append(BIVec2(round(ca[i * 3] * bool_scale), round(ca[i * 3 + 1] * bool_scale)))\n            aMinX = aMaxX = va[0].x\n            aMinY = aMaxY = va[0].y\n            for i in range(1, na):\n                x, y = va[i].x, va[i].y\n                if x < aMinX:\n                    aMinX = x\n                elif x > aMaxX:\n                    aMaxX = x\n                if y < aMinY:\n                    aMinY = y\n                elif y > aMaxY:\n                    aMaxY = y\n\n            for i in range(nb):\n                vb.append(BIVec2(round(cb[i * 3] * bool_scale), round(cb[i * 3 + 1] * bool_scale)))\n            bMinX = bMaxX = vb[0].x\n            bMinY = bMaxY = vb[0].y\n            for i in range(1, nb):\n                x, y = vb[i].x, vb[i].y",
           "file": "boolean_polyline.py"
         }
       },
@@ -4235,7 +4235,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "compute(a, b, clip_type)",
-          "code": "def compute(a, b, clip_type):\n\n        ca = a.coords\n        cb = b.coords\n        na = len(ca) // 3\n        nb = len(cb) // 3\n\n        # Strip closing duplicate\n        if na >= 2:\n            dx = ca[(na - 1) * 3] - ca[0]\n            dy = ca[(na - 1) * 3 + 1] - ca[1]\n            if dx * dx + dy * dy < 1e-20:\n                na -= 1\n        if nb >= 2:\n            dx = cb[(nb - 1) * 3] - cb[0]\n            dy = cb[(nb - 1) * 3 + 1] - cb[1]\n            if dx * dx + dy * dy < 1e-20:\n                nb -= 1\n        if na < 3 or nb < 3:\n            return []\n\n        # Compute safe scale from actual coordinate range to prevent int64 overflow\n        # in cross products: (max_coord * scale)^2 must fit in int64\n        max_coord = 0.0\n        for i in range(na):\n            max_coord = max(max_coord, abs(ca[i * 3]), abs(ca[i * 3 + 1]))\n        for i in range(nb):\n            max_coord = max(max_coord, abs(cb[i * 3]), abs(cb[i * 3 + 1]))\n        if max_coord < 1e-12:\n            max_coord = 1.0\n        bool_scale = math.floor(math.sqrt(float(2**63 - 1)) / max_coord * 0.99)\n        bool_inv_scale = 1.0 / bool_scale\n\n        sc = VattiScratch()\n\n        # Small polygons: use intermediate arrays for containment check\n        if na * nb <= 400:\n            va = []\n            vb = []\n            for i in range(na):\n                va.append(BIVec2(round(ca[i * 3] * bool_scale), round(ca[i * 3 + 1] * bool_scale)))\n            aMinX = aMaxX = va[0].x\n            aMinY = aMaxY = va[0].y\n            for i in range(1, na):\n                x, y = va[i].x, va[i].y\n                if x < aMinX:\n                    aMinX = x\n                elif x > aMaxX:\n                    aMaxX = x\n                if y < aMinY:\n                    aMinY = y\n                elif y > aMaxY:\n                    aMaxY = y\n\n            for i in range(nb):\n                vb.append(BIVec2(round(cb[i * 3] * bool_scale), round(cb[i * 3 + 1] * bool_scale)))\n            bMinX = bMaxX = vb[0].x\n            bMinY = bMaxY = vb[0].y\n            for i in range(1, nb):\n                x, y = vb[i].x, vb[i].y\n                if x < bMinX:\n                    bMinX = x\n                elif x > bMaxX:\n                    bMaxX = x\n                if y < bMinY:\n                    bMinY = y\n                elif y > bMaxY:\n                    bMaxY = y\n\n            # AABB disjoint\n            if aMaxX < bMinX or bMaxX < aMinX or aMaxY < bMinY or bMaxY < aMinY:\n                a_in_b = pip_i(va[0], vb)\n                b_in_a = pip_i(vb[0], va)\n                if clip_type == 0:\n                    if a_in_b:\n                        return [a]\n                    if b_in_a:\n                        return [b]\n                    return []\n                if clip_type == 1:\n                    if a_in_b:",
+          "code": "def compute(a, b, clip_type):\n\n        ca = a.coords\n        cb = b.coords\n        na = len(ca) // 3\n        nb = len(cb) // 3\n\n        # Strip closing duplicate\n        if na >= 2:\n            dx = ca[(na - 1) * 3] - ca[0]\n            dy = ca[(na - 1) * 3 + 1] - ca[1]\n            if dx * dx + dy * dy < 1e-20:\n                na -= 1\n        if nb >= 2:\n            dx = cb[(nb - 1) * 3] - cb[0]\n            dy = cb[(nb - 1) * 3 + 1] - cb[1]\n            if dx * dx + dy * dy < 1e-20:\n                nb -= 1\n        if na < 3 or nb < 3:\n            return []\n\n        # Compute safe scale from actual coordinate range to prevent int64 overflow\n        # in cross products: (max_coord * scale)^2 must fit in int64\n        max_coord = 0.0\n        for i in range(na):\n            max_coord = max(max_coord, abs(ca[i * 3]), abs(ca[i * 3 + 1]))\n        for i in range(nb):\n            max_coord = max(max_coord, abs(cb[i * 3]), abs(cb[i * 3 + 1]))\n        if max_coord < 1e-12:\n            max_coord = 1.0\n        bool_scale = math.floor(math.sqrt(float(2**63 - 1)) / (2.0 * max_coord))\n        bool_inv_scale = 1.0 / bool_scale\n\n        sc = VattiScratch()\n\n        # Small polygons: use intermediate arrays for containment check\n        if na * nb <= 400:\n            va = []\n            vb = []\n            for i in range(na):\n                va.append(BIVec2(round(ca[i * 3] * bool_scale), round(ca[i * 3 + 1] * bool_scale)))\n            aMinX = aMaxX = va[0].x\n            aMinY = aMaxY = va[0].y\n            for i in range(1, na):\n                x, y = va[i].x, va[i].y\n                if x < aMinX:\n                    aMinX = x\n                elif x > aMaxX:\n                    aMaxX = x\n                if y < aMinY:\n                    aMinY = y\n                elif y > aMaxY:\n                    aMaxY = y\n\n            for i in range(nb):\n                vb.append(BIVec2(round(cb[i * 3] * bool_scale), round(cb[i * 3 + 1] * bool_scale)))\n            bMinX = bMaxX = vb[0].x\n            bMinY = bMaxY = vb[0].y\n            for i in range(1, nb):\n                x, y = vb[i].x, vb[i].y\n                if x < bMinX:\n                    bMinX = x\n                elif x > bMaxX:\n                    bMaxX = x\n                if y < bMinY:\n                    bMinY = y\n                elif y > bMaxY:\n                    bMaxY = y\n\n            # AABB disjoint\n            if aMaxX < bMinX or bMaxX < aMinX or aMaxY < bMinY or bMaxY < aMinY:\n                a_in_b = pip_i(va[0], vb)\n                b_in_a = pip_i(vb[0], va)\n                if clip_type == 0:\n                    if a_in_b:\n                        return [a]\n                    if b_in_a:\n                        return [b]\n                    return []\n                if clip_type == 1:\n                    if a_in_b:",
           "file": "boolean_polyline.py"
         },
         "cpp": {
@@ -4246,7 +4246,116 @@ window.API_INDEX = {
       },
       "related": [
         "BooleanPolyline.compute_count",
-        "BooleanPolyline.compute_raw"
+        "BooleanPolyline.compute_raw",
+        "BooleanPolyline.flush",
+        "BooleanPolyline.push_xy"
+      ]
+    },
+    {
+      "name": "BooleanPolyline.clip_open_against_closed",
+      "implementations": {
+        "python": {
+          "sig": "clip_open_against_closed(open_subject, closed_clip)",
+          "code": "def clip_open_against_closed(open_subject, closed_clip):\n\n        result = []\n        cs = open_subject.coords\n        cc = closed_clip.coords\n        ns = len(cs) // 3\n        nc = len(cc) // 3\n\n        if nc >= 2:\n            dx = cc[(nc - 1) * 3] - cc[0]\n            dy = cc[(nc - 1) * 3 + 1] - cc[1]\n            if dx * dx + dy * dy < 1e-20:\n                nc -= 1\n        if ns < 2 or nc < 3:\n            return result\n\n        def point_in_poly(px, py):\n            inside = False\n            j = nc - 1\n            for i in range(nc):\n                xi = cc[i * 3]\n                yi = cc[i * 3 + 1]\n                xj = cc[j * 3]\n                yj = cc[j * 3 + 1]\n                crosses = (yi > py) != (yj > py)\n                if crosses:\n                    xint = xj + (py - yj) * (xi - xj) / (yi - yj)\n                    if px < xint:\n                        inside = not inside\n                j = i\n            return inside\n\n        cur = []\n\n        def flush():\n            if len(cur) < 6:\n                cur.clear()\n                return\n            result.append(Polyline.from_coords(list(cur)))\n            cur.clear()\n\n        def push_xy(x, y):\n            n = len(cur)\n            if n >= 3:\n                lx = cur[n - 3]\n                ly = cur[n - 2]\n                if abs(lx - x) < 1e-9 and abs(ly - y) < 1e-9:\n                    return\n            cur.append(x)\n            cur.append(y)\n            cur.append(0.0)\n\n        a_inside = point_in_poly(cs[0], cs[1])\n        if a_inside:\n            push_xy(cs[0], cs[1])\n\n        for si in range(ns - 1):\n            ax = cs[si * 3]\n            ay = cs[si * 3 + 1]\n            bx = cs[(si + 1) * 3]\n            by = cs[(si + 1) * 3 + 1]\n            dx = bx - ax\n            dy = by - ay\n            ts = []\n            ej = nc - 1\n            for ei in range(nc):\n                ex = cc[ei * 3] - cc[ej * 3]\n                ey = cc[ei * 3 + 1] - cc[ej * 3 + 1]\n                denom = dx * (-ey) - dy * (-ex)\n                if abs(denom) >= 1e-18:\n                    rx = cc[ej * 3] - ax\n                    ry = cc[ej * 3 + 1] - ay\n                    t = (rx * (-ey) - ry * (-ex)) / denom\n                    u = (rx * (-dy) - ry * (-dx)) / denom\n                    if t > 1e-12 and t <= 1.0 + 1e-12 and u >= -1e-9 and u <= 1.0 + 1e-9:\n                        ts.append(0.0 if t < 0.0 else (1.0 if t > 1.0 else t))\n                ej = ei\n            ts.sort()\n            prev_t = 0.0\n            for t in ts:\n                if t - prev_t < 1e-12:",
+          "file": "boolean_polyline.py"
+        },
+        "cpp": {
+          "sig": "std::vector<Polyline> clip_open_against_closed(\n        const Polyline& open_subject,\n        const Polyline& closed_clip)",
+          "code": "static std::vector<Polyline> clip_open_against_closed(\n        const Polyline& open_subject,\n        const Polyline& closed_clip);",
+          "file": "boolean_polyline.h"
+        }
+      },
+      "related": [
+        "BooleanPolyline.flush",
+        "BooleanPolyline.point_in_poly",
+        "BooleanPolyline.push_xy"
+      ]
+    },
+    {
+      "name": "BooleanPolyline.point_in_poly",
+      "implementations": {
+        "python": {
+          "sig": "point_in_poly(px, py)",
+          "code": "def point_in_poly(px, py):\n\n            inside = False\n            j = nc - 1\n            for i in range(nc):\n                xi = cc[i * 3]\n                yi = cc[i * 3 + 1]\n                xj = cc[j * 3]\n                yj = cc[j * 3 + 1]\n                crosses = (yi > py) != (yj > py)\n                if crosses:\n                    xint = xj + (py - yj) * (xi - xj) / (yi - yj)\n                    if px < xint:\n                        inside = not inside\n                j = i\n            return inside\n\n        cur = []\n\n        def flush():\n            if len(cur) < 6:\n                cur.clear()\n                return\n            result.append(Polyline.from_coords(list(cur)))\n            cur.clear()\n\n        def push_xy(x, y):\n            n = len(cur)\n            if n >= 3:\n                lx = cur[n - 3]\n                ly = cur[n - 2]\n                if abs(lx - x) < 1e-9 and abs(ly - y) < 1e-9:\n                    return\n            cur.append(x)\n            cur.append(y)\n            cur.append(0.0)\n\n        a_inside = point_in_poly(cs[0], cs[1])\n        if a_inside:\n            push_xy(cs[0], cs[1])\n\n        for si in range(ns - 1):\n            ax = cs[si * 3]\n            ay = cs[si * 3 + 1]\n            bx = cs[(si + 1) * 3]\n            by = cs[(si + 1) * 3 + 1]\n            dx = bx - ax\n            dy = by - ay\n            ts = []\n            ej = nc - 1\n            for ei in range(nc):\n                ex = cc[ei * 3] - cc[ej * 3]\n                ey = cc[ei * 3 + 1] - cc[ej * 3 + 1]\n                denom = dx * (-ey) - dy * (-ex)\n                if abs(denom) >= 1e-18:\n                    rx = cc[ej * 3] - ax\n                    ry = cc[ej * 3 + 1] - ay\n                    t = (rx * (-ey) - ry * (-ex)) / denom\n                    u = (rx * (-dy) - ry * (-dx)) / denom\n                    if t > 1e-12 and t <= 1.0 + 1e-12 and u >= -1e-9 and u <= 1.0 + 1e-9:\n                        ts.append(0.0 if t < 0.0 else (1.0 if t > 1.0 else t))\n                ej = ei\n            ts.sort()\n            prev_t = 0.0\n            for t in ts:\n                if t - prev_t < 1e-12:\n                    prev_t = t\n                    continue\n                mid_t = 0.5 * (prev_t + t)\n                mx = ax + dx * mid_t\n                my = ay + dy * mid_t\n                mid_in = point_in_poly(mx, my)\n                ix = ax + dx * t\n                iy = ay + dy * t\n                if mid_in:\n                    push_xy(ix, iy)\n                    flush()\n                else:\n                    push_xy(ix, iy)\n                prev_t = t\n            if prev_t < 1.0 - 1e-12:",
+          "file": "boolean_polyline.py"
+        }
+      },
+      "related": [
+        "BooleanPolyline.clip_open_against_closed",
+        "BooleanPolyline.flush",
+        "BooleanPolyline.push_xy"
+      ]
+    },
+    {
+      "name": "BooleanPolyline.flush",
+      "implementations": {
+        "python": {
+          "sig": "flush()",
+          "code": "def flush():\n\n            if len(cur) < 6:\n                cur.clear()\n                return\n            result.append(Polyline.from_coords(list(cur)))\n            cur.clear()\n\n        def push_xy(x, y):\n            n = len(cur)\n            if n >= 3:\n                lx = cur[n - 3]\n                ly = cur[n - 2]\n                if abs(lx - x) < 1e-9 and abs(ly - y) < 1e-9:\n                    return\n            cur.append(x)\n            cur.append(y)\n            cur.append(0.0)\n\n        a_inside = point_in_poly(cs[0], cs[1])\n        if a_inside:\n            push_xy(cs[0], cs[1])\n\n        for si in range(ns - 1):\n            ax = cs[si * 3]\n            ay = cs[si * 3 + 1]\n            bx = cs[(si + 1) * 3]\n            by = cs[(si + 1) * 3 + 1]\n            dx = bx - ax\n            dy = by - ay\n            ts = []\n            ej = nc - 1\n            for ei in range(nc):\n                ex = cc[ei * 3] - cc[ej * 3]\n                ey = cc[ei * 3 + 1] - cc[ej * 3 + 1]\n                denom = dx * (-ey) - dy * (-ex)\n                if abs(denom) >= 1e-18:\n                    rx = cc[ej * 3] - ax\n                    ry = cc[ej * 3 + 1] - ay\n                    t = (rx * (-ey) - ry * (-ex)) / denom\n                    u = (rx * (-dy) - ry * (-dx)) / denom\n                    if t > 1e-12 and t <= 1.0 + 1e-12 and u >= -1e-9 and u <= 1.0 + 1e-9:\n                        ts.append(0.0 if t < 0.0 else (1.0 if t > 1.0 else t))\n                ej = ei\n            ts.sort()\n            prev_t = 0.0\n            for t in ts:\n                if t - prev_t < 1e-12:\n                    prev_t = t\n                    continue\n                mid_t = 0.5 * (prev_t + t)\n                mx = ax + dx * mid_t\n                my = ay + dy * mid_t\n                mid_in = point_in_poly(mx, my)\n                ix = ax + dx * t\n                iy = ay + dy * t\n                if mid_in:\n                    push_xy(ix, iy)\n                    flush()\n                else:\n                    push_xy(ix, iy)\n                prev_t = t\n            if prev_t < 1.0 - 1e-12:\n                mid_t = 0.5 * (prev_t + 1.0)\n                mx = ax + dx * mid_t\n                my = ay + dy * mid_t\n                if point_in_poly(mx, my):\n                    push_xy(bx, by)\n        flush()\n        return result\n    @staticmethod\n    def compute_raw(a_xy, na, b_xy, nb, clip_type, out_xy, max_out):\n        # Raw-array version: takes flat 2D coords (x,y pairs, stride=2),\n        # writes flat 2D result coords into out_xy. No Polyline construction.\n        # Returns number of result points (0 if no intersection).\n        if na >= 2:\n            dx = a_xy[(na - 1) * 2] - a_xy[0]\n            dy = a_xy[(na - 1) * 2 + 1] - a_xy[1]\n            if dx * dx + dy * dy < 1e-20:\n                na -= 1\n        if nb >= 2:",
+          "file": "boolean_polyline.py"
+        }
+      },
+      "related": [
+        "BooleanPolyline.clip_open_against_closed",
+        "BooleanPolyline.compute",
+        "BooleanPolyline.compute_raw",
+        "BooleanPolyline.point_in_poly",
+        "BooleanPolyline.push_xy"
+      ]
+    },
+    {
+      "name": "BooleanPolyline.push_xy",
+      "implementations": {
+        "python": {
+          "sig": "push_xy(x, y)",
+          "code": "def push_xy(x, y):\n\n            n = len(cur)\n            if n >= 3:\n                lx = cur[n - 3]\n                ly = cur[n - 2]\n                if abs(lx - x) < 1e-9 and abs(ly - y) < 1e-9:\n                    return\n            cur.append(x)\n            cur.append(y)\n            cur.append(0.0)\n\n        a_inside = point_in_poly(cs[0], cs[1])\n        if a_inside:\n            push_xy(cs[0], cs[1])\n\n        for si in range(ns - 1):\n            ax = cs[si * 3]\n            ay = cs[si * 3 + 1]\n            bx = cs[(si + 1) * 3]\n            by = cs[(si + 1) * 3 + 1]\n            dx = bx - ax\n            dy = by - ay\n            ts = []\n            ej = nc - 1\n            for ei in range(nc):\n                ex = cc[ei * 3] - cc[ej * 3]\n                ey = cc[ei * 3 + 1] - cc[ej * 3 + 1]\n                denom = dx * (-ey) - dy * (-ex)\n                if abs(denom) >= 1e-18:\n                    rx = cc[ej * 3] - ax\n                    ry = cc[ej * 3 + 1] - ay\n                    t = (rx * (-ey) - ry * (-ex)) / denom\n                    u = (rx * (-dy) - ry * (-dx)) / denom\n                    if t > 1e-12 and t <= 1.0 + 1e-12 and u >= -1e-9 and u <= 1.0 + 1e-9:\n                        ts.append(0.0 if t < 0.0 else (1.0 if t > 1.0 else t))\n                ej = ei\n            ts.sort()\n            prev_t = 0.0\n            for t in ts:\n                if t - prev_t < 1e-12:\n                    prev_t = t\n                    continue\n                mid_t = 0.5 * (prev_t + t)\n                mx = ax + dx * mid_t\n                my = ay + dy * mid_t\n                mid_in = point_in_poly(mx, my)\n                ix = ax + dx * t\n                iy = ay + dy * t\n                if mid_in:\n                    push_xy(ix, iy)\n                    flush()\n                else:\n                    push_xy(ix, iy)\n                prev_t = t\n            if prev_t < 1.0 - 1e-12:\n                mid_t = 0.5 * (prev_t + 1.0)\n                mx = ax + dx * mid_t\n                my = ay + dy * mid_t\n                if point_in_poly(mx, my):\n                    push_xy(bx, by)\n        flush()\n        return result\n    @staticmethod\n    def compute_raw(a_xy, na, b_xy, nb, clip_type, out_xy, max_out):\n        # Raw-array version: takes flat 2D coords (x,y pairs, stride=2),\n        # writes flat 2D result coords into out_xy. No Polyline construction.\n        # Returns number of result points (0 if no intersection).\n        if na >= 2:\n            dx = a_xy[(na - 1) * 2] - a_xy[0]\n            dy = a_xy[(na - 1) * 2 + 1] - a_xy[1]\n            if dx * dx + dy * dy < 1e-20:\n                na -= 1\n        if nb >= 2:\n            dx = b_xy[(nb - 1) * 2] - b_xy[0]\n            dy = b_xy[(nb - 1) * 2 + 1] - b_xy[1]\n            if dx * dx + dy * dy < 1e-20:\n                nb -= 1\n        if na < 3 or nb < 3:\n            return 0",
+          "file": "boolean_polyline.py"
+        }
+      },
+      "related": [
+        "BooleanPolyline.clip_open_against_closed",
+        "BooleanPolyline.compute",
+        "BooleanPolyline.compute_raw",
+        "BooleanPolyline.flush",
+        "BooleanPolyline.point_in_poly"
+      ]
+    },
+    {
+      "name": "BooleanPolyline.compute_raw",
+      "implementations": {
+        "python": {
+          "sig": "compute_raw(a_xy, na, b_xy, nb, clip_type, out_xy, max_out)",
+          "code": "def compute_raw(a_xy, na, b_xy, nb, clip_type, out_xy, max_out):\n\n        # Raw-array version: takes flat 2D coords (x,y pairs, stride=2),\n        # writes flat 2D result coords into out_xy. No Polyline construction.\n        # Returns number of result points (0 if no intersection).\n        if na >= 2:\n            dx = a_xy[(na - 1) * 2] - a_xy[0]\n            dy = a_xy[(na - 1) * 2 + 1] - a_xy[1]\n            if dx * dx + dy * dy < 1e-20:\n                na -= 1\n        if nb >= 2:\n            dx = b_xy[(nb - 1) * 2] - b_xy[0]\n            dy = b_xy[(nb - 1) * 2 + 1] - b_xy[1]\n            if dx * dx + dy * dy < 1e-20:\n                nb -= 1\n        if na < 3 or nb < 3:\n            return 0\n\n        max_coord = 0.0\n        for i in range(na):\n            max_coord = max(max_coord, abs(a_xy[i * 2]), abs(a_xy[i * 2 + 1]))\n        for i in range(nb):\n            max_coord = max(max_coord, abs(b_xy[i * 2]), abs(b_xy[i * 2 + 1]))\n        if max_coord < 1e-12:\n            max_coord = 1.0\n        bool_scale = math.floor(math.sqrt(float(2**63 - 1)) / (2.0 * max_coord))\n        bool_inv_scale = 1.0 / bool_scale\n\n        sc = VattiScratch()\n\n        va = []\n        vb = []\n        for i in range(na):\n            va.append(BIVec2(round(a_xy[i * 2] * bool_scale), round(a_xy[i * 2 + 1] * bool_scale)))\n        aMinX = aMaxX = va[0].x\n        aMinY = aMaxY = va[0].y\n        for i in range(1, na):\n            x, y = va[i].x, va[i].y\n            if x < aMinX:\n                aMinX = x\n            elif x > aMaxX:\n                aMaxX = x\n            if y < aMinY:\n                aMinY = y\n            elif y > aMaxY:\n                aMaxY = y\n\n        for i in range(nb):\n            vb.append(BIVec2(round(b_xy[i * 2] * bool_scale), round(b_xy[i * 2 + 1] * bool_scale)))\n        bMinX = bMaxX = vb[0].x\n        bMinY = bMaxY = vb[0].y\n        for i in range(1, nb):\n            x, y = vb[i].x, vb[i].y\n            if x < bMinX:\n                bMinX = x\n            elif x > bMaxX:\n                bMaxX = x\n            if y < bMinY:\n                bMinY = y\n            elif y > bMaxY:\n                bMaxY = y\n\n        if aMaxX < bMinX or bMaxX < aMinX or aMaxY < bMinY or bMaxY < aMinY:\n            return 0\n\n        v_add_path(va, na, 0, sc)\n        v_add_path(vb, nb, 1, sc)\n\n        if not v_execute_internal(sc, clip_type):\n            return 0\n\n        total_pts = 0\n        for outrec in sc.outrec_list:\n            if outrec.pts is None:\n                continue\n            v_clean_collinear(sc, outrec)\n            if outrec.pts is None:\n                continue\n            op = outrec.pts\n            if op is None or op.next is op or op.next is op.prev or v_very_small_tri(op):\n                continue",
+          "file": "boolean_polyline.py"
+        },
+        "cpp": {
+          "sig": "int compute_raw(const double* a_xy, int na, const double* b_xy, int nb,\n                           int clip_type, double* out_xy, int max_out)",
+          "code": "static int compute_raw(const double* a_xy, int na, const double* b_xy, int nb,\n                           int clip_type, double* out_xy, int max_out);",
+          "file": "boolean_polyline.h"
+        }
+      },
+      "related": [
+        "BooleanPolyline.compute",
+        "BooleanPolyline.flush",
+        "BooleanPolyline.push_xy"
+      ]
+    },
+    {
+      "name": "BooleanPolyline.compute_count",
+      "implementations": {
+        "python": {
+          "sig": "compute_count(a, b, clip_type)",
+          "code": "def compute_count(a, b, clip_type):\n\n        ca = a.coords\n        cb = b.coords\n        na = len(ca) // 3\n        nb = len(cb) // 3\n        if na >= 2:\n            dx = ca[(na - 1) * 3] - ca[0]\n            dy = ca[(na - 1) * 3 + 1] - ca[1]\n            if dx * dx + dy * dy < 1e-20:\n                na -= 1\n        if nb >= 2:\n            dx = cb[(nb - 1) * 3] - cb[0]\n            dy = cb[(nb - 1) * 3 + 1] - cb[1]\n            if dx * dx + dy * dy < 1e-20:\n                nb -= 1\n        if na < 3 or nb < 3:\n            return 0\n\n        max_coord = 0.0\n        for i in range(na):\n            max_coord = max(max_coord, abs(ca[i * 3]), abs(ca[i * 3 + 1]))\n        for i in range(nb):\n            max_coord = max(max_coord, abs(cb[i * 3]), abs(cb[i * 3 + 1]))\n        if max_coord < 1e-12:\n            max_coord = 1.0\n        bool_scale = math.floor(math.sqrt(float(2**63 - 1)) / (2.0 * max_coord))\n\n        sc = VattiScratch()\n\n        va_head, aMinX, aMaxX, aMinY, aMaxY = v_add_path_from_doubles(ca, na, 0, sc, bool_scale)\n        vb_head, bMinX, bMaxX, bMinY, bMaxY = v_add_path_from_doubles(cb, nb, 1, sc, bool_scale)\n        if va_head is None or vb_head is None:\n            return 0\n        if aMaxX < bMinX or bMaxX < aMinX or aMaxY < bMinY or bMaxY < aMinY:\n            return 0\n\n        if not v_execute_internal(sc, clip_type):\n            return 0\n\n        # Just count output points -- no conversion, no Polyline allocation\n        total_pts = 0\n        for outrec in sc.outrec_list:\n            if outrec.pts is None:\n                continue\n            v_clean_collinear(sc, outrec)\n            if outrec.pts is None:\n                continue\n            op = outrec.pts\n            if op is None or op.next is op or op.next is op.prev or v_very_small_tri(op):\n                continue\n            o = op\n            while True:\n                total_pts += 1\n                o = o.next\n                if o is op:\n                    break\n        return total_pts",
+          "file": "boolean_polyline.py"
+        },
+        "cpp": {
+          "sig": "int compute_count(const Polyline& a, const Polyline& b, int clip_type)",
+          "code": "static int compute_count(const Polyline& a, const Polyline& b, int clip_type);",
+          "file": "boolean_polyline.h"
+        }
+      },
+      "related": [
+        "BooleanPolyline.compute"
       ]
     },
     {
@@ -10079,6 +10188,10 @@ window.API_INDEX = {
         "Element.apply_features",
         "Element.axis",
         "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.column_with_transformation",
         "Element.compute_aabb",
@@ -10091,6 +10204,7 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.file_json_dump",
         "Element.file_json_dumps",
         "Element.file_json_load",
@@ -10123,7 +10237,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "geometry()",
-          "code": "def geometry(self):\n\n        return self._geometry\n\n    @property\n    def session_transformation(self):\n        if self._session_transformation is None:\n            self._session_transformation = Xform.identity()\n        return self._session_transformation\n\n    @session_transformation.setter\n    def session_transformation(self, value):\n        self._session_transformation = value\n        self._is_dirty = True\n\n    @property\n    def session_geometry(self):\n        if self._geometry is None:\n            return None\n        geo = copy.deepcopy(self._geometry)\n        geo = self.apply_features(geo)\n        xf = self.session_transformation\n        if not xf.is_identity():\n            geo.xform = xf * geo.xform\n            geo.transform()\n        return geo\n\n    @property\n    def aabb(self):\n        if self._is_dirty or self._aabb is None:\n            self._aabb = self.compute_aabb()\n        return self._aabb\n\n    @property\n    def obb(self):\n        if self._is_dirty or self._obb is None:\n            self._obb = self.compute_obb()\n        return self._obb\n\n    @property\n    def collision_mesh(self):\n        if self._is_dirty or self._collision_mesh is None:\n            self._collision_mesh = self.compute_collision_mesh()\n        return self._collision_mesh\n\n    @property\n    def point(self):\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n\n    ###########################################################################################\n    # Operators",
+          "code": "def geometry(self):\n\n        return self._geometry\n\n    @property\n    def session_transformation(self):\n        if self._session_transformation is None:\n            self._session_transformation = Xform.identity()\n        return self._session_transformation\n\n    @session_transformation.setter\n    def session_transformation(self, value):\n        self._session_transformation = value\n        self._is_dirty = True\n\n    @property\n    def session_geometry(self):\n        if self._geometry is None:\n            return None\n        geo = copy.deepcopy(self._geometry)\n        geo = self.apply_features(geo)\n        xf = self.session_transformation\n        if not xf.is_identity():\n            geo.xform = xf * geo.xform\n            geo.transform()\n        return geo\n\n    @property\n    def aabb(self):\n        if self._is_dirty or self._aabb is None:\n            self._aabb = self.compute_aabb()\n        return self._aabb\n\n    @property\n    def obb(self):\n        if self._is_dirty or self._obb is None:\n            self._obb = self.compute_obb()\n        return self._obb\n\n    @property\n    def collision_mesh(self):\n        if self._is_dirty or self._collision_mesh is None:\n            self._collision_mesh = self.compute_collision_mesh()\n        return self._collision_mesh\n\n    @property\n    def point(self):\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n    @property\n    def cached_aabb(self):\n        return self._aabb",
           "file": "element.py"
         },
         "cpp": {
@@ -10153,6 +10267,10 @@ window.API_INDEX = {
         "Element.apply_features",
         "Element.axis",
         "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.column_with_transformation",
         "Element.compute_aabb",
@@ -10167,6 +10285,7 @@ window.API_INDEX = {
         "Element.duplicate",
         "Element.edge_vectors",
         "Element.extend",
+        "Element.features_count",
         "Element.file_json_dump",
         "Element.file_json_dumps",
         "Element.file_json_load",
@@ -10214,7 +10333,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "session_transformation(value)",
-          "code": "def session_transformation(self, value):\n\n        self._session_transformation = value\n        self._is_dirty = True\n\n    @property\n    def session_geometry(self):\n        if self._geometry is None:\n            return None\n        geo = copy.deepcopy(self._geometry)\n        geo = self.apply_features(geo)\n        xf = self.session_transformation\n        if not xf.is_identity():\n            geo.xform = xf * geo.xform\n            geo.transform()\n        return geo\n\n    @property\n    def aabb(self):\n        if self._is_dirty or self._aabb is None:\n            self._aabb = self.compute_aabb()\n        return self._aabb\n\n    @property\n    def obb(self):\n        if self._is_dirty or self._obb is None:\n            self._obb = self.compute_obb()\n        return self._obb\n\n    @property\n    def collision_mesh(self):\n        if self._is_dirty or self._collision_mesh is None:\n            self._collision_mesh = self.compute_collision_mesh()\n        return self._collision_mesh\n\n    @property\n    def point(self):\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)",
+          "code": "def session_transformation(self, value):\n\n        self._session_transformation = value\n        self._is_dirty = True\n\n    @property\n    def session_geometry(self):\n        if self._geometry is None:\n            return None\n        geo = copy.deepcopy(self._geometry)\n        geo = self.apply_features(geo)\n        xf = self.session_transformation\n        if not xf.is_identity():\n            geo.xform = xf * geo.xform\n            geo.transform()\n        return geo\n\n    @property\n    def aabb(self):\n        if self._is_dirty or self._aabb is None:\n            self._aabb = self.compute_aabb()\n        return self._aabb\n\n    @property\n    def obb(self):\n        if self._is_dirty or self._obb is None:\n            self._obb = self.compute_obb()\n        return self._obb\n\n    @property\n    def collision_mesh(self):\n        if self._is_dirty or self._collision_mesh is None:\n            self._collision_mesh = self.compute_collision_mesh()\n        return self._collision_mesh\n\n    @property\n    def point(self):\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n    @property\n    def cached_aabb(self):\n        return self._aabb\n\n    @property\n    def cached_obb(self):\n        return self._obb\n\n    @property\n    def cached_collision_mesh(self):\n        return self._collision_mesh\n\n    @property",
           "file": "element.py"
         }
       },
@@ -10228,6 +10347,10 @@ window.API_INDEX = {
         "Element.apply_features",
         "Element.axis",
         "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.column_with_transformation",
         "Element.compute_aabb",
@@ -10239,6 +10362,7 @@ window.API_INDEX = {
         "Element.compute_point",
         "Element.compute_polylines",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.file_json_dump",
         "Element.file_json_dumps",
         "Element.file_json_load",
@@ -10250,7 +10374,6 @@ window.API_INDEX = {
         "Element.is_dirty",
         "Element.jsondump",
         "Element.jsonload_value",
-        "Element.new",
         "Element.obb",
         "Element.pb_dumps",
         "Element.pb_loads",
@@ -10260,7 +10383,6 @@ window.API_INDEX = {
         "Element.point",
         "Element.polylines",
         "Element.session_geometry",
-        "Element.str",
         "Element.with_transformation"
       ]
     },
@@ -10269,7 +10391,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "session_geometry()",
-          "code": "def session_geometry(self):\n\n        if self._geometry is None:\n            return None\n        geo = copy.deepcopy(self._geometry)\n        geo = self.apply_features(geo)\n        xf = self.session_transformation\n        if not xf.is_identity():\n            geo.xform = xf * geo.xform\n            geo.transform()\n        return geo\n\n    @property\n    def aabb(self):\n        if self._is_dirty or self._aabb is None:\n            self._aabb = self.compute_aabb()\n        return self._aabb\n\n    @property\n    def obb(self):\n        if self._is_dirty or self._obb is None:\n            self._obb = self.compute_obb()\n        return self._obb\n\n    @property\n    def collision_mesh(self):\n        if self._is_dirty or self._collision_mesh is None:\n            self._collision_mesh = self.compute_collision_mesh()\n        return self._collision_mesh\n\n    @property\n    def point(self):\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None",
+          "code": "def session_geometry(self):\n\n        if self._geometry is None:\n            return None\n        geo = copy.deepcopy(self._geometry)\n        geo = self.apply_features(geo)\n        xf = self.session_transformation\n        if not xf.is_identity():\n            geo.xform = xf * geo.xform\n            geo.transform()\n        return geo\n\n    @property\n    def aabb(self):\n        if self._is_dirty or self._aabb is None:\n            self._aabb = self.compute_aabb()\n        return self._aabb\n\n    @property\n    def obb(self):\n        if self._is_dirty or self._obb is None:\n            self._obb = self.compute_obb()\n        return self._obb\n\n    @property\n    def collision_mesh(self):\n        if self._is_dirty or self._collision_mesh is None:\n            self._collision_mesh = self.compute_collision_mesh()\n        return self._collision_mesh\n\n    @property\n    def point(self):\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n    @property\n    def cached_aabb(self):\n        return self._aabb\n\n    @property\n    def cached_obb(self):\n        return self._obb\n\n    @property\n    def cached_collision_mesh(self):\n        return self._collision_mesh\n\n    @property\n    def cached_point(self):\n        return self._point\n\n    @property\n    def features_count(self):",
           "file": "element.py"
         },
         "cpp": {
@@ -10294,6 +10416,10 @@ window.API_INDEX = {
         "Element.add_feature",
         "Element.apply_features",
         "Element.axis",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.compute_aabb",
         "Element.compute_axis",
@@ -10305,11 +10431,11 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.geometry",
         "Element.guid",
         "Element.has_geometry",
         "Element.is_dirty",
-        "Element.new",
         "Element.obb",
         "Element.planes",
         "Element.point",
@@ -10318,8 +10444,7 @@ window.API_INDEX = {
         "Element.session_transformation",
         "Element.set_geometry",
         "Element.set_planes",
-        "Element.set_polylines",
-        "Element.str"
+        "Element.set_polylines"
       ]
     },
     {
@@ -10327,7 +10452,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "aabb()",
-          "code": "def aabb(self):\n\n        if self._is_dirty or self._aabb is None:\n            self._aabb = self.compute_aabb()\n        return self._aabb\n\n    @property\n    def obb(self):\n        if self._is_dirty or self._obb is None:\n            self._obb = self.compute_obb()\n        return self._obb\n\n    @property\n    def collision_mesh(self):\n        if self._is_dirty or self._collision_mesh is None:\n            self._collision_mesh = self.compute_collision_mesh()\n        return self._collision_mesh\n\n    @property\n    def point(self):\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result",
+          "code": "def aabb(self):\n\n        if self._is_dirty or self._aabb is None:\n            self._aabb = self.compute_aabb()\n        return self._aabb\n\n    @property\n    def obb(self):\n        if self._is_dirty or self._obb is None:\n            self._obb = self.compute_obb()\n        return self._obb\n\n    @property\n    def collision_mesh(self):\n        if self._is_dirty or self._collision_mesh is None:\n            self._collision_mesh = self.compute_collision_mesh()\n        return self._collision_mesh\n\n    @property\n    def point(self):\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n    @property\n    def cached_aabb(self):\n        return self._aabb\n\n    @property\n    def cached_obb(self):\n        return self._obb\n\n    @property\n    def cached_collision_mesh(self):\n        return self._collision_mesh\n\n    @property\n    def cached_point(self):\n        return self._point\n\n    @property\n    def features_count(self):\n        return len(self._features)\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)",
           "file": "element.py"
         },
         "cpp": {
@@ -10355,6 +10480,9 @@ window.API_INDEX = {
         "Element.beam_with_transformation",
         "Element.cached_aabb",
         "Element.cached_aabb_ref",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.column_with_transformation",
         "Element.compute_aabb",
@@ -10368,6 +10496,7 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.from_brep_with_transformation",
         "Element.from_mesh_with_transformation",
         "Element.geometry",
@@ -10395,7 +10524,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "obb()",
-          "code": "def obb(self):\n\n        if self._is_dirty or self._obb is None:\n            self._obb = self.compute_obb()\n        return self._obb\n\n    @property\n    def collision_mesh(self):\n        if self._is_dirty or self._collision_mesh is None:\n            self._collision_mesh = self.compute_collision_mesh()\n        return self._collision_mesh\n\n    @property\n    def point(self):\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):",
+          "code": "def obb(self):\n\n        if self._is_dirty or self._obb is None:\n            self._obb = self.compute_obb()\n        return self._obb\n\n    @property\n    def collision_mesh(self):\n        if self._is_dirty or self._collision_mesh is None:\n            self._collision_mesh = self.compute_collision_mesh()\n        return self._collision_mesh\n\n    @property\n    def point(self):\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n    @property\n    def cached_aabb(self):\n        return self._aabb\n\n    @property\n    def cached_obb(self):\n        return self._obb\n\n    @property\n    def cached_collision_mesh(self):\n        return self._collision_mesh\n\n    @property\n    def cached_point(self):\n        return self._point\n\n    @property\n    def features_count(self):\n        return len(self._features)\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None",
           "file": "element.py"
         },
         "cpp": {
@@ -10424,8 +10553,11 @@ window.API_INDEX = {
         "Element.apply_features",
         "Element.axis",
         "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
         "Element.cached_obb",
         "Element.cached_obb_ref",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.column_with_transformation",
         "Element.compute_aabb",
@@ -10438,6 +10570,7 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.file_json_dump",
         "Element.file_json_dumps",
         "Element.file_json_load",
@@ -10471,7 +10604,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "collision_mesh()",
-          "code": "def collision_mesh(self):\n\n        if self._is_dirty or self._collision_mesh is None:\n            self._collision_mesh = self.compute_collision_mesh()\n        return self._collision_mesh\n\n    @property\n    def point(self):\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"",
+          "code": "def collision_mesh(self):\n\n        if self._is_dirty or self._collision_mesh is None:\n            self._collision_mesh = self.compute_collision_mesh()\n        return self._collision_mesh\n\n    @property\n    def point(self):\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n    @property\n    def cached_aabb(self):\n        return self._aabb\n\n    @property\n    def cached_obb(self):\n        return self._obb\n\n    @property\n    def cached_collision_mesh(self):\n        return self._collision_mesh\n\n    @property\n    def cached_point(self):\n        return self._point\n\n    @property\n    def features_count(self):\n        return len(self._features)\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None",
           "file": "element.py"
         },
         "cpp": {
@@ -10496,8 +10629,11 @@ window.API_INDEX = {
         "Element.add_feature",
         "Element.axis",
         "Element.beam_with_transformation",
+        "Element.cached_aabb",
         "Element.cached_collision_mesh",
         "Element.cached_collision_mesh_ref",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.column_with_transformation",
         "Element.compute_aabb",
         "Element.compute_axis",
@@ -10509,6 +10645,7 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.from_brep_with_transformation",
         "Element.from_mesh_with_transformation",
         "Element.geometry",
@@ -10536,7 +10673,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "point()",
-          "code": "def point(self):\n\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"\n\n    def __repr__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.guid}, {self.name}, {geo_type})\"\n\n    ###########################################################################################\n    # Mutators",
+          "code": "def point(self):\n\n        if self._is_dirty or self._point is None:\n            self._point = self.compute_point()\n        return self._point\n\n    @property\n    def polylines(self):\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n    @property\n    def cached_aabb(self):\n        return self._aabb\n\n    @property\n    def cached_obb(self):\n        return self._obb\n\n    @property\n    def cached_collision_mesh(self):\n        return self._collision_mesh\n\n    @property\n    def cached_point(self):\n        return self._point\n\n    @property\n    def features_count(self):\n        return len(self._features)\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result",
           "file": "element.py"
         },
         "cpp": {
@@ -10565,6 +10702,9 @@ window.API_INDEX = {
         "Element.apply_features",
         "Element.axis",
         "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
         "Element.cached_point",
         "Element.cached_point_ref",
         "Element.collision_mesh",
@@ -10580,6 +10720,7 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.file_json_dump",
         "Element.file_json_dumps",
         "Element.file_json_load",
@@ -10598,7 +10739,6 @@ window.API_INDEX = {
         "Element.plate_from_top_bottom_with_transformation",
         "Element.plate_with_transformation",
         "Element.polylines",
-        "Element.repr",
         "Element.reset",
         "Element.session_geometry",
         "Element.session_transformation",
@@ -10614,7 +10754,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "polylines()",
-          "code": "def polylines(self):\n\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"\n\n    def __repr__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.guid}, {self.name}, {geo_type})\"\n\n    ###########################################################################################\n    # Mutators\n    ###########################################################################################\n\n    def add_feature(self, feature):\n        self._features.append(feature)\n        self._is_dirty = True",
+          "code": "def polylines(self):\n\n        if self._is_dirty or self._polylines is None:\n            self._polylines = self.compute_polylines()\n        return self._polylines\n\n    @property\n    def planes(self):\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n    @property\n    def cached_aabb(self):\n        return self._aabb\n\n    @property\n    def cached_obb(self):\n        return self._obb\n\n    @property\n    def cached_collision_mesh(self):\n        return self._collision_mesh\n\n    @property\n    def cached_point(self):\n        return self._point\n\n    @property\n    def features_count(self):\n        return len(self._features)\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)",
           "file": "element.py"
         },
         "cpp": {
@@ -10639,6 +10779,10 @@ window.API_INDEX = {
         "Element.add_feature",
         "Element.axis",
         "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.column_with_transformation",
         "Element.compute_aabb",
@@ -10651,6 +10795,7 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.from_brep_with_transformation",
         "Element.from_mesh_with_transformation",
         "Element.geometry",
@@ -10662,7 +10807,6 @@ window.API_INDEX = {
         "Element.plate_from_top_bottom_with_transformation",
         "Element.plate_with_transformation",
         "Element.point",
-        "Element.repr",
         "Element.reset",
         "Element.session_geometry",
         "Element.session_transformation",
@@ -10678,7 +10822,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "planes()",
-          "code": "def planes(self):\n\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"\n\n    def __repr__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.guid}, {self.name}, {geo_type})\"\n\n    ###########################################################################################\n    # Mutators\n    ###########################################################################################\n\n    def add_feature(self, feature):\n        self._features.append(feature)\n        self._is_dirty = True\n\n    def set_geometry(self, geometry):\n        self._geometry = geometry\n        self._is_dirty = True\n\n    def set_polylines(self, polylines):\n        self._polylines = polylines",
+          "code": "def planes(self):\n\n        if self._is_dirty or self._planes is None:\n            self._planes = self.compute_planes()\n        return self._planes\n\n    @property\n    def edge_vectors(self):\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n    @property\n    def cached_aabb(self):\n        return self._aabb\n\n    @property\n    def cached_obb(self):\n        return self._obb\n\n    @property\n    def cached_collision_mesh(self):\n        return self._collision_mesh\n\n    @property\n    def cached_point(self):\n        return self._point\n\n    @property\n    def features_count(self):\n        return len(self._features)\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"",
           "file": "element.py"
         },
         "cpp": {
@@ -10703,6 +10847,10 @@ window.API_INDEX = {
         "Element.add_feature",
         "Element.axis",
         "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.column_with_transformation",
         "Element.compute_aabb",
@@ -10715,6 +10863,7 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.from_brep_with_transformation",
         "Element.from_mesh_with_transformation",
         "Element.geometry",
@@ -10726,7 +10875,6 @@ window.API_INDEX = {
         "Element.plate_with_transformation",
         "Element.point",
         "Element.polylines",
-        "Element.repr",
         "Element.reset",
         "Element.session_geometry",
         "Element.session_transformation",
@@ -10742,7 +10890,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "edge_vectors()",
-          "code": "def edge_vectors(self):\n\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"\n\n    def __repr__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.guid}, {self.name}, {geo_type})\"\n\n    ###########################################################################################\n    # Mutators\n    ###########################################################################################\n\n    def add_feature(self, feature):\n        self._features.append(feature)\n        self._is_dirty = True\n\n    def set_geometry(self, geometry):\n        self._geometry = geometry\n        self._is_dirty = True\n\n    def set_polylines(self, polylines):\n        self._polylines = polylines\n\n    def set_planes(self, planes):\n        self._planes = planes\n\n    def reset(self):\n        self._is_dirty = True",
+          "code": "def edge_vectors(self):\n\n        if self._is_dirty or self._edge_vectors is None:\n            self._edge_vectors = self.compute_edge_vectors()\n        return self._edge_vectors\n\n    @property\n    def axis(self):\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n    @property\n    def cached_aabb(self):\n        return self._aabb\n\n    @property\n    def cached_obb(self):\n        return self._obb\n\n    @property\n    def cached_collision_mesh(self):\n        return self._collision_mesh\n\n    @property\n    def cached_point(self):\n        return self._point\n\n    @property\n    def features_count(self):\n        return len(self._features)\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"\n\n    def __repr__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.guid}, {self.name}, {geo_type})\"\n\n    ###########################################################################################",
           "file": "element.py"
         },
         "cpp": {
@@ -10767,6 +10915,10 @@ window.API_INDEX = {
         "Element.add_feature",
         "Element.axis",
         "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.column_with_transformation",
         "Element.compute_aabb",
@@ -10778,6 +10930,7 @@ window.API_INDEX = {
         "Element.compute_point",
         "Element.compute_polylines",
         "Element.duplicate",
+        "Element.features_count",
         "Element.from_brep_with_transformation",
         "Element.from_mesh_with_transformation",
         "Element.geometry",
@@ -10806,7 +10959,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "axis()",
-          "code": "def axis(self):\n\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"\n\n    def __repr__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.guid}, {self.name}, {geo_type})\"\n\n    ###########################################################################################\n    # Mutators\n    ###########################################################################################\n\n    def add_feature(self, feature):\n        self._features.append(feature)\n        self._is_dirty = True\n\n    def set_geometry(self, geometry):\n        self._geometry = geometry\n        self._is_dirty = True\n\n    def set_polylines(self, polylines):\n        self._polylines = polylines\n\n    def set_planes(self, planes):\n        self._planes = planes\n\n    def reset(self):\n        self._is_dirty = True\n        self._aabb = None\n        self._obb = None\n        self._collision_mesh = None\n        self._point = None\n        self._polylines = None\n        self._planes = None",
+          "code": "def axis(self):\n\n        if self._is_dirty or self._axis is None:\n            self._axis = self.compute_axis()\n        return self._axis\n\n    @property\n    def is_dirty(self):\n        return self._is_dirty\n    @property\n    def cached_aabb(self):\n        return self._aabb\n\n    @property\n    def cached_obb(self):\n        return self._obb\n\n    @property\n    def cached_collision_mesh(self):\n        return self._collision_mesh\n\n    @property\n    def cached_point(self):\n        return self._point\n\n    @property\n    def features_count(self):\n        return len(self._features)\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"\n\n    def __repr__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.guid}, {self.name}, {geo_type})\"\n\n    ###########################################################################################\n    # Mutators\n    ###########################################################################################\n\n    def add_feature(self, feature):\n        self._features.append(feature)\n        self._is_dirty = True",
           "file": "element.py"
         },
         "cpp": {
@@ -10830,6 +10983,10 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.add_feature",
         "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.column_with_transformation",
         "Element.compute_aabb",
@@ -10842,6 +10999,7 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.from_brep_with_transformation",
         "Element.from_mesh_with_transformation",
         "Element.geometry",
@@ -10871,7 +11029,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "is_dirty()",
-          "code": "def is_dirty(self):\n\n        return self._is_dirty\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"\n\n    def __repr__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.guid}, {self.name}, {geo_type})\"\n\n    ###########################################################################################\n    # Mutators\n    ###########################################################################################\n\n    def add_feature(self, feature):\n        self._features.append(feature)\n        self._is_dirty = True\n\n    def set_geometry(self, geometry):\n        self._geometry = geometry\n        self._is_dirty = True\n\n    def set_polylines(self, polylines):\n        self._polylines = polylines\n\n    def set_planes(self, planes):\n        self._planes = planes\n\n    def reset(self):\n        self._is_dirty = True\n        self._aabb = None\n        self._obb = None\n        self._collision_mesh = None\n        self._point = None\n        self._polylines = None\n        self._planes = None\n        self._edge_vectors = None\n        self._axis = None\n\n    ###########################################################################################\n    # Computation\n    ###########################################################################################",
+          "code": "def is_dirty(self):\n\n        return self._is_dirty\n    @property\n    def cached_aabb(self):\n        return self._aabb\n\n    @property\n    def cached_obb(self):\n        return self._obb\n\n    @property\n    def cached_collision_mesh(self):\n        return self._collision_mesh\n\n    @property\n    def cached_point(self):\n        return self._point\n\n    @property\n    def features_count(self):\n        return len(self._features)\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"\n\n    def __repr__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.guid}, {self.name}, {geo_type})\"\n\n    ###########################################################################################\n    # Mutators\n    ###########################################################################################\n\n    def add_feature(self, feature):\n        self._features.append(feature)\n        self._is_dirty = True\n\n    def set_geometry(self, geometry):\n        self._geometry = geometry\n        self._is_dirty = True\n\n    def set_polylines(self, polylines):",
           "file": "element.py"
         },
         "cpp": {
@@ -10896,10 +11054,15 @@ window.API_INDEX = {
         "Element.add_feature",
         "Element.axis",
         "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.column_with_transformation",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.from_brep_with_transformation",
         "Element.from_mesh_with_transformation",
         "Element.geometry",
@@ -10924,6 +11087,283 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Element.cached_aabb",
+      "implementations": {
+        "python": {
+          "sig": "cached_aabb()",
+          "code": "def cached_aabb(self):\n\n        return self._aabb\n\n    @property\n    def cached_obb(self):\n        return self._obb\n\n    @property\n    def cached_collision_mesh(self):\n        return self._collision_mesh\n\n    @property\n    def cached_point(self):\n        return self._point\n\n    @property\n    def features_count(self):\n        return len(self._features)\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"\n\n    def __repr__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.guid}, {self.name}, {geo_type})\"\n\n    ###########################################################################################\n    # Mutators\n    ###########################################################################################\n\n    def add_feature(self, feature):\n        self._features.append(feature)\n        self._is_dirty = True\n\n    def set_geometry(self, geometry):\n        self._geometry = geometry\n        self._is_dirty = True\n\n    def set_polylines(self, polylines):\n        self._polylines = polylines\n\n    def set_planes(self, planes):",
+          "file": "element.py"
+        },
+        "cpp": {
+          "sig": "const std::optional<OBB>& cached_aabb()",
+          "code": "const std::optional<OBB>& cached_aabb() const { return _aabb; }",
+          "file": "element.h"
+        }
+      },
+      "related": [
+        "Element.__deepcopy__",
+        "Element.__eq__",
+        "Element.__ne__",
+        "Element.__repr__",
+        "Element.__str__",
+        "Element.aabb",
+        "Element.add_feature",
+        "Element.axis",
+        "Element.beam_with_transformation",
+        "Element.cached_aabb_ref",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
+        "Element.collision_mesh",
+        "Element.column_with_transformation",
+        "Element.duplicate",
+        "Element.edge_vectors",
+        "Element.features_count",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
+        "Element.geometry",
+        "Element.guid",
+        "Element.is_dirty",
+        "Element.new",
+        "Element.obb",
+        "Element.planes",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
+        "Element.point",
+        "Element.polylines",
+        "Element.repr",
+        "Element.reset",
+        "Element.session_geometry",
+        "Element.session_transformation",
+        "Element.set_geometry",
+        "Element.set_planes",
+        "Element.set_polylines",
+        "Element.str",
+        "Element.with_transformation"
+      ]
+    },
+    {
+      "name": "Element.cached_obb",
+      "implementations": {
+        "python": {
+          "sig": "cached_obb()",
+          "code": "def cached_obb(self):\n\n        return self._obb\n\n    @property\n    def cached_collision_mesh(self):\n        return self._collision_mesh\n\n    @property\n    def cached_point(self):\n        return self._point\n\n    @property\n    def features_count(self):\n        return len(self._features)\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"\n\n    def __repr__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.guid}, {self.name}, {geo_type})\"\n\n    ###########################################################################################\n    # Mutators\n    ###########################################################################################\n\n    def add_feature(self, feature):\n        self._features.append(feature)\n        self._is_dirty = True\n\n    def set_geometry(self, geometry):\n        self._geometry = geometry\n        self._is_dirty = True\n\n    def set_polylines(self, polylines):\n        self._polylines = polylines\n\n    def set_planes(self, planes):\n        self._planes = planes\n\n    def reset(self):\n        self._is_dirty = True",
+          "file": "element.py"
+        },
+        "cpp": {
+          "sig": "const std::optional<OBB>& cached_obb()",
+          "code": "const std::optional<OBB>& cached_obb() const { return _obb; }",
+          "file": "element.h"
+        }
+      },
+      "related": [
+        "Element.__deepcopy__",
+        "Element.__eq__",
+        "Element.__ne__",
+        "Element.__repr__",
+        "Element.__str__",
+        "Element.aabb",
+        "Element.add_feature",
+        "Element.axis",
+        "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb_ref",
+        "Element.cached_point",
+        "Element.collision_mesh",
+        "Element.column_with_transformation",
+        "Element.duplicate",
+        "Element.edge_vectors",
+        "Element.features_count",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
+        "Element.geometry",
+        "Element.guid",
+        "Element.is_dirty",
+        "Element.new",
+        "Element.obb",
+        "Element.planes",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
+        "Element.point",
+        "Element.polylines",
+        "Element.repr",
+        "Element.reset",
+        "Element.session_geometry",
+        "Element.session_transformation",
+        "Element.set_geometry",
+        "Element.set_planes",
+        "Element.set_polylines",
+        "Element.str",
+        "Element.with_transformation"
+      ]
+    },
+    {
+      "name": "Element.cached_collision_mesh",
+      "implementations": {
+        "python": {
+          "sig": "cached_collision_mesh()",
+          "code": "def cached_collision_mesh(self):\n\n        return self._collision_mesh\n\n    @property\n    def cached_point(self):\n        return self._point\n\n    @property\n    def features_count(self):\n        return len(self._features)\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"\n\n    def __repr__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.guid}, {self.name}, {geo_type})\"\n\n    ###########################################################################################\n    # Mutators\n    ###########################################################################################\n\n    def add_feature(self, feature):\n        self._features.append(feature)\n        self._is_dirty = True\n\n    def set_geometry(self, geometry):\n        self._geometry = geometry\n        self._is_dirty = True\n\n    def set_polylines(self, polylines):\n        self._polylines = polylines\n\n    def set_planes(self, planes):\n        self._planes = planes\n\n    def reset(self):\n        self._is_dirty = True\n        self._aabb = None\n        self._obb = None\n        self._collision_mesh = None\n        self._point = None",
+          "file": "element.py"
+        },
+        "cpp": {
+          "sig": "const std::optional<Mesh>& cached_collision_mesh()",
+          "code": "const std::optional<Mesh>& cached_collision_mesh() const { return _collision_mesh; }",
+          "file": "element.h"
+        }
+      },
+      "related": [
+        "Element.__deepcopy__",
+        "Element.__eq__",
+        "Element.__ne__",
+        "Element.__repr__",
+        "Element.__str__",
+        "Element.aabb",
+        "Element.add_feature",
+        "Element.axis",
+        "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh_ref",
+        "Element.cached_obb",
+        "Element.cached_point",
+        "Element.collision_mesh",
+        "Element.column_with_transformation",
+        "Element.duplicate",
+        "Element.edge_vectors",
+        "Element.features_count",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
+        "Element.geometry",
+        "Element.guid",
+        "Element.is_dirty",
+        "Element.new",
+        "Element.obb",
+        "Element.planes",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
+        "Element.point",
+        "Element.polylines",
+        "Element.repr",
+        "Element.reset",
+        "Element.session_geometry",
+        "Element.session_transformation",
+        "Element.set_geometry",
+        "Element.set_planes",
+        "Element.set_polylines",
+        "Element.str",
+        "Element.with_transformation"
+      ]
+    },
+    {
+      "name": "Element.cached_point",
+      "implementations": {
+        "python": {
+          "sig": "cached_point()",
+          "code": "def cached_point(self):\n\n        return self._point\n\n    @property\n    def features_count(self):\n        return len(self._features)\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"\n\n    def __repr__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.guid}, {self.name}, {geo_type})\"\n\n    ###########################################################################################\n    # Mutators\n    ###########################################################################################\n\n    def add_feature(self, feature):\n        self._features.append(feature)\n        self._is_dirty = True\n\n    def set_geometry(self, geometry):\n        self._geometry = geometry\n        self._is_dirty = True\n\n    def set_polylines(self, polylines):\n        self._polylines = polylines\n\n    def set_planes(self, planes):\n        self._planes = planes\n\n    def reset(self):\n        self._is_dirty = True\n        self._aabb = None\n        self._obb = None\n        self._collision_mesh = None\n        self._point = None\n        self._polylines = None\n        self._planes = None\n        self._edge_vectors = None\n        self._axis = None",
+          "file": "element.py"
+        },
+        "cpp": {
+          "sig": "const std::optional<Point>& cached_point()",
+          "code": "const std::optional<Point>& cached_point() const { return _point; }",
+          "file": "element.h"
+        }
+      },
+      "related": [
+        "Element.__deepcopy__",
+        "Element.__eq__",
+        "Element.__ne__",
+        "Element.__repr__",
+        "Element.__str__",
+        "Element.aabb",
+        "Element.add_feature",
+        "Element.axis",
+        "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point_ref",
+        "Element.collision_mesh",
+        "Element.column_with_transformation",
+        "Element.duplicate",
+        "Element.edge_vectors",
+        "Element.features_count",
+        "Element.from_brep_with_transformation",
+        "Element.from_mesh_with_transformation",
+        "Element.geometry",
+        "Element.guid",
+        "Element.is_dirty",
+        "Element.new",
+        "Element.obb",
+        "Element.planes",
+        "Element.plate_from_top_bottom_with_transformation",
+        "Element.plate_with_transformation",
+        "Element.point",
+        "Element.polylines",
+        "Element.repr",
+        "Element.reset",
+        "Element.session_geometry",
+        "Element.session_transformation",
+        "Element.set_geometry",
+        "Element.set_planes",
+        "Element.set_polylines",
+        "Element.str",
+        "Element.with_transformation"
+      ]
+    },
+    {
+      "name": "Element.features_count",
+      "implementations": {
+        "python": {
+          "sig": "features_count()",
+          "code": "def features_count(self):\n\n        return len(self._features)\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n        result.guid = str(uuid.uuid4())\n        result.name = copy.deepcopy(self.name, memo)\n        result._geometry = copy.deepcopy(self._geometry, memo)\n        result._session_transformation = copy.deepcopy(self._session_transformation, memo)\n        result._features = list(self._features)\n        result._is_dirty = True\n        result._aabb = None\n        result._obb = None\n        result._collision_mesh = None\n        result._point = None\n        result._polylines = None\n        result._planes = None\n        result._edge_vectors = None\n        result._axis = None\n        return result\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, Element):\n            return False\n        return self.name == other.name and type(self._geometry) == type(other._geometry)\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.name}, {geo_type})\"\n\n    def __repr__(self):\n        geo_type = type(self._geometry).__name__ if self._geometry else \"None\"\n        return f\"Element({self.guid}, {self.name}, {geo_type})\"\n\n    ###########################################################################################\n    # Mutators\n    ###########################################################################################\n\n    def add_feature(self, feature):\n        self._features.append(feature)\n        self._is_dirty = True\n\n    def set_geometry(self, geometry):\n        self._geometry = geometry\n        self._is_dirty = True\n\n    def set_polylines(self, polylines):\n        self._polylines = polylines\n\n    def set_planes(self, planes):\n        self._planes = planes\n\n    def reset(self):\n        self._is_dirty = True\n        self._aabb = None\n        self._obb = None\n        self._collision_mesh = None\n        self._point = None\n        self._polylines = None\n        self._planes = None\n        self._edge_vectors = None\n        self._axis = None\n\n    ###########################################################################################\n    # Computation\n    ###########################################################################################",
+          "file": "element.py"
+        },
+        "cpp": {
+          "sig": "size_t features_count()",
+          "code": "size_t features_count() const { return _features.size(); }",
+          "file": "element.h"
+        },
+        "rust": {
+          "sig": "features_count() -> usize",
+          "code": "pub fn features_count(&self) -> usize { self.features.len() }",
+          "file": "element.rs"
+        }
+      },
+      "related": [
+        "Element.__deepcopy__",
+        "Element.__eq__",
+        "Element.__ne__",
+        "Element.__repr__",
+        "Element.__str__",
+        "Element.aabb",
+        "Element.add_feature",
+        "Element.axis",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
+        "Element.collision_mesh",
+        "Element.duplicate",
+        "Element.edge_vectors",
+        "Element.geometry",
+        "Element.guid",
+        "Element.is_dirty",
+        "Element.new",
+        "Element.obb",
+        "Element.planes",
+        "Element.point",
+        "Element.polylines",
+        "Element.repr",
+        "Element.reset",
+        "Element.session_geometry",
+        "Element.session_transformation",
+        "Element.set_geometry",
+        "Element.set_planes",
+        "Element.set_polylines",
+        "Element.str"
+      ]
+    },
+    {
       "name": "Element.__deepcopy__",
       "implementations": {
         "python": {
@@ -10940,10 +11380,15 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.add_feature",
         "Element.axis",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.compute_aabb",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
@@ -11001,6 +11446,7 @@ window.API_INDEX = {
         "Element.compute_obb",
         "Element.compute_point",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
@@ -11037,6 +11483,10 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.add_feature",
         "Element.axis",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.compute_aabb",
         "Element.compute_collision_mesh",
@@ -11044,6 +11494,7 @@ window.API_INDEX = {
         "Element.compute_point",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
@@ -11079,6 +11530,10 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.add_feature",
         "Element.axis",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.compute_aabb",
         "Element.compute_collision_mesh",
@@ -11086,6 +11541,7 @@ window.API_INDEX = {
         "Element.compute_point",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
@@ -11121,6 +11577,10 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.add_feature",
         "Element.axis",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.compute_aabb",
         "Element.compute_collision_mesh",
@@ -11128,6 +11588,7 @@ window.API_INDEX = {
         "Element.compute_point",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
@@ -11163,6 +11624,10 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.add_feature",
         "Element.axis",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.compute_aabb",
         "Element.compute_collision_mesh",
@@ -11170,6 +11635,7 @@ window.API_INDEX = {
         "Element.compute_point",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.geometry",
         "Element.guid",
         "Element.is_dirty",
@@ -11214,6 +11680,10 @@ window.API_INDEX = {
         "Element._obb_from_geometry",
         "Element.aabb",
         "Element.axis",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.compute_aabb",
         "Element.compute_collision_mesh",
@@ -11221,6 +11691,7 @@ window.API_INDEX = {
         "Element.compute_point",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.geometry",
         "Element.is_dirty",
         "Element.obb",
@@ -11264,6 +11735,10 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.add_feature",
         "Element.axis",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.compute_aabb",
         "Element.compute_collision_mesh",
@@ -11272,6 +11747,7 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.geometry",
         "Element.is_dirty",
         "Element.obb",
@@ -11315,6 +11791,10 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.add_feature",
         "Element.axis",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.compute_aabb",
         "Element.compute_collision_mesh",
@@ -11325,6 +11805,7 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.geometry",
         "Element.is_dirty",
         "Element.obb",
@@ -11367,6 +11848,10 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.add_feature",
         "Element.axis",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.compute_aabb",
         "Element.compute_axis",
@@ -11378,6 +11863,7 @@ window.API_INDEX = {
         "Element.compute_polylines",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.geometry",
         "Element.is_dirty",
         "Element.obb",
@@ -11437,6 +11923,7 @@ window.API_INDEX = {
         "Element.duplicate",
         "Element.edge_vectors",
         "Element.extend",
+        "Element.features_count",
         "Element.geometry",
         "Element.is_dirty",
         "Element.obb",
@@ -32851,7 +33338,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__str__() -> str",
-          "code": "def __str__(self) -> str:\n\n        \"\"\"String representation.\"\"\"\n        return f\"NurbsCurve(name={self.name}, degree={self.degree()}, cvs={self.m_cv_count})\"\n\n    def __repr__(self) -> str:\n        \"\"\"Representation string.\"\"\"\n        rational_str = \"true\" if self.m_is_rat else \"false\"\n        lines = [\n            \"NurbsCurve(\",\n            f\"  name={self.name},\",\n            f\"  degree={self.degree()},\",\n            f\"  cvs={self.m_cv_count},\",\n            f\"  rational={rational_str},\",\n            \"  control_points=[\"\n        ]\n        for i in range(self.m_cv_count):\n            p = self.get_cv(i)\n            lines.append(f\"    {p[0]}, {p[1]}, {p[2]}\")\n        lines.append(\"  ]\")\n        lines.append(\")\")\n        return \"\\n\".join(lines)\n\n\n    ###########################################################################################\n    # Internal Helpers\n    ###########################################################################################\n\n    def _find_span(self, t: float) -> int:\n        \"\"\"Find nurbsknot span index for parameter t using binary search.\n\n        Implementation matches OpenNURBS ON_NurbsSpanIndex.\n\n        Returns\n        -------\n        int\n            Span index relative to shifted nurbsknot array (0-based from domain start)\n        \"\"\"\n        if not self.is_valid():\n            return -1\n\n        # Use nurbsknot module function\n        return nurbsknot.find_span(self.m_order, self.m_cv_count, self.m_nurbsknot, t)\n\n    def _basis_functions(self, span: int, t: float) -> np.ndarray:\n        \"\"\"Compute non-zero basis functions at parameter t.\n        \n        Implementation matches OpenNURBS Cox-de Boor algorithm.\n        \n        Parameters\n        ----------\n        span : int\n            NurbsKnot span index from _find_span() (relative to shifted array).\n        t : float\n            Parameter value.\n            \n        Returns\n        -------\n        np.ndarray\n            Array of m_order non-zero basis function values.\n        \"\"\"\n        N = np.zeros(self.m_order)\n        left = np.zeros(self.m_order)\n        right = np.zeros(self.m_order)\n        \n        # Offset nurbsknot pointer like OpenNURBS does\n        offset = self.m_order - 2 + span\n        \n        N[0] = 1.0\n        \n        for j in range(1, self.m_order):\n            left[j] = t - self.m_nurbsknot[offset + 1 - j]\n            right[j] = self.m_nurbsknot[offset + j] - t\n            saved = 0.0\n            \n            for r in range(j):\n                temp = N[r] / (right[r + 1] + left[j - r])\n                N[r] = saved + right[r + 1] * temp\n                saved = left[j - r] * temp\n            \n            N[j] = saved",
+          "code": "def __str__(self) -> str:\n\n        \"\"\"String representation.\"\"\"\n        return f\"NurbsCurve(name={self.name}, degree={self.degree()}, cvs={self.m_cv_count})\"\n\n    def __repr__(self) -> str:\n        \"\"\"Representation string.\"\"\"\n        rational_str = \"true\" if self.m_is_rat else \"false\"\n        lines = [\n            \"NurbsCurve(\",\n            f\"  name={self.name},\",\n            f\"  degree={self.degree()},\",\n            f\"  cvs={self.m_cv_count},\",\n            f\"  rational={rational_str},\",\n            \"  control_points=[\"\n        ]\n        for i in range(self.m_cv_count):\n            p = self.get_cv(i)\n            lines.append(f\"    {p[0]}, {p[1]}, {p[2]}\")\n        lines.append(\"  ]\")\n        lines.append(\")\")\n        return \"\\n\".join(lines)\n\n\n    ###########################################################################################\n    # Internal Helpers\n    ###########################################################################################\n\n    def _find_span(self, t: float) -> int:\n        \"\"\"Find nurbsknot span index for parameter t using binary search.\n\n        Implementation matches OpenNURBS ON_NurbsSpanIndex.\n\n        Returns\n        -------\n        int\n            Span index relative to shifted nurbsknot array (0-based from domain start)\n        \"\"\"\n        if not self.is_valid():\n            return -1\n\n        # Use nurbsknot module function\n        return nurbsknot.find_span(self.m_order, self.m_cv_count, self.m_nurbsknot, t)\n\n    def _basis_functions(self, span: int, t: float) -> np.ndarray:\n        \"\"\"Compute non-zero basis functions at parameter t.\n        \n        Implementation matches OpenNURBS Cox-de Boor algorithm.\n        \n        Parameters\n        ----------\n        span : int\n            NurbsKnot span index from _find_span() (relative to shifted array).\n        t : float\n            Parameter value.\n            \n        Returns\n        -------\n        np.ndarray\n            Array of m_order non-zero basis function values.\n        \"\"\"\n        N = np.zeros(self.m_order)\n        left = np.zeros(self.m_order)\n        right = np.zeros(self.m_order)\n        \n        # Offset nurbsknot pointer like OpenNURBS does\n        offset = self.m_order - 2 + span\n        \n        N[0] = 1.0\n        \n        for j in range(1, self.m_order):\n            left[j] = t - self.m_nurbsknot[offset + 1 - j]\n            right[j] = self.m_nurbsknot[offset + j] - t\n            saved = 0.0\n            \n            for r in range(j):\n                denom = right[r + 1] + left[j - r]\n                temp = N[r] / denom if denom != 0.0 else 0.0\n                N[r] = saved + right[r + 1] * temp\n                saved = left[j - r] * temp",
           "file": "nurbscurve.py"
         }
       },
@@ -32883,17 +33370,15 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__repr__() -> str",
-          "code": "def __repr__(self) -> str:\n\n        \"\"\"Representation string.\"\"\"\n        rational_str = \"true\" if self.m_is_rat else \"false\"\n        lines = [\n            \"NurbsCurve(\",\n            f\"  name={self.name},\",\n            f\"  degree={self.degree()},\",\n            f\"  cvs={self.m_cv_count},\",\n            f\"  rational={rational_str},\",\n            \"  control_points=[\"\n        ]\n        for i in range(self.m_cv_count):\n            p = self.get_cv(i)\n            lines.append(f\"    {p[0]}, {p[1]}, {p[2]}\")\n        lines.append(\"  ]\")\n        lines.append(\")\")\n        return \"\\n\".join(lines)\n\n\n    ###########################################################################################\n    # Internal Helpers\n    ###########################################################################################\n\n    def _find_span(self, t: float) -> int:\n        \"\"\"Find nurbsknot span index for parameter t using binary search.\n\n        Implementation matches OpenNURBS ON_NurbsSpanIndex.\n\n        Returns\n        -------\n        int\n            Span index relative to shifted nurbsknot array (0-based from domain start)\n        \"\"\"\n        if not self.is_valid():\n            return -1\n\n        # Use nurbsknot module function\n        return nurbsknot.find_span(self.m_order, self.m_cv_count, self.m_nurbsknot, t)\n\n    def _basis_functions(self, span: int, t: float) -> np.ndarray:\n        \"\"\"Compute non-zero basis functions at parameter t.\n        \n        Implementation matches OpenNURBS Cox-de Boor algorithm.\n        \n        Parameters\n        ----------\n        span : int\n            NurbsKnot span index from _find_span() (relative to shifted array).\n        t : float\n            Parameter value.\n            \n        Returns\n        -------\n        np.ndarray\n            Array of m_order non-zero basis function values.\n        \"\"\"\n        N = np.zeros(self.m_order)\n        left = np.zeros(self.m_order)\n        right = np.zeros(self.m_order)\n        \n        # Offset nurbsknot pointer like OpenNURBS does\n        offset = self.m_order - 2 + span\n        \n        N[0] = 1.0\n        \n        for j in range(1, self.m_order):\n            left[j] = t - self.m_nurbsknot[offset + 1 - j]\n            right[j] = self.m_nurbsknot[offset + j] - t\n            saved = 0.0\n            \n            for r in range(j):\n                temp = N[r] / (right[r + 1] + left[j - r])\n                N[r] = saved + right[r + 1] * temp\n                saved = left[j - r] * temp\n            \n            N[j] = saved\n        \n        return N\n\n    def _basis_functions_derivatives(self, span: int, t: float, deriv_order: int) -> np.ndarray:",
+          "code": "def __repr__(self) -> str:\n\n        \"\"\"Representation string.\"\"\"\n        rational_str = \"true\" if self.m_is_rat else \"false\"\n        lines = [\n            \"NurbsCurve(\",\n            f\"  name={self.name},\",\n            f\"  degree={self.degree()},\",\n            f\"  cvs={self.m_cv_count},\",\n            f\"  rational={rational_str},\",\n            \"  control_points=[\"\n        ]\n        for i in range(self.m_cv_count):\n            p = self.get_cv(i)\n            lines.append(f\"    {p[0]}, {p[1]}, {p[2]}\")\n        lines.append(\"  ]\")\n        lines.append(\")\")\n        return \"\\n\".join(lines)\n\n\n    ###########################################################################################\n    # Internal Helpers\n    ###########################################################################################\n\n    def _find_span(self, t: float) -> int:\n        \"\"\"Find nurbsknot span index for parameter t using binary search.\n\n        Implementation matches OpenNURBS ON_NurbsSpanIndex.\n\n        Returns\n        -------\n        int\n            Span index relative to shifted nurbsknot array (0-based from domain start)\n        \"\"\"\n        if not self.is_valid():\n            return -1\n\n        # Use nurbsknot module function\n        return nurbsknot.find_span(self.m_order, self.m_cv_count, self.m_nurbsknot, t)\n\n    def _basis_functions(self, span: int, t: float) -> np.ndarray:\n        \"\"\"Compute non-zero basis functions at parameter t.\n        \n        Implementation matches OpenNURBS Cox-de Boor algorithm.\n        \n        Parameters\n        ----------\n        span : int\n            NurbsKnot span index from _find_span() (relative to shifted array).\n        t : float\n            Parameter value.\n            \n        Returns\n        -------\n        np.ndarray\n            Array of m_order non-zero basis function values.\n        \"\"\"\n        N = np.zeros(self.m_order)\n        left = np.zeros(self.m_order)\n        right = np.zeros(self.m_order)\n        \n        # Offset nurbsknot pointer like OpenNURBS does\n        offset = self.m_order - 2 + span\n        \n        N[0] = 1.0\n        \n        for j in range(1, self.m_order):\n            left[j] = t - self.m_nurbsknot[offset + 1 - j]\n            right[j] = self.m_nurbsknot[offset + j] - t\n            saved = 0.0\n            \n            for r in range(j):\n                denom = right[r + 1] + left[j - r]\n                temp = N[r] / denom if denom != 0.0 else 0.0\n                N[r] = saved + right[r + 1] * temp\n                saved = left[j - r] * temp\n            \n            N[j] = saved\n        \n        return N",
           "file": "nurbscurve.py"
         }
       },
       "related": [
         "NurbsCurve.__str__",
         "NurbsCurve._basis_functions",
-        "NurbsCurve._basis_functions_derivatives",
         "NurbsCurve._find_span",
         "NurbsCurve.basis_functions",
-        "NurbsCurve.basis_functions_derivatives",
         "NurbsCurve.cv",
         "NurbsCurve.cv_count",
         "NurbsCurve.degree",
@@ -32917,7 +33402,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_find_span(t: float) -> int",
-          "code": "def _find_span(self, t: float) -> int:\n\n        \"\"\"Find nurbsknot span index for parameter t using binary search.\n\n        Implementation matches OpenNURBS ON_NurbsSpanIndex.\n\n        Returns\n        -------\n        int\n            Span index relative to shifted nurbsknot array (0-based from domain start)\n        \"\"\"\n        if not self.is_valid():\n            return -1\n\n        # Use nurbsknot module function\n        return nurbsknot.find_span(self.m_order, self.m_cv_count, self.m_nurbsknot, t)\n\n    def _basis_functions(self, span: int, t: float) -> np.ndarray:\n        \"\"\"Compute non-zero basis functions at parameter t.\n        \n        Implementation matches OpenNURBS Cox-de Boor algorithm.\n        \n        Parameters\n        ----------\n        span : int\n            NurbsKnot span index from _find_span() (relative to shifted array).\n        t : float\n            Parameter value.\n            \n        Returns\n        -------\n        np.ndarray\n            Array of m_order non-zero basis function values.\n        \"\"\"\n        N = np.zeros(self.m_order)\n        left = np.zeros(self.m_order)\n        right = np.zeros(self.m_order)\n        \n        # Offset nurbsknot pointer like OpenNURBS does\n        offset = self.m_order - 2 + span\n        \n        N[0] = 1.0\n        \n        for j in range(1, self.m_order):\n            left[j] = t - self.m_nurbsknot[offset + 1 - j]\n            right[j] = self.m_nurbsknot[offset + j] - t\n            saved = 0.0\n            \n            for r in range(j):\n                temp = N[r] / (right[r + 1] + left[j - r])\n                N[r] = saved + right[r + 1] * temp\n                saved = left[j - r] * temp\n            \n            N[j] = saved\n        \n        return N\n\n    def _basis_functions_derivatives(self, span: int, t: float, deriv_order: int) -> np.ndarray:\n        \"\"\"Compute basis function derivatives at parameter t.\n\n        Algorithm A2.3 from \"The NURBS Book\" (Piegl & Tiller).\n        Matches OpenNURBS/Rhino implementation.\n\n        Parameters\n        ----------\n        span : int\n            NurbsKnot span index from _find_span().\n        t : float\n            Parameter value.\n        deriv_order : int\n            Maximum derivative order.\n\n        Returns\n        -------\n        np.ndarray\n            2D array [deriv_order+1, m_order] of basis function derivatives.\n        \"\"\"\n        p = self.degree()\n        n_der = min(deriv_order, p)\n\n        ders = np.zeros((n_der + 1, p + 1))",
+          "code": "def _find_span(self, t: float) -> int:\n\n        \"\"\"Find nurbsknot span index for parameter t using binary search.\n\n        Implementation matches OpenNURBS ON_NurbsSpanIndex.\n\n        Returns\n        -------\n        int\n            Span index relative to shifted nurbsknot array (0-based from domain start)\n        \"\"\"\n        if not self.is_valid():\n            return -1\n\n        # Use nurbsknot module function\n        return nurbsknot.find_span(self.m_order, self.m_cv_count, self.m_nurbsknot, t)\n\n    def _basis_functions(self, span: int, t: float) -> np.ndarray:\n        \"\"\"Compute non-zero basis functions at parameter t.\n        \n        Implementation matches OpenNURBS Cox-de Boor algorithm.\n        \n        Parameters\n        ----------\n        span : int\n            NurbsKnot span index from _find_span() (relative to shifted array).\n        t : float\n            Parameter value.\n            \n        Returns\n        -------\n        np.ndarray\n            Array of m_order non-zero basis function values.\n        \"\"\"\n        N = np.zeros(self.m_order)\n        left = np.zeros(self.m_order)\n        right = np.zeros(self.m_order)\n        \n        # Offset nurbsknot pointer like OpenNURBS does\n        offset = self.m_order - 2 + span\n        \n        N[0] = 1.0\n        \n        for j in range(1, self.m_order):\n            left[j] = t - self.m_nurbsknot[offset + 1 - j]\n            right[j] = self.m_nurbsknot[offset + j] - t\n            saved = 0.0\n            \n            for r in range(j):\n                denom = right[r + 1] + left[j - r]\n                temp = N[r] / denom if denom != 0.0 else 0.0\n                N[r] = saved + right[r + 1] * temp\n                saved = left[j - r] * temp\n            \n            N[j] = saved\n        \n        return N\n\n    def _basis_functions_derivatives(self, span: int, t: float, deriv_order: int) -> np.ndarray:\n        \"\"\"Compute basis function derivatives at parameter t.\n\n        Algorithm A2.3 from \"The NURBS Book\" (Piegl & Tiller).\n        Matches OpenNURBS/Rhino implementation.\n\n        Parameters\n        ----------\n        span : int\n            NurbsKnot span index from _find_span().\n        t : float\n            Parameter value.\n        deriv_order : int\n            Maximum derivative order.\n\n        Returns\n        -------\n        np.ndarray\n            2D array [deriv_order+1, m_order] of basis function derivatives.\n        \"\"\"\n        p = self.degree()\n        n_der = min(deriv_order, p)",
           "file": "nurbscurve.py"
         }
       },
@@ -32951,7 +33436,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_basis_functions(span: int, t: float) -> np.ndarray",
-          "code": "def _basis_functions(self, span: int, t: float) -> np.ndarray:\n\n        \"\"\"Compute non-zero basis functions at parameter t.\n        \n        Implementation matches OpenNURBS Cox-de Boor algorithm.\n        \n        Parameters\n        ----------\n        span : int\n            NurbsKnot span index from _find_span() (relative to shifted array).\n        t : float\n            Parameter value.\n            \n        Returns\n        -------\n        np.ndarray\n            Array of m_order non-zero basis function values.\n        \"\"\"\n        N = np.zeros(self.m_order)\n        left = np.zeros(self.m_order)\n        right = np.zeros(self.m_order)\n        \n        # Offset nurbsknot pointer like OpenNURBS does\n        offset = self.m_order - 2 + span\n        \n        N[0] = 1.0\n        \n        for j in range(1, self.m_order):\n            left[j] = t - self.m_nurbsknot[offset + 1 - j]\n            right[j] = self.m_nurbsknot[offset + j] - t\n            saved = 0.0\n            \n            for r in range(j):\n                temp = N[r] / (right[r + 1] + left[j - r])\n                N[r] = saved + right[r + 1] * temp\n                saved = left[j - r] * temp\n            \n            N[j] = saved\n        \n        return N\n\n    def _basis_functions_derivatives(self, span: int, t: float, deriv_order: int) -> np.ndarray:\n        \"\"\"Compute basis function derivatives at parameter t.\n\n        Algorithm A2.3 from \"The NURBS Book\" (Piegl & Tiller).\n        Matches OpenNURBS/Rhino implementation.\n\n        Parameters\n        ----------\n        span : int\n            NurbsKnot span index from _find_span().\n        t : float\n            Parameter value.\n        deriv_order : int\n            Maximum derivative order.\n\n        Returns\n        -------\n        np.ndarray\n            2D array [deriv_order+1, m_order] of basis function derivatives.\n        \"\"\"\n        p = self.degree()\n        n_der = min(deriv_order, p)\n\n        ders = np.zeros((n_der + 1, p + 1))\n        left = np.zeros(p + 1)\n        right = np.zeros(p + 1)\n        ndu = np.zeros((p + 1, p + 1))\n\n        # Offset nurbsknot pointer like OpenNURBS\n        offset = self.m_order - 2 + span\n\n        ndu[0, 0] = 1.0\n        for j in range(1, p + 1):\n            left[j] = t - self.m_nurbsknot[offset + 1 - j]\n            right[j] = self.m_nurbsknot[offset + j] - t\n            saved = 0.0\n            for r in range(j):\n                # Store nurbsknot differences in ndu[j, r] for derivative computation\n                ndu[j, r] = right[r + 1] + left[j - r]\n                temp = ndu[r, j - 1] / ndu[j, r] if abs(ndu[j, r]) > 1e-14 else 0.0",
+          "code": "def _basis_functions(self, span: int, t: float) -> np.ndarray:\n\n        \"\"\"Compute non-zero basis functions at parameter t.\n        \n        Implementation matches OpenNURBS Cox-de Boor algorithm.\n        \n        Parameters\n        ----------\n        span : int\n            NurbsKnot span index from _find_span() (relative to shifted array).\n        t : float\n            Parameter value.\n            \n        Returns\n        -------\n        np.ndarray\n            Array of m_order non-zero basis function values.\n        \"\"\"\n        N = np.zeros(self.m_order)\n        left = np.zeros(self.m_order)\n        right = np.zeros(self.m_order)\n        \n        # Offset nurbsknot pointer like OpenNURBS does\n        offset = self.m_order - 2 + span\n        \n        N[0] = 1.0\n        \n        for j in range(1, self.m_order):\n            left[j] = t - self.m_nurbsknot[offset + 1 - j]\n            right[j] = self.m_nurbsknot[offset + j] - t\n            saved = 0.0\n            \n            for r in range(j):\n                denom = right[r + 1] + left[j - r]\n                temp = N[r] / denom if denom != 0.0 else 0.0\n                N[r] = saved + right[r + 1] * temp\n                saved = left[j - r] * temp\n            \n            N[j] = saved\n        \n        return N\n\n    def _basis_functions_derivatives(self, span: int, t: float, deriv_order: int) -> np.ndarray:\n        \"\"\"Compute basis function derivatives at parameter t.\n\n        Algorithm A2.3 from \"The NURBS Book\" (Piegl & Tiller).\n        Matches OpenNURBS/Rhino implementation.\n\n        Parameters\n        ----------\n        span : int\n            NurbsKnot span index from _find_span().\n        t : float\n            Parameter value.\n        deriv_order : int\n            Maximum derivative order.\n\n        Returns\n        -------\n        np.ndarray\n            2D array [deriv_order+1, m_order] of basis function derivatives.\n        \"\"\"\n        p = self.degree()\n        n_der = min(deriv_order, p)\n\n        ders = np.zeros((n_der + 1, p + 1))\n        left = np.zeros(p + 1)\n        right = np.zeros(p + 1)\n        ndu = np.zeros((p + 1, p + 1))\n\n        # Offset nurbsknot pointer like OpenNURBS\n        offset = self.m_order - 2 + span\n\n        ndu[0, 0] = 1.0\n        for j in range(1, p + 1):\n            left[j] = t - self.m_nurbsknot[offset + 1 - j]\n            right[j] = self.m_nurbsknot[offset + j] - t\n            saved = 0.0\n            for r in range(j):\n                # Store nurbsknot differences in ndu[j, r] for derivative computation\n                ndu[j, r] = right[r + 1] + left[j - r]",
           "file": "nurbscurve.py"
         }
       },
@@ -32983,7 +33468,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NurbsCurve.__repr__",
         "NurbsCurve._basis_functions",
         "NurbsCurve._find_span",
         "NurbsCurve.basis_functions",
@@ -35813,7 +36297,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "make_periodic_uniform_nurbsknot_vector(dir: int, delta: float = 1.0) -> bool",
-          "code": "def make_periodic_uniform_nurbsknot_vector(self, dir: int, delta: float = 1.0) -> bool:\n\n        \"\"\"Make nurbsknot vector a periodic uniform nurbsknot vector.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        delta : float, optional\n            Spacing between nurbsknots. Defaults to 1.0.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        if dir < 0 or dir >= 2:\n            return False\n        if self.m_order[dir] < 2 or self.m_cv_count[dir] < self.m_order[dir]:\n            return False\n        \n        # Use nurbsknot module function\n        result = nurbsknot.make_periodic_uniform(self.m_order[dir], self.m_cv_count[dir], delta)\n        if result is None:\n            return False\n        self.m_nurbsknot[dir] = result\n        return True\n\n    def _find_span(self, dir: int, t: float) -> int:\n        \"\"\"Find the nurbsknot span index containing parameter t.\n        \n        Implements ON_NurbsSpanIndex algorithm from OpenNURBS.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        t : float\n            Parameter value.\n        \n        Returns\n        -------\n        int\n            Span index in range [0, cv_count-order].\n        \"\"\"\n        # Use nurbsknot module function\n        return nurbsknot.find_span(self.m_order[dir], self.m_cv_count[dir], self.m_nurbsknot[dir], t)\n    \n    def _basis_functions(self, dir: int, span: int, t: float) -> np.ndarray:\n        \"\"\"Compute basis functions.\n        \n        Implements ON_EvaluateNurbsBasis algorithm from OpenNURBS.\n        The span parameter is the offset returned by _find_span.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        span : int\n            Span index (offset in nurbsknot array).\n        t : float\n            Parameter value.\n        \n        Returns\n        -------\n        np.ndarray\n            Basis function values.\n        \"\"\"\n        order = self.m_order[dir]\n        d = order - 1\n        nurbsknot_base = span + d\n        nurbsknot = self.m_nurbsknot[dir]\n\n        if nurbsknot[nurbsknot_base - 1] == nurbsknot[nurbsknot_base]:\n            out = np.zeros(order)\n            if t <= nurbsknot[nurbsknot_base]:\n                out[0] = 1.0\n            else:\n                out[order - 1] = 1.0\n            return out",
+          "code": "def make_periodic_uniform_nurbsknot_vector(self, dir: int, delta: float = 1.0) -> bool:\n\n        \"\"\"Make nurbsknot vector a periodic uniform nurbsknot vector.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        delta : float, optional\n            Spacing between nurbsknots. Defaults to 1.0.\n        \n        Returns\n        -------\n        bool\n            True if successful, False otherwise.\n        \"\"\"\n        if dir < 0 or dir >= 2:\n            return False\n        if self.m_order[dir] < 2 or self.m_cv_count[dir] < self.m_order[dir]:\n            return False\n        \n        # Use nurbsknot module function\n        result = nurbsknot.make_periodic_uniform(self.m_order[dir], self.m_cv_count[dir], delta)\n        if result is None:\n            return False\n        self.m_nurbsknot[dir] = result\n        return True\n\n    def _find_span(self, dir: int, t: float) -> int:\n        \"\"\"Find the nurbsknot span index containing parameter t.\n        \n        Implements ON_NurbsSpanIndex algorithm from OpenNURBS.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        t : float\n            Parameter value.\n        \n        Returns\n        -------\n        int\n            Span index in range [0, cv_count-order].\n        \"\"\"\n        # Use nurbsknot module function\n        return nurbsknot.find_span(self.m_order[dir], self.m_cv_count[dir], self.m_nurbsknot[dir], t)\n    \n    def _basis_functions(self, dir: int, span: int, t: float) -> np.ndarray:\n        \"\"\"Compute basis functions.\n        \n        Implements ON_EvaluateNurbsBasis algorithm from OpenNURBS.\n        The span parameter is the offset returned by _find_span.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        span : int\n            Span index (offset in nurbsknot array).\n        t : float\n            Parameter value.\n        \n        Returns\n        -------\n        np.ndarray\n            Basis function values.\n        \"\"\"\n        order = self.m_order[dir]\n        d = order - 1\n        nurbsknot_base = span + d\n        nurbsknot = self.m_nurbsknot[dir]\n\n        if nurbsknot[nurbsknot_base - 1] == nurbsknot[nurbsknot_base]:\n            return np.zeros(order)\n\n        N = np.zeros(order * order)\n        N[order * order - 1] = 1.0\n        left = np.zeros(d)\n        right = np.zeros(d)\n        N_idx = order * order - 1",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -35850,13 +36334,15 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_find_span(dir: int, t: float) -> int",
-          "code": "def _find_span(self, dir: int, t: float) -> int:\n\n        \"\"\"Find the nurbsknot span index containing parameter t.\n        \n        Implements ON_NurbsSpanIndex algorithm from OpenNURBS.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        t : float\n            Parameter value.\n        \n        Returns\n        -------\n        int\n            Span index in range [0, cv_count-order].\n        \"\"\"\n        # Use nurbsknot module function\n        return nurbsknot.find_span(self.m_order[dir], self.m_cv_count[dir], self.m_nurbsknot[dir], t)\n    \n    def _basis_functions(self, dir: int, span: int, t: float) -> np.ndarray:\n        \"\"\"Compute basis functions.\n        \n        Implements ON_EvaluateNurbsBasis algorithm from OpenNURBS.\n        The span parameter is the offset returned by _find_span.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        span : int\n            Span index (offset in nurbsknot array).\n        t : float\n            Parameter value.\n        \n        Returns\n        -------\n        np.ndarray\n            Basis function values.\n        \"\"\"\n        order = self.m_order[dir]\n        d = order - 1\n        nurbsknot_base = span + d\n        nurbsknot = self.m_nurbsknot[dir]\n\n        if nurbsknot[nurbsknot_base - 1] == nurbsknot[nurbsknot_base]:\n            out = np.zeros(order)\n            if t <= nurbsknot[nurbsknot_base]:\n                out[0] = 1.0\n            else:\n                out[order - 1] = 1.0\n            return out\n\n        N = np.zeros(order * order)\n        N[order * order - 1] = 1.0\n        left = np.zeros(d)\n        right = np.zeros(d)\n        N_idx = order * order - 1\n        k_right = nurbsknot_base\n        k_left = nurbsknot_base - 1\n\n        for j in range(d):\n            N0_idx = N_idx\n            N_idx -= (order + 1)\n            left[j] = t - nurbsknot[k_left]\n            right[j] = nurbsknot[k_right] - t\n            k_left -= 1\n            k_right += 1\n\n            x = 0.0\n            for r in range(j + 1):\n                a0 = left[j - r]\n                a1 = right[r]\n                denom = a0 + a1\n                y = N[N0_idx + r] / denom if abs(denom) > 0.0 else 0.0\n                N[N_idx + r] = x + a1 * y\n                x = a0 * y\n            N[N_idx + j + 1] = x\n\n        return N[0:order]",
+          "code": "def _find_span(self, dir: int, t: float) -> int:\n\n        \"\"\"Find the nurbsknot span index containing parameter t.\n        \n        Implements ON_NurbsSpanIndex algorithm from OpenNURBS.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        t : float\n            Parameter value.\n        \n        Returns\n        -------\n        int\n            Span index in range [0, cv_count-order].\n        \"\"\"\n        # Use nurbsknot module function\n        return nurbsknot.find_span(self.m_order[dir], self.m_cv_count[dir], self.m_nurbsknot[dir], t)\n    \n    def _basis_functions(self, dir: int, span: int, t: float) -> np.ndarray:\n        \"\"\"Compute basis functions.\n        \n        Implements ON_EvaluateNurbsBasis algorithm from OpenNURBS.\n        The span parameter is the offset returned by _find_span.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        span : int\n            Span index (offset in nurbsknot array).\n        t : float\n            Parameter value.\n        \n        Returns\n        -------\n        np.ndarray\n            Basis function values.\n        \"\"\"\n        order = self.m_order[dir]\n        d = order - 1\n        nurbsknot_base = span + d\n        nurbsknot = self.m_nurbsknot[dir]\n\n        if nurbsknot[nurbsknot_base - 1] == nurbsknot[nurbsknot_base]:\n            return np.zeros(order)\n\n        N = np.zeros(order * order)\n        N[order * order - 1] = 1.0\n        left = np.zeros(d)\n        right = np.zeros(d)\n        N_idx = order * order - 1\n        k_right = nurbsknot_base\n        k_left = nurbsknot_base - 1\n\n        for j in range(d):\n            N0_idx = N_idx\n            N_idx -= (order + 1)\n            left[j] = t - nurbsknot[k_left]\n            right[j] = nurbsknot[k_right] - t\n            k_left -= 1\n            k_right += 1\n\n            x = 0.0\n            for r in range(j + 1):\n                a0 = left[j - r]\n                a1 = right[r]\n                denom = a0 + a1\n                y = N[N0_idx + r] / denom if abs(denom) > 0.0 else 0.0\n                N[N_idx + r] = x + a1 * y\n                x = a0 * y\n            N[N_idx + j + 1] = x\n\n        return N[0:order]\n\n    def _basis_functions_derivatives(self, dir: int, span: int, t: float, deriv_order: int) -> list:\n        if dir < 0 or dir >= 2:\n            return []\n        order = self.m_order[dir]",
           "file": "nurbssurface.py"
         }
       },
       "related": [
         "NurbsSurface._basis_functions",
+        "NurbsSurface._basis_functions_derivatives",
         "NurbsSurface.basis_functions",
+        "NurbsSurface.basis_functions_derivatives",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.evaluate",
@@ -35878,7 +36364,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_basis_functions(dir: int, span: int, t: float) -> np.ndarray",
-          "code": "def _basis_functions(self, dir: int, span: int, t: float) -> np.ndarray:\n\n        \"\"\"Compute basis functions.\n        \n        Implements ON_EvaluateNurbsBasis algorithm from OpenNURBS.\n        The span parameter is the offset returned by _find_span.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        span : int\n            Span index (offset in nurbsknot array).\n        t : float\n            Parameter value.\n        \n        Returns\n        -------\n        np.ndarray\n            Basis function values.\n        \"\"\"\n        order = self.m_order[dir]\n        d = order - 1\n        nurbsknot_base = span + d\n        nurbsknot = self.m_nurbsknot[dir]\n\n        if nurbsknot[nurbsknot_base - 1] == nurbsknot[nurbsknot_base]:\n            out = np.zeros(order)\n            if t <= nurbsknot[nurbsknot_base]:\n                out[0] = 1.0\n            else:\n                out[order - 1] = 1.0\n            return out\n\n        N = np.zeros(order * order)\n        N[order * order - 1] = 1.0\n        left = np.zeros(d)\n        right = np.zeros(d)\n        N_idx = order * order - 1\n        k_right = nurbsknot_base\n        k_left = nurbsknot_base - 1\n\n        for j in range(d):\n            N0_idx = N_idx\n            N_idx -= (order + 1)\n            left[j] = t - nurbsknot[k_left]\n            right[j] = nurbsknot[k_right] - t\n            k_left -= 1\n            k_right += 1\n\n            x = 0.0\n            for r in range(j + 1):\n                a0 = left[j - r]\n                a1 = right[r]\n                denom = a0 + a1\n                y = N[N0_idx + r] / denom if abs(denom) > 0.0 else 0.0\n                N[N_idx + r] = x + a1 * y\n                x = a0 * y\n            N[N_idx + j + 1] = x\n\n        return N[0:order]\n\n    def _basis_functions_derivatives(self, dir: int, span: int, t: float, deriv_order: int) -> list:\n        if dir < 0 or dir >= 2:\n            return []\n        order = self.m_order[dir]\n        degree = order - 1\n        kv = self.m_nurbsknot[dir]\n        nurbsknot_base = span + degree\n\n        ders = [[0.0] * order for _ in range(deriv_order + 1)]\n\n        if kv[nurbsknot_base - 1] == kv[nurbsknot_base]:\n            return ders\n\n        ndu = [[0.0] * order for _ in range(order)]\n        ndu[0][0] = 1.0\n        left = [0.0] * (degree + 1)\n        right = [0.0] * (degree + 1)\n\n        for j in range(1, degree + 1):",
+          "code": "def _basis_functions(self, dir: int, span: int, t: float) -> np.ndarray:\n\n        \"\"\"Compute basis functions.\n        \n        Implements ON_EvaluateNurbsBasis algorithm from OpenNURBS.\n        The span parameter is the offset returned by _find_span.\n        \n        Parameters\n        ----------\n        dir : int\n            Direction (0 for u, 1 for v).\n        span : int\n            Span index (offset in nurbsknot array).\n        t : float\n            Parameter value.\n        \n        Returns\n        -------\n        np.ndarray\n            Basis function values.\n        \"\"\"\n        order = self.m_order[dir]\n        d = order - 1\n        nurbsknot_base = span + d\n        nurbsknot = self.m_nurbsknot[dir]\n\n        if nurbsknot[nurbsknot_base - 1] == nurbsknot[nurbsknot_base]:\n            return np.zeros(order)\n\n        N = np.zeros(order * order)\n        N[order * order - 1] = 1.0\n        left = np.zeros(d)\n        right = np.zeros(d)\n        N_idx = order * order - 1\n        k_right = nurbsknot_base\n        k_left = nurbsknot_base - 1\n\n        for j in range(d):\n            N0_idx = N_idx\n            N_idx -= (order + 1)\n            left[j] = t - nurbsknot[k_left]\n            right[j] = nurbsknot[k_right] - t\n            k_left -= 1\n            k_right += 1\n\n            x = 0.0\n            for r in range(j + 1):\n                a0 = left[j - r]\n                a1 = right[r]\n                denom = a0 + a1\n                y = N[N0_idx + r] / denom if abs(denom) > 0.0 else 0.0\n                N[N_idx + r] = x + a1 * y\n                x = a0 * y\n            N[N_idx + j + 1] = x\n\n        return N[0:order]\n\n    def _basis_functions_derivatives(self, dir: int, span: int, t: float, deriv_order: int) -> list:\n        if dir < 0 or dir >= 2:\n            return []\n        order = self.m_order[dir]\n        degree = order - 1\n        kv = self.m_nurbsknot[dir]\n        nurbsknot_base = span + degree\n\n        ders = [[0.0] * order for _ in range(deriv_order + 1)]\n\n        if kv[nurbsknot_base - 1] == kv[nurbsknot_base]:\n            return ders\n\n        ndu = [[0.0] * order for _ in range(order)]\n        ndu[0][0] = 1.0\n        left = [0.0] * (degree + 1)\n        right = [0.0] * (degree + 1)\n\n        for j in range(1, degree + 1):\n            left[j] = t - kv[nurbsknot_base - j]\n            right[j] = kv[nurbsknot_base + j - 1] - t\n            saved = 0.0\n            for r in range(j):\n                ndu[j][r] = right[r + 1] + left[j - r]",
           "file": "nurbssurface.py"
         }
       },
@@ -35913,6 +36399,7 @@ window.API_INDEX = {
       },
       "related": [
         "NurbsSurface._basis_functions",
+        "NurbsSurface._find_span",
         "NurbsSurface.basis_functions",
         "NurbsSurface.basis_functions_derivatives",
         "NurbsSurface.degree",
@@ -38518,7 +39005,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__str__",
         "NurbsSurfaceTrimmed.create",
         "NurbsSurfaceTrimmed.create_planar",
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.deep_copy_from",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
@@ -38565,7 +39051,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed._is_boundary",
         "NurbsSurfaceTrimmed.create",
         "NurbsSurfaceTrimmed.create_planar",
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.deep_copy_from",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
@@ -38611,7 +39096,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed._is_boundary",
         "NurbsSurfaceTrimmed.create",
         "NurbsSurfaceTrimmed.create_planar",
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.deep_copy_from",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
@@ -39158,7 +39642,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.create",
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.e3",
         "NurbsSurfaceTrimmed.file_json_dump",
@@ -39182,7 +39665,8 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.to_string",
         "NurbsSurfaceTrimmed.transform",
-        "NurbsSurfaceTrimmed.transformed"
+        "NurbsSurfaceTrimmed.transformed",
+        "NurbsSurfaceTrimmed.weld"
       ]
     },
     {
@@ -39445,7 +39929,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_holes",
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.disc_loop",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.e3",
@@ -39466,7 +39949,8 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.to_string",
         "NurbsSurfaceTrimmed.transform",
-        "NurbsSurfaceTrimmed.transformed"
+        "NurbsSurfaceTrimmed.transformed",
+        "NurbsSurfaceTrimmed.weld"
       ]
     },
     {
@@ -39539,6 +40023,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.create",
         "NurbsSurfaceTrimmed.create_planar",
+        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.cycle_to_loop",
         "NurbsSurfaceTrimmed.disc_loop",
         "NurbsSurfaceTrimmed.e3",
@@ -39562,6 +40047,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.snap_border",
         "NurbsSurfaceTrimmed.span_subs",
+        "NurbsSurfaceTrimmed.split_by_planes",
         "NurbsSurfaceTrimmed.split_by_uv_curves",
         "NurbsSurfaceTrimmed.split_by_uv_curves_ex",
         "NurbsSurfaceTrimmed.str",
@@ -39600,6 +40086,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.e3",
         "NurbsSurfaceTrimmed.eval3",
         "NurbsSurfaceTrimmed.field",
+        "NurbsSurfaceTrimmed.field_k",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.inner_loop_count",
@@ -39613,6 +40100,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.point_in_polygon",
         "NurbsSurfaceTrimmed.refine",
+        "NurbsSurfaceTrimmed.refine_k",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.span_subs",
         "NurbsSurfaceTrimmed.str",
@@ -39650,6 +40138,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.e3",
         "NurbsSurfaceTrimmed.eval3",
         "NurbsSurfaceTrimmed.field",
+        "NurbsSurfaceTrimmed.field_k",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.inner_loop_count",
@@ -39662,12 +40151,12 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.refine",
+        "NurbsSurfaceTrimmed.refine_k",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.span_subs",
         "NurbsSurfaceTrimmed.split_by_planes",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
-        "NurbsSurfaceTrimmed.weld",
         "NurbsSurfaceTrimmed.weld_vertex"
       ]
     },
@@ -39860,6 +40349,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.refine",
         "NurbsSurfaceTrimmed.span_subs",
+        "NurbsSurfaceTrimmed.split_by_planes",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.weld",
         "NurbsSurfaceTrimmed.weld_vertex"
@@ -39870,7 +40360,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "e3(u, v)",
-          "code": "def e3(u, v):\n\n            p = srf.point_at(u, v)\n            return (p[0], p[1], p[2])\n\n        def field(u, v):\n            p = e3(u, v)\n            return (p[0]-qx)*nx + (p[1]-qy)*ny + (p[2]-qz)*nz\n\n        def refine(u, v):\n            for _ in range(12):\n                fv = field(u, v)\n                if abs(fv) < 1e-9:\n                    break\n                h = 1e-4\n                a = e3(u+h, v); b = e3(u-h, v); c = e3(u, v+h); d = e3(u, v-h)\n                gu = ((a[0]-b[0])*nx + (a[1]-b[1])*ny + (a[2]-b[2])*nz) / (2*h)\n                gv = ((c[0]-d[0])*nx + (c[1]-d[1])*ny + (c[2]-d[2])*nz) / (2*h)\n                g2 = gu*gu + gv*gv\n                if g2 < 1e-20:\n                    break\n                u -= fv*gu/g2; v -= fv*gv/g2\n            return u, v\n\n        usp = srf.get_span_vector(0)\n        vsp = srf.get_span_vector(1)\n        if len(usp) < 2 or len(vsp) < 2:\n            return srf.mesh()\n        deg_u = srf.degree(0); deg_v = srf.degree(1)\n        bmin = [1e30]*3; bmax = [-1e30]*3\n        for i in range(srf.cv_count(0)):\n            for j in range(srf.cv_count(1)):\n                p = srf.get_cv(i, j)\n                for k in range(3):\n                    bmin[k] = min(bmin[k], p[k]); bmax[k] = max(bmax[k], p[k])\n        diag = math.sqrt(sum((bmax[k]-bmin[k])**2 for k in range(3))) or 1.0\n        ctol = diag * chord_factor\n\n        def span_subs(dr, sp, osp, deg):\n            n = len(sp) - 1\n            out = [2 if deg > 1 else 1] * n\n            smid = (osp[0] + osp[-1]) * 0.5\n            for i in range(n):\n                t0, t1 = sp[i], sp[i+1]\n                if deg > 1:\n                    ma = 0.0; pn = None\n                    for k in range(5):\n                        t = t0 + k*(t1-t0)/4\n                        nm = srf.normal_at(t, smid) if dr == 0 else srf.normal_at(smid, t)\n                        if pn is not None:\n                            dpd = max(-1.0, min(1.0, pn[0]*nm[0]+pn[1]*nm[1]+pn[2]*nm[2]))\n                            ma += math.acos(dpd) * 180.0 / math.pi\n                        pn = (nm[0], nm[1], nm[2])\n                    out[i] = max(out[i], max(1, min(int(math.ceil(ma/max_angle_deg)), 64)))\n                p0 = e3(t0, smid) if dr == 0 else e3(smid, t0)\n                p1 = e3(t1, smid) if dr == 0 else e3(smid, t1)\n                dev = 0.0\n                for k in range(1, 4):\n                    fr = k/4; tm = t0 + fr*(t1-t0)\n                    pm = e3(tm, smid) if dr == 0 else e3(smid, tm)\n                    lx, ly, lz = (p0[0]+fr*(p1[0]-p0[0]), p0[1]+fr*(p1[1]-p0[1]), p0[2]+fr*(p1[2]-p0[2]))\n                    dev = max(dev, math.sqrt((pm[0]-lx)**2 + (pm[1]-ly)**2 + (pm[2]-lz)**2))\n                if dev > ctol:\n                    out[i] = max(out[i], min(int(math.ceil(math.sqrt(dev/ctol))), 64))\n            return out\n\n        us_subs = span_subs(0, usp, vsp, deg_u)\n        vs_subs = span_subs(1, vsp, usp, deg_v)\n        us = []\n        for i in range(len(usp)-1):\n            for s in range(us_subs[i]):\n                us.append(usp[i] + s*(usp[i+1]-usp[i])/us_subs[i])\n        us.append(usp[-1])\n        vs = []\n        for i in range(len(vsp)-1):\n            for s in range(vs_subs[i]):\n                vs.append(vsp[i] + s*(vsp[i+1]-vsp[i])/vs_subs[i])\n        vs.append(vsp[-1])\n        nu, nv = len(us), len(vs)\n        if nu < 2 or nv < 2:\n            return srf.mesh()",
+          "code": "def e3(u, v):\n\n            p = srf.point_at(u, v)\n            return (p[0], p[1], p[2])\n\n        def field_k(k, u, v):\n            p = e3(u, v)\n            q, n = pl[k]\n            return (p[0]-q[0])*n[0] + (p[1]-q[1])*n[1] + (p[2]-q[2])*n[2]\n\n        def refine_k(k, u, v):\n            _q, n = pl[k]\n            for _ in range(12):\n                fv = field_k(k, u, v)\n                if abs(fv) < 1e-9:\n                    break\n                h = 1e-4\n                a = e3(u+h, v); b = e3(u-h, v); c = e3(u, v+h); d = e3(u, v-h)\n                gu = ((a[0]-b[0])*n[0] + (a[1]-b[1])*n[1] + (a[2]-b[2])*n[2]) / (2*h)\n                gv = ((c[0]-d[0])*n[0] + (c[1]-d[1])*n[1] + (c[2]-d[2])*n[2]) / (2*h)\n                g2 = gu*gu + gv*gv\n                if g2 < 1e-20:\n                    break\n                u -= fv*gu/g2; v -= fv*gv/g2\n            return u, v\n\n        usp = srf.get_span_vector(0)\n        vsp = srf.get_span_vector(1)\n        if len(usp) < 2 or len(vsp) < 2:\n            return srf.mesh()\n        deg_u = srf.degree(0); deg_v = srf.degree(1)\n        bmin = [1e30]*3; bmax = [-1e30]*3\n        for i in range(srf.cv_count(0)):\n            for j in range(srf.cv_count(1)):\n                p = srf.get_cv(i, j)\n                for k in range(3):\n                    bmin[k] = min(bmin[k], p[k]); bmax[k] = max(bmax[k], p[k])\n        diag = math.sqrt(sum((bmax[k]-bmin[k])**2 for k in range(3))) or 1.0\n        ctol = diag * chord_factor\n\n        def span_subs(dr, sp, osp, deg):\n            n = len(sp) - 1\n            out = [2 if deg > 1 else 1] * n\n            smid = (osp[0] + osp[-1]) * 0.5\n            for i in range(n):\n                t0, t1 = sp[i], sp[i+1]\n                if deg > 1:\n                    ma = 0.0; pn = None\n                    for k in range(5):\n                        t = t0 + k*(t1-t0)/4\n                        nm = srf.normal_at(t, smid) if dr == 0 else srf.normal_at(smid, t)\n                        if pn is not None:\n                            dpd = max(-1.0, min(1.0, pn[0]*nm[0]+pn[1]*nm[1]+pn[2]*nm[2]))\n                            ma += math.acos(dpd) * 180.0 / math.pi\n                        pn = (nm[0], nm[1], nm[2])\n                    out[i] = max(out[i], max(1, min(int(math.ceil(ma/max_angle_deg)), 64)))\n                p0 = e3(t0, smid) if dr == 0 else e3(smid, t0)\n                p1 = e3(t1, smid) if dr == 0 else e3(smid, t1)\n                dev = 0.0\n                for k in range(1, 4):\n                    fr = k/4; tm = t0 + fr*(t1-t0)\n                    pm = e3(tm, smid) if dr == 0 else e3(smid, tm)\n                    lx, ly, lz = (p0[0]+fr*(p1[0]-p0[0]), p0[1]+fr*(p1[1]-p0[1]), p0[2]+fr*(p1[2]-p0[2]))\n                    dev = max(dev, math.sqrt((pm[0]-lx)**2 + (pm[1]-ly)**2 + (pm[2]-lz)**2))\n                if dev > ctol:\n                    out[i] = max(out[i], min(int(math.ceil(math.sqrt(dev/ctol))), 64))\n            return out\n\n        us_subs = span_subs(0, usp, vsp, deg_u)\n        vs_subs = span_subs(1, vsp, usp, deg_v)\n        us = []\n        for i in range(len(usp)-1):\n            for s in range(us_subs[i]):\n                us.append(usp[i] + s*(usp[i+1]-usp[i])/us_subs[i])\n        us.append(usp[-1])\n        vs = []\n        for i in range(len(vsp)-1):\n            for s in range(vs_subs[i]):\n                vs.append(vsp[i] + s*(vsp[i+1]-vsp[i])/vs_subs[i])\n        vs.append(vsp[-1])\n        nu, nv = len(us), len(vs)",
           "file": "nurbssurface_trimmed.py"
         }
       },
@@ -39879,7 +40369,9 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.add_holes",
         "NurbsSurfaceTrimmed.add_inner_loop",
         "NurbsSurfaceTrimmed.clear_inner_loops",
+        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.field",
+        "NurbsSurfaceTrimmed.field_k",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.inner_loop_count",
@@ -39892,8 +40384,10 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.refine",
+        "NurbsSurfaceTrimmed.refine_k",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.span_subs",
+        "NurbsSurfaceTrimmed.split_by_planes",
         "NurbsSurfaceTrimmed.weld_vertex"
       ]
     },
@@ -39909,13 +40403,15 @@ window.API_INDEX = {
       "related": [
         "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.e3",
+        "NurbsSurfaceTrimmed.field_k",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.mesh_by_plane",
         "NurbsSurfaceTrimmed.mesh_by_planes",
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.refine",
+        "NurbsSurfaceTrimmed.refine_k",
         "NurbsSurfaceTrimmed.span_subs",
-        "NurbsSurfaceTrimmed.weld",
+        "NurbsSurfaceTrimmed.split_by_planes",
         "NurbsSurfaceTrimmed.weld_vertex"
       ]
     },
@@ -39936,6 +40432,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.e3",
         "NurbsSurfaceTrimmed.field",
+        "NurbsSurfaceTrimmed.field_k",
         "NurbsSurfaceTrimmed.get_inner_loop",
         "NurbsSurfaceTrimmed.get_outer_loop",
         "NurbsSurfaceTrimmed.inner_loop_count",
@@ -39949,9 +40446,11 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.point_in_polygon",
+        "NurbsSurfaceTrimmed.refine_k",
         "NurbsSurfaceTrimmed.set_outer_loop",
         "NurbsSurfaceTrimmed.snap_border",
         "NurbsSurfaceTrimmed.span_subs",
+        "NurbsSurfaceTrimmed.split_by_planes",
         "NurbsSurfaceTrimmed.split_by_uv_curves_ex",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.weld",
@@ -39963,20 +40462,21 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "span_subs(dr, sp, osp, deg)",
-          "code": "def span_subs(dr, sp, osp, deg):\n\n            n = len(sp) - 1\n            out = [2 if deg > 1 else 1] * n\n            smid = (osp[0] + osp[-1]) * 0.5\n            for i in range(n):\n                t0, t1 = sp[i], sp[i+1]\n                if deg > 1:\n                    ma = 0.0; pn = None\n                    for k in range(5):\n                        t = t0 + k*(t1-t0)/4\n                        nm = srf.normal_at(t, smid) if dr == 0 else srf.normal_at(smid, t)\n                        if pn is not None:\n                            dpd = max(-1.0, min(1.0, pn[0]*nm[0]+pn[1]*nm[1]+pn[2]*nm[2]))\n                            ma += math.acos(dpd) * 180.0 / math.pi\n                        pn = (nm[0], nm[1], nm[2])\n                    out[i] = max(out[i], max(1, min(int(math.ceil(ma/max_angle_deg)), 64)))\n                p0 = e3(t0, smid) if dr == 0 else e3(smid, t0)\n                p1 = e3(t1, smid) if dr == 0 else e3(smid, t1)\n                dev = 0.0\n                for k in range(1, 4):\n                    fr = k/4; tm = t0 + fr*(t1-t0)\n                    pm = e3(tm, smid) if dr == 0 else e3(smid, tm)\n                    lx, ly, lz = (p0[0]+fr*(p1[0]-p0[0]), p0[1]+fr*(p1[1]-p0[1]), p0[2]+fr*(p1[2]-p0[2]))\n                    dev = max(dev, math.sqrt((pm[0]-lx)**2 + (pm[1]-ly)**2 + (pm[2]-lz)**2))\n                if dev > ctol:\n                    out[i] = max(out[i], min(int(math.ceil(math.sqrt(dev/ctol))), 64))\n            return out\n\n        us_subs = span_subs(0, usp, vsp, deg_u)\n        vs_subs = span_subs(1, vsp, usp, deg_v)\n        us = []\n        for i in range(len(usp)-1):\n            for s in range(us_subs[i]):\n                us.append(usp[i] + s*(usp[i+1]-usp[i])/us_subs[i])\n        us.append(usp[-1])\n        vs = []\n        for i in range(len(vsp)-1):\n            for s in range(vs_subs[i]):\n                vs.append(vsp[i] + s*(vsp[i+1]-vsp[i])/vs_subs[i])\n        vs.append(vsp[-1])\n        nu, nv = len(us), len(vs)\n        if nu < 2 or nv < 2:\n            return srf.mesh()\n        F = [[field(us[i], vs[j]) for j in range(nv)] for i in range(nu)]\n        result = Mesh()\n        wt = diag * 1e-5; cell = wt or 1.0\n        cmap = defaultdict(list)\n\n        def weld(u, v):\n            P = srf.point_at(u, v)\n            x, y, z = P[0], P[1], P[2]\n            ci, cj, ck = math.floor(x/cell), math.floor(y/cell), math.floor(z/cell)\n            for di in (-1, 0, 1):\n                for dj in (-1, 0, 1):\n                    for dk in (-1, 0, 1):\n                        for (px, py, pz, vk) in cmap[(ci+di, cj+dj, ck+dk)]:\n                            if (px-x)**2 + (py-y)**2 + (pz-z)**2 <= wt*wt:\n                                return vk\n            vk = result.add_vertex(P)\n            nm = srf.normal_at(u, v)\n            result.vertex[vk].set_normal(nm[0], nm[1], nm[2])\n            cmap[(ci, cj, ck)].append((x, y, z, vk))\n            return vk\n\n        def cross(ua, va, ub, vb):\n            fa = field(ua, va); fb = field(ub, vb)\n            t = fa/(fa-fb) if abs(fa-fb) > 1e-30 else 0.5\n            u, v = refine(ua + (ub-ua)*t, va + (vb-va)*t)\n            return weld(u, v)\n\n        for i in range(nu-1):\n            for j in range(nv-1):\n                cu = [us[i], us[i+1], us[i+1], us[i]]\n                cv = [vs[j], vs[j], vs[j+1], vs[j+1]]\n                inn = [F[i][j] <= 0, F[i+1][j] <= 0, F[i+1][j+1] <= 0, F[i][j+1] <= 0]\n                if not any(inn):\n                    continue\n                poly = []\n                for k in range(4):\n                    kn = (k+1) % 4",
+          "code": "def span_subs(dr, sp, osp, deg):\n\n            n = len(sp) - 1\n            out = [2 if deg > 1 else 1] * n\n            smid = (osp[0] + osp[-1]) * 0.5\n            for i in range(n):\n                t0, t1 = sp[i], sp[i+1]\n                if deg > 1:\n                    ma = 0.0; pn = None\n                    for k in range(5):\n                        t = t0 + k*(t1-t0)/4\n                        nm = srf.normal_at(t, smid) if dr == 0 else srf.normal_at(smid, t)\n                        if pn is not None:\n                            dpd = max(-1.0, min(1.0, pn[0]*nm[0]+pn[1]*nm[1]+pn[2]*nm[2]))\n                            ma += math.acos(dpd) * 180.0 / math.pi\n                        pn = (nm[0], nm[1], nm[2])\n                    out[i] = max(out[i], max(1, min(int(math.ceil(ma/max_angle_deg)), 64)))\n                p0 = e3(t0, smid) if dr == 0 else e3(smid, t0)\n                p1 = e3(t1, smid) if dr == 0 else e3(smid, t1)\n                dev = 0.0\n                for k in range(1, 4):\n                    fr = k/4; tm = t0 + fr*(t1-t0)\n                    pm = e3(tm, smid) if dr == 0 else e3(smid, tm)\n                    lx, ly, lz = (p0[0]+fr*(p1[0]-p0[0]), p0[1]+fr*(p1[1]-p0[1]), p0[2]+fr*(p1[2]-p0[2]))\n                    dev = max(dev, math.sqrt((pm[0]-lx)**2 + (pm[1]-ly)**2 + (pm[2]-lz)**2))\n                if dev > ctol:\n                    out[i] = max(out[i], min(int(math.ceil(math.sqrt(dev/ctol))), 64))\n            return out\n\n        us_subs = span_subs(0, usp, vsp, deg_u)\n        vs_subs = span_subs(1, vsp, usp, deg_v)\n        us = []\n        for i in range(len(usp)-1):\n            for s in range(us_subs[i]):\n                us.append(usp[i] + s*(usp[i+1]-usp[i])/us_subs[i])\n        us.append(usp[-1])\n        vs = []\n        for i in range(len(vsp)-1):\n            for s in range(vs_subs[i]):\n                vs.append(vsp[i] + s*(vsp[i+1]-vsp[i])/vs_subs[i])\n        vs.append(vsp[-1])\n        nu, nv = len(us), len(vs)\n        if nu < 2 or nv < 2:\n            return srf.mesh()\n        tris = []\n        for i in range(nu-1):\n            for j in range(nv-1):\n                a = (us[i], vs[j]); b = (us[i+1], vs[j]); c = (us[i+1], vs[j+1]); d = (us[i], vs[j+1])\n                tris.append([a, b, c]); tris.append([a, c, d])\n        eps = 1e-9\n        for k in range(len(pl)):\n            nxt = []\n            for t in tris:\n                poly = []\n                for e in range(3):\n                    p = t[e]; q = t[(e+1) % 3]\n                    fp = field_k(k, p[0], p[1]); fq = field_k(k, q[0], q[1])\n                    pin = fp <= eps; qin = fq <= eps\n                    if pin:\n                        poly.append(p)\n                    if pin != qin:\n                        tt = fp/(fp-fq) if abs(fp-fq) > 1e-30 else 0.5\n                        cu = p[0] + (q[0]-p[0])*tt; cv = p[1] + (q[1]-p[1])*tt\n                        poly.append(refine_k(k, cu, cv))\n                for w in range(1, len(poly)-1):\n                    nxt.append([poly[0], poly[w], poly[w+1]])\n            tris = nxt\n            if not tris:\n                break\n        if not tris:\n            return Mesh()\n        result = Mesh()\n        wt = diag * 1e-5; cell = wt or 1.0\n        cmap = defaultdict(list)\n\n        def weld(u, v):\n            P = srf.point_at(u, v)\n            x, y, z = P[0], P[1], P[2]\n            ci, cj, ck = math.floor(x/cell), math.floor(y/cell), math.floor(z/cell)\n            for di in (-1, 0, 1):\n                for dj in (-1, 0, 1):",
           "file": "nurbssurface_trimmed.py"
         }
       },
       "related": [
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.e3",
         "NurbsSurfaceTrimmed.field",
+        "NurbsSurfaceTrimmed.field_k",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.mesh_by_plane",
         "NurbsSurfaceTrimmed.mesh_by_planes",
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.refine",
+        "NurbsSurfaceTrimmed.refine_k",
         "NurbsSurfaceTrimmed.weld"
       ]
     },
@@ -39985,27 +40485,34 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "weld(u, v)",
-          "code": "def weld(u, v):\n\n            P = srf.point_at(u, v)\n            x, y, z = P[0], P[1], P[2]\n            ci, cj, ck = math.floor(x/cell), math.floor(y/cell), math.floor(z/cell)\n            for di in (-1, 0, 1):\n                for dj in (-1, 0, 1):\n                    for dk in (-1, 0, 1):\n                        for (px, py, pz, vk) in cmap[(ci+di, cj+dj, ck+dk)]:\n                            if (px-x)**2 + (py-y)**2 + (pz-z)**2 <= wt*wt:\n                                return vk\n            vk = result.add_vertex(P)\n            nm = srf.normal_at(u, v)\n            result.vertex[vk].set_normal(nm[0], nm[1], nm[2])\n            cmap[(ci, cj, ck)].append((x, y, z, vk))\n            return vk\n\n        def cross(ua, va, ub, vb):\n            fa = field(ua, va); fb = field(ub, vb)\n            t = fa/(fa-fb) if abs(fa-fb) > 1e-30 else 0.5\n            u, v = refine(ua + (ub-ua)*t, va + (vb-va)*t)\n            return weld(u, v)\n\n        for i in range(nu-1):\n            for j in range(nv-1):\n                cu = [us[i], us[i+1], us[i+1], us[i]]\n                cv = [vs[j], vs[j], vs[j+1], vs[j+1]]\n                inn = [F[i][j] <= 0, F[i+1][j] <= 0, F[i+1][j+1] <= 0, F[i][j+1] <= 0]\n                if not any(inn):\n                    continue\n                poly = []\n                for k in range(4):\n                    kn = (k+1) % 4\n                    if inn[k]:\n                        poly.append(weld(cu[k], cv[k]))\n                    if inn[k] != inn[kn]:\n                        poly.append(cross(cu[k], cv[k], cu[kn], cv[kn]))\n                for t in range(1, len(poly)-1):\n                    a, b, c = poly[0], poly[t], poly[t+1]\n                    if a == b or b == c or c == a:\n                        continue\n                    result.add_face([a, b, c])\n        if not result.face:\n            return srf.mesh()\n        return result\n\n    def transform(self, xf=None):\n        if xf is None:\n            self.m_surface.transform(self.xform)\n            self.xform = Xform.identity()\n        else:\n            self.m_surface.transform(xf)\n\n    def transformed(self):\n        ts = self.duplicate()\n        ts.transform()\n        return ts\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, NurbsSurfaceTrimmed):\n            return False\n        if self.name != other.name:\n            return False\n        if self.width != other.width:\n            return False\n        if self.surfacecolor != other.surfacecolor:\n            return False\n        if self.xform != other.xform:\n            return False\n        if self.m_surface != other.m_surface:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)",
+          "code": "def weld(u, v):\n\n            P = srf.point_at(u, v)\n            x, y, z = P[0], P[1], P[2]\n            ci, cj, ck = math.floor(x/cell), math.floor(y/cell), math.floor(z/cell)\n            for di in (-1, 0, 1):\n                for dj in (-1, 0, 1):\n                    for dk in (-1, 0, 1):\n                        for (px, py, pz, vk) in cmap[(ci+di, cj+dj, ck+dk)]:\n                            if (px-x)**2 + (py-y)**2 + (pz-z)**2 <= wt*wt:\n                                return vk\n            vk = result.add_vertex(P)\n            nm = srf.normal_at(u, v)\n            result.vertex[vk].set_normal(nm[0], nm[1], nm[2])\n            cmap[(ci, cj, ck)].append((x, y, z, vk))\n            return vk\n\n        for t in tris:\n            a = weld(t[0][0], t[0][1])\n            b = weld(t[1][0], t[1][1])\n            c = weld(t[2][0], t[2][1])\n            if a == b or b == c or c == a:\n                continue\n            result.add_face([a, b, c])\n        if not result.face:\n            return Mesh()\n        return result\n\n    def transform(self, xf=None):\n        if xf is None:\n            self.m_surface.transform(self.xform)\n            self.xform = Xform.identity()\n        else:\n            self.m_surface.transform(xf)\n\n    def transformed(self):\n        ts = self.duplicate()\n        ts.transform()\n        return ts\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, NurbsSurfaceTrimmed):\n            return False\n        if self.name != other.name:\n            return False\n        if self.width != other.width:\n            return False\n        if self.surfacecolor != other.surfacecolor:\n            return False\n        if self.xform != other.xform:\n            return False\n        if self.m_surface != other.m_surface:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def to_string(self):\n        return f\"NurbsSurfaceTrimmed(name={self.name}, trimmed={'true' if self.is_trimmed() else 'false'}, holes={self.inner_loop_count()})\"\n\n    def __str__(self):\n        return self.to_string()\n\n    def __repr__(self):\n        return (f\"NurbsSurfaceTrimmed(\\n  name={self.name},\\n\"\n                f\"  trimmed={'true' if self.is_trimmed() else 'false'},\\n\"\n                f\"  holes={self.inner_loop_count()},\\n\"\n                f\"  surface={str(self.m_surface)}\\n)\")\n\n    def __jsondump__(self):\n        d = {\n            'guid': self.guid,\n            'inner_loops': [l.__jsondump__() for l in self.m_inner_loops],\n            'name': self.name,\n        }",
           "file": "nurbssurface_trimmed.py"
         }
       },
       "related": [
         "NurbsSurfaceTrimmed.__eq__",
+        "NurbsSurfaceTrimmed.__jsondump__",
         "NurbsSurfaceTrimmed.__ne__",
+        "NurbsSurfaceTrimmed.__repr__",
+        "NurbsSurfaceTrimmed.__str__",
         "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.duplicate",
-        "NurbsSurfaceTrimmed.field",
         "NurbsSurfaceTrimmed.guid",
-        "NurbsSurfaceTrimmed.mesh",
+        "NurbsSurfaceTrimmed.inner_loop_count",
+        "NurbsSurfaceTrimmed.is_trimmed",
+        "NurbsSurfaceTrimmed.jsondump",
         "NurbsSurfaceTrimmed.mesh_by_plane",
         "NurbsSurfaceTrimmed.mesh_by_planes",
         "NurbsSurfaceTrimmed.normal_at",
         "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.refine",
+        "NurbsSurfaceTrimmed.repr",
         "NurbsSurfaceTrimmed.span_subs",
+        "NurbsSurfaceTrimmed.split_by_planes",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.surfacecolor",
+        "NurbsSurfaceTrimmed.to_string",
         "NurbsSurfaceTrimmed.transform",
         "NurbsSurfaceTrimmed.transformed",
         "NurbsSurfaceTrimmed.weld_vertex",
@@ -40017,36 +40524,142 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "cross(ua, va, ub, vb)",
-          "code": "def cross(ua, va, ub, vb):\n\n            fa = field(ua, va); fb = field(ub, vb)\n            t = fa/(fa-fb) if abs(fa-fb) > 1e-30 else 0.5\n            u, v = refine(ua + (ub-ua)*t, va + (vb-va)*t)\n            return weld(u, v)\n\n        for i in range(nu-1):\n            for j in range(nv-1):\n                cu = [us[i], us[i+1], us[i+1], us[i]]\n                cv = [vs[j], vs[j], vs[j+1], vs[j+1]]\n                inn = [F[i][j] <= 0, F[i+1][j] <= 0, F[i+1][j+1] <= 0, F[i][j+1] <= 0]\n                if not any(inn):\n                    continue\n                poly = []\n                for k in range(4):\n                    kn = (k+1) % 4\n                    if inn[k]:\n                        poly.append(weld(cu[k], cv[k]))\n                    if inn[k] != inn[kn]:\n                        poly.append(cross(cu[k], cv[k], cu[kn], cv[kn]))\n                for t in range(1, len(poly)-1):\n                    a, b, c = poly[0], poly[t], poly[t+1]\n                    if a == b or b == c or c == a:\n                        continue\n                    result.add_face([a, b, c])\n        if not result.face:\n            return srf.mesh()\n        return result\n\n    def transform(self, xf=None):\n        if xf is None:\n            self.m_surface.transform(self.xform)\n            self.xform = Xform.identity()\n        else:\n            self.m_surface.transform(xf)\n\n    def transformed(self):\n        ts = self.duplicate()\n        ts.transform()\n        return ts\n\n    def duplicate(self):\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __eq__(self, other):\n        if not isinstance(other, NurbsSurfaceTrimmed):\n            return False\n        if self.name != other.name:\n            return False\n        if self.width != other.width:\n            return False\n        if self.surfacecolor != other.surfacecolor:\n            return False\n        if self.xform != other.xform:\n            return False\n        if self.m_surface != other.m_surface:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def to_string(self):\n        return f\"NurbsSurfaceTrimmed(name={self.name}, trimmed={'true' if self.is_trimmed() else 'false'}, holes={self.inner_loop_count()})\"\n\n    def __str__(self):\n        return self.to_string()\n\n    def __repr__(self):\n        return (f\"NurbsSurfaceTrimmed(\\n  name={self.name},\\n\"\n                f\"  trimmed={'true' if self.is_trimmed() else 'false'},\\n\"\n                f\"  holes={self.inner_loop_count()},\\n\"\n                f\"  surface={str(self.m_surface)}\\n)\")\n\n    def __jsondump__(self):\n        d = {\n            'guid': self.guid,\n            'inner_loops': [l.__jsondump__() for l in self.m_inner_loops],",
+          "code": "def cross(ua, va, ub, vb):\n\n            fa = field(ua, va); fb = field(ub, vb)\n            t = fa/(fa-fb) if abs(fa-fb) > 1e-30 else 0.5\n            u, v = refine(ua + (ub-ua)*t, va + (vb-va)*t)\n            return weld(u, v)\n\n        for i in range(nu-1):\n            for j in range(nv-1):\n                cu = [us[i], us[i+1], us[i+1], us[i]]\n                cv = [vs[j], vs[j], vs[j+1], vs[j+1]]\n                inn = [F[i][j] <= 0, F[i+1][j] <= 0, F[i+1][j+1] <= 0, F[i][j+1] <= 0]\n                if not any(inn):\n                    continue\n                poly = []\n                for k in range(4):\n                    kn = (k+1) % 4\n                    if inn[k]:\n                        poly.append(weld(cu[k], cv[k]))\n                    if inn[k] != inn[kn]:\n                        poly.append(cross(cu[k], cv[k], cu[kn], cv[kn]))\n                for t in range(1, len(poly)-1):\n                    a, b, c = poly[0], poly[t], poly[t+1]\n                    if a == b or b == c or c == a:\n                        continue\n                    result.add_face([a, b, c])\n        if not result.face:\n            return srf.mesh()\n        return result\n    @staticmethod\n    def split_by_planes(srf, planes):\n        # Split a surface into every non-empty region carved by `planes` (all 2^K sign\n        # combinations). Each region comes back as a first-class multi-plane\n        # NurbsSurfaceTrimmed so the viewer can select / hide / transform each piece.\n        # Plane normals define which half is f<=0. Compute-on-demand: planes are passed in\n        # as a list of (Point, Vector); no cut state is persisted.\n        from .vector import Vector\n        k = len(planes)\n        if k == 0 or k > 16:\n            return []\n        out = []\n        for mask in range(1 << k):\n            cp = []\n            for i in range(k):\n                q, n = planes[i]\n                flip = ((mask >> i) & 1) == 1\n                if flip:\n                    nn = Vector(-n[0], -n[1], -n[2])\n                else:\n                    nn = Vector(n[0], n[1], n[2])\n                cp.append((q, nn))\n            ts = NurbsSurfaceTrimmed()\n            ts.m_surface = srf.duplicate()\n            m = ts.mesh_by_planes(cp, 20.0, 0.01)\n            if m.number_of_faces() > 0:\n                out.append(ts)\n        return out\n\n\n    def mesh_by_planes(self, planes, max_angle_deg, chord_factor):\n        # Multi-plane SPLIT clip: keep the region inside ALL half-spaces { (S-q).n <= 0 }.\n        # Tessellates the surface into a triangle soup (span-adaptive UV grid), then clips that\n        # soup sequentially by each plane (Sutherland-Hodgman per triangle, crossings Newton-\n        # refined onto the crossing plane), so K planes carve a clean region without per-cell CSG.\n        # Coincident 3D verts are welded. planes is a list of (Point, Vector) tuples.\n        import math\n        from collections import defaultdict\n        from .mesh import Mesh\n        srf = self.m_surface\n        pl = []\n        for (q, n) in planes:\n            nx, ny, nz = n[0], n[1], n[2]\n            l = math.sqrt(nx*nx + ny*ny + nz*nz)\n            if l < 1e-12:\n                continue\n            pl.append(((q[0], q[1], q[2]), (nx/l, ny/l, nz/l)))\n        if not pl:\n            return srf.mesh()\n\n        def e3(u, v):\n            p = srf.point_at(u, v)",
           "file": "nurbssurface_trimmed.py"
         }
       },
       "related": [
-        "NurbsSurfaceTrimmed.__eq__",
-        "NurbsSurfaceTrimmed.__jsondump__",
-        "NurbsSurfaceTrimmed.__ne__",
-        "NurbsSurfaceTrimmed.__repr__",
-        "NurbsSurfaceTrimmed.__str__",
         "NurbsSurfaceTrimmed.duplicate",
+        "NurbsSurfaceTrimmed.e3",
         "NurbsSurfaceTrimmed.field",
-        "NurbsSurfaceTrimmed.guid",
-        "NurbsSurfaceTrimmed.inner_loop_count",
-        "NurbsSurfaceTrimmed.is_trimmed",
-        "NurbsSurfaceTrimmed.jsondump",
         "NurbsSurfaceTrimmed.mesh",
         "NurbsSurfaceTrimmed.mesh_by_plane",
+        "NurbsSurfaceTrimmed.mesh_by_planes",
+        "NurbsSurfaceTrimmed.point_at",
         "NurbsSurfaceTrimmed.refine",
-        "NurbsSurfaceTrimmed.repr",
-        "NurbsSurfaceTrimmed.span_subs",
-        "NurbsSurfaceTrimmed.str",
+        "NurbsSurfaceTrimmed.split_by_planes",
         "NurbsSurfaceTrimmed.surface",
-        "NurbsSurfaceTrimmed.surfacecolor",
-        "NurbsSurfaceTrimmed.to_string",
         "NurbsSurfaceTrimmed.transform",
-        "NurbsSurfaceTrimmed.transformed",
         "NurbsSurfaceTrimmed.weld",
-        "NurbsSurfaceTrimmed.weld_vertex",
-        "NurbsSurfaceTrimmed.xform"
+        "NurbsSurfaceTrimmed.weld_vertex"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.split_by_planes",
+      "implementations": {
+        "python": {
+          "sig": "split_by_planes(srf, planes)",
+          "code": "def split_by_planes(srf, planes):\n\n        # Split a surface into every non-empty region carved by `planes` (all 2^K sign\n        # combinations). Each region comes back as a first-class multi-plane\n        # NurbsSurfaceTrimmed so the viewer can select / hide / transform each piece.\n        # Plane normals define which half is f<=0. Compute-on-demand: planes are passed in\n        # as a list of (Point, Vector); no cut state is persisted.\n        from .vector import Vector\n        k = len(planes)\n        if k == 0 or k > 16:\n            return []\n        out = []\n        for mask in range(1 << k):\n            cp = []\n            for i in range(k):\n                q, n = planes[i]\n                flip = ((mask >> i) & 1) == 1\n                if flip:\n                    nn = Vector(-n[0], -n[1], -n[2])\n                else:\n                    nn = Vector(n[0], n[1], n[2])\n                cp.append((q, nn))\n            ts = NurbsSurfaceTrimmed()\n            ts.m_surface = srf.duplicate()\n            m = ts.mesh_by_planes(cp, 20.0, 0.01)\n            if m.number_of_faces() > 0:\n                out.append(ts)\n        return out\n\n\n    def mesh_by_planes(self, planes, max_angle_deg, chord_factor):\n        # Multi-plane SPLIT clip: keep the region inside ALL half-spaces { (S-q).n <= 0 }.\n        # Tessellates the surface into a triangle soup (span-adaptive UV grid), then clips that\n        # soup sequentially by each plane (Sutherland-Hodgman per triangle, crossings Newton-\n        # refined onto the crossing plane), so K planes carve a clean region without per-cell CSG.\n        # Coincident 3D verts are welded. planes is a list of (Point, Vector) tuples.\n        import math\n        from collections import defaultdict\n        from .mesh import Mesh\n        srf = self.m_surface\n        pl = []\n        for (q, n) in planes:\n            nx, ny, nz = n[0], n[1], n[2]\n            l = math.sqrt(nx*nx + ny*ny + nz*nz)\n            if l < 1e-12:\n                continue\n            pl.append(((q[0], q[1], q[2]), (nx/l, ny/l, nz/l)))\n        if not pl:\n            return srf.mesh()\n\n        def e3(u, v):\n            p = srf.point_at(u, v)\n            return (p[0], p[1], p[2])\n\n        def field_k(k, u, v):\n            p = e3(u, v)\n            q, n = pl[k]\n            return (p[0]-q[0])*n[0] + (p[1]-q[1])*n[1] + (p[2]-q[2])*n[2]\n\n        def refine_k(k, u, v):\n            _q, n = pl[k]\n            for _ in range(12):\n                fv = field_k(k, u, v)\n                if abs(fv) < 1e-9:\n                    break\n                h = 1e-4\n                a = e3(u+h, v); b = e3(u-h, v); c = e3(u, v+h); d = e3(u, v-h)\n                gu = ((a[0]-b[0])*n[0] + (a[1]-b[1])*n[1] + (a[2]-b[2])*n[2]) / (2*h)\n                gv = ((c[0]-d[0])*n[0] + (c[1]-d[1])*n[1] + (c[2]-d[2])*n[2]) / (2*h)\n                g2 = gu*gu + gv*gv\n                if g2 < 1e-20:\n                    break\n                u -= fv*gu/g2; v -= fv*gv/g2\n            return u, v\n\n        usp = srf.get_span_vector(0)\n        vsp = srf.get_span_vector(1)\n        if len(usp) < 2 or len(vsp) < 2:\n            return srf.mesh()\n        deg_u = srf.degree(0); deg_v = srf.degree(1)\n        bmin = [1e30]*3; bmax = [-1e30]*3",
+          "file": "nurbssurface_trimmed.py"
+        },
+        "cpp": {
+          "sig": "std::vector<NurbsSurfaceTrimmed> split_by_planes(const NurbsSurface& srf, const std::vector<std::pair<Point, Vector>>& planes)",
+          "code": "std::vector<NurbsSurfaceTrimmed> NurbsSurfaceTrimmed::split_by_planes(const NurbsSurface& srf, const std::vector<std::pair<Point, Vector>>& planes) {\n    std::vector<NurbsSurfaceTrimmed> out;\n    int k = (int)planes.size();\n    if (k == 0 || k > 16) return out;\n    for (int mask = 0; mask < (1 << k); ++mask) {\n        std::vector<std::pair<Point, Vector>> cp;\n        for (int i = 0; i < k; ++i) {\n            const Point& q = planes[i].first;\n            const Vector& n = planes[i].second;\n            bool flip = ((mask >> i) & 1) == 1;\n            Vector nn = flip ? Vector(-n[0], -n[1], -n[2]) : Vector(n[0], n[1], n[2]);\n            cp.push_back({q, nn}",
+          "file": "nurbssurface_trimmed.cpp"
+        },
+        "rust": {
+          "sig": "split_by_planes(srf: &NurbsSurface, planes: &[(Point, Vector)",
+          "code": "pub fn split_by_planes(srf: &NurbsSurface, planes: &[(Point, Vector)]) -> Vec<NurbsSurfaceTrimmed> {\n        let k=planes.len(); if k==0 || k>16 { return Vec::new(); }\n        let mut out=Vec::new();\n        for mask in 0u32..(1u32<<k) {\n            let mut cp: Vec<(Point,Vector)> = Vec::with_capacity(k);\n            for (i,(q,n)) in planes.iter().enumerate() {\n                let flip=((mask>>i)&1)==1;\n                let nn=if flip { Vector::new(-n[0],-n[1],-n[2]) } else { Vector::new(n[0],n[1],n[2]) };\n                cp.push((q.clone(), nn));\n            }\n            let mut ts=NurbsSurfaceTrimmed::new();\n            ts.m_surface=srf.clone();\n            ts.cut_planes=cp;\n            let m=ts.mesh_render(20.0,0.01);\n            if m.number_of_faces()>0 { out.push(ts); }\n        }\n        out\n    }",
+          "file": "nurbssurface_trimmed.rs"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed.cross",
+        "NurbsSurfaceTrimmed.duplicate",
+        "NurbsSurfaceTrimmed.e3",
+        "NurbsSurfaceTrimmed.field",
+        "NurbsSurfaceTrimmed.field_k",
+        "NurbsSurfaceTrimmed.mesh",
+        "NurbsSurfaceTrimmed.mesh_by_plane",
+        "NurbsSurfaceTrimmed.mesh_by_planes",
+        "NurbsSurfaceTrimmed.mesh_render",
+        "NurbsSurfaceTrimmed.new",
+        "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.refine",
+        "NurbsSurfaceTrimmed.refine_k",
+        "NurbsSurfaceTrimmed.surface",
+        "NurbsSurfaceTrimmed.transform",
+        "NurbsSurfaceTrimmed.weld"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.mesh_by_planes",
+      "implementations": {
+        "python": {
+          "sig": "mesh_by_planes(planes, max_angle_deg, chord_factor)",
+          "code": "def mesh_by_planes(self, planes, max_angle_deg, chord_factor):\n\n        # Multi-plane SPLIT clip: keep the region inside ALL half-spaces { (S-q).n <= 0 }.\n        # Tessellates the surface into a triangle soup (span-adaptive UV grid), then clips that\n        # soup sequentially by each plane (Sutherland-Hodgman per triangle, crossings Newton-\n        # refined onto the crossing plane), so K planes carve a clean region without per-cell CSG.\n        # Coincident 3D verts are welded. planes is a list of (Point, Vector) tuples.\n        import math\n        from collections import defaultdict\n        from .mesh import Mesh\n        srf = self.m_surface\n        pl = []\n        for (q, n) in planes:\n            nx, ny, nz = n[0], n[1], n[2]\n            l = math.sqrt(nx*nx + ny*ny + nz*nz)\n            if l < 1e-12:\n                continue\n            pl.append(((q[0], q[1], q[2]), (nx/l, ny/l, nz/l)))\n        if not pl:\n            return srf.mesh()\n\n        def e3(u, v):\n            p = srf.point_at(u, v)\n            return (p[0], p[1], p[2])\n\n        def field_k(k, u, v):\n            p = e3(u, v)\n            q, n = pl[k]\n            return (p[0]-q[0])*n[0] + (p[1]-q[1])*n[1] + (p[2]-q[2])*n[2]\n\n        def refine_k(k, u, v):\n            _q, n = pl[k]\n            for _ in range(12):\n                fv = field_k(k, u, v)\n                if abs(fv) < 1e-9:\n                    break\n                h = 1e-4\n                a = e3(u+h, v); b = e3(u-h, v); c = e3(u, v+h); d = e3(u, v-h)\n                gu = ((a[0]-b[0])*n[0] + (a[1]-b[1])*n[1] + (a[2]-b[2])*n[2]) / (2*h)\n                gv = ((c[0]-d[0])*n[0] + (c[1]-d[1])*n[1] + (c[2]-d[2])*n[2]) / (2*h)\n                g2 = gu*gu + gv*gv\n                if g2 < 1e-20:\n                    break\n                u -= fv*gu/g2; v -= fv*gv/g2\n            return u, v\n\n        usp = srf.get_span_vector(0)\n        vsp = srf.get_span_vector(1)\n        if len(usp) < 2 or len(vsp) < 2:\n            return srf.mesh()\n        deg_u = srf.degree(0); deg_v = srf.degree(1)\n        bmin = [1e30]*3; bmax = [-1e30]*3\n        for i in range(srf.cv_count(0)):\n            for j in range(srf.cv_count(1)):\n                p = srf.get_cv(i, j)\n                for k in range(3):\n                    bmin[k] = min(bmin[k], p[k]); bmax[k] = max(bmax[k], p[k])\n        diag = math.sqrt(sum((bmax[k]-bmin[k])**2 for k in range(3))) or 1.0\n        ctol = diag * chord_factor\n\n        def span_subs(dr, sp, osp, deg):\n            n = len(sp) - 1\n            out = [2 if deg > 1 else 1] * n\n            smid = (osp[0] + osp[-1]) * 0.5\n            for i in range(n):\n                t0, t1 = sp[i], sp[i+1]\n                if deg > 1:\n                    ma = 0.0; pn = None\n                    for k in range(5):\n                        t = t0 + k*(t1-t0)/4\n                        nm = srf.normal_at(t, smid) if dr == 0 else srf.normal_at(smid, t)\n                        if pn is not None:\n                            dpd = max(-1.0, min(1.0, pn[0]*nm[0]+pn[1]*nm[1]+pn[2]*nm[2]))\n                            ma += math.acos(dpd) * 180.0 / math.pi\n                        pn = (nm[0], nm[1], nm[2])\n                    out[i] = max(out[i], max(1, min(int(math.ceil(ma/max_angle_deg)), 64)))\n                p0 = e3(t0, smid) if dr == 0 else e3(smid, t0)\n                p1 = e3(t1, smid) if dr == 0 else e3(smid, t1)\n                dev = 0.0\n                for k in range(1, 4):\n                    fr = k/4; tm = t0 + fr*(t1-t0)",
+          "file": "nurbssurface_trimmed.py"
+        },
+        "cpp": {
+          "sig": "Mesh mesh_by_planes(const std::vector<std::pair<Point, Vector>>& planes,\n                                         double max_angle_deg, double chord_factor)",
+          "code": "Mesh NurbsSurfaceTrimmed::mesh_by_planes(const std::vector<std::pair<Point, Vector>>& planes,\n                                         double max_angle_deg, double chord_factor) const {\n    const NurbsSurface& srf = m_surface;\n    std::vector<std::pair<std::array<double,3>, std::array<double,3>>> pl;\n    for (const auto& qn : planes) {\n        const Point& q = qn.first; const Vector& n = qn.second;\n        double nx = n[0], ny = n[1], nz = n[2];\n        double l = std::sqrt(nx*nx + ny*ny + nz*nz);\n        if (l < 1e-12) continue;\n        pl.push_back({{q[0], q[1], q[2]}",
+          "file": "nurbssurface_trimmed.cpp"
+        },
+        "rust": {
+          "sig": "mesh_by_planes(planes: &[(Point, Vector)",
+          "code": "pub fn mesh_by_planes(&self, planes: &[(Point, Vector)], max_angle_deg: f64, chord_factor: f64) -> Mesh {\n        let srf = &self.m_surface;\n        let pl: Vec<([f64;3],[f64;3])> = planes.iter().filter_map(|(q,n)| {\n            let (nx,ny,nz)=(n[0] as f64,n[1] as f64,n[2] as f64);\n            let l=(nx*nx+ny*ny+nz*nz).sqrt();\n            if l<1e-12 { None } else { Some(([q[0] as f64,q[1] as f64,q[2] as f64],[nx/l,ny/l,nz/l])) }\n        }).collect();\n        if pl.is_empty() { return srf.mesh(); }\n        let e3 = |u: f64, v: f64| -> [f64;3] { let p=srf.point_at(u,v).unwrap_or(Point::new(0.0,0.0,0.0)); [p[0] as f64,p[1] as f64,p[2] as f64] };\n        let field_k = |k: usize, u: f64, v: f64| -> f64 { let p=e3(u,v); let (q,n)=&pl[k]; (p[0]-q[0])*n[0]+(p[1]-q[1])*n[1]+(p[2]-q[2])*n[2] };\n        let refine_k = |k: usize, mut u: f64, mut v: f64| -> (f64,f64) {\n            let (_q,n)=&pl[k];\n            for _ in 0..12 {\n                let fv=field_k(k,u,v); if fv.abs()<1e-9 { break; }\n                let h=1e-4; let a=e3(u+h,v); let b=e3(u-h,v); let c=e3(u,v+h); let d=e3(u,v-h);\n                let gu=((a[0]-b[0])*n[0]+(a[1]-b[1])*n[1]+(a[2]-b[2])*n[2])/(2.0*h);\n                let gv=((c[0]-d[0])*n[0]+(c[1]-d[1])*n[1]+(c[2]-d[2])*n[2])/(2.0*h);\n                let g2=gu*gu+gv*gv; if g2<1e-20 { break; }\n                u-=fv*gu/g2; v-=fv*gv/g2;\n            }\n            (u,v)\n        };\n        let usp: Vec<f64> = srf.get_span_vector(0).iter().map(|&x| x as f64).collect();\n        let vsp: Vec<f64> = srf.get_span_vector(1).iter().map(|&x| x as f64).collect();\n        if usp.len()<2 || vsp.len()<2 { return srf.mesh(); }\n        let deg_u=srf.degree(0); let deg_v=srf.degree(1);\n        let mut bmin=[1e30f64;3]; let mut bmax=[-1e30f64;3];\n        for i in 0..srf.cv_count_dir(Some(0)) { for j in 0..srf.cv_count_dir(Some(1)) {\n            if let Some(p)=srf.get_cv(i,j) { for k in 0..3 { let c=p[k] as f64; if c<bmin[k]{bmin[k]=c;} if c>bmax[k]{bmax[k]=c;} } }\n        }}\n        let mut diag=(0..3).map(|k|(bmax[k]-bmin[k]).powi(2)).sum::<f64>().sqrt(); if diag<1e-12 { diag=1.0; }\n        let ctol=diag*chord_factor;\n        let span_subs = |dr: usize, sp: &[f64], osp: &[f64], deg: usize| -> Vec<usize> {\n            let n=sp.len()-1; let mut out=vec![if deg>1 {2usize} else {1}; n];\n            let smid=(osp[0]+osp[osp.len()-1])*0.5;\n            for i in 0..n {\n                let (t0,t1)=(sp[i],sp[i+1]);\n                if deg>1 {\n                    let mut ma=0.0f64; let mut pn=[0.0f64;3];\n                    for k in 0..=4 { let t=t0+k as f64*(t1-t0)/4.0; let nm=if dr==0 {srf.normal_at(t,smid)} else {srf.normal_at(smid,t)};\n                        if k>0 { let d=(pn[0]*nm[0]+pn[1]*nm[1]+pn[2]*nm[2]).max(-1.0).min(1.0); ma+=d.acos()*180.0/std::f64::consts::PI; } pn=[nm[0],nm[1],nm[2]]; }\n                    out[i]=out[i].max(1.max(((ma/max_angle_deg).ceil() as usize).min(64)));\n                }\n                let p0=if dr==0 {e3(t0,smid)} else {e3(smid,t0)}; let p1=if dr==0 {e3(t1,smid)} else {e3(smid,t1)};\n                let mut dev=0.0f64;\n                for k in 1..=3 { let fr=k as f64/4.0; let tm=t0+fr*(t1-t0); let pm=if dr==0 {e3(tm,smid)} else {e3(smid,tm)};\n                    let (lx,ly,lz)=(p0[0]+fr*(p1[0]-p0[0]),p0[1]+fr*(p1[1]-p0[1]),p0[2]+fr*(p1[2]-p0[2]));\n                    dev=dev.max(((pm[0]-lx).powi(2)+(pm[1]-ly).powi(2)+(pm[2]-lz).powi(2)).sqrt()); }\n                if dev>ctol { out[i]=out[i].max(((dev/ctol).sqrt().ceil() as usize).min(64)); }\n            }\n            out\n        };\n        let us_subs=span_subs(0,&usp,&vsp,deg_u); let vs_subs=span_subs(1,&vsp,&usp,deg_v);\n        let mut us=Vec::new(); for i in 0..usp.len()-1 { for s in 0..us_subs[i] { us.push(usp[i]+(s as f64)*(usp[i+1]-usp[i])/(us_subs[i] as f64)); } } us.push(*usp.last().unwrap());\n        let mut vs=Vec::new(); for i in 0..vsp.len()-1 { for s in 0..vs_subs[i] { vs.push(vsp[i]+(s as f64)*(vsp[i+1]-vsp[i])/(vs_subs[i] as f64)); } } vs.push(*vsp.last().unwrap());\n        let nu=us.len(); let nv=vs.len(); if nu<2||nv<2 { return srf.mesh(); }\n        let mut tris: Vec<[(f64,f64);3]> = Vec::with_capacity((nu-1)*(nv-1)*2);\n        for i in 0..nu-1 { for j in 0..nv-1 {\n            let a=(us[i],vs[j]); let b=(us[i+1],vs[j]); let c=(us[i+1],vs[j+1]); let d=(us[i],vs[j+1]);\n            tris.push([a,b,c]); tris.push([a,c,d]);\n        }}\n        let eps=1e-9;\n        for k in 0..pl.len() {\n            let mut next: Vec<[(f64,f64);3]> = Vec::new();\n            for t in &tris {\n                let mut poly: Vec<(f64,f64)> = Vec::new();\n                for e in 0..3 {\n                    let p=t[e]; let q=t[(e+1)%3];\n                    let fp=field_k(k,p.0,p.1); let fq=field_k(k,q.0,q.1);\n                    let (pin,qin)=(fp<=eps, fq<=eps);\n                    if pin { poly.push(p); }\n                    if pin!=qin {\n                        let tt= if (fp-fq).abs()>1e-30 { fp/(fp-fq) } else { 0.5 };\n                        let cu=p.0+(q.0-p.0)*tt; let cv=p.1+(q.1-p.1)*tt;\n                        poly.push(refine_k(k,cu,cv));\n                    }\n                }\n                for w in 1..poly.len().saturating_sub(1) { next.push([poly[0],poly[w],poly[w+1]]); }\n            }\n            tris=next;\n            if tris.is_empty() { break; }\n        }\n        if tris.is_empty() { return Mesh::new(); }\n        let mut result=Mesh::new();\n        let wt=diag*1e-5; let cell=if wt>0.0 {wt} else {1.0};\n        let mut cmap: std::collections::HashMap<(i64,i64,i64),Vec<([f64;3],usize)>> = std::collections::HashMap::new();\n        let weld = |result:&mut Mesh, cmap:&mut std::collections::HashMap<(i64,i64,i64),Vec<([f64;3],usize)>>, u:f64,v:f64| -> usize {\n            let p=srf.point_at(u,v).unwrap_or(Point::new(0.0,0.0,0.0));\n            let (x,y,z)=(p[0] as f64,p[1] as f64,p[2] as f64);\n            let (ci,cj,ck)=((x/cell).floor() as i64,(y/cell).floor() as i64,(z/cell).floor() as i64);\n            for di in -1..=1 { for dj in -1..=1 { for dk in -1..=1 {\n                if let Some(b)=cmap.get(&(ci+di,cj+dj,ck+dk)) { for &(pp,vk) in b { if (pp[0]-x).powi(2)+(pp[1]-y).powi(2)+(pp[2]-z).powi(2)<=wt*wt { return vk; } } }\n            }}}\n            let vk=result.add_vertex(p,None); let nm=srf.normal_at(u,v);\n            if let Some(vd)=result.vertex.get_mut(&vk){vd.set_normal(nm[0],nm[1],nm[2]);}\n            cmap.entry((ci,cj,ck)).or_default().push(([x,y,z],vk)); vk\n        };\n        for t in &tris {\n            let a=weld(&mut result,&mut cmap,t[0].0,t[0].1);\n            let b=weld(&mut result,&mut cmap,t[1].0,t[1].1);\n            let c=weld(&mut result,&mut cmap,t[2].0,t[2].1);\n            if a==b||b==c||c==a { continue; }\n            result.add_face(vec![a,b,c],None);\n        }\n        if result.face.is_empty() { return Mesh::new(); }\n        result\n    }",
+          "file": "nurbssurface_trimmed.rs"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed.cross",
+        "NurbsSurfaceTrimmed.e3",
+        "NurbsSurfaceTrimmed.field",
+        "NurbsSurfaceTrimmed.field_k",
+        "NurbsSurfaceTrimmed.mesh",
+        "NurbsSurfaceTrimmed.mesh_by_plane",
+        "NurbsSurfaceTrimmed.mesh_render",
+        "NurbsSurfaceTrimmed.new",
+        "NurbsSurfaceTrimmed.normal_at",
+        "NurbsSurfaceTrimmed.point_at",
+        "NurbsSurfaceTrimmed.refine",
+        "NurbsSurfaceTrimmed.refine_k",
+        "NurbsSurfaceTrimmed.span_subs",
+        "NurbsSurfaceTrimmed.split_by_planes",
+        "NurbsSurfaceTrimmed.surface",
+        "NurbsSurfaceTrimmed.weld"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.field_k",
+      "implementations": {
+        "python": {
+          "sig": "field_k(k, u, v)",
+          "code": "def field_k(k, u, v):\n\n            p = e3(u, v)\n            q, n = pl[k]\n            return (p[0]-q[0])*n[0] + (p[1]-q[1])*n[1] + (p[2]-q[2])*n[2]\n\n        def refine_k(k, u, v):\n            _q, n = pl[k]\n            for _ in range(12):\n                fv = field_k(k, u, v)\n                if abs(fv) < 1e-9:\n                    break\n                h = 1e-4\n                a = e3(u+h, v); b = e3(u-h, v); c = e3(u, v+h); d = e3(u, v-h)\n                gu = ((a[0]-b[0])*n[0] + (a[1]-b[1])*n[1] + (a[2]-b[2])*n[2]) / (2*h)\n                gv = ((c[0]-d[0])*n[0] + (c[1]-d[1])*n[1] + (c[2]-d[2])*n[2]) / (2*h)\n                g2 = gu*gu + gv*gv\n                if g2 < 1e-20:\n                    break\n                u -= fv*gu/g2; v -= fv*gv/g2\n            return u, v\n\n        usp = srf.get_span_vector(0)\n        vsp = srf.get_span_vector(1)\n        if len(usp) < 2 or len(vsp) < 2:\n            return srf.mesh()\n        deg_u = srf.degree(0); deg_v = srf.degree(1)\n        bmin = [1e30]*3; bmax = [-1e30]*3\n        for i in range(srf.cv_count(0)):\n            for j in range(srf.cv_count(1)):\n                p = srf.get_cv(i, j)\n                for k in range(3):\n                    bmin[k] = min(bmin[k], p[k]); bmax[k] = max(bmax[k], p[k])\n        diag = math.sqrt(sum((bmax[k]-bmin[k])**2 for k in range(3))) or 1.0\n        ctol = diag * chord_factor\n\n        def span_subs(dr, sp, osp, deg):\n            n = len(sp) - 1\n            out = [2 if deg > 1 else 1] * n\n            smid = (osp[0] + osp[-1]) * 0.5\n            for i in range(n):\n                t0, t1 = sp[i], sp[i+1]\n                if deg > 1:\n                    ma = 0.0; pn = None\n                    for k in range(5):\n                        t = t0 + k*(t1-t0)/4\n                        nm = srf.normal_at(t, smid) if dr == 0 else srf.normal_at(smid, t)\n                        if pn is not None:\n                            dpd = max(-1.0, min(1.0, pn[0]*nm[0]+pn[1]*nm[1]+pn[2]*nm[2]))\n                            ma += math.acos(dpd) * 180.0 / math.pi\n                        pn = (nm[0], nm[1], nm[2])\n                    out[i] = max(out[i], max(1, min(int(math.ceil(ma/max_angle_deg)), 64)))\n                p0 = e3(t0, smid) if dr == 0 else e3(smid, t0)\n                p1 = e3(t1, smid) if dr == 0 else e3(smid, t1)\n                dev = 0.0\n                for k in range(1, 4):\n                    fr = k/4; tm = t0 + fr*(t1-t0)\n                    pm = e3(tm, smid) if dr == 0 else e3(smid, tm)\n                    lx, ly, lz = (p0[0]+fr*(p1[0]-p0[0]), p0[1]+fr*(p1[1]-p0[1]), p0[2]+fr*(p1[2]-p0[2]))\n                    dev = max(dev, math.sqrt((pm[0]-lx)**2 + (pm[1]-ly)**2 + (pm[2]-lz)**2))\n                if dev > ctol:\n                    out[i] = max(out[i], min(int(math.ceil(math.sqrt(dev/ctol))), 64))\n            return out\n\n        us_subs = span_subs(0, usp, vsp, deg_u)\n        vs_subs = span_subs(1, vsp, usp, deg_v)\n        us = []\n        for i in range(len(usp)-1):\n            for s in range(us_subs[i]):\n                us.append(usp[i] + s*(usp[i+1]-usp[i])/us_subs[i])\n        us.append(usp[-1])\n        vs = []\n        for i in range(len(vsp)-1):\n            for s in range(vs_subs[i]):\n                vs.append(vsp[i] + s*(vsp[i+1]-vsp[i])/vs_subs[i])\n        vs.append(vsp[-1])\n        nu, nv = len(us), len(vs)\n        if nu < 2 or nv < 2:\n            return srf.mesh()\n        tris = []\n        for i in range(nu-1):",
+          "file": "nurbssurface_trimmed.py"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed.e3",
+        "NurbsSurfaceTrimmed.field",
+        "NurbsSurfaceTrimmed.mesh",
+        "NurbsSurfaceTrimmed.mesh_by_planes",
+        "NurbsSurfaceTrimmed.normal_at",
+        "NurbsSurfaceTrimmed.refine",
+        "NurbsSurfaceTrimmed.refine_k",
+        "NurbsSurfaceTrimmed.span_subs",
+        "NurbsSurfaceTrimmed.split_by_planes"
+      ]
+    },
+    {
+      "name": "NurbsSurfaceTrimmed.refine_k",
+      "implementations": {
+        "python": {
+          "sig": "refine_k(k, u, v)",
+          "code": "def refine_k(k, u, v):\n\n            _q, n = pl[k]\n            for _ in range(12):\n                fv = field_k(k, u, v)\n                if abs(fv) < 1e-9:\n                    break\n                h = 1e-4\n                a = e3(u+h, v); b = e3(u-h, v); c = e3(u, v+h); d = e3(u, v-h)\n                gu = ((a[0]-b[0])*n[0] + (a[1]-b[1])*n[1] + (a[2]-b[2])*n[2]) / (2*h)\n                gv = ((c[0]-d[0])*n[0] + (c[1]-d[1])*n[1] + (c[2]-d[2])*n[2]) / (2*h)\n                g2 = gu*gu + gv*gv\n                if g2 < 1e-20:\n                    break\n                u -= fv*gu/g2; v -= fv*gv/g2\n            return u, v\n\n        usp = srf.get_span_vector(0)\n        vsp = srf.get_span_vector(1)\n        if len(usp) < 2 or len(vsp) < 2:\n            return srf.mesh()\n        deg_u = srf.degree(0); deg_v = srf.degree(1)\n        bmin = [1e30]*3; bmax = [-1e30]*3\n        for i in range(srf.cv_count(0)):\n            for j in range(srf.cv_count(1)):\n                p = srf.get_cv(i, j)\n                for k in range(3):\n                    bmin[k] = min(bmin[k], p[k]); bmax[k] = max(bmax[k], p[k])\n        diag = math.sqrt(sum((bmax[k]-bmin[k])**2 for k in range(3))) or 1.0\n        ctol = diag * chord_factor\n\n        def span_subs(dr, sp, osp, deg):\n            n = len(sp) - 1\n            out = [2 if deg > 1 else 1] * n\n            smid = (osp[0] + osp[-1]) * 0.5\n            for i in range(n):\n                t0, t1 = sp[i], sp[i+1]\n                if deg > 1:\n                    ma = 0.0; pn = None\n                    for k in range(5):\n                        t = t0 + k*(t1-t0)/4\n                        nm = srf.normal_at(t, smid) if dr == 0 else srf.normal_at(smid, t)\n                        if pn is not None:\n                            dpd = max(-1.0, min(1.0, pn[0]*nm[0]+pn[1]*nm[1]+pn[2]*nm[2]))\n                            ma += math.acos(dpd) * 180.0 / math.pi\n                        pn = (nm[0], nm[1], nm[2])\n                    out[i] = max(out[i], max(1, min(int(math.ceil(ma/max_angle_deg)), 64)))\n                p0 = e3(t0, smid) if dr == 0 else e3(smid, t0)\n                p1 = e3(t1, smid) if dr == 0 else e3(smid, t1)\n                dev = 0.0\n                for k in range(1, 4):\n                    fr = k/4; tm = t0 + fr*(t1-t0)\n                    pm = e3(tm, smid) if dr == 0 else e3(smid, tm)\n                    lx, ly, lz = (p0[0]+fr*(p1[0]-p0[0]), p0[1]+fr*(p1[1]-p0[1]), p0[2]+fr*(p1[2]-p0[2]))\n                    dev = max(dev, math.sqrt((pm[0]-lx)**2 + (pm[1]-ly)**2 + (pm[2]-lz)**2))\n                if dev > ctol:\n                    out[i] = max(out[i], min(int(math.ceil(math.sqrt(dev/ctol))), 64))\n            return out\n\n        us_subs = span_subs(0, usp, vsp, deg_u)\n        vs_subs = span_subs(1, vsp, usp, deg_v)\n        us = []\n        for i in range(len(usp)-1):\n            for s in range(us_subs[i]):\n                us.append(usp[i] + s*(usp[i+1]-usp[i])/us_subs[i])\n        us.append(usp[-1])\n        vs = []\n        for i in range(len(vsp)-1):\n            for s in range(vs_subs[i]):\n                vs.append(vsp[i] + s*(vsp[i+1]-vsp[i])/vs_subs[i])\n        vs.append(vsp[-1])\n        nu, nv = len(us), len(vs)\n        if nu < 2 or nv < 2:\n            return srf.mesh()\n        tris = []\n        for i in range(nu-1):\n            for j in range(nv-1):\n                a = (us[i], vs[j]); b = (us[i+1], vs[j]); c = (us[i+1], vs[j+1]); d = (us[i], vs[j+1])\n                tris.append([a, b, c]); tris.append([a, c, d])\n        eps = 1e-9\n        for k in range(len(pl)):",
+          "file": "nurbssurface_trimmed.py"
+        }
+      },
+      "related": [
+        "NurbsSurfaceTrimmed.e3",
+        "NurbsSurfaceTrimmed.field",
+        "NurbsSurfaceTrimmed.field_k",
+        "NurbsSurfaceTrimmed.mesh",
+        "NurbsSurfaceTrimmed.mesh_by_planes",
+        "NurbsSurfaceTrimmed.normal_at",
+        "NurbsSurfaceTrimmed.refine",
+        "NurbsSurfaceTrimmed.span_subs",
+        "NurbsSurfaceTrimmed.split_by_planes"
       ]
     },
     {
@@ -40084,6 +40697,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.jsondump",
         "NurbsSurfaceTrimmed.jsonload",
         "NurbsSurfaceTrimmed.repr",
+        "NurbsSurfaceTrimmed.split_by_planes",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.surfacecolor",
@@ -40120,7 +40734,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__ne__",
         "NurbsSurfaceTrimmed.__repr__",
         "NurbsSurfaceTrimmed.__str__",
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_load",
@@ -40179,6 +40792,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.new",
         "NurbsSurfaceTrimmed.point_in_cycle",
         "NurbsSurfaceTrimmed.repr",
+        "NurbsSurfaceTrimmed.split_by_planes",
         "NurbsSurfaceTrimmed.str",
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.surfacecolor",
@@ -40204,7 +40818,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__ne__",
         "NurbsSurfaceTrimmed.__repr__",
         "NurbsSurfaceTrimmed.__str__",
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
@@ -40242,7 +40855,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__jsonload__",
         "NurbsSurfaceTrimmed.__repr__",
         "NurbsSurfaceTrimmed.__str__",
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
@@ -40288,7 +40900,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__ne__",
         "NurbsSurfaceTrimmed.__repr__",
         "NurbsSurfaceTrimmed.__str__",
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
@@ -40309,6 +40920,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.surfacecolor",
         "NurbsSurfaceTrimmed.transform",
         "NurbsSurfaceTrimmed.transformed",
+        "NurbsSurfaceTrimmed.weld",
         "NurbsSurfaceTrimmed.xform"
       ]
     },
@@ -40327,7 +40939,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__jsonload__",
         "NurbsSurfaceTrimmed.__ne__",
         "NurbsSurfaceTrimmed.__repr__",
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
@@ -40348,6 +40959,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.to_string",
         "NurbsSurfaceTrimmed.transform",
         "NurbsSurfaceTrimmed.transformed",
+        "NurbsSurfaceTrimmed.weld",
         "NurbsSurfaceTrimmed.xform"
       ]
     },
@@ -40366,7 +40978,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__jsonload__",
         "NurbsSurfaceTrimmed.__ne__",
         "NurbsSurfaceTrimmed.__str__",
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
@@ -40387,6 +40998,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.to_string",
         "NurbsSurfaceTrimmed.transform",
         "NurbsSurfaceTrimmed.transformed",
+        "NurbsSurfaceTrimmed.weld",
         "NurbsSurfaceTrimmed.xform"
       ]
     },
@@ -40405,7 +41017,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__ne__",
         "NurbsSurfaceTrimmed.__repr__",
         "NurbsSurfaceTrimmed.__str__",
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
@@ -40424,6 +41035,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.to_string",
         "NurbsSurfaceTrimmed.transform",
         "NurbsSurfaceTrimmed.transformed",
+        "NurbsSurfaceTrimmed.weld",
         "NurbsSurfaceTrimmed.xform"
       ]
     },
@@ -49461,6 +50073,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.str",
         "Polyline.xform"
       ]
@@ -49492,12 +50105,9 @@ window.API_INDEX = {
         "Polyline.__isub__",
         "Polyline.__jsondump__",
         "Polyline.__jsonload__",
-        "Polyline.__ne__",
         "Polyline.__sub__",
         "Polyline._average_normal",
         "Polyline._recompute_plane",
-        "Polyline._simplify_perp_dist",
-        "Polyline._simplify_rdp",
         "Polyline.add_point",
         "Polyline.boolean_op",
         "Polyline.duplicate",
@@ -49523,15 +50133,16 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.project",
+        "Polyline.pt",
         "Polyline.pt_in_poly",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
         "Polyline.set_guid",
         "Polyline.set_point",
-        "Polyline.simplify",
-        "Polyline.simplify_points",
         "Polyline.str",
+        "Polyline.two_rects_from_frame",
         "Polyline.xform"
       ]
     },
@@ -49547,7 +50158,6 @@ window.API_INDEX = {
       "related": [
         "Polyline.Polyline",
         "Polyline.__add__",
-        "Polyline.__eq__",
         "Polyline.__iadd__",
         "Polyline.__imul__",
         "Polyline.__init__",
@@ -49556,7 +50166,6 @@ window.API_INDEX = {
         "Polyline.__len__",
         "Polyline.__mul__",
         "Polyline.__ne__",
-        "Polyline.__repr__",
         "Polyline.__setitem__",
         "Polyline.__sub__",
         "Polyline.__truediv__",
@@ -49608,9 +50217,11 @@ window.API_INDEX = {
         "Polyline.polylabel",
         "Polyline.polylabel_circle_division_points",
         "Polyline.project",
+        "Polyline.pt",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
         "Polyline.recompute_plane_if_needed",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
@@ -49621,7 +50232,9 @@ window.API_INDEX = {
         "Polyline.simplify",
         "Polyline.simplify_points",
         "Polyline.to2d",
+        "Polyline.translated",
         "Polyline.tween_two_polylines",
+        "Polyline.two_rects_from_frame",
         "Polyline.xform"
       ]
     },
@@ -49648,7 +50261,6 @@ window.API_INDEX = {
         "Polyline.__jsonload__",
         "Polyline.__len__",
         "Polyline.__mul__",
-        "Polyline.__ne__",
         "Polyline.__repr__",
         "Polyline.__setitem__",
         "Polyline.__str__",
@@ -49656,8 +50268,6 @@ window.API_INDEX = {
         "Polyline.__truediv__",
         "Polyline._average_normal",
         "Polyline._recompute_plane",
-        "Polyline._simplify_perp_dist",
-        "Polyline._simplify_rdp",
         "Polyline.add_point",
         "Polyline.boolean_op",
         "Polyline.duplicate",
@@ -49684,13 +50294,14 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.project",
+        "Polyline.pt",
         "Polyline.pt_in_poly",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
         "Polyline.set_point",
-        "Polyline.simplify",
-        "Polyline.simplify_points",
+        "Polyline.two_rects_from_frame",
         "Polyline.xform"
       ]
     },
@@ -49716,15 +50327,12 @@ window.API_INDEX = {
         "Polyline.__jsonload__",
         "Polyline.__len__",
         "Polyline.__mul__",
-        "Polyline.__ne__",
         "Polyline.__neg__",
         "Polyline.__setitem__",
         "Polyline.__sub__",
         "Polyline.__truediv__",
         "Polyline._average_normal",
         "Polyline._recompute_plane",
-        "Polyline._simplify_perp_dist",
-        "Polyline._simplify_rdp",
         "Polyline.add_point",
         "Polyline.boolean_op",
         "Polyline.duplicate",
@@ -49751,16 +50359,17 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.project",
+        "Polyline.pt",
         "Polyline.pt_in_poly",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
         "Polyline.set_point",
-        "Polyline.simplify",
-        "Polyline.simplify_points",
         "Polyline.transform",
         "Polyline.transformed",
-        "Polyline.transformed_xform"
+        "Polyline.transformed_xform",
+        "Polyline.two_rects_from_frame"
       ]
     },
     {
@@ -49825,6 +50434,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.quadratic_points",
         "Polyline.remove_point",
         "Polyline.reverse",
@@ -49866,7 +50476,6 @@ window.API_INDEX = {
         "Polyline.__itruediv__",
         "Polyline.__len__",
         "Polyline.__mul__",
-        "Polyline.__ne__",
         "Polyline.__neg__",
         "Polyline.__repr__",
         "Polyline.__setitem__",
@@ -49874,8 +50483,6 @@ window.API_INDEX = {
         "Polyline.__sub__",
         "Polyline.__truediv__",
         "Polyline._recompute_plane",
-        "Polyline._simplify_perp_dist",
-        "Polyline._simplify_rdp",
         "Polyline.add_point",
         "Polyline.average_normal",
         "Polyline.boolean_op",
@@ -49919,6 +50526,8 @@ window.API_INDEX = {
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
         "Polyline.project",
+        "Polyline.pt",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.repr",
         "Polyline.reverse",
@@ -49927,13 +50536,14 @@ window.API_INDEX = {
         "Polyline.set_point",
         "Polyline.shift",
         "Polyline.simplify",
-        "Polyline.simplify_points",
         "Polyline.str",
         "Polyline.transform",
         "Polyline.transformed",
         "Polyline.transformed_xform",
         "Polyline.translate",
+        "Polyline.translated",
         "Polyline.tween_two_polylines",
+        "Polyline.two_rects_from_frame",
         "Polyline.xform"
       ]
     },
@@ -49973,6 +50583,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.segment_count",
         "Polyline.xform"
       ]
@@ -49998,10 +50609,14 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.Polyline",
+        "Polyline.__eq__",
         "Polyline.__getitem__",
         "Polyline.__init__",
         "Polyline.__len__",
+        "Polyline.__ne__",
         "Polyline.__setitem__",
+        "Polyline._simplify_perp_dist",
+        "Polyline._simplify_rdp",
         "Polyline.boolean_op",
         "Polyline.bounding_rectangle",
         "Polyline.closed",
@@ -50034,12 +50649,15 @@ window.API_INDEX = {
         "Polyline.polylabel",
         "Polyline.polylabel_circle_division_points",
         "Polyline.project",
+        "Polyline.pt",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
         "Polyline.remove_consecutive_duplicates",
         "Polyline.segment_count",
         "Polyline.simplify",
+        "Polyline.simplify_points",
         "Polyline.to2d",
+        "Polyline.translated",
         "Polyline.tween_two_polylines",
         "Polyline.xform"
       ]
@@ -50128,6 +50746,7 @@ window.API_INDEX = {
         "Polyline.polylabel",
         "Polyline.polylabel_circle_division_points",
         "Polyline.project",
+        "Polyline.pt",
         "Polyline.pt_in_poly",
         "Polyline.qh_upper",
         "Polyline.quadratic_points",
@@ -50150,6 +50769,7 @@ window.API_INDEX = {
         "Polyline.transformed",
         "Polyline.transformed_xform",
         "Polyline.translate",
+        "Polyline.translated",
         "Polyline.tween_two_polylines",
         "Polyline.xform"
       ]
@@ -50180,6 +50800,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.xform"
@@ -50210,6 +50831,7 @@ window.API_INDEX = {
         "Polyline.lines",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.xform"
@@ -50243,6 +50865,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.xform"
@@ -50293,7 +50916,9 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.polylabel",
+        "Polyline.pt",
         "Polyline.quick_hull",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.segment_count",
         "Polyline.set_point",
@@ -50352,6 +50977,7 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.remove_point",
         "Polyline.set_point",
         "Polyline.shift",
@@ -50397,6 +51023,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.remove_point",
         "Polyline.segment_count",
         "Polyline.set_point"
@@ -50449,14 +51076,13 @@ window.API_INDEX = {
         "Polyline.polylabel",
         "Polyline.polylabel_circle_division_points",
         "Polyline.project",
+        "Polyline.pt",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.shrink_line_segment",
-        "Polyline.simplify",
-        "Polyline.simplify_points",
         "Polyline.to2d",
         "Polyline.transform",
         "Polyline.transformed",
@@ -50488,10 +51114,13 @@ window.API_INDEX = {
         "Polyline.Polyline",
         "Polyline.__getitem__",
         "Polyline.__len__",
+        "Polyline.__ne__",
         "Polyline.__setitem__",
         "Polyline._pl_centroid_cell",
         "Polyline._pl_point_to_poly_dist",
         "Polyline._recompute_plane",
+        "Polyline._simplify_perp_dist",
+        "Polyline._simplify_rdp",
         "Polyline.add_point",
         "Polyline.bounding_rectangle",
         "Polyline.center",
@@ -50523,8 +51152,10 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.proj2d",
+        "Polyline.pt",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
@@ -50532,9 +51163,12 @@ window.API_INDEX = {
         "Polyline.set_point",
         "Polyline.shrink_line_segment",
         "Polyline.signed_dist",
+        "Polyline.simplify",
+        "Polyline.simplify_points",
         "Polyline.transformed",
         "Polyline.transformed_xform",
         "Polyline.translate",
+        "Polyline.translated",
         "Polyline.two_rects_from_frame",
         "Polyline.unproj"
       ]
@@ -50580,6 +51214,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
@@ -50609,6 +51244,7 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.Polyline",
+        "Polyline.__eq__",
         "Polyline.__getitem__",
         "Polyline.__iadd__",
         "Polyline.__imul__",
@@ -50616,10 +51252,13 @@ window.API_INDEX = {
         "Polyline.__itruediv__",
         "Polyline.__len__",
         "Polyline.__mul__",
+        "Polyline.__ne__",
         "Polyline.__neg__",
         "Polyline.__setitem__",
         "Polyline.__truediv__",
         "Polyline._recompute_plane",
+        "Polyline._simplify_perp_dist",
+        "Polyline._simplify_rdp",
         "Polyline.add_point",
         "Polyline.boolean_op",
         "Polyline.bounding_rectangle",
@@ -50660,6 +51299,7 @@ window.API_INDEX = {
         "Polyline.polylabel",
         "Polyline.polylabel_circle_division_points",
         "Polyline.project",
+        "Polyline.pt",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
         "Polyline.remove_consecutive_duplicates",
@@ -50669,12 +51309,14 @@ window.API_INDEX = {
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.simplify",
+        "Polyline.simplify_points",
         "Polyline.str",
         "Polyline.to2d",
         "Polyline.transform",
         "Polyline.transformed",
         "Polyline.transformed_xform",
         "Polyline.translate",
+        "Polyline.translated",
         "Polyline.tween_two_polylines",
         "Polyline.xform"
       ]
@@ -50728,6 +51370,7 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
@@ -50779,6 +51422,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.recompute_plane_if_needed",
         "Polyline.remove_point",
         "Polyline.reverse",
@@ -50829,6 +51473,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.recompute_plane_if_needed",
         "Polyline.remove_point",
         "Polyline.reverse",
@@ -50880,6 +51525,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.recompute_plane_if_needed",
         "Polyline.reverse",
         "Polyline.reversed",
@@ -51057,15 +51703,19 @@ window.API_INDEX = {
       "related": [
         "Polyline.Polyline",
         "Polyline.__add__",
+        "Polyline.__eq__",
         "Polyline.__iadd__",
         "Polyline.__imul__",
         "Polyline.__isub__",
         "Polyline.__itruediv__",
         "Polyline.__mul__",
+        "Polyline.__ne__",
         "Polyline.__neg__",
         "Polyline.__sub__",
         "Polyline.__truediv__",
         "Polyline._recompute_plane",
+        "Polyline._simplify_perp_dist",
+        "Polyline._simplify_rdp",
         "Polyline.add_point",
         "Polyline.cut_by_plane",
         "Polyline.extend_edge_equally",
@@ -51089,11 +51739,14 @@ window.API_INDEX = {
         "Polyline.reversed",
         "Polyline.set_point",
         "Polyline.signed_dist",
+        "Polyline.simplify",
+        "Polyline.simplify_points",
         "Polyline.str",
         "Polyline.transform",
         "Polyline.transformed",
         "Polyline.transformed_xform",
         "Polyline.translate",
+        "Polyline.translated",
         "Polyline.xform"
       ]
     },
@@ -51204,6 +51857,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
@@ -51242,6 +51896,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.reverse",
         "Polyline.reversed",
         "Polyline.transform",
@@ -51280,6 +51935,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.reverse",
         "Polyline.reversed",
         "Polyline.transform",
@@ -51318,6 +51974,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.reverse",
         "Polyline.reversed",
         "Polyline.transform",
@@ -51356,6 +52013,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.reverse",
         "Polyline.reversed",
         "Polyline.transform",
@@ -51396,6 +52054,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.reverse",
         "Polyline.reversed",
         "Polyline.transform",
@@ -51432,6 +52091,7 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.reverse",
         "Polyline.reversed",
         "Polyline.transform",
@@ -51480,6 +52140,7 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.transformed",
         "Polyline.transformed_xform",
         "Polyline.translate",
@@ -51525,6 +52186,7 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.set_point",
         "Polyline.transform",
         "Polyline.transformed_xform",
@@ -51570,6 +52232,7 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.set_point",
         "Polyline.transform",
         "Polyline.transformed",
@@ -51598,10 +52261,15 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.Polyline",
+        "Polyline.__eq__",
         "Polyline.__itruediv__",
         "Polyline.__mul__",
+        "Polyline.__ne__",
         "Polyline.__neg__",
+        "Polyline.__repr__",
         "Polyline.__truediv__",
+        "Polyline._simplify_perp_dist",
+        "Polyline._simplify_rdp",
         "Polyline.closed",
         "Polyline.duplicate",
         "Polyline.extend_edge_equally",
@@ -51613,10 +52281,13 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.quadratic_points",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.shift",
+        "Polyline.simplify",
+        "Polyline.simplify_points",
         "Polyline.transform",
         "Polyline.transformed",
         "Polyline.transformed_xform",
@@ -51656,6 +52327,7 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.quadratic_points",
         "Polyline.segment_count",
         "Polyline.set_point",
@@ -51698,6 +52370,7 @@ window.API_INDEX = {
         "Polyline.point_at",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.quadratic_points",
         "Polyline.segment_count",
         "Polyline.translate"
@@ -51729,6 +52402,7 @@ window.API_INDEX = {
         "Polyline.line_line_overlap_average",
         "Polyline.point_at",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.quadratic_points",
         "Polyline.segment_count",
         "Polyline.shift",
@@ -51763,6 +52437,7 @@ window.API_INDEX = {
         "Polyline.magnitude_squared",
         "Polyline.point_at",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.shift",
         "Polyline.translate"
       ]
@@ -51796,6 +52471,7 @@ window.API_INDEX = {
         "Polyline.line_line_overlap_average",
         "Polyline.magnitude_squared",
         "Polyline.new",
+        "Polyline.pt",
         "Polyline.quadratic_points",
         "Polyline.shift"
       ]
@@ -51828,6 +52504,7 @@ window.API_INDEX = {
         "Polyline.line_line_overlap_average",
         "Polyline.magnitude_squared",
         "Polyline.point_at",
+        "Polyline.pt",
         "Polyline.quadratic_points",
         "Polyline.shift"
       ]
@@ -51859,6 +52536,7 @@ window.API_INDEX = {
         "Polyline.magnitude_squared",
         "Polyline.point_at",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.quadratic_points"
       ]
     },
@@ -51891,7 +52569,8 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.point_at",
         "Polyline.points",
-        "Polyline.project"
+        "Polyline.project",
+        "Polyline.pt"
       ]
     },
     {
@@ -51927,6 +52606,7 @@ window.API_INDEX = {
         "Polyline.point_at",
         "Polyline.points",
         "Polyline.project",
+        "Polyline.pt",
         "Polyline.segment_count",
         "Polyline.str"
       ]
@@ -51968,6 +52648,7 @@ window.API_INDEX = {
         "Polyline.point_at",
         "Polyline.points",
         "Polyline.project",
+        "Polyline.pt",
         "Polyline.segment_count"
       ]
     },
@@ -52008,6 +52689,7 @@ window.API_INDEX = {
         "Polyline.point_at",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.segment_count"
       ]
     },
@@ -52058,6 +52740,7 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.pt_in_poly",
         "Polyline.shift",
         "Polyline.shrink_line_segment"
@@ -52090,6 +52773,7 @@ window.API_INDEX = {
         "Polyline.boolean_op_plane",
         "Polyline.bounding_rectangle",
         "Polyline.center",
+        "Polyline.clip_open_against_closed",
         "Polyline.closest_distance_and_point",
         "Polyline.cross2d",
         "Polyline.cut_by_plane",
@@ -52118,6 +52802,7 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.pt_in_poly",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
@@ -52165,7 +52850,8 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.plane",
         "Polyline.point_count",
-        "Polyline.points"
+        "Polyline.points",
+        "Polyline.pt"
       ]
     },
     {
@@ -52209,6 +52895,7 @@ window.API_INDEX = {
         "Polyline.points",
         "Polyline.polylabel",
         "Polyline.polylabel_circle_division_points",
+        "Polyline.pt",
         "Polyline.signed_dist",
         "Polyline.to2d"
       ]
@@ -52248,6 +52935,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.signed_dist"
       ]
     },
@@ -52272,7 +52960,8 @@ window.API_INDEX = {
         "Polyline.on_keep_side",
         "Polyline.plane",
         "Polyline.point_in_polygon_2d",
-        "Polyline.points"
+        "Polyline.points",
+        "Polyline.pt"
       ]
     },
     {
@@ -52298,6 +52987,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.signed_dist"
       ]
     },
@@ -52392,13 +53082,12 @@ window.API_INDEX = {
         "Polyline.points",
         "Polyline.polylabel",
         "Polyline.project",
+        "Polyline.pt",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.signed_dist",
-        "Polyline.simplify",
-        "Polyline.simplify_points",
         "Polyline.tween_two_polylines"
       ]
     },
@@ -52440,6 +53129,7 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.segment_count",
         "Polyline.set_point"
       ]
@@ -52481,6 +53171,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
+        "Polyline.pt",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.shrink_line_segment"
@@ -52519,6 +53210,7 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.shrink_line_segment"
@@ -52564,6 +53256,7 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.segment_count",
         "Polyline.set_point",
         "Polyline.shrink_line_segment",
@@ -52607,6 +53300,7 @@ window.API_INDEX = {
         "Polyline.lines",
         "Polyline.plane",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.shrink_line_segment",
         "Polyline.tween_two_polylines"
       ]
@@ -52648,6 +53342,7 @@ window.API_INDEX = {
         "Polyline.lines",
         "Polyline.plane",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.tween_two_polylines"
       ]
     },
@@ -52689,6 +53384,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.quick_hull",
         "Polyline.shrink_line_segment",
         "Polyline.tween_two_polylines"
@@ -52735,6 +53431,7 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.proj2d",
+        "Polyline.pt",
         "Polyline.quick_hull",
         "Polyline.shrink_line_segment",
         "Polyline.tween_two_polylines",
@@ -52777,6 +53474,7 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.proj2d",
+        "Polyline.pt",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
         "Polyline.shrink_line_segment",
@@ -52818,6 +53516,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.points",
         "Polyline.proj2d",
+        "Polyline.pt",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
         "Polyline.shrink_line_segment",
@@ -52862,6 +53561,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.points",
         "Polyline.proj2d",
+        "Polyline.pt",
         "Polyline.qh_upper",
         "Polyline.tween_two_polylines",
         "Polyline.unproj"
@@ -52884,6 +53584,7 @@ window.API_INDEX = {
         "Polyline.interpolate_points",
         "Polyline.len",
         "Polyline.length",
+        "Polyline.pt",
         "Polyline.pt_in_poly",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
@@ -52909,6 +53610,7 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.length",
         "Polyline.proj2d",
+        "Polyline.pt",
         "Polyline.pt_in_poly",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
@@ -52938,6 +53640,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.points",
         "Polyline.proj2d",
+        "Polyline.pt",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
         "Polyline.tween_two_polylines",
@@ -52967,6 +53670,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.points",
         "Polyline.proj2d",
+        "Polyline.pt",
         "Polyline.quick_hull",
         "Polyline.tween_two_polylines",
         "Polyline.unproj"
@@ -53007,6 +53711,7 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.proj2d",
+        "Polyline.pt",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
         "Polyline.unproj"
@@ -53046,6 +53751,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.points",
         "Polyline.proj2d",
+        "Polyline.pt",
         "Polyline.pt_in_poly",
         "Polyline.unproj"
       ]
@@ -53073,6 +53779,7 @@ window.API_INDEX = {
         "Polyline.linecolor",
         "Polyline.points",
         "Polyline.proj2d",
+        "Polyline.pt",
         "Polyline.unproj",
         "Polyline.xform"
       ]
@@ -53111,6 +53818,7 @@ window.API_INDEX = {
         "Polyline.on_keep_side",
         "Polyline.point_in_polygon_2d",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.pt_in_poly",
         "Polyline.shrink_line_segment",
         "Polyline.str",
@@ -53141,6 +53849,7 @@ window.API_INDEX = {
         "Polyline.linecolor",
         "Polyline.new",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.pt_in_poly",
         "Polyline.str",
         "Polyline.xform"
@@ -53171,6 +53880,7 @@ window.API_INDEX = {
         "Polyline.linecolor",
         "Polyline.new",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.str",
         "Polyline.xform"
       ]
@@ -53433,6 +54143,7 @@ window.API_INDEX = {
         "Polyline.pb_fill",
         "Polyline.pb_load",
         "Polyline.point_count",
+        "Polyline.pt",
         "Polyline.repr",
         "Polyline.set_guid",
         "Polyline.str",
@@ -53478,6 +54189,7 @@ window.API_INDEX = {
         "Polyline.pb_loads",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.repr",
         "Polyline.simplify",
         "Polyline.simplify_perp_dist",
@@ -53524,6 +54236,7 @@ window.API_INDEX = {
         "Polyline.pb_loads",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.repr",
         "Polyline.simplify",
         "Polyline.simplify_perp_dist",
@@ -53555,6 +54268,7 @@ window.API_INDEX = {
         "Polyline.pb_loads",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.repr",
         "Polyline.simplify",
         "Polyline.simplify_perp_dist",
@@ -53568,7 +54282,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__repr__() -> str",
-          "code": "def __repr__(self) -> str:\n\n        \"\"\"Returns a detailed string representation.\"\"\"\n        return f\"Polyline({self.name}, {self.point_count()} points)\"\n\n    def __eq__(self, other) -> bool:\n        \"\"\"Compare polylines by value (ignoring GUIDs).\"\"\"\n        if not isinstance(other, Polyline):\n            return False\n        if self.name != other.name:\n            return False\n        if self.point_count() != other.point_count():\n            return False\n        for i in range(len(self.coords)):\n            if round(self.coords[i], Tolerance.ROUNDING) != round(other.coords[i], Tolerance.ROUNDING):\n                return False\n        if round(self.width, Tolerance.ROUNDING) != round(other.width, Tolerance.ROUNDING):\n            return False\n        if self.linecolor != other.linecolor:\n            return False\n        return True\n\n    def __ne__(self, other) -> bool:\n        return not self == other\n\n    @staticmethod\n    def _simplify_perp_dist(pt, line_start, line_end):\n        import math\n        dx = line_end[0] - line_start[0]\n        dy = line_end[1] - line_start[1]\n        dz = line_end[2] - line_start[2]\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq == 0.0:\n            ex = pt[0] - line_start[0]\n            ey = pt[1] - line_start[1]\n            ez = pt[2] - line_start[2]\n            return math.sqrt(ex * ex + ey * ey + ez * ez)\n        t = ((pt[0] - line_start[0]) * dx + (pt[1] - line_start[1]) * dy + (pt[2] - line_start[2]) * dz) / len_sq\n        t = max(0.0, min(1.0, t))\n        cx = line_start[0] + t * dx\n        cy = line_start[1] + t * dy\n        cz = line_start[2] + t * dz\n        ex = pt[0] - cx\n        ey = pt[1] - cy\n        ez = pt[2] - cz\n        return math.sqrt(ex * ex + ey * ey + ez * ez)\n\n    @staticmethod\n    def _simplify_rdp(points, start, end, tolerance, keep):\n        if end <= start + 1:\n            return\n        max_dist = 0.0\n        max_idx = start\n        for i in range(start + 1, end):\n            d = Polyline._simplify_perp_dist(points[i], points[start], points[end])\n            if d > max_dist:\n                max_dist = d\n                max_idx = i\n        if max_dist > tolerance:\n            keep[max_idx] = True\n            Polyline._simplify_rdp(points, start, max_idx, tolerance, keep)\n            Polyline._simplify_rdp(points, max_idx, end, tolerance, keep)\n\n    @staticmethod\n    def simplify_points(points, tolerance):\n        n = len(points)\n        if n < 3:\n            return list(points)\n        keep = [False] * n\n        keep[0] = True\n        keep[n - 1] = True\n        Polyline._simplify_rdp(points, 0, n - 1, tolerance, keep)\n        return [points[i] for i in range(n) if keep[i]]\n\n    def simplify(self, tolerance):\n        pts = Polyline.simplify_points(self.points, tolerance)\n        return Polyline(pts)\n\n    @staticmethod\n    def boolean_op(a, b, clip_type, plane=None):\n        from .boolean_polyline import BooleanPolyline",
+          "code": "def __repr__(self) -> str:\n\n        \"\"\"Returns a detailed string representation.\"\"\"\n        return f\"Polyline({self.name}, {self.point_count()} points)\"\n\n    def __eq__(self, other) -> bool:\n        \"\"\"Compare polylines by value (ignoring GUIDs).\"\"\"\n        if not isinstance(other, Polyline):\n            return False\n        if self.name != other.name:\n            return False\n        if self.point_count() != other.point_count():\n            return False\n        for i in range(len(self.coords)):\n            if round(self.coords[i], Tolerance.ROUNDING) != round(other.coords[i], Tolerance.ROUNDING):\n                return False\n        if round(self.width, Tolerance.ROUNDING) != round(other.width, Tolerance.ROUNDING):\n            return False\n        if self.linecolor != other.linecolor:\n            return False\n        return True\n\n    def __ne__(self, other) -> bool:\n        return not self == other\n\n    @staticmethod\n    def _simplify_perp_dist(pt, line_start, line_end):\n        import math\n        dx = line_end[0] - line_start[0]\n        dy = line_end[1] - line_start[1]\n        dz = line_end[2] - line_start[2]\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq == 0.0:\n            ex = pt[0] - line_start[0]\n            ey = pt[1] - line_start[1]\n            ez = pt[2] - line_start[2]\n            return math.sqrt(ex * ex + ey * ey + ez * ez)\n        t = ((pt[0] - line_start[0]) * dx + (pt[1] - line_start[1]) * dy + (pt[2] - line_start[2]) * dz) / len_sq\n        t = max(0.0, min(1.0, t))\n        cx = line_start[0] + t * dx\n        cy = line_start[1] + t * dy\n        cz = line_start[2] + t * dz\n        ex = pt[0] - cx\n        ey = pt[1] - cy\n        ez = pt[2] - cz\n        return math.sqrt(ex * ex + ey * ey + ez * ez)\n\n    @staticmethod\n    def _simplify_rdp(points, start, end, tolerance, keep):\n        if end <= start + 1:\n            return\n        max_dist = 0.0\n        max_idx = start\n        for i in range(start + 1, end):\n            d = Polyline._simplify_perp_dist(points[i], points[start], points[end])\n            if d > max_dist:\n                max_dist = d\n                max_idx = i\n        if max_dist > tolerance:\n            keep[max_idx] = True\n            Polyline._simplify_rdp(points, start, max_idx, tolerance, keep)\n            Polyline._simplify_rdp(points, max_idx, end, tolerance, keep)\n\n    @staticmethod\n    def simplify_points(points, tolerance):\n        n = len(points)\n        if n < 3:\n            return list(points)\n        keep = [False] * n\n        keep[0] = True\n        keep[n - 1] = True\n        Polyline._simplify_rdp(points, 0, n - 1, tolerance, keep)\n        return [points[i] for i in range(n) if keep[i]]\n\n    def simplify(self, tolerance):\n        pts = Polyline.simplify_points(self.points, tolerance)\n        return Polyline(pts)\n    def translated(self, v):\n        result = copy.deepcopy(self)\n        result.translate(v)\n        return result",
           "file": "polyline.py"
         }
       },
@@ -53579,21 +54293,22 @@ window.API_INDEX = {
         "Polyline.__str__",
         "Polyline._simplify_perp_dist",
         "Polyline._simplify_rdp",
-        "Polyline.boolean_op",
         "Polyline.len",
         "Polyline.linecolor",
         "Polyline.lines",
         "Polyline.pb_dump",
         "Polyline.pb_load",
-        "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
         "Polyline.repr",
         "Polyline.simplify",
         "Polyline.simplify_perp_dist",
         "Polyline.simplify_points",
         "Polyline.simplify_rdp",
-        "Polyline.str"
+        "Polyline.str",
+        "Polyline.translate",
+        "Polyline.translated"
       ]
     },
     {
@@ -53601,7 +54316,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__eq__(other) -> bool",
-          "code": "def __eq__(self, other) -> bool:\n\n        \"\"\"Compare polylines by value (ignoring GUIDs).\"\"\"\n        if not isinstance(other, Polyline):\n            return False\n        if self.name != other.name:\n            return False\n        if self.point_count() != other.point_count():\n            return False\n        for i in range(len(self.coords)):\n            if round(self.coords[i], Tolerance.ROUNDING) != round(other.coords[i], Tolerance.ROUNDING):\n                return False\n        if round(self.width, Tolerance.ROUNDING) != round(other.width, Tolerance.ROUNDING):\n            return False\n        if self.linecolor != other.linecolor:\n            return False\n        return True\n\n    def __ne__(self, other) -> bool:\n        return not self == other\n\n    @staticmethod\n    def _simplify_perp_dist(pt, line_start, line_end):\n        import math\n        dx = line_end[0] - line_start[0]\n        dy = line_end[1] - line_start[1]\n        dz = line_end[2] - line_start[2]\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq == 0.0:\n            ex = pt[0] - line_start[0]\n            ey = pt[1] - line_start[1]\n            ez = pt[2] - line_start[2]\n            return math.sqrt(ex * ex + ey * ey + ez * ez)\n        t = ((pt[0] - line_start[0]) * dx + (pt[1] - line_start[1]) * dy + (pt[2] - line_start[2]) * dz) / len_sq\n        t = max(0.0, min(1.0, t))\n        cx = line_start[0] + t * dx\n        cy = line_start[1] + t * dy\n        cz = line_start[2] + t * dz\n        ex = pt[0] - cx\n        ey = pt[1] - cy\n        ez = pt[2] - cz\n        return math.sqrt(ex * ex + ey * ey + ez * ez)\n\n    @staticmethod\n    def _simplify_rdp(points, start, end, tolerance, keep):\n        if end <= start + 1:\n            return\n        max_dist = 0.0\n        max_idx = start\n        for i in range(start + 1, end):\n            d = Polyline._simplify_perp_dist(points[i], points[start], points[end])\n            if d > max_dist:\n                max_dist = d\n                max_idx = i\n        if max_dist > tolerance:\n            keep[max_idx] = True\n            Polyline._simplify_rdp(points, start, max_idx, tolerance, keep)\n            Polyline._simplify_rdp(points, max_idx, end, tolerance, keep)\n\n    @staticmethod\n    def simplify_points(points, tolerance):\n        n = len(points)\n        if n < 3:\n            return list(points)\n        keep = [False] * n\n        keep[0] = True\n        keep[n - 1] = True\n        Polyline._simplify_rdp(points, 0, n - 1, tolerance, keep)\n        return [points[i] for i in range(n) if keep[i]]\n\n    def simplify(self, tolerance):\n        pts = Polyline.simplify_points(self.points, tolerance)\n        return Polyline(pts)\n\n    @staticmethod\n    def boolean_op(a, b, clip_type, plane=None):\n        from .boolean_polyline import BooleanPolyline\n        if plane is None:\n            return BooleanPolyline.compute(a, b, clip_type)\n        ox, oy, oz = plane.origin[0], plane.origin[1], plane.origin[2]\n        xx, xy, xz = plane.x_axis[0], plane.x_axis[1], plane.x_axis[2]",
+          "code": "def __eq__(self, other) -> bool:\n\n        \"\"\"Compare polylines by value (ignoring GUIDs).\"\"\"\n        if not isinstance(other, Polyline):\n            return False\n        if self.name != other.name:\n            return False\n        if self.point_count() != other.point_count():\n            return False\n        for i in range(len(self.coords)):\n            if round(self.coords[i], Tolerance.ROUNDING) != round(other.coords[i], Tolerance.ROUNDING):\n                return False\n        if round(self.width, Tolerance.ROUNDING) != round(other.width, Tolerance.ROUNDING):\n            return False\n        if self.linecolor != other.linecolor:\n            return False\n        return True\n\n    def __ne__(self, other) -> bool:\n        return not self == other\n\n    @staticmethod\n    def _simplify_perp_dist(pt, line_start, line_end):\n        import math\n        dx = line_end[0] - line_start[0]\n        dy = line_end[1] - line_start[1]\n        dz = line_end[2] - line_start[2]\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq == 0.0:\n            ex = pt[0] - line_start[0]\n            ey = pt[1] - line_start[1]\n            ez = pt[2] - line_start[2]\n            return math.sqrt(ex * ex + ey * ey + ez * ez)\n        t = ((pt[0] - line_start[0]) * dx + (pt[1] - line_start[1]) * dy + (pt[2] - line_start[2]) * dz) / len_sq\n        t = max(0.0, min(1.0, t))\n        cx = line_start[0] + t * dx\n        cy = line_start[1] + t * dy\n        cz = line_start[2] + t * dz\n        ex = pt[0] - cx\n        ey = pt[1] - cy\n        ez = pt[2] - cz\n        return math.sqrt(ex * ex + ey * ey + ez * ez)\n\n    @staticmethod\n    def _simplify_rdp(points, start, end, tolerance, keep):\n        if end <= start + 1:\n            return\n        max_dist = 0.0\n        max_idx = start\n        for i in range(start + 1, end):\n            d = Polyline._simplify_perp_dist(points[i], points[start], points[end])\n            if d > max_dist:\n                max_dist = d\n                max_idx = i\n        if max_dist > tolerance:\n            keep[max_idx] = True\n            Polyline._simplify_rdp(points, start, max_idx, tolerance, keep)\n            Polyline._simplify_rdp(points, max_idx, end, tolerance, keep)\n\n    @staticmethod\n    def simplify_points(points, tolerance):\n        n = len(points)\n        if n < 3:\n            return list(points)\n        keep = [False] * n\n        keep[0] = True\n        keep[n - 1] = True\n        Polyline._simplify_rdp(points, 0, n - 1, tolerance, keep)\n        return [points[i] for i in range(n) if keep[i]]\n\n    def simplify(self, tolerance):\n        pts = Polyline.simplify_points(self.points, tolerance)\n        return Polyline(pts)\n    def translated(self, v):\n        result = copy.deepcopy(self)\n        result.translate(v)\n        return result\n\n    def remove_consecutive_duplicates(self, tol=Tolerance.APPROXIMATION):\n        pts = self.get_points()\n        cleaned = []",
           "file": "polyline.py"
         }
       },
@@ -53612,19 +54327,24 @@ window.API_INDEX = {
         "Polyline.__str__",
         "Polyline._simplify_perp_dist",
         "Polyline._simplify_rdp",
-        "Polyline.boolean_op",
+        "Polyline.duplicate",
+        "Polyline.get_point",
+        "Polyline.get_points",
         "Polyline.len",
         "Polyline.linecolor",
         "Polyline.lines",
         "Polyline.pb_dump",
         "Polyline.pb_load",
-        "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.pt",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.simplify",
         "Polyline.simplify_perp_dist",
         "Polyline.simplify_points",
-        "Polyline.simplify_rdp"
+        "Polyline.simplify_rdp",
+        "Polyline.translate",
+        "Polyline.translated"
       ]
     },
     {
@@ -53632,7 +54352,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__ne__(other) -> bool",
-          "code": "def __ne__(self, other) -> bool:\n\n        return not self == other\n\n    @staticmethod\n    def _simplify_perp_dist(pt, line_start, line_end):\n        import math\n        dx = line_end[0] - line_start[0]\n        dy = line_end[1] - line_start[1]\n        dz = line_end[2] - line_start[2]\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq == 0.0:\n            ex = pt[0] - line_start[0]\n            ey = pt[1] - line_start[1]\n            ez = pt[2] - line_start[2]\n            return math.sqrt(ex * ex + ey * ey + ez * ez)\n        t = ((pt[0] - line_start[0]) * dx + (pt[1] - line_start[1]) * dy + (pt[2] - line_start[2]) * dz) / len_sq\n        t = max(0.0, min(1.0, t))\n        cx = line_start[0] + t * dx\n        cy = line_start[1] + t * dy\n        cz = line_start[2] + t * dz\n        ex = pt[0] - cx\n        ey = pt[1] - cy\n        ez = pt[2] - cz\n        return math.sqrt(ex * ex + ey * ey + ez * ez)\n\n    @staticmethod\n    def _simplify_rdp(points, start, end, tolerance, keep):\n        if end <= start + 1:\n            return\n        max_dist = 0.0\n        max_idx = start\n        for i in range(start + 1, end):\n            d = Polyline._simplify_perp_dist(points[i], points[start], points[end])\n            if d > max_dist:\n                max_dist = d\n                max_idx = i\n        if max_dist > tolerance:\n            keep[max_idx] = True\n            Polyline._simplify_rdp(points, start, max_idx, tolerance, keep)\n            Polyline._simplify_rdp(points, max_idx, end, tolerance, keep)\n\n    @staticmethod\n    def simplify_points(points, tolerance):\n        n = len(points)\n        if n < 3:\n            return list(points)\n        keep = [False] * n\n        keep[0] = True\n        keep[n - 1] = True\n        Polyline._simplify_rdp(points, 0, n - 1, tolerance, keep)\n        return [points[i] for i in range(n) if keep[i]]\n\n    def simplify(self, tolerance):\n        pts = Polyline.simplify_points(self.points, tolerance)\n        return Polyline(pts)\n\n    @staticmethod\n    def boolean_op(a, b, clip_type, plane=None):\n        from .boolean_polyline import BooleanPolyline\n        if plane is None:\n            return BooleanPolyline.compute(a, b, clip_type)\n        ox, oy, oz = plane.origin[0], plane.origin[1], plane.origin[2]\n        xx, xy, xz = plane.x_axis[0], plane.x_axis[1], plane.x_axis[2]\n        yx, yy, yz = plane.y_axis[0], plane.y_axis[1], plane.y_axis[2]\n        def project(pl):\n            coords = []\n            for i in range(pl.point_count()):\n                dx = pl.coords[i*3]-ox; dy = pl.coords[i*3+1]-oy; dz = pl.coords[i*3+2]-oz\n                coords.extend([dx*xx+dy*xy+dz*xz, dx*yx+dy*yy+dz*yz, 0.0])\n            n = len(coords) // 3\n            if n >= 4:\n                dx = coords[(n-1)*3] - coords[0]; dy = coords[(n-1)*3+1] - coords[1]\n                if dx*dx+dy*dy < 1.0:\n                    coords[(n-1)*3] = coords[0]; coords[(n-1)*3+1] = coords[1]\n            p2d = Polyline.__new__(Polyline)\n            p2d._guid = None; p2d.name = \"\"; p2d.width = 1.0; p2d._linecolor = None; p2d._xform = None; p2d._plane = None\n            p2d.coords = coords\n            return p2d\n        def ensure_ccw(p2d):\n            n = p2d.point_count()",
+          "code": "def __ne__(self, other) -> bool:\n\n        return not self == other\n\n    @staticmethod\n    def _simplify_perp_dist(pt, line_start, line_end):\n        import math\n        dx = line_end[0] - line_start[0]\n        dy = line_end[1] - line_start[1]\n        dz = line_end[2] - line_start[2]\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq == 0.0:\n            ex = pt[0] - line_start[0]\n            ey = pt[1] - line_start[1]\n            ez = pt[2] - line_start[2]\n            return math.sqrt(ex * ex + ey * ey + ez * ez)\n        t = ((pt[0] - line_start[0]) * dx + (pt[1] - line_start[1]) * dy + (pt[2] - line_start[2]) * dz) / len_sq\n        t = max(0.0, min(1.0, t))\n        cx = line_start[0] + t * dx\n        cy = line_start[1] + t * dy\n        cz = line_start[2] + t * dz\n        ex = pt[0] - cx\n        ey = pt[1] - cy\n        ez = pt[2] - cz\n        return math.sqrt(ex * ex + ey * ey + ez * ez)\n\n    @staticmethod\n    def _simplify_rdp(points, start, end, tolerance, keep):\n        if end <= start + 1:\n            return\n        max_dist = 0.0\n        max_idx = start\n        for i in range(start + 1, end):\n            d = Polyline._simplify_perp_dist(points[i], points[start], points[end])\n            if d > max_dist:\n                max_dist = d\n                max_idx = i\n        if max_dist > tolerance:\n            keep[max_idx] = True\n            Polyline._simplify_rdp(points, start, max_idx, tolerance, keep)\n            Polyline._simplify_rdp(points, max_idx, end, tolerance, keep)\n\n    @staticmethod\n    def simplify_points(points, tolerance):\n        n = len(points)\n        if n < 3:\n            return list(points)\n        keep = [False] * n\n        keep[0] = True\n        keep[n - 1] = True\n        Polyline._simplify_rdp(points, 0, n - 1, tolerance, keep)\n        return [points[i] for i in range(n) if keep[i]]\n\n    def simplify(self, tolerance):\n        pts = Polyline.simplify_points(self.points, tolerance)\n        return Polyline(pts)\n    def translated(self, v):\n        result = copy.deepcopy(self)\n        result.translate(v)\n        return result\n\n    def remove_consecutive_duplicates(self, tol=Tolerance.APPROXIMATION):\n        pts = self.get_points()\n        cleaned = []\n        tol_sq = tol * tol\n        for p in pts:\n            if not cleaned:\n                cleaned.append(p)\n                continue\n            dx = p[0] - cleaned[-1][0]\n            dy = p[1] - cleaned[-1][1]\n            dz = p[2] - cleaned[-1][2]\n            if dx*dx + dy*dy + dz*dz >= tol_sq:\n                cleaned.append(p)\n        new_poly = Polyline(cleaned)\n        self.coords = new_poly.coords\n        self._plane = None\n\n    @staticmethod\n    def two_rects_from_frame(p, segment_vector, zaxis, middle, radius, length, flip_male):\n        y_axis = zaxis.cross(segment_vector)",
           "file": "polyline.py"
         }
       },
@@ -53643,23 +54363,26 @@ window.API_INDEX = {
         "Polyline.__str__",
         "Polyline._simplify_perp_dist",
         "Polyline._simplify_rdp",
-        "Polyline.boolean_op",
-        "Polyline.ensure_ccw",
-        "Polyline.guid",
+        "Polyline.duplicate",
+        "Polyline.flip",
+        "Polyline.get_point",
+        "Polyline.get_points",
         "Polyline.len",
-        "Polyline.linecolor",
+        "Polyline.length",
         "Polyline.new",
         "Polyline.pb_dump",
         "Polyline.pb_load",
         "Polyline.plane",
-        "Polyline.point_count",
         "Polyline.points",
-        "Polyline.project",
+        "Polyline.pt",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.simplify",
         "Polyline.simplify_perp_dist",
         "Polyline.simplify_points",
         "Polyline.simplify_rdp",
-        "Polyline.xform"
+        "Polyline.translate",
+        "Polyline.translated",
+        "Polyline.two_rects_from_frame"
       ]
     },
     {
@@ -53667,7 +54390,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_simplify_perp_dist(pt, line_start, line_end)",
-          "code": "def _simplify_perp_dist(pt, line_start, line_end):\n\n        import math\n        dx = line_end[0] - line_start[0]\n        dy = line_end[1] - line_start[1]\n        dz = line_end[2] - line_start[2]\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq == 0.0:\n            ex = pt[0] - line_start[0]\n            ey = pt[1] - line_start[1]\n            ez = pt[2] - line_start[2]\n            return math.sqrt(ex * ex + ey * ey + ez * ez)\n        t = ((pt[0] - line_start[0]) * dx + (pt[1] - line_start[1]) * dy + (pt[2] - line_start[2]) * dz) / len_sq\n        t = max(0.0, min(1.0, t))\n        cx = line_start[0] + t * dx\n        cy = line_start[1] + t * dy\n        cz = line_start[2] + t * dz\n        ex = pt[0] - cx\n        ey = pt[1] - cy\n        ez = pt[2] - cz\n        return math.sqrt(ex * ex + ey * ey + ez * ez)\n\n    @staticmethod\n    def _simplify_rdp(points, start, end, tolerance, keep):\n        if end <= start + 1:\n            return\n        max_dist = 0.0\n        max_idx = start\n        for i in range(start + 1, end):\n            d = Polyline._simplify_perp_dist(points[i], points[start], points[end])\n            if d > max_dist:\n                max_dist = d\n                max_idx = i\n        if max_dist > tolerance:\n            keep[max_idx] = True\n            Polyline._simplify_rdp(points, start, max_idx, tolerance, keep)\n            Polyline._simplify_rdp(points, max_idx, end, tolerance, keep)\n\n    @staticmethod\n    def simplify_points(points, tolerance):\n        n = len(points)\n        if n < 3:\n            return list(points)\n        keep = [False] * n\n        keep[0] = True\n        keep[n - 1] = True\n        Polyline._simplify_rdp(points, 0, n - 1, tolerance, keep)\n        return [points[i] for i in range(n) if keep[i]]\n\n    def simplify(self, tolerance):\n        pts = Polyline.simplify_points(self.points, tolerance)\n        return Polyline(pts)\n\n    @staticmethod\n    def boolean_op(a, b, clip_type, plane=None):\n        from .boolean_polyline import BooleanPolyline\n        if plane is None:\n            return BooleanPolyline.compute(a, b, clip_type)\n        ox, oy, oz = plane.origin[0], plane.origin[1], plane.origin[2]\n        xx, xy, xz = plane.x_axis[0], plane.x_axis[1], plane.x_axis[2]\n        yx, yy, yz = plane.y_axis[0], plane.y_axis[1], plane.y_axis[2]\n        def project(pl):\n            coords = []\n            for i in range(pl.point_count()):\n                dx = pl.coords[i*3]-ox; dy = pl.coords[i*3+1]-oy; dz = pl.coords[i*3+2]-oz\n                coords.extend([dx*xx+dy*xy+dz*xz, dx*yx+dy*yy+dz*yz, 0.0])\n            n = len(coords) // 3\n            if n >= 4:\n                dx = coords[(n-1)*3] - coords[0]; dy = coords[(n-1)*3+1] - coords[1]\n                if dx*dx+dy*dy < 1.0:\n                    coords[(n-1)*3] = coords[0]; coords[(n-1)*3+1] = coords[1]\n            p2d = Polyline.__new__(Polyline)\n            p2d._guid = None; p2d.name = \"\"; p2d.width = 1.0; p2d._linecolor = None; p2d._xform = None; p2d._plane = None\n            p2d.coords = coords\n            return p2d\n        def ensure_ccw(p2d):\n            n = p2d.point_count()\n            m = n\n            if m >= 4:\n                dx = p2d.coords[(m-1)*3] - p2d.coords[0]\n                dy = p2d.coords[(m-1)*3+1] - p2d.coords[1]",
+          "code": "def _simplify_perp_dist(pt, line_start, line_end):\n\n        import math\n        dx = line_end[0] - line_start[0]\n        dy = line_end[1] - line_start[1]\n        dz = line_end[2] - line_start[2]\n        len_sq = dx * dx + dy * dy + dz * dz\n        if len_sq == 0.0:\n            ex = pt[0] - line_start[0]\n            ey = pt[1] - line_start[1]\n            ez = pt[2] - line_start[2]\n            return math.sqrt(ex * ex + ey * ey + ez * ez)\n        t = ((pt[0] - line_start[0]) * dx + (pt[1] - line_start[1]) * dy + (pt[2] - line_start[2]) * dz) / len_sq\n        t = max(0.0, min(1.0, t))\n        cx = line_start[0] + t * dx\n        cy = line_start[1] + t * dy\n        cz = line_start[2] + t * dz\n        ex = pt[0] - cx\n        ey = pt[1] - cy\n        ez = pt[2] - cz\n        return math.sqrt(ex * ex + ey * ey + ez * ez)\n\n    @staticmethod\n    def _simplify_rdp(points, start, end, tolerance, keep):\n        if end <= start + 1:\n            return\n        max_dist = 0.0\n        max_idx = start\n        for i in range(start + 1, end):\n            d = Polyline._simplify_perp_dist(points[i], points[start], points[end])\n            if d > max_dist:\n                max_dist = d\n                max_idx = i\n        if max_dist > tolerance:\n            keep[max_idx] = True\n            Polyline._simplify_rdp(points, start, max_idx, tolerance, keep)\n            Polyline._simplify_rdp(points, max_idx, end, tolerance, keep)\n\n    @staticmethod\n    def simplify_points(points, tolerance):\n        n = len(points)\n        if n < 3:\n            return list(points)\n        keep = [False] * n\n        keep[0] = True\n        keep[n - 1] = True\n        Polyline._simplify_rdp(points, 0, n - 1, tolerance, keep)\n        return [points[i] for i in range(n) if keep[i]]\n\n    def simplify(self, tolerance):\n        pts = Polyline.simplify_points(self.points, tolerance)\n        return Polyline(pts)\n    def translated(self, v):\n        result = copy.deepcopy(self)\n        result.translate(v)\n        return result\n\n    def remove_consecutive_duplicates(self, tol=Tolerance.APPROXIMATION):\n        pts = self.get_points()\n        cleaned = []\n        tol_sq = tol * tol\n        for p in pts:\n            if not cleaned:\n                cleaned.append(p)\n                continue\n            dx = p[0] - cleaned[-1][0]\n            dy = p[1] - cleaned[-1][1]\n            dz = p[2] - cleaned[-1][2]\n            if dx*dx + dy*dy + dz*dz >= tol_sq:\n                cleaned.append(p)\n        new_poly = Polyline(cleaned)\n        self.coords = new_poly.coords\n        self._plane = None\n\n    @staticmethod\n    def two_rects_from_frame(p, segment_vector, zaxis, middle, radius, length, flip_male):\n        y_axis = zaxis.cross(segment_vector)\n        x_axis = y_axis.cross(segment_vector)\n        x_axis.normalize_self()\n        y_axis.normalize_self()\n        x_axis = x_axis * radius",
           "file": "polyline.py"
         }
       },
@@ -53678,23 +54401,26 @@ window.API_INDEX = {
         "Polyline.__repr__",
         "Polyline.__str__",
         "Polyline._simplify_rdp",
-        "Polyline.boolean_op",
-        "Polyline.ensure_ccw",
-        "Polyline.guid",
+        "Polyline.duplicate",
+        "Polyline.flip",
+        "Polyline.get_point",
+        "Polyline.get_points",
         "Polyline.len",
-        "Polyline.linecolor",
+        "Polyline.length",
         "Polyline.new",
         "Polyline.pb_dump",
         "Polyline.pb_load",
         "Polyline.plane",
-        "Polyline.point_count",
         "Polyline.points",
-        "Polyline.project",
+        "Polyline.pt",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.simplify",
         "Polyline.simplify_perp_dist",
         "Polyline.simplify_points",
         "Polyline.simplify_rdp",
-        "Polyline.xform"
+        "Polyline.translate",
+        "Polyline.translated",
+        "Polyline.two_rects_from_frame"
       ]
     },
     {
@@ -53702,7 +54428,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_simplify_rdp(points, start, end, tolerance, keep)",
-          "code": "def _simplify_rdp(points, start, end, tolerance, keep):\n\n        if end <= start + 1:\n            return\n        max_dist = 0.0\n        max_idx = start\n        for i in range(start + 1, end):\n            d = Polyline._simplify_perp_dist(points[i], points[start], points[end])\n            if d > max_dist:\n                max_dist = d\n                max_idx = i\n        if max_dist > tolerance:\n            keep[max_idx] = True\n            Polyline._simplify_rdp(points, start, max_idx, tolerance, keep)\n            Polyline._simplify_rdp(points, max_idx, end, tolerance, keep)\n\n    @staticmethod\n    def simplify_points(points, tolerance):\n        n = len(points)\n        if n < 3:\n            return list(points)\n        keep = [False] * n\n        keep[0] = True\n        keep[n - 1] = True\n        Polyline._simplify_rdp(points, 0, n - 1, tolerance, keep)\n        return [points[i] for i in range(n) if keep[i]]\n\n    def simplify(self, tolerance):\n        pts = Polyline.simplify_points(self.points, tolerance)\n        return Polyline(pts)\n\n    @staticmethod\n    def boolean_op(a, b, clip_type, plane=None):\n        from .boolean_polyline import BooleanPolyline\n        if plane is None:\n            return BooleanPolyline.compute(a, b, clip_type)\n        ox, oy, oz = plane.origin[0], plane.origin[1], plane.origin[2]\n        xx, xy, xz = plane.x_axis[0], plane.x_axis[1], plane.x_axis[2]\n        yx, yy, yz = plane.y_axis[0], plane.y_axis[1], plane.y_axis[2]\n        def project(pl):\n            coords = []\n            for i in range(pl.point_count()):\n                dx = pl.coords[i*3]-ox; dy = pl.coords[i*3+1]-oy; dz = pl.coords[i*3+2]-oz\n                coords.extend([dx*xx+dy*xy+dz*xz, dx*yx+dy*yy+dz*yz, 0.0])\n            n = len(coords) // 3\n            if n >= 4:\n                dx = coords[(n-1)*3] - coords[0]; dy = coords[(n-1)*3+1] - coords[1]\n                if dx*dx+dy*dy < 1.0:\n                    coords[(n-1)*3] = coords[0]; coords[(n-1)*3+1] = coords[1]\n            p2d = Polyline.__new__(Polyline)\n            p2d._guid = None; p2d.name = \"\"; p2d.width = 1.0; p2d._linecolor = None; p2d._xform = None; p2d._plane = None\n            p2d.coords = coords\n            return p2d\n        def ensure_ccw(p2d):\n            n = p2d.point_count()\n            m = n\n            if m >= 4:\n                dx = p2d.coords[(m-1)*3] - p2d.coords[0]\n                dy = p2d.coords[(m-1)*3+1] - p2d.coords[1]\n                if dx*dx + dy*dy < 1e-10:\n                    m -= 1\n            if m < 3:\n                return\n            area = 0.0\n            for i in range(m):\n                j = (i + 1) % m\n                area += p2d.coords[i*3] * p2d.coords[j*3+1] - p2d.coords[j*3] * p2d.coords[i*3+1]\n            if area < 0:\n                for i in range(n // 2):\n                    j = n - 1 - i\n                    p2d.coords[i*3], p2d.coords[j*3] = p2d.coords[j*3], p2d.coords[i*3]\n                    p2d.coords[i*3+1], p2d.coords[j*3+1] = p2d.coords[j*3+1], p2d.coords[i*3+1]\n                    p2d.coords[i*3+2], p2d.coords[j*3+2] = p2d.coords[j*3+2], p2d.coords[i*3+2]\n        pa2d = project(a); pb2d = project(b)\n        ensure_ccw(pa2d); ensure_ccw(pb2d)\n        results = BooleanPolyline.compute(pa2d, pb2d, clip_type)\n        for r in results:\n            n = r.point_count()\n            for i in range(n):\n                u, v = r.coords[i*3], r.coords[i*3+1]\n                r.coords[i*3] = ox + u*xx + v*yx",
+          "code": "def _simplify_rdp(points, start, end, tolerance, keep):\n\n        if end <= start + 1:\n            return\n        max_dist = 0.0\n        max_idx = start\n        for i in range(start + 1, end):\n            d = Polyline._simplify_perp_dist(points[i], points[start], points[end])\n            if d > max_dist:\n                max_dist = d\n                max_idx = i\n        if max_dist > tolerance:\n            keep[max_idx] = True\n            Polyline._simplify_rdp(points, start, max_idx, tolerance, keep)\n            Polyline._simplify_rdp(points, max_idx, end, tolerance, keep)\n\n    @staticmethod\n    def simplify_points(points, tolerance):\n        n = len(points)\n        if n < 3:\n            return list(points)\n        keep = [False] * n\n        keep[0] = True\n        keep[n - 1] = True\n        Polyline._simplify_rdp(points, 0, n - 1, tolerance, keep)\n        return [points[i] for i in range(n) if keep[i]]\n\n    def simplify(self, tolerance):\n        pts = Polyline.simplify_points(self.points, tolerance)\n        return Polyline(pts)\n    def translated(self, v):\n        result = copy.deepcopy(self)\n        result.translate(v)\n        return result\n\n    def remove_consecutive_duplicates(self, tol=Tolerance.APPROXIMATION):\n        pts = self.get_points()\n        cleaned = []\n        tol_sq = tol * tol\n        for p in pts:\n            if not cleaned:\n                cleaned.append(p)\n                continue\n            dx = p[0] - cleaned[-1][0]\n            dy = p[1] - cleaned[-1][1]\n            dz = p[2] - cleaned[-1][2]\n            if dx*dx + dy*dy + dz*dz >= tol_sq:\n                cleaned.append(p)\n        new_poly = Polyline(cleaned)\n        self.coords = new_poly.coords\n        self._plane = None\n\n    @staticmethod\n    def two_rects_from_frame(p, segment_vector, zaxis, middle, radius, length, flip_male):\n        y_axis = zaxis.cross(segment_vector)\n        x_axis = y_axis.cross(segment_vector)\n        x_axis.normalize_self()\n        y_axis.normalize_self()\n        x_axis = x_axis * radius\n        y_axis = y_axis * radius\n        sv0 = segment_vector * (length * -0.5)\n        sv1 = segment_vector * (length * 0.5)\n        v = [\n            Vector(-x_axis[0] - y_axis[0], -x_axis[1] - y_axis[1], -x_axis[2] - y_axis[2]),\n            Vector( x_axis[0] - y_axis[0],  x_axis[1] - y_axis[1],  x_axis[2] - y_axis[2]),\n            Vector( x_axis[0] + y_axis[0],  x_axis[1] + y_axis[1],  x_axis[2] + y_axis[2]),\n            Vector(-x_axis[0] + y_axis[0], -x_axis[1] + y_axis[1], -x_axis[2] + y_axis[2]),\n        ]\n        if not middle:\n            if flip_male == 1:\n                v = v[1:] + v[:1]\n            elif flip_male == -1:\n                v = v[-1:] + v[:-1]\n        def pt(sv, uv):\n            return Point(p[0]+sv[0]+uv[0], p[1]+sv[1]+uv[1], p[2]+sv[2]+uv[2])\n        rect0 = Polyline([\n            pt(sv0, v[1]),\n            pt(sv1, v[1]),\n            pt(sv1, v[0]),\n            pt(sv0, v[0]),\n            pt(sv0, v[1]),",
           "file": "polyline.py"
         }
       },
@@ -53713,22 +54439,25 @@ window.API_INDEX = {
         "Polyline.__repr__",
         "Polyline.__str__",
         "Polyline._simplify_perp_dist",
-        "Polyline.boolean_op",
-        "Polyline.ensure_ccw",
-        "Polyline.guid",
+        "Polyline.duplicate",
+        "Polyline.flip",
+        "Polyline.get_point",
+        "Polyline.get_points",
         "Polyline.len",
-        "Polyline.linecolor",
+        "Polyline.length",
         "Polyline.new",
         "Polyline.pb_load",
         "Polyline.plane",
-        "Polyline.point_count",
         "Polyline.points",
-        "Polyline.project",
+        "Polyline.pt",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.simplify",
         "Polyline.simplify_perp_dist",
         "Polyline.simplify_points",
         "Polyline.simplify_rdp",
-        "Polyline.xform"
+        "Polyline.translate",
+        "Polyline.translated",
+        "Polyline.two_rects_from_frame"
       ]
     },
     {
@@ -53736,7 +54465,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "simplify_points(points, tolerance)",
-          "code": "def simplify_points(points, tolerance):\n\n        n = len(points)\n        if n < 3:\n            return list(points)\n        keep = [False] * n\n        keep[0] = True\n        keep[n - 1] = True\n        Polyline._simplify_rdp(points, 0, n - 1, tolerance, keep)\n        return [points[i] for i in range(n) if keep[i]]\n\n    def simplify(self, tolerance):\n        pts = Polyline.simplify_points(self.points, tolerance)\n        return Polyline(pts)\n\n    @staticmethod\n    def boolean_op(a, b, clip_type, plane=None):\n        from .boolean_polyline import BooleanPolyline\n        if plane is None:\n            return BooleanPolyline.compute(a, b, clip_type)\n        ox, oy, oz = plane.origin[0], plane.origin[1], plane.origin[2]\n        xx, xy, xz = plane.x_axis[0], plane.x_axis[1], plane.x_axis[2]\n        yx, yy, yz = plane.y_axis[0], plane.y_axis[1], plane.y_axis[2]\n        def project(pl):\n            coords = []\n            for i in range(pl.point_count()):\n                dx = pl.coords[i*3]-ox; dy = pl.coords[i*3+1]-oy; dz = pl.coords[i*3+2]-oz\n                coords.extend([dx*xx+dy*xy+dz*xz, dx*yx+dy*yy+dz*yz, 0.0])\n            n = len(coords) // 3\n            if n >= 4:\n                dx = coords[(n-1)*3] - coords[0]; dy = coords[(n-1)*3+1] - coords[1]\n                if dx*dx+dy*dy < 1.0:\n                    coords[(n-1)*3] = coords[0]; coords[(n-1)*3+1] = coords[1]\n            p2d = Polyline.__new__(Polyline)\n            p2d._guid = None; p2d.name = \"\"; p2d.width = 1.0; p2d._linecolor = None; p2d._xform = None; p2d._plane = None\n            p2d.coords = coords\n            return p2d\n        def ensure_ccw(p2d):\n            n = p2d.point_count()\n            m = n\n            if m >= 4:\n                dx = p2d.coords[(m-1)*3] - p2d.coords[0]\n                dy = p2d.coords[(m-1)*3+1] - p2d.coords[1]\n                if dx*dx + dy*dy < 1e-10:\n                    m -= 1\n            if m < 3:\n                return\n            area = 0.0\n            for i in range(m):\n                j = (i + 1) % m\n                area += p2d.coords[i*3] * p2d.coords[j*3+1] - p2d.coords[j*3] * p2d.coords[i*3+1]\n            if area < 0:\n                for i in range(n // 2):\n                    j = n - 1 - i\n                    p2d.coords[i*3], p2d.coords[j*3] = p2d.coords[j*3], p2d.coords[i*3]\n                    p2d.coords[i*3+1], p2d.coords[j*3+1] = p2d.coords[j*3+1], p2d.coords[i*3+1]\n                    p2d.coords[i*3+2], p2d.coords[j*3+2] = p2d.coords[j*3+2], p2d.coords[i*3+2]\n        pa2d = project(a); pb2d = project(b)\n        ensure_ccw(pa2d); ensure_ccw(pb2d)\n        results = BooleanPolyline.compute(pa2d, pb2d, clip_type)\n        for r in results:\n            n = r.point_count()\n            for i in range(n):\n                u, v = r.coords[i*3], r.coords[i*3+1]\n                r.coords[i*3] = ox + u*xx + v*yx\n                r.coords[i*3+1] = oy + u*xy + v*yy\n                r.coords[i*3+2] = oz + u*xz + v*yz\n        return results\n\n    @staticmethod\n    def polylabel(polylines, precision: float) -> Tuple[Point, \"Plane\", float]:\n        # Largest inscribed circle via mapbox polylabel.\n        # polylines[0] is the outer boundary; polylines[1..] are holes.\n        from .plane import Plane\n        if not polylines:\n            return Point(0.0, 0.0, 0.0), Plane.xy_plane(), 0.0\n        orig, xa, ya, _za = polylines[0].get_average_plane()\n\n        def to2d(p):\n            dx = p[0] - orig[0]; dy = p[1] - orig[1]; dz = p[2] - orig[2]\n            return (dx*xa[0]+dy*xa[1]+dz*xa[2], dx*ya[0]+dy*ya[1]+dz*ya[2])",
+          "code": "def simplify_points(points, tolerance):\n\n        n = len(points)\n        if n < 3:\n            return list(points)\n        keep = [False] * n\n        keep[0] = True\n        keep[n - 1] = True\n        Polyline._simplify_rdp(points, 0, n - 1, tolerance, keep)\n        return [points[i] for i in range(n) if keep[i]]\n\n    def simplify(self, tolerance):\n        pts = Polyline.simplify_points(self.points, tolerance)\n        return Polyline(pts)\n    def translated(self, v):\n        result = copy.deepcopy(self)\n        result.translate(v)\n        return result\n\n    def remove_consecutive_duplicates(self, tol=Tolerance.APPROXIMATION):\n        pts = self.get_points()\n        cleaned = []\n        tol_sq = tol * tol\n        for p in pts:\n            if not cleaned:\n                cleaned.append(p)\n                continue\n            dx = p[0] - cleaned[-1][0]\n            dy = p[1] - cleaned[-1][1]\n            dz = p[2] - cleaned[-1][2]\n            if dx*dx + dy*dy + dz*dz >= tol_sq:\n                cleaned.append(p)\n        new_poly = Polyline(cleaned)\n        self.coords = new_poly.coords\n        self._plane = None\n\n    @staticmethod\n    def two_rects_from_frame(p, segment_vector, zaxis, middle, radius, length, flip_male):\n        y_axis = zaxis.cross(segment_vector)\n        x_axis = y_axis.cross(segment_vector)\n        x_axis.normalize_self()\n        y_axis.normalize_self()\n        x_axis = x_axis * radius\n        y_axis = y_axis * radius\n        sv0 = segment_vector * (length * -0.5)\n        sv1 = segment_vector * (length * 0.5)\n        v = [\n            Vector(-x_axis[0] - y_axis[0], -x_axis[1] - y_axis[1], -x_axis[2] - y_axis[2]),\n            Vector( x_axis[0] - y_axis[0],  x_axis[1] - y_axis[1],  x_axis[2] - y_axis[2]),\n            Vector( x_axis[0] + y_axis[0],  x_axis[1] + y_axis[1],  x_axis[2] + y_axis[2]),\n            Vector(-x_axis[0] + y_axis[0], -x_axis[1] + y_axis[1], -x_axis[2] + y_axis[2]),\n        ]\n        if not middle:\n            if flip_male == 1:\n                v = v[1:] + v[:1]\n            elif flip_male == -1:\n                v = v[-1:] + v[:-1]\n        def pt(sv, uv):\n            return Point(p[0]+sv[0]+uv[0], p[1]+sv[1]+uv[1], p[2]+sv[2]+uv[2])\n        rect0 = Polyline([\n            pt(sv0, v[1]),\n            pt(sv1, v[1]),\n            pt(sv1, v[0]),\n            pt(sv0, v[0]),\n            pt(sv0, v[1]),\n        ])\n        rect1 = Polyline([\n            pt(sv0, v[2]),\n            pt(sv1, v[2]),\n            pt(sv1, v[3]),\n            pt(sv0, v[3]),\n            pt(sv0, v[2]),\n        ])\n        return rect0, rect1\n\n    @staticmethod\n    def boolean_op(a, b, clip_type, plane=None):\n        from .boolean_polyline import BooleanPolyline\n        if plane is None:\n            return BooleanPolyline.compute(a, b, clip_type)\n        ox, oy, oz = plane.origin[0], plane.origin[1], plane.origin[2]",
           "file": "polyline.py"
         },
         "cpp": {
@@ -53759,22 +54488,22 @@ window.API_INDEX = {
         "Polyline._simplify_perp_dist",
         "Polyline._simplify_rdp",
         "Polyline.boolean_op",
-        "Polyline.ensure_ccw",
-        "Polyline.get_average_plane",
-        "Polyline.guid",
+        "Polyline.duplicate",
+        "Polyline.flip",
+        "Polyline.get_point",
+        "Polyline.get_points",
         "Polyline.len",
-        "Polyline.linecolor",
-        "Polyline.lines",
+        "Polyline.length",
         "Polyline.new",
         "Polyline.plane",
-        "Polyline.point_count",
         "Polyline.points",
-        "Polyline.polylabel",
-        "Polyline.project",
+        "Polyline.pt",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.simplify",
         "Polyline.simplify_rdp",
-        "Polyline.to2d",
-        "Polyline.xform"
+        "Polyline.translate",
+        "Polyline.translated",
+        "Polyline.two_rects_from_frame"
       ]
     },
     {
@@ -53782,7 +54511,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "simplify(tolerance)",
-          "code": "def simplify(self, tolerance):\n\n        pts = Polyline.simplify_points(self.points, tolerance)\n        return Polyline(pts)\n\n    @staticmethod\n    def boolean_op(a, b, clip_type, plane=None):\n        from .boolean_polyline import BooleanPolyline\n        if plane is None:\n            return BooleanPolyline.compute(a, b, clip_type)\n        ox, oy, oz = plane.origin[0], plane.origin[1], plane.origin[2]\n        xx, xy, xz = plane.x_axis[0], plane.x_axis[1], plane.x_axis[2]\n        yx, yy, yz = plane.y_axis[0], plane.y_axis[1], plane.y_axis[2]\n        def project(pl):\n            coords = []\n            for i in range(pl.point_count()):\n                dx = pl.coords[i*3]-ox; dy = pl.coords[i*3+1]-oy; dz = pl.coords[i*3+2]-oz\n                coords.extend([dx*xx+dy*xy+dz*xz, dx*yx+dy*yy+dz*yz, 0.0])\n            n = len(coords) // 3\n            if n >= 4:\n                dx = coords[(n-1)*3] - coords[0]; dy = coords[(n-1)*3+1] - coords[1]\n                if dx*dx+dy*dy < 1.0:\n                    coords[(n-1)*3] = coords[0]; coords[(n-1)*3+1] = coords[1]\n            p2d = Polyline.__new__(Polyline)\n            p2d._guid = None; p2d.name = \"\"; p2d.width = 1.0; p2d._linecolor = None; p2d._xform = None; p2d._plane = None\n            p2d.coords = coords\n            return p2d\n        def ensure_ccw(p2d):\n            n = p2d.point_count()\n            m = n\n            if m >= 4:\n                dx = p2d.coords[(m-1)*3] - p2d.coords[0]\n                dy = p2d.coords[(m-1)*3+1] - p2d.coords[1]\n                if dx*dx + dy*dy < 1e-10:\n                    m -= 1\n            if m < 3:\n                return\n            area = 0.0\n            for i in range(m):\n                j = (i + 1) % m\n                area += p2d.coords[i*3] * p2d.coords[j*3+1] - p2d.coords[j*3] * p2d.coords[i*3+1]\n            if area < 0:\n                for i in range(n // 2):\n                    j = n - 1 - i\n                    p2d.coords[i*3], p2d.coords[j*3] = p2d.coords[j*3], p2d.coords[i*3]\n                    p2d.coords[i*3+1], p2d.coords[j*3+1] = p2d.coords[j*3+1], p2d.coords[i*3+1]\n                    p2d.coords[i*3+2], p2d.coords[j*3+2] = p2d.coords[j*3+2], p2d.coords[i*3+2]\n        pa2d = project(a); pb2d = project(b)\n        ensure_ccw(pa2d); ensure_ccw(pb2d)\n        results = BooleanPolyline.compute(pa2d, pb2d, clip_type)\n        for r in results:\n            n = r.point_count()\n            for i in range(n):\n                u, v = r.coords[i*3], r.coords[i*3+1]\n                r.coords[i*3] = ox + u*xx + v*yx\n                r.coords[i*3+1] = oy + u*xy + v*yy\n                r.coords[i*3+2] = oz + u*xz + v*yz\n        return results\n\n    @staticmethod\n    def polylabel(polylines, precision: float) -> Tuple[Point, \"Plane\", float]:\n        # Largest inscribed circle via mapbox polylabel.\n        # polylines[0] is the outer boundary; polylines[1..] are holes.\n        from .plane import Plane\n        if not polylines:\n            return Point(0.0, 0.0, 0.0), Plane.xy_plane(), 0.0\n        orig, xa, ya, _za = polylines[0].get_average_plane()\n\n        def to2d(p):\n            dx = p[0] - orig[0]; dy = p[1] - orig[1]; dz = p[2] - orig[2]\n            return (dx*xa[0]+dy*xa[1]+dz*xa[2], dx*ya[0]+dy*ya[1]+dz*ya[2])\n\n        rings2d = []\n        sizes = []\n        for pl in polylines:\n            pts = pl.get_points()\n            if len(pts) > 1:\n                a = pts[0]; b = pts[-1]\n                last = len(pts) - 1 if abs(a[0]-b[0])<1e-10 and abs(a[1]-b[1])<1e-10 and abs(a[2]-b[2])<1e-10 else len(pts)\n            else:\n                last = len(pts)",
+          "code": "def simplify(self, tolerance):\n\n        pts = Polyline.simplify_points(self.points, tolerance)\n        return Polyline(pts)\n    def translated(self, v):\n        result = copy.deepcopy(self)\n        result.translate(v)\n        return result\n\n    def remove_consecutive_duplicates(self, tol=Tolerance.APPROXIMATION):\n        pts = self.get_points()\n        cleaned = []\n        tol_sq = tol * tol\n        for p in pts:\n            if not cleaned:\n                cleaned.append(p)\n                continue\n            dx = p[0] - cleaned[-1][0]\n            dy = p[1] - cleaned[-1][1]\n            dz = p[2] - cleaned[-1][2]\n            if dx*dx + dy*dy + dz*dz >= tol_sq:\n                cleaned.append(p)\n        new_poly = Polyline(cleaned)\n        self.coords = new_poly.coords\n        self._plane = None\n\n    @staticmethod\n    def two_rects_from_frame(p, segment_vector, zaxis, middle, radius, length, flip_male):\n        y_axis = zaxis.cross(segment_vector)\n        x_axis = y_axis.cross(segment_vector)\n        x_axis.normalize_self()\n        y_axis.normalize_self()\n        x_axis = x_axis * radius\n        y_axis = y_axis * radius\n        sv0 = segment_vector * (length * -0.5)\n        sv1 = segment_vector * (length * 0.5)\n        v = [\n            Vector(-x_axis[0] - y_axis[0], -x_axis[1] - y_axis[1], -x_axis[2] - y_axis[2]),\n            Vector( x_axis[0] - y_axis[0],  x_axis[1] - y_axis[1],  x_axis[2] - y_axis[2]),\n            Vector( x_axis[0] + y_axis[0],  x_axis[1] + y_axis[1],  x_axis[2] + y_axis[2]),\n            Vector(-x_axis[0] + y_axis[0], -x_axis[1] + y_axis[1], -x_axis[2] + y_axis[2]),\n        ]\n        if not middle:\n            if flip_male == 1:\n                v = v[1:] + v[:1]\n            elif flip_male == -1:\n                v = v[-1:] + v[:-1]\n        def pt(sv, uv):\n            return Point(p[0]+sv[0]+uv[0], p[1]+sv[1]+uv[1], p[2]+sv[2]+uv[2])\n        rect0 = Polyline([\n            pt(sv0, v[1]),\n            pt(sv1, v[1]),\n            pt(sv1, v[0]),\n            pt(sv0, v[0]),\n            pt(sv0, v[1]),\n        ])\n        rect1 = Polyline([\n            pt(sv0, v[2]),\n            pt(sv1, v[2]),\n            pt(sv1, v[3]),\n            pt(sv0, v[3]),\n            pt(sv0, v[2]),\n        ])\n        return rect0, rect1\n\n    @staticmethod\n    def boolean_op(a, b, clip_type, plane=None):\n        from .boolean_polyline import BooleanPolyline\n        if plane is None:\n            return BooleanPolyline.compute(a, b, clip_type)\n        ox, oy, oz = plane.origin[0], plane.origin[1], plane.origin[2]\n        xx, xy, xz = plane.x_axis[0], plane.x_axis[1], plane.x_axis[2]\n        yx, yy, yz = plane.y_axis[0], plane.y_axis[1], plane.y_axis[2]\n        def project(pl):\n            coords = []\n            for i in range(pl.point_count()):\n                dx = pl.coords[i*3]-ox; dy = pl.coords[i*3+1]-oy; dz = pl.coords[i*3+2]-oz\n                coords.extend([dx*xx+dy*xy+dz*xz, dx*yx+dy*yy+dz*yz, 0.0])\n            n = len(coords) // 3\n            if n >= 4:\n                dx = coords[(n-1)*3] - coords[0]; dy = coords[(n-1)*3+1] - coords[1]",
           "file": "polyline.py"
         },
         "cpp": {
@@ -53805,26 +54534,275 @@ window.API_INDEX = {
         "Polyline._simplify_perp_dist",
         "Polyline._simplify_rdp",
         "Polyline.boolean_op",
-        "Polyline.ensure_ccw",
-        "Polyline.get_average_plane",
+        "Polyline.duplicate",
+        "Polyline.flip",
         "Polyline.get_point",
         "Polyline.get_points",
-        "Polyline.guid",
         "Polyline.len",
-        "Polyline.linecolor",
-        "Polyline.lines",
+        "Polyline.length",
         "Polyline.new",
         "Polyline.pb_dump",
         "Polyline.pb_load",
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
-        "Polyline.polylabel",
         "Polyline.project",
+        "Polyline.pt",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.simplify_perp_dist",
         "Polyline.simplify_points",
         "Polyline.simplify_rdp",
+        "Polyline.translate",
+        "Polyline.translated",
+        "Polyline.two_rects_from_frame"
+      ]
+    },
+    {
+      "name": "Polyline.translated",
+      "implementations": {
+        "python": {
+          "sig": "translated(v)",
+          "code": "def translated(self, v):\n\n        result = copy.deepcopy(self)\n        result.translate(v)\n        return result\n\n    def remove_consecutive_duplicates(self, tol=Tolerance.APPROXIMATION):\n        pts = self.get_points()\n        cleaned = []\n        tol_sq = tol * tol\n        for p in pts:\n            if not cleaned:\n                cleaned.append(p)\n                continue\n            dx = p[0] - cleaned[-1][0]\n            dy = p[1] - cleaned[-1][1]\n            dz = p[2] - cleaned[-1][2]\n            if dx*dx + dy*dy + dz*dz >= tol_sq:\n                cleaned.append(p)\n        new_poly = Polyline(cleaned)\n        self.coords = new_poly.coords\n        self._plane = None\n\n    @staticmethod\n    def two_rects_from_frame(p, segment_vector, zaxis, middle, radius, length, flip_male):\n        y_axis = zaxis.cross(segment_vector)\n        x_axis = y_axis.cross(segment_vector)\n        x_axis.normalize_self()\n        y_axis.normalize_self()\n        x_axis = x_axis * radius\n        y_axis = y_axis * radius\n        sv0 = segment_vector * (length * -0.5)\n        sv1 = segment_vector * (length * 0.5)\n        v = [\n            Vector(-x_axis[0] - y_axis[0], -x_axis[1] - y_axis[1], -x_axis[2] - y_axis[2]),\n            Vector( x_axis[0] - y_axis[0],  x_axis[1] - y_axis[1],  x_axis[2] - y_axis[2]),\n            Vector( x_axis[0] + y_axis[0],  x_axis[1] + y_axis[1],  x_axis[2] + y_axis[2]),\n            Vector(-x_axis[0] + y_axis[0], -x_axis[1] + y_axis[1], -x_axis[2] + y_axis[2]),\n        ]\n        if not middle:\n            if flip_male == 1:\n                v = v[1:] + v[:1]\n            elif flip_male == -1:\n                v = v[-1:] + v[:-1]\n        def pt(sv, uv):\n            return Point(p[0]+sv[0]+uv[0], p[1]+sv[1]+uv[1], p[2]+sv[2]+uv[2])\n        rect0 = Polyline([\n            pt(sv0, v[1]),\n            pt(sv1, v[1]),\n            pt(sv1, v[0]),\n            pt(sv0, v[0]),\n            pt(sv0, v[1]),\n        ])\n        rect1 = Polyline([\n            pt(sv0, v[2]),\n            pt(sv1, v[2]),\n            pt(sv1, v[3]),\n            pt(sv0, v[3]),\n            pt(sv0, v[2]),\n        ])\n        return rect0, rect1\n\n    @staticmethod\n    def boolean_op(a, b, clip_type, plane=None):\n        from .boolean_polyline import BooleanPolyline\n        if plane is None:\n            return BooleanPolyline.compute(a, b, clip_type)\n        ox, oy, oz = plane.origin[0], plane.origin[1], plane.origin[2]\n        xx, xy, xz = plane.x_axis[0], plane.x_axis[1], plane.x_axis[2]\n        yx, yy, yz = plane.y_axis[0], plane.y_axis[1], plane.y_axis[2]\n        def project(pl):\n            coords = []\n            for i in range(pl.point_count()):\n                dx = pl.coords[i*3]-ox; dy = pl.coords[i*3+1]-oy; dz = pl.coords[i*3+2]-oz\n                coords.extend([dx*xx+dy*xy+dz*xz, dx*yx+dy*yy+dz*yz, 0.0])\n            n = len(coords) // 3\n            if n >= 4:\n                dx = coords[(n-1)*3] - coords[0]; dy = coords[(n-1)*3+1] - coords[1]\n                if dx*dx+dy*dy < 1.0:\n                    coords[(n-1)*3] = coords[0]; coords[(n-1)*3+1] = coords[1]\n            p2d = Polyline.__new__(Polyline)",
+          "file": "polyline.py"
+        },
+        "cpp": {
+          "sig": "Polyline translated(const Vector& v)",
+          "code": "Polyline Polyline::translated(const Vector& v) const {\n    Polyline result(*this);\n    result.translate(v);\n    return result;\n}",
+          "file": "polyline.cpp"
+        },
+        "rust": {
+          "sig": "translated(v: &Vector) -> Polyline",
+          "code": "pub fn translated(&self, v: &Vector) -> Polyline {\n        let mut result = self.clone();\n        result.translate(v);\n        result\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.__eq__",
+        "Polyline.__ne__",
+        "Polyline.__repr__",
+        "Polyline._simplify_perp_dist",
+        "Polyline._simplify_rdp",
+        "Polyline.boolean_op",
+        "Polyline.duplicate",
+        "Polyline.flip",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.len",
+        "Polyline.length",
+        "Polyline.new",
+        "Polyline.plane",
+        "Polyline.point_count",
+        "Polyline.points",
+        "Polyline.project",
+        "Polyline.pt",
+        "Polyline.remove_consecutive_duplicates",
+        "Polyline.simplify",
+        "Polyline.simplify_points",
+        "Polyline.translate",
+        "Polyline.two_rects_from_frame"
+      ]
+    },
+    {
+      "name": "Polyline.remove_consecutive_duplicates",
+      "implementations": {
+        "python": {
+          "sig": "remove_consecutive_duplicates(tol=Tolerance.APPROXIMATION)",
+          "code": "def remove_consecutive_duplicates(self, tol=Tolerance.APPROXIMATION):\n\n        pts = self.get_points()\n        cleaned = []\n        tol_sq = tol * tol\n        for p in pts:\n            if not cleaned:\n                cleaned.append(p)\n                continue\n            dx = p[0] - cleaned[-1][0]\n            dy = p[1] - cleaned[-1][1]\n            dz = p[2] - cleaned[-1][2]\n            if dx*dx + dy*dy + dz*dz >= tol_sq:\n                cleaned.append(p)\n        new_poly = Polyline(cleaned)\n        self.coords = new_poly.coords\n        self._plane = None\n\n    @staticmethod\n    def two_rects_from_frame(p, segment_vector, zaxis, middle, radius, length, flip_male):\n        y_axis = zaxis.cross(segment_vector)\n        x_axis = y_axis.cross(segment_vector)\n        x_axis.normalize_self()\n        y_axis.normalize_self()\n        x_axis = x_axis * radius\n        y_axis = y_axis * radius\n        sv0 = segment_vector * (length * -0.5)\n        sv1 = segment_vector * (length * 0.5)\n        v = [\n            Vector(-x_axis[0] - y_axis[0], -x_axis[1] - y_axis[1], -x_axis[2] - y_axis[2]),\n            Vector( x_axis[0] - y_axis[0],  x_axis[1] - y_axis[1],  x_axis[2] - y_axis[2]),\n            Vector( x_axis[0] + y_axis[0],  x_axis[1] + y_axis[1],  x_axis[2] + y_axis[2]),\n            Vector(-x_axis[0] + y_axis[0], -x_axis[1] + y_axis[1], -x_axis[2] + y_axis[2]),\n        ]\n        if not middle:\n            if flip_male == 1:\n                v = v[1:] + v[:1]\n            elif flip_male == -1:\n                v = v[-1:] + v[:-1]\n        def pt(sv, uv):\n            return Point(p[0]+sv[0]+uv[0], p[1]+sv[1]+uv[1], p[2]+sv[2]+uv[2])\n        rect0 = Polyline([\n            pt(sv0, v[1]),\n            pt(sv1, v[1]),\n            pt(sv1, v[0]),\n            pt(sv0, v[0]),\n            pt(sv0, v[1]),\n        ])\n        rect1 = Polyline([\n            pt(sv0, v[2]),\n            pt(sv1, v[2]),\n            pt(sv1, v[3]),\n            pt(sv0, v[3]),\n            pt(sv0, v[2]),\n        ])\n        return rect0, rect1\n\n    @staticmethod\n    def boolean_op(a, b, clip_type, plane=None):\n        from .boolean_polyline import BooleanPolyline\n        if plane is None:\n            return BooleanPolyline.compute(a, b, clip_type)\n        ox, oy, oz = plane.origin[0], plane.origin[1], plane.origin[2]\n        xx, xy, xz = plane.x_axis[0], plane.x_axis[1], plane.x_axis[2]\n        yx, yy, yz = plane.y_axis[0], plane.y_axis[1], plane.y_axis[2]\n        def project(pl):\n            coords = []\n            for i in range(pl.point_count()):\n                dx = pl.coords[i*3]-ox; dy = pl.coords[i*3+1]-oy; dz = pl.coords[i*3+2]-oz\n                coords.extend([dx*xx+dy*xy+dz*xz, dx*yx+dy*yy+dz*yz, 0.0])\n            n = len(coords) // 3\n            if n >= 4:\n                dx = coords[(n-1)*3] - coords[0]; dy = coords[(n-1)*3+1] - coords[1]\n                if dx*dx+dy*dy < 1.0:\n                    coords[(n-1)*3] = coords[0]; coords[(n-1)*3+1] = coords[1]\n            p2d = Polyline.__new__(Polyline)\n            p2d._guid = None; p2d.name = \"\"; p2d.width = 1.0; p2d._linecolor = None; p2d._xform = None; p2d._plane = None\n            p2d.coords = coords\n            return p2d\n        def ensure_ccw(p2d):\n            n = p2d.point_count()",
+          "file": "polyline.py"
+        },
+        "cpp": {
+          "sig": "void remove_consecutive_duplicates(double tol)",
+          "code": "void Polyline::remove_consecutive_duplicates(double tol) {\n    auto pts = get_points();\n    std::vector<Point> cleaned;\n    cleaned.reserve(pts.size());\n    const double tol_sq = tol * tol;\n    for (auto& p : pts) {\n        if (cleaned.empty()) { cleaned.push_back(p); continue; }",
+          "file": "polyline.cpp"
+        },
+        "rust": {
+          "sig": "remove_consecutive_duplicates(tol: f64)",
+          "code": "pub fn remove_consecutive_duplicates(&mut self, tol: f64) {\n        let pts = self.get_points();\n        let mut cleaned: Vec<Point> = Vec::with_capacity(pts.len());\n        let tol_sq = tol * tol;\n        for p in &pts {\n            if cleaned.is_empty() {\n                cleaned.push(p.clone());\n                continue;\n            }\n            let last = cleaned.last().unwrap();\n            let dx = p[0] - last[0];\n            let dy = p[1] - last[1];\n            let dz = p[2] - last[2];\n            if dx*dx + dy*dy + dz*dz >= tol_sq {\n                cleaned.push(p.clone());\n            }\n        }\n        *self = Polyline::new(cleaned);\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.__eq__",
+        "Polyline.__ne__",
+        "Polyline._simplify_perp_dist",
+        "Polyline._simplify_rdp",
+        "Polyline.boolean_op",
+        "Polyline.duplicate",
+        "Polyline.ensure_ccw",
+        "Polyline.flip",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.guid",
+        "Polyline.is_empty",
+        "Polyline.len",
+        "Polyline.length",
+        "Polyline.linecolor",
+        "Polyline.new",
+        "Polyline.plane",
+        "Polyline.point_count",
+        "Polyline.points",
+        "Polyline.project",
+        "Polyline.pt",
+        "Polyline.simplify",
+        "Polyline.simplify_points",
+        "Polyline.translated",
+        "Polyline.two_rects_from_frame",
+        "Polyline.xform"
+      ]
+    },
+    {
+      "name": "Polyline.two_rects_from_frame",
+      "implementations": {
+        "python": {
+          "sig": "two_rects_from_frame(p, segment_vector, zaxis, middle, radius, length, flip_male)",
+          "code": "def two_rects_from_frame(p, segment_vector, zaxis, middle, radius, length, flip_male):\n\n        y_axis = zaxis.cross(segment_vector)\n        x_axis = y_axis.cross(segment_vector)\n        x_axis.normalize_self()\n        y_axis.normalize_self()\n        x_axis = x_axis * radius\n        y_axis = y_axis * radius\n        sv0 = segment_vector * (length * -0.5)\n        sv1 = segment_vector * (length * 0.5)\n        v = [\n            Vector(-x_axis[0] - y_axis[0], -x_axis[1] - y_axis[1], -x_axis[2] - y_axis[2]),\n            Vector( x_axis[0] - y_axis[0],  x_axis[1] - y_axis[1],  x_axis[2] - y_axis[2]),\n            Vector( x_axis[0] + y_axis[0],  x_axis[1] + y_axis[1],  x_axis[2] + y_axis[2]),\n            Vector(-x_axis[0] + y_axis[0], -x_axis[1] + y_axis[1], -x_axis[2] + y_axis[2]),\n        ]\n        if not middle:\n            if flip_male == 1:\n                v = v[1:] + v[:1]\n            elif flip_male == -1:\n                v = v[-1:] + v[:-1]\n        def pt(sv, uv):\n            return Point(p[0]+sv[0]+uv[0], p[1]+sv[1]+uv[1], p[2]+sv[2]+uv[2])\n        rect0 = Polyline([\n            pt(sv0, v[1]),\n            pt(sv1, v[1]),\n            pt(sv1, v[0]),\n            pt(sv0, v[0]),\n            pt(sv0, v[1]),\n        ])\n        rect1 = Polyline([\n            pt(sv0, v[2]),\n            pt(sv1, v[2]),\n            pt(sv1, v[3]),\n            pt(sv0, v[3]),\n            pt(sv0, v[2]),\n        ])\n        return rect0, rect1\n\n    @staticmethod\n    def boolean_op(a, b, clip_type, plane=None):\n        from .boolean_polyline import BooleanPolyline\n        if plane is None:\n            return BooleanPolyline.compute(a, b, clip_type)\n        ox, oy, oz = plane.origin[0], plane.origin[1], plane.origin[2]\n        xx, xy, xz = plane.x_axis[0], plane.x_axis[1], plane.x_axis[2]\n        yx, yy, yz = plane.y_axis[0], plane.y_axis[1], plane.y_axis[2]\n        def project(pl):\n            coords = []\n            for i in range(pl.point_count()):\n                dx = pl.coords[i*3]-ox; dy = pl.coords[i*3+1]-oy; dz = pl.coords[i*3+2]-oz\n                coords.extend([dx*xx+dy*xy+dz*xz, dx*yx+dy*yy+dz*yz, 0.0])\n            n = len(coords) // 3\n            if n >= 4:\n                dx = coords[(n-1)*3] - coords[0]; dy = coords[(n-1)*3+1] - coords[1]\n                if dx*dx+dy*dy < 1.0:\n                    coords[(n-1)*3] = coords[0]; coords[(n-1)*3+1] = coords[1]\n            p2d = Polyline.__new__(Polyline)\n            p2d._guid = None; p2d.name = \"\"; p2d.width = 1.0; p2d._linecolor = None; p2d._xform = None; p2d._plane = None\n            p2d.coords = coords\n            return p2d\n        def ensure_ccw(p2d):\n            n = p2d.point_count()\n            m = n\n            if m >= 4:\n                dx = p2d.coords[(m-1)*3] - p2d.coords[0]\n                dy = p2d.coords[(m-1)*3+1] - p2d.coords[1]\n                if dx*dx + dy*dy < 1e-10:\n                    m -= 1\n            if m < 3:\n                return\n            area = 0.0\n            for i in range(m):\n                j = (i + 1) % m\n                area += p2d.coords[i*3] * p2d.coords[j*3+1] - p2d.coords[j*3] * p2d.coords[i*3+1]\n            if area < 0:\n                for i in range(n // 2):\n                    j = n - 1 - i\n                    p2d.coords[i*3], p2d.coords[j*3] = p2d.coords[j*3], p2d.coords[i*3]\n                    p2d.coords[i*3+1], p2d.coords[j*3+1] = p2d.coords[j*3+1], p2d.coords[i*3+1]\n                    p2d.coords[i*3+2], p2d.coords[j*3+2] = p2d.coords[j*3+2], p2d.coords[i*3+2]",
+          "file": "polyline.py"
+        },
+        "cpp": {
+          "sig": "void two_rects_from_frame(\n    const Point&  p,\n    const Vector& segment_vector,\n    const Vector& zaxis,\n    bool          middle,\n    double        radius,\n    double        length,\n    int           flip_male,\n    Polyline&     rect0,\n    Polyline&     rect1)",
+          "code": "void Polyline::two_rects_from_frame(\n    const Point&  p,\n    const Vector& segment_vector,\n    const Vector& zaxis,\n    bool          middle,\n    double        radius,\n    double        length,\n    int           flip_male,\n    Polyline&     rect0,\n    Polyline&     rect1)\n{\n    Vector y_axis = zaxis.cross(segment_vector);\n    Vector x_axis = y_axis.cross(segment_vector);\n    x_axis.normalize_self();\n    y_axis.normalize_self();\n    x_axis = x_axis * radius;\n    y_axis = y_axis * radius;\n\n    Vector sv0 = segment_vector * (length * -0.5);\n    Vector sv1 = segment_vector * ( length *  0.5);\n\n    std::array<Vector, 4> v = {\n        Vector(-x_axis[0] - y_axis[0], -x_axis[1] - y_axis[1], -x_axis[2] - y_axis[2]),\n        Vector( x_axis[0] - y_axis[0],  x_axis[1] - y_axis[1],  x_axis[2] - y_axis[2]),\n        Vector( x_axis[0] + y_axis[0],  x_axis[1] + y_axis[1],  x_axis[2] + y_axis[2]),\n        Vector(-x_axis[0] + y_axis[0], -x_axis[1] + y_axis[1], -x_axis[2] + y_axis[2]),\n    }",
+          "file": "polyline.cpp"
+        },
+        "rust": {
+          "sig": "two_rects_from_frame(\n        p: &Point,\n        segment_vector: &Vector,\n        zaxis: &Vector,\n        middle: bool,\n        radius: f64,\n        length: f64,\n        flip_male: i32,\n    ) -> (Polyline, Polyline)",
+          "code": "pub fn two_rects_from_frame(\n        p: &Point,\n        segment_vector: &Vector,\n        zaxis: &Vector,\n        middle: bool,\n        radius: f64,\n        length: f64,\n        flip_male: i32,\n    ) -> (Polyline, Polyline) {\n        let y_axis = zaxis.cross(segment_vector);\n        let mut x_axis = y_axis.cross(segment_vector);\n        let mut y_axis = y_axis;\n        x_axis.normalize_self();\n        y_axis.normalize_self();\n        let x_axis = x_axis * radius;\n        let y_axis = y_axis * radius;\n\n        let sv0 = segment_vector * (length * -0.5);\n        let sv1 = segment_vector * (length *  0.5);\n\n        let mut v: [Vector; 4] = [\n            Vector::new(-x_axis[0] - y_axis[0], -x_axis[1] - y_axis[1], -x_axis[2] - y_axis[2]),\n            Vector::new( x_axis[0] - y_axis[0],  x_axis[1] - y_axis[1],  x_axis[2] - y_axis[2]),\n            Vector::new( x_axis[0] + y_axis[0],  x_axis[1] + y_axis[1],  x_axis[2] + y_axis[2]),\n            Vector::new(-x_axis[0] + y_axis[0], -x_axis[1] + y_axis[1], -x_axis[2] + y_axis[2]),\n        ];\n        if !middle {\n            if flip_male == 1 {\n                v.rotate_left(1);\n            } else if flip_male == -1 {\n                v.rotate_right(1);\n            }\n        }\n\n        let pt = |sv: &Vector, uv: &Vector| -> Point {\n            Point::new(p[0]+sv[0]+uv[0], p[1]+sv[1]+uv[1], p[2]+sv[2]+uv[2])\n        };\n        let rect0 = Polyline::new(vec![\n            pt(&sv0, &v[1]),\n            pt(&sv1, &v[1]),\n            pt(&sv1, &v[0]),\n            pt(&sv0, &v[0]),\n            pt(&sv0, &v[1]),\n        ]);\n        let rect1 = Polyline::new(vec![\n            pt(&sv0, &v[2]),\n            pt(&sv1, &v[2]),\n            pt(&sv1, &v[3]),\n            pt(&sv0, &v[3]),\n            pt(&sv0, &v[2]),\n        ]);\n        (rect0, rect1)\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.__ne__",
+        "Polyline._simplify_perp_dist",
+        "Polyline._simplify_rdp",
+        "Polyline.boolean_op",
+        "Polyline.ensure_ccw",
+        "Polyline.flip",
+        "Polyline.guid",
+        "Polyline.len",
+        "Polyline.length",
+        "Polyline.linecolor",
+        "Polyline.new",
+        "Polyline.plane",
+        "Polyline.point_count",
+        "Polyline.project",
+        "Polyline.pt",
+        "Polyline.remove_consecutive_duplicates",
+        "Polyline.simplify",
+        "Polyline.simplify_points",
+        "Polyline.translated",
+        "Polyline.xform"
+      ]
+    },
+    {
+      "name": "Polyline.pt",
+      "implementations": {
+        "python": {
+          "sig": "pt(sv, uv)",
+          "code": "def pt(sv, uv):\n\n            return Point(p[0]+sv[0]+uv[0], p[1]+sv[1]+uv[1], p[2]+sv[2]+uv[2])\n        rect0 = Polyline([\n            pt(sv0, v[1]),\n            pt(sv1, v[1]),\n            pt(sv1, v[0]),\n            pt(sv0, v[0]),\n            pt(sv0, v[1]),\n        ])\n        rect1 = Polyline([\n            pt(sv0, v[2]),\n            pt(sv1, v[2]),\n            pt(sv1, v[3]),\n            pt(sv0, v[3]),\n            pt(sv0, v[2]),\n        ])\n        return rect0, rect1\n\n    @staticmethod\n    def boolean_op(a, b, clip_type, plane=None):\n        from .boolean_polyline import BooleanPolyline\n        if plane is None:\n            return BooleanPolyline.compute(a, b, clip_type)\n        ox, oy, oz = plane.origin[0], plane.origin[1], plane.origin[2]\n        xx, xy, xz = plane.x_axis[0], plane.x_axis[1], plane.x_axis[2]\n        yx, yy, yz = plane.y_axis[0], plane.y_axis[1], plane.y_axis[2]\n        def project(pl):\n            coords = []\n            for i in range(pl.point_count()):\n                dx = pl.coords[i*3]-ox; dy = pl.coords[i*3+1]-oy; dz = pl.coords[i*3+2]-oz\n                coords.extend([dx*xx+dy*xy+dz*xz, dx*yx+dy*yy+dz*yz, 0.0])\n            n = len(coords) // 3\n            if n >= 4:\n                dx = coords[(n-1)*3] - coords[0]; dy = coords[(n-1)*3+1] - coords[1]\n                if dx*dx+dy*dy < 1.0:\n                    coords[(n-1)*3] = coords[0]; coords[(n-1)*3+1] = coords[1]\n            p2d = Polyline.__new__(Polyline)\n            p2d._guid = None; p2d.name = \"\"; p2d.width = 1.0; p2d._linecolor = None; p2d._xform = None; p2d._plane = None\n            p2d.coords = coords\n            return p2d\n        def ensure_ccw(p2d):\n            n = p2d.point_count()\n            m = n\n            if m >= 4:\n                dx = p2d.coords[(m-1)*3] - p2d.coords[0]\n                dy = p2d.coords[(m-1)*3+1] - p2d.coords[1]\n                if dx*dx + dy*dy < 1e-10:\n                    m -= 1\n            if m < 3:\n                return\n            area = 0.0\n            for i in range(m):\n                j = (i + 1) % m\n                area += p2d.coords[i*3] * p2d.coords[j*3+1] - p2d.coords[j*3] * p2d.coords[i*3+1]\n            if area < 0:\n                for i in range(n // 2):\n                    j = n - 1 - i\n                    p2d.coords[i*3], p2d.coords[j*3] = p2d.coords[j*3], p2d.coords[i*3]\n                    p2d.coords[i*3+1], p2d.coords[j*3+1] = p2d.coords[j*3+1], p2d.coords[i*3+1]\n                    p2d.coords[i*3+2], p2d.coords[j*3+2] = p2d.coords[j*3+2], p2d.coords[i*3+2]\n        pa2d = project(a); pb2d = project(b)\n        ensure_ccw(pa2d); ensure_ccw(pb2d)\n        results = BooleanPolyline.compute(pa2d, pb2d, clip_type)\n        for r in results:\n            n = r.point_count()\n            for i in range(n):\n                u, v = r.coords[i*3], r.coords[i*3+1]\n                r.coords[i*3] = ox + u*xx + v*yx\n                r.coords[i*3+1] = oy + u*xy + v*yy\n                r.coords[i*3+2] = oz + u*xz + v*yz\n        return results\n\n    @staticmethod\n    def polylabel(polylines, precision: float) -> Tuple[Point, \"Plane\", float]:\n        # Largest inscribed circle via mapbox polylabel.\n        # polylines[0] is the outer boundary; polylines[1..] are holes.\n        from .plane import Plane\n        if not polylines:\n            return Point(0.0, 0.0, 0.0), Plane.xy_plane(), 0.0\n        orig, xa, ya, _za = polylines[0].get_average_plane()",
+          "file": "polyline.py"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.__eq__",
+        "Polyline.__getitem__",
+        "Polyline.__imul__",
+        "Polyline.__init__",
+        "Polyline.__isub__",
+        "Polyline.__itruediv__",
+        "Polyline.__jsondump__",
+        "Polyline.__jsonload__",
+        "Polyline.__len__",
+        "Polyline.__mul__",
+        "Polyline.__ne__",
+        "Polyline.__neg__",
+        "Polyline.__repr__",
+        "Polyline.__setitem__",
+        "Polyline.__str__",
+        "Polyline.__sub__",
+        "Polyline.__truediv__",
+        "Polyline._average_normal",
+        "Polyline._simplify_perp_dist",
+        "Polyline._simplify_rdp",
+        "Polyline.add_point",
+        "Polyline.boolean_op",
+        "Polyline.bounding_rectangle",
+        "Polyline.center",
+        "Polyline.closed",
+        "Polyline.closest_distance_and_point",
+        "Polyline.closest_point_to_line",
+        "Polyline.cross2d",
+        "Polyline.cut_by_plane",
+        "Polyline.ensure_ccw",
+        "Polyline.extend_edge_equally",
+        "Polyline.extend_line_segment",
+        "Polyline.extend_segment",
+        "Polyline.extend_segment_equally",
+        "Polyline.extend_segment_equally_static",
+        "Polyline.from_coords",
+        "Polyline.from_sides",
+        "Polyline.get_average_plane",
+        "Polyline.get_convex_corners",
+        "Polyline.get_fast_plane",
+        "Polyline.get_lines",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.grid_of_points_in_polygon",
+        "Polyline.guid",
+        "Polyline.insert_point",
+        "Polyline.interpolate_points",
+        "Polyline.is_clockwise",
+        "Polyline.is_closed",
+        "Polyline.is_empty",
+        "Polyline.len",
+        "Polyline.length",
+        "Polyline.length_squared",
+        "Polyline.line_from_projected_points",
+        "Polyline.line_line_average",
+        "Polyline.line_line_overlap",
+        "Polyline.line_line_overlap_average",
+        "Polyline.linecolor",
+        "Polyline.lines",
+        "Polyline.magnitude_squared",
+        "Polyline.merge_collinear",
+        "Polyline.new",
+        "Polyline.on_keep_side",
+        "Polyline.pb_dump",
+        "Polyline.pb_load",
+        "Polyline.pb_loads",
+        "Polyline.plane",
+        "Polyline.point_at",
+        "Polyline.point_count",
+        "Polyline.points",
+        "Polyline.polylabel",
+        "Polyline.polylabel_circle_division_points",
+        "Polyline.proj2d",
+        "Polyline.project",
+        "Polyline.pt_in_poly",
+        "Polyline.qh_upper",
+        "Polyline.quadratic_points",
+        "Polyline.quick_hull",
+        "Polyline.remove_consecutive_duplicates",
+        "Polyline.remove_point",
+        "Polyline.segment_count",
+        "Polyline.set_point",
+        "Polyline.shift",
+        "Polyline.shrink_line_segment",
+        "Polyline.signed_dist",
+        "Polyline.simplify",
+        "Polyline.simplify_perp_dist",
+        "Polyline.simplify_points",
         "Polyline.to2d",
+        "Polyline.transform",
+        "Polyline.transformed",
+        "Polyline.transformed_xform",
+        "Polyline.translate",
+        "Polyline.translated",
+        "Polyline.tween_two_polylines",
+        "Polyline.two_rects_from_frame",
+        "Polyline.unproj",
         "Polyline.xform"
       ]
     },
@@ -53849,11 +54827,6 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.Polyline",
-        "Polyline.__eq__",
-        "Polyline.__ne__",
-        "Polyline.__repr__",
-        "Polyline._simplify_perp_dist",
-        "Polyline._simplify_rdp",
         "Polyline.boolean_op_plane",
         "Polyline.ensure_ccw",
         "Polyline.get_average_plane",
@@ -53869,10 +54842,14 @@ window.API_INDEX = {
         "Polyline.points",
         "Polyline.polylabel",
         "Polyline.project",
+        "Polyline.pt",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.simplify",
         "Polyline.simplify_points",
         "Polyline.str",
         "Polyline.to2d",
+        "Polyline.translated",
+        "Polyline.two_rects_from_frame",
         "Polyline.xform"
       ]
     },
@@ -53887,9 +54864,6 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.Polyline",
-        "Polyline.__ne__",
-        "Polyline._simplify_perp_dist",
-        "Polyline._simplify_rdp",
         "Polyline.boolean_op",
         "Polyline.boolean_op_plane",
         "Polyline.ensure_ccw",
@@ -53908,9 +54882,12 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.polylabel",
+        "Polyline.pt",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.simplify",
-        "Polyline.simplify_points",
         "Polyline.to2d",
+        "Polyline.translated",
+        "Polyline.two_rects_from_frame",
         "Polyline.xform"
       ]
     },
@@ -53925,10 +54902,7 @@ window.API_INDEX = {
       },
       "related": [
         "Polyline.Polyline",
-        "Polyline.__ne__",
         "Polyline._mapbox_polylabel",
-        "Polyline._simplify_perp_dist",
-        "Polyline._simplify_rdp",
         "Polyline.boolean_op",
         "Polyline.boolean_op_plane",
         "Polyline.center",
@@ -53942,9 +54916,10 @@ window.API_INDEX = {
         "Polyline.points",
         "Polyline.polylabel",
         "Polyline.project",
-        "Polyline.simplify",
-        "Polyline.simplify_points",
-        "Polyline.to2d"
+        "Polyline.pt",
+        "Polyline.remove_consecutive_duplicates",
+        "Polyline.to2d",
+        "Polyline.two_rects_from_frame"
       ]
     },
     {
@@ -53985,8 +54960,7 @@ window.API_INDEX = {
         "Polyline.points",
         "Polyline.polylabel_circle_division_points",
         "Polyline.project",
-        "Polyline.simplify",
-        "Polyline.simplify_points",
+        "Polyline.pt",
         "Polyline.to2d"
       ]
     },
@@ -54014,8 +54988,7 @@ window.API_INDEX = {
         "Polyline.polylabel",
         "Polyline.polylabel_circle_division_points",
         "Polyline.project",
-        "Polyline.simplify",
-        "Polyline.simplify_points"
+        "Polyline.pt"
       ]
     },
     {
@@ -54048,6 +55021,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.points",
         "Polyline.polylabel",
+        "Polyline.pt",
         "Polyline.to2d"
       ]
     },
@@ -60026,7 +61000,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_component(component, parent=None) -> TreeNode",
-          "code": "def add_component(self, component, parent=None) -> TreeNode:\n\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)",
+          "code": "def add_component(self, component, parent=None) -> TreeNode:\n\n        \"\"\"Add a custom component (any object with guid, name, __jsondump__, __jsonload__).\"\"\"\n        return self._add_object(self.objects.components, component, \"component\", parent)\n\n    def add_group(self, name: str) -> TreeNode:\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n    def add_elementfeature(self, guid_a: str, guid_b: str, feature) -> str:",
           "file": "session.py"
         },
         "cpp": {
@@ -60048,6 +61022,7 @@ window.API_INDEX = {
         "Session.add_brep",
         "Session.add_edge",
         "Session.add_element",
+        "Session.add_elementfeature",
         "Session.add_group",
         "Session.add_line",
         "Session.add_mesh",
@@ -60074,7 +61049,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_group(name: str) -> TreeNode",
-          "code": "def add_group(self, name: str) -> TreeNode:\n\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################",
+          "code": "def add_group(self, name: str) -> TreeNode:\n\n        node = TreeNode(name=name)\n        self.add(node)\n        return node\n\n    def find_group(self, name: str) -> TreeNode:\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n    def add_elementfeature(self, guid_a: str, guid_b: str, feature) -> str:\n        \"\"\"Attach a structured element feature to a graph edge between two objects.\n\n        Mirrors C++ ``Session::add_elementfeature``: the feature is keyed by its\n        own guid (a fresh uuid is generated when the feature has none), stored in",
           "file": "session.py"
         },
         "cpp": {
@@ -60095,6 +61070,7 @@ window.API_INDEX = {
         "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
+        "Session.add_elementfeature",
         "Session.add_line",
         "Session.add_mesh",
         "Session.add_nurbscurve",
@@ -60118,7 +61094,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "find_group(name: str) -> TreeNode",
-          "code": "def find_group(self, name: str) -> TreeNode:\n\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------",
+          "code": "def find_group(self, name: str) -> TreeNode:\n\n        \"\"\"Find an existing group by name.\n\n        Raises ValueError if the group does not exist.\n        \"\"\"\n        root = self.tree.root\n        if root is not None:\n            for child in root.children:\n                if child.name == name:\n                    return child\n        raise ValueError(f\"Group '{name}' not found\")\n\n    def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n    def add_elementfeature(self, guid_a: str, guid_b: str, feature) -> str:\n        \"\"\"Attach a structured element feature to a graph edge between two objects.\n\n        Mirrors C++ ``Session::add_elementfeature``: the feature is keyed by its\n        own guid (a fresh uuid is generated when the feature has none), stored in\n        ``edge_elementfeatures``, and a graph edge labelled with that key is added.\n\n        Parameters\n        ----------\n        guid_a : str",
           "file": "session.py"
         },
         "cpp": {
@@ -60139,6 +61115,7 @@ window.API_INDEX = {
         "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
+        "Session.add_elementfeature",
         "Session.add_group",
         "Session.add_line",
         "Session.add_mesh",
@@ -60150,7 +61127,6 @@ window.API_INDEX = {
         "Session.add_pointcloud",
         "Session.add_polyline",
         "Session.compute_face_to_face",
-        "Session.get_object",
         "Session.guid",
         "Session.pb_dump",
         "Session.pb_load",
@@ -60162,7 +61138,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "compute_face_to_face(inflate=5.0, coplanar_tolerance=50.0)",
-          "code": "def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.",
+          "code": "def compute_face_to_face(self, inflate=5.0, coplanar_tolerance=50.0):\n\n        from .intersection import adjacency_search, face_to_face\n        from .polyline import Polyline\n        elems = self.objects.elements\n        N = len(elems)\n        if N == 0:\n            return\n        all_polys = [e.compute_polylines() for e in elems]\n        all_planes = [e.compute_planes() for e in elems]\n        from .aabb import AABB\n        aabbs = []\n        for polys in all_polys:\n            pts = []\n            for pl in polys:\n                pts.extend(pl.get_points())\n            aabbs.append(AABB.from_points(pts, inflate) if pts else AABB.from_point(Point(0,0,0), inflate))\n        adjacency = []\n        for i in range(N):\n            for j in range(i+1, N):\n                if aabbs[i].intersects(aabbs[j]):\n                    adjacency.extend([i, j, -1, -1])\n        joints = face_to_face(adjacency, all_polys, all_planes, coplanar_tolerance)\n        g = self.add_group(\"Joints\")\n        for k, (a, b, fi, fj, type_val, poly) in enumerate(joints):\n            jpl = Polyline(poly.get_points()) if not isinstance(poly, Polyline) else poly\n            jpl.name = f\"joint_{k}\"\n            self.add_polyline(jpl, g)\n            self.add_edge(elems[a].guid, elems[b].guid,\n                f\"{fi},{fj},{type_val},{jpl.guid}\")\n\n    def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n    def add_elementfeature(self, guid_a: str, guid_b: str, feature) -> str:\n        \"\"\"Attach a structured element feature to a graph edge between two objects.\n\n        Mirrors C++ ``Session::add_elementfeature``: the feature is keyed by its\n        own guid (a fresh uuid is generated when the feature has none), stored in\n        ``edge_elementfeatures``, and a graph edge labelled with that key is added.\n\n        Parameters\n        ----------\n        guid_a : str\n            GUID of the first object.\n        guid_b : str\n            GUID of the second object.\n        feature : object\n            Any element-feature object exposing a ``guid``.\n\n        Returns\n        -------\n        str\n            The key under which the feature was stored.\n        \"\"\"\n        if getattr(self, \"edge_elementfeatures\", None) is None:",
           "file": "session.py"
         },
         "cpp": {
@@ -60183,6 +61159,7 @@ window.API_INDEX = {
         "Session.add_component",
         "Session.add_edge",
         "Session.add_element",
+        "Session.add_elementfeature",
         "Session.add_group",
         "Session.add_line",
         "Session.add_mesh",
@@ -60194,12 +61171,10 @@ window.API_INDEX = {
         "Session.add_pointcloud",
         "Session.add_polyline",
         "Session.find_group",
-        "Session.get_object",
         "Session.guid",
         "Session.new",
         "Session.pb_dump",
         "Session.pb_load",
-        "Session.remove_object",
         "Session.str"
       ]
     },
@@ -60208,7 +61183,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add(node: TreeNode, parent: TreeNode = None) -> None",
-          "code": "def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from points collection\n        if isinstance(geometry, Point):\n            self.objects.points.remove(geometry)\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - find node by guid first\n        node = self.tree.find_node_by_guid(guid)\n        if node is not None:\n            self.tree.remove(node)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True\n\n    ###########################################################################################",
+          "code": "def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n    def add_elementfeature(self, guid_a: str, guid_b: str, feature) -> str:\n        \"\"\"Attach a structured element feature to a graph edge between two objects.\n\n        Mirrors C++ ``Session::add_elementfeature``: the feature is keyed by its\n        own guid (a fresh uuid is generated when the feature has none), stored in\n        ``edge_elementfeatures``, and a graph edge labelled with that key is added.\n\n        Parameters\n        ----------\n        guid_a : str\n            GUID of the first object.\n        guid_b : str\n            GUID of the second object.\n        feature : object\n            Any element-feature object exposing a ``guid``.\n\n        Returns\n        -------\n        str\n            The key under which the feature was stored.\n        \"\"\"\n        if getattr(self, \"edge_elementfeatures\", None) is None:\n            self.edge_elementfeatures = {}\n        key = getattr(feature, \"guid\", \"\") or \"\"\n        if not key:\n            key = str(uuid.uuid4())\n        self.edge_elementfeatures[key] = feature\n        self.graph.add_edge(guid_a, guid_b, key)\n        return key\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.",
           "file": "session.py"
         },
         "cpp": {
@@ -60273,7 +61248,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_edge(guid1: str, guid2: str, attribute: str = \"\") -> None",
-          "code": "def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from points collection\n        if isinstance(geometry, Point):\n            self.objects.points.remove(geometry)\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - find node by guid first\n        node = self.tree.find_node_by_guid(guid)\n        if node is not None:\n            self.tree.remove(node)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True\n\n    ###########################################################################################\n    # SpatialBVH Collision Detection\n    ###########################################################################################\n\n    @staticmethod\n    def _compute_bounding_box(geometry) -> OBB:\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        OBB",
+          "code": "def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n    def add_elementfeature(self, guid_a: str, guid_b: str, feature) -> str:\n        \"\"\"Attach a structured element feature to a graph edge between two objects.\n\n        Mirrors C++ ``Session::add_elementfeature``: the feature is keyed by its\n        own guid (a fresh uuid is generated when the feature has none), stored in\n        ``edge_elementfeatures``, and a graph edge labelled with that key is added.\n\n        Parameters\n        ----------\n        guid_a : str\n            GUID of the first object.\n        guid_b : str\n            GUID of the second object.\n        feature : object\n            Any element-feature object exposing a ``guid``.\n\n        Returns\n        -------\n        str\n            The key under which the feature was stored.\n        \"\"\"\n        if getattr(self, \"edge_elementfeatures\", None) is None:\n            self.edge_elementfeatures = {}\n        key = getattr(feature, \"guid\", \"\") or \"\"\n        if not key:\n            key = str(uuid.uuid4())\n        self.edge_elementfeatures[key] = feature\n        self.graph.add_edge(guid_a, guid_b, key)\n        return key\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from points collection\n        if isinstance(geometry, Point):\n            self.objects.points.remove(geometry)\n\n        # Remove from lookup table",
           "file": "session.py"
         },
         "cpp": {
@@ -60288,7 +61263,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Session._compute_bounding_box",
         "Session.add",
         "Session.add_brep",
         "Session.add_component",
@@ -60305,7 +61279,6 @@ window.API_INDEX = {
         "Session.add_pointcloud",
         "Session.add_polyline",
         "Session.add_relationship",
-        "Session.compute_bounding_box",
         "Session.compute_face_to_face",
         "Session.find_group",
         "Session.get_children",
@@ -60313,6 +61286,34 @@ window.API_INDEX = {
         "Session.get_object",
         "Session.guid",
         "Session.pb_loads",
+        "Session.remove_object",
+        "Session.str"
+      ]
+    },
+    {
+      "name": "Session.add_elementfeature",
+      "implementations": {
+        "python": {
+          "sig": "add_elementfeature(guid_a: str, guid_b: str, feature) -> str",
+          "code": "def add_elementfeature(self, guid_a: str, guid_b: str, feature) -> str:\n\n        \"\"\"Attach a structured element feature to a graph edge between two objects.\n\n        Mirrors C++ ``Session::add_elementfeature``: the feature is keyed by its\n        own guid (a fresh uuid is generated when the feature has none), stored in\n        ``edge_elementfeatures``, and a graph edge labelled with that key is added.\n\n        Parameters\n        ----------\n        guid_a : str\n            GUID of the first object.\n        guid_b : str\n            GUID of the second object.\n        feature : object\n            Any element-feature object exposing a ``guid``.\n\n        Returns\n        -------\n        str\n            The key under which the feature was stored.\n        \"\"\"\n        if getattr(self, \"edge_elementfeatures\", None) is None:\n            self.edge_elementfeatures = {}\n        key = getattr(feature, \"guid\", \"\") or \"\"\n        if not key:\n            key = str(uuid.uuid4())\n        self.edge_elementfeatures[key] = feature\n        self.graph.add_edge(guid_a, guid_b, key)\n        return key\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from points collection\n        if isinstance(geometry, Point):\n            self.objects.points.remove(geometry)\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - find node by guid first\n        node = self.tree.find_node_by_guid(guid)\n        if node is not None:\n            self.tree.remove(node)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True",
+          "file": "session.py"
+        },
+        "cpp": {
+          "sig": "std::string add_elementfeature(const std::string &guid_a,\n                                        const std::string &guid_b,\n                                        EdgeElementFeature feature)",
+          "code": "std::string Session::add_elementfeature(const std::string &guid_a,\n                                        const std::string &guid_b,\n                                        EdgeElementFeature feature) {\n  std::string key = edge_elementfeature_guid(feature);\n  if (key.empty()) key = ::guid();\n  edge_elementfeatures[key] = std::move(feature);\n  graph.add_edge(guid_a, guid_b, key);\n  return key;\n}",
+          "file": "session.cpp"
+        }
+      },
+      "related": [
+        "Session.add",
+        "Session.add_component",
+        "Session.add_edge",
+        "Session.add_element",
+        "Session.add_group",
+        "Session.compute_face_to_face",
+        "Session.find_group",
+        "Session.get_object",
+        "Session.guid",
         "Session.remove_object",
         "Session.str"
       ]
@@ -60340,9 +61341,8 @@ window.API_INDEX = {
         "Session._compute_bounding_box",
         "Session.add",
         "Session.add_edge",
+        "Session.add_elementfeature",
         "Session.compute_bounding_box",
-        "Session.compute_face_to_face",
-        "Session.find_group",
         "Session.guid",
         "Session.remove_object",
         "Session.str"
@@ -60371,8 +61371,8 @@ window.API_INDEX = {
         "Session._compute_bounding_box",
         "Session.add",
         "Session.add_edge",
+        "Session.add_elementfeature",
         "Session.compute_bounding_box",
-        "Session.compute_face_to_face",
         "Session.get_object",
         "Session.guid",
         "Session.invalidate_bvh_cache",
@@ -60390,7 +61390,6 @@ window.API_INDEX = {
       },
       "related": [
         "Session.add",
-        "Session.add_edge",
         "Session.compute_bounding_box",
         "Session.get_collisions",
         "Session.get_object",
@@ -71093,42 +72092,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "BooleanPolyline.compute_count",
-      "implementations": {
-        "cpp": {
-          "sig": "int compute_count(const Polyline& a, const Polyline& b, int clip_type)",
-          "code": "static int compute_count(const Polyline& a, const Polyline& b, int clip_type);",
-          "file": "boolean_polyline.h"
-        }
-      },
-      "related": [
-        "BooleanPolyline.compute"
-      ]
-    },
-    {
-      "name": "BooleanPolyline.compute_raw",
-      "implementations": {
-        "cpp": {
-          "sig": "int compute_raw(const double* a_xy, int na, const double* b_xy, int nb,\n                           int clip_type, double* out_xy, int max_out)",
-          "code": "static int compute_raw(const double* a_xy, int na, const double* b_xy, int nb,\n                           int clip_type, double* out_xy, int max_out);",
-          "file": "boolean_polyline.h"
-        }
-      },
-      "related": [
-        "BooleanPolyline.compute"
-      ]
-    },
-    {
-      "name": "BooleanPolyline.clip_open_against_closed",
-      "implementations": {
-        "cpp": {
-          "sig": "std::vector<Polyline> clip_open_against_closed(\n        const Polyline& open_subject,\n        const Polyline& closed_clip)",
-          "code": "static std::vector<Polyline> clip_open_against_closed(\n        const Polyline& open_subject,\n        const Polyline& closed_clip);",
-          "file": "boolean_polyline.h"
-        }
-      }
-    },
-    {
       "name": "std.abs",
       "implementations": {
         "cpp": {
@@ -72340,113 +73303,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Element.cached_aabb",
-      "implementations": {
-        "cpp": {
-          "sig": "const std::optional<OBB>& cached_aabb()",
-          "code": "const std::optional<OBB>& cached_aabb() const { return _aabb; }",
-          "file": "element.h"
-        }
-      },
-      "related": [
-        "Element.aabb",
-        "Element.beam_with_transformation",
-        "Element.cached_aabb_ref",
-        "Element.column_with_transformation",
-        "Element.duplicate",
-        "Element.from_brep_with_transformation",
-        "Element.from_mesh_with_transformation",
-        "Element.plate_from_top_bottom_with_transformation",
-        "Element.plate_with_transformation",
-        "Element.reset",
-        "Element.with_transformation"
-      ]
-    },
-    {
-      "name": "Element.cached_obb",
-      "implementations": {
-        "cpp": {
-          "sig": "const std::optional<OBB>& cached_obb()",
-          "code": "const std::optional<OBB>& cached_obb() const { return _obb; }",
-          "file": "element.h"
-        }
-      },
-      "related": [
-        "Element.beam_with_transformation",
-        "Element.cached_obb_ref",
-        "Element.column_with_transformation",
-        "Element.duplicate",
-        "Element.from_brep_with_transformation",
-        "Element.from_mesh_with_transformation",
-        "Element.obb",
-        "Element.plate_from_top_bottom_with_transformation",
-        "Element.plate_with_transformation",
-        "Element.reset",
-        "Element.with_transformation"
-      ]
-    },
-    {
-      "name": "Element.cached_collision_mesh",
-      "implementations": {
-        "cpp": {
-          "sig": "const std::optional<Mesh>& cached_collision_mesh()",
-          "code": "const std::optional<Mesh>& cached_collision_mesh() const { return _collision_mesh; }",
-          "file": "element.h"
-        }
-      },
-      "related": [
-        "Element.beam_with_transformation",
-        "Element.cached_collision_mesh_ref",
-        "Element.collision_mesh",
-        "Element.column_with_transformation",
-        "Element.duplicate",
-        "Element.from_brep_with_transformation",
-        "Element.from_mesh_with_transformation",
-        "Element.plate_from_top_bottom_with_transformation",
-        "Element.plate_with_transformation",
-        "Element.reset",
-        "Element.with_transformation"
-      ]
-    },
-    {
-      "name": "Element.cached_point",
-      "implementations": {
-        "cpp": {
-          "sig": "const std::optional<Point>& cached_point()",
-          "code": "const std::optional<Point>& cached_point() const { return _point; }",
-          "file": "element.h"
-        }
-      },
-      "related": [
-        "Element.beam_with_transformation",
-        "Element.cached_point_ref",
-        "Element.column_with_transformation",
-        "Element.duplicate",
-        "Element.from_brep_with_transformation",
-        "Element.from_mesh_with_transformation",
-        "Element.plate_from_top_bottom_with_transformation",
-        "Element.plate_with_transformation",
-        "Element.point",
-        "Element.reset",
-        "Element.with_transformation"
-      ]
-    },
-    {
-      "name": "Element.features_count",
-      "implementations": {
-        "cpp": {
-          "sig": "size_t features_count()",
-          "code": "size_t features_count() const { return _features.size(); }",
-          "file": "element.h"
-        },
-        "rust": {
-          "sig": "features_count() -> usize",
-          "code": "pub fn features_count(&self) -> usize { self.features.len() }",
-          "file": "element.rs"
-        }
-      }
-    },
-    {
       "name": "Element.str",
       "implementations": {
         "cpp": {
@@ -72470,12 +73326,17 @@ window.API_INDEX = {
         "Element.axis",
         "Element.beam",
         "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.collision_mesh",
         "Element.column",
         "Element.column_with_transformation",
         "Element.depth",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.file_json_dump",
         "Element.file_json_dumps",
         "Element.file_json_load",
@@ -72509,8 +73370,6 @@ window.API_INDEX = {
         "Element.polygon",
         "Element.polylines",
         "Element.repr",
-        "Element.session_geometry",
-        "Element.session_transformation",
         "Element.set_key",
         "Element.thickness",
         "Element.type_name",
@@ -72539,19 +73398,21 @@ window.API_INDEX = {
         "Element.__repr__",
         "Element.__str__",
         "Element.axis",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.depth",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.geometry",
         "Element.geometry_type_name",
         "Element.guid",
         "Element.height",
         "Element.is_dirty",
         "Element.length",
-        "Element.planes",
-        "Element.point",
         "Element.polygon",
-        "Element.polylines",
         "Element.str",
         "Element.thickness",
         "Element.type_name",
@@ -78734,7 +79595,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "NurbsCurve.__repr__",
         "NurbsCurve._basis_functions",
         "NurbsCurve._basis_functions_derivatives",
         "NurbsCurve._find_span",
@@ -79146,6 +80006,7 @@ window.API_INDEX = {
       "related": [
         "NurbsSurface._basis_functions",
         "NurbsSurface._basis_functions_derivatives",
+        "NurbsSurface._find_span",
         "NurbsSurface.basis_functions",
         "NurbsSurface.degree",
         "NurbsSurface.evaluate",
@@ -79186,7 +80047,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__ne__",
         "NurbsSurfaceTrimmed.__repr__",
         "NurbsSurfaceTrimmed.__str__",
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.file_json_dump",
         "NurbsSurfaceTrimmed.file_json_dumps",
@@ -79199,6 +80059,7 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.to_string",
         "NurbsSurfaceTrimmed.transform",
         "NurbsSurfaceTrimmed.transformed",
+        "NurbsSurfaceTrimmed.weld",
         "NurbsSurfaceTrimmed.xform"
       ]
     },
@@ -79261,7 +80122,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.clear_inner_loops",
         "NurbsSurfaceTrimmed.create",
         "NurbsSurfaceTrimmed.create_planar",
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.cycle_to_loop",
         "NurbsSurfaceTrimmed.disc_loop",
         "NurbsSurfaceTrimmed.duplicate",
@@ -79323,7 +80183,6 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.__ne__",
         "NurbsSurfaceTrimmed.__repr__",
         "NurbsSurfaceTrimmed.__str__",
-        "NurbsSurfaceTrimmed.cross",
         "NurbsSurfaceTrimmed.duplicate",
         "NurbsSurfaceTrimmed.inner_loop_count",
         "NurbsSurfaceTrimmed.is_trimmed",
@@ -79331,7 +80190,8 @@ window.API_INDEX = {
         "NurbsSurfaceTrimmed.surface",
         "NurbsSurfaceTrimmed.to_string",
         "NurbsSurfaceTrimmed.transform",
-        "NurbsSurfaceTrimmed.transformed"
+        "NurbsSurfaceTrimmed.transformed",
+        "NurbsSurfaceTrimmed.weld"
       ]
     },
     {
@@ -80683,6 +81543,7 @@ window.API_INDEX = {
         "Polyline.boolean_op_plane",
         "Polyline.bounding_rectangle",
         "Polyline.center",
+        "Polyline.clip_open_against_closed",
         "Polyline.closed",
         "Polyline.closest_distance_and_point",
         "Polyline.closest_point_to_line",
@@ -80742,6 +81603,7 @@ window.API_INDEX = {
         "Polyline.polylabel",
         "Polyline.polylabel_circle_division_points",
         "Polyline.project",
+        "Polyline.pt",
         "Polyline.qh_upper",
         "Polyline.quadratic_points",
         "Polyline.quick_hull",
@@ -80929,9 +81791,11 @@ window.API_INDEX = {
         "Polyline.polylabel_circle_division_points",
         "Polyline.proj2d",
         "Polyline.project",
+        "Polyline.pt",
         "Polyline.pt_in_poly",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.reverse",
         "Polyline.reversed",
         "Polyline.segment_count",
@@ -80945,24 +81809,11 @@ window.API_INDEX = {
         "Polyline.transformed",
         "Polyline.transformed_xform",
         "Polyline.translate",
+        "Polyline.translated",
         "Polyline.tween_two_polylines",
         "Polyline.two_rects_from_frame",
         "Polyline.unproj",
         "Polyline.xform"
-      ]
-    },
-    {
-      "name": "Polyline.translated",
-      "implementations": {
-        "cpp": {
-          "sig": "Polyline translated(const Vector& v)",
-          "code": "Polyline Polyline::translated(const Vector& v) const {\n    Polyline result(*this);\n    result.translate(v);\n    return result;\n}",
-          "file": "polyline.cpp"
-        }
-      },
-      "related": [
-        "Polyline.Polyline",
-        "Polyline.translate"
       ]
     },
     {
@@ -81022,39 +81873,6 @@ window.API_INDEX = {
         "Polyline.new",
         "Polyline.points",
         "Polyline.str"
-      ]
-    },
-    {
-      "name": "Polyline.remove_consecutive_duplicates",
-      "implementations": {
-        "cpp": {
-          "sig": "void remove_consecutive_duplicates(double tol)",
-          "code": "void Polyline::remove_consecutive_duplicates(double tol) {\n    auto pts = get_points();\n    std::vector<Point> cleaned;\n    cleaned.reserve(pts.size());\n    const double tol_sq = tol * tol;\n    for (auto& p : pts) {\n        if (cleaned.empty()) { cleaned.push_back(p); continue; }",
-          "file": "polyline.cpp"
-        }
-      },
-      "related": [
-        "Polyline.Polyline",
-        "Polyline.duplicate",
-        "Polyline.get_point",
-        "Polyline.get_points",
-        "Polyline.points"
-      ]
-    },
-    {
-      "name": "Polyline.two_rects_from_frame",
-      "implementations": {
-        "cpp": {
-          "sig": "void two_rects_from_frame(\n    const Point&  p,\n    const Vector& segment_vector,\n    const Vector& zaxis,\n    bool          middle,\n    double        radius,\n    double        length,\n    int           flip_male,\n    Polyline&     rect0,\n    Polyline&     rect1)",
-          "code": "void Polyline::two_rects_from_frame(\n    const Point&  p,\n    const Vector& segment_vector,\n    const Vector& zaxis,\n    bool          middle,\n    double        radius,\n    double        length,\n    int           flip_male,\n    Polyline&     rect0,\n    Polyline&     rect1)\n{\n    Vector y_axis = zaxis.cross(segment_vector);\n    Vector x_axis = y_axis.cross(segment_vector);\n    x_axis.normalize_self();\n    y_axis.normalize_self();\n    x_axis = x_axis * radius;\n    y_axis = y_axis * radius;\n\n    Vector sv0 = segment_vector * (length * -0.5);\n    Vector sv1 = segment_vector * ( length *  0.5);\n\n    std::array<Vector, 4> v = {\n        Vector(-x_axis[0] - y_axis[0], -x_axis[1] - y_axis[1], -x_axis[2] - y_axis[2]),\n        Vector( x_axis[0] - y_axis[0],  x_axis[1] - y_axis[1],  x_axis[2] - y_axis[2]),\n        Vector( x_axis[0] + y_axis[0],  x_axis[1] + y_axis[1],  x_axis[2] + y_axis[2]),\n        Vector(-x_axis[0] + y_axis[0], -x_axis[1] + y_axis[1], -x_axis[2] + y_axis[2]),\n    }",
-          "file": "polyline.cpp"
-        }
-      },
-      "related": [
-        "Polyline.Polyline",
-        "Polyline.flip",
-        "Polyline.len",
-        "Polyline.length"
       ]
     },
     {
@@ -81121,6 +81939,7 @@ window.API_INDEX = {
         "Polyline.len",
         "Polyline.pb_dump",
         "Polyline.pb_load",
+        "Polyline.pt",
         "Polyline.simplify",
         "Polyline.simplify_rdp"
       ]
@@ -82486,23 +83305,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "Session.add_elementfeature",
-      "implementations": {
-        "cpp": {
-          "sig": "std::string add_elementfeature(const std::string &guid_a,\n                                        const std::string &guid_b,\n                                        EdgeElementFeature feature)",
-          "code": "std::string Session::add_elementfeature(const std::string &guid_a,\n                                        const std::string &guid_b,\n                                        EdgeElementFeature feature) {\n  std::string key = edge_elementfeature_guid(feature);\n  if (key.empty()) key = ::guid();\n  edge_elementfeatures[key] = std::move(feature);\n  graph.add_edge(guid_a, guid_b, key);\n  return key;\n}",
-          "file": "session.cpp"
-        }
-      },
-      "related": [
-        "Session.add",
-        "Session.add_edge",
-        "Session.add_element",
-        "Session.guid",
-        "Session.str"
-      ]
-    },
-    {
       "name": "Session.compute_bounding_box",
       "implementations": {
         "cpp": {
@@ -82513,7 +83315,6 @@ window.API_INDEX = {
       },
       "related": [
         "Session._compute_bounding_box",
-        "Session.add_edge",
         "Session.cache_geometry_aabb",
         "Session.get_collisions",
         "Session.get_object",
@@ -84863,7 +85664,17 @@ window.API_INDEX = {
       "implementations": {
         "rust": {
           "sig": "boolean_op(a: &Polyline, b: &Polyline, clip_type: i32) -> Vec<Polyline>",
-          "code": "pub fn boolean_op(a: &Polyline, b: &Polyline, clip_type: i32) -> Vec<Polyline> {\n    let ca = &a.coords; let cb = &b.coords;\n    let mut na = ca.len() / 3; let mut nb = cb.len() / 3;\n    // strip closing duplicate\n    if na >= 2 { let dx = ca[(na-1)*3]-ca[0]; let dy = ca[(na-1)*3+1]-ca[1]; if dx*dx+dy*dy < 1e-20 { na -= 1; } }\n    if nb >= 2 { let dx = cb[(nb-1)*3]-cb[0]; let dy = cb[(nb-1)*3+1]-cb[1]; if dx*dx+dy*dy < 1e-20 { nb -= 1; } }\n    if na < 3 || nb < 3 { return vec![]; }\n\n    // Compute safe scale from actual coordinate range to prevent int64 overflow\n    // in cross products: (max_coord * scale)^2 must fit in int64\n    let mut max_coord: f64 = 0.0;\n    for i in 0..na { max_coord = max_coord.max(ca[i*3].abs()).max(ca[i*3+1].abs()); }\n    for i in 0..nb { max_coord = max_coord.max(cb[i*3].abs()).max(cb[i*3+1].abs()); }\n    if max_coord < 1e-12 { max_coord = 1.0; }\n    let bool_scale: f64 = ((i64::MAX as f64).sqrt() / max_coord * 0.99).floor();\n    let bool_inv_scale: f64 = 1.0 / bool_scale;\n\n    SCRATCH.with(|cell| {\n        let mut sc = cell.borrow_mut();\n        sc.clear_for_reuse();\n        // Pre-reserve like C++ at boolean_polyline.cpp:1133-1139 \u00e2\u20ac\u201d eliminates grow-by-doubling\n        let total = na + nb;\n        sc.vtx.reserve(total + 4);\n        sc.act.reserve(total * 2 + 4);\n        sc.opt.reserve(total * 4);\n        sc.orc.reserve(total);\n        sc.locmin.reserve(total);\n        sc.orclist.reserve(total);\n        sc.scan.reserve(total * 2);\n        boolean_op_inner(&mut sc, a, b, ca, cb, na, nb, clip_type, bool_scale, bool_inv_scale)\n    })\n}",
+          "code": "pub fn boolean_op(a: &Polyline, b: &Polyline, clip_type: i32) -> Vec<Polyline> {\n    let ca = &a.coords; let cb = &b.coords;\n    let mut na = ca.len() / 3; let mut nb = cb.len() / 3;\n    // strip closing duplicate\n    if na >= 2 { let dx = ca[(na-1)*3]-ca[0]; let dy = ca[(na-1)*3+1]-ca[1]; if dx*dx+dy*dy < 1e-20 { na -= 1; } }\n    if nb >= 2 { let dx = cb[(nb-1)*3]-cb[0]; let dy = cb[(nb-1)*3+1]-cb[1]; if dx*dx+dy*dy < 1e-20 { nb -= 1; } }\n    if na < 3 || nb < 3 { return vec![]; }\n\n    // Compute safe scale from actual coordinate range to prevent int64 overflow\n    // in cross products: (max_coord * scale)^2 must fit in int64\n    let mut max_coord: f64 = 0.0;\n    for i in 0..na { max_coord = max_coord.max(ca[i*3].abs()).max(ca[i*3+1].abs()); }\n    for i in 0..nb { max_coord = max_coord.max(cb[i*3].abs()).max(cb[i*3+1].abs()); }\n    if max_coord < 1e-12 { max_coord = 1.0; }\n    let bool_scale: f64 = ((i64::MAX as f64).sqrt() / (2.0 * max_coord)).floor();\n    let bool_inv_scale: f64 = 1.0 / bool_scale;\n\n    SCRATCH.with(|cell| {\n        let mut sc = cell.borrow_mut();\n        sc.clear_for_reuse();\n        // Pre-reserve like C++ at boolean_polyline.cpp:1133-1139 \u00e2\u20ac\u201d eliminates grow-by-doubling\n        let total = na + nb;\n        sc.vtx.reserve(total + 4);\n        sc.act.reserve(total * 2 + 4);\n        sc.opt.reserve(total * 4);\n        sc.orc.reserve(total);\n        sc.locmin.reserve(total);\n        sc.orclist.reserve(total);\n        sc.scan.reserve(total * 2);\n        boolean_op_inner(&mut sc, a, b, ca, cb, na, nb, clip_type, bool_scale, bool_inv_scale)\n    })\n}",
+          "file": "boolean_polyline.rs"
+        }
+      }
+    },
+    {
+      "name": "Sc.clip_open_against_closed",
+      "implementations": {
+        "rust": {
+          "sig": "clip_open_against_closed(open_subject: &Polyline, closed_clip: &Polyline) -> Vec<Polyline>",
+          "code": "pub fn clip_open_against_closed(open_subject: &Polyline, closed_clip: &Polyline) -> Vec<Polyline> {\n    let mut result: Vec<Polyline> = Vec::new();\n    let cs = &open_subject.coords;\n    let cc = &closed_clip.coords;\n    let ns = cs.len() / 3;\n    let mut nc = cc.len() / 3;\n\n    if nc >= 2 {\n        let dx = cc[(nc - 1) * 3] - cc[0];\n        let dy = cc[(nc - 1) * 3 + 1] - cc[1];\n        if dx * dx + dy * dy < 1e-20 {\n            nc -= 1;\n        }\n    }\n    if ns < 2 || nc < 3 {\n        return result;\n    }\n\n    let point_in_poly = |px: f64, py: f64| -> bool {\n        let mut inside = false;\n        let mut j = nc - 1;\n        for i in 0..nc {\n            let xi = cc[i * 3];\n            let yi = cc[i * 3 + 1];\n            let xj = cc[j * 3];\n            let yj = cc[j * 3 + 1];\n            let crosses = (yi > py) != (yj > py);\n            if crosses {\n                let xint = xj + (py - yj) * (xi - xj) / (yi - yj);\n                if px < xint {\n                    inside = !inside;\n                }\n            }\n            j = i;\n        }\n        inside\n    };\n\n    fn push_xy(cur: &mut Vec<f64>, x: f64, y: f64) {\n        let n = cur.len();\n        if n >= 3 {\n            let lx = cur[n - 3];\n            let ly = cur[n - 2];\n            if (lx - x).abs() < 1e-9 && (ly - y).abs() < 1e-9 {\n                return;\n            }\n        }\n        cur.push(x);\n        cur.push(y);\n        cur.push(0.0);\n    }\n\n    fn flush(cur: &mut Vec<f64>, result: &mut Vec<Polyline>) {\n        if cur.len() < 6 {\n            cur.clear();\n            return;\n        }\n        result.push(Polyline::from_coords(std::mem::take(cur)));\n    }\n\n    let mut cur: Vec<f64> = Vec::new();\n\n    let a_inside = point_in_poly(cs[0], cs[1]);\n    if a_inside {\n        push_xy(&mut cur, cs[0], cs[1]);\n    }\n\n    for si in 0..(ns - 1) {\n        let ax = cs[si * 3];\n        let ay = cs[si * 3 + 1];\n        let bx = cs[(si + 1) * 3];\n        let by = cs[(si + 1) * 3 + 1];\n        let dx = bx - ax;\n        let dy = by - ay;\n        let mut ts: Vec<f64> = Vec::new();\n        let mut ej = nc - 1;\n        for ei in 0..nc {\n            let ex = cc[ei * 3] - cc[ej * 3];\n            let ey = cc[ei * 3 + 1] - cc[ej * 3 + 1];\n            let denom = dx * (-ey) - dy * (-ex);\n            if denom.abs() >= 1e-18 {\n                let rx = cc[ej * 3] - ax;\n                let ry = cc[ej * 3 + 1] - ay;\n                let t = (rx * (-ey) - ry * (-ex)) / denom;\n                let u = (rx * (-dy) - ry * (-dx)) / denom;\n                if t > 1e-12 && t <= 1.0 + 1e-12 && u >= -1e-9 && u <= 1.0 + 1e-9 {\n                    ts.push(if t < 0.0 { 0.0 } else if t > 1.0 { 1.0 } else { t });\n                }\n            }\n            ej = ei;\n        }\n        ts.sort_by(|a, b| a.partial_cmp(b).unwrap());\n        let mut prev_t = 0.0;\n        for &t in &ts {\n            if t - prev_t < 1e-12 {\n                prev_t = t;\n                continue;\n            }\n            let mid_t = 0.5 * (prev_t + t);\n            let mx = ax + dx * mid_t;\n            let my = ay + dy * mid_t;\n            let mid_in = point_in_poly(mx, my);\n            let ix = ax + dx * t;\n            let iy = ay + dy * t;\n            if mid_in {\n                push_xy(&mut cur, ix, iy);\n                flush(&mut cur, &mut result);\n            } else {\n                push_xy(&mut cur, ix, iy);\n            }\n            prev_t = t;\n        }\n        if prev_t < 1.0 - 1e-12 {\n            let mid_t = 0.5 * (prev_t + 1.0);\n            let mx = ax + dx * mid_t;\n            let my = ay + dy * mid_t;\n            if point_in_poly(mx, my) {\n                push_xy(&mut cur, bx, by);\n            }\n        }\n    }\n    flush(&mut cur, &mut result);\n    result\n}",
           "file": "boolean_polyline.rs"
         }
       }
@@ -85098,12 +85909,17 @@ window.API_INDEX = {
         "Element.aabb",
         "Element.axis",
         "Element.beam_with_transformation",
+        "Element.cached_aabb",
+        "Element.cached_collision_mesh",
+        "Element.cached_obb",
+        "Element.cached_point",
         "Element.center_line",
         "Element.collision_mesh",
         "Element.column_with_transformation",
         "Element.compute_aabb_fast",
         "Element.duplicate",
         "Element.edge_vectors",
+        "Element.features_count",
         "Element.file_json_loads",
         "Element.from_brep_with_transformation",
         "Element.from_mesh_with_transformation",
@@ -85120,8 +85936,6 @@ window.API_INDEX = {
         "Element.point",
         "Element.polygon_normal",
         "Element.polylines",
-        "Element.session_geometry",
-        "Element.session_transformation",
         "Element.set_polygon",
         "Element.str",
         "Element.with_transformation"
@@ -86653,46 +87467,6 @@ window.API_INDEX = {
       ]
     },
     {
-      "name": "NurbsSurfaceTrimmed.mesh_by_planes",
-      "implementations": {
-        "rust": {
-          "sig": "mesh_by_planes(planes: &[(Point, Vector)",
-          "code": "pub fn mesh_by_planes(&self, planes: &[(Point, Vector)], max_angle_deg: f64, chord_factor: f64) -> Mesh {\n        let srf = &self.m_surface;\n        let pl: Vec<([f64;3],[f64;3])> = planes.iter().filter_map(|(q,n)| {\n            let (nx,ny,nz)=(n[0] as f64,n[1] as f64,n[2] as f64);\n            let l=(nx*nx+ny*ny+nz*nz).sqrt();\n            if l<1e-12 { None } else { Some(([q[0] as f64,q[1] as f64,q[2] as f64],[nx/l,ny/l,nz/l])) }\n        }).collect();\n        if pl.is_empty() { return srf.mesh(); }\n        let e3 = |u: f64, v: f64| -> [f64;3] { let p=srf.point_at(u,v).unwrap_or(Point::new(0.0,0.0,0.0)); [p[0] as f64,p[1] as f64,p[2] as f64] };\n        let field_k = |k: usize, u: f64, v: f64| -> f64 { let p=e3(u,v); let (q,n)=&pl[k]; (p[0]-q[0])*n[0]+(p[1]-q[1])*n[1]+(p[2]-q[2])*n[2] };\n        let refine_k = |k: usize, mut u: f64, mut v: f64| -> (f64,f64) {\n            let (_q,n)=&pl[k];\n            for _ in 0..12 {\n                let fv=field_k(k,u,v); if fv.abs()<1e-9 { break; }\n                let h=1e-4; let a=e3(u+h,v); let b=e3(u-h,v); let c=e3(u,v+h); let d=e3(u,v-h);\n                let gu=((a[0]-b[0])*n[0]+(a[1]-b[1])*n[1]+(a[2]-b[2])*n[2])/(2.0*h);\n                let gv=((c[0]-d[0])*n[0]+(c[1]-d[1])*n[1]+(c[2]-d[2])*n[2])/(2.0*h);\n                let g2=gu*gu+gv*gv; if g2<1e-20 { break; }\n                u-=fv*gu/g2; v-=fv*gv/g2;\n            }\n            (u,v)\n        };\n        let usp: Vec<f64> = srf.get_span_vector(0).iter().map(|&x| x as f64).collect();\n        let vsp: Vec<f64> = srf.get_span_vector(1).iter().map(|&x| x as f64).collect();\n        if usp.len()<2 || vsp.len()<2 { return srf.mesh(); }\n        let deg_u=srf.degree(0); let deg_v=srf.degree(1);\n        let mut bmin=[1e30f64;3]; let mut bmax=[-1e30f64;3];\n        for i in 0..srf.cv_count_dir(Some(0)) { for j in 0..srf.cv_count_dir(Some(1)) {\n            if let Some(p)=srf.get_cv(i,j) { for k in 0..3 { let c=p[k] as f64; if c<bmin[k]{bmin[k]=c;} if c>bmax[k]{bmax[k]=c;} } }\n        }}\n        let mut diag=(0..3).map(|k|(bmax[k]-bmin[k]).powi(2)).sum::<f64>().sqrt(); if diag<1e-12 { diag=1.0; }\n        let ctol=diag*chord_factor;\n        let span_subs = |dr: usize, sp: &[f64], osp: &[f64], deg: usize| -> Vec<usize> {\n            let n=sp.len()-1; let mut out=vec![if deg>1 {2usize} else {1}; n];\n            let smid=(osp[0]+osp[osp.len()-1])*0.5;\n            for i in 0..n {\n                let (t0,t1)=(sp[i],sp[i+1]);\n                if deg>1 {\n                    let mut ma=0.0f64; let mut pn=[0.0f64;3];\n                    for k in 0..=4 { let t=t0+k as f64*(t1-t0)/4.0; let nm=if dr==0 {srf.normal_at(t,smid)} else {srf.normal_at(smid,t)};\n                        if k>0 { let d=(pn[0]*nm[0]+pn[1]*nm[1]+pn[2]*nm[2]).max(-1.0).min(1.0); ma+=d.acos()*180.0/std::f64::consts::PI; } pn=[nm[0],nm[1],nm[2]]; }\n                    out[i]=out[i].max(1.max(((ma/max_angle_deg).ceil() as usize).min(64)));\n                }\n                let p0=if dr==0 {e3(t0,smid)} else {e3(smid,t0)}; let p1=if dr==0 {e3(t1,smid)} else {e3(smid,t1)};\n                let mut dev=0.0f64;\n                for k in 1..=3 { let fr=k as f64/4.0; let tm=t0+fr*(t1-t0); let pm=if dr==0 {e3(tm,smid)} else {e3(smid,tm)};\n                    let (lx,ly,lz)=(p0[0]+fr*(p1[0]-p0[0]),p0[1]+fr*(p1[1]-p0[1]),p0[2]+fr*(p1[2]-p0[2]));\n                    dev=dev.max(((pm[0]-lx).powi(2)+(pm[1]-ly).powi(2)+(pm[2]-lz).powi(2)).sqrt()); }\n                if dev>ctol { out[i]=out[i].max(((dev/ctol).sqrt().ceil() as usize).min(64)); }\n            }\n            out\n        };\n        let us_subs=span_subs(0,&usp,&vsp,deg_u); let vs_subs=span_subs(1,&vsp,&usp,deg_v);\n        let mut us=Vec::new(); for i in 0..usp.len()-1 { for s in 0..us_subs[i] { us.push(usp[i]+(s as f64)*(usp[i+1]-usp[i])/(us_subs[i] as f64)); } } us.push(*usp.last().unwrap());\n        let mut vs=Vec::new(); for i in 0..vsp.len()-1 { for s in 0..vs_subs[i] { vs.push(vsp[i]+(s as f64)*(vsp[i+1]-vsp[i])/(vs_subs[i] as f64)); } } vs.push(*vsp.last().unwrap());\n        let nu=us.len(); let nv=vs.len(); if nu<2||nv<2 { return srf.mesh(); }\n        let mut tris: Vec<[(f64,f64);3]> = Vec::with_capacity((nu-1)*(nv-1)*2);\n        for i in 0..nu-1 { for j in 0..nv-1 {\n            let a=(us[i],vs[j]); let b=(us[i+1],vs[j]); let c=(us[i+1],vs[j+1]); let d=(us[i],vs[j+1]);\n            tris.push([a,b,c]); tris.push([a,c,d]);\n        }}\n        let eps=1e-9;\n        for k in 0..pl.len() {\n            let mut next: Vec<[(f64,f64);3]> = Vec::new();\n            for t in &tris {\n                let mut poly: Vec<(f64,f64)> = Vec::new();\n                for e in 0..3 {\n                    let p=t[e]; let q=t[(e+1)%3];\n                    let fp=field_k(k,p.0,p.1); let fq=field_k(k,q.0,q.1);\n                    let (pin,qin)=(fp<=eps, fq<=eps);\n                    if pin { poly.push(p); }\n                    if pin!=qin {\n                        let tt= if (fp-fq).abs()>1e-30 { fp/(fp-fq) } else { 0.5 };\n                        let cu=p.0+(q.0-p.0)*tt; let cv=p.1+(q.1-p.1)*tt;\n                        poly.push(refine_k(k,cu,cv));\n                    }\n                }\n                for w in 1..poly.len().saturating_sub(1) { next.push([poly[0],poly[w],poly[w+1]]); }\n            }\n            tris=next;\n            if tris.is_empty() { break; }\n        }\n        if tris.is_empty() { return Mesh::new(); }\n        let mut result=Mesh::new();\n        let wt=diag*1e-5; let cell=if wt>0.0 {wt} else {1.0};\n        let mut cmap: std::collections::HashMap<(i64,i64,i64),Vec<([f64;3],usize)>> = std::collections::HashMap::new();\n        let weld = |result:&mut Mesh, cmap:&mut std::collections::HashMap<(i64,i64,i64),Vec<([f64;3],usize)>>, u:f64,v:f64| -> usize {\n            let p=srf.point_at(u,v).unwrap_or(Point::new(0.0,0.0,0.0));\n            let (x,y,z)=(p[0] as f64,p[1] as f64,p[2] as f64);\n            let (ci,cj,ck)=((x/cell).floor() as i64,(y/cell).floor() as i64,(z/cell).floor() as i64);\n            for di in -1..=1 { for dj in -1..=1 { for dk in -1..=1 {\n                if let Some(b)=cmap.get(&(ci+di,cj+dj,ck+dk)) { for &(pp,vk) in b { if (pp[0]-x).powi(2)+(pp[1]-y).powi(2)+(pp[2]-z).powi(2)<=wt*wt { return vk; } } }\n            }}}\n            let vk=result.add_vertex(p,None); let nm=srf.normal_at(u,v);\n            if let Some(vd)=result.vertex.get_mut(&vk){vd.set_normal(nm[0],nm[1],nm[2]);}\n            cmap.entry((ci,cj,ck)).or_default().push(([x,y,z],vk)); vk\n        };\n        for t in &tris {\n            let a=weld(&mut result,&mut cmap,t[0].0,t[0].1);\n            let b=weld(&mut result,&mut cmap,t[1].0,t[1].1);\n            let c=weld(&mut result,&mut cmap,t[2].0,t[2].1);\n            if a==b||b==c||c==a { continue; }\n            result.add_face(vec![a,b,c],None);\n        }\n        if result.face.is_empty() { return Mesh::new(); }\n        result\n    }",
-          "file": "nurbssurface_trimmed.rs"
-        }
-      },
-      "related": [
-        "NurbsSurfaceTrimmed.e3",
-        "NurbsSurfaceTrimmed.field",
-        "NurbsSurfaceTrimmed.mesh",
-        "NurbsSurfaceTrimmed.mesh_by_plane",
-        "NurbsSurfaceTrimmed.mesh_render",
-        "NurbsSurfaceTrimmed.new",
-        "NurbsSurfaceTrimmed.normal_at",
-        "NurbsSurfaceTrimmed.point_at",
-        "NurbsSurfaceTrimmed.refine",
-        "NurbsSurfaceTrimmed.span_subs",
-        "NurbsSurfaceTrimmed.surface",
-        "NurbsSurfaceTrimmed.weld"
-      ]
-    },
-    {
-      "name": "NurbsSurfaceTrimmed.split_by_planes",
-      "implementations": {
-        "rust": {
-          "sig": "split_by_planes(srf: &NurbsSurface, planes: &[(Point, Vector)",
-          "code": "pub fn split_by_planes(srf: &NurbsSurface, planes: &[(Point, Vector)]) -> Vec<NurbsSurfaceTrimmed> {\n        let k=planes.len(); if k==0 || k>16 { return Vec::new(); }\n        let mut out=Vec::new();\n        for mask in 0u32..(1u32<<k) {\n            let mut cp: Vec<(Point,Vector)> = Vec::with_capacity(k);\n            for (i,(q,n)) in planes.iter().enumerate() {\n                let flip=((mask>>i)&1)==1;\n                let nn=if flip { Vector::new(-n[0],-n[1],-n[2]) } else { Vector::new(n[0],n[1],n[2]) };\n                cp.push((q.clone(), nn));\n            }\n            let mut ts=NurbsSurfaceTrimmed::new();\n            ts.m_surface=srf.clone();\n            ts.cut_planes=cp;\n            let m=ts.mesh_render(20.0,0.01);\n            if m.number_of_faces()>0 { out.push(ts); }\n        }\n        out\n    }",
-          "file": "nurbssurface_trimmed.rs"
-        }
-      },
-      "related": [
-        "NurbsSurfaceTrimmed.mesh",
-        "NurbsSurfaceTrimmed.mesh_render",
-        "NurbsSurfaceTrimmed.new",
-        "NurbsSurfaceTrimmed.surface"
-      ]
-    },
-    {
       "name": "NurbsSurfaceTrimmed.transform_self",
       "implementations": {
         "rust": {
@@ -87374,7 +88148,9 @@ window.API_INDEX = {
         "Polyline.polylabel",
         "Polyline.polylabel_circle_division_points",
         "Polyline.project",
+        "Polyline.pt",
         "Polyline.quick_hull",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
@@ -87387,6 +88163,8 @@ window.API_INDEX = {
         "Polyline.transformed",
         "Polyline.transformed_xform",
         "Polyline.translate",
+        "Polyline.translated",
+        "Polyline.two_rects_from_frame",
         "Polyline.xform"
       ]
     },
@@ -87442,15 +88220,36 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Polyline.__ne__",
+        "Polyline._simplify_perp_dist",
+        "Polyline._simplify_rdp",
         "Polyline.center",
         "Polyline.closed",
         "Polyline.cut_by_plane",
         "Polyline.is_closed",
         "Polyline.line_line_overlap_average",
         "Polyline.merge_collinear",
+        "Polyline.remove_consecutive_duplicates",
         "Polyline.reverse",
         "Polyline.signed_dist",
+        "Polyline.simplify",
+        "Polyline.simplify_points",
+        "Polyline.translated",
         "Polyline.two_rects_from_frame"
+      ]
+    },
+    {
+      "name": "Polyline.clip_open_against_closed",
+      "implementations": {
+        "rust": {
+          "sig": "clip_open_against_closed(open_subject: &Polyline, closed_clip: &Polyline) -> Vec<Polyline>",
+          "code": "pub fn clip_open_against_closed(open_subject: &Polyline, closed_clip: &Polyline) -> Vec<Polyline> {\n        crate::boolean_polyline::clip_open_against_closed(open_subject, closed_clip)\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.closed"
       ]
     },
     {
@@ -92920,7 +93719,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Intersection\", \"Closed And Open Paths 2D\")",
-          "code": "MINI_TEST!(\"Intersection\", \"Closed And Open Paths 2D\", crate::intersection_test::run_intersection_closed_and_open_paths_2d);",
+          "code": "MINI_TEST!(\"Intersection\", \"Closed And Open Paths 2D\", crate::intersection_test::run_intersection_closed_and_open_paths_2d);\n\npub fn run_intersection_line_line_classified() -> TestResult {\n    MINI_TEST!(\"Line Line Classified\", {\n        use crate::intersection;\n        use crate::{Line, Point, Vector};\n\n        // Crossing perpendicular segments meeting at their midpoints.\n        let s0 = Line::new(-1.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n        let s1 = Line::new(0.0, -1.0, 0.0, 0.0, 1.0, 0.0);\n        let mut p0 = Point::new(0.0, 0.0, 0.0);\n        let mut p1 = Point::new(0.0, 0.0, 0.0);\n        let mut v0 = Vector::new(0.0, 0.0, 0.0);\n        let mut v1 = Vector::new(0.0, 0.0, 0.0);\n        let mut normal = Vector::new(0.0, 0.0, 0.0);\n        let mut type0 = false;\n        let mut type1 = false;\n        let mut is_parallel = false;\n        let ok = intersection::line_line_classified(&s0, &s1, 1, 1, 0, 0, 0.5, &mut p0, &mut p1, &mut v0, &mut v1, &mut normal, &mut type0, &mut type1, &mut is_parallel);\n\n        MINI_CHECK!(ok);\n        MINI_CHECK!(!is_parallel);\n        MINI_CHECK!((p0[0]).abs() < 1e-6);\n        MINI_CHECK!((p0[1]).abs() < 1e-6);\n        MINI_CHECK!((p1[0]).abs() < 1e-6);\n        MINI_CHECK!((p1[1]).abs() < 1e-6);\n        MINI_CHECK!((normal[2].abs() - 1.0).abs() < 1e-6);\n\n        // Shared-endpoint case: both segments start at the same point.\n        let e0 = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n        let e1 = Line::new(0.0, 0.0, 0.0, 0.0, 1.0, 0.0);\n        let ok2 = intersection::line_line_classified(&e0, &e1, 1, 1, 0, 0, 0.5, &mut p0, &mut p1, &mut v0, &mut v1, &mut normal, &mut type0, &mut type1, &mut is_parallel);\n\n        MINI_CHECK!(ok2);\n        MINI_CHECK!(!type0);\n        MINI_CHECK!(!type1);\n        MINI_CHECK!((p0[0]).abs() < 1e-6);\n        MINI_CHECK!((p0[1]).abs() < 1e-6);\n\n        // Parallel offset segments.\n        let q0 = Line::new(0.0, 0.0, 0.0, 2.0, 0.0, 0.0);\n        let q1 = Line::new(0.0, 1.0, 0.0, 2.0, 1.0, 0.0);\n        let ok3 = intersection::line_line_classified(&q0, &q1, 1, 1, 0, 0, 0.5, &mut p0, &mut p1, &mut v0, &mut v1, &mut normal, &mut type0, &mut type1, &mut is_parallel);\n\n        MINI_CHECK!(ok3);\n        MINI_CHECK!(is_parallel);\n        MINI_CHECK!(!type0);\n        MINI_CHECK!(!type1);\n    })\n}",
           "file": "intersection_test.rs"
         }
       }
@@ -97628,6 +98427,11 @@ window.API_INDEX = {
           "code": "MINI_TEST(\"Polyline\", \"Polylabel\") {\n    Polyline poly({\n        Point(0.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n        Point(0.0, 10.0, 0.0),\n    });\n    std::vector<Polyline> polys = { poly };\n    std::tuple<Point, Plane, double> res = Polyline::polylabel(polys, 0.5);\n    const Point& c = std::get<0>(res);\n    double r = std::get<2>(res);\n\n    MINI_CHECK(std::abs(c[0] - 5.0) < 0.6);\n    MINI_CHECK(std::abs(c[1] - 5.0) < 0.6);\n    MINI_CHECK(std::abs(r - 5.0) < 0.6);\n}",
           "file": "polyline_test.cpp"
         },
+        "python": {
+          "sig": "@MINI_TEST(\"Polyline\", \"Polylabel\")",
+          "code": "@MINI_TEST(\"Polyline\", \"Polylabel\")\ndef test_polyline_polylabel():\n    from session_py import Polyline\n    from session_py import Point\n\n    poly = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n        Point(0.0, 10.0, 0.0),\n    ])\n    polys = [poly]\n    res = Polyline.polylabel(polys, 0.5)\n    c = res[0]\n    r = res[2]\n\n    MINI_CHECK(abs(c[0] - 5.0) < 0.6)\n    MINI_CHECK(abs(c[1] - 5.0) < 0.6)\n    MINI_CHECK(abs(r - 5.0) < 0.6)",
+          "file": "polyline_test.py"
+        },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Polylabel\")",
           "code": "MINI_TEST!(\"Polyline\", \"Polylabel\", crate::polyline_test::run_polyline_polylabel);\nREGISTER_MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\", crate::polyline_test::run_polyline_polylabel_circle_division_points);\n\npub fn run_polyline_boolean_op() -> TestResult {\n    MINI_TEST!(\"Boolean Op\", {\n        use crate::{Point, Polyline};\n        let sq_a = Polyline::new(vec![\n            Point::new(-1.0, -1.0, 0.0),\n            Point::new( 1.0, -1.0, 0.0),\n            Point::new( 1.0,  1.0, 0.0),\n            Point::new(-1.0,  1.0, 0.0),\n        ]);\n        let sq_b = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 2.0, 0.0),\n            Point::new(0.0, 2.0, 0.0),\n        ]);\n        let sq_inside = Polyline::new(vec![\n            Point::new(-0.5, -0.5, 0.0),\n            Point::new( 0.5, -0.5, 0.0),\n            Point::new( 0.5,  0.5, 0.0),\n            Point::new(-0.5,  0.5, 0.0),\n        ]);\n        let sq_disjoint = Polyline::new(vec![\n            Point::new(5.0, 5.0, 0.0),\n            Point::new(6.0, 5.0, 0.0),\n            Point::new(6.0, 6.0, 0.0),\n            Point::new(5.0, 6.0, 0.0),\n        ]);\n\n        let isect = Polyline::boolean_op(&sq_a, &sq_b, 0);\n        let uni = Polyline::boolean_op(&sq_a, &sq_b, 1);\n        let diff = Polyline::boolean_op(&sq_a, &sq_b, 2);\n        MINI_CHECK!(isect.len() == 1);\n        MINI_CHECK!(isect[0].point_count() == 4);\n        MINI_CHECK!(uni.len() == 1);\n        MINI_CHECK!(uni[0].point_count() == 8);\n        MINI_CHECK!(diff.len() == 1);\n        MINI_CHECK!(diff[0].point_count() == 6);\n\n        let isect_in = Polyline::boolean_op(&sq_a, &sq_inside, 0);\n        let uni_in = Polyline::boolean_op(&sq_a, &sq_inside, 1);\n        let diff_in = Polyline::boolean_op(&sq_a, &sq_inside, 2);\n        MINI_CHECK!(isect_in.len() == 1);\n        MINI_CHECK!(isect_in[0].point_count() == 4);\n        MINI_CHECK!(uni_in.len() == 1);\n        MINI_CHECK!(uni_in[0].point_count() == 4);\n        MINI_CHECK!(diff_in.len() == 1);\n        MINI_CHECK!(diff_in[0].point_count() == 4);\n\n        let isect_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 0);\n        let uni_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 1);\n        let diff_dis = Polyline::boolean_op(&sq_a, &sq_disjoint, 2);\n        MINI_CHECK!(isect_dis.len() == 0);\n        MINI_CHECK!(uni_dis.len() == 2);\n        MINI_CHECK!(diff_dis.len() == 1);\n    })\n}",
@@ -97642,6 +98446,11 @@ window.API_INDEX = {
           "sig": "MINI_TEST(\"Polyline\", \"Polylabel Circle Division Points\")",
           "code": "MINI_TEST(\"Polyline\", \"Polylabel Circle Division Points\") {\n    Polyline poly({\n        Point(0.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n        Point(0.0, 10.0, 0.0),\n    });\n    std::vector<Polyline> polys = { poly };\n    Vector dir(0.0, 0.0, 0.0);\n    std::vector<Point> pts = Polyline::polylabel_circle_division_points(dir, polys, 4, 0.5, 1.0, true);\n\n    MINI_CHECK(pts.size() == 4);\n    for (const auto& p : pts) {\n        MINI_CHECK(std::abs(p[2]) < 1e-6);\n    }\n}",
           "file": "polyline_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Polyline\", \"Polylabel Circle Division Points\")",
+          "code": "@MINI_TEST(\"Polyline\", \"Polylabel Circle Division Points\")\ndef test_polyline_polylabel_circle_division_points():\n    from session_py import Polyline\n    from session_py import Point\n    from session_py import Vector\n\n    poly = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n        Point(0.0, 10.0, 0.0),\n    ])\n    polys = [poly]\n    direction = Vector(0.0, 0.0, 0.0)\n    pts = Polyline.polylabel_circle_division_points(direction, polys, 4, 0.5, 1.0, True)\n\n    MINI_CHECK(len(pts) == 4)\n    for p in pts:\n        MINI_CHECK(abs(p[2]) < 1e-6)",
+          "file": "polyline_test.py"
         },
         "rust": {
           "sig": "MINI_TEST!(\"Polyline\", \"Polylabel Circle Division Points\")",
@@ -99777,6 +100586,11 @@ window.API_INDEX = {
           "sig": "MINI_TEST(\"Session\", \"Add ElementFeature\")",
           "code": "MINI_TEST(\"Session\", \"Add ElementFeature\") {\n    // uncomment #include \"session.h\"\n    // uncomment #include \"elementfeature.h\"\n    // uncomment #include \"point.h\"\n\n    Session session;\n    auto p1 = std::make_shared<Point>(0.0, 0.0, 0.0);\n    auto p2 = std::make_shared<Point>(1.0, 0.0, 0.0);\n    session.add_point(p1);\n    session.add_point(p2);\n    FaceElementFeature f;\n    f.face_id_a = 0;\n    f.face_id_b = 0;\n    std::string fguid = session.add_elementfeature(p1->guid(), p2->guid(), EdgeElementFeature{f});\n\n    MINI_CHECK(!fguid.empty());\n    MINI_CHECK(session.edge_elementfeatures.count(fguid) == 1);\n    MINI_CHECK(session.graph.has_edge({p1->guid(), p2->guid()}));\n}",
           "file": "session_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Session\", \"Add ElementFeature\")",
+          "code": "@MINI_TEST(\"Session\", \"Add ElementFeature\")\ndef test_session_add_elementfeature():\n    from session_py import Session\n    from session_py import Point\n\n    session = Session()\n    p1 = Point(0.0, 0.0, 0.0)\n    p2 = Point(1.0, 0.0, 0.0)\n    session.add_point(p1)\n    session.add_point(p2)\n\n    class FaceElementFeature:\n        def __init__(self):\n            import uuid\n            self._guid = str(uuid.uuid4())\n            self.face_id_a = 0\n            self.face_id_b = 0\n        @property\n        def guid(self): return self._guid\n\n    f = FaceElementFeature()\n    fguid = session.add_elementfeature(p1.guid, p2.guid, f)\n\n    MINI_CHECK(bool(fguid))\n    MINI_CHECK(fguid in session.edge_elementfeatures)\n    MINI_CHECK(session.graph.has_edge((p1.guid, p2.guid)))",
+          "file": "session_test.py"
         }
       }
     },
@@ -100030,7 +100844,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Session\", \"Tree Transformation Hierarchy\")",
-          "code": "@MINI_TEST(\"Session\", \"Tree Transformation Hierarchy\")\ndef test_session_tree_transformation_hierarchy():\n    from session_py import Session\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Mesh\n    from session_py import Xform\n    from session_py import Plane\n\n    scene = Session(\"tree_transformation_test\")\n\n    def create_box(center, size):\n        mesh = Mesh()\n        h = size * 0.5\n        verts = [\n            Point(center[0] - h, center[1] - h, center[2] - h),\n            Point(center[0] + h, center[1] - h, center[2] - h),\n            Point(center[0] + h, center[1] + h, center[2] - h),\n            Point(center[0] - h, center[1] + h, center[2] - h),\n            Point(center[0] - h, center[1] - h, center[2] + h),\n            Point(center[0] + h, center[1] - h, center[2] + h),\n            Point(center[0] + h, center[1] + h, center[2] + h),\n            Point(center[0] - h, center[1] + h, center[2] + h),\n        ]\n        for i, v in enumerate(verts):\n            mesh.add_vertex(v, i)\n        faces = [\n            [0, 1, 2, 3], [4, 7, 6, 5], [0, 4, 5, 1],\n            [2, 6, 7, 3], [0, 3, 7, 4], [1, 5, 6, 2],\n        ]\n        for f in faces:\n            mesh.add_face(f)\n        return mesh\n\n    box1 = create_box(Point(0, 0, 0), 2.0)\n    box1_node = scene.add_mesh(box1)\n    box2 = create_box(Point(0, 0, 0), 2.0)\n    box2_node = scene.add_mesh(box2)\n    box3 = create_box(Point(0, 0, 0), 2.0)\n    box3_node = scene.add_mesh(box3)\n\n    scene.add(box1_node)\n    scene.add(box2_node, box1_node)\n    scene.add(box3_node, box2_node)\n\n    plane_from = Plane(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0))\n    plane_to = Plane(Point(0, 0, 1.0), Vector(1, 0, 0), Vector(0, 1, 0))\n    xy_to_top = Xform.plane_to_plane(plane_from, plane_to)\n    box1.xform = Xform.rotation_z(PI / 1.5) * xy_to_top\n    box2.xform = Xform.translation(2.0, 0, 0) * Xform.rotation_z(PI / 6.0)\n    box3.xform = Xform.translation(2.0, 0, 0)\n\n    transformed = scene.get_geometry()\n\n    MINI_CHECK(len(transformed.meshes) == 3)\n    m1 = transformed.meshes[0]\n    v0 = m1.vertex[0]\n    MINI_CHECK(abs(v0[0] - 1.36603) < 1e-4)\n    MINI_CHECK(abs(v0[1] - (-0.366025)) < 1e-4)\n    MINI_CHECK(abs(v0[2] - 0.0) < 1e-4)\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "code": "@MINI_TEST(\"Session\", \"Tree Transformation Hierarchy\")\ndef test_session_tree_transformation_hierarchy():\n    from session_py import Session\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Mesh\n    from session_py import Xform\n    from session_py import Plane\n\n    scene = Session(\"tree_transformation_test\")\n\n    def create_box(center, size):\n        mesh = Mesh()\n        h = size * 0.5\n        verts = [\n            Point(center[0] - h, center[1] - h, center[2] - h),\n            Point(center[0] + h, center[1] - h, center[2] - h),\n            Point(center[0] + h, center[1] + h, center[2] - h),\n            Point(center[0] - h, center[1] + h, center[2] - h),\n            Point(center[0] - h, center[1] - h, center[2] + h),\n            Point(center[0] + h, center[1] - h, center[2] + h),\n            Point(center[0] + h, center[1] + h, center[2] + h),\n            Point(center[0] - h, center[1] + h, center[2] + h),\n        ]\n        for i, v in enumerate(verts):\n            mesh.add_vertex(v, i)\n        faces = [\n            [0, 1, 2, 3], [4, 7, 6, 5], [0, 4, 5, 1],\n            [2, 6, 7, 3], [0, 3, 7, 4], [1, 5, 6, 2],\n        ]\n        for f in faces:\n            mesh.add_face(f)\n        return mesh\n\n    box1 = create_box(Point(0, 0, 0), 2.0)\n    box1_node = scene.add_mesh(box1)\n    box2 = create_box(Point(0, 0, 0), 2.0)\n    box2_node = scene.add_mesh(box2)\n    box3 = create_box(Point(0, 0, 0), 2.0)\n    box3_node = scene.add_mesh(box3)\n\n    scene.add(box1_node)\n    scene.add(box2_node, box1_node)\n    scene.add(box3_node, box2_node)\n\n    plane_from = Plane(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0))\n    plane_to = Plane(Point(0, 0, 1.0), Vector(1, 0, 0), Vector(0, 1, 0))\n    xy_to_top = Xform.plane_to_plane(plane_from, plane_to)\n    box1.xform = Xform.rotation_z(PI / 1.5) * xy_to_top\n    box2.xform = Xform.translation(2.0, 0, 0) * Xform.rotation_z(PI / 6.0)\n    box3.xform = Xform.translation(2.0, 0, 0)\n\n    transformed = scene.get_geometry()\n\n    MINI_CHECK(len(transformed.meshes) == 3)\n    m1 = transformed.meshes[0]\n    v0 = m1.vertex[0]\n    MINI_CHECK(abs(v0[0] - 1.36603) < 1e-4)\n    MINI_CHECK(abs(v0[1] - (-0.366025)) < 1e-4)\n    MINI_CHECK(abs(v0[2] - 0.0) < 1e-4)",
           "file": "session_test.py"
         },
         "rust": {
@@ -100050,8 +100864,8 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Session\", \"Add Component\")",
-          "code": "@MINI_TEST(\"Session\", \"Add Component\")\ndef test_session_add_component():\n    import uuid\n    from session_py.session import Session\n    from session_py.file_encoders import file_register_class\n\n    class Box:\n        def __init__(self, width=1.0, height=2.0):\n            self._guid = str(uuid.uuid4())\n            self.name = \"my_box\"\n            self.width = width\n            self.height = height\n        @property\n        def guid(self): return self._guid\n        def __jsondump__(self):\n            return {\"type\": \"Box\", \"guid\": self.guid, \"name\": self.name,\n                    \"width\": self.width, \"height\": self.height}\n        @classmethod\n        def __jsonload__(cls, data, guid=None, name=None):\n            obj = cls(data[\"width\"], data[\"height\"])\n            obj._guid = guid or data.get(\"guid\", obj._guid)\n            obj.name  = name or data.get(\"name\", obj.name)\n            return obj\n\n    file_register_class(\"Box\", Box)\n\n    session = Session()\n    box = Box(width=3.0, height=5.0)\n    guid = box.guid\n\n    session.add_component(box)\n\n    MINI_CHECK(len(session.objects.components) == 1)\n    MINI_CHECK(session.lookup[guid] is box)\n    MINI_CHECK(session.graph.has_node(guid))\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
-          "file": "objects_test.py"
+          "code": "@MINI_TEST(\"Session\", \"Add Component\")\ndef test_session_add_component():\n    import uuid\n    from session_py import Session\n    from session_py.file_encoders import file_register_class\n\n    class Box:\n        def __init__(self, width=1.0, height=2.0):\n            self._guid = str(uuid.uuid4())\n            self.name = \"my_box\"\n            self.width = width\n            self.height = height\n        @property\n        def guid(self): return self._guid\n        def __jsondump__(self):\n            return {\"type\": \"Box\", \"guid\": self.guid, \"name\": self.name,\n                    \"width\": self.width, \"height\": self.height}\n        @classmethod\n        def __jsonload__(cls, data, guid=None, name=None):\n            obj = cls(data[\"width\"], data[\"height\"])\n            obj._guid = guid or data.get(\"guid\", obj._guid)\n            obj.name  = name or data.get(\"name\", obj.name)\n            return obj\n\n    file_register_class(\"Box\", Box)\n\n    session = Session()\n    box = Box(width=3.0, height=5.0)\n    guid = box.guid\n\n    session.add_component(box)\n\n    MINI_CHECK(len(session.objects.components) == 1)\n    MINI_CHECK(session.lookup[guid] is box)\n    MINI_CHECK(session.graph.has_node(guid))",
+          "file": "session_test.py"
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Component\")",
@@ -100067,6 +100881,11 @@ window.API_INDEX = {
           "sig": "MINI_TEST(\"Session\", \"Component Json Roundtrip\")",
           "code": "MINI_TEST(\"Session\", \"Component Json Roundtrip\") {\n    // A session with a component round-trips through JSON:\n    // the component survives with all custom fields intact.\n    // uncomment #include \"session.h\"\n    // uncomment #include \"file_encoders.h\"\n\n    Session original;\n    Component c;\n    c.type_name = \"FloorBuilder\";\n    c.name      = \"floor_builder\";\n    c.extra     = {{\"size\", 3000}, {\"height\", 650}, {\"rise\", 453}};\n    std::string guid = c.guid();\n    original.add_component(c);\n\n    std::string filename = \"serialization/test_session_component.json\";\n    file_encoders::file_json_dump(original, filename);\n    Session loaded = file_encoders::file_json_load<Session>(filename);\n\n    MINI_CHECK(loaded.objects.components->size() == 1);\n    MINI_CHECK(loaded.objects.components->at(0).type_name     == \"FloorBuilder\");\n    MINI_CHECK(loaded.objects.components->at(0).extra[\"size\"] == 3000);\n    MINI_CHECK(loaded.objects.components->at(0).guid()        == guid);\n}",
           "file": "session_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Session\", \"Component Json Roundtrip\")",
+          "code": "@MINI_TEST(\"Session\", \"Component Json Roundtrip\")\ndef test_session_component_json_roundtrip():\n    import uuid\n    from session_py import Session\n    from session_py.file_encoders import file_register_class\n    from pathlib import Path\n\n    class Box:\n        def __init__(self, width=1.0, height=2.0):\n            self._guid = str(uuid.uuid4())\n            self.name = \"my_box\"\n            self.width = width\n            self.height = height\n        @property\n        def guid(self): return self._guid\n        def __jsondump__(self):\n            return {\"type\": \"Box\", \"guid\": self.guid, \"name\": self.name,\n                    \"width\": self.width, \"height\": self.height}\n        @classmethod\n        def __jsonload__(cls, data, guid=None, name=None):\n            obj = cls(data[\"width\"], data[\"height\"])\n            obj._guid = guid or data.get(\"guid\", obj._guid)\n            obj.name  = name or data.get(\"name\", obj.name)\n            return obj\n\n    file_register_class(\"Box\", Box)\n\n    original = Session()\n    box = Box(width=3.0, height=5.0)\n    guid = box.guid\n    original.add_component(box)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_session_component.json\"\n    original.file_json_dump(fname)\n    loaded = Session.file_json_load(fname)\n\n    MINI_CHECK(len(loaded.objects.components) == 1)\n    MINI_CHECK(loaded.objects.components[0].width == 3.0)\n    MINI_CHECK(loaded.objects.components[0].guid == guid)\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "file": "session_test.py"
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Component Json Roundtrip\")",
@@ -102886,6 +103705,16 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Intersection.test_Line Line Classified",
+      "implementations": {
+        "rust": {
+          "sig": "MINI_TEST!(\"Intersection\", \"Line Line Classified\")",
+          "code": "MINI_TEST!(\"Intersection\", \"Line Line Classified\", crate::intersection_test::run_intersection_line_line_classified);",
+          "file": "intersection_test.rs"
+        }
+      }
+    },
+    {
       "name": "Objects.test_Component Protobuf Roundtrip",
       "implementations": {
         "rust": {
@@ -102900,11 +103729,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "subdivide",
-        "n",
-        "into",
-        "circle",
         "points",
+        "n",
+        "subdivide",
+        "circle",
+        "into",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -102918,11 +103747,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "subdivide",
         "by",
+        "subdivide",
+        "arc",
         "length",
         "ellipse",
-        "arc",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -102936,9 +103765,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "through",
         "points",
         "arc",
+        "through",
         "nurbscurve",
         "primitives",
         "point"
@@ -102952,12 +103781,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "open",
-        "adaptive",
-        "curve",
-        "from",
         "polyline",
         "points",
+        "open",
+        "adaptive",
+        "from",
+        "curve",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -102972,10 +103801,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
+        "parameter",
+        "at",
         "evaluation",
         "curve",
-        "at",
-        "parameter",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -102994,10 +103823,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "frames",
-        "curve",
         "along",
         "length",
+        "frames",
+        "curve",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -103019,8 +103848,8 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "frames",
         "perpendicular",
+        "frames",
         "ellipse",
         "divide_by_count",
         "frame_at",
@@ -103042,9 +103871,9 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "evaluate",
-        "cylinder",
         "point",
+        "cylinder",
+        "evaluate",
         "surface",
         "point_at",
         "cylinder_surface",
@@ -103060,11 +103889,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "mesh",
         "vertices",
-        "from",
-        "faces",
         "and",
+        "mesh",
+        "faces",
+        "from",
         "add_vertex",
         "add_face",
         "vertex"
@@ -103198,24 +104027,6 @@ window.API_INDEX = {
       ],
       "summary": "RemeshNurbsSurfaceGrid geometry class"
     },
-    "GlobalSessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "GlobalSessionConfig geometry class"
-    },
-    "CurveNurbsKnotStyle": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
-    },
-    "GeometryFileDecoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
-    },
     "NurbsSurfaceTrimmed": {
       "composition": [],
       "factories": [],
@@ -103235,6 +104046,24 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
     },
+    "GeometryFileDecoder": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
+    },
+    "GlobalSessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "GlobalSessionConfig geometry class"
+    },
+    "CurveNurbsKnotStyle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
+    },
     "TriangulateResult": {
       "composition": [],
       "factories": [],
@@ -103246,6 +104075,12 @@ window.API_INDEX = {
       ],
       "summary": "TriangulateResult geometry class"
     },
+    "ElementSchoring": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
+    },
     "BooleanPolyline": {
       "composition": [],
       "factories": [],
@@ -103253,12 +104088,6 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "BooleanPolyline geometry class"
-    },
-    "ElementSchoring": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
     },
     "SpatialAABBTree": {
       "composition": [],
@@ -103278,12 +104107,6 @@ window.API_INDEX = {
       ],
       "summary": "GlobalTolerance geometry class"
     },
-    "VIntersectNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VIntersectNode geometry class"
-    },
     "ToleranceGuard": {
       "composition": [],
       "factories": [],
@@ -103292,11 +104115,11 @@ window.API_INDEX = {
       ],
       "summary": "ToleranceGuard geometry class"
     },
-    "_PartitionVars": {
+    "VIntersectNode": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_PartitionVars geometry class"
+      "summary": "VIntersectNode geometry class"
     },
     "SpatialBVHNode": {
       "composition": [],
@@ -103310,14 +104133,11 @@ window.API_INDEX = {
       ],
       "summary": "A node in the SpatialBVH tree."
     },
-    "SpatialKDTree": {
+    "_PartitionVars": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Point",
-        "_Node"
-      ],
-      "summary": "KD-tree for point-to-point nearest-neighbor queries."
+      "uses": [],
+      "summary": "_PartitionVars geometry class"
     },
     "ElementColumn": {
       "composition": [],
@@ -103332,17 +104152,44 @@ window.API_INDEX = {
       ],
       "summary": "ElementColumn geometry class"
     },
+    "SpatialKDTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "_Node"
+      ],
+      "summary": "KD-tree for point-to-point nearest-neighbor queries."
+    },
     "SessionConfig": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "SessionConfig geometry class"
     },
-    "LoftWallFace": {
+    "ScanlineHeap": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "LoftWallFace geometry class"
+      "summary": "ScanlineHeap geometry class"
+    },
+    "BRepLoopType": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoopType geometry class"
+    },
+    "VattiScratch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VattiScratch geometry class"
+    },
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
     },
     "ElementPlate": {
       "composition": [],
@@ -103378,23 +104225,28 @@ window.API_INDEX = {
       ],
       "summary": "Intersection geometry class"
     },
-    "VLocalMinima": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VLocalMinima geometry class"
-    },
-    "BRepLoopType": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoopType geometry class"
-    },
     "SpatialRTree": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "SpatialRTree geometry class"
+    },
+    "BRepTrimType": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "BRep",
+        "BRepLoopType",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRepTrimType geometry class"
     },
     "NurbsSurface": {
       "composition": [
@@ -103419,48 +104271,17 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
-    "BRepTrimType": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "BRep",
-        "BRepLoopType",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRepTrimType geometry class"
-    },
-    "ScanlineHeap": {
+    "LoftWallFace": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "ScanlineHeap geometry class"
+      "summary": "LoftWallFace geometry class"
     },
-    "VattiScratch": {
+    "LoftAdjPair": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VattiScratch geometry class"
-    },
-    "session_cpp": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "session_cpp geometry class"
-    },
-    "_Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay2D geometry class"
+      "summary": "LoftAdjPair geometry class"
     },
     "ElementBeam": {
       "composition": [],
@@ -103475,30 +104296,27 @@ window.API_INDEX = {
       ],
       "summary": "ElementBeam geometry class"
     },
-    "LoftAdjPair": {
+    "_Delaunay2D": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "LoftAdjPair geometry class"
+      "summary": "_Delaunay2D geometry class"
     },
-    "BRepVertex": {
+    "session_cpp": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "BRepVertex geometry class"
-    },
-    "SpatialBVH": {
-      "composition": [],
-      "factories": [
-        "SpatialBVHNode"
-      ],
       "uses": [
-        "AABB",
-        "OBB",
-        "Point",
-        "Vector"
+        "Point"
       ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
+      "summary": "session_cpp geometry class"
+    },
+    "VertexData": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "Vertex data containing position and attributes."
     },
     "MeshOffset": {
       "composition": [],
@@ -103510,12 +104328,6 @@ window.API_INDEX = {
       ],
       "summary": "MeshOffset geometry class"
     },
-    "Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Delaunay2D geometry class"
-    },
     "ConvexHull": {
       "composition": [],
       "factories": [],
@@ -103524,22 +104336,6 @@ window.API_INDEX = {
         "Point"
       ],
       "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
-    },
-    "Primitives": {
-      "composition": [
-        "CurveNurbsKnotStyle",
-        "NurbsCurve",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsSurface",
-        "Point",
-        "Xform"
-      ],
-      "summary": "Static factory methods for creating NURBS curve primitives."
     },
     "NurbsCurve": {
       "composition": [
@@ -103562,13 +104358,15 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
-    "VertexData": {
-      "composition": [],
+    "Quaternion": {
+      "composition": [
+        "Vector"
+      ],
       "factories": [],
       "uses": [
-        "Point"
+        "Plane"
       ],
-      "summary": "Vertex data containing position and attributes."
+      "summary": "A quaternion for 3D rotations (scalar + vector)."
     },
     "PointCloud": {
       "composition": [
@@ -103585,36 +104383,52 @@ window.API_INDEX = {
       ],
       "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
     },
-    "Quaternion": {
+    "Primitives": {
       "composition": [
+        "CurveNurbsKnotStyle",
+        "NurbsCurve",
         "Vector"
       ],
       "factories": [],
       "uses": [
-        "Plane"
+        "Line",
+        "Mesh",
+        "NurbsSurface",
+        "Point",
+        "Xform"
       ],
-      "summary": "A quaternion for 3D rotations (scalar + vector)."
+      "summary": "Static factory methods for creating NURBS curve primitives."
+    },
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
+    },
+    "SpatialBVH": {
+      "composition": [],
+      "factories": [
+        "SpatialBVHNode"
+      ],
+      "uses": [
+        "AABB",
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
+    },
+    "BRepVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepVertex geometry class"
     },
     "_Vertex2D": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Vertex2D geometry class"
-    },
-    "RemeshCDT": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Polyline"
-      ],
-      "summary": "RemeshCDT geometry class"
-    },
-    "LoftPanel": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftPanel geometry class"
     },
     "Tolerance": {
       "composition": [],
@@ -103626,11 +104440,11 @@ window.API_INDEX = {
       ],
       "summary": "Tolerance settings for geometric operations."
     },
-    "_Delaunay": {
+    "VHorzJoin": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Delaunay geometry class"
+      "summary": "VHorzJoin geometry class"
     },
     "ColorMode": {
       "composition": [],
@@ -103654,11 +104468,20 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Component geometry class"
     },
-    "_Triangle": {
+    "RemeshCDT": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Polyline"
+      ],
+      "summary": "RemeshCDT geometry class"
+    },
+    "LoftPanel": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Triangle geometry class"
+      "summary": "LoftPanel geometry class"
     },
     "FlatMap64": {
       "composition": [],
@@ -103671,32 +104494,23 @@ window.API_INDEX = {
       ],
       "summary": "FlatMap64 geometry class"
     },
-    "VHorzJoin": {
+    "_Delaunay": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VHorzJoin geometry class"
+      "summary": "_Delaunay geometry class"
     },
-    "Delaunay": {
+    "_Triangle": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Edge",
-        "TriangulateResult"
-      ],
-      "summary": "Delaunay geometry class"
+      "uses": [],
+      "summary": "_Triangle geometry class"
     },
     "BRepLoop": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepLoop geometry class"
-    },
-    "VHorzSeg": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzSeg geometry class"
     },
     "BRepTrim": {
       "composition": [],
@@ -103710,6 +104524,12 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Geometry geometry class"
     },
+    "BRepEdge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepEdge geometry class"
+    },
     "TreeNode": {
       "composition": [],
       "factories": [],
@@ -103717,18 +104537,6 @@ window.API_INDEX = {
         "Tree"
       ],
       "summary": "A node of a tree data structure."
-    },
-    "BRepFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepFace geometry class"
-    },
-    "BRepEdge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
     },
     "Polyline": {
       "composition": [
@@ -103754,11 +104562,53 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "VActive": {
+    "Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Edge",
+        "TriangulateResult"
+      ],
+      "summary": "Delaunay geometry class"
+    },
+    "BRepFace": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VActive geometry class"
+      "summary": "BRepFace geometry class"
+    },
+    "VHorzSeg": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzSeg geometry class"
+    },
+    "VVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VVertex geometry class"
+    },
+    "_Branch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Branch geometry class"
+    },
+    "Closest": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Static methods for finding closest points between geometry objects."
     },
     "Element": {
       "composition": [
@@ -103777,23 +104627,6 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "Element geometry class"
-    },
-    "Default": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "Default geometry class"
-    },
-    "Dataset": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Dataset geometry class"
     },
     "Session": {
       "composition": [
@@ -103823,12 +104656,6 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "VVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VVertex geometry class"
-    },
     "Objects": {
       "composition": [
         "BRep",
@@ -103850,32 +104677,52 @@ window.API_INDEX = {
       ],
       "summary": "A collection of all geometry objects."
     },
-    "Closest": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Static methods for finding closest points between geometry objects."
-    },
     "VOutRec": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VOutRec geometry class"
     },
-    "_Branch": {
+    "VActive": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Branch geometry class"
+      "summary": "VActive geometry class"
+    },
+    "Default": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "Default geometry class"
+    },
+    "Dataset": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Dataset geometry class"
+    },
+    "RayHit": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "RayHit geometry class"
+    },
+    "BIVec2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BIVec2 geometry class"
+    },
+    "VOutPt": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutPt geometry class"
     },
     "Vertex": {
       "composition": [],
@@ -103885,24 +104732,6 @@ window.API_INDEX = {
         "session_cpp"
       ],
       "summary": "A graph vertex with a unique identifier and attribute string."
-    },
-    "VOutPt": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutPt geometry class"
-    },
-    "BIVec2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BIVec2 geometry class"
-    },
-    "RayHit": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RayHit geometry class"
     },
     "Matrix": {
       "composition": [],
@@ -103924,27 +104753,11 @@ window.API_INDEX = {
       ],
       "summary": "A 3D vector with visual properties."
     },
-    "Color": {
+    "_Rect": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "An index-based 0.0-1.0 color with RGBA values."
-    },
-    "Plane": {
-      "composition": [],
-      "factories": [
-        "OBB",
-        "Quaternion"
-      ],
-      "uses": [
-        "Point",
-        "Polyline",
-        "Vector",
-        "session_cpp"
-      ],
-      "summary": "A 3D plane defined by origin and coordinate axes."
+      "uses": [],
+      "summary": "_Rect geometry class"
     },
     "_Node": {
       "composition": [],
@@ -103952,25 +104765,13 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_Node geometry class"
     },
-    "_Rect": {
+    "Color": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "_Rect geometry class"
-    },
-    "Point": {
-      "composition": [],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Vector"
+      "uses": [
+        "session_cpp"
       ],
-      "uses": [],
-      "summary": "A 3D point with visual properties."
+      "summary": "An index-based 0.0-1.0 color with RGBA values."
     },
     "Xform": {
       "composition": [
@@ -103987,11 +104788,19 @@ window.API_INDEX = {
       ],
       "summary": "Xform geometry class"
     },
-    "_Edge": {
+    "Plane": {
       "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Edge geometry class"
+      "factories": [
+        "OBB",
+        "Quaternion"
+      ],
+      "uses": [
+        "Point",
+        "Polyline",
+        "Vector",
+        "session_cpp"
+      ],
+      "summary": "A 3D plane defined by origin and coordinate axes."
     },
     "Graph": {
       "composition": [
@@ -104003,37 +104812,25 @@ window.API_INDEX = {
       ],
       "summary": "A graph data structure with string-only vertices and attributes."
     },
-    "Line": {
-      "composition": [
-        "Point"
-      ],
+    "Point": {
+      "composition": [],
       "factories": [
         "AABB",
         "ColorMode",
-        "Mesh",
-        "OBB"
-      ],
-      "uses": [
-        "Vector",
-        "session_cpp"
-      ],
-      "summary": "A 3D line segment with visual properties."
-    },
-    "AABB": {
-      "composition": [],
-      "factories": [
-        "OBB"
-      ],
-      "uses": [
         "Line",
         "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
+        "OBB",
+        "Plane",
+        "Vector"
       ],
-      "summary": "Axis-aligned bounding box (center + half-size)."
+      "uses": [],
+      "summary": "A 3D point with visual properties."
+    },
+    "_Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Edge geometry class"
     },
     "BRep": {
       "composition": [
@@ -104060,27 +104857,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "BRep geometry class"
-    },
-    "_P64": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_P64 geometry class"
-    },
-    "Tree": {
-      "composition": [
-        "Color",
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
-    },
-    "Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
     },
     "Mesh": {
       "composition": [
@@ -104115,6 +104891,65 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_Tri geometry class"
     },
+    "_P64": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_P64 geometry class"
+    },
+    "AABB": {
+      "composition": [],
+      "factories": [
+        "OBB"
+      ],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Axis-aligned bounding box (center + half-size)."
+    },
+    "Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
+    "Tree": {
+      "composition": [
+        "Color",
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A hierarchical data structure with parent-child relationships."
+    },
+    "Line": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Mesh",
+        "OBB"
+      ],
+      "uses": [
+        "Vector",
+        "session_cpp"
+      ],
+      "summary": "A 3D line segment with visual properties."
+    },
+    "_V2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_V2 geometry class"
+    },
     "OBB": {
       "composition": [
         "Point",
@@ -104136,12 +104971,6 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
-    },
-    "_V2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],
@@ -104692,6 +105521,26 @@ window.API_INDEX = {
     ],
     "compute": [
       "BooleanPolyline.compute"
+    ],
+    "clip_open_against_closed": [
+      "BooleanPolyline.clip_open_against_closed",
+      "Sc.clip_open_against_closed",
+      "Polyline.clip_open_against_closed"
+    ],
+    "point_in_poly": [
+      "BooleanPolyline.point_in_poly"
+    ],
+    "flush": [
+      "BooleanPolyline.flush"
+    ],
+    "push_xy": [
+      "BooleanPolyline.push_xy"
+    ],
+    "compute_raw": [
+      "BooleanPolyline.compute_raw"
+    ],
+    "compute_count": [
+      "BooleanPolyline.compute_count"
     ],
     "to_str": [
       "BRepTrimType.to_str",
@@ -105615,6 +106464,21 @@ window.API_INDEX = {
     ],
     "is_dirty": [
       "Element.is_dirty"
+    ],
+    "cached_aabb": [
+      "Element.cached_aabb"
+    ],
+    "cached_obb": [
+      "Element.cached_obb"
+    ],
+    "cached_collision_mesh": [
+      "Element.cached_collision_mesh"
+    ],
+    "cached_point": [
+      "Element.cached_point"
+    ],
+    "features_count": [
+      "Element.features_count"
     ],
     "add_feature": [
       "Element.add_feature"
@@ -107359,6 +108223,18 @@ window.API_INDEX = {
       "NurbsSurfaceTrimmed.cross",
       "Vector.cross"
     ],
+    "split_by_planes": [
+      "NurbsSurfaceTrimmed.split_by_planes"
+    ],
+    "mesh_by_planes": [
+      "NurbsSurfaceTrimmed.mesh_by_planes"
+    ],
+    "field_k": [
+      "NurbsSurfaceTrimmed.field_k"
+    ],
+    "refine_k": [
+      "NurbsSurfaceTrimmed.refine_k"
+    ],
     "from_plane": [
       "OBB.from_plane"
     ],
@@ -107787,6 +108663,19 @@ window.API_INDEX = {
     "simplify": [
       "Polyline.simplify"
     ],
+    "translated": [
+      "Polyline.translated"
+    ],
+    "remove_consecutive_duplicates": [
+      "Polyline.remove_consecutive_duplicates"
+    ],
+    "two_rects_from_frame": [
+      "Polyline.two_rects_from_frame"
+    ],
+    "pt": [
+      "Polyline.pt",
+      "Primitives.pt"
+    ],
     "boolean_op": [
       "Polyline.boolean_op",
       "Sc.boolean_op"
@@ -107887,9 +108776,6 @@ window.API_INDEX = {
     ],
     "make_bilinear": [
       "Primitives.make_bilinear"
-    ],
-    "pt": [
-      "Primitives.pt"
     ],
     "longest_edge_dir": [
       "Primitives.longest_edge_dir"
@@ -108258,6 +109144,9 @@ window.API_INDEX = {
     ],
     "compute_face_to_face": [
       "Session.compute_face_to_face"
+    ],
+    "add_elementfeature": [
+      "Session.add_elementfeature"
     ],
     "get_object": [
       "Session.get_object"
@@ -108856,15 +109745,6 @@ window.API_INDEX = {
     "to_cols": [
       "Xform.to_cols"
     ],
-    "compute_count": [
-      "BooleanPolyline.compute_count"
-    ],
-    "compute_raw": [
-      "BooleanPolyline.compute_raw"
-    ],
-    "clip_open_against_closed": [
-      "BooleanPolyline.clip_open_against_closed"
-    ],
     "abs": [
       "std.abs"
     ],
@@ -108972,21 +109852,6 @@ window.API_INDEX = {
     ],
     "geometry_type_name": [
       "Element.geometry_type_name"
-    ],
-    "cached_aabb": [
-      "Element.cached_aabb"
-    ],
-    "cached_obb": [
-      "Element.cached_obb"
-    ],
-    "cached_collision_mesh": [
-      "Element.cached_collision_mesh"
-    ],
-    "cached_point": [
-      "Element.cached_point"
-    ],
-    "features_count": [
-      "Element.features_count"
     ],
     "obb_from_geometry": [
       "Element.obb_from_geometry"
@@ -109439,15 +110304,6 @@ window.API_INDEX = {
     "Polyline": [
       "Polyline.Polyline"
     ],
-    "translated": [
-      "Polyline.translated"
-    ],
-    "remove_consecutive_duplicates": [
-      "Polyline.remove_consecutive_duplicates"
-    ],
-    "two_rects_from_frame": [
-      "Polyline.two_rects_from_frame"
-    ],
     "recompute_plane_if_needed": [
       "Polyline.recompute_plane_if_needed"
     ],
@@ -109630,9 +110486,6 @@ window.API_INDEX = {
     ],
     "add_curve": [
       "Session.add_curve"
-    ],
-    "add_elementfeature": [
-      "Session.add_elementfeature"
     ],
     "compute_bounding_box": [
       "Session.compute_bounding_box"
@@ -110015,12 +110868,6 @@ window.API_INDEX = {
     "split_by_uv_curves_ex": [
       "NurbsSurfaceTrimmed.split_by_uv_curves_ex"
     ],
-    "mesh_by_planes": [
-      "NurbsSurfaceTrimmed.mesh_by_planes"
-    ],
-    "split_by_planes": [
-      "NurbsSurfaceTrimmed.split_by_planes"
-    ],
     "from_aabb": [
       "OBB.from_aabb"
     ],
@@ -110222,9 +111069,9 @@ window.API_INDEX = {
     },
     "BooleanPolyline": {
       "cpp": 4,
-      "python": 1,
+      "python": 7,
       "rust": 0,
-      "gaps": 4,
+      "gaps": 7,
       "present_in": [
         "cpp",
         "python"
@@ -110352,9 +111199,9 @@ window.API_INDEX = {
     },
     "Element": {
       "cpp": 75,
-      "python": 46,
+      "python": 51,
       "rust": 81,
-      "gaps": 83,
+      "gaps": 82,
       "present_in": [
         "cpp",
         "python",
@@ -110626,8 +111473,8 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "NurbsSurfaceTrimmed": {
-      "cpp": 36,
-      "python": 62,
+      "cpp": 38,
+      "python": 66,
       "rust": 42,
       "gaps": 45,
       "present_in": [
@@ -110699,9 +111546,9 @@ window.API_INDEX = {
     },
     "Polyline": {
       "cpp": 80,
-      "python": 109,
-      "rust": 77,
-      "gaps": 69,
+      "python": 113,
+      "rust": 81,
+      "gaps": 68,
       "present_in": [
         "cpp",
         "python",
@@ -110821,7 +111668,7 @@ window.API_INDEX = {
     },
     "Session": {
       "cpp": 47,
-      "python": 44,
+      "python": 45,
       "rust": 39,
       "gaps": 26,
       "present_in": [
@@ -111128,8 +111975,8 @@ window.API_INDEX = {
     "Sc": {
       "cpp": 0,
       "python": 0,
-      "rust": 1,
-      "gaps": 1,
+      "rust": 2,
+      "gaps": 2,
       "present_in": [
         "rust"
       ],

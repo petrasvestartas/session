@@ -3,7 +3,7 @@
     "group": "ElementBeam",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.575,
+    "time_ms": 0.506,
     "line": 7,
     "code": "    from session_py import ElementBeam\n    from session_py import Mesh\n\n    b = ElementBeam(width=0.1, depth=0.2, length=3.0, name=\"beam1\")\n\n    geo = b.geometry\n    name = b.name\n    guid = b.guid\n    bstr = str(b)\n    brepr = repr(b)\n\n    bcopy = b.duplicate()\n    b2 = ElementBeam(width=0.1, depth=0.2, length=3.0, name=\"beam1\")\n    b3 = ElementBeam(width=0.1, depth=0.2, length=5.0, name=\"beam1\")",
     "checks": [
@@ -69,7 +69,7 @@
     "group": "ElementBeam",
     "test_name": "Setters",
     "passed": true,
-    "time_ms": 0.42,
+    "time_ms": 0.232,
     "line": 37,
     "code": "    from session_py import ElementBeam\n\n    b = ElementBeam()\n    b.width = 0.15\n    b.depth = 0.3\n    b.length = 5.0",
     "checks": [
@@ -100,7 +100,7 @@
     "group": "ElementBeam",
     "test_name": "Center Line",
     "passed": true,
-    "time_ms": 0.205,
+    "time_ms": 0.109,
     "line": 52,
     "code": "    from session_py import ElementBeam\n    from session_py import Line\n\n    b = ElementBeam(length=5.0)\n    cl = b.center_line",
     "checks": [
@@ -126,7 +126,7 @@
     "group": "ElementBeam",
     "test_name": "Extend",
     "passed": true,
-    "time_ms": 0.214,
+    "time_ms": 0.115,
     "line": 65,
     "code": "    from session_py import ElementBeam\n\n    b = ElementBeam(length=3.0)\n    b.extend(0.5)",
     "checks": [
@@ -142,7 +142,7 @@
     "group": "ElementBeam",
     "test_name": "AABB",
     "passed": true,
-    "time_ms": 0.566,
+    "time_ms": 0.31,
     "line": 75,
     "code": "    from session_py import ElementBeam\n\n    b = ElementBeam(width=0.1, depth=0.2, length=3.0)\n    aabb = b.aabb",
     "checks": [
@@ -173,7 +173,7 @@
     "group": "ElementBeam",
     "test_name": "Compute Point",
     "passed": true,
-    "time_ms": 0.485,
+    "time_ms": 0.535,
     "line": 88,
     "code": "    from session_py import ElementBeam\n\n    b = ElementBeam(width=0.1, depth=0.2, length=3.0)\n    pt = b.point",
     "checks": [
@@ -199,7 +199,7 @@
     "group": "ElementBeam",
     "test_name": "Session Geometry",
     "passed": true,
-    "time_ms": 0.581,
+    "time_ms": 0.289,
     "line": 100,
     "code": "    from session_py import ElementBeam\n    from session_py import Xform\n    from session_py import Mesh\n\n    b = ElementBeam(width=0.1, depth=0.2, length=3.0)\n    b.session_transformation = Xform.translation(10.0, 0.0, 0.0)\n    sg = b.session_geometry\n\n    verts = list(sg.vertex.values())\n    xs = [v.x for v in verts]",
     "checks": [
@@ -220,7 +220,7 @@
     "group": "ElementBeam",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 17.734,
+    "time_ms": 16.355,
     "line": 117,
     "code": "    from session_py import ElementBeam\n    from session_py import Xform\n    from pathlib import Path\n\n    b = ElementBeam(width=0.15, depth=0.3, length=5.0, name=\"json_beam\")\n    b.session_transformation = Xform.translation(1.0, 2.0, 3.0)\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_beam_element.json\"\n    b.file_json_dump(fname)\n    loaded = ElementBeam.file_json_load(fname)",
     "checks": [
@@ -256,7 +256,7 @@
     "group": "ElementBeam",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 15.182,
+    "time_ms": 14.47,
     "line": 137,
     "code": "    from session_py import ElementBeam\n    from session_py import Xform\n    from pathlib import Path\n\n    b = ElementBeam(width=0.15, depth=0.3, length=5.0, name=\"proto_beam\")\n    b.session_transformation = Xform.translation(1.0, 2.0, 3.0)\n\n    path = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_beam_element.bin\"\n    b.pb_dump(path)\n    loaded = ElementBeam.pb_load(path)",
     "checks": [
@@ -292,7 +292,7 @@
     "group": "ElementBeam",
     "test_name": "Polylines",
     "passed": true,
-    "time_ms": 0.117,
+    "time_ms": 0.116,
     "line": 157,
     "code": "    from session_py import ElementBeam\n    from session_py import Polyline\n\n    b = ElementBeam(width=0.1, depth=0.2, length=3.0)\n    pls = b.polylines\n\n    for pl in pls:",
     "checks": [
@@ -343,7 +343,7 @@
     "group": "ElementBeam",
     "test_name": "Planes",
     "passed": true,
-    "time_ms": 0.189,
+    "time_ms": 0.184,
     "line": 171,
     "code": "    from session_py import ElementBeam\n    from session_py import Plane\n\n    b = ElementBeam(width=0.1, depth=0.2, length=3.0)\n    pls = b.planes",
     "checks": [
@@ -374,7 +374,7 @@
     "group": "ElementBeam",
     "test_name": "Edge Vectors",
     "passed": true,
-    "time_ms": 0.073,
+    "time_ms": 0.072,
     "line": 185,
     "code": "    from session_py import ElementBeam\n    from session_py import Vector\n\n    b = ElementBeam(width=0.1, depth=0.2, length=3.0)\n    evs = b.edge_vectors",
     "checks": [

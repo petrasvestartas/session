@@ -3,7 +3,7 @@
     "group": "Xform",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.034,
+    "time_ms": 0.05,
     "line": 15,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n\n    // Constructor (identity by default)\n    Xform x;\n\n    // Matrix access\n    double m00 = x.m[0];\n    double m11 = x.m[5];\n    double m22 = x.m[10];\n    double m33 = x.m[15];\n\n    // Check identity\n    bool is_id = x.is_identity();\n\n    // From matrix constructor\n    Xform xfrom = Xform::from_matrix({\n        1.0, 0.0, 0.0, 0.0,\n        0.0, 1.0, 0.0, 0.0,\n        0.0, 0.0, 1.0, 0.0,\n        5.0, 10.0, 15.0, 1.0,\n    });\n\n    // Minimal and Full String Representation\n    std::string xstr = x.str();\n    std::string xrepr = x.repr();\n\n    // Copy (duplicates everything except guid())\n    Xform xcopy = x;\n    Xform xother;\n\n    // Matrix multiplication (*)\n    Xform t = Xform::translation(10.0, 0.0, 0.0);\n    Xform s = Xform::scale_xyz(2.0, 1.0, 1.0);\n    Xform combined = t * s;\n    Point p(1.0, 0.0, 0.0);\n    p.xform = combined;\n    Point result = p.transformed();\n\n    // In-place multiplication (*=)\n    Xform t2 = Xform::translation(10.0, 0.0, 0.0);\n    t2 *= s;\n    p = Point(1.0, 0.0, 0.0);\n    p.xform = t2;\n    Point result2 = p.transformed();",
     "checks": [
@@ -74,7 +74,7 @@
     "group": "Xform",
     "test_name": "Translation",
     "passed": true,
-    "time_ms": 0.137,
+    "time_ms": 0.103,
     "line": 76,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"mesh.h\"\n    Xform xf = Xform::translation(1.5, 1.0, 0.5);\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh result = mesh.transformed(xf);",
     "checks": [
@@ -125,7 +125,7 @@
     "group": "Xform",
     "test_name": "Rotation X",
     "passed": true,
-    "time_ms": 0.071,
+    "time_ms": 0.066,
     "line": 92,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"mesh.h\"\n    double s = std::sqrt(2.0);\n    Xform xf = Xform::rotation_x(Tolerance::PI / 4.0);\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh result = mesh.transformed(xf);",
     "checks": [
@@ -176,7 +176,7 @@
     "group": "Xform",
     "test_name": "Rotation Y",
     "passed": true,
-    "time_ms": 0.067,
+    "time_ms": 0.061,
     "line": 109,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"mesh.h\"\n    double s = std::sqrt(2.0);\n    Xform xf = Xform::rotation_y(Tolerance::PI / 4.0);\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh result = mesh.transformed(xf);",
     "checks": [
@@ -227,7 +227,7 @@
     "group": "Xform",
     "test_name": "Rotation Z",
     "passed": true,
-    "time_ms": 0.079,
+    "time_ms": 0.071,
     "line": 126,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"mesh.h\"\n    double s = std::sqrt(2.0);\n    Xform xf = Xform::rotation_z(Tolerance::PI / 4.0);\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh result = mesh.transformed(xf);",
     "checks": [
@@ -278,7 +278,7 @@
     "group": "Xform",
     "test_name": "Rotation Axis",
     "passed": true,
-    "time_ms": 0.065,
+    "time_ms": 0.062,
     "line": 143,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"mesh.h\"\n    Vector axis(1.0, 1.0, 1.0);\n    Xform xf = Xform::rotation(axis, 2.0 * Tolerance::PI / 4.0);\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh result = mesh.transformed(xf);\n    double t = 1.0 / 3.0;\n    double k = 2.0 / std::sqrt(3.0);",
     "checks": [
@@ -329,7 +329,7 @@
     "group": "Xform",
     "test_name": "Rotation Around Line",
     "passed": true,
-    "time_ms": 0.078,
+    "time_ms": 0.059,
     "line": 163,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"mesh.h\"\n    double s = std::sqrt(2.0);\n    Line line(-1.0, -1.0, -1.0, -1.0, -1.0, 1.0);\n    Xform xf = Xform::rotation_around_line(line, Tolerance::PI / 4.0);\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh result = mesh.transformed(xf);",
     "checks": [
@@ -380,7 +380,7 @@
     "group": "Xform",
     "test_name": "Change Basis",
     "passed": true,
-    "time_ms": 0.067,
+    "time_ms": 0.059,
     "line": 182,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"mesh.h\"\n    Point o0(0, 0, 0);\n    Vector x0(1, 0, 0);\n    Vector y0(0, 1, 0);\n    Vector z0(0, 0, 1);\n    Point o1(0.5, -1.0, 0.5);\n    Vector x1(1.2, 0.0, 0.0);\n    Vector y1(0.3, -1.0, -0.15);\n    Vector z1(0.0, 0.0, 1.1);\n    Xform xf = Xform::change_basis(o0, x0, y0, z0, o1, x1, y1, z1);\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh result = mesh.transformed(xf);",
     "checks": [
@@ -431,7 +431,7 @@
     "group": "Xform",
     "test_name": "Plane To Plane",
     "passed": true,
-    "time_ms": 0.09,
+    "time_ms": 0.068,
     "line": 208,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"mesh.h\"\n    Plane pf(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0));\n    Plane pt(Point(2, 0, 0), Vector(0, 1, 0), Vector(-1, 0, 0));\n    Xform xf = Xform::plane_to_plane(pf, pt);\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh result = mesh.transformed(xf);",
     "checks": [
@@ -482,7 +482,7 @@
     "group": "Xform",
     "test_name": "Scale XYZ",
     "passed": true,
-    "time_ms": 0.077,
+    "time_ms": 0.06,
     "line": 227,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"mesh.h\"\n    Xform xf = Xform::scale_xyz(1.5, 1.2, 1.8);\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh result = mesh.transformed(xf);",
     "checks": [
@@ -533,7 +533,7 @@
     "group": "Xform",
     "test_name": "Scale Uniform",
     "passed": true,
-    "time_ms": 0.072,
+    "time_ms": 0.054,
     "line": 243,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"mesh.h\"\n    Point c(0, 0, 0);\n    Xform xf = Xform::scale_uniform(c, 2.0);\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh result = mesh.transformed(xf);",
     "checks": [
@@ -584,7 +584,7 @@
     "group": "Xform",
     "test_name": "Scale Non Uniform",
     "passed": true,
-    "time_ms": 0.068,
+    "time_ms": 0.056,
     "line": 261,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"mesh.h\"\n    Point c(0, 0, 0);\n    Xform xf = Xform::scale_non_uniform(c, 1.5, 1.2, 1.8);\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh result = mesh.transformed(xf);",
     "checks": [
@@ -635,7 +635,7 @@
     "group": "Xform",
     "test_name": "Look At Right Handed",
     "passed": true,
-    "time_ms": 0.069,
+    "time_ms": 0.057,
     "line": 279,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"mesh.h\"\n    // look_at_right_handed(eye, target, up) — view matrix from eye looking at target\n    // Right-handed: X cross Y = Z (OpenGL/Vulkan). Camera looks down -Z.\n    // Left-handed (DirectX) would look down +Z instead.\n    // Not a projection — rigid transform (rotation + translation), no distortion.\n    // up=(0,0,1) Z-up standard — any future viewer must use Z-up.\n    // up must not be parallel to the view direction (eye->target).\n    // Camera at (0,3,0) looking down at origin -> output = top view of the box.\n    // Transform: (x,y,z) -> (-x, z, y-3)\n    Point eye(0, 3, 0);\n    Point target(0, 0, 0);\n    Xform xf = Xform::look_at_right_handed(eye, target, Vector(0, 0, 1));\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh result = mesh.transformed(xf);",
     "checks": [
@@ -686,7 +686,7 @@
     "group": "Xform",
     "test_name": "Look To Right Handed",
     "passed": true,
-    "time_ms": 0.063,
+    "time_ms": 0.062,
     "line": 307,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"mesh.h\"\n    // Identical to look_at_right_handed, only the input differs:\n    // look_at: takes a target Point  — \"look AT that point\"\n    // look_to: takes a direction Vector — \"look TOWARD that direction\"\n    // look_to(eye, dir, up) == look_at(eye, eye+dir, up)\n    // Right-handed: X cross Y = Z (OpenGL/Vulkan). Camera looks down -Z.\n    Point eye(0, 3, 0);\n    Vector direction(0, -1, 0);\n    Xform xf = Xform::look_to_right_handed(eye, direction, Vector(0, 0, 1));\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh result = mesh.transformed(xf);",
     "checks": [
@@ -737,7 +737,7 @@
     "group": "Xform",
     "test_name": "Perspective",
     "passed": true,
-    "time_ms": 0.056,
+    "time_ms": 0.054,
     "line": 332,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"mesh.h\"\n    // perspective(fov_y, aspect, near, far) — projects 3D to clip space with foreshortening.\n    // Objects farther away appear smaller. XY divided by depth (w = -z).\n    // fov_y = vertical field of view. PI/2 = 90 degrees.\n    // aspect = width/height. 1.0 = square viewport.\n    // near/far = clipping planes. Objects between -near and -far in view space are visible.\n    // Near face maps to z_ndc=0, far face maps to z_ndc=1.\n    // Box translated to z=-2 so it sits between near=1 and far=3.\n    // Near face (z=-1): stays full size +-1.\n    // Far face (z=-3): shrinks to +-1/3 — this IS the perspective effect.\n    Xform view = Xform::translation(0, 0, -2);\n    Xform proj = Xform::perspective(Tolerance::PI / 2.0, 1.0, 1.0, 3.0);\n    Xform xf = proj * view;\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh result = mesh.transformed(xf);\n    double t = 1.0 / 3.0;",
     "checks": [
@@ -788,7 +788,7 @@
     "group": "Xform",
     "test_name": "Orthographic",
     "passed": true,
-    "time_ms": 0.055,
+    "time_ms": 0.054,
     "line": 360,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"mesh.h\"\n    // orthographic(left, right, bottom, top, near, far) — parallel projection, no foreshortening.\n    // Unlike perspective: far objects keep the SAME size as near objects.\n    // Same box setup as perspective (translated to z=-2, between near=1 and far=3).\n    // Near face (z=-1): +-1.  Far face (z=-3): ALSO +-1.  No shrinking!\n    // This is the key difference: perspective shrinks far objects, orthographic does not.\n    Xform view = Xform::translation(0, 0, -2);\n    Xform proj = Xform::orthographic(-1.0, 1.0, -1.0, 1.0, 1.0, 3.0);\n    Xform xf = proj * view;\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh result = mesh.transformed(xf);",
     "checks": [
@@ -839,7 +839,7 @@
     "group": "Xform",
     "test_name": "Project To Plane",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.011,
     "line": 383,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"polyline.h\"\n    // project_to_plane(plane) — orthogonal projection onto a plane.\n    // Every point drops perpendicularly onto the plane (along the normal).\n    // XY plane at origin. Box lifted to z=1 so it hovers above the plane.\n    // All z -> 0. Projected mesh is degenerate, so output as polyline outline.\n    Plane plane(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0));\n    Xform move = Xform::translation(0, 0, 1);\n    Xform proj = Xform::project_to_plane(plane);\n    Xform xf = proj * move;\n    auto tp = [&](double x, double y, double z) { Point p(x,y,z); p.xform = xf; return p.transformed(); };\n    Polyline outline({\n        tp(-1, -1, -1),\n        tp(1, -1, -1),\n        tp(1, 1, -1),\n        tp(-1, 1, -1),\n        tp(-1, -1, -1)\n    });\n    std::vector<Point> pts = outline.get_points();",
     "checks": [
@@ -875,7 +875,7 @@
     "group": "Xform",
     "test_name": "Project To Plane By Axis",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.018,
     "line": 412,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"polyline.h\"\n    // project_to_plane_by_axis(plane, direction) — projection along a direction onto a plane.\n    // Unlike project_to_plane which drops perpendicular (along normal),\n    // this projects along a chosen direction — like casting shadows from a light.\n    // XY plane, direction (1,0,1) = diagonal in XZ. Box lifted to z=1.\n    // Bottom face (z=0) stays put. Top face (z=2) slides along (1,0,1), shifting x by -2.\n    // Convex outline of the projected shadow is a rectangle from x=-3 to x=1.\n    Plane plane(Point(0, 0, 0), Vector(1, 0, 0), Vector(0, 1, 0));\n    Vector direction(1, 0, 1);\n    Xform move = Xform::translation(0, 0, 1);\n    Xform proj = Xform::project_to_plane_by_axis(plane, direction);\n    Xform xf = proj * move;\n    auto tp = [&](double x, double y, double z) { Point p(x,y,z); p.xform = xf; return p.transformed(); };\n    Polyline outline({\n        tp(-1, -1, 1),\n        tp(1, -1, -1),\n        tp(1, 1, -1),\n        tp(-1, 1, 1),\n        tp(-1, -1, 1)\n    });\n    std::vector<Point> pts = outline.get_points();",
     "checks": [
@@ -911,7 +911,7 @@
     "group": "Xform",
     "test_name": "Inverse",
     "passed": true,
-    "time_ms": 0.099,
+    "time_ms": 0.128,
     "line": 445,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"mesh.h\"\n    Xform t = Xform::translation(1.0, 0.5, 0.5);\n    Xform s = Xform::scale_xyz(1.5, 1.2, 1.3);\n    Xform composite = t * s;\n    Xform inv = composite.inverse().value();\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh forward = mesh.transformed(composite);\n    Mesh roundtrip = forward.transformed(inv);",
     "checks": [
@@ -1008,7 +1008,7 @@
     "group": "Xform",
     "test_name": "Transform Geometry",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.018,
     "line": 478,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"line.h\"\n    // uncomment #include \"plane.h\"\n    // uncomment #include \"polyline.h\"\n\n    // Simple translation by (10, 20, 30)\n    Xform t = Xform::translation(10.0, 20.0, 30.0);\n\n    // Transform Point: (1,2,3) -> (11,22,33)\n    Point pt(1.0, 2.0, 3.0);\n    pt.xform = t;\n    Point pt_transformed = pt.transformed();\n\n    // Transform Vector: translation should NOT affect vectors\n    Vector v(1.0, 0.0, 0.0);\n    v.xform = t;\n    Vector v_transformed = v.transformed();\n\n    // Transform Line: (0,0,0)-(1,0,0) -> (10,20,30)-(11,20,30)\n    Line ln(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n    ln.xform = t;\n    Line ln_transformed = ln.transformed();\n\n    // Transform Plane: origin (0,0,0) -> (10,20,30)\n    Point pl_o(0.0, 0.0, 0.0);\n    Vector pl_x(1.0, 0.0, 0.0);\n    Vector pl_y(0.0, 1.0, 0.0);\n    Plane pl(pl_o, pl_x, pl_y);\n    pl.xform = t;\n    Plane pl_transformed = pl.transformed();\n\n    // Transform Polyline: 3 points translated\n    Polyline poly({Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)});\n    poly.xform = t;\n    Polyline poly_transformed = poly.transformed();\n    std::vector<Point> pts = poly_transformed.get_points();",
     "checks": [
@@ -1059,7 +1059,7 @@
     "group": "Xform",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 14.447,
+    "time_ms": 14.386,
     "line": 528,
     "code": "    // uncomment #include \"xform.h\"\n    Xform xform = Xform::translation(1.0, 2.0, 3.0);\n    xform.name = \"test_xform\";\n\n    std::string filename = \"serialization/test_xform.json\";\n    xform.file_json_dump(filename);\n    Xform loaded = Xform::file_json_load(filename);",
     "checks": [
@@ -1120,7 +1120,7 @@
     "group": "Xform",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 14.043,
+    "time_ms": 14.134,
     "line": 549,
     "code": "    // uncomment #include \"xform.h\"\n    Xform xform = Xform::translation(1.0, 2.0, 3.0);\n    xform.name = \"test_xform_proto\";\n\n    std::string filename = \"serialization/test_xform.bin\";\n    xform.pb_dump(filename);\n    Xform loaded = Xform::pb_load(filename);",
     "checks": [
@@ -1181,7 +1181,7 @@
     "group": "Xform",
     "test_name": "From Change Of Basis",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.015,
     "line": 570,
     "code": "    // uncomment #include \"xform.h\"\n    // uncomment #include \"polyline.h\"\n\n    // rect0: axis-aligned 2x3 quad in XY at the origin.\n    // rect1: anchor 4 units up the Z axis from rect0[0].\n    // The mapped origin (the unit-cube centre, (0,0,0) in the source frame)\n    // should land at the centroid of the joint volume, (1, 1.5, 2).\n    Polyline rect0({\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 3.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n    });\n    Polyline rect1({Point(0.0, 0.0, 4.0)});\n    Xform xf = Xform::from_change_of_basis(rect0, rect1);",
     "checks": [

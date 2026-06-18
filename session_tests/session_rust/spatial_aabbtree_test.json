@@ -34,7 +34,7 @@
     "line": 43,
     "passed": true,
     "test_name": "Build Single",
-    "time_ms": 0.213
+    "time_ms": 0.104
   },
   {
     "checks": [
@@ -50,7 +50,7 @@
     "line": 61,
     "passed": true,
     "test_name": "Build Multiple",
-    "time_ms": 0.182
+    "time_ms": 0.116
   },
   {
     "checks": [
@@ -66,7 +66,7 @@
     "line": 86,
     "passed": true,
     "test_name": "Node Count",
-    "time_ms": 3.29
+    "time_ms": 2.9
   },
   {
     "checks": [
@@ -123,7 +123,7 @@
     "line": 124,
     "passed": true,
     "test_name": "Mesh Point Aabb Matches Bvh",
-    "time_ms": 0.44
+    "time_ms": 0.42
   },
   {
     "checks": [
@@ -190,6 +190,6 @@
     "line": 142,
     "passed": true,
     "test_name": "Query Aabb",
-    "time_ms": 0.103
+    "time_ms": 0.1
   }
 ]
