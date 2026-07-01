@@ -3,9 +3,9 @@
     "group": "ElementFeature",
     "test_name": "Cross Constructor",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.007,
     "line": 9,
-    "code": "    // uncomment #include \"elementfeature.h\"\n    CrossElementFeature cf;",
+    "code": "",
     "checks": [
       {
         "line": 13,
@@ -54,9 +54,9 @@
     "group": "ElementFeature",
     "test_name": "Cross Equality",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.003,
     "line": 23,
-    "code": "    // uncomment #include \"elementfeature.h\"\n    CrossElementFeature a;\n    a.face_ids_a = {2, 4};\n    a.face_ids_b = {3, 5};\n    a.joint_area_guid = \"area\";\n    a.joint_volume_guids = {\"v0\", \"v1\"};\n    a.joint_line_guids   = {\"l0\", \"l1\"};\n\n    CrossElementFeature b = a;\n    b.face_ids_a.first = 9;",
+    "code": "",
     "checks": [
       {
         "line": 33,
@@ -75,9 +75,9 @@
     "group": "ElementFeature",
     "test_name": "Cross Json Round Trip",
     "passed": true,
-    "time_ms": 0.067,
+    "time_ms": 0.04,
     "line": 38,
-    "code": "    // uncomment #include \"elementfeature.h\"\n    CrossElementFeature a;\n    a.face_ids_a = {2, 4};\n    a.face_ids_b = {3, 5};\n    a.joint_area_guid = \"area\";\n    a.joint_volume_guids = {\"v0\", \"v1\"};\n    a.joint_line_guids   = {\"l0\", \"l1\"};\n    (void)a.guid();\n\n    auto json = a.file_json_dumps();\n    auto b = CrossElementFeature::file_json_loads(json);",
+    "code": "",
     "checks": [
       {
         "line": 50,
@@ -96,9 +96,9 @@
     "group": "ElementFeature",
     "test_name": "Cross Pb Round Trip",
     "passed": true,
-    "time_ms": 0.102,
+    "time_ms": 0.012,
     "line": 54,
-    "code": "    // uncomment #include \"elementfeature.h\"\n    CrossElementFeature a;\n    a.face_ids_a = {2, 4};\n    a.face_ids_b = {3, 5};\n    a.joint_area_guid = \"area\";\n    a.joint_volume_guids = {\"v0\", \"v1\"};\n    a.joint_line_guids   = {\"l0\", \"l1\"};\n    (void)a.guid();\n\n    auto bytes = a.pb_dumps();\n    auto b = CrossElementFeature::pb_loads(bytes);",
+    "code": "",
     "checks": [
       {
         "line": 66,
@@ -117,9 +117,9 @@
     "group": "ElementFeature",
     "test_name": "Face Round Trip",
     "passed": true,
-    "time_ms": 0.034,
+    "time_ms": 0.015,
     "line": 70,
-    "code": "    // uncomment #include \"elementfeature.h\"\n    FaceElementFeature a;\n    a.face_id_a = 3;\n    a.face_id_b = 5;\n    a.joint_area_guid = \"area\";\n    (void)a.guid();\n\n    auto bytes = a.pb_dumps();\n    auto b = FaceElementFeature::pb_loads(bytes);\n\n    auto json = a.file_json_dumps();\n    auto c = FaceElementFeature::file_json_loads(json);",
+    "code": "",
     "checks": [
       {
         "line": 80,
@@ -143,9 +143,9 @@
     "group": "ElementFeature",
     "test_name": "Axis Round Trip",
     "passed": true,
-    "time_ms": 0.045,
+    "time_ms": 0.02,
     "line": 88,
-    "code": "    // uncomment #include \"elementfeature.h\"\n    AxisElementFeature a;\n    a.axis_a_guid = \"axis_a\";\n    a.axis_b_guid = \"axis_b\";\n    a.connector_guid = \"conn\";\n    a.distance = 1.5;\n    (void)a.guid();\n\n    auto bytes = a.pb_dumps();\n    auto b = AxisElementFeature::pb_loads(bytes);\n\n    auto json = a.file_json_dumps();\n    auto c = AxisElementFeature::file_json_loads(json);",
+    "code": "",
     "checks": [
       {
         "line": 99,
@@ -174,9 +174,9 @@
     "group": "ElementFeature",
     "test_name": "Collision Round Trip",
     "passed": true,
-    "time_ms": 0.032,
+    "time_ms": 0.01,
     "line": 108,
-    "code": "    // uncomment #include \"elementfeature.h\"\n    CollisionElementFeature a;\n    a.mode = \"bvh\";\n    (void)a.guid();\n\n    auto bytes = a.pb_dumps();\n    auto b = CollisionElementFeature::pb_loads(bytes);\n\n    auto json = a.file_json_dumps();\n    auto c = CollisionElementFeature::file_json_loads(json);",
+    "code": "",
     "checks": [
       {
         "line": 116,
@@ -200,9 +200,9 @@
     "group": "ElementFeature",
     "test_name": "Edge ElementFeature Variant",
     "passed": true,
-    "time_ms": 0.068,
+    "time_ms": 0.024,
     "line": 124,
-    "code": "    // uncomment #include \"elementfeature.h\"\n    CrossElementFeature cf;\n    cf.joint_area_guid = \"area\";\n    EdgeElementFeature f1 = cf;\n\n    auto bytes = edge_elementfeature_pb_dumps(f1);\n    auto f2 = edge_elementfeature_pb_loads(bytes);\n\n    FaceElementFeature ff;\n    ff.face_id_a = 2;\n    EdgeElementFeature f3 = ff;\n    auto f4 = edge_elementfeature_pb_loads(edge_elementfeature_pb_dumps(f3));\n\n    EdgeElementFeature empty{};\n    auto f5 = edge_elementfeature_pb_loads(edge_elementfeature_pb_dumps(empty));",
+    "code": "",
     "checks": [
       {
         "line": 132,
@@ -231,9 +231,9 @@
     "group": "ElementFeature",
     "test_name": "Session Add ElementFeature",
     "passed": true,
-    "time_ms": 0.11,
+    "time_ms": 0.053,
     "line": 146,
-    "code": "    // uncomment #include \"elementfeature.h\"\n    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n    Session session;\n    auto p1 = std::make_shared<Point>(0, 0, 0);\n    auto p2 = std::make_shared<Point>(1, 1, 1);\n    session.add_point(p1);\n    session.add_point(p2);\n\n    CrossElementFeature cf;\n    cf.face_ids_a = {2, 3};\n    cf.face_ids_b = {4, 5};\n    cf.joint_area_guid = \"area_abc\";\n\n    auto feat_guid = session.add_elementfeature(p1->guid(), p2->guid(), cf);\n\n    auto edge_key = std::make_tuple(p1->guid(), p2->guid());",
+    "code": "",
     "checks": [
       {
         "line": 163,
@@ -262,9 +262,9 @@
     "group": "ElementFeature",
     "test_name": "Session Pb Round Trip",
     "passed": true,
-    "time_ms": 0.311,
+    "time_ms": 0.277,
     "line": 170,
-    "code": "    // uncomment #include \"elementfeature.h\"\n    // uncomment #include \"session.h\"\n    // uncomment #include \"point.h\"\n    Session session;\n    auto p1 = std::make_shared<Point>(0, 0, 0);\n    auto p2 = std::make_shared<Point>(1, 1, 1);\n    session.add_point(p1);\n    session.add_point(p2);\n\n    CrossElementFeature cf;\n    cf.face_ids_a = {2, 3};\n    cf.face_ids_b = {4, 5};\n    cf.joint_area_guid = \"area_abc\";\n    cf.joint_volume_guids = {\"v0\", \"v1\"};\n    auto feat_guid = session.add_elementfeature(p1->guid(), p2->guid(), cf);\n\n    auto bytes = session.pb_dumps();\n    auto session2 = Session::pb_loads(bytes);\n\n    auto& recovered = std::get<CrossElementFeature>(session2.edge_elementfeatures.at(feat_guid));",
+    "code": "",
     "checks": [
       {
         "line": 190,

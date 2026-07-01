@@ -1,8 +1,8 @@
-# 04 Resize — crisp, no stretch
+# 05 Resize — crisp, no stretch
 
 A standalone browser viewer that draws the triangle and keeps it correctly shaped at
 any window size (no stretch) and sharp on high-DPI screens.
-This is the starting point for the next chapter (05 Vertex Buffer — data on the GPU).
+This is the starting point for the next chapter (06 Vertex Buffer — data on the GPU).
 
 ## Prerequisites (once)
 
@@ -45,7 +45,11 @@ Flow: `browser → lib.rs → state.rs → engine/gpu.rs → pipelines (triangle
 
 ## What changed vs 04 Pipeline
 
-- `lib.rs` only: a new `desired_canvas_size()` helper (canvas CSS size ×
+- `lib.rs`: a new `desired_canvas_size()` helper (canvas CSS size ×
   devicePixelRatio), used in `user_event` (initial sizing) and every frame in
   `RedrawRequested` so the GPU surface always matches the canvas's real pixel size.
-- No other files change — `gpu.rs`'s `resize()` already configures the surface.
+- Aspect correction so the triangle keeps its shape at any window aspect (a taste of
+  the camera chapter): an `aspect = width / height` uniform fed to the vertex shader.
+  - `shaders/triangle.wgsl` — `@group(0) @binding(0) var<uniform> aspect: f32;` and `p.x /= aspect`.
+  - `gpu.rs` — a uniform buffer + bind group, written in `resize()` and bound in `clear()`.
+  - `pipelines/{mod,build}.rs` — pass the bind-group layout into the pipeline.

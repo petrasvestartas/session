@@ -273,7 +273,88 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 7.119
+    "time_ms": 5.216
+  },
+  {
+    "checks": [
+      {
+        "code_line": "s.is_valid()",
+        "line": 1118,
+        "passed": true
+      },
+      {
+        "code_line": "s.degree(0) == 3 && s.degree(1) == 3",
+        "line": 1119,
+        "passed": true
+      },
+      {
+        "code_line": "s.cv_count_dir(Some(0)) == 4 && s.cv_count_dir(Some(1)) == 4",
+        "line": 1120,
+        "passed": true
+      },
+      {
+        "code_line": "!s.is_rational()",
+        "line": 1121,
+        "passed": true
+      },
+      {
+        "code_line": "u0.abs() < 1e-12 && (u1 - 1.0).abs() < 1e-12",
+        "line": 1124,
+        "passed": true
+      },
+      {
+        "code_line": "v0.abs() < 1e-12 && (v1 - 1.0).abs() < 1e-12",
+        "line": 1125,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&s.point_at(0.0, 0.0).unwrap(),\n&Point::new(0.0, 0.0, 0.0))",
+        "line": 1126,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&s.point_at(1.0, 1.0).unwrap(),\n&Point::new(3.0, 3.0, 0.0))",
+        "line": 1127,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&s.point_at(0.5, 0.5).unwrap(),\n&Point::new(1.5, 1.5, 1.125))",
+        "line": 1128,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&s.point_at(0.37, 0.41).unwrap(),\n&Point::new(1.11, 1.23, 1.01496402))",
+        "line": 1129,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&fr.origin(), &s.point_at(0.3, 0.4).unwrap())",
+        "line": 1134,
+        "passed": true
+      },
+      {
+        "code_line": "(za[0]-n[0]).abs() < 1e-9 && (za[1]-n[1]).abs() < 1e-9 && (za[2]-n[2]).abs() <\n1e-9",
+        "line": 1137,
+        "passed": true
+      },
+      {
+        "code_line": "hits.len() == 1",
+        "line": 1144,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&hits[0], &Point::new(1.5, 1.5, 1.125))",
+        "line": 1145,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::NurbsSurface;\n        use crate::Point;\n\n        // Mirrors compas_occt OCCNurbsSurface.from_parameters / from_points (surface_from_points.py).\n        // Validated pointwise against OCCT (validation/compare_surface_eval.py).\n        let grid = vec![\n            vec![Point::new(0.0,0.0,0.0), Point::new(1.0,0.0,0.0), Point::new(2.0,0.0,0.0), Point::new(3.0,0.0,0.0)],\n            vec![Point::new(0.0,1.0,0.0), Point::new(1.0,1.0,2.0), Point::new(2.0,1.0,2.0), Point::new(3.0,1.0,0.0)],\n            vec![Point::new(0.0,2.0,0.0), Point::new(1.0,2.0,2.0), Point::new(2.0,2.0,2.0), Point::new(3.0,2.0,0.0)],\n            vec![Point::new(0.0,3.0,0.0), Point::new(1.0,3.0,0.0), Point::new(2.0,3.0,0.0), Point::new(3.0,3.0,0.0)],\n        ];\n        let w: Vec<Vec<f64>> = vec![vec![1.0; 4]; 4];\n        let s = NurbsSurface::create_from_parameters(&grid, &w, &[0.0,1.0], &[0.0,1.0], &[4,4], &[4,4], 3, 3, false, false);\n        let (u0, u1) = s.domain(0).unwrap();\n        let (v0, v1) = s.domain(1).unwrap();\n\n        // frame_at (surface_frames.py): origin == point_at, z-axis == normal_at.\n        // Normal validated vs OCCT D1uxD1v (validation/compare_surface_eval.py).\n        let fr = s.frame_at(0.3, 0.4);\n        let n = s.normal_at(0.3, 0.4);\n        let za = fr.z_axis();\n\n        // intersections_with_line (surface_intersections_with_line.py): a vertical line\n        // through (1.5, 1.5) hits the surface once at (1.5, 1.5, 1.125). Validated vs\n        // OCCT GeomAPI_IntCS (validation harness, dev <= 1.6e-16).\n        use crate::line::Line;\n        let hits = s.intersections_with_line(&Line::new(1.5, 1.5, -5.0, 1.5, 1.5, 5.0));",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 1104,
+    "passed": true,
+    "test_name": "Create From Parameters",
+    "time_ms": 10.337
   },
   {
     "checks": [
@@ -324,7 +405,7 @@
     "line": 106,
     "passed": true,
     "test_name": "Booleans Queries",
-    "time_ms": 0.169
+    "time_ms": 0.092
   },
   {
     "checks": [
@@ -390,7 +471,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.049
+    "time_ms": 0.019
   },
   {
     "checks": [
@@ -446,7 +527,7 @@
     "line": 213,
     "passed": true,
     "test_name": "Control Vertices Access",
-    "time_ms": 0.041
+    "time_ms": 0.066
   },
   {
     "checks": [
@@ -547,7 +628,7 @@
     "line": 274,
     "passed": true,
     "test_name": "NurbsKnot Access",
-    "time_ms": 0.163
+    "time_ms": 0.085
   },
   {
     "checks": [
@@ -588,7 +669,7 @@
     "line": 335,
     "passed": true,
     "test_name": "Domain",
-    "time_ms": 0.04
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -1059,7 +1140,7 @@
     "line": 388,
     "passed": true,
     "test_name": "Division",
-    "time_ms": 1.888
+    "time_ms": 0.982
   },
   {
     "checks": [
@@ -1110,7 +1191,7 @@
     "line": 521,
     "passed": true,
     "test_name": "Evaluation",
-    "time_ms": 0.146
+    "time_ms": 0.091
   },
   {
     "checks": [
@@ -1201,7 +1282,7 @@
     "line": 582,
     "passed": true,
     "test_name": "Modification",
-    "time_ms": 3.778
+    "time_ms": 2.164
   },
   {
     "checks": [
@@ -1252,7 +1333,7 @@
     "line": 671,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 0.192
+    "time_ms": 0.102
   },
   {
     "checks": [
@@ -1318,7 +1399,7 @@
     "line": 731,
     "passed": true,
     "test_name": "Meshing",
-    "time_ms": 414.018
+    "time_ms": 243.323
   },
   {
     "checks": [
@@ -1344,7 +1425,7 @@
     "line": 991,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 17.62
+    "time_ms": 17.789
   },
   {
     "checks": [
@@ -1365,64 +1446,7 @@
     "line": 1041,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 14.799
-  },
-  {
-    "checks": [
-      {
-        "code_line": "parts.len() == 2",
-        "line": 934,
-        "passed": true
-      },
-      {
-        "code_line": "parts[0].is_trimmed()",
-        "line": 935,
-        "passed": true
-      },
-      {
-        "code_line": "parts[1].is_trimmed()",
-        "line": 936,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Line;\n        use crate::Point;\n        use crate::Primitives;\n\n        let wave = Primitives::wave_surface(10.0, 1.0);\n        let line = Line::from_points(&Point::new(-1.0, 5.0, 0.0), &Point::new(11.0, 5.0, 0.0));\n\n        let parts = wave.split_by_line(&line, None);\n",
-    "failures": [],
-    "group": "NurbsSurface",
-    "line": 924,
-    "passed": true,
-    "test_name": "Split By Line",
-    "time_ms": 543.687
-  },
-  {
-    "checks": [
-      {
-        "code_line": "parts.len() == 2",
-        "line": 911,
-        "passed": true
-      },
-      {
-        "code_line": "parts[0].is_trimmed()",
-        "line": 912,
-        "passed": true
-      },
-      {
-        "code_line": "parts[1].is_trimmed()",
-        "line": 913,
-        "passed": true
-      },
-      {
-        "code_line": "whole.len() == 1",
-        "line": 919,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Closest;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Primitives;\n        use crate::nurbsknot::CurveNurbsKnotStyle;\n\n        let wave = Primitives::wave_surface(10.0, 1.0);\n        let mut lift_pts = Vec::new();\n        for i in 0..21 {\n            let x = 10.0 * i as f64 / 20.0;\n            let y = 5.0 + 2.0 * x.sin();\n            let (u, v, _d) = Closest::surface_point(&wave, &Point::new(x, y, 0.0), 0.0, 0.0, 0.0, 0.0);\n            lift_pts.push(wave.point_at(u, v).unwrap());\n        }\n        let crv = NurbsCurve::create_interpolated(&lift_pts, CurveNurbsKnotStyle::Chord);\n\n        let parts = wave.split_by_curves(&[crv], None);\n\n\n        let off = NurbsCurve::create(false, 1, &[Point::new(50.0, 50.0, 50.0), Point::new(60.0, 60.0, 60.0)]);\n\n        let whole = wave.split_by_curves(&[off], None);\n",
-    "failures": [],
-    "group": "NurbsSurface",
-    "line": 892,
-    "passed": true,
-    "test_name": "Split By Curves",
-    "time_ms": 103.06
+    "time_ms": 13.828
   },
   {
     "checks": [
@@ -1463,7 +1487,33 @@
     "line": 864,
     "passed": true,
     "test_name": "Split By Plane",
-    "time_ms": 553.835
+    "time_ms": 427.021
+  },
+  {
+    "checks": [
+      {
+        "code_line": "parts.len() == 2",
+        "line": 934,
+        "passed": true
+      },
+      {
+        "code_line": "parts[0].is_trimmed()",
+        "line": 935,
+        "passed": true
+      },
+      {
+        "code_line": "parts[1].is_trimmed()",
+        "line": 936,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Line;\n        use crate::Point;\n        use crate::Primitives;\n\n        let wave = Primitives::wave_surface(10.0, 1.0);\n        let line = Line::from_points(&Point::new(-1.0, 5.0, 0.0), &Point::new(11.0, 5.0, 0.0));\n\n        let parts = wave.split_by_line(&line, None);\n",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 924,
+    "passed": true,
+    "test_name": "Split By Line",
+    "time_ms": 397.373
   },
   {
     "checks": [
@@ -1499,7 +1549,33 @@
     "line": 966,
     "passed": true,
     "test_name": "Split By Brep",
-    "time_ms": 703.031
+    "time_ms": 52.2
+  },
+  {
+    "checks": [
+      {
+        "code_line": "(cp[0] - 2.0).abs() < 1e-4 && cp[1].abs() < 1e-4 && cp[2].abs() < 1e-4",
+        "line": 1092,
+        "passed": true
+      },
+      {
+        "code_line": "(sphere.gaussian_curvature(um, vm) - 0.25).abs() < 1e-3",
+        "line": 1098,
+        "passed": true
+      },
+      {
+        "code_line": "(sphere.mean_curvature(um, vm).abs() - 0.5).abs() < 1e-3",
+        "line": 1099,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Point;\n        use crate::primitives::Primitives;\n        // Sphere radius 2 at origin: closest surface point to an outside point is radial.\n        let sphere = Primitives::sphere_surface(0.0, 0.0, 0.0, 2.0);\n        let cp = sphere.closest_point(&Point::new(5.0, 0.0, 0.0));\n        // Curvature: sphere radius R has Gaussian K = 1/R^2, |mean| = 1/R.\n        let (u0, u1) = sphere.domain(0).unwrap();\n        let (v0, v1) = sphere.domain(1).unwrap();\n        let um = u0 + 0.37 * (u1 - u0);\n        let vm = v0 + 0.41 * (v1 - v0);",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 1086,
+    "passed": true,
+    "test_name": "ClosestPoint",
+    "time_ms": 0.544
   },
   {
     "checks": [
@@ -1535,6 +1611,37 @@
     "line": 941,
     "passed": true,
     "test_name": "Split By Surface",
-    "time_ms": 3043.822
+    "time_ms": 1879.292
+  },
+  {
+    "checks": [
+      {
+        "code_line": "parts.len() == 2",
+        "line": 911,
+        "passed": true
+      },
+      {
+        "code_line": "parts[0].is_trimmed()",
+        "line": 912,
+        "passed": true
+      },
+      {
+        "code_line": "parts[1].is_trimmed()",
+        "line": 913,
+        "passed": true
+      },
+      {
+        "code_line": "whole.len() == 1",
+        "line": 919,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Closest;\n        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Primitives;\n        use crate::nurbsknot::CurveNurbsKnotStyle;\n\n        let wave = Primitives::wave_surface(10.0, 1.0);\n        let mut lift_pts = Vec::new();\n        for i in 0..21 {\n            let x = 10.0 * i as f64 / 20.0;\n            let y = 5.0 + 2.0 * x.sin();\n            let (u, v, _d) = Closest::surface_point(&wave, &Point::new(x, y, 0.0), 0.0, 0.0, 0.0, 0.0);\n            lift_pts.push(wave.point_at(u, v).unwrap());\n        }\n        let crv = NurbsCurve::create_interpolated(&lift_pts, CurveNurbsKnotStyle::Chord);\n\n        let parts = wave.split_by_curves(&[crv], None);\n\n\n        let off = NurbsCurve::create(false, 1, &[Point::new(50.0, 50.0, 50.0), Point::new(60.0, 60.0, 60.0)]);\n\n        let whole = wave.split_by_curves(&[off], None);\n",
+    "failures": [],
+    "group": "NurbsSurface",
+    "line": 892,
+    "passed": true,
+    "test_name": "Split By Curves",
+    "time_ms": 100.188
   }
 ]

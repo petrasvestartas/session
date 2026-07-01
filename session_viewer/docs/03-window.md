@@ -1,4 +1,4 @@
-# 02 Window
+# 03 Window
 
 Create a simple window with a grey background.
 

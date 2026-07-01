@@ -16,7 +16,7 @@
     "session_viewer_archive/Cargo.toml",
     "session_server/Cargo.toml"
   ],
-  "editor.hover.enabled": true,
+  "editor.hover.enabled": "on",
   "VsCodeTaskButtons.showCounter": false,
   "VsCodeTaskButtons.tasks": [
     { "label": "$(tools) cpp",         "task": "cpp" },
@@ -24,5 +24,6 @@
     { "label": "$(cloud-upload) push", "task": "git push" },
     { "label": "$(cloud-download) pull", "task": "git pull" },
     { "label": "$(hubot) claude", "task": "claude" }
-  ]
+  ],
+  "cmake.sourceDirectory": "C:/pc/3_code/code_rust/session/session_cpp/build/_deps/absl-src/absl/base"
 }

@@ -1,7 +1,7 @@
-# 02 Window — runnable skeleton
+# 03 Window — runnable skeleton
 
 A standalone browser viewer that opens a canvas and clears it to grey.
-This is the starting point for the next chapter (03 Pipeline — draw a triangle).
+This is the starting point for the next chapter (04 Pipeline — draw a triangle).
 
 ## Prerequisites (once)
 

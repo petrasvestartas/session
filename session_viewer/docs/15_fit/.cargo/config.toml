@@ -1,0 +1,4 @@
+# Single target: the browser. Every `cargo` command (check/build/clippy) defaults to wasm32,
+# so the code needs no `#[cfg(target_arch = "wasm32")]` gates. Trunk also builds this target.
+[build]
+target = "wasm32-unknown-unknown"

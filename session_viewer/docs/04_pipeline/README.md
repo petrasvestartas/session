@@ -1,8 +1,8 @@
-# 03 Pipeline — first triangle
+# 04 Pipeline — first triangle
 
 A standalone browser viewer that draws one hard-coded triangle (red/green/blue
 corners, smoothly blended) on the grey background.
-This is the starting point for the next chapter (04 Resize — stop the stretch).
+This is the starting point for the next chapter (05 Resize — stop the stretch).
 
 ## Prerequisites (once)
 

@@ -83,7 +83,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.254
+    "time_ms": 0.172
   },
   {
     "checks": [
@@ -99,7 +99,7 @@
     "line": 80,
     "passed": true,
     "test_name": "From Polylines",
-    "time_ms": 0.611
+    "time_ms": 0.327
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 116,
     "passed": true,
     "test_name": "From Lines",
-    "time_ms": 0.668
+    "time_ms": 0.303
   },
   {
     "checks": [
@@ -136,7 +136,7 @@
     "line": 150,
     "passed": true,
     "test_name": "From Polygon With Holes",
-    "time_ms": 1.533
+    "time_ms": 0.773
   },
   {
     "checks": [
@@ -167,7 +167,7 @@
     "line": 205,
     "passed": true,
     "test_name": "Loft",
-    "time_ms": 4.178
+    "time_ms": 2.433
   },
   {
     "checks": [
@@ -218,7 +218,7 @@
     "line": 286,
     "passed": true,
     "test_name": "Loft concave with holes and collinear",
-    "time_ms": 3.779
+    "time_ms": 2.047
   },
   {
     "checks": [
@@ -254,7 +254,7 @@
     "line": 390,
     "passed": true,
     "test_name": "From Polygon With Holes Many",
-    "time_ms": 5.125
+    "time_ms": 2.838
   },
   {
     "checks": [
@@ -385,7 +385,7 @@
     "line": 424,
     "passed": true,
     "test_name": "Loft Many",
-    "time_ms": 4.783
+    "time_ms": 2.974
   },
   {
     "checks": [
@@ -431,7 +431,7 @@
     "line": 642,
     "passed": true,
     "test_name": "Boolean Queries",
-    "time_ms": 0.631
+    "time_ms": 0.331
   },
   {
     "checks": [
@@ -777,7 +777,7 @@
     "line": 702,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.723
+    "time_ms": 0.395
   },
   {
     "checks": [
@@ -803,7 +803,7 @@
     "line": 820,
     "passed": true,
     "test_name": "Create Dodecahedron",
-    "time_ms": 1.65
+    "time_ms": 0.865
   },
   {
     "checks": [
@@ -1014,7 +1014,7 @@
     "line": 832,
     "passed": true,
     "test_name": "Vertex and Face Operations",
-    "time_ms": 2.25
+    "time_ms": 1.312
   },
   {
     "checks": [
@@ -1185,7 +1185,7 @@
     "line": 956,
     "passed": true,
     "test_name": "Connectivity Queries",
-    "time_ms": 0.432
+    "time_ms": 0.22
   },
   {
     "checks": [
@@ -2301,7 +2301,7 @@
     "line": 1144,
     "passed": true,
     "test_name": "Geometric Properties",
-    "time_ms": 9.761
+    "time_ms": 5.112
   },
   {
     "checks": [
@@ -2352,7 +2352,7 @@
     "line": 1289,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.209
+    "time_ms": 0.111
   },
   {
     "checks": [
@@ -2398,7 +2398,7 @@
     "line": 1334,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 21.066
+    "time_ms": 18.372
   },
   {
     "checks": [
@@ -2439,7 +2439,7 @@
     "line": 1398,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 18.634
+    "time_ms": 15.314
   },
   {
     "checks": [
@@ -2455,7 +2455,7 @@
     "line": 1505,
     "passed": true,
     "test_name": "Loft plate_v2 15-vert outer + 3 holes",
-    "time_ms": 4.241
+    "time_ms": 2.335
   },
   {
     "checks": [
@@ -2556,7 +2556,7 @@
     "line": 479,
     "passed": true,
     "test_name": "Loft with quads and triangles",
-    "time_ms": 7.463
+    "time_ms": 3.58
   },
   {
     "checks": [
@@ -2577,7 +2577,7 @@
     "line": 806,
     "passed": true,
     "test_name": "Edges",
-    "time_ms": 0.309
+    "time_ms": 0.167
   },
   {
     "checks": [
@@ -2593,6 +2593,6 @@
     "line": 1456,
     "passed": true,
     "test_name": "Loft plate_failing 15-vert outer + 3 holes",
-    "time_ms": 3.766
+    "time_ms": 1.781
   }
 ]

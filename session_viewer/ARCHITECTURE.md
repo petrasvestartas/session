@@ -101,7 +101,7 @@ src/
 │   │   ├── mod.rs          // handle_key / handle_mouse_* / handle_scroll
 │   │   ├── transform.rs    // commit_object_transform() (bake matrix into geometry)
 │   │   ├── box_select.rs   // drag-rectangle selection
-│   │   └── fit.rs          // fit_view(), named-view shortcuts
+│   │   └── fit.rs          // fit_view() (F: fits selection if any, else all geometry), named-view shortcuts
 │   ├── gumball_state.rs    // GumballState: gizmo instance + drag snapshots (app layer)
 │   ├── demo.rs             // hardcoded demo scene = APP data, never in engine
 │   ├── commands.rs         // CLI parse + dispatch (execute_command)
@@ -236,7 +236,7 @@ docs already exist (`01-run`, `02-dependencies`, `03-window`); Chapter 1 of *cod
 | 2 | first pipeline: a triangle from a shader | `engine/pipelines/{mod,build,layouts}.rs`; `shaders/triangle.wgsl` | a pipeline is a file; shaders foldered; ordered pass | `04-pipeline.md` |
 | 3 | camera + uniforms (orbit a mesh) | `engine/camera.rs`, `pipelines/camera_uniform.rs`; `math.rs` | uniform bind group is its own file; camera is engine | `05-camera.md` |
 | 4 | egui overlay + WASM error pass | `ui/{mod,settings}.rs`; error sweep | egui pass after 3D; no unwrap at the boundary | `06-ui.md` |
-| 5 | orbit / pan / zoom + named views | `engine/camera.rs` (Controller); `app/interaction/{mod,fit}.rs` | engine = math, app = event→camera wiring | `07-input.md` |
+| 5 | orbit / pan / zoom + named views (F = zoom-extents to all geometry when nothing is selected, zoom-to-selected when something is selected) | `engine/camera.rs` (Controller); `app/interaction/{mod,fit}.rs` | engine = math, app = event→camera wiring | `07-input.md` |
 | 6 | picking + selection | `engine/pick.rs`; `app/pick.rs` | ray math engine, selection app; `#[cfg(test)]` on ray math | `08-picking.md` |
 | 7 | geometry + `GpuSession` mirror | `engine/gpu/{session,geometry,arena,adapters,transform}.rs`; `app/{scene,demo}.rs` | **(c) engine/app split**; privacy trick | `09-geometry.md` |
 | 8 | grid (ground reference) | `shaders/grid.wgsl`; grid ctor in `pipelines/build.rs` | new pipeline = shader + ctor + one draw, nothing else | `10-grid.md` |
@@ -253,6 +253,26 @@ labels (`engine/text.rs`), more snap modes, BRep live-matrix handling — each i
 right layer.
 
 ---
+
+## 5b. Precision boundary — f64 kernel, f32 GPU (enforced)
+
+The kernel (`session_rust`) is **f64**; wgpu wants **f32**. f64 is the *compute* representation; f32 is
+a **one-way snapshot** taken at the GPU upload edge — **never** a working type inside math. There are
+exactly three legal cast points, all at that edge:
+
+1. **Matrices** — `Camera::view_proj() -> Xform` (f64), cast once with `Xform::to_f32()` next to
+   `queue.write_buffer` (`engine/gpu.rs`). 16 floats/frame → O(1).
+2. **Geometry** — `Mesh::gpu_mesh(&device)` builds + **caches** a `GpuMesh` of `RenderVertex`
+   (f32); re-cast only on edit (`invalidate_gpu`), never per frame. Moving an object is matrix-only.
+3. **GPU-only `#[repr(C)]` structs** (vertex/instance rows) are f32 by definition.
+
+**Rule:** store kernel types (`Point`/`Vector`/`Quaternion`/`Xform`/`Mesh`) in anything that computes —
+the camera included. An `as f32` is legal *only* adjacent to a `bytemuck`/`write_buffer`/buffer-init
+call or inside a GPU struct; an `as f32` inside a loop or vector expression that feeds more math is a
+bug (push it to the boundary). Event-layer inputs (winit mouse/scroll f32, f32 AABB) cast the 1–2
+scalars where they enter compute, keeping public signatures f32 so `lib.rs` stays decoupled. Large
+scenes: keep vertices **local** + per-object matrix and subtract the origin in the **view** matrix in
+f64 (camera-relative), casting only the small offset. (Memory: `reference_f64_f32_boundary`.)
 
 ## 6. Where each chapter is documented
 
@@ -272,3 +292,5 @@ is **not done** until its `NN-*.md` exists.
 - **Layer rule:** higher drives lower, lower never reaches up.
 - **File rule:** one concern, ~300-line soft cap, real `mod`s, no `include!`.
 - **Boundary rule:** `engine/` names no app symbol; WASM-edge calls return `Result`.
+- **Precision rule (§5b):** compute in f64 (kernel types); cast to f32 only at the GPU upload edge
+  (`Xform::to_f32`, cached `Mesh::gpu_mesh`). Never `as f32` inside a computation.

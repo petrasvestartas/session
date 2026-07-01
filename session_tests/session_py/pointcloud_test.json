@@ -3,7 +3,7 @@
     "group": "PointCloud",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.254,
+    "time_ms": 0.287,
     "line": 7,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Default constructor (empty cloud)\n    pc0 = PointCloud()\n\n    # Constructor with points, normals, colors\n    p0 = Point(0.0, 0.0, 0.0)\n    p1 = Point(1.0, 0.0, 0.0)\n    p2 = Point(0.0, 1.0, 0.0)\n    n0 = Vector(0.0, 0.0, 1.0)\n    n1 = Vector(0.0, 0.0, 1.0)\n    n2 = Vector(0.0, 0.0, 1.0)\n    c0 = Color(255, 0, 0, 255)\n    c1 = Color(0, 255, 0, 255)\n    c2 = Color(0, 0, 255, 255)\n    pc = PointCloud([p0, p1, p2], [n0, n1, n2], [c0, c1, c2])\n\n    # Python-only: coords is a public flat List[float] [x0,y0,z0, x1,y1,z1, ...]\n    # C++/Rust store coords privately; use get_point()/get_points() for cross-language code\n    coords = pc.coords\n\n    # Minimal and Full String Representation\n    pcstr = str(pc)\n    pcrepr = repr(pc)\n\n    # Copy (duplicates everything except guid)\n    pccopy = pc.duplicate()\n    pcother = PointCloud()\n\n    # Copy operators\n    offset = Vector(10.0, 20.0, 30.0)\n    pc_iadd = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc_iadd += offset\n    pc_isub = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc_isub -= offset\n    pc3 = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc_add = pc3 + offset\n    pc_sub = pc3 - offset",
     "checks": [
@@ -79,7 +79,7 @@
     "group": "PointCloud",
     "test_name": "From Coords",
     "passed": true,
-    "time_ms": 0.032,
+    "time_ms": 0.042,
     "line": 66,
     "code": "    from session_py import PointCloud\n\n    coords = [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0]\n    colors = [1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0]\n    normals = [0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0]\n    pc = PointCloud.from_coords(coords, colors, normals)",
     "checks": [
@@ -110,7 +110,7 @@
     "group": "PointCloud",
     "test_name": "Point Count",
     "passed": true,
-    "time_ms": 0.012,
+    "time_ms": 0.013,
     "line": 81,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n\n    pc = PointCloud([Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0), Point(0.0, 1.0, 0.0)])",
     "checks": [
@@ -142,7 +142,7 @@
     "group": "PointCloud",
     "test_name": "Is Empty",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.011,
     "line": 101,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n\n    pc0 = PointCloud()\n    pc1 = PointCloud([Point(0.0, 0.0, 0.0)])",
     "checks": [
@@ -163,7 +163,7 @@
     "group": "PointCloud",
     "test_name": "Get Point",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.015,
     "line": 113,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n\n    pc = PointCloud([Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)])\n    pt = pc.get_point(1)",
     "checks": [
@@ -189,7 +189,7 @@
     "group": "PointCloud",
     "test_name": "Set Point",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.018,
     "line": 126,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n\n    pc = PointCloud([Point(0.0, 0.0, 0.0)])\n    pc.set_point(0, Point(4.0, 5.0, 6.0))",
     "checks": [
@@ -246,7 +246,7 @@
     "group": "PointCloud",
     "test_name": "Get Points",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.037,
     "line": 153,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n\n    pc = PointCloud([Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)])\n    # get_points() allocates N Point objects from flat coords \u2014 use pc.coords for fast iteration\n    points = pc.get_points()\n\n    # Python-only: direct flat-array access avoids Point allocation overhead\n    c = pc.coords\n    x1 = c[3]",
     "checks": [
@@ -277,7 +277,7 @@
     "group": "PointCloud",
     "test_name": "Color Count",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.034,
     "line": 172,
     "code": "    from session_py import PointCloud\n    from session_py import Color\n\n    pc = PointCloud(colors=[Color(1.0, 0.0, 0.0, 1.0), Color(0.0, 1.0, 0.0, 1.0)])",
     "checks": [
@@ -293,7 +293,7 @@
     "group": "PointCloud",
     "test_name": "Get Color",
     "passed": true,
-    "time_ms": 0.016,
+    "time_ms": 0.032,
     "line": 182,
     "code": "    from session_py import PointCloud\n    from session_py import Color\n\n    pc = PointCloud(colors=[Color(1.0, 0.0, 0.0, 1.0), Color(0.0, 1.0, 0.0, 1.0)])\n    c = pc.get_color(1)",
     "checks": [
@@ -309,7 +309,7 @@
     "group": "PointCloud",
     "test_name": "Set Color",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.066,
     "line": 193,
     "code": "    from session_py import PointCloud\n    from session_py import Color\n\n    pc = PointCloud(colors=[Color(0.0, 0.0, 0.0, 0.0)])\n    pc.set_color(0, Color(1.0, 0.5, 0.25, 1.0))",
     "checks": [
@@ -325,7 +325,7 @@
     "group": "PointCloud",
     "test_name": "Add Color",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.032,
     "line": 204,
     "code": "    from session_py import PointCloud\n    from session_py import Color\n\n    pc = PointCloud()\n    pc.add_color(Color(0.5, 0.25, 0.125, 1.0))",
     "checks": [
@@ -346,7 +346,7 @@
     "group": "PointCloud",
     "test_name": "Get Colors",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.046,
     "line": 216,
     "code": "    from session_py import PointCloud\n    from session_py import Color\n\n    pc = PointCloud(colors=[Color(1.0, 0.0, 0.0, 1.0), Color(0.0, 1.0, 0.0, 1.0)])\n    colors = pc.get_colors()",
     "checks": [
@@ -372,7 +372,7 @@
     "group": "PointCloud",
     "test_name": "Normal Count",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.015,
     "line": 229,
     "code": "    from session_py import PointCloud\n    from session_py import Vector\n\n    pc = PointCloud(normals=[Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)])",
     "checks": [
@@ -388,7 +388,7 @@
     "group": "PointCloud",
     "test_name": "Get Normal",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.019,
     "line": 239,
     "code": "    from session_py import PointCloud\n    from session_py import Vector\n\n    pc = PointCloud(normals=[Vector(0.0, 0.0, 1.0), Vector(1.0, 0.0, 0.0)])\n    n = pc.get_normal(1)",
     "checks": [
@@ -414,7 +414,7 @@
     "group": "PointCloud",
     "test_name": "Set Normal",
     "passed": true,
-    "time_ms": 0.016,
+    "time_ms": 0.019,
     "line": 252,
     "code": "    from session_py import PointCloud\n    from session_py import Vector\n\n    pc = PointCloud(normals=[Vector(0.0, 0.0, 1.0)])\n    pc.set_normal(0, Vector(0.0, 1.0, 0.0))",
     "checks": [
@@ -440,7 +440,7 @@
     "group": "PointCloud",
     "test_name": "Add Normal",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.012,
     "line": 265,
     "code": "    from session_py import PointCloud\n    from session_py import Vector\n\n    pc = PointCloud()\n    pc.add_normal(Vector(1.0, 0.0, 0.0))",
     "checks": [
@@ -461,7 +461,7 @@
     "group": "PointCloud",
     "test_name": "Get Normals",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.021,
     "line": 277,
     "code": "    from session_py import PointCloud\n    from session_py import Vector\n\n    pc = PointCloud(normals=[Vector(0.0, 0.0, 1.0), Vector(1.0, 0.0, 0.0)])\n    normals = pc.get_normals()",
     "checks": [
@@ -487,7 +487,7 @@
     "group": "PointCloud",
     "test_name": "Transform",
     "passed": true,
-    "time_ms": 0.037,
+    "time_ms": 0.041,
     "line": 290,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Xform\n\n    pc = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc.xform = Xform.translation(10.0, 20.0, 30.0)\n    pc.transform()",
     "checks": [
@@ -513,7 +513,7 @@
     "group": "PointCloud",
     "test_name": "Transformed",
     "passed": true,
-    "time_ms": 0.081,
+    "time_ms": 0.092,
     "line": 305,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Xform\n\n    pc = PointCloud([Point(1.0, 2.0, 3.0)])\n    pc.xform = Xform.translation(10.0, 20.0, 30.0)\n    pc2 = pc.transformed()",
     "checks": [
@@ -544,7 +544,7 @@
     "group": "PointCloud",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 14.72,
+    "time_ms": 16.457,
     "line": 321,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n    from pathlib import Path\n\n    pc = PointCloud(\n        [Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)],\n        [Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)],\n        [Color(1.0, 0.0, 0.0, 1.0), Color(0.0, 1.0, 0.0, 1.0)]\n    )\n    pc.name = \"test_pointcloud\"\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   file_json_dumps()    \u2502 str          \u2502 to JSON string\n    #   file_json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   file_json_dump(path) \u2502 file         \u2502 write to file\n    #   file_json_load(path) \u2502 file         \u2502 read from file\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_pointcloud.json\"\n    pc.file_json_dump(fname)\n    loaded = PointCloud.file_json_load(fname)",
     "checks": [
@@ -580,7 +580,7 @@
     "group": "PointCloud",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 12.946,
+    "time_ms": 14.983,
     "line": 354,
     "code": "    from session_py import PointCloud\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n    from pathlib import Path\n\n    pc = PointCloud(\n        [Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)],\n        [Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)],\n        [Color(1.0, 0.0, 0.0, 1.0), Color(0.0, 1.0, 0.0, 1.0)]\n    )\n    pc.name = \"test_pointcloud\"\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_pointcloud.bin\"\n    pc.pb_dump(fname)\n    loaded = PointCloud.pb_load(fname)",
     "checks": [

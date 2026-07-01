@@ -1,4 +1,4 @@
-# 05 Vertex Buffer
+# 06 Vertex Buffer
 
 Move the triangle's corners out of the shader and into a **buffer on the GPU**.
 
@@ -20,15 +20,6 @@ chapters reuse for meshes, lines, and points.
 - **`bytemuck`** — lets us reinterpret a `&[Vertex]` as the raw `&[u8]` the GPU wants,
   with no copying. The struct must be `#[repr(C)]` + `Pod` (plain old data) for this
   to be sound.
-
-The flow we're building:
-
-```
-Rust: [Vertex; 3]  ──bytemuck──▶  bytes  ──create_buffer──▶  GPU vertex buffer
-                                                                    │
-draw: set_vertex_buffer(0, …) ; draw(0..3)  ──▶  shader reads @location(0),(1)
-```
-
 
 ## Files we touch
 
@@ -108,6 +99,9 @@ it just **receives** a position and colour per vertex:
 ```wgsl
 // Corners now come from a vertex buffer (one Vertex per invocation), not from
 // vertex_index. @location(0)/(1) line up with Vertex::ATTRIBS in build.rs.
+// `aspect` carries over from chapter 05 — keep it so the triangle stays in shape.
+
+@group(0) @binding(0) var<uniform> aspect: f32;   // = width / height
 
 struct VsIn {
     @location(0) position: vec3<f32>,
@@ -121,10 +115,12 @@ struct VsOut {
 
 @vertex
 fn vs_main(in: VsIn) -> VsOut {
-    var out: VsOut;
-    out.pos   = vec4<f32>(in.position, 1.0);   // already in clip space (camera comes later)
-    out.color = in.color;
-    return out;
+    var o: VsOut;                          // name it `o`, NOT `out` — see note below
+    var p = vec4<f32>(in.position, 1.0);   // already in clip space (camera comes later)
+    p.x = p.x / aspect;                    // chapter 05 aspect correction
+    o.pos   = p;
+    o.color = in.color;
+    return o;
 }
 
 @fragment
@@ -133,16 +129,34 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 }
 ```
 
+> **Don't name the variable `out`.** `out` is a reserved word in WGSL, so `var out: VsOut;`
+> fails to parse — the variable is never declared, and the compiler then reports every
+> `out.pos` / `return out` below as *"out is not declared"* (the error points at the uses,
+> not the real culprit). Use `o` (or `output`). Note that `in` as a *parameter* name is
+> fine — it isn't reserved — which is why `fn vs_main(in: VsIn)` works.
+
+> Keep `@group(0) @binding(0)` — the pipeline layout (`build.rs`) and the bind group
+> (`gpu.rs`) for `aspect` already exist from chapter 05, so the shader must still declare
+> the uniform or wgpu will reject the bound-but-undeclared group.
+
 The locations are the contract: `@location(0)` here ⇄ `0 => Float32x3` in `ATTRIBS` ⇄
 `position` field. Get one out of sync and wgpu rejects the pipeline.
 
 
 ## Step 4 — create and store the buffer: `engine/gpu.rs`
 
-**(a)** At the top of `gpu.rs`, bring in the upload helper and the `Vertex` type:
+**(a)** First make the `build` module public so `gpu.rs` can import `Vertex` from it.
+In `engine/pipelines/mod.rs` change the first line:
 
 ```rust
-use wgpu::util::DeviceExt;                          // for create_buffer_init
+pub mod build;   // was: mod build;
+```
+
+Then at the top of `gpu.rs`, bring in the `Vertex` type. (`use wgpu::util::DeviceExt;`
+is already in scope from chapter 05's aspect buffer — reuse it, don't add a second one in
+the same scope.)
+
+```rust
 use crate::engine::pipelines::build::Vertex;
 ```
 
@@ -155,6 +169,8 @@ pub struct Gpu {
     pub queue: wgpu::Queue,
     pub config: wgpu::SurfaceConfiguration,
     pub pipelines: Pipelines,
+    pub aspect_buffer: wgpu::Buffer,        // from chapter 05 (aspect)
+    pub aspect_bind_group: wgpu::BindGroup, // from chapter 05 (aspect)
     pub vertex_buffer: wgpu::Buffer,    // <- ADD
     pub num_vertices: u32,              // <- ADD
 }
@@ -164,7 +180,9 @@ pub struct Gpu {
 then add both fields to the returned struct:
 
 ```rust
-        let pipelines = Pipelines::new(&device, config.format);
+        // `aspect_buffer` / `aspect_layout` / `aspect_bind_group` were set up just above
+        // (chapter 05); `Pipelines::new` already takes the aspect layout.
+        let pipelines = Pipelines::new(&device, config.format, &aspect_layout);
 
         // The triangle data, now Rust-side. Same 3 corners as before.
         const TRIANGLE: &[Vertex] = &[
@@ -180,7 +198,7 @@ then add both fields to the returned struct:
         let num_vertices = TRIANGLE.len() as u32;
 
         log::info!("viewer init OK — surface {}x{}, format {:?}", config.width, config.height, config.format);
-        Ok(Self { surface, device, queue, config, pipelines, vertex_buffer, num_vertices })
+        Ok(Self { surface, device, queue, config, pipelines, aspect_buffer, aspect_bind_group, vertex_buffer, num_vertices })
 ```
 
 
@@ -191,12 +209,14 @@ the vertex buffer to slot 0 between them, and use `num_vertices` instead of the 
 
 ```rust
             pass.set_pipeline(&self.pipelines.triangle);
+            pass.set_bind_group(0, &self.aspect_bind_group, &[]);      // keep — from chapter 05
             pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));   // <- ADD
             pass.draw(0..self.num_vertices, 0..1);                     // was 0..3
 ```
 
-`slice(..)` means "the whole buffer". Slot `0` matches the single `buffers: &[…]` entry
-we set in Step 2.
+`slice(..)` means "the whole buffer". The vertex-buffer slot `0` matches the single
+`buffers: &[…]` entry from Step 2; the bind-group slot `0` is a *separate* namespace (the
+`aspect` uniform from chapter 05) — keep that line or the shape correction is lost.
 
 
 ## Step 6 — run it
@@ -205,7 +225,7 @@ we set in Step 2.
 cd session_viewer && trunk serve   # http://localhost:8770  (Chrome/Edge)
 ```
 
-You should see the **exact same rainbow triangle** as Chapter 3 — that's the point.
+You should see the **exact same rainbow triangle** as Chapter 4 — that's the point.
 Nothing changed on screen; what changed is *where the data lives*. The corners are now
 real bytes on the GPU that we control from Rust, not constants baked in the shader.
 
@@ -213,12 +233,12 @@ Quick proof it's data-driven: tweak a `position` or `color` in `TRIANGLE`, save,
 triangle moves/recolours without touching the shader.
 
 
-## What changed vs Chapter 3 (recap)
+## What changed vs Chapter 4 (recap)
 
 ```
-Chapter 3:  corners hard-coded in WGSL, picked by vertex_index
-Chapter 4 (Resize): unchanged geometry, correct canvas size
-Chapter 5:  corners in a GPU vertex buffer; shader reads @location inputs
+Chapter 4:  corners hard-coded in WGSL, picked by vertex_index
+Chapter 5 (Resize): unchanged geometry, correct canvas size
+Chapter 6:  corners in a GPU vertex buffer; shader reads @location inputs
             └── the upload path every future mesh/line/point reuses
 ```
 

@@ -3,7 +3,7 @@
     "group": "Matrix",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.047,
+    "time_ms": 0.037,
     "line": 10,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix m = Matrix::zeros(2, 3);\n    Matrix eye = Matrix::identity(3);\n    Matrix ml = Matrix::from_vec(2, 2, {1.0, 2.0, 3.0, 4.0});\n    Matrix mr = Matrix::from_rows({{1.0, 2.0}, {3.0, 4.0}});\n    Matrix mc = Matrix::from_cols({{1.0, 3.0}, {2.0, 4.0}});\n    double v00 = ml(0, 0);\n    double v01 = ml(0, 1);\n    double v10 = ml(1, 0);\n    double v11 = ml(1, 1);\n    bool eq = (ml == mr);\n    bool ne = (ml != Matrix::identity(2));\n    std::string sstr = m.str();\n    std::string srepr = eye.repr();\n    Matrix d = ml.duplicate();",
     "checks": [
@@ -69,7 +69,7 @@
     "group": "Matrix",
     "test_name": "Properties",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.006,
     "line": 40,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix m1 = Matrix::identity(3);\n    Matrix m2 = Matrix::zeros(2, 3);\n    Matrix m3 = Matrix::from_vec(3, 3, {1.0, 2.0, 3.0, 2.0, 5.0, 6.0, 3.0, 6.0, 9.0});\n    Matrix m4 = Matrix::from_vec(2, 2, {1.0, 2.0, 3.0, 4.0});\n    bool sq1 = m1.is_square();\n    bool sq2 = m2.is_square();\n    bool sym1 = m3.is_symmetric();\n    bool sym2 = m4.is_symmetric();\n    double tr = m1.trace();",
     "checks": [
@@ -131,7 +131,7 @@
     "group": "Matrix",
     "test_name": "Subtract",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.001,
     "line": 71,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 2, {5.0, 6.0, 7.0, 8.0});\n    Matrix b = Matrix::from_vec(2, 2, {1.0, 2.0, 3.0, 4.0});\n    Matrix c = a.subtract(b);\n    Matrix d = a - b;",
     "checks": [
@@ -178,7 +178,7 @@
     "group": "Matrix",
     "test_name": "Multiply",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 93,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 3, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});\n    Matrix b = Matrix::from_vec(3, 2, {7.0, 8.0, 9.0, 10.0, 11.0, 12.0});\n    Matrix c = a.multiply(b);\n    Matrix d = a * b;",
     "checks": [
@@ -209,7 +209,7 @@
     "group": "Matrix",
     "test_name": "Transpose",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.001,
     "line": 106,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 3, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});\n    Matrix t = a.transpose();",
     "checks": [
@@ -235,7 +235,7 @@
     "group": "Matrix",
     "test_name": "Determinant",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.006,
     "line": 116,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix a1 = Matrix::from_vec(1, 1, {5.0});\n    Matrix a2 = Matrix::from_vec(2, 2, {4.0, 7.0, 2.0, 6.0});\n    Matrix a3 = Matrix::from_vec(3, 3, {1.0, 2.0, 3.0, 0.0, 1.0, 4.0, 5.0, 6.0, 0.0});\n    Matrix eye3 = Matrix::identity(3);",
     "checks": [
@@ -266,7 +266,7 @@
     "group": "Matrix",
     "test_name": "Inverse",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.004,
     "line": 129,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 2, {4.0, 7.0, 2.0, 6.0});\n    auto inv = a.inverse();\n    Matrix singular = Matrix::from_vec(2, 2, {1.0, 2.0, 2.0, 4.0});\n    auto inv_none = singular.inverse();\n    Matrix prod = a.multiply(*inv);",
     "checks": [
@@ -307,7 +307,7 @@
     "group": "Matrix",
     "test_name": "Solve",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.003,
     "line": 145,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 2, {2.0, 1.0, 1.0, 3.0});\n    Matrix b = Matrix::from_vec(2, 1, {5.0, 10.0});\n    auto x = a.solve(b);\n    // 2x+y=5, x+3y=10 → x=1, y=3\n\n    double residual_0 = 2.0 * (*x)(0, 0) + 1.0 * (*x)(1, 0);\n    double residual_1 = 1.0 * (*x)(0, 0) + 3.0 * (*x)(1, 0);",
     "checks": [
@@ -343,7 +343,7 @@
     "group": "Matrix",
     "test_name": "Lu Decompose",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.007,
     "line": 162,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(3, 3, {2.0, 1.0, 1.0, 4.0, 3.0, 3.0, 8.0, 7.0, 9.0});\n    auto [l, u, p] = a.lu_decompose();\n    Matrix pa = p.multiply(a);\n    Matrix lu = l.multiply(u);",
     "checks": [
@@ -379,7 +379,7 @@
     "group": "Matrix",
     "test_name": "Qr Decompose",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.006,
     "line": 176,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(3, 3, {12.0, -51.0, 4.0, 6.0, 167.0, -68.0, -4.0, 24.0, -41.0});\n    auto [q, r] = a.qr_decompose();\n    Matrix qt = q.transpose();\n    Matrix qtq = qt.multiply(q);\n    Matrix qr_prod = q.multiply(r);",
     "checks": [
@@ -461,7 +461,7 @@
     "group": "Matrix",
     "test_name": "Eigenvalues",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.004,
     "line": 210,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(3, 3, {3.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 2.0});\n    std::vector<double> evs = a.eigenvalues();\n    std::sort(evs.begin(), evs.end());",
     "checks": [
@@ -549,7 +549,7 @@
     "group": "Matrix",
     "test_name": "Rank",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.001,
     "line": 246,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::identity(3);\n    Matrix b = Matrix::from_vec(3, 3, {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0});\n    Matrix c = Matrix::zeros(3, 3);",
     "checks": [
@@ -575,7 +575,7 @@
     "group": "Matrix",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 12.895,
+    "time_ms": 14.554,
     "line": 257,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 3, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});\n    a.name = \"test_matrix\";\n    a.file_json_dump(\"serialization/test_matrix.json\");\n    Matrix loaded = Matrix::file_json_load(\"serialization/test_matrix.json\");",
     "checks": [
@@ -601,7 +601,7 @@
     "group": "Matrix",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 12.727,
+    "time_ms": 11.793,
     "line": 269,
     "code": "    // uncomment #include \"matrix.h\"\n    Matrix a = Matrix::from_vec(2, 3, {1.0, 2.0, 3.0, 4.0, 5.0, 6.0});\n    a.name = \"test_matrix_proto\";\n    a.pb_dump(\"serialization/test_matrix.bin\");\n    Matrix loaded = Matrix::pb_load(\"serialization/test_matrix.bin\");",
     "checks": [

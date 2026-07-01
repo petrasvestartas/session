@@ -1,8 +1,8 @@
-# 04 Resize
+# 05 Resize
 
 Stop the triangle from stretching. Make it fill the window crisply at any size.
 
-In Chapter 3 the triangle looked squashed — wide and flat instead of evenly
+In Chapter 4 the triangle looked squashed — wide and flat instead of evenly
 shaped. Nothing is wrong with the shader; the problem is the **canvas size**. This
 chapter fixes it with one small helper, and along the way explains the three
 different "sizes" a web canvas has. No new files — we only edit `lib.rs`.
@@ -42,7 +42,7 @@ want:  buffer = clientWidth × DPR  ,  clientHeight × DPR
 
 ## The plumbing we already have
 
-Resizing the GPU surface already exists from Chapter 2 — `gpu.rs` has:
+Resizing the GPU surface already exists from Chapter 3 — `gpu.rs` has:
 
 ```rust
 pub fn resize(&mut self, width: u32, height: u32) {
@@ -129,44 +129,217 @@ WindowEvent::RedrawRequested => {
 }
 ```
 
-> Why poll instead of using `WindowEvent::Resized`? For a canvas embedded in a page,
-> the `Resized` event is delivered inconsistently across browsers/winit versions, and
-> it won't fire when only the **DPR** changes. A once-per-frame size check is a couple
-> of cheap DOM reads and is always correct. (A fancier version uses a JS
-> `ResizeObserver`; we keep it simple here.)
-
-
 ## Step 4 — run it
 
 ```bash
 cd session_viewer && trunk serve   # http://localhost:8770  (open in Chrome/Edge)
 ```
 
-The triangle is now **evenly shaped** and stays that way as you resize the window. On
-a high-DPI screen the edges are crisp, not soft. Try dragging the window between two
-monitors with different scaling — it should re-sharpen on the next frame.
+The triangle is now drawn into a **correctly-sized, sharp buffer**: no more double-stretch
+from the old 300×150 default, and on a high-DPI screen the edges are crisp, not soft. Try
+dragging the window between two monitors with different scaling — it should re-sharpen on
+the next frame.
+
+> **It still changes shape when the window aspect changes — that's expected here.** Read the
+> next section before assuming the resize code is broken.
 
 
-## What changed vs Chapter 3 (recap)
+## "The triangle still stretches when I resize!" (expected at this chapter)
+
+If you make the window wide the triangle gets wide; tall and it gets tall. **This is not a
+bug in the resize code** — it's how clip space works, and a camera/projection (next chapter)
+is what fixes it.
+
+The shader emits the triangle in raw **clip space (NDC)**:
+
+```wgsl
+vec4<f32>(0.0,  0.5, 0.0, 1.0),   // these [-1,1] coords map to the FULL buffer…
+vec4<f32>(-0.5, -0.5, 0.0, 1.0),
+vec4<f32>(0.5, -0.5, 0.0, 1.0)
+```
+
+NDC `[-1, 1]` **always** stretches to fill the buffer on *both* axes. So once the buffer
+matches the window (what this chapter did), the triangle simply follows the **window's**
+aspect ratio. Resizing the buffer can't change that — only an aspect/projection term can.
+
+What this chapter fixes vs. what it doesn't:
+
+- ✅ Removes the *extra* distortion from the default 300×150 buffer being stretched to fill.
+- ✅ Keeps the image crisp on HiDPI screens (buffer = CSS size × DPR).
+- ❌ Does **not** make a clip-space triangle aspect-independent — that needs a projection.
+
+**Confirm it's this and not a real resize failure:** make the window tall-and-narrow, then
+short-and-wide. If the triangle is **crisp** and just follows the window proportions →
+resize is working correctly, this is normal NDC behaviour. If it's **blurry/pixelated** →
+the buffer genuinely isn't resizing, so re-check `desired_canvas_size()` and the
+`RedrawRequested` arm in `lib.rs`.
+
+### Aspect uniform: keep the shape stable now (chapters 6–7 build on this)
+
+> **Do this section — it's not throwaway.** Chapters 6 and 7 reuse this `aspect` uniform (the
+> `@group(0)` binding, `aspect_buffer`/`aspect_layout`/`aspect_bind_group`) before chapter 8
+> replaces it with the MVP matrix. If you skip it here, chapter 6 won't compile.
+
+If you want the triangle to hold its shape *before* the camera chapter, feed the aspect
+ratio (`width / height`) to the shader and divide `x` by it. This is a uniform — a small
+constant the GPU reads every frame — so it needs four pieces of plumbing: declare it in the
+shader, create a buffer + bind group, tell the pipeline the bind group exists, and write the
+value whenever the size changes. Five small edits across four files.
+
+**1 — `src/shaders/triangle.wgsl`: declare and use the uniform.**
+
+At the top of the file (above the structs):
+
+```wgsl
+@group(0) @binding(0) var<uniform> aspect: f32;   // = width / height
+```
+
+In `vs_main`, replace `output.pos = positions[vi];` with:
+
+```wgsl
+var p = positions[vi];
+p.x = p.x / aspect;        // a wide window shrinks x → the triangle keeps its shape
+output.pos = p;
+```
+
+**2 — `src/engine/pipelines/build.rs`: give the pipeline a bind-group layout.**
+
+The pipeline currently declares "no external data" (`bind_group_layouts: &[]`). Make the
+function accept a layout and use it. Change the signature:
+
+```rust
+pub fn build_triangle_pipeline(
+    device: &wgpu::Device,
+    color_format: wgpu::TextureFormat,
+    aspect_layout: &wgpu::BindGroupLayout,    // NEW
+) -> wgpu::RenderPipeline {
+```
+
+and the pipeline layout:
+
+```rust
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{
+        label: Some("triangle.layout"),
+        bind_group_layouts: &[Some(aspect_layout)],  // was &[]  (wgpu 29: slice of Option<&_>)
+        immediate_size: 0,
+    });
+```
+
+**3 — `src/engine/pipelines/mod.rs`: pass the layout through.**
+
+```rust
+impl Pipelines {
+    pub fn new(
+        device: &wgpu::Device,
+        color_format: wgpu::TextureFormat,
+        aspect_layout: &wgpu::BindGroupLayout,   // NEW
+    ) -> Self {
+        Self {
+            triangle: build_triangle_pipeline(device, color_format, aspect_layout),
+        }
+    }
+}
+```
+
+**4 — `src/engine/gpu.rs`: create the buffer + bind group, store them, write on resize, bind on draw.**
+
+Add two fields to the `Gpu` struct:
+
+```rust
+pub struct Gpu {
+    // …existing fields…
+    pub aspect_buffer: wgpu::Buffer,
+    pub aspect_bind_group: wgpu::BindGroup,
+}
+```
+
+In `new()`, **before** `Pipelines::new(...)`, build the uniform (a single `f32`, 4 bytes):
+
+```rust
+    use wgpu::util::DeviceExt;
+    let aspect = config.width as f32 / config.height as f32;
+    let aspect_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("aspect.buffer"),
+        contents: bytemuck::bytes_of(&aspect),
+        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+    });
+    let aspect_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("aspect.layout"),
+        entries: &[wgpu::BindGroupLayoutEntry {
+            binding: 0,
+            visibility: wgpu::ShaderStages::VERTEX,
+            ty: wgpu::BindingType::Buffer {
+                ty: wgpu::BufferBindingType::Uniform,
+                has_dynamic_offset: false,
+                min_binding_size: None,
+            },
+            count: None,
+        }],
+    });
+    let aspect_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+        label: Some("aspect.bind_group"),
+        layout: &aspect_layout,
+        entries: &[wgpu::BindGroupEntry {
+            binding: 0,
+            resource: aspect_buffer.as_entire_binding(),
+        }],
+    });
+```
+
+Pass the layout to the pipelines and store the new fields:
+
+```rust
+    let pipelines = Pipelines::new(&device, config.format, &aspect_layout);   // was (&device, config.format)
+    // …
+    Ok(Self { surface, device, queue, config, pipelines, aspect_buffer, aspect_bind_group })
+```
+
+In `resize()`, after `self.surface.configure(...)`, push the new ratio to the GPU:
+
+```rust
+    pub fn resize(&mut self, width: u32, height: u32) {
+        if width > 0 && height > 0 {
+            self.config.width = width;
+            self.config.height = height;
+            self.surface.configure(&self.device, &self.config);
+            let aspect = width as f32 / height as f32;
+            self.queue.write_buffer(&self.aspect_buffer, 0, bytemuck::bytes_of(&aspect));
+        }
+    }
+```
+
+In `clear()`, bind it **before** the draw call:
+
+```rust
+            pass.set_pipeline(&self.pipelines.triangle);
+            pass.set_bind_group(0, &self.aspect_bind_group, &[]);   // NEW
+            pass.draw(0..3, 0..1)
+```
+
+**5 — `Cargo.toml`: the two crates the buffer code uses.**
+
+```toml
+bytemuck = "1"
+# wgpu already a dependency — `util::DeviceExt`/`BufferInitDescriptor` need its "util" feature,
+# which is on by default; nothing to add unless you disabled default-features.
+```
+
+Then `cargo check` (wasm32) — clean build, and the triangle now holds its shape at any window
+aspect. This is exactly where the **camera** chapter begins (a uniform fed to the vertex
+shader), so it's fine to skip all of the above and let the camera handle aspect properly.
+
+
+## What changed vs Chapter 4 (recap)
 
 ```
-Chapter 3:  buffer stuck at 300×150  →  browser stretches it to fill  →  squashed
-Chapter 4:  buffer = clientSize × DPR →  1 buffer px = 1 screen px      →  crisp & correct
+Chapter 4:  buffer stuck at 300×150  →  browser stretches it to fill  →  squashed
+Chapter 5:  buffer = clientSize × DPR →  1 buffer px = 1 screen px      →  crisp & correct
 ```
 
 Edited: `lib.rs` only — one new helper `desired_canvas_size`, used in `user_event`
 (initial) and `window_event` (every frame).
 Untouched: `state.rs`, `gpu.rs`, the shader, the pipeline.
 
-
-## Compare to the archive
-
-`session_viewer_archive` takes the same "configure the surface to a chosen size"
-route, but reads the size from winit's reported `inner_size()` on `Resized` events
-(see its `user_event`/`window_event`). It notes in a comment that an adopted canvas's
-backing store follows its CSS size and that winit ignores `request_inner_size` there —
-which is exactly the gap our per-frame `desired_canvas_size()` closes, and additionally
-handles DPR for sharpness.
 
 
 ## Next

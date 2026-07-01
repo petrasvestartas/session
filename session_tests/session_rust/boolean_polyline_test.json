@@ -38,7 +38,7 @@
     "line": 187,
     "passed": true,
     "test_name": "Cross Shape",
-    "time_ms": 0.137
+    "time_ms": 0.136
   },
   {
     "checks": [
@@ -79,7 +79,7 @@
     "line": 60,
     "passed": true,
     "test_name": "Star Vs Circle",
-    "time_ms": 0.588
+    "time_ms": 0.302
   },
   {
     "checks": [
@@ -120,7 +120,7 @@
     "line": 137,
     "passed": true,
     "test_name": "Diamond Vs Triangle",
-    "time_ms": 0.251
+    "time_ms": 0.083
   },
   {
     "checks": [
@@ -161,7 +161,7 @@
     "line": 160,
     "passed": true,
     "test_name": "Star Vs Star",
-    "time_ms": 0.546
+    "time_ms": 0.229
   },
   {
     "checks": [
@@ -202,7 +202,7 @@
     "line": 210,
     "passed": true,
     "test_name": "Concave Arrow Vs Circle",
-    "time_ms": 0.608
+    "time_ms": 0.329
   },
   {
     "checks": [
@@ -243,7 +243,7 @@
     "line": 35,
     "passed": true,
     "test_name": "Circle Vs Rectangle",
-    "time_ms": 0.583
+    "time_ms": 0.297
   },
   {
     "checks": [
@@ -284,7 +284,7 @@
     "line": 87,
     "passed": true,
     "test_name": "L Shape Vs Rectangle",
-    "time_ms": 0.149
+    "time_ms": 0.093
   },
   {
     "checks": [
@@ -325,7 +325,7 @@
     "line": 235,
     "passed": true,
     "test_name": "Two Large Circles 1000",
-    "time_ms": 6.21
+    "time_ms": 6.31
   },
   {
     "checks": [
@@ -366,7 +366,7 @@
     "line": 262,
     "passed": true,
     "test_name": "Large Coords Auto Scale",
-    "time_ms": 0.085
+    "time_ms": 0.096
   },
   {
     "checks": [
@@ -407,7 +407,7 @@
     "line": 12,
     "passed": true,
     "test_name": "Overlapping Squares",
-    "time_ms": 0.065
+    "time_ms": 0.07
   },
   {
     "checks": [
@@ -448,7 +448,7 @@
     "line": 110,
     "passed": true,
     "test_name": "Two Large Circles",
-    "time_ms": 1.893
+    "time_ms": 1.899
   },
   {
     "checks": [
@@ -489,7 +489,7 @@
     "line": 287,
     "passed": true,
     "test_name": "Horizontal Line Vs Unit Square",
-    "time_ms": 0.028
+    "time_ms": 0.029
   },
   {
     "checks": [
@@ -510,7 +510,7 @@
     "line": 331,
     "passed": true,
     "test_name": "Interior Open Path Passes Through",
-    "time_ms": 0.021
+    "time_ms": 0.027
   },
   {
     "checks": [
@@ -541,6 +541,6 @@
     "line": 310,
     "passed": true,
     "test_name": "Diagonal Line Vs Unit Square",
-    "time_ms": 0.021
+    "time_ms": 0.022
   }
 ]

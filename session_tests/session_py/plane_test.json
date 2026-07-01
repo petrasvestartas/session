@@ -3,7 +3,7 @@
     "group": "Plane",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.391,
+    "time_ms": 0.406,
     "line": 8,
     "code": "    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n\n    # Default constructor - XY plane at origin\n    pl = Plane()\n\n    # Origin and axes\n    origin = pl.origin\n    x_axis = pl.x_axis\n    y_axis = pl.y_axis\n    z_axis = pl.z_axis\n\n    # Plane equation coefficients (ax + by + cz + d = 0)\n    a = pl.a\n    b = pl.b\n    c = pl.c\n    d = pl.d\n\n    # Index access for axes\n    ax0 = pl[0]\n    ax1 = pl[1]\n    ax2 = pl[2]\n\n    # Minimal and Full String Representation\n    plstr = str(pl)\n    plrepr = repr(pl)\n\n    # Copy (duplicates everything except guid)\n    plcopy = pl.duplicate()\n\n    # From point and normal\n    p = Point(0.0, 0.0, 5.0)\n    n = Vector(0.0, 0.0, 1.0)\n    pl_pn = Plane.from_point_normal(p, n)\n\n    # From three points\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    ]\n    pl_pts = Plane.from_points(pts)\n\n    # From two points\n    p1 = Point(0.0, 0.0, 0.0)\n    p2 = Point(1.0, 0.0, 0.0)\n    pl_2pts = Plane.from_two_points(p1, p2)\n\n    # Standard planes\n    xy = Plane.xy_plane()\n    yz = Plane.yz_plane()\n    xz = Plane.xz_plane()\n\n    # Translation operators\n    offset = Vector(1.0, 2.0, 3.0)\n    pl_iadd = Plane.xy_plane()\n    pl_iadd += offset\n    pl_isub = Plane.xy_plane()\n    pl_isub -= offset\n    pl_base = Plane.xy_plane()\n    pl_add = pl_base + offset\n    pl_sub = pl_base - offset",
     "checks": [
@@ -94,7 +94,7 @@
     "group": "Plane",
     "test_name": "Is Valid",
     "passed": true,
-    "time_ms": 0.041,
+    "time_ms": 0.047,
     "line": 92,
     "code": "    from session_py import Plane\n\n    pl = Plane.xy_plane()\n    invalid = Plane.invalid()",
     "checks": [
@@ -115,7 +115,7 @@
     "group": "Plane",
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.031,
+    "time_ms": 0.032,
     "line": 103,
     "code": "    from session_py import Plane\n\n    pl = Plane.xy_plane()\n    pl.reverse()",
     "checks": [
@@ -151,7 +151,7 @@
     "group": "Plane",
     "test_name": "Rotate",
     "passed": true,
-    "time_ms": 0.028,
+    "time_ms": 0.03,
     "line": 117,
     "code": "    from session_py import Plane\n\n    pl = Plane.xy_plane()\n    pl.rotate(PI / 2.0)",
     "checks": [
@@ -167,7 +167,7 @@
     "group": "Plane",
     "test_name": "Is Right Hand",
     "passed": true,
-    "time_ms": 0.04,
+    "time_ms": 0.044,
     "line": 127,
     "code": "    from session_py import Plane\n\n    xy = Plane.xy_plane()\n    yz = Plane.yz_plane()\n    xz = Plane.xz_plane()",
     "checks": [
@@ -193,7 +193,7 @@
     "group": "Plane",
     "test_name": "Is Same Direction",
     "passed": true,
-    "time_ms": 0.046,
+    "time_ms": 0.048,
     "line": 140,
     "code": "    from session_py import Plane\n\n    p1 = Plane.xy_plane()\n    p2 = Plane.xy_plane()\n    p3 = Plane.xy_plane()\n    p3.reverse()",
     "checks": [
@@ -240,7 +240,7 @@
     "group": "Plane",
     "test_name": "Is Coplanar",
     "passed": true,
-    "time_ms": 0.04,
+    "time_ms": 0.044,
     "line": 167,
     "code": "    from session_py import Plane\n    from session_py import Vector\n\n    p1 = Plane.xy_plane()\n    p2 = Plane.xy_plane()\n    p3 = Plane.xy_plane()\n    p3 += Vector(0.0, 0.0, 1.0)",
     "checks": [
@@ -261,7 +261,7 @@
     "group": "Plane",
     "test_name": "Translate By Normal",
     "passed": true,
-    "time_ms": 0.038,
+    "time_ms": 0.039,
     "line": 181,
     "code": "    from session_py import Plane\n\n    pl = Plane.xy_plane()\n    moved = pl.translate_by_normal(5.0)",
     "checks": [
@@ -282,7 +282,7 @@
     "group": "Plane",
     "test_name": "Base1 Base2",
     "passed": true,
-    "time_ms": 0.039,
+    "time_ms": 0.038,
     "line": 192,
     "code": "    from session_py import Plane\n\n    xy = Plane.xy_plane()\n    b1 = xy.base1()\n    b2 = xy.base2()",
     "checks": [
@@ -318,7 +318,7 @@
     "group": "Plane",
     "test_name": "Transform",
     "passed": true,
-    "time_ms": 0.047,
+    "time_ms": 0.05,
     "line": 206,
     "code": "    from session_py import Plane\n    from session_py import Xform\n\n    pl = Plane.xy_plane()\n    pl.xform = Xform.translation(1.0, 2.0, 3.0)\n    pl.transform()",
     "checks": [
@@ -344,7 +344,7 @@
     "group": "Plane",
     "test_name": "Transformed",
     "passed": true,
-    "time_ms": 0.143,
+    "time_ms": 0.152,
     "line": 220,
     "code": "    from session_py import Plane\n    from session_py import Xform\n\n    pl = Plane.xy_plane()\n    pl.xform = Xform.translation(1.0, 2.0, 3.0)\n    pl2 = pl.transformed()",
     "checks": [
@@ -375,7 +375,7 @@
     "group": "Plane",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 14.159,
+    "time_ms": 15.54,
     "line": 235,
     "code": "    from session_py import Plane\n    from pathlib import Path\n\n    pl = Plane.xy_plane()\n    pl.name = \"test_plane\"\n\n    #   __jsondump__()  \u2502 dict         \u2502 to JSON object (internal use)\n    #   __jsonload__(d) \u2502 dict         \u2502 from JSON object (internal use)\n    #   file_json_dumps()    \u2502 str          \u2502 to JSON string\n    #   file_json_loads(s)   \u2502 str          \u2502 from JSON string\n    #   file_json_dump(path) \u2502 file         \u2502 write to file\n    #   file_json_load(path) \u2502 file         \u2502 read from file\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_plane.json\"\n    pl.file_json_dump(fname)\n    loaded = Plane.file_json_load(fname)",
     "checks": [
@@ -396,7 +396,7 @@
     "group": "Plane",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 13.216,
+    "time_ms": 15.981,
     "line": 258,
     "code": "    from session_py import Plane\n    from pathlib import Path\n\n    pl = Plane.xy_plane()\n    pl.name = \"test_plane\"\n\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_plane.bin\"\n    pl.pb_dump(fname)\n    loaded = Plane.pb_load(fname)",
     "checks": [
@@ -417,7 +417,7 @@
     "group": "Plane",
     "test_name": "Has On Negative Side",
     "passed": true,
-    "time_ms": 0.035,
+    "time_ms": 0.205,
     "line": 274,
     "code": "    from session_py import Plane, Point\n    pl = Plane.xy_plane()\n    above = Point(0.0, 0.0, 1.0)\n    below = Point(0.0, 0.0, -1.0)",
     "checks": [

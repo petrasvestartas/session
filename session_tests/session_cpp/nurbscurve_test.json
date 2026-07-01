@@ -3,7 +3,7 @@
     "group": "NurbsCurve",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 4.537,
+    "time_ms": 5.475,
     "line": 16,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(3.0, 1.0, 0.0)\n        };\n\n        // The first the curve is closed or open\n        // For linear curves use degree 1\n        // When 3 points use degree 2 curve, Rhino default\n        // When x>3 points use degree 3 curve\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n        curve.set_domain(0.0, 1.0);\n\n        // Minimal and Full String Representation\n        std::string cstr = curve.str();\n        std::string crepr = curve.repr();\n\n        // Copy (duplicates everything except guid())\n        NurbsCurve ccopy = curve;\n        NurbsCurve cother = NurbsCurve::create(false, 2, points);\n\n        // Point division\n        auto [divided, _] = curve.divide_by_count(10, true);",
     "checks": [
@@ -64,9 +64,9 @@
     "group": "NurbsCurve",
     "test_name": "Create Interpolated",
     "passed": true,
-    "time_ms": 0.059,
+    "time_ms": 0.042,
     "line": 57,
-    "code": "            // uncomment #include \"nurbscurve.h\"\n            // uncomment #include \"point.h\"\n\n            std::vector<Point> points = {\n                Point(14, 9, 0),\n                Point(21, 22, 0),\n                Point(26, 10, 0),\n                Point(35, 19, 0),\n                Point(41, 13, 0)\n            };\n\n            NurbsCurve c = NurbsCurve::create_interpolated(points, CurveNurbsKnotStyle::Chord);\n\n\n            auto [d0, d1] = c.domain();\n\n            // Rhino parity: interior CVs match Rhino CreateInterpolatedCurve (Chord)\n            // bit-for-bit (validated by the OCCT/Rhino harness in validation/).\n\n            // Periodic closed curve\n            std::vector<Point> closed_pts = {\n                Point(4, 20, 0),\n                Point(-2, 20, 0),\n                Point(-2, 25, 0),\n                Point(-3, 28, 0),\n                Point(-10, 28, 0),\n                Point(-10, 21, 0),\n                Point(-13, 16, 0),\n                Point(-8, 14, 0),\n                Point(-6, 11, 0),\n                Point(0, 15, 0),\n            };\n\n            NurbsCurve cp = NurbsCurve::create_interpolated(closed_pts, CurveNurbsKnotStyle::ChordPeriodic);",
+    "code": "            // uncomment #include \"nurbscurve.h\"\n            // uncomment #include \"point.h\"\n\n            std::vector<Point> points = {\n                Point(14, 9, 0),\n                Point(21, 22, 0),\n                Point(26, 10, 0),\n                Point(35, 19, 0),\n                Point(41, 13, 0)\n            };\n\n            NurbsCurve c = NurbsCurve::create_interpolated(points, CurveNurbsKnotStyle::Chord);\n\n\n            auto [d0, d1] = c.domain();\n\n            // Rhino parity: interior CVs match Rhino CreateInterpolatedCurve (Chord)\n            // bit-for-bit (validated by the OCCT/Rhino harness in validation/).\n\n            // OCCT parity: with CurveInterpStyle::Occt the control points match\n            // OCCT GeomAPI_Interpolate exactly (oracle: validation/compare_interp.py).\n            NurbsCurve co = NurbsCurve::create_interpolated(points, CurveNurbsKnotStyle::Chord, CurveInterpStyle::Occt);\n\n            // Periodic closed curve\n            std::vector<Point> closed_pts = {\n                Point(4, 20, 0),\n                Point(-2, 20, 0),\n                Point(-2, 25, 0),\n                Point(-3, 28, 0),\n                Point(-10, 28, 0),\n                Point(-10, 21, 0),\n                Point(-13, 16, 0),\n                Point(-8, 14, 0),\n                Point(-6, 11, 0),\n                Point(0, 15, 0),\n            };\n\n            NurbsCurve cp = NurbsCurve::create_interpolated(closed_pts, CurveNurbsKnotStyle::ChordPeriodic);",
     "checks": [
       {
         "line": 71,
@@ -129,23 +129,219 @@
         "passed": true
       },
       {
-        "line": 105,
+        "line": 92,
+        "code_line": "co.cv_count() == 7",
+        "passed": true
+      },
+      {
+        "line": 93,
+        "code_line": "TOLERANCE.is_point_close(co.get_cv(0), points[0])",
+        "passed": true
+      },
+      {
+        "line": 94,
+        "code_line": "TOLERANCE.is_point_close(co.get_cv(6), points[4])",
+        "passed": true
+      },
+      {
+        "line": 95,
+        "code_line": "TOLERANCE.is_point_close(co.get_cv(1), Point(17.3526678158, 24.4472657919, 0.0))",
+        "passed": true
+      },
+      {
+        "line": 96,
+        "code_line": "TOLERANCE.is_point_close(co.get_cv(3), Point(24.7854378511, 2.1457823679, 0.0))",
+        "passed": true
+      },
+      {
+        "line": 97,
+        "code_line": "TOLERANCE.is_point_close(co.get_cv(5), Point(39.1865250566, 18.5349257754, 0.0))",
+        "passed": true
+      },
+      {
+        "line": 115,
         "code_line": "cp.is_valid()",
         "passed": true
       },
       {
-        "line": 106,
+        "line": 116,
         "code_line": "cp.degree() == 3",
         "passed": true
       },
       {
-        "line": 107,
+        "line": 117,
         "code_line": "cp.cv_count() == 13",
         "passed": true
       },
       {
-        "line": 108,
+        "line": 118,
         "code_line": "cp.is_closed()",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "NurbsCurve",
+    "test_name": "Create From Parameters",
+    "passed": true,
+    "time_ms": 0.025,
+    "line": 121,
+    "code": "            // Mirrors compas_occt OCCNurbsCurve.from_parameters / from_points / from_circle.\n            // Validated bit-for-bit against OCCT (validation/compare_curve_eval.py).\n\n            // from_points: 4 control points, clamped cubic (knots [0,1] mults [4,4]).\n            std::vector<Point> p4 = {Point(0,0,0), Point(3,6,0), Point(6,-3,3), Point(10,0,0)};\n            NurbsCurve c = NurbsCurve::create_from_parameters(\n                p4, {1.0,1.0,1.0,1.0}, {0.0,1.0}, {4,4}, 3);\n            auto [d0, d1] = c.domain();\n\n            // from_circle (radius 1): degree-2 rational, 9 poles, exact unit circle.\n            const double w = 0.5 * std::sqrt(2.0);\n            std::vector<Point> cpts = {\n                Point(0,-1,0), Point(-1,-1,0), Point(-1,0,0), Point(-1,1,0), Point(0,1,0),\n                Point(1,1,0), Point(1,0,0), Point(1,-1,0), Point(0,-1,0)};\n            NurbsCurve circle = NurbsCurve::create_from_parameters(\n                cpts, {1,w,1,w,1,w,1,w,1}, {0.0,0.25,0.5,0.75,1.0}, {3,2,2,2,3}, 2);\n            // Every sampled point lies exactly on the unit circle.\n            for (int k = 0; k <= 16; k++) {\n                Point pp = circle.point_at(k / 16.0);",
+    "checks": [
+      {
+        "line": 129,
+        "code_line": "c.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 130,
+        "code_line": "c.degree() == 3",
+        "passed": true
+      },
+      {
+        "line": 131,
+        "code_line": "c.cv_count() == 4",
+        "passed": true
+      },
+      {
+        "line": 132,
+        "code_line": "!c.is_rational()",
+        "passed": true
+      },
+      {
+        "line": 134,
+        "code_line": "std::abs(d0 - 0.0) < 1e-12 && std::abs(d1 - 1.0) < 1e-12",
+        "passed": true
+      },
+      {
+        "line": 135,
+        "code_line": "TOLERANCE.is_point_close(c.get_cv(0), Point(0,0,0))",
+        "passed": true
+      },
+      {
+        "line": 136,
+        "code_line": "TOLERANCE.is_point_close(c.get_cv(3), Point(10,0,0))",
+        "passed": true
+      },
+      {
+        "line": 137,
+        "code_line": "TOLERANCE.is_point_close(c.point_at(0.5), Point(4.625, 1.125, 1.125))",
+        "passed": true
+      },
+      {
+        "line": 146,
+        "code_line": "circle.is_valid()",
+        "passed": true
+      },
+      {
+        "line": 147,
+        "code_line": "circle.degree() == 2",
+        "passed": true
+      },
+      {
+        "line": 148,
+        "code_line": "circle.cv_count() == 9",
+        "passed": true
+      },
+      {
+        "line": 149,
+        "code_line": "circle.is_rational()",
+        "passed": true
+      },
+      {
+        "line": 150,
+        "code_line": "TOLERANCE.is_point_close(circle.point_at(0.5), Point(0,1,0))",
+        "passed": true
+      },
+      {
+        "line": 151,
+        "code_line": "TOLERANCE.is_point_close(circle.point_at(0.125), Point(-w, -w, 0))",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
+        "passed": true
+      },
+      {
+        "line": 155,
+        "code_line": "std::abs(std::sqrt(pp[0]*pp[0] + pp[1]*pp[1]) - 1.0) < 1e-9",
         "passed": true
       }
     ],
@@ -155,47 +351,47 @@
     "group": "NurbsCurve",
     "test_name": "Create Fitted",
     "passed": true,
-    "time_ms": 0.098,
-    "line": 111,
+    "time_ms": 0.051,
+    "line": 159,
     "code": "            // uncomment #include \"nurbscurve.h\"\n            // uncomment #include \"point.h\"\n\n            // Open: 21 points on sine wave → fit with 8 CVs\n            std::vector<Point> pts;\n            for (int i = 0; i <= 20; i++) {\n                double t = i * 2.0 * Tolerance::PI / 20.0;\n                pts.push_back(Point(t, 3.0 * std::sin(t), 0.0));\n            }\n\n            NurbsCurve c = NurbsCurve::create_fitted(pts, 8, 3, false);\n\n            auto [d0, d1] = c.domain();\n\n            // Periodic: 24 points on circle → fit with 10 free CVs\n            std::vector<Point> cpts;\n            for (int i = 0; i < 24; i++) {\n                double a = i * 2.0 * Tolerance::PI / 24.0;\n                cpts.push_back(Point(std::cos(a), std::sin(a), 0.0));\n            }\n\n            NurbsCurve cp = NurbsCurve::create_fitted(cpts, 10, 3, true);",
     "checks": [
       {
-        "line": 124,
+        "line": 172,
         "code_line": "c.is_valid()",
         "passed": true
       },
       {
-        "line": 125,
+        "line": 173,
         "code_line": "c.degree() == 3",
         "passed": true
       },
       {
-        "line": 126,
+        "line": 174,
         "code_line": "c.cv_count() == 8",
         "passed": true
       },
       {
-        "line": 128,
+        "line": 176,
         "code_line": "TOLERANCE.is_point_close(c.point_at(d0), pts[0])",
         "passed": true
       },
       {
-        "line": 129,
+        "line": 177,
         "code_line": "TOLERANCE.is_point_close(c.point_at(d1), pts[20])",
         "passed": true
       },
       {
-        "line": 140,
+        "line": 188,
         "code_line": "cp.is_valid()",
         "passed": true
       },
       {
-        "line": 141,
+        "line": 189,
         "code_line": "cp.is_closed()",
         "passed": true
       },
       {
-        "line": 142,
+        "line": 190,
         "code_line": "cp.cv_count() == 13",
         "passed": true
       }
@@ -206,47 +402,47 @@
     "group": "NurbsCurve",
     "test_name": "Join",
     "passed": true,
-    "time_ms": 0.123,
-    "line": 145,
+    "time_ms": 0.066,
+    "line": 193,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"primitives.h\"\n\n        NurbsCurve arc1 = Primitives::arc(Point(-1.0, 0.0, 0.0), Point(0.0, 1.0, 0.0), Point(1.0, 0.0, 0.0));\n        NurbsCurve arc2 = Primitives::arc(Point(1.0, 0.0, 0.0), Point(1.5, -1.0, 0.0), Point(1.0, -2.0, 0.0));\n        std::vector<Point> pts = {Point(1.0, -2.0, 0.0), Point(-1.0, 0.0, 0.0)};\n        NurbsCurve line = NurbsCurve::create(false, 1, pts);\n        arc2.reverse();\n\n        std::vector<NurbsCurve> joined = NurbsCurve::join({line, arc1, arc2});\n\n\n        NurbsCurve l1 = NurbsCurve::create(false, 1, {Point(0.0, 0.0, 0.0), Point(1.0, 0.0, 0.0)});\n        NurbsCurve l2 = NurbsCurve::create(false, 1, {Point(1.0, 0.0, 0.0), Point(1.0, 1.0, 0.0)});\n        NurbsCurve l3 = NurbsCurve::create(false, 1, {Point(9.0, 9.0, 0.0), Point(8.0, 8.0, 0.0)});\n\n        std::vector<NurbsCurve> separate = NurbsCurve::join({l1, l3, l2});",
     "checks": [
       {
-        "line": 158,
+        "line": 206,
         "code_line": "joined.size() == 1",
         "passed": true
       },
       {
-        "line": 159,
+        "line": 207,
         "code_line": "joined[0].is_valid()",
         "passed": true
       },
       {
-        "line": 160,
+        "line": 208,
         "code_line": "joined[0].is_closed()",
         "passed": true
       },
       {
-        "line": 161,
+        "line": 209,
         "code_line": "joined[0].degree() == 2",
         "passed": true
       },
       {
-        "line": 162,
+        "line": 210,
         "code_line": "joined[0].cv_count() == 7",
         "passed": true
       },
       {
-        "line": 170,
+        "line": 218,
         "code_line": "separate.size() == 2",
         "passed": true
       },
       {
-        "line": 171,
+        "line": 219,
         "code_line": "separate[0].cv_count() == 3",
         "passed": true
       },
       {
-        "line": 172,
+        "line": 220,
         "code_line": "std::fabs(separate[0].length() - 2.0) < 1e-9",
         "passed": true
       }
@@ -257,322 +453,322 @@
     "group": "NurbsCurve",
     "test_name": "Attributes",
     "passed": true,
-    "time_ms": 0.168,
-    "line": 175,
+    "time_ms": 0.18,
+    "line": 223,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"plane.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 1.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(3.0, 1.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n        /////////////////////////////////////////////\n        // Boolean Queries\n        /////////////////////////////////////////////\n\n        // Whole curve\n        bool is_valid = curve.is_valid();\n\n\n        // Check whole nurbsknot vector for\n        // For correct size: order + cv_count - 2\n        // Non-decreasing (can repeat, can't go down)\n        // Valid domain exists\n        bool is_valid_nurbsknot_vector = curve.is_valid_nurbsknot_vector();\n\n        // Check if the curve is clamped at start, end, or both\n        bool is_clamped_start = curve.is_clamped(0);\n        bool is_clamped_end = curve.is_clamped(1);\n        bool is_clamped_both = curve.is_clamped(2);\n\n        // Is rational is related to control points having weights\n        // is_rational = false means control points [x, y, z]\n        // is_rational = false means control points [xw, yw, zw]\n        // Rational curves are used to represent:\n        // circles, ellipses, parabolas, hyperbolas exactly\n        bool is_rational = curve.is_rational();\n        bool closed = curve.is_closed();\n        bool periodic = curve.is_periodic();\n        bool linear = curve.is_linear();\n        bool planar = curve.is_planar();\n        bool arc = curve.is_arc();\n        Plane plane = Plane::xy_plane();\n        bool on_plane = curve.is_in_plane(plane);\n        bool is_open = curve.is_natural();\n        bool is_polyline = curve.is_polyline();\n        bool is_singular = curve.is_singular();\n        bool is_duplicate = curve.is_duplicate(curve, false);\n        bool is_continuous = curve.is_continuous(1, curve.domain_middle());\n\n\n        /////////////////////////////////////////////\n        // NurbsKnot Operations\n        /////////////////////////////////////////////\n\n        // Insert nurbsknot into curve\n        // Useful for splitting curves at a parameter\n        // Increase local control without changing shape\n        NurbsCurve copy_curve = curve;\n        Point before_pt = copy_curve.point_at(1.5);\n        copy_curve.insert_nurbsknot(1.5, 1);\n\n        // Useful for controlling curve by cv on lying on it\n        double greville0 = curve.greville_abcissa(0);\n\n        std::vector<double> greville = curve.get_greville_abcissae();\n\n        /////////////////////////////////////////////\n        // Accessors\n        /////////////////////////////////////////////\n        // Memory layout 2-2D, 3-3D\n        int dimension = curve.dimension();\n        // Degree - Polynomial order, 1=linear, 2=quadratic, 3=cubic\n        int degree = curve.degree();\n        // Is rational is related to control points having weights\n        // is_rational = false means control points [x, y, z]\n        // is_rational = false means control points [xw, yw, zw]\n        // Rational curves are used to represent:\n        // Order = degree + 1, control points + order = nurbsknots\n        int order = curve.order();\n        // Number of control vertices\n        int cv_count = curve.cv_count();\n        // Number of floats per 1 control vertex\n        int cv_size = curve.cv_size();\n        // The nurbsknots are a list of (degree+control_points-1) numbers\n        int nurbsknot_count = curve.nurbsknot_count();\n        // Span = a nurbsknot interval where a single polynomial segment is evaluated\n        // NurbsKnot vector: [0, 0, 0 ↑, 1 ↑, 2 ↑, 3, 3, 3]  (cubic, 5 CVs)\n        int span_count = curve.span_count();\n        /////////////////////////////////////////////////////\n        // Control Vertex Access\n        //  m_cv = [x0, y0, z0, (w0), x1, y1, z1, (w1), ...]\n        //          └─── CV 0 ───┘    └─── CV 1 ───┘\n        /////////////////////////////////////////////////////\n\n        // Get pointer to control vertex\n        // Each CV occupies m_cv_stride doubles:\n        // (3 for non-rational, 4 for rational)\n        // cv(index) returns pointer to m_cv[index * m_cv_stride]\n        double* p = curve.cv(1);\n\n        // Returns the control vertex as Point object\n        Point cv_point = curve.get_cv(1);\n\n        // Raw homogeneous coords\n        auto [x, y, z, w] = curve.get_cv_4d(1);\n\n        // Use for regular points on curve, Polyline, B-Spline\n        curve.set_cv(2, Point(2.0, 0.0, 0.5));\n\n        // Use for rational curvers like circles, ellipses\n        curve.set_cv_4d(2, 2.0, 0.0, 0.5, 0.707);\n        auto [x2, y2, z2, w2] = curve.get_cv_4d(2);\n\n        // Get weight of a control vertex (1.0 if non-rational)\n        double weight = curve.weight(2);\n\n        // Set the weight of a control vertex\n        curve.set_weight(2, 0.5);\n\n        /////////////////////////////////////////////////////\n        // NurbsKnot Access\n        /////////////////////////////////////////////////////\n\n        // Get nurbsknot value at index\n        double nurbsknot3 = curve.nurbsknot(3);\n\n        // Set nurbsknot value at index\n        // ATTENTION you can brake increasing rule\n        double end_nurbsknot = curve.nurbsknot(4);\n        curve.set_nurbsknot(4, end_nurbsknot);\n\n        // Count repeated nurbsknots at index [0, 0, 1, 1, 2]\n        int m0 = curve.nurbsknot_multiplicity(0);  // 2 (two 0's)\n        int m1 = curve.nurbsknot_multiplicity(1);  // 2 (still counting the 0's)\n        int m2 = curve.nurbsknot_multiplicity(2);  // 1 (single 0.5)\n        int m3 = curve.nurbsknot_multiplicity(3);  // 2 (single 1's)\n        int m4 = curve.nurbsknot_multiplicity(4);  // 2 (single 2)\n\n        // Superflous nurbsknots are used for extension of clamped curves\n        double superfluous_nurbsknot = curve.superfluous_nurbsknot(1);\n\n        // Direct memory access to nurbsknot values, fast, read-only\n        // Vector return is slower and makes a copy\n        const double* nurbsknots = curve.nurbsknot_array();\n        double k0 = nurbsknots[0];\n        std::vector<double> nurbsknot_vector = curve.get_nurbsknots();\n\n        // Control vertex array access\n        const double* cvs = curve.cv_array();\n        double cx0 = cvs[0];\n\n        /////////////////////////////////////////////////////\n        // Domain & Parameterization - HERE\n        /////////////////////////////////////////////////////\n\n        // get start and end of the curve interval\n        std::pair<double, double> interval = curve.domain();\n        double start = interval.first;\n        double end = interval.second;\n\n        // Get start, middle and end values of the interval\n        start = curve.domain_start();\n        double middle = curve.domain_middle();\n        end = curve.domain_end();\n\n        // Change curve domain\n        curve.set_domain(0.0, 1.0);\n\n        // Span of distict nurbsknot intervals\n        std::vector<double> intervals =  curve.get_span_vector();\n\n        /////////////////////////////////////////////////////\n        // Geometric checks\n        /////////////////////////////////////////////////////\n\n        auto [found, t_out] = curve.get_next_discontinuity(2, curve.domain_start(), curve.domain_end());",
     "checks": [
       {
-        "line": 196,
+        "line": 244,
         "code_line": "is_valid",
         "passed": true
       },
       {
-        "line": 203,
+        "line": 251,
         "code_line": "is_valid_nurbsknot_vector",
         "passed": true
       },
       {
-        "line": 209,
+        "line": 257,
         "code_line": "is_clamped_start && is_clamped_end && is_clamped_both",
         "passed": true
       },
       {
-        "line": 230,
+        "line": 278,
         "code_line": "!is_rational",
         "passed": true
       },
       {
-        "line": 231,
+        "line": 279,
         "code_line": "!closed",
         "passed": true
       },
       {
-        "line": 232,
+        "line": 280,
         "code_line": "!periodic",
         "passed": true
       },
       {
-        "line": 233,
+        "line": 281,
         "code_line": "!linear",
         "passed": true
       },
       {
-        "line": 234,
+        "line": 282,
         "code_line": "planar",
         "passed": true
       },
       {
-        "line": 235,
+        "line": 283,
         "code_line": "!arc",
         "passed": true
       },
       {
-        "line": 236,
+        "line": 284,
         "code_line": "on_plane",
         "passed": true
       },
       {
-        "line": 237,
+        "line": 285,
         "code_line": "!is_open",
         "passed": true
       },
       {
-        "line": 238,
+        "line": 286,
         "code_line": "!is_polyline",
         "passed": true
       },
       {
-        "line": 239,
+        "line": 287,
         "code_line": "!is_singular",
         "passed": true
       },
       {
-        "line": 240,
+        "line": 288,
         "code_line": "is_duplicate",
         "passed": true
       },
       {
-        "line": 241,
+        "line": 289,
         "code_line": "is_continuous",
         "passed": true
       },
       {
-        "line": 253,
+        "line": 301,
         "code_line": "TOLERANCE.is_point_close(before_pt, copy_curve.point_at(1.5))",
         "passed": true
       },
       {
-        "line": 257,
+        "line": 305,
         "code_line": "TOLERANCE.is_close(greville0, 0.0)",
         "passed": true
       },
       {
-        "line": 260,
+        "line": 308,
         "code_line": "greville.size() == 4",
         "passed": true
       },
       {
-        "line": 261,
+        "line": 309,
         "code_line": "TOLERANCE.is_close(greville[0], 0.0)",
         "passed": true
       },
       {
-        "line": 262,
+        "line": 310,
         "code_line": "TOLERANCE.is_close(greville[1], 0.879872167739067)",
         "passed": true
       },
       {
-        "line": 263,
+        "line": 311,
         "code_line": "TOLERANCE.is_close(greville[2], 2.639616503217201)",
         "passed": true
       },
       {
-        "line": 264,
+        "line": 312,
         "code_line": "TOLERANCE.is_close(greville[3], 3.519488670956267)",
         "passed": true
       },
       {
-        "line": 271,
+        "line": 319,
         "code_line": "dimension == 3",
         "passed": true
       },
       {
-        "line": 274,
+        "line": 322,
         "code_line": "degree == 2",
         "passed": true
       },
       {
-        "line": 281,
+        "line": 329,
         "code_line": "order == 3",
         "passed": true
       },
       {
-        "line": 284,
+        "line": 332,
         "code_line": "cv_count == 4",
         "passed": true
       },
       {
-        "line": 287,
+        "line": 335,
         "code_line": "cv_size == 3",
         "passed": true
       },
       {
-        "line": 290,
+        "line": 338,
         "code_line": "nurbsknot_count == 5",
         "passed": true
       },
       {
-        "line": 294,
+        "line": 342,
         "code_line": "span_count == 2",
         "passed": true
       },
       {
-        "line": 306,
+        "line": 354,
         "code_line": "p[0] == 1.0 && p[1] == 1.0 && p[2] == 0.0",
         "passed": true
       },
       {
-        "line": 310,
+        "line": 358,
         "code_line": "cv_point == Point(1.0, 1.0, 0.0)",
         "passed": true
       },
       {
-        "line": 314,
+        "line": 362,
         "code_line": "x == 1.0 && y == 1.0 && z == 0.0 && w == 1.0",
         "passed": true
       },
       {
-        "line": 318,
+        "line": 366,
         "code_line": "curve.get_cv(2)[0] == 2.0",
         "passed": true
       },
       {
-        "line": 319,
+        "line": 367,
         "code_line": "curve.get_cv(2)[1] == 0.0",
         "passed": true
       },
       {
-        "line": 320,
+        "line": 368,
         "code_line": "curve.get_cv(2)[2] == 0.5",
         "passed": true
       },
       {
-        "line": 325,
+        "line": 373,
         "code_line": "x2 == 2.0 && y2 == 0.0 && z2 == 0.5 && w2 == 0.707",
         "passed": true
       },
       {
-        "line": 329,
+        "line": 377,
         "code_line": "weight == 0.707",
         "passed": true
       },
       {
-        "line": 333,
+        "line": 381,
         "code_line": "curve.weight(2) == 0.5",
         "passed": true
       },
       {
-        "line": 341,
+        "line": 389,
         "code_line": "TOLERANCE.is_close(nurbsknot3, 3.519488670956267)",
         "passed": true
       },
       {
-        "line": 347,
+        "line": 395,
         "code_line": "TOLERANCE.is_close(curve.nurbsknot(4), end_nurbsknot)",
         "passed": true
       },
       {
-        "line": 355,
+        "line": 403,
         "code_line": "m0 == 2",
         "passed": true
       },
       {
-        "line": 356,
+        "line": 404,
         "code_line": "m1 == 2",
         "passed": true
       },
       {
-        "line": 357,
+        "line": 405,
         "code_line": "m2 == 1",
         "passed": true
       },
       {
-        "line": 358,
+        "line": 406,
         "code_line": "m3 == 2",
         "passed": true
       },
       {
-        "line": 359,
+        "line": 407,
         "code_line": "m4 == 2",
         "passed": true
       },
       {
-        "line": 363,
+        "line": 411,
         "code_line": "TOLERANCE.is_close(superfluous_nurbsknot, 7.038977341912535)",
         "passed": true
       },
       {
-        "line": 370,
+        "line": 418,
         "code_line": "k0 == 0.0",
         "passed": true
       },
       {
-        "line": 371,
+        "line": 419,
         "code_line": "TOLERANCE.is_close(nurbsknot_vector[0], 0.0)",
         "passed": true
       },
       {
-        "line": 372,
+        "line": 420,
         "code_line": "TOLERANCE.is_close(nurbsknot_vector[1], 0.0)",
         "passed": true
       },
       {
-        "line": 373,
+        "line": 421,
         "code_line": "TOLERANCE.is_close(nurbsknot_vector[2], 1.759744335478134)",
         "passed": true
       },
       {
-        "line": 374,
+        "line": 422,
         "code_line": "TOLERANCE.is_close(nurbsknot_vector[3], 3.519488670956267)",
         "passed": true
       },
       {
-        "line": 375,
+        "line": 423,
         "code_line": "TOLERANCE.is_close(nurbsknot_vector[4], 3.519488670956267)",
         "passed": true
       },
       {
-        "line": 380,
+        "line": 428,
         "code_line": "cx0 == 0.0",
         "passed": true
       },
       {
-        "line": 390,
+        "line": 438,
         "code_line": "TOLERANCE.is_close(start, 0.0)",
         "passed": true
       },
       {
-        "line": 391,
+        "line": 439,
         "code_line": "TOLERANCE.is_close(end, 3.519488670956267)",
         "passed": true
       },
       {
-        "line": 397,
+        "line": 445,
         "code_line": "TOLERANCE.is_close(start, 0.0)",
         "passed": true
       },
       {
-        "line": 398,
+        "line": 446,
         "code_line": "TOLERANCE.is_close(middle, 1.759744335478134)",
         "passed": true
       },
       {
-        "line": 399,
+        "line": 447,
         "code_line": "TOLERANCE.is_close(end, 3.519488670956267)",
         "passed": true
       },
       {
-        "line": 403,
+        "line": 451,
         "code_line": "curve.domain_start() == 0.0",
         "passed": true
       },
       {
-        "line": 404,
+        "line": 452,
         "code_line": "curve.domain_middle() == 0.5",
         "passed": true
       },
       {
-        "line": 405,
+        "line": 453,
         "code_line": "curve.domain_end() == 1.0",
         "passed": true
       },
       {
-        "line": 409,
+        "line": 457,
         "code_line": "TOLERANCE.is_close(intervals[0], 0.0) && TOLERANCE.is_close(intervals[1], 0.5) && TOLERANCE.is_close(intervals[2], 1.0)",
         "passed": true
       },
       {
-        "line": 416,
+        "line": 464,
         "code_line": "found && TOLERANCE.is_close(t_out, 0.5)",
         "passed": true
       }
@@ -583,102 +779,102 @@
     "group": "NurbsCurve",
     "test_name": "Conversions",
     "passed": true,
-    "time_ms": 13.431,
-    "line": 419,
+    "time_ms": 10.46,
+    "line": 467,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 2.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(3.0, 2.0, 0.0),\n            Point(4.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n        // to_polyline_adaptive\n        auto [adaptive_pts, adaptive_params] = curve.to_polyline_adaptive(0.1, 0.0, 0.0);\n\n\n        // divide_by_count\n        auto [div_pts, div_params] = curve.divide_by_count(10, true);\n\n\n        // divide_by_length\n        auto [len_pts, len_params] = curve.divide_by_length(0.5);",
     "checks": [
       {
-        "line": 436,
+        "line": 484,
         "code_line": "adaptive_pts.size() == 27",
         "passed": true
       },
       {
-        "line": 437,
+        "line": 485,
         "code_line": "TOLERANCE.is_point_close(adaptive_pts[0], Point(0.0, 0.0, 0.0))",
         "passed": true
       },
       {
-        "line": 438,
+        "line": 486,
         "code_line": "TOLERANCE.is_point_close(adaptive_pts[13], Point(2.0, 0.5, 0.0))",
         "passed": true
       },
       {
-        "line": 439,
+        "line": 487,
         "code_line": "TOLERANCE.is_point_close(adaptive_pts[26], Point(4.0, 0.0, 0.0))",
         "passed": true
       },
       {
-        "line": 444,
+        "line": 492,
         "code_line": "div_pts.size() == 10",
         "passed": true
       },
       {
-        "line": 445,
+        "line": 493,
         "code_line": "TOLERANCE.is_point_close(div_pts[0], Point(0.000000000000000, 0.000000000000000, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 446,
+        "line": 494,
         "code_line": "TOLERANCE.is_point_close(div_pts[1], Point(0.328571016773017, 0.598213507757063, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 447,
+        "line": 495,
         "code_line": "TOLERANCE.is_point_close(div_pts[2], Point(0.740744944144815, 1.140321237310326, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 448,
+        "line": 496,
         "code_line": "TOLERANCE.is_point_close(div_pts[3], Point(1.338524001477341, 1.232716038191446, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 449,
+        "line": 497,
         "code_line": "TOLERANCE.is_point_close(div_pts[4], Point(1.712929668000343, 0.664818751028787, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 450,
+        "line": 498,
         "code_line": "TOLERANCE.is_point_close(div_pts[5], Point(2.287070333148604, 0.664818752348101, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 451,
+        "line": 499,
         "code_line": "TOLERANCE.is_point_close(div_pts[6], Point(2.661475999779531, 1.232716039392177, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 452,
+        "line": 500,
         "code_line": "TOLERANCE.is_point_close(div_pts[7], Point(3.259255057037078, 1.140321236176910, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 453,
+        "line": 501,
         "code_line": "TOLERANCE.is_point_close(div_pts[8], Point(3.671428983538974, 0.598213507250245, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 454,
+        "line": 502,
         "code_line": "TOLERANCE.is_point_close(div_pts[9], Point(4.000000000000000, 0.000000000000000, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 459,
+        "line": 507,
         "code_line": "len_pts.size() == 13",
         "passed": true
       },
       {
-        "line": 460,
+        "line": 508,
         "code_line": "TOLERANCE.is_point_close(len_pts[0], Point(0.0, 0.0, 0.0))",
         "passed": true
       },
       {
-        "line": 461,
+        "line": 509,
         "code_line": "TOLERANCE.is_point_close(len_pts[6], Point(1.928691288503169, 0.510169864670676, 0.0))",
         "passed": true
       },
       {
-        "line": 462,
+        "line": 510,
         "code_line": "TOLERANCE.is_point_close(len_pts[12], Point(3.934494396222682, 0.128829843907475, 0.0))",
         "passed": true
       }
@@ -689,342 +885,342 @@
     "group": "NurbsCurve",
     "test_name": "Evaluation",
     "passed": true,
-    "time_ms": 6.591,
-    "line": 465,
+    "time_ms": 6.563,
+    "line": 513,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n        // uncomment #include \"plane.h\"\n\n        std::vector<Point> points = {\n            Point(1.957614, 1.140253, -0.191281),\n            Point(0.912252, 1.886721, 0),\n            Point(3.089381, 2.701879, -0.696251),\n            Point(5.015145, 1.189141, 0.35799),\n            Point(1.854155, 0.514663, 0.347694),\n            Point(3.309532, 1.328666, 0),\n            Point(3.544072, 2.194233, 0.696217),\n            Point(2.903513, 2.091287, 0.696217),\n            Point(2.752484, 1.45432, 0),\n            Point(2.406227, 1.288248, 0),\n            Point(2.15032, 1.868606, 0)\n        };\n\n        auto curve = NurbsCurve::create(false, 2, points);\n\n        // Length\n\n        // Get point at parameter t\n        Point point_at = curve.point_at(0.5);\n\n        // Get point and derivatives at parameter t\n        std::vector<Vector> derivatives = curve.evaluate(0.5, 2);\n\n        // Tangent vector at parameter t\n        Vector tangent = curve.tangent_at(0.5);\n\n        // normalized=true (default): t in [0,1] mapped to domain\n        Plane f = curve.plane_at(0.5, true);\n\n\n\n        // Perpendicular frame at (RMF with Frenet initialization, matches Rhino)\n        Plane pf = curve.perpendicular_plane_at(0.5, true);\n\n        // Get multiple rotation minimization frames along the curve (matches Rhino)\n        std::vector<Plane> frames = curve.get_perpendicular_planes(4);\n        // Frame 0 (start)\n        // Frame 2 (middle)\n        // Frame 4 (end)\n\n        // Points\n        Point p0 = curve.point_at_start();\n        Point p1 = curve.point_at_middle();\n        Point p2 = curve.point_at_end();\n\n        curve.set_start_point(Point(1.957614, 1.140253, 2.0));\n        curve.set_end_point(Point(2.15032, 1.868606, 2.0));",
     "checks": [
       {
-        "line": 488,
+        "line": 536,
         "code_line": "TOLERANCE.is_close(curve.length(), 11.3010276326)",
         "passed": true
       },
       {
-        "line": 492,
+        "line": 540,
         "code_line": "TOLERANCE.is_close(point_at[0], 1.463452399002842)",
         "passed": true
       },
       {
-        "line": 493,
+        "line": 541,
         "code_line": "TOLERANCE.is_close(point_at[1], 1.680997287875395)",
         "passed": true
       },
       {
-        "line": 494,
+        "line": 542,
         "code_line": "TOLERANCE.is_close(point_at[2], -0.124474565996108)",
         "passed": true
       },
       {
-        "line": 498,
+        "line": 546,
         "code_line": "derivatives.size() == 3",
         "passed": true
       },
       {
-        "line": 499,
+        "line": 547,
         "code_line": "TOLERANCE.is_close(derivatives[0][0], 1.463452399002842)",
         "passed": true
       },
       {
-        "line": 500,
+        "line": 548,
         "code_line": "TOLERANCE.is_close(derivatives[0][1], 1.680997287875395)",
         "passed": true
       },
       {
-        "line": 501,
+        "line": 549,
         "code_line": "TOLERANCE.is_close(derivatives[0][2], -0.124474565996108)",
         "passed": true
       },
       {
-        "line": 502,
+        "line": 550,
         "code_line": "TOLERANCE.is_close(derivatives[1][0], -0.311619416021204)",
         "passed": true
       },
       {
-        "line": 503,
+        "line": 551,
         "code_line": "TOLERANCE.is_close(derivatives[1][1], 0.974021205471335)",
         "passed": true
       },
       {
-        "line": 504,
+        "line": 552,
         "code_line": "TOLERANCE.is_close(derivatives[1][2], -0.037441955449586)",
         "passed": true
       },
       {
-        "line": 505,
+        "line": 553,
         "code_line": "TOLERANCE.is_close(derivatives[2][0], 2.706815143892446)",
         "passed": true
       },
       {
-        "line": 506,
+        "line": 554,
         "code_line": "TOLERANCE.is_close(derivatives[2][1], -0.429869481117820)",
         "passed": true
       },
       {
-        "line": 507,
+        "line": 555,
         "code_line": "TOLERANCE.is_close(derivatives[2][2], -0.684219293829483)",
         "passed": true
       },
       {
-        "line": 511,
+        "line": 559,
         "code_line": "TOLERANCE.is_close(tangent[0], -0.304511941745027)",
         "passed": true
       },
       {
-        "line": 512,
+        "line": 560,
         "code_line": "TOLERANCE.is_close(tangent[1], 0.951805546117607)",
         "passed": true
       },
       {
-        "line": 513,
+        "line": 561,
         "code_line": "TOLERANCE.is_close(tangent[2], -0.036587972264639)",
         "passed": true
       },
       {
-        "line": 518,
+        "line": 566,
         "code_line": "TOLERANCE.is_close(f.origin()[0], 3.156927375000000)",
         "passed": true
       },
       {
-        "line": 519,
+        "line": 567,
         "code_line": "TOLERANCE.is_close(f.origin()[1], 1.335111500000000)",
         "passed": true
       },
       {
-        "line": 520,
+        "line": 568,
         "code_line": "TOLERANCE.is_close(f.origin()[2], 0.130488875000000)",
         "passed": true
       },
       {
-        "line": 521,
+        "line": 569,
         "code_line": "TOLERANCE.is_close(f.x_axis()[0], 0.701806140304030)",
         "passed": true
       },
       {
-        "line": 522,
+        "line": 570,
         "code_line": "TOLERANCE.is_close(f.x_axis()[1], 0.697509131556264)",
         "passed": true
       },
       {
-        "line": 523,
+        "line": 571,
         "code_line": "TOLERANCE.is_close(f.x_axis()[2], 0.144738221721788)",
         "passed": true
       },
       {
-        "line": 524,
+        "line": 572,
         "code_line": "TOLERANCE.is_close(f.y_axis()[0], -0.513930504714161)",
         "passed": true
       },
       {
-        "line": 525,
+        "line": 573,
         "code_line": "TOLERANCE.is_close(f.y_axis()[1], 0.355053088776962)",
         "passed": true
       },
       {
-        "line": 526,
+        "line": 574,
         "code_line": "TOLERANCE.is_close(f.y_axis()[2], 0.780905077761815)",
         "passed": true
       },
       {
-        "line": 527,
+        "line": 575,
         "code_line": "TOLERANCE.is_close(f.z_axis()[0], 0.493298669931115)",
         "passed": true
       },
       {
-        "line": 528,
+        "line": 576,
         "code_line": "TOLERANCE.is_close(f.z_axis()[1], -0.622429365908747)",
         "passed": true
       },
       {
-        "line": 529,
+        "line": 577,
         "code_line": "TOLERANCE.is_close(f.z_axis()[2], 0.607649657861031)",
         "passed": true
       },
       {
-        "line": 531,
+        "line": 579,
         "code_line": "curve.plane_at(-0.1, true).is_valid() == false",
         "passed": true
       },
       {
-        "line": 532,
+        "line": 580,
         "code_line": "curve.plane_at(1.1, true).is_valid() == false",
         "passed": true
       },
       {
-        "line": 533,
+        "line": 581,
         "code_line": "curve.plane_at(curve.domain_start(), false).is_valid() == true",
         "passed": true
       },
       {
-        "line": 534,
+        "line": 582,
         "code_line": "curve.plane_at(curve.domain_end(), false).is_valid() == true",
         "passed": true
       },
       {
-        "line": 535,
+        "line": 583,
         "code_line": "curve.plane_at(curve.domain_start() - 0.1, false).is_valid() == false",
         "passed": true
       },
       {
-        "line": 539,
+        "line": 587,
         "code_line": "TOLERANCE.is_point_close(pf.origin(), Point(3.156927375000000, 1.335111500000000, 0.130488875000000))",
         "passed": true
       },
       {
-        "line": 540,
+        "line": 588,
         "code_line": "TOLERANCE.is_vector_close(pf.x_axis(), Vector(0.632703652329189, -0.703685357647999, 0.323284713157168))",
         "passed": true
       },
       {
-        "line": 541,
+        "line": 589,
         "code_line": "TOLERANCE.is_vector_close(pf.y_axis(), Vector(0.327344206830723, -0.135306795251661, -0.935167279909370))",
         "passed": true
       },
       {
-        "line": 542,
+        "line": 590,
         "code_line": "TOLERANCE.is_vector_close(pf.z_axis(), Vector(0.701806140314880, 0.697509131546342, 0.144738221716994))",
         "passed": true
       },
       {
-        "line": 543,
+        "line": 591,
         "code_line": "curve.perpendicular_plane_at(-0.1, true).is_valid() == false",
         "passed": true
       },
       {
-        "line": 544,
+        "line": 592,
         "code_line": "curve.perpendicular_plane_at(1.1, true).is_valid() == false",
         "passed": true
       },
       {
-        "line": 545,
+        "line": 593,
         "code_line": "curve.perpendicular_plane_at(curve.domain_start(), false).is_valid() == true",
         "passed": true
       },
       {
-        "line": 546,
+        "line": 594,
         "code_line": "curve.perpendicular_plane_at(curve.domain_end(), false).is_valid() == true",
         "passed": true
       },
       {
-        "line": 547,
+        "line": 595,
         "code_line": "curve.perpendicular_plane_at(curve.domain_start() - 0.1, false).is_valid() == false",
         "passed": true
       },
       {
-        "line": 551,
+        "line": 599,
         "code_line": "frames.size() == 5",
         "passed": true
       },
       {
-        "line": 553,
+        "line": 601,
         "code_line": "TOLERANCE.is_point_close(frames[0].origin(), Point(1.957614, 1.140253, -0.191281))",
         "passed": true
       },
       {
-        "line": 554,
+        "line": 602,
         "code_line": "TOLERANCE.is_vector_close(frames[0].x_axis(), Vector(0.532767753269467, 0.809398954921174, -0.247046256496055))",
         "passed": true
       },
       {
-        "line": 555,
+        "line": 603,
         "code_line": "TOLERANCE.is_vector_close(frames[0].y_axis(), Vector(-0.261213903019039, -0.120386647366337, -0.957744408496052))",
         "passed": true
       },
       {
-        "line": 556,
+        "line": 604,
         "code_line": "TOLERANCE.is_vector_close(frames[0].z_axis(), Vector(-0.804938393882267, 0.574787253606414, 0.147288136473484))",
         "passed": true
       },
       {
-        "line": 558,
+        "line": 606,
         "code_line": "TOLERANCE.is_point_close(frames[2].origin(), Point(3.676077075808618, 0.909845354074582, 0.350126131660904))",
         "passed": true
       },
       {
-        "line": 559,
+        "line": 607,
         "code_line": "TOLERANCE.is_vector_close(frames[2].x_axis(), Vector(-0.188216728828592, 0.616420980974357, -0.764591156896073))",
         "passed": true
       },
       {
-        "line": 560,
+        "line": 608,
         "code_line": "TOLERANCE.is_vector_close(frames[2].y_axis(), Vector(0.183061410483993, -0.742842969436200, -0.643950963001702))",
         "passed": true
       },
       {
-        "line": 561,
+        "line": 609,
         "code_line": "TOLERANCE.is_vector_close(frames[2].z_axis(), Vector(-0.964916049706230, -0.261169479407185, 0.026972579511507))",
         "passed": true
       },
       {
-        "line": 563,
+        "line": 611,
         "code_line": "TOLERANCE.is_point_close(frames[4].origin(), Point(2.150320000000000, 1.868606000000000, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 564,
+        "line": 612,
         "code_line": "TOLERANCE.is_vector_close(frames[4].x_axis(), Vector(0.183261707646767, 0.080808692310795, 0.979737261594868))",
         "passed": true
       },
       {
-        "line": 565,
+        "line": 613,
         "code_line": "TOLERANCE.is_vector_close(frames[4].y_axis(), Vector(0.896455027441244, 0.395289116385372, -0.200287039627106))",
         "passed": true
       },
       {
-        "line": 566,
+        "line": 614,
         "code_line": "TOLERANCE.is_vector_close(frames[4].z_axis(), Vector(-0.403464410184726, 0.914995338629816, 0.000000000000000))",
         "passed": true
       },
       {
-        "line": 572,
+        "line": 620,
         "code_line": "TOLERANCE.is_close(p0[0], 1.957614)",
         "passed": true
       },
       {
-        "line": 573,
+        "line": 621,
         "code_line": "TOLERANCE.is_close(p0[1], 1.140253)",
         "passed": true
       },
       {
-        "line": 574,
+        "line": 622,
         "code_line": "TOLERANCE.is_close(p0[2], -0.191281)",
         "passed": true
       },
       {
-        "line": 575,
+        "line": 623,
         "code_line": "TOLERANCE.is_close(p1[0], 3.156927375)",
         "passed": true
       },
       {
-        "line": 576,
+        "line": 624,
         "code_line": "TOLERANCE.is_close(p1[1], 1.3351115)",
         "passed": true
       },
       {
-        "line": 577,
+        "line": 625,
         "code_line": "TOLERANCE.is_close(p1[2], 0.130488875)",
         "passed": true
       },
       {
-        "line": 578,
+        "line": 626,
         "code_line": "TOLERANCE.is_close(p2[0], 2.15032)",
         "passed": true
       },
       {
-        "line": 579,
+        "line": 627,
         "code_line": "TOLERANCE.is_close(p2[1], 1.868606)",
         "passed": true
       },
       {
-        "line": 580,
+        "line": 628,
         "code_line": "TOLERANCE.is_close(p2[2], 0.0)",
         "passed": true
       },
       {
-        "line": 584,
+        "line": 632,
         "code_line": "TOLERANCE.is_close(curve.point_at_start()[2], 2.0)",
         "passed": true
       },
       {
-        "line": 585,
+        "line": 633,
         "code_line": "TOLERANCE.is_close(curve.point_at_end()[2], 2.0)",
         "passed": true
       }
@@ -1035,92 +1231,92 @@
     "group": "NurbsCurve",
     "test_name": "Modifications",
     "passed": true,
-    "time_ms": 0.766,
-    "line": 588,
+    "time_ms": 0.661,
+    "line": 636,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 2.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(3.0, 2.0, 0.0),\n            Point(4.0, 0.0, 0.0)\n        };\n\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n\n        // Reverse the curve\n        NurbsCurve curve_reversed = curve;\n        curve_reversed.reverse();\n\n\n        // Swap coordinates axes\n        curve.swap_coordinates(0, 1);\n\n        // Trim curve at domain parameter\n        NurbsCurve ct = curve;\n        double a = ct.domain_start() + (ct.domain_end() - ct.domain_start()) / 3.0;\n        double b = ct.domain_start() + 2.0 * (ct.domain_end() - ct.domain_start()) / 3.0;\n        ct.trim(a, b);\n\n        // Split curve at domain middle\n        double split_t = curve.domain_middle();\n        auto [curve_left, curve_right] = curve.split(split_t);\n\n        // Extend curve smoothly at both ends\n        NurbsCurve curve_extended = curve;\n        curve_extended.extend(curve.domain_start()-0.5, curve.domain_end()+0.5);\n\n        // Enable curve weights - Make rational or non-rational\n        NurbsCurve curve_rational = curve;\n        double original_length = curve.length();\n        curve_rational.make_rational();\n        curve_rational.set_weight(2, 10);\n\n        curve_rational.make_non_rational(true);  // force=true, sets all weights to 1.0\n\n        // Clamp ends - create unclamped curve manually\n        std::vector<Point> points_open = points;\n        NurbsCurve curve_open(3, false, 3, 5);  // dim=3, non-rational, order=3 (deg 2), 5 CVs\n\n        for (int i = 0; i < 5; ++i)\n            curve_open.set_cv(i, points_open[i]);\n\n        for (int i = 0; i < curve_open.nurbsknot_count(); ++i)\n            curve_open.set_nurbsknot(i, i * 1.0);\n\n        // Now clamp, making 2 nurbsknots at the ends the same\n        curve_open.clamp_end(2);\n        std::vector<double> nurbsknots = curve_open.get_nurbsknots();\n\n        // Increase degree without change the shape\n        NurbsCurve raised = curve;\n        raised.increase_degree(3);\n\n        // Change closed curve seam\n        std::vector<Point> closed_pts = {\n            Point(1.0, 0.0, 0.0),\n            Point(0.0, 1.0, 0.0),\n            Point(-1.0, 0.0, 0.0),\n            Point(0.0, -1.0, 0.0)\n        };\n        NurbsCurve c = NurbsCurve::create(true, 2, closed_pts);\n        Point expected_start = c.point_at(c.domain_middle());\n        c.change_closed_curve_seam(c.domain_middle());\n",
     "checks": [
       {
-        "line": 607,
+        "line": 655,
         "code_line": "TOLERANCE.is_point_close(curve_reversed.point_at_start(), curve.point_at_end())",
         "passed": true
       },
       {
-        "line": 611,
+        "line": 659,
         "code_line": "TOLERANCE.is_point_close(curve.get_cv(0), Point(0.0, 0.0, 0.0))",
         "passed": true
       },
       {
-        "line": 612,
+        "line": 660,
         "code_line": "TOLERANCE.is_point_close(curve.get_cv(1), Point(2.0, 1.0, 0.0))",
         "passed": true
       },
       {
-        "line": 613,
+        "line": 661,
         "code_line": "TOLERANCE.is_point_close(curve.get_cv(2), Point(0.0, 2.0, 0.0))",
         "passed": true
       },
       {
-        "line": 614,
+        "line": 662,
         "code_line": "TOLERANCE.is_point_close(curve.get_cv(3), Point(2.0, 3.0, 0.0))",
         "passed": true
       },
       {
-        "line": 615,
+        "line": 663,
         "code_line": "TOLERANCE.is_point_close(curve.get_cv(4), Point(0.0, 4.0, 0.0))",
         "passed": true
       },
       {
-        "line": 622,
+        "line": 670,
         "code_line": "ct.length() < curve.length()",
         "passed": true
       },
       {
-        "line": 627,
+        "line": 675,
         "code_line": "TOLERANCE.is_point_close(curve.point_at(split_t), curve_left.point_at_end())",
         "passed": true
       },
       {
-        "line": 628,
+        "line": 676,
         "code_line": "TOLERANCE.is_point_close(curve.point_at(split_t), curve_right.point_at_start())",
         "passed": true
       },
       {
-        "line": 633,
+        "line": 681,
         "code_line": "curve_extended.length() > curve.length()",
         "passed": true
       },
       {
-        "line": 640,
+        "line": 688,
         "code_line": "curve_rational.length() != original_length",
         "passed": true
       },
       {
-        "line": 643,
+        "line": 691,
         "code_line": "curve_rational.length() == original_length",
         "passed": true
       },
       {
-        "line": 658,
+        "line": 706,
         "code_line": "TOLERANCE.is_close(nurbsknots[0], nurbsknots[1])",
         "passed": true
       },
       {
-        "line": 659,
+        "line": 707,
         "code_line": "TOLERANCE.is_close(nurbsknots[nurbsknots.size() - 2], nurbsknots[nurbsknots.size() - 1])",
         "passed": true
       },
       {
-        "line": 664,
+        "line": 712,
         "code_line": "curve.degree() != raised.degree()",
         "passed": true
       },
       {
-        "line": 665,
+        "line": 713,
         "code_line": "TOLERANCE.is_point_close(curve.point_at_middle(), raised.point_at_middle())",
         "passed": true
       },
       {
-        "line": 677,
+        "line": 725,
         "code_line": "TOLERANCE.is_point_close(c.point_at_start(), expected_start)",
         "passed": true
       }
@@ -1131,47 +1327,47 @@
     "group": "NurbsCurve",
     "test_name": "Transformations",
     "passed": true,
-    "time_ms": 0.702,
-    "line": 682,
+    "time_ms": 0.697,
+    "line": 730,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"xform.h\"\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 2.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(3.0, 2.0, 0.0),\n            Point(4.0, 0.0, 0.0)\n        };\n\n\n        // transform() - Apply stored xform (in-place)                                                                                                                                                         \n        NurbsCurve curve1 = NurbsCurve::create(false, 2, points);                                                         \n        curve1.xform = Xform::translation(0.0, 0.0, 1.0);\n        curve1.transform();  // applies stored xform, modifies curve1\n\n\n        // transform(const Xform&) - Apply custom xform (in-place)\n        NurbsCurve curve2 = NurbsCurve::create(false, 2, points);\n        Xform x = Xform::translation(0.0, 0.0, 1.0);\n        curve2.transform(x);  // modifies curve2 directly\n\n        // transformed() - Get copy with stored xform applied\n        NurbsCurve curve3 = NurbsCurve::create(false, 2, points);\n        curve3.xform = Xform::translation(0.0, 0.0, 10.0);\n        NurbsCurve curve3_transformed = curve3.transformed();\n        \n        // transformed(const Xform&) - Get copy with custom xform\n        NurbsCurve curve4 = NurbsCurve::create(false, 2, points);\n        x = Xform::translation(0.0, 0.0, 10.0);\n        NurbsCurve curve4_transformed = curve4.transformed(x); ",
     "checks": [
       {
-        "line": 701,
+        "line": 749,
         "code_line": "curve1.xform.is_identity() == false",
         "passed": true
       },
       {
-        "line": 702,
+        "line": 750,
         "code_line": "curve1.cv(0)[2] == 1.0",
         "passed": true
       },
       {
-        "line": 708,
+        "line": 756,
         "code_line": "curve2.xform.is_identity() == true",
         "passed": true
       },
       {
-        "line": 709,
+        "line": 757,
         "code_line": "curve2.cv(0)[2] == 1.0",
         "passed": true
       },
       {
-        "line": 715,
+        "line": 763,
         "code_line": "curve3_transformed.xform.is_identity() == false",
         "passed": true
       },
       {
-        "line": 716,
+        "line": 764,
         "code_line": "curve3_transformed.cv(0)[2] == 10.0",
         "passed": true
       },
       {
-        "line": 722,
+        "line": 770,
         "code_line": "curve4_transformed.xform.is_identity() == true",
         "passed": true
       },
       {
-        "line": 723,
+        "line": 771,
         "code_line": "curve4_transformed.cv(0)[2] == 10.0",
         "passed": true
       }
@@ -1182,22 +1378,22 @@
     "group": "NurbsCurve",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 14.298,
-    "line": 727,
+    "time_ms": 17.195,
+    "line": 775,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include <filesystem>\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 2.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(3.0, 2.0, 0.0),\n            Point(4.0, 0.0, 0.0)\n        };\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n        //   jsondump()      │ ordered_json │ to JSON object (internal use)                                                                          \n        //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n        //   file_json_dumps()    │ std::string  │ to JSON string                  \n        //   file_json_loads(s)   │ std::string  │ from JSON string                \n        //   file_json_dump(path) │ file         │ write to file                   \n        //   file_json_load(path) │ file         │ read from file  \n\n        // JSON object\n        nlohmann::ordered_json json = curve.jsondump();\n        NurbsCurve loaded_json = NurbsCurve::jsonload(json);\n\n        // String\n        std::string json_string = curve.file_json_dumps();\n        NurbsCurve loaded_json_string = NurbsCurve::file_json_loads(json_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_nurbscurve.json\").string();\n        curve.file_json_dump(filename);\n        NurbsCurve loaded_from_file = NurbsCurve::file_json_load(filename);",
     "checks": [
       {
-        "line": 761,
+        "line": 809,
         "code_line": "loaded_json == curve",
         "passed": true
       },
       {
-        "line": 762,
+        "line": 810,
         "code_line": "loaded_json_string == curve",
         "passed": true
       },
       {
-        "line": 763,
+        "line": 811,
         "code_line": "loaded_from_file == curve",
         "passed": true
       }
@@ -1208,18 +1404,120 @@
     "group": "NurbsCurve",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 12.829,
-    "line": 766,
+    "time_ms": 14.092,
+    "line": 814,
     "code": "        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include <filesystem>\n\n        std::vector<Point> points = {\n            Point(0.0, 0.0, 0.0),\n            Point(1.0, 2.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(3.0, 2.0, 0.0),\n            Point(4.0, 0.0, 0.0)\n        };\n        NurbsCurve curve = NurbsCurve::create(false, 2, points);\n\n        //   pb_dumps()      │ string/bytes │ to protobuf bytes\n        //   pb_loads(b)     │ string/bytes │ from protobuf bytes\n        //   pb_dump(path)   │ file         │ write to file\n        //   pb_load(path)   │ file         │ read from file\n\n        // String\n        std::string proto_string = curve.pb_dumps();\n        NurbsCurve loaded_proto_string = NurbsCurve::pb_loads(proto_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_nurbscurve.bin\").string();\n        curve.pb_dump(filename);\n        NurbsCurve loaded = NurbsCurve::pb_load(filename);",
     "checks": [
       {
-        "line": 794,
+        "line": 842,
         "code_line": "loaded_proto_string == curve",
         "passed": true
       },
       {
-        "line": 795,
+        "line": 843,
         "code_line": "loaded == curve",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "NurbsCurve",
+    "test_name": "Curvature",
+    "passed": true,
+    "time_ms": 0.006,
+    "line": 846,
+    "code": "        // A circle of radius R is an exact rational NURBS with constant curvature 1/R.\n        const double R = 2.0;\n        NurbsCurve circle = Primitives::circle(0, 0, 0, R);\n        auto [t0, t1] = circle.domain();\n        for (int i = 0; i <= 8; ++i) {\n            double t = t0 + (t1 - t0) * i / 8.0;\n        }\n        // A straight line has zero curvature.\n        std::vector<Point> line_pts = {Point(0, 0, 0), Point(1, 0, 0), Point(2, 0, 0), Point(3, 0, 0)};\n        NurbsCurve line = NurbsCurve::create(false, 1, line_pts);",
+    "checks": [
+      {
+        "line": 853,
+        "code_line": "std::abs(circle.curvature_at(t) - 1.0 / R) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 853,
+        "code_line": "std::abs(circle.curvature_at(t) - 1.0 / R) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 853,
+        "code_line": "std::abs(circle.curvature_at(t) - 1.0 / R) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 853,
+        "code_line": "std::abs(circle.curvature_at(t) - 1.0 / R) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 853,
+        "code_line": "std::abs(circle.curvature_at(t) - 1.0 / R) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 853,
+        "code_line": "std::abs(circle.curvature_at(t) - 1.0 / R) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 853,
+        "code_line": "std::abs(circle.curvature_at(t) - 1.0 / R) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 853,
+        "code_line": "std::abs(circle.curvature_at(t) - 1.0 / R) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 853,
+        "code_line": "std::abs(circle.curvature_at(t) - 1.0 / R) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 858,
+        "code_line": "line.curvature_at(line.domain_middle()) < 1e-9",
+        "passed": true
+      }
+    ],
+    "failures": []
+  },
+  {
+    "group": "NurbsCurve",
+    "test_name": "ClosestPoint",
+    "passed": true,
+    "time_ms": 0.37,
+    "line": 861,
+    "code": "        // Circle radius 2 at origin: closest point to an outside point is radial.\n        NurbsCurve circle = Primitives::circle(0, 0, 0, 2.0);\n        Point cp = circle.closest_point(Point(5, 0, 0));\n        Point cp2 = circle.closest_point(Point(0, 5, 0));\n\n        // Project onto a 3D interpolated curve (curve_closest_point.py). Reference from\n        // OCCT GeomAPI_ProjectPointOnCurve (validation/compare_curve_ops.py).\n        std::vector<Point> ipts = {Point(0,0,0), Point(3,0,2), Point(6,0,-3), Point(8,0,0)};\n        NurbsCurve ic = NurbsCurve::create_interpolated(ipts, CurveNurbsKnotStyle::Chord, CurveInterpStyle::Occt);\n        Point pc = ic.closest_point(Point(2, -1, 0));\n\n        // Curve-curve closest (curve_closest_parameters_curve.py). Reference from\n        // OCCT GeomAPI_ExtremaCurveCurve (u=0.475768, v=0.336691).\n        NurbsCurve c0 = NurbsCurve::create_from_parameters(\n            {Point(0,0,0),Point(3,6,0),Point(6,-3,3),Point(10,0,0)}, {1,1,1,1}, {0,1}, {4,4}, 3);\n        NurbsCurve c1 = NurbsCurve::create_from_parameters(\n            {Point(6,-3,0),Point(3,1,0),Point(6,6,3),Point(3,12,0)}, {1,1,1,1}, {0,1}, {4,4}, 3);\n        auto [u, v] = c0.closest_parameters_curve(c1);\n        auto [pa, pb] = c0.closest_points_curve(c1);",
+    "checks": [
+      {
+        "line": 865,
+        "code_line": "std::abs(cp[0] - 2.0) < 1e-5 && std::abs(cp[1]) < 1e-5 && std::abs(cp[2]) < 1e-5",
+        "passed": true
+      },
+      {
+        "line": 867,
+        "code_line": "std::abs(cp2[0]) < 1e-5 && std::abs(cp2[1] - 2.0) < 1e-5",
+        "passed": true
+      },
+      {
+        "line": 874,
+        "code_line": "TOLERANCE.is_point_close(pc, Point(0.5808155659, 0.0, 0.9672315271))",
+        "passed": true
+      },
+      {
+        "line": 883,
+        "code_line": "std::abs(u - 0.4757682937) < 1e-6 && std::abs(v - 0.3366914716) < 1e-6",
+        "passed": true
+      },
+      {
+        "line": 885,
+        "code_line": "TOLERANCE.is_point_close(pa, Point(4.389607399, 1.285537564, 1.067964425))",
+        "passed": true
+      },
+      {
+        "line": 886,
+        "code_line": "TOLERANCE.is_point_close(pb, Point(4.552264625, 1.380381100, 0.676740741))",
         "passed": true
       }
     ],

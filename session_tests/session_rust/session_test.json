@@ -23,7 +23,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.019
+    "time_ms": 0.024
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 18,
     "passed": true,
     "test_name": "Add Point",
-    "time_ms": 0.072
+    "time_ms": 0.053
   },
   {
     "checks": [
@@ -70,7 +70,7 @@
     "line": 32,
     "passed": true,
     "test_name": "Add Line",
-    "time_ms": 0.042
+    "time_ms": 0.035
   },
   {
     "checks": [
@@ -91,7 +91,7 @@
     "line": 45,
     "passed": true,
     "test_name": "Add Plane",
-    "time_ms": 0.036
+    "time_ms": 0.059
   },
   {
     "checks": [
@@ -112,7 +112,7 @@
     "line": 77,
     "passed": true,
     "test_name": "Add Polyline",
-    "time_ms": 0.033
+    "time_ms": 0.075
   },
   {
     "checks": [
@@ -133,7 +133,7 @@
     "line": 90,
     "passed": true,
     "test_name": "Add Pointcloud",
-    "time_ms": 0.033
+    "time_ms": 0.05
   },
   {
     "checks": [
@@ -154,7 +154,7 @@
     "line": 103,
     "passed": true,
     "test_name": "Add Mesh",
-    "time_ms": 0.084
+    "time_ms": 0.097
   },
   {
     "checks": [
@@ -180,7 +180,7 @@
     "line": 134,
     "passed": true,
     "test_name": "Add Element",
-    "time_ms": 0.193
+    "time_ms": 0.205
   },
   {
     "checks": [
@@ -196,7 +196,7 @@
     "line": 150,
     "passed": true,
     "test_name": "Add Group",
-    "time_ms": 0.008
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -212,7 +212,7 @@
     "line": 160,
     "passed": true,
     "test_name": "Add Edge",
-    "time_ms": 0.06
+    "time_ms": 0.055
   },
   {
     "checks": [
@@ -228,7 +228,7 @@
     "line": 176,
     "passed": true,
     "test_name": "Add Hierarchy",
-    "time_ms": 0.079
+    "time_ms": 0.077
   },
   {
     "checks": [
@@ -249,7 +249,7 @@
     "line": 194,
     "passed": true,
     "test_name": "Get Children",
-    "time_ms": 0.051
+    "time_ms": 0.054
   },
   {
     "checks": [
@@ -265,7 +265,7 @@
     "line": 215,
     "passed": true,
     "test_name": "Add Relationship",
-    "time_ms": 0.041
+    "time_ms": 0.045
   },
   {
     "checks": [
@@ -286,7 +286,7 @@
     "line": 231,
     "passed": true,
     "test_name": "Get Neighbours",
-    "time_ms": 0.044
+    "time_ms": 0.045
   },
   {
     "checks": [
@@ -302,7 +302,7 @@
     "line": 292,
     "passed": true,
     "test_name": "Get Object",
-    "time_ms": 0.021
+    "time_ms": 0.022
   },
   {
     "checks": [
@@ -323,7 +323,7 @@
     "line": 305,
     "passed": true,
     "test_name": "Remove Object",
-    "time_ms": 0.031
+    "time_ms": 0.033
   },
   {
     "checks": [
@@ -360,7 +360,7 @@
     "line": 332,
     "passed": true,
     "test_name": "Compute Face To Face",
-    "time_ms": 0.953
+    "time_ms": 0.799
   },
   {
     "checks": [
@@ -386,7 +386,7 @@
     "line": 350,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 14.144
+    "time_ms": 26.688
   },
   {
     "checks": [
@@ -407,7 +407,7 @@
     "line": 379,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 14.672
+    "time_ms": 18.491
   },
   {
     "checks": [
@@ -423,7 +423,7 @@
     "line": 400,
     "passed": true,
     "test_name": "Tree Transformation Hierarchy",
-    "time_ms": 1.06
+    "time_ms": 0.779
   },
   {
     "checks": [
@@ -439,7 +439,7 @@
     "line": 276,
     "passed": true,
     "test_name": "Ray Cast",
-    "time_ms": 0.173
+    "time_ms": 0.232
   },
   {
     "checks": [
@@ -460,7 +460,7 @@
     "line": 58,
     "passed": true,
     "test_name": "Add OBB",
-    "time_ms": 0.035
+    "time_ms": 0.04
   },
   {
     "checks": [
@@ -496,7 +496,7 @@
     "line": 489,
     "passed": true,
     "test_name": "Component Json Roundtrip",
-    "time_ms": 13.569
+    "time_ms": 16.324
   },
   {
     "checks": [
@@ -512,7 +512,7 @@
     "line": 250,
     "passed": true,
     "test_name": "Get Collisions",
-    "time_ms": 0.155
+    "time_ms": 0.174
   },
   {
     "checks": [
@@ -533,7 +533,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Add Brep",
-    "time_ms": 0.286
+    "time_ms": 0.343
   },
   {
     "checks": [
@@ -564,6 +564,6 @@
     "line": 458,
     "passed": true,
     "test_name": "Add Component",
-    "time_ms": 0.016
+    "time_ms": 0.019
   }
 ]

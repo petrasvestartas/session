@@ -1,4 +1,6 @@
 # Build artifacts created by `trunk serve` / `cargo build` — never commit these.
 /target
 /dist
-Cargo.lock
+# Commit this chapter snapshot's lockfile (overrides the viewer-wide Cargo.lock ignore)
+# so the snapshot rebuilds with identical dependency versions.
+!Cargo.lock

@@ -1,8 +1,8 @@
-# 03 Pipeline
+# 04 Pipeline
 
 Draw a single triangle on the grey background.
 
-In Chapter 2 the GPU only *cleared* the screen. Now we make it *draw*. We add the smallest possible thing a GPU can draw: one triangle whose 3 corners are written **inside the shader** — no data buffers yet. Buffers come in a later chapter; this chapter proves the drawing machinery works.
+In Chapter 3 the GPU only *cleared* the screen. Now we make it *draw*. We add the smallest possible thing a GPU can draw: one triangle whose 3 corners are written **inside the shader** — no data buffers yet. Buffers come in a later chapter; this chapter proves the drawing machinery works.
 
 
 ## Mental model (read this first)
@@ -240,7 +240,7 @@ target in Step 2. They must agree, or wgpu rejects the draw.
 
 ## Step 6 — draw it: the render pass in `gpu.rs`
 
-This is the payoff. In Chapter 2 the render pass was empty — it just cleared. Now we
+This is the payoff. In Chapter 3 the render pass was empty — it just cleared. Now we
 give it two commands: "use the triangle recipe" and "draw 3 vertices".
 
 Find the `clear` method's render-pass block and change it from this:
@@ -285,11 +285,11 @@ If the screen is still plain grey, check the browser console (F12):
   format differs.
 
 
-## What changed vs Chapter 2 (recap)
+## What changed vs Chapter 3 (recap)
 
 ```
-Chapter 2:  begin render pass → clear grey → end → present
-Chapter 3:  begin render pass → clear grey → set_pipeline → draw 3 → end → present
+Chapter 3:  begin render pass → clear grey → end → present
+Chapter 4:  begin render pass → clear grey → set_pipeline → draw 3 → end → present
                                               └── new: the triangle ──┘
 ```
 

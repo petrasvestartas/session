@@ -23,9 +23,9 @@ POINTS = [
 
 def ours():
     from session_py import NurbsCurve, Point
-    from session_py.nurbsknot import CurveNurbsKnotStyle
+    from session_py.nurbsknot import CurveNurbsKnotStyle, CurveInterpStyle
     pts = [Point(*p) for p in POINTS]
-    c = NurbsCurve.create_interpolated(pts, CurveNurbsKnotStyle.Chord)
+    c = NurbsCurve.create_interpolated(pts, CurveNurbsKnotStyle.Chord, CurveInterpStyle.Occt)
     cvs = [tuple(round(c.get_cv(i)[d], 6) for d in range(3)) for i in range(c.cv_count())]
     knots = [round(float(k), 6) for k in c.get_nurbsknots()]
     d0, d1 = c.domain()

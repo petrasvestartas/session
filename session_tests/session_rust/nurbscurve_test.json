@@ -58,522 +58,522 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 26.387
+    "time_ms": 17.096
   },
   {
     "checks": [
       {
         "code_line": "is_valid",
-        "line": 193,
+        "line": 247,
         "passed": true
       },
       {
         "code_line": "is_valid_nurbsknot_vector",
-        "line": 200,
-        "passed": true
-      },
-      {
-        "code_line": "is_clamped_start && is_clamped_end && is_clamped_both",
-        "line": 206,
-        "passed": true
-      },
-      {
-        "code_line": "!is_rational",
-        "line": 227,
-        "passed": true
-      },
-      {
-        "code_line": "!closed",
-        "line": 228,
-        "passed": true
-      },
-      {
-        "code_line": "!periodic",
-        "line": 229,
-        "passed": true
-      },
-      {
-        "code_line": "!linear",
-        "line": 230,
-        "passed": true
-      },
-      {
-        "code_line": "planar",
-        "line": 231,
-        "passed": true
-      },
-      {
-        "code_line": "!arc",
-        "line": 232,
-        "passed": true
-      },
-      {
-        "code_line": "on_plane",
-        "line": 233,
-        "passed": true
-      },
-      {
-        "code_line": "!is_open",
-        "line": 234,
-        "passed": true
-      },
-      {
-        "code_line": "!is_polyline",
-        "line": 235,
-        "passed": true
-      },
-      {
-        "code_line": "!is_singular",
-        "line": 236,
-        "passed": true
-      },
-      {
-        "code_line": "is_duplicate",
-        "line": 237,
-        "passed": true
-      },
-      {
-        "code_line": "is_continuous",
-        "line": 238,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_point_close(&before_pt, &copy_curve.point_at(1.5))",
-        "line": 250,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(greville0, 0.0)",
         "line": 254,
         "passed": true
       },
       {
-        "code_line": "greville.len() == 4",
-        "line": 257,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(greville[0], 0.0)",
-        "line": 258,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(greville[1], 0.879872167739067)",
-        "line": 259,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(greville[2], 2.639616503217201)",
+        "code_line": "is_clamped_start && is_clamped_end && is_clamped_both",
         "line": 260,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(greville[3], 3.519488670956267)",
-        "line": 261,
-        "passed": true
-      },
-      {
-        "code_line": "dimension == 3",
-        "line": 268,
-        "passed": true
-      },
-      {
-        "code_line": "degree == 2",
-        "line": 271,
-        "passed": true
-      },
-      {
-        "code_line": "order == 3",
-        "line": 278,
-        "passed": true
-      },
-      {
-        "code_line": "cv_count == 4",
+        "code_line": "!is_rational",
         "line": 281,
         "passed": true
       },
       {
-        "code_line": "cv_size == 3",
+        "code_line": "!closed",
+        "line": 282,
+        "passed": true
+      },
+      {
+        "code_line": "!periodic",
+        "line": 283,
+        "passed": true
+      },
+      {
+        "code_line": "!linear",
         "line": 284,
         "passed": true
       },
       {
-        "code_line": "nurbsknot_count == 5",
+        "code_line": "planar",
+        "line": 285,
+        "passed": true
+      },
+      {
+        "code_line": "!arc",
+        "line": 286,
+        "passed": true
+      },
+      {
+        "code_line": "on_plane",
         "line": 287,
         "passed": true
       },
       {
-        "code_line": "span_count == 2",
+        "code_line": "!is_open",
+        "line": 288,
+        "passed": true
+      },
+      {
+        "code_line": "!is_polyline",
+        "line": 289,
+        "passed": true
+      },
+      {
+        "code_line": "!is_singular",
+        "line": 290,
+        "passed": true
+      },
+      {
+        "code_line": "is_duplicate",
         "line": 291,
         "passed": true
       },
       {
-        "code_line": "p[0] == 1.0 && p[1] == 1.0 && p[2] == 0.0",
-        "line": 303,
+        "code_line": "is_continuous",
+        "line": 292,
         "passed": true
       },
       {
-        "code_line": "cv_point == Point::new(1.0, 1.0, 0.0)",
-        "line": 307,
+        "code_line": "TOLERANCE.is_point_close(&before_pt, &copy_curve.point_at(1.5))",
+        "line": 304,
         "passed": true
       },
       {
-        "code_line": "x == 1.0 && y == 1.0 && z == 0.0 && w == 1.0",
+        "code_line": "TOLERANCE.is_close(greville0, 0.0)",
+        "line": 308,
+        "passed": true
+      },
+      {
+        "code_line": "greville.len() == 4",
         "line": 311,
         "passed": true
       },
       {
-        "code_line": "curve.get_cv(2).unwrap()[0] == 2.0",
+        "code_line": "TOLERANCE.is_close(greville[0], 0.0)",
+        "line": 312,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(greville[1], 0.879872167739067)",
+        "line": 313,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(greville[2], 2.639616503217201)",
+        "line": 314,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(greville[3], 3.519488670956267)",
         "line": 315,
         "passed": true
       },
       {
-        "code_line": "curve.get_cv(2).unwrap()[1] == 0.0",
-        "line": 316,
-        "passed": true
-      },
-      {
-        "code_line": "curve.get_cv(2).unwrap()[2] == 0.5",
-        "line": 317,
-        "passed": true
-      },
-      {
-        "code_line": "x == 2.0 && y == 0.0 && z == 0.5 && w == 0.707",
+        "code_line": "dimension == 3",
         "line": 322,
         "passed": true
       },
       {
-        "code_line": "weight == 0.707",
-        "line": 326,
+        "code_line": "degree == 2",
+        "line": 325,
         "passed": true
       },
       {
-        "code_line": "curve.weight(2) == 0.5",
-        "line": 330,
+        "code_line": "order == 3",
+        "line": 332,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(nurbsknot3, 3.519488670956267)",
+        "code_line": "cv_count == 4",
+        "line": 335,
+        "passed": true
+      },
+      {
+        "code_line": "cv_size == 3",
         "line": 338,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(curve.nurbsknot(4).unwrap(), end_nurbsknot)",
-        "line": 344,
+        "code_line": "nurbsknot_count == 5",
+        "line": 341,
         "passed": true
       },
       {
-        "code_line": "m0 == 2",
-        "line": 352,
+        "code_line": "span_count == 2",
+        "line": 345,
         "passed": true
       },
       {
-        "code_line": "m1 == 2",
-        "line": 353,
+        "code_line": "p[0] == 1.0 && p[1] == 1.0 && p[2] == 0.0",
+        "line": 357,
         "passed": true
       },
       {
-        "code_line": "m2 == 1",
-        "line": 354,
+        "code_line": "cv_point == Point::new(1.0, 1.0, 0.0)",
+        "line": 361,
         "passed": true
       },
       {
-        "code_line": "m3 == 2",
-        "line": 355,
+        "code_line": "x == 1.0 && y == 1.0 && z == 0.0 && w == 1.0",
+        "line": 365,
         "passed": true
       },
       {
-        "code_line": "m4 == 2",
-        "line": 356,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(superfluous_nurbsknot, 7.038977341912535)",
-        "line": 360,
-        "passed": true
-      },
-      {
-        "code_line": "k0 == 0.0",
-        "line": 367,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(nurbsknot_vector[0], 0.0)",
-        "line": 368,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(nurbsknot_vector[1], 0.0)",
+        "code_line": "curve.get_cv(2).unwrap()[0] == 2.0",
         "line": 369,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(nurbsknot_vector[2], 1.759744335478134)",
+        "code_line": "curve.get_cv(2).unwrap()[1] == 0.0",
         "line": 370,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(nurbsknot_vector[3], 3.519488670956267)",
+        "code_line": "curve.get_cv(2).unwrap()[2] == 0.5",
         "line": 371,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(nurbsknot_vector[4], 3.519488670956267)",
-        "line": 372,
+        "code_line": "x == 2.0 && y == 0.0 && z == 0.5 && w == 0.707",
+        "line": 376,
         "passed": true
       },
       {
-        "code_line": "cx0 == 0.0",
-        "line": 377,
+        "code_line": "weight == 0.707",
+        "line": 380,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(start, 0.0) && TOLERANCE.is_close(end, 3.519488670956267)",
-        "line": 385,
+        "code_line": "curve.weight(2) == 0.5",
+        "line": 384,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(start, 0.0)",
-        "line": 391,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(middle, 1.759744335478134)",
+        "code_line": "TOLERANCE.is_close(nurbsknot3, 3.519488670956267)",
         "line": 392,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(end, 3.519488670956267)",
-        "line": 393,
-        "passed": true
-      },
-      {
-        "code_line": "curve.domain_start() == 0.0",
-        "line": 397,
-        "passed": true
-      },
-      {
-        "code_line": "curve.domain_middle() == 0.5",
+        "code_line": "TOLERANCE.is_close(curve.nurbsknot(4).unwrap(), end_nurbsknot)",
         "line": 398,
         "passed": true
       },
       {
+        "code_line": "m0 == 2",
+        "line": 406,
+        "passed": true
+      },
+      {
+        "code_line": "m1 == 2",
+        "line": 407,
+        "passed": true
+      },
+      {
+        "code_line": "m2 == 1",
+        "line": 408,
+        "passed": true
+      },
+      {
+        "code_line": "m3 == 2",
+        "line": 409,
+        "passed": true
+      },
+      {
+        "code_line": "m4 == 2",
+        "line": 410,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(superfluous_nurbsknot, 7.038977341912535)",
+        "line": 414,
+        "passed": true
+      },
+      {
+        "code_line": "k0 == 0.0",
+        "line": 421,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(nurbsknot_vector[0], 0.0)",
+        "line": 422,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(nurbsknot_vector[1], 0.0)",
+        "line": 423,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(nurbsknot_vector[2], 1.759744335478134)",
+        "line": 424,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(nurbsknot_vector[3], 3.519488670956267)",
+        "line": 425,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(nurbsknot_vector[4], 3.519488670956267)",
+        "line": 426,
+        "passed": true
+      },
+      {
+        "code_line": "cx0 == 0.0",
+        "line": 431,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(start, 0.0) && TOLERANCE.is_close(end, 3.519488670956267)",
+        "line": 439,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(start, 0.0)",
+        "line": 445,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(middle, 1.759744335478134)",
+        "line": 446,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(end, 3.519488670956267)",
+        "line": 447,
+        "passed": true
+      },
+      {
+        "code_line": "curve.domain_start() == 0.0",
+        "line": 451,
+        "passed": true
+      },
+      {
+        "code_line": "curve.domain_middle() == 0.5",
+        "line": 452,
+        "passed": true
+      },
+      {
         "code_line": "curve.domain_end() == 1.0",
-        "line": 399,
+        "line": 453,
         "passed": true
       },
       {
         "code_line": "TOLERANCE.is_close(intervals[0], 0.0) && TOLERANCE.is_close(intervals[1], 0.5)\n&& TOLERANCE.is_close(intervals[2], 1.0)",
-        "line": 403,
+        "line": 457,
         "passed": true
       },
       {
         "code_line": "found && TOLERANCE.is_close(t_out, 0.5)",
-        "line": 410,
+        "line": 464,
         "passed": true
       }
     ],
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Plane;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 1.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 1.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n\n        /////////////////////////////////////////////\n        // Boolean Queries\n        /////////////////////////////////////////////\n\n        // Whole curve\n        let is_valid = curve.is_valid();\n\n\n        // Check whole nurbsknot vector for\n        // For correct size: order + cv_count - 2\n        // Non-decreasing (can repeat, can't go down)\n        // Valid domain exists\n        let is_valid_nurbsknot_vector = curve.is_valid_nurbsknot_vector();\n\n        // Check if the curve is clamped at start, end, or both\n        let is_clamped_start = curve.is_clamped(0);\n        let is_clamped_end = curve.is_clamped(1);\n        let is_clamped_both = curve.is_clamped(2);\n\n        // Is rational is related to control points having weights\n        // is_rational = false means control points [x, y, z]\n        // is_rational = false means control points [xw, yw, zw]\n        // Rational curves are used to represent:\n        // circles, ellipses, parabolas, hyperbolas exactly\n        let is_rational = curve.is_rational();\n        let closed = curve.is_closed();\n        let periodic = curve.is_periodic();\n        let linear = curve.is_linear(None);\n        let planar = curve.is_planar(None);\n        let arc = curve.is_arc(None);\n        let plane = Plane::xy_plane();\n        let on_plane = curve.is_in_plane(&plane, None);\n        let is_open = curve.is_natural(None);\n        let is_polyline = curve.is_polyline(None);\n        let is_singular = curve.is_singular();\n        let is_duplicate = curve.is_duplicate(&curve, false);\n        let is_continuous = curve.is_continuous(1, curve.domain_middle());\n\n\n        /////////////////////////////////////////////\n        // NurbsKnot Operations\n        /////////////////////////////////////////////\n\n        // Insert nurbsknot into curve\n        // Useful for splitting curves at a parameter\n        // Increase local control without changing shape\n        let mut copy_curve = curve.duplicate();\n        let before_pt = copy_curve.point_at(1.5);\n        copy_curve.insert_nurbsknot(1.5, 1);\n\n        // Useful for controlling curve by cv on lying on it\n        let greville0 = curve.greville_abcissa(0);\n\n        let greville = curve.get_greville_abcissae();\n\n        /////////////////////////////////////////////\n        // Accessors\n        /////////////////////////////////////////////\n        // Memory layout 2-2D, 3-3D\n        let dimension = curve.dimension();\n        // Degree - Polynomial order, 1=linear, 2=quadratic, 3=cubic\n        let degree = curve.degree();\n        // Is rational is related to control points having weights\n        // is_rational = false means control points [x, y, z]\n        // is_rational = false means control points [xw, yw, zw]\n        // Rational curves are used to represent:\n        // Order = degree + 1, control points + order = nurbsknots\n        let order = curve.order();\n        // Number of control vertices\n        let cv_count = curve.cv_count();\n        // Number of floats per 1 control vertex\n        let cv_size = curve.cv_size();\n        // The nurbsknots are a list of (degree+control_points-1) numbers\n        let nurbsknot_count = curve.nurbsknot_count();\n        // Span = a nurbsknot interval where a single polynomial segment is evaluated\n        // NurbsKnot vector: [0, 0, 0 ↑, 1 ↑, 2 ↑, 3, 3, 3]  (cubic, 5 CVs)\n        let span_count = curve.span_count();\n        /////////////////////////////////////////////////////\n        // Control Vertex Access\n        //  m_cv = [x0, y0, z0, (w0), x1, y1, z1, (w1), ...]\n        //          └─── CV 0 ───┘    └─── CV 1 ───┘\n        /////////////////////////////////////////////////////\n\n        // Get pointer to control vertex\n        // Each CV occupies m_cv_stride doubles:\n        // (3 for non-rational, 4 for rational)\n        // cv(index) returns pointer to m_cv[index * m_cv_stride]\n        let p = curve.cv(1).unwrap();\n\n        // Returns the control vertex as Point object\n        let cv_point = curve.get_cv(1).unwrap();\n\n        // Raw homogeneous coords\n        let (x, y, z, w) = curve.get_cv_4d(1).unwrap();\n\n        // Use for regular points on curve, Polyline, B-Spline\n        curve.set_cv(2, &Point::new(2.0, 0.0, 0.5));\n\n        // Use for rational curvers like circles, ellipses\n        curve.set_cv_4d(2, 2.0, 0.0, 0.5, 0.707);\n        let (x, y, z, w) = curve.get_cv_4d(2).unwrap();\n\n        // Get weight of a control vertex (1.0 if non-rational)\n        let weight = curve.weight(2);\n\n        // Set the weight of a control vertex\n        curve.set_weight(2, 0.5);\n\n        /////////////////////////////////////////////////////\n        // NurbsKnot Access\n        /////////////////////////////////////////////////////\n\n        // Get nurbsknot value at index\n        let nurbsknot3 = curve.nurbsknot(3).unwrap();\n\n        // Set nurbsknot value at index\n        // ATTENTION you can brake increasing rule\n        let end_nurbsknot = curve.nurbsknot(4).unwrap();\n        curve.set_nurbsknot(4, end_nurbsknot);\n\n        // Count repeated nurbsknots at index [0, 0, 1, 1, 2]\n        let m0 = curve.nurbsknot_multiplicity(0);  // 2 (two 0's)\n        let m1 = curve.nurbsknot_multiplicity(1);  // 2 (still counting the 0's)\n        let m2 = curve.nurbsknot_multiplicity(2);  // 1 (single 0.5)\n        let m3 = curve.nurbsknot_multiplicity(3);  // 2 (single 1's)\n        let m4 = curve.nurbsknot_multiplicity(4);  // 2 (single 2)\n\n        // Superflous nurbsknots are used for extension of clamped curves\n        let superfluous_nurbsknot = curve.superfluous_nurbsknot(1);\n\n        // Direct memory access to nurbsknot values, fast, read-only\n        // Vector return is slower and makes a copy\n        let nurbsknots = curve.nurbsknot_array();\n        let k0 = nurbsknots[0];\n        let nurbsknot_vector = curve.get_nurbsknots();\n\n        // Control vertex array access\n        let cvs = curve.cv_array();\n        let cx0 = cvs[0];\n\n        /////////////////////////////////////////////////////\n        // Domain & Parameterization - HERE\n        /////////////////////////////////////////////////////\n\n        // get start and end of the curve interval\n        let (start, end) = curve.domain();\n\n        // Get start, middle and end values of the interval\n        let start = curve.domain_start();\n        let middle = curve.domain_middle();\n        let end = curve.domain_end();\n\n        // Change curve domain\n        curve.set_domain(0.0, 1.0);\n\n        // Span of distict nurbsknot intervals\n        let intervals = curve.get_span_vector();\n\n        /////////////////////////////////////////////////////\n        // Geometric checks\n        /////////////////////////////////////////////////////\n\n        let (found, t_out) = curve.get_next_discontinuity(2, curve.domain_start(), curve.domain_end());",
     "failures": [],
     "group": "NurbsCurve",
-    "line": 172,
+    "line": 226,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 1.024
+    "time_ms": 0.515
   },
   {
     "checks": [
       {
         "code_line": "TOLERANCE.is_point_close(&curve_reversed.point_at_start(),\n&curve.point_at_end())",
-        "line": 607,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_point_close(&curve.get_cv(0).unwrap(),\n&Point::new(0.0, 0.0, 0.0))",
-        "line": 611,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_point_close(&curve.get_cv(1).unwrap(),\n&Point::new(2.0, 1.0, 0.0))",
-        "line": 612,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_point_close(&curve.get_cv(2).unwrap(),\n&Point::new(0.0, 2.0, 0.0))",
-        "line": 613,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_point_close(&curve.get_cv(3).unwrap(),\n&Point::new(2.0, 3.0, 0.0))",
-        "line": 614,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_point_close(&curve.get_cv(4).unwrap(),\n&Point::new(0.0, 4.0, 0.0))",
-        "line": 615,
-        "passed": true
-      },
-      {
-        "code_line": "ct.length(None) < curve.length(None)",
-        "line": 622,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_point_close(&curve.point_at(split_t), &curve_left.point_at_end())",
-        "line": 627,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_point_close(&curve.point_at(split_t),\n&curve_right.point_at_start())",
-        "line": 628,
-        "passed": true
-      },
-      {
-        "code_line": "curve_extended.length(None) > curve.length(None)",
-        "line": 633,
-        "passed": true
-      },
-      {
-        "code_line": "curve_rational.length(None) != original_length",
-        "line": 640,
-        "passed": true
-      },
-      {
-        "code_line": "curve_rational.length(None) == original_length",
-        "line": 643,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(nurbsknots[0], nurbsknots[1])",
-        "line": 660,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(nurbsknots[nurbsknots.len() - 2],\nnurbsknots[nurbsknots.len() - 1])",
         "line": 661,
         "passed": true
       },
       {
-        "code_line": "curve.degree() != raised.degree()",
+        "code_line": "TOLERANCE.is_point_close(&curve.get_cv(0).unwrap(),\n&Point::new(0.0, 0.0, 0.0))",
+        "line": 665,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&curve.get_cv(1).unwrap(),\n&Point::new(2.0, 1.0, 0.0))",
         "line": 666,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&curve.point_at_middle(), &raised.point_at_middle())",
+        "code_line": "TOLERANCE.is_point_close(&curve.get_cv(2).unwrap(),\n&Point::new(0.0, 2.0, 0.0))",
         "line": 667,
         "passed": true
       },
       {
+        "code_line": "TOLERANCE.is_point_close(&curve.get_cv(3).unwrap(),\n&Point::new(2.0, 3.0, 0.0))",
+        "line": 668,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&curve.get_cv(4).unwrap(),\n&Point::new(0.0, 4.0, 0.0))",
+        "line": 669,
+        "passed": true
+      },
+      {
+        "code_line": "ct.length(None) < curve.length(None)",
+        "line": 676,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&curve.point_at(split_t), &curve_left.point_at_end())",
+        "line": 681,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&curve.point_at(split_t),\n&curve_right.point_at_start())",
+        "line": 682,
+        "passed": true
+      },
+      {
+        "code_line": "curve_extended.length(None) > curve.length(None)",
+        "line": 687,
+        "passed": true
+      },
+      {
+        "code_line": "curve_rational.length(None) != original_length",
+        "line": 694,
+        "passed": true
+      },
+      {
+        "code_line": "curve_rational.length(None) == original_length",
+        "line": 697,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(nurbsknots[0], nurbsknots[1])",
+        "line": 714,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(nurbsknots[nurbsknots.len() - 2],\nnurbsknots[nurbsknots.len() - 1])",
+        "line": 715,
+        "passed": true
+      },
+      {
+        "code_line": "curve.degree() != raised.degree()",
+        "line": 720,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&curve.point_at_middle(), &raised.point_at_middle())",
+        "line": 721,
+        "passed": true
+      },
+      {
         "code_line": "TOLERANCE.is_point_close(&c.point_at_start(), &expected_start)",
-        "line": 679,
+        "line": 733,
         "passed": true
       }
     ],
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 2.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n\n        let mut curve = NurbsCurve::create(false, 2, &points);\n\n        // Reverse the curve\n        let mut curve_reversed = curve.duplicate();\n        curve_reversed.reverse();\n\n        // Swap coordinates axes\n        curve.swap_coordinates(0, 1);\n\n        // Trim curve at domain parameter\n        let mut ct = curve.duplicate();\n        let a = ct.domain_start() + (ct.domain_end() - ct.domain_start()) / 3.0;\n        let b = ct.domain_start() + 2.0 * (ct.domain_end() - ct.domain_start()) / 3.0;\n        ct.trim(a, b);\n\n        // Split curve at domain middle\n        let split_t = curve.domain_middle();\n        let (curve_left, curve_right) = curve.split(split_t);\n\n        // Extend curve smoothly at both ends\n        let mut curve_extended = curve.duplicate();\n        curve_extended.extend(curve.domain_start() - 0.5, curve.domain_end() + 0.5);\n\n        // Enable curve weights - Make rational or non-rational\n        let mut curve_rational = curve.duplicate();\n        let original_length = curve.length(None);\n        curve_rational.make_rational();\n        curve_rational.set_weight(2, 10.0);\n\n        curve_rational.make_non_rational(true);\n\n        // Clamp ends - create unclamped curve manually\n        let points_open = points.clone();\n        let mut curve_open = NurbsCurve::new(3, false, 3, 5);  // dim=3, non-rational, order=3 (deg 2), 5 CVs\n\n        for i in 0..5 {\n            curve_open.set_cv(i, &points_open[i]);\n        }\n\n        for i in 0..curve_open.nurbsknot_count() {\n            curve_open.set_nurbsknot(i, i as f64 * 1.0);\n        }\n\n        // Now clamp, making 2 nurbsknots at the ends the same\n        curve_open.clamp_end(2);\n        let nurbsknots = curve_open.get_nurbsknots();\n\n        // Increase degree without change the shape\n        let mut raised = curve.duplicate();\n        raised.increase_degree(3);\n\n        // Change closed curve seam\n        let closed_pts = vec![\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(-1.0, 0.0, 0.0),\n            Point::new(0.0, -1.0, 0.0),\n        ];\n        let mut c = NurbsCurve::create(true, 2, &closed_pts);\n        let expected_start = c.point_at(c.domain_middle());\n        c.change_closed_curve_seam(c.domain_middle());",
     "failures": [],
     "group": "NurbsCurve",
-    "line": 589,
+    "line": 643,
     "passed": true,
     "test_name": "Modifications",
-    "time_ms": 29.784
+    "time_ms": 20.437
   },
   {
     "checks": [
       {
         "code_line": "loaded_json == curve",
-        "line": 763,
+        "line": 817,
         "passed": true
       },
       {
         "code_line": "loaded_json_string == curve",
-        "line": 764,
+        "line": 818,
         "passed": true
       },
       {
         "code_line": "loaded_from_file == curve",
-        "line": 765,
+        "line": 819,
         "passed": true
       }
     ],
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use std::path::PathBuf;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 2.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n        let curve = NurbsCurve::create(false, 2, &points);\n\n        //   jsondump()      │ String       │ to JSON string (internal use)\n        //   jsonload(s)     │ String       │ from JSON string (internal use)\n        //   file_json_dumps()    │ String       │ to JSON string\n        //   file_json_loads(s)   │ String       │ from JSON string\n        //   file_json_dump(path) │ file         │ write to file\n        //   file_json_load(path) │ file         │ read from file\n\n        // JSON object\n        let json = curve.jsondump().unwrap();\n        let loaded_json = NurbsCurve::jsonload(&json).unwrap();\n\n        // String\n        let json_string = curve.file_json_dumps();\n        let loaded_json_string = NurbsCurve::file_json_loads(&json_string);\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbscurve.json\");\n        curve.file_json_dump(filename.to_str().unwrap());\n        let loaded_from_file = NurbsCurve::file_json_load(filename.to_str().unwrap());\n",
     "failures": [],
     "group": "NurbsCurve",
-    "line": 728,
+    "line": 782,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 16.898
+    "time_ms": 17.253
   },
   {
     "checks": [
       {
         "code_line": "loaded_proto_string == curve",
-        "line": 799,
+        "line": 853,
         "passed": true
       },
       {
         "code_line": "loaded == curve",
-        "line": 800,
+        "line": 854,
         "passed": true
       }
     ],
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use std::path::PathBuf;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 2.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n        let curve = NurbsCurve::create(false, 2, &points);\n\n        //   pb_dumps()      │ bytes        │ to protobuf bytes\n        //   pb_loads(b)     │ bytes        │ from protobuf bytes\n        //   pb_dump(path)   │ file         │ write to file\n        //   pb_load(path)   │ file         │ read from file\n\n        // String\n        let proto_string = curve.pb_dumps();\n        let loaded_proto_string = NurbsCurve::pb_loads(&proto_string).unwrap();\n\n        // File\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let filename = src_dir.join(\"serialization\").join(\"test_nurbscurve.bin\");\n        curve.pb_dump(filename.to_str().unwrap());\n        let loaded = NurbsCurve::pb_load(filename.to_str().unwrap());\n",
     "failures": [],
     "group": "NurbsCurve",
-    "line": 770,
+    "line": 824,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 15.997
+    "time_ms": 15.378
   },
   {
     "checks": [
       {
         "code_line": "curve1.xform.is_identity() == false",
-        "line": 701,
+        "line": 755,
         "passed": true
       },
       {
         "code_line": "curve1.cv(0).unwrap()[2] == 1.0",
-        "line": 702,
+        "line": 756,
         "passed": true
       },
       {
         "code_line": "curve2.xform.is_identity() == true",
-        "line": 708,
+        "line": 762,
         "passed": true
       },
       {
         "code_line": "curve2.cv(0).unwrap()[2] == 1.0",
-        "line": 709,
+        "line": 763,
         "passed": true
       },
       {
         "code_line": "curve3_transformed.xform.is_identity() == false",
-        "line": 715,
+        "line": 769,
         "passed": true
       },
       {
         "code_line": "curve3_transformed.cv(0).unwrap()[2] == 10.0",
-        "line": 716,
+        "line": 770,
         "passed": true
       },
       {
         "code_line": "curve4_transformed.xform.is_identity() == true",
-        "line": 722,
+        "line": 776,
         "passed": true
       },
       {
         "code_line": "curve4_transformed.cv(0).unwrap()[2] == 10.0",
-        "line": 723,
+        "line": 777,
         "passed": true
       }
     ],
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::Xform;\n\n        let points = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 2.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 2.0, 0.0),\n            Point::new(4.0, 0.0, 0.0),\n        ];\n\n        // transform() - Apply stored xform (in-place)\n        let mut curve1 = NurbsCurve::create(false, 2, &points);\n        curve1.xform = Xform::translation(0.0, 0.0, 1.0);\n        curve1.transform(None);\n\n        // transform(xform) - Apply custom xform (in-place)\n        let mut curve2 = NurbsCurve::create(false, 2, &points);\n        let x = Xform::translation(0.0, 0.0, 1.0);\n        curve2.transform(Some(&x));\n\n        // transformed() - Get copy with stored xform applied\n        let mut curve3 = NurbsCurve::create(false, 2, &points);\n        curve3.xform = Xform::translation(0.0, 0.0, 10.0);\n        let curve3_transformed = curve3.transformed(None);\n\n        // transformed(xform) - Get copy with custom xform\n        let curve4 = NurbsCurve::create(false, 2, &points);\n        let x = Xform::translation(0.0, 0.0, 10.0);\n        let curve4_transformed = curve4.transformed(Some(&x));",
     "failures": [],
     "group": "NurbsCurve",
-    "line": 684,
+    "line": 738,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 5.209
+    "time_ms": 2.56
   },
   {
     "checks": [
@@ -638,134 +638,416 @@
         "passed": true
       },
       {
+        "code_line": "co.cv_count() == 7",
+        "line": 86,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&co.get_cv(0).unwrap(), &points[0])",
+        "line": 87,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&co.get_cv(6).unwrap(), &points[4])",
+        "line": 88,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&co.get_cv(1).unwrap(),\n&Point::new(17.3526678158, 24.4472657919, 0.0))",
+        "line": 89,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&co.get_cv(3).unwrap(),\n&Point::new(24.7854378511, 2.1457823679, 0.0))",
+        "line": 90,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&co.get_cv(5).unwrap(),\n&Point::new(39.1865250566, 18.5349257754, 0.0))",
+        "line": 91,
+        "passed": true
+      },
+      {
         "code_line": "cp.is_valid()",
-        "line": 98,
+        "line": 109,
         "passed": true
       },
       {
         "code_line": "cp.degree() == 3",
-        "line": 99,
+        "line": 110,
         "passed": true
       },
       {
         "code_line": "cp.cv_count() == 13",
-        "line": 100,
+        "line": 111,
         "passed": true
       },
       {
         "code_line": "cp.is_closed()",
-        "line": 101,
+        "line": 112,
         "passed": true
       }
     ],
-    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::nurbsknot::CurveNurbsKnotStyle;\n\n        let points = vec![\n            Point::new(14.0, 9.0, 0.0),\n            Point::new(21.0, 22.0, 0.0),\n            Point::new(26.0, 10.0, 0.0),\n            Point::new(35.0, 19.0, 0.0),\n            Point::new(41.0, 13.0, 0.0),\n        ];\n\n        let c = NurbsCurve::create_interpolated(&points, CurveNurbsKnotStyle::Chord);\n\n\n        let (d0, d1) = c.domain();\n\n        // Rhino parity: interior CVs match Rhino CreateInterpolatedCurve (Chord)\n        // bit-for-bit (validated by the OCCT/Rhino harness in validation/).\n\n        // Periodic closed curve\n        let closed_pts = vec![\n            Point::new(4.0, 20.0, 0.0),\n            Point::new(-2.0, 20.0, 0.0),\n            Point::new(-2.0, 25.0, 0.0),\n            Point::new(-3.0, 28.0, 0.0),\n            Point::new(-10.0, 28.0, 0.0),\n            Point::new(-10.0, 21.0, 0.0),\n            Point::new(-13.0, 16.0, 0.0),\n            Point::new(-8.0, 14.0, 0.0),\n            Point::new(-6.0, 11.0, 0.0),\n            Point::new(0.0, 15.0, 0.0),\n        ];\n\n        let cp = NurbsCurve::create_interpolated(&closed_pts, CurveNurbsKnotStyle::ChordPeriodic);\n",
+    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::nurbsknot::CurveNurbsKnotStyle;\n\n        let points = vec![\n            Point::new(14.0, 9.0, 0.0),\n            Point::new(21.0, 22.0, 0.0),\n            Point::new(26.0, 10.0, 0.0),\n            Point::new(35.0, 19.0, 0.0),\n            Point::new(41.0, 13.0, 0.0),\n        ];\n\n        let c = NurbsCurve::create_interpolated(&points, CurveNurbsKnotStyle::Chord);\n\n\n        let (d0, d1) = c.domain();\n\n        // Rhino parity: interior CVs match Rhino CreateInterpolatedCurve (Chord)\n        // bit-for-bit (validated by the OCCT/Rhino harness in validation/).\n\n        // OCCT parity: with CurveInterpStyle::Occt the control points match\n        // OCCT GeomAPI_Interpolate exactly (oracle: validation/compare_interp.py).\n        use crate::nurbsknot::CurveInterpStyle;\n        let co = NurbsCurve::create_interpolated_styled(&points, CurveNurbsKnotStyle::Chord, CurveInterpStyle::Occt);\n\n        // Periodic closed curve\n        let closed_pts = vec![\n            Point::new(4.0, 20.0, 0.0),\n            Point::new(-2.0, 20.0, 0.0),\n            Point::new(-2.0, 25.0, 0.0),\n            Point::new(-3.0, 28.0, 0.0),\n            Point::new(-10.0, 28.0, 0.0),\n            Point::new(-10.0, 21.0, 0.0),\n            Point::new(-13.0, 16.0, 0.0),\n            Point::new(-8.0, 14.0, 0.0),\n            Point::new(-6.0, 11.0, 0.0),\n            Point::new(0.0, 15.0, 0.0),\n        ];\n\n        let cp = NurbsCurve::create_interpolated(&closed_pts, CurveNurbsKnotStyle::ChordPeriodic);\n",
     "failures": [],
     "group": "NurbsCurve",
     "line": 49,
     "passed": true,
     "test_name": "Create Interpolated",
-    "time_ms": 0.113
+    "time_ms": 0.167
   },
   {
     "checks": [
       {
         "code_line": "c.is_valid()",
-        "line": 118,
+        "line": 128,
         "passed": true
       },
       {
         "code_line": "c.degree() == 3",
-        "line": 119,
+        "line": 129,
         "passed": true
       },
       {
-        "code_line": "c.cv_count() == 8",
-        "line": 120,
+        "code_line": "c.cv_count() == 4",
+        "line": 130,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&c.point_at(d0), &pts[0])",
-        "line": 122,
+        "code_line": "!c.is_rational()",
+        "line": 131,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_point_close(&c.point_at(d1), &pts[20])",
-        "line": 123,
-        "passed": true
-      },
-      {
-        "code_line": "cp.is_valid()",
+        "code_line": "(d0 - 0.0).abs() < 1e-12 && (d1 - 1.0).abs() < 1e-12",
         "line": 133,
         "passed": true
       },
       {
-        "code_line": "cp.is_closed()",
+        "code_line": "TOLERANCE.is_point_close(&c.get_cv(0).unwrap(), &Point::new(0.0,0.0,0.0))",
         "line": 134,
         "passed": true
       },
       {
-        "code_line": "cp.cv_count() == 13",
+        "code_line": "TOLERANCE.is_point_close(&c.get_cv(3).unwrap(), &Point::new(10.0,0.0,0.0))",
         "line": 135,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&c.point_at(0.5), &Point::new(4.625, 1.125, 1.125))",
+        "line": 136,
+        "passed": true
+      },
+      {
+        "code_line": "circle.is_valid()",
+        "line": 146,
+        "passed": true
+      },
+      {
+        "code_line": "circle.degree() == 2",
+        "line": 147,
+        "passed": true
+      },
+      {
+        "code_line": "circle.cv_count() == 9",
+        "line": 148,
+        "passed": true
+      },
+      {
+        "code_line": "circle.is_rational()",
+        "line": 149,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&circle.point_at(0.5), &Point::new(0.0,1.0,0.0))",
+        "line": 150,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&circle.point_at(0.125), &Point::new(-w, -w, 0.0))",
+        "line": 151,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "((pp[0]*pp[0] + pp[1]*pp[1]).sqrt() - 1.0).abs() < 1e-9",
+        "line": 154,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        // Mirrors compas_occt OCCNurbsCurve.from_parameters / from_points / from_circle.\n        // Validated bit-for-bit against OCCT (validation/compare_curve_eval.py).\n\n        // from_points: 4 control points, clamped cubic (knots [0,1] mults [4,4]).\n        let p4 = vec![Point::new(0.0,0.0,0.0), Point::new(3.0,6.0,0.0),\n                      Point::new(6.0,-3.0,3.0), Point::new(10.0,0.0,0.0)];\n        let c = NurbsCurve::create_from_parameters(&p4, &[1.0,1.0,1.0,1.0], &[0.0,1.0], &[4,4], 3, false);\n        let (d0, d1) = c.domain();\n\n        // from_circle (radius 1): degree-2 rational, 9 poles, exact unit circle.\n        let w = 0.5 * (2.0_f64).sqrt();\n        let cpts = vec![\n            Point::new(0.0,-1.0,0.0), Point::new(-1.0,-1.0,0.0), Point::new(-1.0,0.0,0.0),\n            Point::new(-1.0,1.0,0.0), Point::new(0.0,1.0,0.0), Point::new(1.0,1.0,0.0),\n            Point::new(1.0,0.0,0.0), Point::new(1.0,-1.0,0.0), Point::new(0.0,-1.0,0.0)];\n        let circle = NurbsCurve::create_from_parameters(\n            &cpts, &[1.0,w,1.0,w,1.0,w,1.0,w,1.0], &[0.0,0.25,0.5,0.75,1.0], &[3,2,2,2,3], 2, false);\n        for k in 0..=16 {\n            let pp = circle.point_at(k as f64 / 16.0);\n        }",
+    "failures": [],
+    "group": "NurbsCurve",
+    "line": 117,
+    "passed": true,
+    "test_name": "Create From Parameters",
+    "time_ms": 0.062
+  },
+  {
+    "checks": [
+      {
+        "code_line": "c.is_valid()",
+        "line": 172,
+        "passed": true
+      },
+      {
+        "code_line": "c.degree() == 3",
+        "line": 173,
+        "passed": true
+      },
+      {
+        "code_line": "c.cv_count() == 8",
+        "line": 174,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&c.point_at(d0), &pts[0])",
+        "line": 176,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&c.point_at(d1), &pts[20])",
+        "line": 177,
+        "passed": true
+      },
+      {
+        "code_line": "cp.is_valid()",
+        "line": 187,
+        "passed": true
+      },
+      {
+        "code_line": "cp.is_closed()",
+        "line": 188,
+        "passed": true
+      },
+      {
+        "code_line": "cp.cv_count() == 13",
+        "line": 189,
         "passed": true
       }
     ],
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n\n        // Open: 21 points on sine wave → fit with 8 CVs\n        let pts: Vec<Point> = (0..=20).map(|i| {\n            let t = i as f64 * 2.0 * PI / 20.0;\n            Point::new(t, 3.0 * t.sin(), 0.0)\n        }).collect();\n\n        let c = NurbsCurve::create_fitted(&pts, 8, 3, false);\n\n        let (d0, d1) = c.domain();\n\n        // Periodic: 24 points on circle → fit with 10 free CVs\n        let cpts: Vec<Point> = (0..24).map(|i| {\n            let a = i as f64 * 2.0 * PI / 24.0;\n            Point::new(a.cos(), a.sin(), 0.0)\n        }).collect();\n\n        let cp = NurbsCurve::create_fitted(&cpts, 10, 3, true);\n",
     "failures": [],
     "group": "NurbsCurve",
-    "line": 106,
+    "line": 160,
     "passed": true,
     "test_name": "Create Fitted",
-    "time_ms": 0.192
+    "time_ms": 0.187
   },
   {
     "checks": [
       {
         "code_line": "joined.len() == 1",
-        "line": 153,
+        "line": 207,
         "passed": true
       },
       {
         "code_line": "joined[0].is_valid()",
-        "line": 154,
+        "line": 208,
         "passed": true
       },
       {
         "code_line": "joined[0].is_closed()",
-        "line": 155,
+        "line": 209,
         "passed": true
       },
       {
         "code_line": "joined[0].degree() == 2",
-        "line": 156,
+        "line": 210,
         "passed": true
       },
       {
         "code_line": "joined[0].cv_count() == 7",
-        "line": 157,
+        "line": 211,
         "passed": true
       },
       {
         "code_line": "separate.len() == 2",
-        "line": 165,
+        "line": 219,
         "passed": true
       },
       {
         "code_line": "separate[0].cv_count() == 3",
-        "line": 166,
+        "line": 220,
         "passed": true
       },
       {
         "code_line": "(separate[0].length(None) - 2.0).abs() < 1e-9",
-        "line": 167,
+        "line": 221,
         "passed": true
       }
     ],
     "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::primitives::Primitives;\n\n        let arc1 = Primitives::arc(&Point::new(-1.0, 0.0, 0.0), &Point::new(0.0, 1.0, 0.0), &Point::new(1.0, 0.0, 0.0));\n        let mut arc2 = Primitives::arc(&Point::new(1.0, 0.0, 0.0), &Point::new(1.5, -1.0, 0.0), &Point::new(1.0, -2.0, 0.0));\n        let pts = vec![Point::new(1.0, -2.0, 0.0), Point::new(-1.0, 0.0, 0.0)];\n        let line = NurbsCurve::create(false, 1, &pts);\n        arc2.reverse();\n\n        let joined = NurbsCurve::join(&[line.duplicate(), arc1.duplicate(), arc2.duplicate()], None);\n\n\n        let l1 = NurbsCurve::create(false, 1, &[Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0)]);\n        let l2 = NurbsCurve::create(false, 1, &[Point::new(1.0, 0.0, 0.0), Point::new(1.0, 1.0, 0.0)]);\n        let l3 = NurbsCurve::create(false, 1, &[Point::new(9.0, 9.0, 0.0), Point::new(8.0, 8.0, 0.0)]);\n\n        let separate = NurbsCurve::join(&[l1, l3, l2], None);\n",
     "failures": [],
     "group": "NurbsCurve",
-    "line": 140,
+    "line": 194,
     "passed": true,
     "test_name": "Join",
-    "time_ms": 0.146
+    "time_ms": 0.136
+  },
+  {
+    "checks": [
+      {
+        "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
+        "line": 870,
+        "passed": true
+      },
+      {
+        "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
+        "line": 870,
+        "passed": true
+      },
+      {
+        "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
+        "line": 870,
+        "passed": true
+      },
+      {
+        "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
+        "line": 870,
+        "passed": true
+      },
+      {
+        "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
+        "line": 870,
+        "passed": true
+      },
+      {
+        "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
+        "line": 870,
+        "passed": true
+      },
+      {
+        "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
+        "line": 870,
+        "passed": true
+      },
+      {
+        "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
+        "line": 870,
+        "passed": true
+      },
+      {
+        "code_line": "(circle.curvature_at(t) - 1.0 / r).abs() < 1e-6",
+        "line": 870,
+        "passed": true
+      },
+      {
+        "code_line": "(cp[0] - 2.0).abs() < 1e-5 && cp[1].abs() < 1e-5 && cp[2].abs() < 1e-5",
+        "line": 874,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&pc, &Point::new(0.5808155659, 0.0, 0.9672315271))",
+        "line": 883,
+        "passed": true
+      },
+      {
+        "code_line": "(u - 0.4757682937).abs() < 1e-6 && (v - 0.3366914716).abs() < 1e-6",
+        "line": 894,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&pa,\n&Point::new(4.389607399, 1.285537564, 1.067964425))",
+        "line": 896,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&pb,\n&Point::new(4.552264625, 1.380381100, 0.676740741))",
+        "line": 897,
+        "passed": true
+      },
+      {
+        "code_line": "line.curvature_at(line.domain_middle()) < 1e-9",
+        "line": 907,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::NurbsCurve;\n        use crate::Point;\n        use crate::primitives::Primitives;\n\n        // A circle of radius R is an exact rational NURBS with constant curvature 1/R.\n        let r = 2.0;\n        let circle = Primitives::circle(0.0, 0.0, 0.0, r);\n        let (t0, t1) = circle.domain();\n        for i in 0..=8 {\n            let t = t0 + (t1 - t0) * (i as f64) / 8.0;\n        }\n        // Closest point: an outside point projects radially onto the circle.\n        let cp = circle.closest_point(&Point::new(5.0, 0.0, 0.0));\n\n        // Project onto a 3D interpolated curve (curve_closest_point.py). Reference from\n        // OCCT GeomAPI_ProjectPointOnCurve (validation/compare_curve_ops.py).\n        use crate::nurbsknot::{CurveNurbsKnotStyle, CurveInterpStyle};\n        let ipts = vec![Point::new(0.0,0.0,0.0), Point::new(3.0,0.0,2.0),\n                        Point::new(6.0,0.0,-3.0), Point::new(8.0,0.0,0.0)];\n        let ic = NurbsCurve::create_interpolated_styled(&ipts, CurveNurbsKnotStyle::Chord, CurveInterpStyle::Occt);\n        let pc = ic.closest_point(&Point::new(2.0, -1.0, 0.0));\n\n        // Curve-curve closest (curve_closest_parameters_curve.py). Reference from\n        // OCCT GeomAPI_ExtremaCurveCurve (u=0.475768, v=0.336691).\n        let c0 = NurbsCurve::create_from_parameters(\n            &[Point::new(0.0,0.0,0.0),Point::new(3.0,6.0,0.0),Point::new(6.0,-3.0,3.0),Point::new(10.0,0.0,0.0)],\n            &[1.0,1.0,1.0,1.0], &[0.0,1.0], &[4,4], 3, false);\n        let c1 = NurbsCurve::create_from_parameters(\n            &[Point::new(6.0,-3.0,0.0),Point::new(3.0,1.0,0.0),Point::new(6.0,6.0,3.0),Point::new(3.0,12.0,0.0)],\n            &[1.0,1.0,1.0,1.0], &[0.0,1.0], &[4,4], 3, false);\n        let (u, v) = c0.closest_parameters_curve(&c1);\n        let (pa, pb) = c0.closest_points_curve(&c1);\n\n        // A straight line has zero curvature.\n        let line_pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(3.0, 0.0, 0.0),\n        ];\n        let line = NurbsCurve::create(false, 1, &line_pts);",
+    "failures": [],
+    "group": "NurbsCurve",
+    "line": 859,
+    "passed": true,
+    "test_name": "Curvature",
+    "time_ms": 1.082
   }
 ]
