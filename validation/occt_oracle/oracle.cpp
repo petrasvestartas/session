@@ -76,6 +76,12 @@
 #include <gp_Dir.hxx>
 #include <gp_Trsf.hxx>
 #include <gp_Ax1.hxx>
+#include <BRepBuilderAPI_MakeShell.hxx>
+#include <BRepBuilderAPI_MakeSolid.hxx>
+#include <ShapeFix_Solid.hxx>
+#include <TopoDS_Shell.hxx>
+#include <TColStd_Array1OfReal.hxx>
+#include <TColStd_Array1OfInteger.hxx>
 #include <TColgp_HArray1OfPnt.hxx>
 #include <TColgp_Array1OfPnt.hxx>
 #include <TColStd_Array1OfReal.hxx>
@@ -206,6 +212,56 @@ static TopoDS_Shape build_solid(const std::string& kind, const std::vector<doubl
     return TopoDS_Shape();
 }
 
+// SHAPE nurbs <rat> <deg_u> <deg_v> <ncu> <ncv>
+//   (ncu+deg_u-1) u-knots, then (ncv+deg_v-1) v-knots  (ON convention: cv+order-2),
+//   then ncu*ncv CV lines "x y z w" (euclidean position + weight, u-major).
+// Builds the session kernel's freeform surface VERBATIM as a Geom_BSplineSurface, then a
+// closed solid (MakeShell + MakeSolid + ShapeFix) -- the reference for freeform booleans
+// that no primitive spec can express.
+static TopoDS_Shape build_nurbs_solid(std::istream& in) {
+    int rat, du, dv, ncu, ncv;
+    in >> rat >> du >> dv >> ncu >> ncv;
+    int nku = ncu + du - 1, nkv = ncv + dv - 1;
+    std::vector<double> ku(nku), kv(nkv);
+    for (auto& k : ku) in >> k;
+    for (auto& k : kv) in >> k;
+    TColgp_Array2OfPnt poles(1, ncu, 1, ncv);
+    TColStd_Array2OfReal weights(1, ncu, 1, ncv);
+    for (int i = 1; i <= ncu; ++i)
+        for (int j = 1; j <= ncv; ++j) {
+            double x, y, z, w; in >> x >> y >> z >> w;
+            poles(i, j) = gp_Pnt(x, y, z);
+            weights(i, j) = w;
+        }
+    // ON knots (cv+order-2, clamped end multiplicity = degree) -> full clamped vector
+    // (duplicate first/last) -> OCCT distinct knots + multiplicities.
+    auto to_occ = [](const std::vector<double>& on, std::vector<double>& dk, std::vector<int>& dm) {
+        std::vector<double> full;
+        full.push_back(on.front());
+        full.insert(full.end(), on.begin(), on.end());
+        full.push_back(on.back());
+        for (double k : full) {
+            if (dk.empty() || k - dk.back() > 1e-12) { dk.push_back(k); dm.push_back(1); }
+            else dm.back()++;
+        }
+    };
+    std::vector<double> uk, vk; std::vector<int> um, vm;
+    to_occ(ku, uk, um); to_occ(kv, vk, vm);
+    TColStd_Array1OfReal UK(1, (int)uk.size()), VK(1, (int)vk.size());
+    TColStd_Array1OfInteger UM(1, (int)um.size()), VM(1, (int)vm.size());
+    for (int i = 0; i < (int)uk.size(); ++i) { UK(i+1) = uk[i]; UM(i+1) = um[i]; }
+    for (int i = 0; i < (int)vk.size(); ++i) { VK(i+1) = vk[i]; VM(i+1) = vm[i]; }
+    try {
+        Handle(Geom_BSplineSurface) surf = new Geom_BSplineSurface(
+            poles, weights, UK, VK, UM, VM, du, dv, Standard_False, Standard_False);
+        TopoDS_Shell shell = BRepBuilderAPI_MakeShell(surf).Shell();
+        TopoDS_Solid solid = BRepBuilderAPI_MakeSolid(shell).Solid();
+        ShapeFix_Solid fix(solid);
+        fix.Perform();
+        return fix.Solid();
+    } catch (...) { return TopoDS_Shape(); }
+}
+
 static void solid_props(std::ostream& out, const TopoDS_Shape& s) {
     // Adaptive Gauss with Eps=1e-9: the default fixed-order overload integrates OCCT's own
     // APPROXIMATED section pcurves and is only ~2e-6 accurate on curved-section solids (box x
@@ -232,7 +288,7 @@ static TopoDS_Shape read_solid_shape(std::istream& in) {
     else if (kind == "sphere") { p.resize(1); in >> p[0]; }
     else if (kind == "cone") { p.resize(2); in >> p[0] >> p[1]; }
     else if (kind == "torus") { p.resize(2); in >> p[0] >> p[1]; }
-    TopoDS_Shape shp = build_solid(kind, p);
+    TopoDS_Shape shp = (kind == "nurbs") ? build_nurbs_solid(in) : build_solid(kind, p);
     std::string xfkw; Spec sp; sp.hasXf = true;
     in >> xfkw >> sp.tx >> sp.ty >> sp.tz >> sp.ax >> sp.ay >> sp.az >> sp.deg;  // XF ...
     if (!shp.IsNull() && (sp.tx || sp.ty || sp.tz || sp.deg)) {
@@ -664,7 +720,7 @@ int main(int argc, char** argv) {
             else if (kind == "sphere") { p.resize(1); in >> p[0]; }
             else if (kind == "cone") { p.resize(2); in >> p[0] >> p[1]; }
             else if (kind == "torus") { p.resize(2); in >> p[0] >> p[1]; }
-            shp = build_solid(kind, p);
+            shp = (kind == "nurbs") ? build_nurbs_solid(in) : build_solid(kind, p);
             std::string xfkw; Spec sp; sp.hasXf = true;
             in >> xfkw >> sp.tx >> sp.ty >> sp.tz >> sp.ax >> sp.ay >> sp.az >> sp.deg;  // XF ...
             if (!shp.IsNull() && (sp.tx || sp.ty || sp.tz || sp.deg)) {
