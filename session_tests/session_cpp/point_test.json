@@ -3,7 +3,7 @@
     "group": "Point",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.034,
+    "time_ms": 0.032,
     "line": 14,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n        // uncomment #include \"color.h\"\n\n        // Constructor\n        Point p(1.0, 2.0, 3.0);\n\n        // Setters\n        p[0] = 10.0;\n        p[1] = 20.0;\n        p[2] = 30.0;\n\n        // Getters\n        double x = p[0];\n        double y = p[1];\n        double z = p[2];\n\n        // Minimal and Full String Representation\n        std::string pstr = p.str();\n        std::string prepr = p.repr();\n\n        // Copy (duplicate everything but guid())\n        Point pcopy = p;\n        Point pother(1.0, 2.0, 3.0);\n\n        // No-copy operators\n        Point pmult = p;\n        pmult *= 2.0;\n        Point pdiv = p;\n        pdiv /= 2.0;\n        Point padd = p;\n        padd += Vector(1.0, 1.0, 1.0);\n        Point psub = p;\n        psub -= Vector(1.0, 1.0, 1.0);\n\n        // Copy operators\n        Point result_mul = p * 2.0;\n        Point result_div = p / 2.0;\n        Point result_add = p + Vector(1.0, 1.0, 1.0);\n        Point diff_point = p - Vector(1.0, 1.0, 1.0);\n\n        // Static sum and sub methods\n        Point p1(1.0, 2.0, 3.0);\n        Point p2(4.0, 5.0, 6.0);\n        Point psum = Point::sum(p1, p2);\n        Point pdif = Point::sub(p2, p1);",
     "checks": [
@@ -124,7 +124,7 @@
     "group": "Point",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 86,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"xform.h\"\n\n        Point p(1.0, 2.0, 3.0);\n        p.xform = Xform::translation(1.0, 2.0, 3.0);\n        Point p_transformed = p.transformed(); // Make a copy\n        p.transform(); // After the call, \"xform\" is reset",
     "checks": [
@@ -150,7 +150,7 @@
     "group": "Point",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 12.386,
+    "time_ms": 16.999,
     "line": 100,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(1.0f, 0.5f, 0.25f, 1.0f);\n\n        //   jsondump()      │ ordered_json │ to JSON object (internal use)\n        //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n        //   file_json_dumps()    │ std::string  │ to JSON string\n        //   file_json_loads(s)   │ std::string  │ from JSON string\n        //   file_json_dump(path) │ file         │ write to file\n        //   file_json_load(path) │ file         │ read from file\n\n        std::string filename = \"serialization/test_point.json\";\n        p.file_json_dump(filename);\n        Point loaded = Point::file_json_load(filename);\n",
     "checks": [
@@ -206,7 +206,7 @@
     "group": "Point",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 15.371,
+    "time_ms": 16.946,
     "line": 132,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(1.0f, 0.5f, 0.25f, 1.0f);\n\n        std::string filename = \"serialization/test_point.bin\";\n        p.pb_dump(filename);\n        Point loaded = Point::pb_load(filename);",
     "checks": [
@@ -283,7 +283,7 @@
     "group": "Point",
     "test_name": "Mid Point",
     "passed": true,
-    "time_ms": 0.034,
+    "time_ms": 0.039,
     "line": 171,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        Point mid = Point::mid_point(p0, p1);",
     "checks": [
@@ -299,7 +299,7 @@
     "group": "Point",
     "test_name": "Distance",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 181,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        double d = Point::distance(p0, p1);",
     "checks": [
@@ -331,7 +331,7 @@
     "group": "Point",
     "test_name": "Area",
     "passed": true,
-    "time_ms": 0.017,
+    "time_ms": 0.004,
     "line": 201,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 0.0);\n        Point p2(2.0, 2.0, 0.0);\n        Point p3(0.0, 2.0, 0.0);\n        double area = Point::area({p0, p1, p2, p3});",
     "checks": [
@@ -347,7 +347,7 @@
     "group": "Point",
     "test_name": "Centroid Quad",
     "passed": true,
-    "time_ms": 0.016,
+    "time_ms": 0.02,
     "line": 213,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 1.0);\n        Point p2(2.0, 2.0, 2.0);\n        Point p3(0.0, 2.0, 1.0);\n        Point centroid = Point::centroid_quad({p0, p1, p2, p3});",
     "checks": [
@@ -373,7 +373,7 @@
     "group": "Point",
     "test_name": "Centroid",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 227,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 0.0, 0.0);\n        Point p1(2.0, 0.0, 0.0);\n        Point p2(2.0, 2.0, 0.0);\n        Point p3(0.0, 2.0, 0.0);\n        Point centroid = Point::centroid({p0, p1, p2, p3});",
     "checks": [
@@ -399,7 +399,7 @@
     "group": "Point",
     "test_name": "Dihedral Angle Deg",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 241,
     "code": "        // uncomment #include \"point.h\"\n\n        // Edge from origin to (1,0,0); r at (0,1,0); s at (0,0,1).\n        // Both half-planes share the X edge; angle between (X x Y) and (X x Z)\n        // is 90 degrees.\n        Point p(0.0, 0.0, 0.0);\n        Point q(1.0, 0.0, 0.0);\n        Point r(0.0, 1.0, 0.0);\n        Point s(0.0, 0.0, 1.0);\n        double angle = Point::dihedral_angle_deg(p, q, r, s);",
     "checks": [
