@@ -3,7 +3,7 @@
     "group": "SpatialAABBTree",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.024,
+    "time_ms": 0.021,
     "line": 14,
     "code": "    // uncomment #include \"aabb.h\"\n    // uncomment #include \"closest.h\"\n    // SpatialAABBTree: O(n log n) build, O(log n) cull — prune candidates before exact test\n    std::vector<AABB> boxes = {\n        AABB(0.0, 0.0, 0.0, 0.5, 0.5, 0.5),\n        AABB(5.0, 0.0, 0.0, 0.5, 0.5, 0.5),\n        AABB(10.0, 0.0, 0.0, 0.5, 0.5, 0.5),\n    };\n    auto pairs = Closest::boxes_closest(boxes, 0.0);\n\n\n    std::vector<AABB> boxes_near = {\n        AABB(0.0, 0.0, 0.0, 0.5, 0.5, 0.5),\n        AABB(1.0, 0.0, 0.0, 0.5, 0.5, 0.5),\n    };\n    auto pairs_near = Closest::boxes_closest(boxes_near, 0.0);",
     "checks": [
@@ -50,7 +50,7 @@
     "group": "SpatialAABBTree",
     "test_name": "Build Single",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 46,
     "code": "    // uncomment #include \"spatial_aabbtree.h\"\n    AABB aabb = {0.0, 0.0, 0.0, 1.0, 1.0, 1.0};\n    SpatialAABBTree tree;\n    tree.build(&aabb, 1);",
     "checks": [
@@ -92,7 +92,7 @@
     "group": "SpatialAABBTree",
     "test_name": "Node Count",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.024,
     "line": 70,
     "code": "    // uncomment #include \"spatial_aabbtree.h\"\n    std::vector<AABB> aabbs;\n    for (int i = 0; i < 100; i++) {\n        aabbs.push_back({static_cast<double>(i), 0.0, 0.0, 0.5, 0.5, 0.5});\n    }\n    SpatialAABBTree tree;\n    tree.build(aabbs.data(), aabbs.size());",
     "checks": [
@@ -108,7 +108,7 @@
     "group": "SpatialAABBTree",
     "test_name": "Mesh Point Aabb",
     "passed": true,
-    "time_ms": 1.662,
+    "time_ms": 1.323,
     "line": 82,
     "code": "    // uncomment #include \"closest.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"primitives.h\"\n    Mesh m = Primitives::cube(2.0);\n\n    auto [cp1, fk1, d1] = Closest::mesh_point_aabb(m, Point(0.0, 0.0, 2.0));\n\n\n    auto [cp2, fk2, d2] = Closest::mesh_point_aabb(m, Point(1.0, 1.0, 1.0));",
     "checks": [
@@ -134,7 +134,7 @@
     "group": "SpatialAABBTree",
     "test_name": "Mesh Point Aabb Matches Bvh",
     "passed": true,
-    "time_ms": 1.209,
+    "time_ms": 1.285,
     "line": 98,
     "code": "    // uncomment #include \"closest.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"primitives.h\"\n    Mesh m = Primitives::cube(2.0);\n    Point tp(0.3, 0.7, 1.5);\n\n    auto [cp_bvh, fk_bvh, d_bvh] = Closest::mesh_point(m, tp);\n    auto [cp_aabb, fk_aabb, d_aabb] = Closest::mesh_point_aabb(m, tp);",
     "checks": [
@@ -165,7 +165,7 @@
     "group": "SpatialAABBTree",
     "test_name": "Query Aabb",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 115,
     "code": "    // uncomment #include \"spatial_aabbtree.h\"\n    std::vector<AABB> aabbs = {\n        {0.0, 0.0, 0.0, 0.5, 0.5, 0.5},\n        {5.0, 0.0, 0.0, 0.5, 0.5, 0.5},\n        {10.0, 0.0, 0.0, 0.5, 0.5, 0.5},\n    };\n    SpatialAABBTree tree;\n    tree.build(aabbs.data(), aabbs.size());\n\n    std::vector<int> hits = tree.query_aabb(AABB(0.0, 0.0, 0.0, 1.0, 1.0, 1.0));\n\n\n    std::vector<int> none = tree.query_aabb(AABB(20.0, 0.0, 0.0, 0.5, 0.5, 0.5));\n\n\n    std::vector<int> all = tree.query_aabb(AABB(5.0, 0.0, 0.0, 10.0, 1.0, 1.0));",
     "checks": [

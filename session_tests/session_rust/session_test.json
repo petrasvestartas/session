@@ -23,7 +23,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.024
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 18,
     "passed": true,
     "test_name": "Add Point",
-    "time_ms": 0.053
+    "time_ms": 0.051
   },
   {
     "checks": [
@@ -70,7 +70,7 @@
     "line": 32,
     "passed": true,
     "test_name": "Add Line",
-    "time_ms": 0.035
+    "time_ms": 0.085
   },
   {
     "checks": [
@@ -91,7 +91,7 @@
     "line": 45,
     "passed": true,
     "test_name": "Add Plane",
-    "time_ms": 0.059
+    "time_ms": 0.036
   },
   {
     "checks": [
@@ -112,7 +112,7 @@
     "line": 77,
     "passed": true,
     "test_name": "Add Polyline",
-    "time_ms": 0.075
+    "time_ms": 0.036
   },
   {
     "checks": [
@@ -133,7 +133,7 @@
     "line": 90,
     "passed": true,
     "test_name": "Add Pointcloud",
-    "time_ms": 0.05
+    "time_ms": 0.028
   },
   {
     "checks": [
@@ -154,7 +154,7 @@
     "line": 103,
     "passed": true,
     "test_name": "Add Mesh",
-    "time_ms": 0.097
+    "time_ms": 0.05
   },
   {
     "checks": [
@@ -180,7 +180,7 @@
     "line": 134,
     "passed": true,
     "test_name": "Add Element",
-    "time_ms": 0.205
+    "time_ms": 0.102
   },
   {
     "checks": [
@@ -196,7 +196,7 @@
     "line": 150,
     "passed": true,
     "test_name": "Add Group",
-    "time_ms": 0.01
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -212,7 +212,7 @@
     "line": 160,
     "passed": true,
     "test_name": "Add Edge",
-    "time_ms": 0.055
+    "time_ms": 0.043
   },
   {
     "checks": [
@@ -228,7 +228,7 @@
     "line": 176,
     "passed": true,
     "test_name": "Add Hierarchy",
-    "time_ms": 0.077
+    "time_ms": 0.04
   },
   {
     "checks": [
@@ -249,7 +249,7 @@
     "line": 194,
     "passed": true,
     "test_name": "Get Children",
-    "time_ms": 0.054
+    "time_ms": 0.042
   },
   {
     "checks": [
@@ -265,7 +265,7 @@
     "line": 215,
     "passed": true,
     "test_name": "Add Relationship",
-    "time_ms": 0.045
+    "time_ms": 0.036
   },
   {
     "checks": [
@@ -286,7 +286,7 @@
     "line": 231,
     "passed": true,
     "test_name": "Get Neighbours",
-    "time_ms": 0.045
+    "time_ms": 0.034
   },
   {
     "checks": [
@@ -302,7 +302,7 @@
     "line": 292,
     "passed": true,
     "test_name": "Get Object",
-    "time_ms": 0.022
+    "time_ms": 0.019
   },
   {
     "checks": [
@@ -323,7 +323,7 @@
     "line": 305,
     "passed": true,
     "test_name": "Remove Object",
-    "time_ms": 0.033
+    "time_ms": 0.023
   },
   {
     "checks": [
@@ -339,7 +339,7 @@
     "line": 319,
     "passed": true,
     "test_name": "Get Geometry",
-    "time_ms": 0.086
+    "time_ms": 0.045
   },
   {
     "checks": [
@@ -360,7 +360,7 @@
     "line": 332,
     "passed": true,
     "test_name": "Compute Face To Face",
-    "time_ms": 0.799
+    "time_ms": 0.567
   },
   {
     "checks": [
@@ -386,7 +386,7 @@
     "line": 350,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 26.688
+    "time_ms": 16.378
   },
   {
     "checks": [
@@ -407,7 +407,7 @@
     "line": 379,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 18.491
+    "time_ms": 15.614
   },
   {
     "checks": [
@@ -423,44 +423,38 @@
     "line": 400,
     "passed": true,
     "test_name": "Tree Transformation Hierarchy",
-    "time_ms": 0.779
+    "time_ms": 0.242
   },
   {
     "checks": [
       {
-        "code_line": "hits.len() >= 1",
-        "line": 287,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::{Session, Mesh, Point, Vector};\n        let mut session = Session::default();\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(-1.0, -1.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, -1.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        mesh.add_face(vec![v0, v1, v2], None);\n        session.add_mesh(mesh, None);\n        let hits = session.ray_cast(&Point::new(0.0, 0.0, 2.0), &Vector::new(0.0, 0.0, -1.0), 1e-3);\n",
-    "failures": [],
-    "group": "Session",
-    "line": 276,
-    "passed": true,
-    "test_name": "Ray Cast",
-    "time_ms": 0.232
-  },
-  {
-    "checks": [
-      {
-        "code_line": "session.objects.bboxes.len() == 1",
-        "line": 71,
+        "code_line": "session.objects.components.len() == 1",
+        "line": 481,
         "passed": true
       },
       {
-        "code_line": "session.lookup.contains_key(&guid)",
-        "line": 72,
+        "code_line": "session.graph.has_node(&guid)",
+        "line": 482,
+        "passed": true
+      },
+      {
+        "code_line": "session.objects.components[0].type_name == \"FloorBuilder\"",
+        "line": 483,
+        "passed": true
+      },
+      {
+        "code_line": "session.objects.components[0].extra[\"size\"] == serde_json::json!(3000)",
+        "line": 484,
         "passed": true
       }
     ],
-    "code": "        use crate::{Session, OBB, Point, Vector};\n        let mut session = Session::default();\n        let obb = OBB::new(\n            Point::new(0.0, 0.0, 0.0),\n            Vector::new(1.0, 0.0, 0.0),\n            Vector::new(0.0, 1.0, 0.0),\n            Vector::new(0.0, 0.0, 1.0),\n            Vector::new(1.0, 1.0, 1.0),\n        );\n        let guid = obb.guid().to_string();\n        session.add_obb(obb);\n",
+    "code": "        // add_component stores a custom domain object in session.objects.components\n        // and registers it in the graph under its guid.\n        // The lookup is NOT in the geometry lookup (components are not geometry)\n        // but they ARE in the tree and graph.\n        use crate::{Session, Component};\n\n        let mut session = Session::default();\n\n        let mut extra = std::collections::HashMap::new();\n        extra.insert(\"size\".to_string(),   serde_json::json!(3000));\n        extra.insert(\"height\".to_string(), serde_json::json!(650));\n\n        let guid = uuid::Uuid::new_v4().to_string();\n        let c = Component {\n            type_name: \"FloorBuilder\".to_string(),\n            guid: guid.clone(),\n            name: \"floor_builder\".to_string(),\n            extra,\n        };\n\n        session.add_component(c, None);\n",
     "failures": [],
     "group": "Session",
-    "line": 58,
+    "line": 458,
     "passed": true,
-    "test_name": "Add OBB",
-    "time_ms": 0.04
+    "test_name": "Add Component",
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -496,7 +490,23 @@
     "line": 489,
     "passed": true,
     "test_name": "Component Json Roundtrip",
-    "time_ms": 16.324
+    "time_ms": 16.686
+  },
+  {
+    "checks": [
+      {
+        "code_line": "hits.len() >= 1",
+        "line": 287,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{Session, Mesh, Point, Vector};\n        let mut session = Session::default();\n        let mut mesh = Mesh::new();\n        let v0 = mesh.add_vertex(Point::new(-1.0, -1.0, 0.0), None);\n        let v1 = mesh.add_vertex(Point::new(1.0, -1.0, 0.0), None);\n        let v2 = mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        mesh.add_face(vec![v0, v1, v2], None);\n        session.add_mesh(mesh, None);\n        let hits = session.ray_cast(&Point::new(0.0, 0.0, 2.0), &Vector::new(0.0, 0.0, -1.0), 1e-3);\n",
+    "failures": [],
+    "group": "Session",
+    "line": 276,
+    "passed": true,
+    "test_name": "Ray Cast",
+    "time_ms": 0.067
   },
   {
     "checks": [
@@ -512,7 +522,7 @@
     "line": 250,
     "passed": true,
     "test_name": "Get Collisions",
-    "time_ms": 0.174
+    "time_ms": 0.052
   },
   {
     "checks": [
@@ -533,37 +543,27 @@
     "line": 120,
     "passed": true,
     "test_name": "Add Brep",
-    "time_ms": 0.343
+    "time_ms": 0.144
   },
   {
     "checks": [
       {
-        "code_line": "session.objects.components.len() == 1",
-        "line": 481,
+        "code_line": "session.objects.bboxes.len() == 1",
+        "line": 71,
         "passed": true
       },
       {
-        "code_line": "session.graph.has_node(&guid)",
-        "line": 482,
-        "passed": true
-      },
-      {
-        "code_line": "session.objects.components[0].type_name == \"FloorBuilder\"",
-        "line": 483,
-        "passed": true
-      },
-      {
-        "code_line": "session.objects.components[0].extra[\"size\"] == serde_json::json!(3000)",
-        "line": 484,
+        "code_line": "session.lookup.contains_key(&guid)",
+        "line": 72,
         "passed": true
       }
     ],
-    "code": "        // add_component stores a custom domain object in session.objects.components\n        // and registers it in the graph under its guid.\n        // The lookup is NOT in the geometry lookup (components are not geometry)\n        // but they ARE in the tree and graph.\n        use crate::{Session, Component};\n\n        let mut session = Session::default();\n\n        let mut extra = std::collections::HashMap::new();\n        extra.insert(\"size\".to_string(),   serde_json::json!(3000));\n        extra.insert(\"height\".to_string(), serde_json::json!(650));\n\n        let guid = uuid::Uuid::new_v4().to_string();\n        let c = Component {\n            type_name: \"FloorBuilder\".to_string(),\n            guid: guid.clone(),\n            name: \"floor_builder\".to_string(),\n            extra,\n        };\n\n        session.add_component(c, None);\n",
+    "code": "        use crate::{Session, OBB, Point, Vector};\n        let mut session = Session::default();\n        let obb = OBB::new(\n            Point::new(0.0, 0.0, 0.0),\n            Vector::new(1.0, 0.0, 0.0),\n            Vector::new(0.0, 1.0, 0.0),\n            Vector::new(0.0, 0.0, 1.0),\n            Vector::new(1.0, 1.0, 1.0),\n        );\n        let guid = obb.guid().to_string();\n        session.add_obb(obb);\n",
     "failures": [],
     "group": "Session",
-    "line": 458,
+    "line": 58,
     "passed": true,
-    "test_name": "Add Component",
-    "time_ms": 0.019
+    "test_name": "Add OBB",
+    "time_ms": 0.014
   }
 ]

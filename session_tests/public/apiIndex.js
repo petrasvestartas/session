@@ -4957,6 +4957,7 @@ window.API_INDEX = {
         "BRep.boolean",
         "BRep.brep_bbox_diag",
         "BRep.cand",
+        "BRep.check_trim_orientation",
         "BRep.co_refine_coincident_edges",
         "BRep.constructor",
         "BRep.cross",
@@ -5082,6 +5083,7 @@ window.API_INDEX = {
         "BRep.pip",
         "BRep.point_at",
         "BRep.rec",
+        "BRep.sameparameter_planar_pcurves",
         "BRep.str",
         "BRep.vertex_count"
       ]
@@ -6548,6 +6550,7 @@ window.API_INDEX = {
         "BRep.append_face",
         "BRep.boolean",
         "BRep.cand",
+        "BRep.check_trim_orientation",
         "BRep.classify",
         "BRep.co_refine_coincident_edges",
         "BRep.contains_point",
@@ -7915,6 +7918,7 @@ window.API_INDEX = {
         "BRep._split",
         "BRep.boolean",
         "BRep.cand",
+        "BRep.check_trim_orientation",
         "BRep.co_refine_coincident_edges",
         "BRep.create_box",
         "BRep.create_cone",
@@ -23142,6 +23146,7 @@ window.API_INDEX = {
         "Mesh.__ne__",
         "Mesh.__repr__",
         "Mesh.__str__",
+        "Mesh.compute_vertex_normals",
         "Mesh.constructor",
         "Mesh.duplicate",
         "Mesh.edge_attribute",
@@ -24429,6 +24434,7 @@ window.API_INDEX = {
         "Mesh.centroid",
         "Mesh.clear",
         "Mesh.clear_triangle_bvh",
+        "Mesh.compute_vertex_normals",
         "Mesh.create_box",
         "Mesh.duplicate",
         "Mesh.edge_attribute",
@@ -24574,6 +24580,7 @@ window.API_INDEX = {
         "Mesh.clear_facecolors",
         "Mesh.clear_linecolors",
         "Mesh.clear_pointcolors",
+        "Mesh.compute_vertex_normals",
         "Mesh.create_box",
         "Mesh.create_dodecahedron",
         "Mesh.dihedral_angle",
@@ -26144,7 +26151,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_face(\n        vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]",
-          "code": "def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.\n        fkey : int, optional\n            Optional face key. If None, auto-generated.\n\n        Returns\n        -------\n        int or None\n            The face key, or None if the face is invalid.\n        \"\"\"\n        if len(vertices) < 3:\n            return None\n\n        if not all(v in self.vertex for v in vertices):\n            return None\n\n        if len(set(vertices)) != len(vertices):\n            return None\n\n        if fkey is None:\n            face_key = self._max_face\n            self._max_face += 1\n        else:\n            face_key = fkey\n            if face_key >= self._max_face:\n                self._max_face = face_key + 1\n\n        self.face[face_key] = vertices.copy()\n        self.triangulation.pop(face_key, None)\n        self._facecolors.append(Color.white())\n        self._triangle_bvh_built = False\n\n        for i in range(len(vertices)):\n            u = vertices[i]\n            v = vertices[(i + 1) % len(vertices)]\n\n            if u not in self.halfedge:\n                self.halfedge[u] = {}\n            if v not in self.halfedge:\n                self.halfedge[v] = {}\n\n            is_new_edge = u not in self.halfedge[v]\n\n            self.halfedge[u][v] = face_key\n\n            if is_new_edge:\n                self.halfedge[v][u] = None\n                self._linecolors.append(Color.white())\n                self._widths.append(1.0)\n\n        return face_key\n\n    def remove_face(self, fkey: int) -> None:\n        if fkey not in self.face:\n            return\n        vertices = self.face[fkey]\n        n = len(vertices)\n        for i in range(n):\n            u = vertices[i]\n            v = vertices[(i + 1) % n]\n            if v in self.halfedge.get(u, {}):\n                self.halfedge[u][v] = None\n                if self.halfedge.get(v, {}).get(u) is None:\n                    del self.halfedge[u][v]\n                    del self.halfedge[v][u]\n        del self.face[fkey]\n        self.triangulation.pop(fkey, None)\n        self.facedata.pop(fkey, None)\n        self.face_holes.pop(fkey, None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n        n_faces = len(self.face)\n        if len(self._facecolors) > n_faces:",
+          "code": "def add_face(\n        self, vertices: List[int], fkey: Optional[int] = None\n    ) -> Optional[int]:\n\n        \"\"\"Add a face to the mesh.\n\n        Parameters\n        ----------\n        vertices : list of int\n            The vertex keys forming the face.\n        fkey : int, optional\n            Optional face key. If None, auto-generated.\n\n        Returns\n        -------\n        int or None\n            The face key, or None if the face is invalid.\n        \"\"\"\n        if len(vertices) < 3:\n            return None\n\n        if not all(v in self.vertex for v in vertices):\n            return None\n\n        if len(set(vertices)) != len(vertices):\n            return None\n\n        if fkey is None:\n            face_key = self._max_face\n            self._max_face += 1\n        else:\n            face_key = fkey\n            if face_key >= self._max_face:\n                self._max_face = face_key + 1\n\n        self.face[face_key] = vertices.copy()\n        self.triangulation.pop(face_key, None)\n        self._facecolors.append(Color.white())\n        self._triangle_bvh_built = False\n\n        for i in range(len(vertices)):\n            u = vertices[i]\n            v = vertices[(i + 1) % len(vertices)]\n\n            if u not in self.halfedge:\n                self.halfedge[u] = {}\n            if v not in self.halfedge:\n                self.halfedge[v] = {}\n\n            is_new_edge = u not in self.halfedge[v]\n\n            self.halfedge[u][v] = face_key\n\n            if is_new_edge:\n                self.halfedge[v][u] = None\n                self._linecolors.append(Color.black())\n                self._widths.append(1.0)\n\n        return face_key\n\n    def remove_face(self, fkey: int) -> None:\n        if fkey not in self.face:\n            return\n        vertices = self.face[fkey]\n        n = len(vertices)\n        for i in range(n):\n            u = vertices[i]\n            v = vertices[(i + 1) % n]\n            if v in self.halfedge.get(u, {}):\n                self.halfedge[u][v] = None\n                if self.halfedge.get(v, {}).get(u) is None:\n                    del self.halfedge[u][v]\n                    del self.halfedge[v][u]\n        del self.face[fkey]\n        self.triangulation.pop(fkey, None)\n        self.facedata.pop(fkey, None)\n        self.face_holes.pop(fkey, None)\n        n_edges = self.number_of_edges()\n        if len(self._linecolors) > n_edges:\n            self._linecolors = self._linecolors[:n_edges]\n            self._widths = self._widths[:n_edges]\n        n_faces = len(self.face)\n        if len(self._facecolors) > n_faces:",
           "file": "mesh.py"
         },
         "cpp": {
@@ -26154,7 +26161,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "add_face(vertices: Vec<usize>, fkey: Option<usize>) -> Option<usize>",
-          "code": "pub fn add_face(&mut self, vertices: Vec<usize>, fkey: Option<usize>) -> Option<usize> {\n        if vertices.len() < 3 {\n            return None;\n        }\n\n        if !vertices.iter().all(|v| self.vertex.contains_key(v)) {\n            return None;\n        }\n\n        let mut unique_vertices = HashSet::new();\n        for vertex in &vertices {\n            if !unique_vertices.insert(*vertex) {\n                return None;\n            }\n        }\n\n        let face_key = match fkey {\n            Some(k) => {\n                if k >= self.max_face {\n                    self.max_face = k + 1;\n                }\n                k\n            }\n            None => {\n                let k = self.max_face;\n                self.max_face += 1;\n                k\n            }\n        };\n\n        self.face.insert(face_key, vertices.clone());\n        self.triangulation.remove(&face_key);\n        self.facecolors.push(Color::white());\n        self.invalidate_triangle_bvh();\n\n        for i in 0..vertices.len() {\n            let u = vertices[i];\n            let v = vertices[(i + 1) % vertices.len()];\n\n            self.halfedge.entry(u).or_default();\n            self.halfedge.entry(v).or_default();\n\n            let is_new_edge = !self.halfedge.get(&v).unwrap().contains_key(&u);\n\n            self.halfedge.get_mut(&u).unwrap().insert(v, Some(face_key));\n\n            if is_new_edge {\n                self.halfedge.get_mut(&v).unwrap().insert(u, None);\n                self.linecolors.push(Color::white());\n                self.widths.push(1.0);\n            }\n        }\n\n        Some(face_key)\n    }",
+          "code": "pub fn add_face(&mut self, vertices: Vec<usize>, fkey: Option<usize>) -> Option<usize> {\n        if vertices.len() < 3 {\n            return None;\n        }\n\n        if !vertices.iter().all(|v| self.vertex.contains_key(v)) {\n            return None;\n        }\n\n        let mut unique_vertices = HashSet::new();\n        for vertex in &vertices {\n            if !unique_vertices.insert(*vertex) {\n                return None;\n            }\n        }\n\n        let face_key = match fkey {\n            Some(k) => {\n                if k >= self.max_face {\n                    self.max_face = k + 1;\n                }\n                k\n            }\n            None => {\n                let k = self.max_face;\n                self.max_face += 1;\n                k\n            }\n        };\n\n        self.face.insert(face_key, vertices.clone());\n        self.triangulation.remove(&face_key);\n        self.facecolors.push(Color::white());\n        self.invalidate_triangle_bvh();\n\n        for i in 0..vertices.len() {\n            let u = vertices[i];\n            let v = vertices[(i + 1) % vertices.len()];\n\n            self.halfedge.entry(u).or_default();\n            self.halfedge.entry(v).or_default();\n\n            let is_new_edge = !self.halfedge.get(&v).unwrap().contains_key(&u);\n\n            self.halfedge.get_mut(&u).unwrap().insert(v, Some(face_key));\n\n            if is_new_edge {\n                self.halfedge.get_mut(&v).unwrap().insert(u, None);\n                self.linecolors.push(Color::black());\n                self.widths.push(1.0);\n            }\n        }\n\n        Some(face_key)\n    }",
           "file": "mesh.rs"
         }
       },
@@ -26768,6 +26775,7 @@ window.API_INDEX = {
       "related": [
         "Mesh._zero_t",
         "Mesh.align_cost",
+        "Mesh.compute_vertex_normals",
         "Mesh.edge_edges",
         "Mesh.edge_faces",
         "Mesh.edge_line",
@@ -28262,6 +28270,7 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.centroid",
+        "Mesh.compute_vertex_normals",
         "Mesh.cross_q",
         "Mesh.dihedral_angle",
         "Mesh.dihedral_angles",
@@ -28643,6 +28652,7 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.area",
+        "Mesh.compute_vertex_normals",
         "Mesh.face_area",
         "Mesh.face_normal",
         "Mesh.face_normals",
@@ -28695,7 +28705,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "vertex_normals() -> Dict[int, Vector]",
-          "code": "def vertex_normals(self) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        acc = {}\n        for fk, vkeys in self.face.items():\n            n = len(vkeys)\n            if n < 3:\n                continue\n            pts = []\n            ok = True\n            for vk in vkeys:\n                vd = self.vertex.get(vk)\n                if vd is None:\n                    ok = False\n                    break\n                pts.append((vd.x, vd.y, vd.z))\n            if not ok:\n                continue\n            ex = pts[1][0]-pts[0][0]; ey = pts[1][1]-pts[0][1]; ez = pts[1][2]-pts[0][2]\n            fx = pts[2][0]-pts[0][0]; fy = pts[2][1]-pts[0][1]; fz = pts[2][2]-pts[0][2]\n            cnx = ey*fz-ez*fy; cny = ez*fx-ex*fz; cnz = ex*fy-ey*fx\n            length = math.sqrt(cnx*cnx + cny*cny + cnz*cnz)\n            if length < Tolerance.ZERO_TOLERANCE:\n                continue\n            ux = cnx/length; uy = cny/length; uz = cnz/length\n            area = 0.0\n            if weighting == NormalWeighting.AREA:\n                for i in range(1, n-1):\n                    ax = pts[i][0]-pts[0][0]; ay = pts[i][1]-pts[0][1]; az = pts[i][2]-pts[0][2]\n                    bx = pts[i+1][0]-pts[0][0]; by = pts[i+1][1]-pts[0][1]; bz = pts[i+1][2]-pts[0][2]\n                    cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n                    area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n            for i in range(n):\n                if weighting == NormalWeighting.UNIFORM:\n                    weight = 1.0\n                elif weighting == NormalWeighting.AREA:\n                    weight = area\n                else:\n                    prev = (i + n - 1) % n; nxt = (i + 1) % n\n                    ax = pts[prev][0]-pts[i][0]; ay = pts[prev][1]-pts[i][1]; az = pts[prev][2]-pts[i][2]\n                    bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n                    a_len = math.sqrt(ax*ax + ay*ay + az*az)\n                    b_len = math.sqrt(bx*bx + by*by + bz*bz)\n                    if a_len < Tolerance.ZERO_TOLERANCE or b_len < Tolerance.ZERO_TOLERANCE:\n                        continue\n                    cos_a = max(-1.0, min(1.0, (ax*bx + ay*by + az*bz) / (a_len * b_len)))\n                    weight = math.acos(cos_a)\n                vk = vkeys[i]\n                if vk not in acc:\n                    acc[vk] = [0.0, 0.0, 0.0]\n                acc[vk][0] += ux * weight\n                acc[vk][1] += uy * weight\n                acc[vk][2] += uz * weight\n        normals = {}\n        for vk, v in acc.items():\n            length = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n            if length > Tolerance.ZERO_TOLERANCE:\n                normals[vk] = Vector(v[0]/length, v[1]/length, v[2]/length)\n        return normals\n\n    def volume(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                total += (x0 * (vd1.y * vd2.z - vd1.z * vd2.y)\n                        + y0 * (vd1.z * vd2.x - vd1.x * vd2.z)\n                        + z0 * (vd1.x * vd2.y - vd1.y * vd2.x))",
+          "code": "def vertex_normals(self) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all vertices (area-weighted).\"\"\"\n        return self.vertex_normals_weighted(NormalWeighting.AREA)\n\n    def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        acc = {}\n        for fk, vkeys in self.face.items():\n            n = len(vkeys)\n            if n < 3:\n                continue\n            pts = []\n            ok = True\n            for vk in vkeys:\n                vd = self.vertex.get(vk)\n                if vd is None:\n                    ok = False\n                    break\n                pts.append((vd.x, vd.y, vd.z))\n            if not ok:\n                continue\n            ex = pts[1][0]-pts[0][0]; ey = pts[1][1]-pts[0][1]; ez = pts[1][2]-pts[0][2]\n            fx = pts[2][0]-pts[0][0]; fy = pts[2][1]-pts[0][1]; fz = pts[2][2]-pts[0][2]\n            cnx = ey*fz-ez*fy; cny = ez*fx-ex*fz; cnz = ex*fy-ey*fx\n            length = math.sqrt(cnx*cnx + cny*cny + cnz*cnz)\n            if length < Tolerance.ZERO_TOLERANCE:\n                continue\n            ux = cnx/length; uy = cny/length; uz = cnz/length\n            area = 0.0\n            if weighting == NormalWeighting.AREA:\n                for i in range(1, n-1):\n                    ax = pts[i][0]-pts[0][0]; ay = pts[i][1]-pts[0][1]; az = pts[i][2]-pts[0][2]\n                    bx = pts[i+1][0]-pts[0][0]; by = pts[i+1][1]-pts[0][1]; bz = pts[i+1][2]-pts[0][2]\n                    cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n                    area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n            for i in range(n):\n                if weighting == NormalWeighting.UNIFORM:\n                    weight = 1.0\n                elif weighting == NormalWeighting.AREA:\n                    weight = area\n                else:\n                    prev = (i + n - 1) % n; nxt = (i + 1) % n\n                    ax = pts[prev][0]-pts[i][0]; ay = pts[prev][1]-pts[i][1]; az = pts[prev][2]-pts[i][2]\n                    bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n                    a_len = math.sqrt(ax*ax + ay*ay + az*az)\n                    b_len = math.sqrt(bx*bx + by*by + bz*bz)\n                    if a_len < Tolerance.ZERO_TOLERANCE or b_len < Tolerance.ZERO_TOLERANCE:\n                        continue\n                    cos_a = max(-1.0, min(1.0, (ax*bx + ay*by + az*bz) / (a_len * b_len)))\n                    weight = math.acos(cos_a)\n                vk = vkeys[i]\n                if vk not in acc:\n                    acc[vk] = [0.0, 0.0, 0.0]\n                acc[vk][0] += ux * weight\n                acc[vk][1] += uy * weight\n                acc[vk][2] += uz * weight\n        normals = {}\n        for vk, v in acc.items():\n            length = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n            if length > Tolerance.ZERO_TOLERANCE:\n                normals[vk] = Vector(v[0]/length, v[1]/length, v[2]/length)\n        return normals\n\n    def compute_vertex_normals(self):\n        \"\"\"Compute area-weighted vertex normals and store them on each vertex.\"\"\"\n        normals = self.vertex_normals()\n        for key, n in normals.items():\n            self.vertex[key].set_normal(n[0], n[1], n[2])\n\n    def volume(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])",
           "file": "mesh.py"
         },
         "cpp": {
@@ -28711,6 +28721,7 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.area",
+        "Mesh.compute_vertex_normals",
         "Mesh.face_normals",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_normal",
@@ -28725,7 +28736,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "vertex_normals_weighted(weighting: NormalWeighting) -> Dict[int, Vector]",
-          "code": "def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        acc = {}\n        for fk, vkeys in self.face.items():\n            n = len(vkeys)\n            if n < 3:\n                continue\n            pts = []\n            ok = True\n            for vk in vkeys:\n                vd = self.vertex.get(vk)\n                if vd is None:\n                    ok = False\n                    break\n                pts.append((vd.x, vd.y, vd.z))\n            if not ok:\n                continue\n            ex = pts[1][0]-pts[0][0]; ey = pts[1][1]-pts[0][1]; ez = pts[1][2]-pts[0][2]\n            fx = pts[2][0]-pts[0][0]; fy = pts[2][1]-pts[0][1]; fz = pts[2][2]-pts[0][2]\n            cnx = ey*fz-ez*fy; cny = ez*fx-ex*fz; cnz = ex*fy-ey*fx\n            length = math.sqrt(cnx*cnx + cny*cny + cnz*cnz)\n            if length < Tolerance.ZERO_TOLERANCE:\n                continue\n            ux = cnx/length; uy = cny/length; uz = cnz/length\n            area = 0.0\n            if weighting == NormalWeighting.AREA:\n                for i in range(1, n-1):\n                    ax = pts[i][0]-pts[0][0]; ay = pts[i][1]-pts[0][1]; az = pts[i][2]-pts[0][2]\n                    bx = pts[i+1][0]-pts[0][0]; by = pts[i+1][1]-pts[0][1]; bz = pts[i+1][2]-pts[0][2]\n                    cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n                    area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n            for i in range(n):\n                if weighting == NormalWeighting.UNIFORM:\n                    weight = 1.0\n                elif weighting == NormalWeighting.AREA:\n                    weight = area\n                else:\n                    prev = (i + n - 1) % n; nxt = (i + 1) % n\n                    ax = pts[prev][0]-pts[i][0]; ay = pts[prev][1]-pts[i][1]; az = pts[prev][2]-pts[i][2]\n                    bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n                    a_len = math.sqrt(ax*ax + ay*ay + az*az)\n                    b_len = math.sqrt(bx*bx + by*by + bz*bz)\n                    if a_len < Tolerance.ZERO_TOLERANCE or b_len < Tolerance.ZERO_TOLERANCE:\n                        continue\n                    cos_a = max(-1.0, min(1.0, (ax*bx + ay*by + az*bz) / (a_len * b_len)))\n                    weight = math.acos(cos_a)\n                vk = vkeys[i]\n                if vk not in acc:\n                    acc[vk] = [0.0, 0.0, 0.0]\n                acc[vk][0] += ux * weight\n                acc[vk][1] += uy * weight\n                acc[vk][2] += uz * weight\n        normals = {}\n        for vk, v in acc.items():\n            length = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n            if length > Tolerance.ZERO_TOLERANCE:\n                normals[vk] = Vector(v[0]/length, v[1]/length, v[2]/length)\n        return normals\n\n    def volume(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                total += (x0 * (vd1.y * vd2.z - vd1.z * vd2.y)\n                        + y0 * (vd1.z * vd2.x - vd1.x * vd2.z)\n                        + z0 * (vd1.x * vd2.y - vd1.y * vd2.x))\n        return abs(total) / 6.0\n\n    ###########################################################################################\n    # Export",
+          "code": "def vertex_normals_weighted(self, weighting: NormalWeighting) -> Dict[int, Vector]:\n\n        \"\"\"Calculate normals for all vertices with specified weighting.\"\"\"\n        acc = {}\n        for fk, vkeys in self.face.items():\n            n = len(vkeys)\n            if n < 3:\n                continue\n            pts = []\n            ok = True\n            for vk in vkeys:\n                vd = self.vertex.get(vk)\n                if vd is None:\n                    ok = False\n                    break\n                pts.append((vd.x, vd.y, vd.z))\n            if not ok:\n                continue\n            ex = pts[1][0]-pts[0][0]; ey = pts[1][1]-pts[0][1]; ez = pts[1][2]-pts[0][2]\n            fx = pts[2][0]-pts[0][0]; fy = pts[2][1]-pts[0][1]; fz = pts[2][2]-pts[0][2]\n            cnx = ey*fz-ez*fy; cny = ez*fx-ex*fz; cnz = ex*fy-ey*fx\n            length = math.sqrt(cnx*cnx + cny*cny + cnz*cnz)\n            if length < Tolerance.ZERO_TOLERANCE:\n                continue\n            ux = cnx/length; uy = cny/length; uz = cnz/length\n            area = 0.0\n            if weighting == NormalWeighting.AREA:\n                for i in range(1, n-1):\n                    ax = pts[i][0]-pts[0][0]; ay = pts[i][1]-pts[0][1]; az = pts[i][2]-pts[0][2]\n                    bx = pts[i+1][0]-pts[0][0]; by = pts[i+1][1]-pts[0][1]; bz = pts[i+1][2]-pts[0][2]\n                    cx = ay*bz-az*by; cy = az*bx-ax*bz; cz = ax*by-ay*bx\n                    area += math.sqrt(cx*cx + cy*cy + cz*cz) * 0.5\n            for i in range(n):\n                if weighting == NormalWeighting.UNIFORM:\n                    weight = 1.0\n                elif weighting == NormalWeighting.AREA:\n                    weight = area\n                else:\n                    prev = (i + n - 1) % n; nxt = (i + 1) % n\n                    ax = pts[prev][0]-pts[i][0]; ay = pts[prev][1]-pts[i][1]; az = pts[prev][2]-pts[i][2]\n                    bx = pts[nxt][0]-pts[i][0]; by = pts[nxt][1]-pts[i][1]; bz = pts[nxt][2]-pts[i][2]\n                    a_len = math.sqrt(ax*ax + ay*ay + az*az)\n                    b_len = math.sqrt(bx*bx + by*by + bz*bz)\n                    if a_len < Tolerance.ZERO_TOLERANCE or b_len < Tolerance.ZERO_TOLERANCE:\n                        continue\n                    cos_a = max(-1.0, min(1.0, (ax*bx + ay*by + az*bz) / (a_len * b_len)))\n                    weight = math.acos(cos_a)\n                vk = vkeys[i]\n                if vk not in acc:\n                    acc[vk] = [0.0, 0.0, 0.0]\n                acc[vk][0] += ux * weight\n                acc[vk][1] += uy * weight\n                acc[vk][2] += uz * weight\n        normals = {}\n        for vk, v in acc.items():\n            length = math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2])\n            if length > Tolerance.ZERO_TOLERANCE:\n                normals[vk] = Vector(v[0]/length, v[1]/length, v[2]/length)\n        return normals\n\n    def compute_vertex_normals(self):\n        \"\"\"Compute area-weighted vertex normals and store them on each vertex.\"\"\"\n        normals = self.vertex_normals()\n        for key, n in normals.items():\n            self.vertex[key].set_normal(n[0], n[1], n[2])\n\n    def volume(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                total += (x0 * (vd1.y * vd2.z - vd1.z * vd2.y)",
           "file": "mesh.py"
         },
         "cpp": {
@@ -28741,6 +28752,7 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.area",
+        "Mesh.compute_vertex_normals",
         "Mesh.new",
         "Mesh.vertex_angle_in_face",
         "Mesh.vertex_normal",
@@ -28749,6 +28761,35 @@ window.API_INDEX = {
         "Mesh.vertex_point",
         "Mesh.vertices",
         "Mesh.volume"
+      ]
+    },
+    {
+      "name": "Mesh.compute_vertex_normals",
+      "implementations": {
+        "python": {
+          "sig": "compute_vertex_normals()",
+          "code": "def compute_vertex_normals(self):\n\n        \"\"\"Compute area-weighted vertex normals and store them on each vertex.\"\"\"\n        normals = self.vertex_normals()\n        for key, n in normals.items():\n            self.vertex[key].set_normal(n[0], n[1], n[2])\n\n    def volume(self) -> float:\n        total = 0.0\n        for vkeys in self.face.values():\n            if len(vkeys) < 3:\n                continue\n            vd0 = self.vertex.get(vkeys[0])\n            if vd0 is None:\n                continue\n            x0, y0, z0 = vd0.x, vd0.y, vd0.z\n            for i in range(1, len(vkeys) - 1):\n                vd1 = self.vertex.get(vkeys[i])\n                vd2 = self.vertex.get(vkeys[i + 1])\n                if vd1 is None or vd2 is None:\n                    continue\n                total += (x0 * (vd1.y * vd2.z - vd1.z * vd2.y)\n                        + y0 * (vd1.z * vd2.x - vd1.x * vd2.z)\n                        + z0 * (vd1.x * vd2.y - vd1.y * vd2.x))\n        return abs(total) / 6.0\n\n    ###########################################################################################\n    # Export\n    ###########################################################################################\n\n    def vertex_index(self) -> Dict[int, int]:\n        \"\"\"Create a mapping from sparse vertex keys to sequential indices.\n\n        Returns\n        -------\n        dict[int, int]\n            A dictionary mapping vertex_key -> sequential_index (0, 1, 2, ...).\n        \"\"\"\n        # Sort keys to ensure consistent ordering\n        sorted_keys = sorted(self.vertex.keys())\n        return {key: index for index, key in enumerate(sorted_keys)}\n\n    def to_vertices_and_faces(self) -> Tuple[List[Point], List[List[int]]]:\n        \"\"\"Export vertices and faces with sequential 0-based indices.\n\n        Returns\n        -------\n        tuple\n            A tuple of (vertices, faces) where:\n            - vertices: List of Point objects in sequential order\n            - faces: List of face vertex lists using sequential indices\n        \"\"\"\n        vertex_idx = self.vertex_index()\n        vertices = [None] * len(self.vertex)\n\n        for key, vdata in self.vertex.items():\n            idx = vertex_idx[key]\n            vertices[idx] = vdata.position()\n\n        # Sort face keys to ensure consistent ordering\n        sorted_face_keys = sorted(self.face.keys())\n        faces = []\n        for face_key in sorted_face_keys:\n            face_vertices = self.face[face_key]\n            remapped = [vertex_idx[v] for v in face_vertices]\n            faces.append(remapped)\n\n        return vertices, faces\n\n    ###########################################################################################\n    # Transformation\n    ###########################################################################################\n\n    def transform(self, xf=None):\n        xform = xf if xf is not None else self.xform\n        for vdata in self.vertex.values():\n            pos = vdata.position()\n            pos.xform = xform\n            pos.transform()\n            vdata[0] = pos[0]\n            vdata[1] = pos[1]",
+          "file": "mesh.py"
+        },
+        "rust": {
+          "sig": "compute_vertex_normals()",
+          "code": "pub fn compute_vertex_normals(&mut self) {\n        let normals = self.vertex_normals();\n        for (key, n) in &normals {\n            if let Some(v) = self.vertex.get_mut(key) {\n                v.set_normal(n[0], n[1], n[2]);\n            }\n        }\n        self.invalidate_gpu();\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.area",
+        "Mesh.face_vertices",
+        "Mesh.faces",
+        "Mesh.to_vertices_and_faces",
+        "Mesh.transform",
+        "Mesh.vertex_index",
+        "Mesh.vertex_normal",
+        "Mesh.vertex_normals",
+        "Mesh.vertex_normals_weighted",
+        "Mesh.vertices",
+        "Mesh.volume",
+        "Mesh.xform"
       ]
     },
     {
@@ -28771,6 +28812,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Mesh.compute_vertex_normals",
         "Mesh.face_vertices",
         "Mesh.faces",
         "Mesh.to_vertices_and_faces",
@@ -28805,6 +28847,7 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.build_triangle_bvh",
+        "Mesh.compute_vertex_normals",
         "Mesh.face_area",
         "Mesh.face_centroid",
         "Mesh.face_normal",
@@ -28841,6 +28884,7 @@ window.API_INDEX = {
       },
       "related": [
         "Mesh.build_triangle_bvh",
+        "Mesh.compute_vertex_normals",
         "Mesh.ensure_triangle_bvh",
         "Mesh.face_vertices",
         "Mesh.faces",
@@ -28867,13 +28911,14 @@ window.API_INDEX = {
           "file": "mesh.cpp"
         },
         "rust": {
-          "sig": "transform(xf: Option<&Xform>)",
-          "code": "pub fn transform(&mut self, xf: Option<&Xform>) {\n        let xform = match xf {\n            Some(x) => x.clone(),\n            None => self.xform.clone(),\n        };\n        for v in self.vertex.values_mut() {\n            let mut pt = Point::new(v.x, v.y, v.z);\n            pt.xform = xform.clone();\n            pt.transform();\n            v.x = pt[0];\n            v.y = pt[1];\n            v.z = pt[2];\n        }\n        self.invalidate_triangle_bvh();\n    }",
+          "sig": "transform(xf: impl Into<Option<&'a Xform>>)",
+          "code": "pub fn transform<'a>(&mut self, xf: impl Into<Option<&'a Xform>>) {\n        let xform = match xf.into() {\n            Some(x) => x.clone(),\n            None => self.xform.clone(),\n        };\n        for v in self.vertex.values_mut() {\n            let mut pt = Point::new(v.x, v.y, v.z);\n            pt.xform = xform.clone();\n            pt.transform();\n            v.x = pt[0];\n            v.y = pt[1];\n            v.z = pt[2];\n        }\n        self.invalidate_triangle_bvh();\n    }",
           "file": "mesh.rs"
         }
       },
       "related": [
         "Mesh.build_triangle_bvh",
+        "Mesh.compute_vertex_normals",
         "Mesh.faces",
         "Mesh.invalidate_triangle_bvh",
         "Mesh.new",
@@ -28899,8 +28944,8 @@ window.API_INDEX = {
           "file": "mesh.cpp"
         },
         "rust": {
-          "sig": "transformed(xf: Option<&Xform>) -> Self",
-          "code": "pub fn transformed(&self, xf: Option<&Xform>) -> Self {\n        let mut result = self.clone();\n        result.transform(xf);\n        result\n    }",
+          "sig": "transformed(xf: impl Into<Option<&'a Xform>>) -> Self",
+          "code": "pub fn transformed<'a>(&self, xf: impl Into<Option<&'a Xform>>) -> Self {\n        let mut result = self.clone();\n        result.transform(xf.into());\n        result\n    }",
           "file": "mesh.rs"
         }
       },
@@ -34235,7 +34280,7 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "bool trim(double t0, double t1)",
-          "code": "bool NurbsCurve::trim(double t0, double t1) {\n    if (!is_valid() || t0 >= t1) return false;\n\n    auto [d0, d1] = domain();\n    if (t0 < d0 - Tolerance::ZERO_TOLERANCE || t1 > d1 + Tolerance::ZERO_TOLERANCE) return false;\n    t0 = std::max(t0, d0);\n    t1 = std::min(t1, d1);\n    if (std::abs(t0 - d0) < Tolerance::ZERO_TOLERANCE && std::abs(t1 - d1) < Tolerance::ZERO_TOLERANCE)\n        return true;\n\n    int p = degree();\n    bool trim_start = (t0 > d0 + Tolerance::ZERO_TOLERANCE);\n    bool trim_end = (t1 < d1 - Tolerance::ZERO_TOLERANCE);\n\n    // Insert nurbsknots at trim boundaries to multiplicity = degree\n    if (trim_start) {\n        if (!insert_nurbsknot(t0, p)) return false;\n    }",
+          "code": "bool NurbsCurve::trim(double t0, double t1) {\n    if (!is_valid() || t0 >= t1) return false;\n\n    auto [d0, d1] = domain();\n    if (t0 < d0 - Tolerance::ZERO_TOLERANCE || t1 > d1 + Tolerance::ZERO_TOLERANCE) return false;\n    t0 = std::max(t0, d0);\n    t1 = std::min(t1, d1);\n    if (std::abs(t0 - d0) < Tolerance::ZERO_TOLERANCE && std::abs(t1 - d1) < Tolerance::ZERO_TOLERANCE)\n        return true;\n\n    int p = degree();\n    bool trim_start = (t0 > d0 + Tolerance::ZERO_TOLERANCE);\n    bool trim_end = (t1 < d1 - Tolerance::ZERO_TOLERANCE);\n\n    // Snap the trim parameters to an existing nurbsknot within the insertion tolerance:\n    // inserting at an already-present value is a no-op, and the strict span search below\n    // would miss a near-hit (a boundary landing on a polyline vertex nurbsknot).\n    {\n        double stol = (std::abs(d0) + std::abs(d1) + std::abs(d1 - d0)) * std::sqrt(std::numeric_limits<double>::epsilon());\n        for (double k : m_nurbsknot) {\n            if (trim_start && std::abs(k - t0) <= stol && std::abs(k - t0) > 0.0) t0 = k;\n            if (trim_end && std::abs(k - t1) <= stol && std::abs(k - t1) > 0.0) t1 = k;\n        }",
           "file": "nurbscurve.cpp"
         },
         "rust": {
@@ -42010,7 +42055,7 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "void add_hole(const NurbsCurve& curve_3d)",
-          "code": "void NurbsSurfaceTrimmed::add_hole(const NurbsCurve& curve_3d) {\n    auto dom = curve_3d.domain();\n    auto sdom_u = m_surface.domain(0);\n    auto sdom_v = m_surface.domain(1);\n    double range_u = sdom_u.second - sdom_u.first;\n    double range_v = sdom_v.second - sdom_v.first;\n    int n_samples = std::max(curve_3d.cv_count() * 4, 32);\n    std::vector<Point> uv_pts;\n    for (int i = 0; i < n_samples; ++i) {\n        double t = dom.first + (dom.second - dom.first) * i / n_samples;\n        Point pt3d = curve_3d.point_at(t);\n        auto [u, v, dist] = Closest::surface_point(m_surface, pt3d);\n        double nu = (u - sdom_u.first) / range_u;\n        double nv = (v - sdom_v.first) / range_v;\n        uv_pts.push_back(Point(nu, nv, 0.0));\n    }",
+          "code": "void NurbsSurfaceTrimmed::add_hole(const NurbsCurve& curve_3d) {\n    auto dom = curve_3d.domain();\n    auto sdom_u = m_surface.domain(0);\n    auto sdom_v = m_surface.domain(1);\n    double range_u = sdom_u.second - sdom_u.first;\n    double range_v = sdom_v.second - sdom_v.first;\n    int n_samples = std::min(std::max(curve_3d.cv_count() * 4, 32), 2048);\n    std::vector<Point> uv_pts;\n    for (int i = 0; i < n_samples; ++i) {\n        double t = dom.first + (dom.second - dom.first) * i / n_samples;\n        Point pt3d = curve_3d.point_at(t);\n        auto [u, v, dist] = Closest::surface_point(m_surface, pt3d);\n        double nu = (u - sdom_u.first) / range_u;\n        double nv = (v - sdom_v.first) / range_v;\n        uv_pts.push_back(Point(nu, nv, 0.0));\n    }",
           "file": "nurbssurface_trimmed.cpp"
         },
         "rust": {
@@ -74475,6 +74520,16 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "BRepTrimType.check_trim_orientation",
+      "implementations": {
+        "cpp": {
+          "sig": "int check_trim_orientation(bool verbose = false)",
+          "code": "int check_trim_orientation(bool verbose = false) const;",
+          "file": "brep.h"
+        }
+      }
+    },
+    {
       "name": "BRepTrimType.volume",
       "implementations": {
         "cpp": {
@@ -74701,6 +74756,16 @@ window.API_INDEX = {
         "cpp": {
           "sig": "void make_shared_section_edges(const BRep& A, const BRep& B, double tol = 0.0)",
           "code": "void make_shared_section_edges(const BRep& A, const BRep& B, double tol = 0.0);",
+          "file": "brep.h"
+        }
+      }
+    },
+    {
+      "name": "BRepTrimType.sameparameter_planar_pcurves",
+      "implementations": {
+        "cpp": {
+          "sig": "void sameparameter_planar_pcurves()",
+          "code": "void sameparameter_planar_pcurves();",
           "file": "brep.h"
         }
       }
@@ -75045,6 +75110,34 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "BRep.check_trim_orientation",
+      "implementations": {
+        "cpp": {
+          "sig": "int check_trim_orientation(bool verbose)",
+          "code": "int BRep::check_trim_orientation(bool verbose) const {\n    int violations = 0;\n    for (int fi = 0; fi < (int)m_faces.size(); ++fi) {\n        const BRepFace& face = m_faces[fi];\n        if (face.surface_index < 0 || face.surface_index >= (int)m_surfaces.size()) continue;\n        const NurbsSurface& srf = m_surfaces[face.surface_index];\n        auto du = srf.domain(0); auto dv = srf.domain(1);\n        double ru = du.second - du.first, rv = dv.second - dv.first;\n        double tol_uv = 1e-6 * std::max(ru, rv);\n        double jump_uv = 0.1 * std::max(ru, rv);\n        for (int li : face.loop_indices) {\n            if (li < 0 || li >= (int)m_loops.size()) continue;\n            const BRepLoop& loop = m_loops[li];\n            bool have_prev = false, jumpy = false;\n            Point first_pt(0,0,0), prev_pt(0,0,0);\n            double area2 = 0.0;   // 2*signed area, shoelace over trim endpoints + samples\n            Point area_prev(0,0,0); bool area_first = true;\n            int ntrim = 0;\n            for (int ti : loop.trim_indices) {\n                if (ti < 0 || ti >= (int)m_trims.size()) continue;\n                int c2 = m_trims[ti].curve_2d_index;\n                if (c2 < 0 || c2 >= (int)m_curves_2d.size()) continue;\n                const NurbsCurve& pc = m_curves_2d[c2];\n                if (!pc.is_valid()) continue;\n                auto dc = pc.domain();\n                bool rev = m_trims[ti].reversed;\n                Point s = pc.point_at(rev ? dc.second : dc.first);\n                Point e = pc.point_at(rev ? dc.first : dc.second);\n                if (have_prev) {\n                    double gap = std::hypot(s[0]-prev_pt[0], s[1]-prev_pt[1]);\n                    if (gap > jump_uv) jumpy = true;\n                    else if (gap > tol_uv) {\n                        ++violations;\n                        if (verbose) std::fprintf(stderr,\n                            \"[ORIENT] f=%d loop=%d trim=%d chain gap %.3e at uv(%.4f,%.4f)\\n\",\n                            fi, li, ti, gap, s[0], s[1]);\n                    }",
+          "file": "brep.cpp"
+        }
+      },
+      "related": [
+        "BRep.ev",
+        "BRep.is_valid",
+        "BRep.point_at"
+      ]
+    },
+    {
+      "name": "std.atan2",
+      "implementations": {
+        "cpp": {
+          "sig": "return atan2(vector[1], vector[0])",
+          "code": "return std::atan2(vector[1], vector[0]) * static_cast<double>(Tolerance::TO_DEGREES);\n}",
+          "file": "vector.cpp"
+        }
+      },
+      "related": [
+        "std.tan"
+      ]
+    },
+    {
       "name": "BRep.split_with",
       "implementations": {
         "cpp": {
@@ -75063,6 +75156,16 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "std.max",
+      "implementations": {
+        "cpp": {
+          "sig": "return max(max_extent * 2.2, 10.0)",
+          "code": "return std::max(max_extent * 2.2, 10.0);\n}",
+          "file": "spatial_bvh.cpp"
+        }
+      }
+    },
+    {
       "name": "BRep.make_shared_section_edges",
       "implementations": {
         "cpp": {
@@ -75074,6 +75177,19 @@ window.API_INDEX = {
       "related": [
         "BRep.boolean",
         "BRep.cross"
+      ]
+    },
+    {
+      "name": "BRep.sameparameter_planar_pcurves",
+      "implementations": {
+        "cpp": {
+          "sig": "void sameparameter_planar_pcurves()",
+          "code": "void BRep::sameparameter_planar_pcurves() {\n    // OCCT SameParameter-lite. After sew, an A<->B section edge is ONE edge with ONE 3D curve,\n    // but its two trims still integrate their OWN pcurve copies, which differ at the section-fit\n    // tolerance (~2e-4): the volume error is FIRST order in that mismatch (each face's flux\n    // drifts independently; box x tor common failed at 1.8e-6 rel from exactly this). For the\n    // PLANAR side of a mixed planar/curved section edge the fix is exact and cheap: affine-project\n    // the shared 3D curve into the plane's UV -- both faces then read identical boundary geometry.\n    for (auto& E : m_topology_edges) {\n        if ((int)E.trim_indices.size() != 2) continue;\n        int tp = -1, tq = -1, sp = -1, sq = -1;\n        for (int ti : E.trim_indices) {\n            if (ti < 0 || ti >= (int)m_trims.size()) continue;\n            int li = m_trims[ti].loop_index; if (li < 0 || li >= (int)m_loops.size()) continue;\n            int fi = m_loops[li].face_index; if (fi < 0 || fi >= (int)m_faces.size()) continue;\n            int si = m_faces[fi].surface_index; if (si < 0 || si >= (int)m_surfaces.size()) continue;\n            if (tp < 0) { tp = ti; sp = si; }",
+          "file": "brep.cpp"
+        }
+      },
+      "related": [
+        "BRep.volume"
       ]
     },
     {
@@ -75245,16 +75361,6 @@ window.API_INDEX = {
           "sig": "return make_tuple(center, plane, cr[2])",
           "code": "return std::make_tuple(center, plane, cr[2]);\n}",
           "file": "polyline.cpp"
-        }
-      }
-    },
-    {
-      "name": "std.max",
-      "implementations": {
-        "cpp": {
-          "sig": "return max(max_extent * 2.2, 10.0)",
-          "code": "return std::max(max_extent * 2.2, 10.0);\n}",
-          "file": "spatial_bvh.cpp"
         }
       }
     },
@@ -78688,19 +78794,6 @@ window.API_INDEX = {
           "file": "intersection.cpp"
         }
       }
-    },
-    {
-      "name": "std.atan2",
-      "implementations": {
-        "cpp": {
-          "sig": "return atan2(vector[1], vector[0])",
-          "code": "return std::atan2(vector[1], vector[0]) * static_cast<double>(Tolerance::TO_DEGREES);\n}",
-          "file": "vector.cpp"
-        }
-      },
-      "related": [
-        "std.tan"
-      ]
     },
     {
       "name": "Line.constructor",
@@ -106791,10 +106884,10 @@ window.API_INDEX = {
       "title": "Circle + Subdivide into N Points",
       "tags": [
         "points",
-        "n",
-        "into",
         "subdivide",
+        "into",
         "circle",
+        "n",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -106808,11 +106901,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "arc",
         "by",
         "subdivide",
-        "length",
+        "arc",
         "ellipse",
+        "length",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -106843,10 +106936,10 @@ window.API_INDEX = {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
         "points",
+        "polyline",
+        "adaptive",
         "from",
         "open",
-        "adaptive",
-        "polyline",
         "curve",
         "to_polyline_adaptive",
         "create",
@@ -106862,9 +106955,9 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "evaluation",
         "parameter",
         "at",
+        "evaluation",
         "curve",
         "set_domain",
         "point_at",
@@ -106884,8 +106977,8 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "frames",
         "along",
+        "frames",
         "length",
         "curve",
         "divide_by_count",
@@ -106909,8 +107002,8 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "ellipse",
         "frames",
+        "ellipse",
         "perpendicular",
         "divide_by_count",
         "frame_at",
@@ -106933,9 +107026,9 @@ window.API_INDEX = {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
         "surface",
+        "cylinder",
         "point",
         "evaluate",
-        "cylinder",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -106950,11 +107043,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
+        "mesh",
+        "vertices",
+        "faces",
         "from",
         "and",
-        "faces",
-        "vertices",
-        "mesh",
         "add_vertex",
         "add_face",
         "vertex"
@@ -107089,6 +107182,30 @@ window.API_INDEX = {
       ],
       "summary": "RemeshNurbsSurfaceGrid geometry class"
     },
+    "GeometryFileDecoder": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
+    },
+    "CurveNurbsKnotStyle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
+    },
+    "GlobalSessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "GlobalSessionConfig geometry class"
+    },
+    "GeometryFileEncoder": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
+    },
     "NurbsSurfaceTrimmed": {
       "composition": [],
       "factories": [],
@@ -107101,30 +107218,6 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "NurbsSurfaceTrimmed geometry class"
-    },
-    "CurveNurbsKnotStyle": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
-    },
-    "GeometryFileEncoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
-    },
-    "GlobalSessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "GlobalSessionConfig geometry class"
-    },
-    "GeometryFileDecoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
     },
     "TriangulateResult": {
       "composition": [],
@@ -107153,6 +107246,12 @@ window.API_INDEX = {
       ],
       "summary": "SpatialAABBTree geometry class"
     },
+    "ElementSchoring": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
+    },
     "BooleanPolyline": {
       "composition": [],
       "factories": [],
@@ -107170,24 +107269,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "GlobalTolerance geometry class"
-    },
-    "ElementSchoring": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
-    },
-    "SpatialBVHNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "OBB",
-        "Point",
-        "SpatialBVH",
-        "Vector"
-      ],
-      "summary": "A node in the SpatialBVH tree."
     },
     "VIntersectNode": {
       "composition": [],
@@ -107209,6 +107290,24 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_PartitionVars geometry class"
     },
+    "SpatialBVHNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "OBB",
+        "Point",
+        "SpatialBVH",
+        "Vector"
+      ],
+      "summary": "A node in the SpatialBVH tree."
+    },
+    "SessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SessionConfig geometry class"
+    },
     "SpatialKDTree": {
       "composition": [],
       "factories": [],
@@ -107217,12 +107316,6 @@ window.API_INDEX = {
         "_Node"
       ],
       "summary": "KD-tree for point-to-point nearest-neighbor queries."
-    },
-    "SessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SessionConfig geometry class"
     },
     "ElementColumn": {
       "composition": [],
@@ -107236,6 +107329,33 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "ElementColumn geometry class"
+    },
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
+    },
+    "BRepLoopType": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoopType geometry class"
+    },
+    "ElementPlate": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "ElementPlate geometry class"
     },
     "SpatialRTree": {
       "composition": [],
@@ -107266,17 +107386,23 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
+    "VattiScratch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VattiScratch geometry class"
+    },
     "LoftWallFace": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "LoftWallFace geometry class"
     },
-    "BRepLoopType": {
+    "ScanlineHeap": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepLoopType geometry class"
+      "summary": "ScanlineHeap geometry class"
     },
     "Intersection": {
       "composition": [
@@ -107297,21 +107423,6 @@ window.API_INDEX = {
       ],
       "summary": "Intersection geometry class"
     },
-    "ElementPlate": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "ElementPlate geometry class"
-    },
     "BRepTrimType": {
       "composition": [],
       "factories": [],
@@ -107329,23 +107440,24 @@ window.API_INDEX = {
       ],
       "summary": "BRepTrimType geometry class"
     },
-    "ScanlineHeap": {
+    "_Delaunay2D": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "ScanlineHeap geometry class"
+      "summary": "_Delaunay2D geometry class"
     },
-    "VLocalMinima": {
+    "ElementBeam": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "VLocalMinima geometry class"
-    },
-    "VattiScratch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VattiScratch geometry class"
+      "uses": [
+        "Line",
+        "Mesh",
+        "Plane",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "ElementBeam geometry class"
     },
     "LoftAdjPair": {
       "composition": [],
@@ -107361,24 +107473,33 @@ window.API_INDEX = {
       ],
       "summary": "session_cpp geometry class"
     },
-    "ElementBeam": {
+    "SpatialBVH": {
       "composition": [],
-      "factories": [],
+      "factories": [
+        "SpatialBVHNode"
+      ],
       "uses": [
-        "Line",
-        "Mesh",
-        "Plane",
-        "Polyline",
-        "Vector",
+        "AABB",
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
+    },
+    "PointCloud": {
+      "composition": [
+        "Color",
         "Xform"
       ],
-      "summary": "ElementBeam geometry class"
-    },
-    "_Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay2D geometry class"
+      "factories": [
+        "AABB",
+        "OBB"
+      ],
+      "uses": [
+        "Point",
+        "Vector"
+      ],
+      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
     },
     "Delaunay2D": {
       "composition": [],
@@ -107395,6 +107516,38 @@ window.API_INDEX = {
         "Plane"
       ],
       "summary": "A quaternion for 3D rotations (scalar + vector)."
+    },
+    "BRepVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepVertex geometry class"
+    },
+    "ConvexHull": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Point"
+      ],
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+    },
+    "Primitives": {
+      "composition": [
+        "CurveInterpStyle",
+        "CurveNurbsKnotStyle",
+        "NurbsCurve",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsSurface",
+        "Point",
+        "Xform"
+      ],
+      "summary": "Static factory methods for creating NURBS curve primitives."
     },
     "NurbsCurve": {
       "composition": [
@@ -107418,44 +107571,6 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
-    "BRepVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepVertex geometry class"
-    },
-    "ConvexHull": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Point"
-      ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
-    },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "Vertex data containing position and attributes."
-    },
-    "PointCloud": {
-      "composition": [
-        "Color",
-        "Xform"
-      ],
-      "factories": [
-        "AABB",
-        "OBB"
-      ],
-      "uses": [
-        "Point",
-        "Vector"
-      ],
-      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
-    },
     "MeshOffset": {
       "composition": [],
       "factories": [],
@@ -107466,46 +107581,13 @@ window.API_INDEX = {
       ],
       "summary": "MeshOffset geometry class"
     },
-    "Primitives": {
-      "composition": [
-        "CurveInterpStyle",
-        "CurveNurbsKnotStyle",
-        "NurbsCurve",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsSurface",
-        "Point",
-        "Xform"
-      ],
-      "summary": "Static factory methods for creating NURBS curve primitives."
-    },
-    "SpatialBVH": {
-      "composition": [],
-      "factories": [
-        "SpatialBVHNode"
-      ],
-      "uses": [
-        "AABB",
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
-    },
-    "FlatMap64": {
+    "VertexData": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Delaunay2D",
-        "NurbsCurve",
-        "Point",
-        "Vector"
+        "Point"
       ],
-      "summary": "FlatMap64 geometry class"
+      "summary": "Vertex data containing position and attributes."
     },
     "ColorMode": {
       "composition": [],
@@ -107523,11 +107605,34 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
+    "FlatMap64": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Delaunay2D",
+        "NurbsCurve",
+        "Point",
+        "Vector"
+      ],
+      "summary": "FlatMap64 geometry class"
+    },
+    "VHorzJoin": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzJoin geometry class"
+    },
     "LoftPanel": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "LoftPanel geometry class"
+    },
+    "Component": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Component geometry class"
     },
     "Tolerance": {
       "composition": [],
@@ -107545,18 +107650,6 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_Vertex2D geometry class"
     },
-    "Component": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Component geometry class"
-    },
-    "_Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay geometry class"
-    },
     "RemeshCDT": {
       "composition": [],
       "factories": [],
@@ -107566,17 +107659,17 @@ window.API_INDEX = {
       ],
       "summary": "RemeshCDT geometry class"
     },
-    "VHorzJoin": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzJoin geometry class"
-    },
     "_Triangle": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Triangle geometry class"
+    },
+    "_Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay geometry class"
     },
     "Delaunay": {
       "composition": [],
@@ -107586,42 +107679,6 @@ window.API_INDEX = {
         "TriangulateResult"
       ],
       "summary": "Delaunay geometry class"
-    },
-    "BRepLoop": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoop geometry class"
-    },
-    "VHorzSeg": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzSeg geometry class"
-    },
-    "Geometry": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Geometry geometry class"
-    },
-    "BRepTrim": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepTrim geometry class"
-    },
-    "BRepFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepFace geometry class"
-    },
-    "BRepEdge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
     },
     "Polyline": {
       "composition": [
@@ -107647,6 +107704,12 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
+    "BRepFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepFace geometry class"
+    },
     "TreeNode": {
       "composition": [],
       "factories": [],
@@ -107654,6 +107717,77 @@ window.API_INDEX = {
         "Tree"
       ],
       "summary": "A node of a tree data structure."
+    },
+    "Geometry": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Geometry geometry class"
+    },
+    "BRepTrim": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepTrim geometry class"
+    },
+    "BRepEdge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepEdge geometry class"
+    },
+    "BRepLoop": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoop geometry class"
+    },
+    "VHorzSeg": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzSeg geometry class"
+    },
+    "Dataset": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Dataset geometry class"
+    },
+    "VVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VVertex geometry class"
+    },
+    "Element": {
+      "composition": [
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "BRep",
+        "Xform"
+      ],
+      "summary": "Element geometry class"
+    },
+    "Default": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "Default geometry class"
     },
     "Session": {
       "composition": [
@@ -107683,73 +107817,17 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "VVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VVertex geometry class"
-    },
-    "Default": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "Default geometry class"
-    },
-    "Closest": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Static methods for finding closest points between geometry objects."
-    },
-    "_Branch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Branch geometry class"
-    },
-    "Element": {
-      "composition": [
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "BRep",
-        "Xform"
-      ],
-      "summary": "Element geometry class"
-    },
     "VActive": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VActive geometry class"
     },
-    "Dataset": {
+    "_Branch": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Dataset geometry class"
+      "summary": "_Branch geometry class"
     },
     "Objects": {
       "composition": [
@@ -107772,6 +107850,21 @@ window.API_INDEX = {
       ],
       "summary": "A collection of all geometry objects."
     },
+    "Closest": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Static methods for finding closest points between geometry objects."
+    },
     "VOutRec": {
       "composition": [],
       "factories": [],
@@ -107792,12 +107885,6 @@ window.API_INDEX = {
       ],
       "summary": "A 3D vector with visual properties."
     },
-    "VOutPt": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutPt geometry class"
-    },
     "BIVec2": {
       "composition": [],
       "factories": [],
@@ -107816,6 +107903,12 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Matrix geometry class"
     },
+    "VOutPt": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutPt geometry class"
+    },
     "Vertex": {
       "composition": [],
       "factories": [],
@@ -107824,12 +107917,6 @@ window.API_INDEX = {
         "session_cpp"
       ],
       "summary": "A graph vertex with a unique identifier and attribute string."
-    },
-    "_Rect": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Rect geometry class"
     },
     "Point": {
       "composition": [],
@@ -107844,44 +107931,6 @@ window.API_INDEX = {
       ],
       "uses": [],
       "summary": "A 3D point with visual properties."
-    },
-    "Graph": {
-      "composition": [
-        "Edge"
-      ],
-      "factories": [],
-      "uses": [
-        "Vertex"
-      ],
-      "summary": "A graph data structure with string-only vertices and attributes."
-    },
-    "_Node": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Node geometry class"
-    },
-    "Plane": {
-      "composition": [],
-      "factories": [
-        "OBB",
-        "Quaternion"
-      ],
-      "uses": [
-        "Point",
-        "Polyline",
-        "Vector",
-        "session_cpp"
-      ],
-      "summary": "A 3D plane defined by origin and coordinate axes."
-    },
-    "Color": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "An index-based 0.0-1.0 color with RGBA values."
     },
     "Xform": {
       "composition": [
@@ -107898,11 +107947,119 @@ window.API_INDEX = {
       ],
       "summary": "Xform geometry class"
     },
+    "_Node": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Node geometry class"
+    },
     "_Edge": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Edge geometry class"
+    },
+    "Plane": {
+      "composition": [],
+      "factories": [
+        "OBB",
+        "Quaternion"
+      ],
+      "uses": [
+        "Point",
+        "Polyline",
+        "Vector",
+        "session_cpp"
+      ],
+      "summary": "A 3D plane defined by origin and coordinate axes."
+    },
+    "_Rect": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Rect geometry class"
+    },
+    "Color": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "session_cpp"
+      ],
+      "summary": "An index-based 0.0-1.0 color with RGBA values."
+    },
+    "Graph": {
+      "composition": [
+        "Edge"
+      ],
+      "factories": [],
+      "uses": [
+        "Vertex"
+      ],
+      "summary": "A graph data structure with string-only vertices and attributes."
+    },
+    "AABB": {
+      "composition": [],
+      "factories": [
+        "OBB"
+      ],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Axis-aligned bounding box (center + half-size)."
+    },
+    "Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
+    "_P64": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_P64 geometry class"
+    },
+    "Tree": {
+      "composition": [
+        "Color",
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A hierarchical data structure with parent-child relationships."
+    },
+    "BRep": {
+      "composition": [
+        "BRepEdge",
+        "BRepFace",
+        "BRepLoop",
+        "BRepLoopType",
+        "BRepTrim",
+        "BRepTrimType",
+        "BRepVertex",
+        "Intersection",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point"
+      ],
+      "factories": [
+        "BRepTrimType",
+        "Element"
+      ],
+      "uses": [
+        "Line",
+        "Mesh",
+        "Plane",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRep geometry class"
     },
     "Line": {
       "composition": [
@@ -107953,76 +108110,6 @@ window.API_INDEX = {
       ],
       "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
-    "BRep": {
-      "composition": [
-        "BRepEdge",
-        "BRepFace",
-        "BRepLoop",
-        "BRepLoopType",
-        "BRepTrim",
-        "BRepTrimType",
-        "BRepVertex",
-        "Intersection",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point"
-      ],
-      "factories": [
-        "BRepTrimType",
-        "Element"
-      ],
-      "uses": [
-        "Line",
-        "Mesh",
-        "Plane",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRep geometry class"
-    },
-    "AABB": {
-      "composition": [],
-      "factories": [
-        "OBB"
-      ],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Axis-aligned bounding box (center + half-size)."
-    },
-    "_P64": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_P64 geometry class"
-    },
-    "Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
-    },
-    "Tree": {
-      "composition": [
-        "Color",
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
-    },
-    "_V2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_V2 geometry class"
-    },
     "OBB": {
       "composition": [
         "Point",
@@ -108044,6 +108131,12 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
+    },
+    "_V2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],
@@ -110679,6 +110772,9 @@ window.API_INDEX = {
       "Mesh.vertex_normals_weighted",
       "ColorMode.vertex_normals_weighted"
     ],
+    "compute_vertex_normals": [
+      "Mesh.compute_vertex_normals"
+    ],
     "vertex_index": [
       "Mesh.vertex_index",
       "ColorMode.vertex_index"
@@ -113030,9 +113126,17 @@ window.API_INDEX = {
     "abs": [
       "std.abs"
     ],
+    "check_trim_orientation": [
+      "BRepTrimType.check_trim_orientation",
+      "BRep.check_trim_orientation"
+    ],
     "make_shared_section_edges": [
       "BRepTrimType.make_shared_section_edges",
       "BRep.make_shared_section_edges"
+    ],
+    "sameparameter_planar_pcurves": [
+      "BRepTrimType.sameparameter_planar_pcurves",
+      "BRep.sameparameter_planar_pcurves"
     ],
     "deep_copy_from": [
       "BRepTrimType.deep_copy_from",
@@ -113075,8 +113179,14 @@ window.API_INDEX = {
       "Vector.constructor",
       "Xform.constructor"
     ],
+    "atan2": [
+      "std.atan2"
+    ],
     "split_with": [
       "BRep.split_with"
+    ],
+    "max": [
+      "std.max"
     ],
     "format": [
       "fmt.format",
@@ -113091,9 +113201,6 @@ window.API_INDEX = {
     ],
     "make_tuple": [
       "std.make_tuple"
-    ],
-    "max": [
-      "std.max"
     ],
     "sqrt": [
       "std.sqrt"
@@ -113329,9 +113436,6 @@ window.API_INDEX = {
     ],
     "swap": [
       "std.swap"
-    ],
-    "atan2": [
-      "std.atan2"
     ],
     "from_projected_points": [
       "Line.from_projected_points"
@@ -114368,10 +114472,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "BRepTrimType": {
-      "cpp": 59,
+      "cpp": 61,
       "python": 2,
       "rust": 0,
-      "gaps": 61,
+      "gaps": 63,
       "present_in": [
         "cpp",
         "python"
@@ -114439,10 +114543,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "BRep": {
-      "cpp": 57,
+      "cpp": 59,
       "python": 108,
       "rust": 60,
-      "gaps": 71,
+      "gaps": 73,
       "present_in": [
         "cpp",
         "python",
@@ -114674,9 +114778,9 @@ window.API_INDEX = {
     },
     "Mesh": {
       "cpp": 124,
-      "python": 157,
-      "rust": 112,
-      "gaps": 113,
+      "python": 158,
+      "rust": 113,
+      "gaps": 114,
       "present_in": [
         "cpp",
         "python",

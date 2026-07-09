@@ -3,7 +3,7 @@
     "group": "NurbsKnot",
     "test_name": "Make Clamped Uniform",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.013,
     "line": 15,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots = nurbsknot::make_clamped_uniform(order, cv_count);",
     "checks": [
@@ -19,7 +19,7 @@
     "group": "NurbsKnot",
     "test_name": "Make Periodic Uniform",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 25,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // 0 1 2 3 4 5 6\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots = nurbsknot::make_periodic_uniform(order, cv_count);",
     "checks": [
@@ -120,7 +120,7 @@
     "group": "NurbsKnot",
     "test_name": "Build Interpolation NurbsKnots",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.006,
     "line": 106,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    std::vector<double> params = {0.0, 1.0, 2.0, 3.0};\n    int degree = 3;\n    // cv_count = n + 2 = 6 (natural end conditions add 2 CVs)\n    // kc = order + cv_count - 2 = 4 + 6 - 2 = 8\n    //   [0, 0, 0,  |  1, 2,  |  3, 3, 3]\n    //   <-clamp->    interior    <-clamp->\n    std::vector<double> nurbsknots = nurbsknot::build_interp_nurbsknots(params, degree);",
     "checks": [
@@ -152,7 +152,7 @@
     "group": "NurbsKnot",
     "test_name": "Build Fitted NurbsKnots Adaptive",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 135,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // Builds nurbsknot vectors for least-squares fitting\n    // Concentrates nurbsknots where curvature is high (sharp turns)\n    // For collinear points (zero curvature), interior nurbsknots are evenly distributed\n    double pts[] = {0,0,0, 1,0,0, 2,0,0, 3,0,0, 4,0,0};\n    std::vector<double> params = nurbsknot::compute_parameters(pts, 5, 3, CurveNurbsKnotStyle::Chord);\n    std::vector<double> nurbsknots = nurbsknot::build_fitted_nurbsknots_adaptive(params, pts, 5, 3, 5, 3);",
     "checks": [

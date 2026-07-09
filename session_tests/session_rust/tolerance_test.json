@@ -13,7 +13,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Is Zero",
-    "time_ms": 0.002
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 15,
     "passed": true,
     "test_name": "Is Close",
-    "time_ms": 0.006
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 24,
     "passed": true,
     "test_name": "Is Positive",
-    "time_ms": 0.003
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -61,7 +61,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Is Negative",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -77,7 +77,7 @@
     "line": 42,
     "passed": true,
     "test_name": "Is Between",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -93,7 +93,7 @@
     "line": 51,
     "passed": true,
     "test_name": "Format Number",
-    "time_ms": 0.005
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -109,7 +109,7 @@
     "line": 60,
     "passed": true,
     "test_name": "Key",
-    "time_ms": 0.016
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -160,158 +160,6 @@
     "line": 69,
     "passed": true,
     "test_name": "Runtime Modification",
-    "time_ms": 0.008
-  },
-  {
-    "checks": [
-      {
-        "code_line": "(r0 - Tolerance::PI).abs() < 1e-9",
-        "line": 162,
-        "passed": true
-      },
-      {
-        "code_line": "(r1 - Tolerance::PI / 2.0).abs() < 1e-9",
-        "line": 163,
-        "passed": true
-      },
-      {
-        "code_line": "r2.abs() < 1e-9",
-        "line": 164,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tolerance::Tolerance;\n        let r0 = Tolerance::to_radians(180.0);\n        let r1 = Tolerance::to_radians(90.0);\n        let r2 = Tolerance::to_radians(0.0);\n",
-    "failures": [],
-    "group": "Tolerance",
-    "line": 156,
-    "passed": true,
-    "test_name": "To Radians",
-    "time_ms": 0.001
-  },
-  {
-    "checks": [
-      {
-        "code_line": "(r0 - 3.14).abs() < 1e-9",
-        "line": 264,
-        "passed": true
-      },
-      {
-        "code_line": "(r1 - 3.0).abs() < 1e-9",
-        "line": 265,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tolerance::Tolerance;\n        let r0 = Tolerance::round_to(3.14159, 2);\n        let r1 = Tolerance::round_to(2.5, 0);\n",
-    "failures": [],
-    "group": "Tolerance",
-    "line": 259,
-    "passed": true,
-    "test_name": "Round To",
-    "time_ms": 0.003
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_vector_close(&a, &b)",
-        "line": 321,
-        "passed": true
-      },
-      {
-        "code_line": "!TOLERANCE.is_vector_close(&a, &c)",
-        "line": 322,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tolerance::TOLERANCE;\n        use crate::Vector;\n\n        let a = Vector::new(1.0, 2.0, 3.0);\n        let b = Vector::new(1.0, 2.0, 3.0 + 1e-12);\n        let c = Vector::new(1.0, 2.0, 4.0);\n",
-    "failures": [],
-    "group": "Tolerance",
-    "line": 313,
-    "passed": true,
-    "test_name": "Is Vector Close",
-    "time_ms": 0.005
-  },
-  {
-    "checks": [
-      {
-        "code_line": "result == \"1.000,2.000\"",
-        "line": 254,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tolerance::TOLERANCE;\n        let result = TOLERANCE.key_xy([1.0, 2.0], -999);\n",
-    "failures": [],
-    "group": "Tolerance",
-    "line": 250,
-    "passed": true,
-    "test_name": "Key Xy",
-    "time_ms": 0.007
-  },
-  {
-    "checks": [
-      {
-        "code_line": "(d0 - 180.0).abs() < 1e-9",
-        "line": 175,
-        "passed": true
-      },
-      {
-        "code_line": "(d1 - 90.0).abs() < 1e-9",
-        "line": 176,
-        "passed": true
-      },
-      {
-        "code_line": "d2.abs() < 1e-9",
-        "line": 177,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tolerance::Tolerance;\n        let d0 = Tolerance::to_degrees(Tolerance::PI);\n        let d1 = Tolerance::to_degrees(Tolerance::PI / 2.0);\n        let d2 = Tolerance::to_degrees(0.0);\n",
-    "failures": [],
-    "group": "Tolerance",
-    "line": 169,
-    "passed": true,
-    "test_name": "To Degrees",
-    "time_ms": 0.001
-  },
-  {
-    "checks": [
-      {
-        "code_line": "r0",
-        "line": 218,
-        "passed": true
-      },
-      {
-        "code_line": "!r1",
-        "line": 219,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tolerance::TOLERANCE;\n        let r0 = TOLERANCE.is_angles_close(1.0, 1.0 + 1e-8);\n        let r1 = TOLERANCE.is_angles_close(1.0, 2.0);\n",
-    "failures": [],
-    "group": "Tolerance",
-    "line": 213,
-    "passed": true,
-    "test_name": "Is Angles Close",
-    "time_ms": 0.001
-  },
-  {
-    "checks": [
-      {
-        "code_line": "r0 == r1",
-        "line": 107,
-        "passed": true
-      },
-      {
-        "code_line": "r0 == ((7u64 << 32) | 3u64)",
-        "line": 108,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tolerance::unique_from_two_int;\n        let r0 = unique_from_two_int(3, 7);\n        let r1 = unique_from_two_int(7, 3);\n",
-    "failures": [],
-    "group": "Tolerance",
-    "line": 102,
-    "passed": true,
-    "test_name": "Unique From Two Int",
     "time_ms": 0.001
   },
   {
@@ -333,195 +181,70 @@
     "line": 238,
     "passed": true,
     "test_name": "Is Allclose",
-    "time_ms": 0.002
+    "time_ms": 0.001
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_vector_close(&a, &b)",
+        "line": 321,
+        "passed": true
+      },
+      {
+        "code_line": "!TOLERANCE.is_vector_close(&a, &c)",
+        "line": 322,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tolerance::TOLERANCE;\n        use crate::Vector;\n\n        let a = Vector::new(1.0, 2.0, 3.0);\n        let b = Vector::new(1.0, 2.0, 3.0 + 1e-12);\n        let c = Vector::new(1.0, 2.0, 4.0);\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 313,
+    "passed": true,
+    "test_name": "Is Vector Close",
+    "time_ms": 0.001
+  },
+  {
+    "checks": [
+      {
+        "code_line": "(r0 - 3.14).abs() < 1e-9",
+        "line": 264,
+        "passed": true
+      },
+      {
+        "code_line": "(r1 - 3.0).abs() < 1e-9",
+        "line": 265,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tolerance::Tolerance;\n        let r0 = Tolerance::round_to(3.14159, 2);\n        let r1 = Tolerance::round_to(2.5, 0);\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 259,
+    "passed": true,
+    "test_name": "Round To",
+    "time_ms": 0.0
   },
   {
     "checks": [
       {
         "code_line": "r0",
-        "line": 307,
+        "line": 297,
         "passed": true
       },
       {
         "code_line": "!r1",
-        "line": 308,
+        "line": 298,
         "passed": true
       }
     ],
-    "code": "        let r0 = 1.0_f64.is_finite();\n        let r1 = f64::INFINITY.is_finite();\n",
+    "code": "        use crate::tolerance::TOLERANCE;\n        let r0 = TOLERANCE.compare(1.0, 1.0 + 1e-7, 1e-6, 1e-9);\n        let r1 = TOLERANCE.compare(1.0, 2.0, 1e-6, 1e-9);\n",
     "failures": [],
     "group": "Tolerance",
-    "line": 303,
+    "line": 292,
     "passed": true,
-    "test_name": "Is Finite",
-    "time_ms": 0.001
-  },
-  {
-    "checks": [
-      {
-        "code_line": "inside == 1e-12",
-        "line": 335,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.absolute() == original",
-        "line": 336,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tolerance::TOLERANCE;\n        let original = TOLERANCE.absolute();\n        let inside = TOLERANCE.temporary(|t| {\n            t.set_absolute(1e-12);\n            t.absolute()\n        });\n",
-    "failures": [],
-    "group": "Tolerance",
-    "line": 327,
-    "passed": true,
-    "test_name": "Temporary",
-    "time_ms": 0.004
-  },
-  {
-    "checks": [
-      {
-        "code_line": "r0",
-        "line": 207,
-        "passed": true
-      },
-      {
-        "code_line": "!r1",
-        "line": 208,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tolerance::TOLERANCE;\n        // Angular tolerance default is 1e-6\n        let r0 = TOLERANCE.is_angle_zero(1e-8);\n        let r1 = TOLERANCE.is_angle_zero(0.1);\n",
-    "failures": [],
-    "group": "Tolerance",
-    "line": 201,
-    "passed": true,
-    "test_name": "Is Angle Zero",
-    "time_ms": 0.001
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_point_close(&a, &b)",
-        "line": 232,
-        "passed": true
-      },
-      {
-        "code_line": "!TOLERANCE.is_point_close(&a, &c)",
-        "line": 233,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tolerance::TOLERANCE;\n        use crate::Point;\n\n        let a = Point::new(1.0, 2.0, 3.0);\n        let b = Point::new(1.0, 2.0, 3.0 + 1e-12);\n        let c = Point::new(1.0, 2.0, 4.0);\n",
-    "failures": [],
-    "group": "Tolerance",
-    "line": 224,
-    "passed": true,
-    "test_name": "Is Point Close",
-    "time_ms": 0.004
-  },
-  {
-    "checks": [
-      {
-        "code_line": "(r - 1.0).abs() < 1e-9",
-        "line": 134,
-        "passed": true
-      },
-      {
-        "code_line": "r2.abs() < 1e-9",
-        "line": 136,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tolerance::triangle_edge_by_angle;\n        let r = triangle_edge_by_angle(1.0, 45.0);\n\n        let r2 = triangle_edge_by_angle(5.0, 0.0);",
-    "failures": [],
-    "group": "Tolerance",
-    "line": 130,
-    "passed": true,
-    "test_name": "Triangle Edge By Angle",
-    "time_ms": 0.012
-  },
-  {
-    "checks": [
-      {
-        "code_line": "(r0 - 180.0).abs() < 1e-9",
-        "line": 149,
-        "passed": true
-      },
-      {
-        "code_line": "(r1 - Tolerance::PI).abs() < 1e-9",
-        "line": 150,
-        "passed": true
-      },
-      {
-        "code_line": "(r2 - 1.234).abs() < 1e-9",
-        "line": 151,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tolerance::rad_to_deg;\n        use crate::tolerance::deg_to_rad;\n        use crate::tolerance::Tolerance;\n        let r0 = rad_to_deg(Tolerance::PI);\n        let r1 = deg_to_rad(180.0);\n        let r2 = deg_to_rad(rad_to_deg(1.234));\n",
-    "failures": [],
-    "group": "Tolerance",
-    "line": 141,
-    "passed": true,
-    "test_name": "Rad Deg Conversion",
-    "time_ms": 0.001
-  },
-  {
-    "checks": [
-      {
-        "code_line": "r0 == 0",
-        "line": 191,
-        "passed": true
-      },
-      {
-        "code_line": "r1 == 1",
-        "line": 192,
-        "passed": true
-      },
-      {
-        "code_line": "r2 == 1",
-        "line": 193,
-        "passed": true
-      },
-      {
-        "code_line": "r3 == 2",
-        "line": 194,
-        "passed": true
-      },
-      {
-        "code_line": "r4 == 3",
-        "line": 195,
-        "passed": true
-      },
-      {
-        "code_line": "r5 == 2",
-        "line": 196,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tolerance::count_digits;\n        let r0 = count_digits(0.0);\n        let r1 = count_digits(1.0);\n        let r2 = count_digits(9.9);\n        let r3 = count_digits(10.0);\n        let r4 = count_digits(100.5);\n        let r5 = count_digits(-42.0);\n",
-    "failures": [],
-    "group": "Tolerance",
-    "line": 182,
-    "passed": true,
-    "test_name": "Count Digits",
-    "time_ms": 0.002
-  },
-  {
-    "checks": [
-      {
-        "code_line": "(result - (1e-6 + 1e-9)).abs() < 1e-18",
-        "line": 287,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::tolerance::TOLERANCE;\n        // rtol * abs(truevalue) + atol\n        let result = TOLERANCE.tolerance(1.0, 1e-6, 1e-9);\n",
-    "failures": [],
-    "group": "Tolerance",
-    "line": 282,
-    "passed": true,
-    "test_name": "Tolerance",
-    "time_ms": 0.003
+    "test_name": "Compare",
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -562,6 +285,225 @@
   {
     "checks": [
       {
+        "code_line": "(result - (1e-6 + 1e-9)).abs() < 1e-18",
+        "line": 287,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tolerance::TOLERANCE;\n        // rtol * abs(truevalue) + atol\n        let result = TOLERANCE.tolerance(1.0, 1e-6, 1e-9);\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 282,
+    "passed": true,
+    "test_name": "Tolerance",
+    "time_ms": 0.0
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_point_close(&a, &b)",
+        "line": 232,
+        "passed": true
+      },
+      {
+        "code_line": "!TOLERANCE.is_point_close(&a, &c)",
+        "line": 233,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tolerance::TOLERANCE;\n        use crate::Point;\n\n        let a = Point::new(1.0, 2.0, 3.0);\n        let b = Point::new(1.0, 2.0, 3.0 + 1e-12);\n        let c = Point::new(1.0, 2.0, 4.0);\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 224,
+    "passed": true,
+    "test_name": "Is Point Close",
+    "time_ms": 0.001
+  },
+  {
+    "checks": [
+      {
+        "code_line": "r0",
+        "line": 218,
+        "passed": true
+      },
+      {
+        "code_line": "!r1",
+        "line": 219,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tolerance::TOLERANCE;\n        let r0 = TOLERANCE.is_angles_close(1.0, 1.0 + 1e-8);\n        let r1 = TOLERANCE.is_angles_close(1.0, 2.0);\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 213,
+    "passed": true,
+    "test_name": "Is Angles Close",
+    "time_ms": 0.0
+  },
+  {
+    "checks": [
+      {
+        "code_line": "(r0 - 180.0).abs() < 1e-9",
+        "line": 149,
+        "passed": true
+      },
+      {
+        "code_line": "(r1 - Tolerance::PI).abs() < 1e-9",
+        "line": 150,
+        "passed": true
+      },
+      {
+        "code_line": "(r2 - 1.234).abs() < 1e-9",
+        "line": 151,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tolerance::rad_to_deg;\n        use crate::tolerance::deg_to_rad;\n        use crate::tolerance::Tolerance;\n        let r0 = rad_to_deg(Tolerance::PI);\n        let r1 = deg_to_rad(180.0);\n        let r2 = deg_to_rad(rad_to_deg(1.234));\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 141,
+    "passed": true,
+    "test_name": "Rad Deg Conversion",
+    "time_ms": 0.0
+  },
+  {
+    "checks": [
+      {
+        "code_line": "(d0 - 180.0).abs() < 1e-9",
+        "line": 175,
+        "passed": true
+      },
+      {
+        "code_line": "(d1 - 90.0).abs() < 1e-9",
+        "line": 176,
+        "passed": true
+      },
+      {
+        "code_line": "d2.abs() < 1e-9",
+        "line": 177,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tolerance::Tolerance;\n        let d0 = Tolerance::to_degrees(Tolerance::PI);\n        let d1 = Tolerance::to_degrees(Tolerance::PI / 2.0);\n        let d2 = Tolerance::to_degrees(0.0);\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 169,
+    "passed": true,
+    "test_name": "To Degrees",
+    "time_ms": 0.0
+  },
+  {
+    "checks": [
+      {
+        "code_line": "r0 == r1",
+        "line": 107,
+        "passed": true
+      },
+      {
+        "code_line": "r0 == ((7u64 << 32) | 3u64)",
+        "line": 108,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tolerance::unique_from_two_int;\n        let r0 = unique_from_two_int(3, 7);\n        let r1 = unique_from_two_int(7, 3);\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 102,
+    "passed": true,
+    "test_name": "Unique From Two Int",
+    "time_ms": 0.0
+  },
+  {
+    "checks": [
+      {
+        "code_line": "r0 == 0",
+        "line": 191,
+        "passed": true
+      },
+      {
+        "code_line": "r1 == 1",
+        "line": 192,
+        "passed": true
+      },
+      {
+        "code_line": "r2 == 1",
+        "line": 193,
+        "passed": true
+      },
+      {
+        "code_line": "r3 == 2",
+        "line": 194,
+        "passed": true
+      },
+      {
+        "code_line": "r4 == 3",
+        "line": 195,
+        "passed": true
+      },
+      {
+        "code_line": "r5 == 2",
+        "line": 196,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tolerance::count_digits;\n        let r0 = count_digits(0.0);\n        let r1 = count_digits(1.0);\n        let r2 = count_digits(9.9);\n        let r3 = count_digits(10.0);\n        let r4 = count_digits(100.5);\n        let r5 = count_digits(-42.0);\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 182,
+    "passed": true,
+    "test_name": "Count Digits",
+    "time_ms": 0.0
+  },
+  {
+    "checks": [
+      {
+        "code_line": "(r0 - Tolerance::PI).abs() < 1e-9",
+        "line": 162,
+        "passed": true
+      },
+      {
+        "code_line": "(r1 - Tolerance::PI / 2.0).abs() < 1e-9",
+        "line": 163,
+        "passed": true
+      },
+      {
+        "code_line": "r2.abs() < 1e-9",
+        "line": 164,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tolerance::Tolerance;\n        let r0 = Tolerance::to_radians(180.0);\n        let r1 = Tolerance::to_radians(90.0);\n        let r2 = Tolerance::to_radians(0.0);\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 156,
+    "passed": true,
+    "test_name": "To Radians",
+    "time_ms": 0.0
+  },
+  {
+    "checks": [
+      {
+        "code_line": "r0",
+        "line": 307,
+        "passed": true
+      },
+      {
+        "code_line": "!r1",
+        "line": 308,
+        "passed": true
+      }
+    ],
+    "code": "        let r0 = 1.0_f64.is_finite();\n        let r1 = f64::INFINITY.is_finite();\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 303,
+    "passed": true,
+    "test_name": "Is Finite",
+    "time_ms": 0.0
+  },
+  {
+    "checks": [
+      {
         "code_line": "prec == 5",
         "line": 277,
         "passed": true
@@ -573,27 +515,85 @@
     "line": 270,
     "passed": true,
     "test_name": "Precision From Tolerance",
-    "time_ms": 0.007
+    "time_ms": 0.002
   },
   {
     "checks": [
       {
         "code_line": "r0",
-        "line": 297,
+        "line": 207,
         "passed": true
       },
       {
         "code_line": "!r1",
-        "line": 298,
+        "line": 208,
         "passed": true
       }
     ],
-    "code": "        use crate::tolerance::TOLERANCE;\n        let r0 = TOLERANCE.compare(1.0, 1.0 + 1e-7, 1e-6, 1e-9);\n        let r1 = TOLERANCE.compare(1.0, 2.0, 1e-6, 1e-9);\n",
+    "code": "        use crate::tolerance::TOLERANCE;\n        // Angular tolerance default is 1e-6\n        let r0 = TOLERANCE.is_angle_zero(1e-8);\n        let r1 = TOLERANCE.is_angle_zero(0.1);\n",
     "failures": [],
     "group": "Tolerance",
-    "line": 292,
+    "line": 201,
     "passed": true,
-    "test_name": "Compare",
+    "test_name": "Is Angle Zero",
+    "time_ms": 0.0
+  },
+  {
+    "checks": [
+      {
+        "code_line": "inside == 1e-12",
+        "line": 335,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.absolute() == original",
+        "line": 336,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tolerance::TOLERANCE;\n        let original = TOLERANCE.absolute();\n        let inside = TOLERANCE.temporary(|t| {\n            t.set_absolute(1e-12);\n            t.absolute()\n        });\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 327,
+    "passed": true,
+    "test_name": "Temporary",
     "time_ms": 0.001
+  },
+  {
+    "checks": [
+      {
+        "code_line": "(r - 1.0).abs() < 1e-9",
+        "line": 134,
+        "passed": true
+      },
+      {
+        "code_line": "r2.abs() < 1e-9",
+        "line": 136,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tolerance::triangle_edge_by_angle;\n        let r = triangle_edge_by_angle(1.0, 45.0);\n\n        let r2 = triangle_edge_by_angle(5.0, 0.0);",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 130,
+    "passed": true,
+    "test_name": "Triangle Edge By Angle",
+    "time_ms": 0.0
+  },
+  {
+    "checks": [
+      {
+        "code_line": "result == \"1.000,2.000\"",
+        "line": 254,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::tolerance::TOLERANCE;\n        let result = TOLERANCE.key_xy([1.0, 2.0], -999);\n",
+    "failures": [],
+    "group": "Tolerance",
+    "line": 250,
+    "passed": true,
+    "test_name": "Key Xy",
+    "time_ms": 0.004
   }
 ]
