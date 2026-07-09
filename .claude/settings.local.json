@@ -56,7 +56,12 @@
       "mcp__session-api__search_api",
       "Bash(\"C:/Users/petrasv/.rhinocode/py39-rh8/python.exe\" session_rhino/test_step_brep.py)",
       "Bash(git push:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(tasklist //FI \"IMAGENAME eq main_7.exe\")",
+      "Bash(tasklist //FI \"IMAGENAME eq claude.exe\")",
+      "Bash(git -C session_cpp branch --show-current)",
+      "Bash(git -C session_cpp log --oneline -5)",
+      "Bash(git -C session_cpp status --short)"
     ]
   },
   "enableAllProjectMcpServers": true,

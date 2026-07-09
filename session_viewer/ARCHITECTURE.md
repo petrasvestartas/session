@@ -230,6 +230,14 @@ Each chapter: new files, their layer, the rule it demonstrates, and its docs pag
 docs already exist (`01-run`, `02-dependencies`, `03-window`); Chapter 1 of *code* is built.
 **Advancement is user-gated (§0).**
 
+> **Sequencing note (2026-07-02):** the fine-grained, authoritative lesson order is
+> **`docs/_ROADMAP.md`** (77 numbered lessons with live ✅/▶/⬜ markers — currently at 21). The table
+> below remains the *architecture-pattern* map — which chapter introduces which module and rule —
+> but where the two disagree on ordering, `_ROADMAP.md` wins. The bake-in-early patterns (§4) map to
+> roadmap lessons: **(c)** engine/app split ↔ 19/30/35, **(a)** Command at first mutation ↔ 51
+> (delete), **(b)** Tool trait at first draw tool ↔ 57. The command bus (roadmap 48–50) lands
+> *before* gumball and tools, so every mutation is born as a command.
+
 | Ch | Goal (new capability) | New files (layer) | Architecture rule demonstrated | Docs page |
 |----|-----------------------|-------------------|--------------------------------|-----------|
 | 1 | window that clears the screen ✅ | `lib.rs`, `state.rs`, `engine/gpu.rs` | lowest layer owns the 5 wgpu objects | `03-window.md` |

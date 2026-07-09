@@ -45,6 +45,12 @@ bash automation/run_scorecard.sh          # did the count go up? did green stay 
 **3. The full unattended loop:**
 ```bash
 MAX_ITERS=3 BUDGET_USD=5 bash automation/agent_loop.sh     # start SMALL — 3 iters, $5 cap
+After it finishes, sanity-check:
+git -C session_cpp log --oneline auto/booleans     # did it commit real progress?
+tail -20 automation/scorecard.log                  # N/45 — did it go up, and stay hang-free?
+cat automation/BLOCKED.md 2>/dev/null              # if it stopped early, why
+If those look good, re-run with MAX_ITERS=20 BUDGET_USD=40 and let it grind. Go ahead and launch it.
+
 # once you trust it:
 MAX_ITERS=20 BUDGET_USD=40 bash automation/agent_loop.sh
 ```

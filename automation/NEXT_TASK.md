@@ -31,8 +31,8 @@ Each phase in the buildspec is flag-gated and lists exact functions/anchors. Rea
 - **Never ask the user anything.** If a choice needs judgment, pick the option that best advances the
   priority order above, write the choice + one-line reason to the commit message, and proceed.
 - **Never regress a green cell.** Before committing, run `automation/run_scorecard.sh`; the OK count
-  must be >= the count at the start of this iteration. If it dropped, revert your change (`git checkout
-  -- session_cpp/src`) and try a different approach.
+  must be >= the count at the start of this iteration. If it dropped, revert your change
+  (`git -C session_cpp checkout -- src`) and try a different approach.
 - **Kill main_7.exe before every rebuild** (it holds a binary lock when a cell hangs).
 - **Robustness:** the kernel must never infinite-loop. If a cell hangs, add a bounded guard to the
   offending loop (see the CDT `flip_budget` fix in `remesh_cdt.cpp` for the pattern) — a valid input

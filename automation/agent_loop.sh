@@ -33,11 +33,17 @@ rm -f automation/BLOCKED.md
 spent=0
 echo "=== baseline scorecard ==="
 bash automation/run_scorecard.sh "$TARGET" >/dev/null 2>&1
-base=$(grep -oE 'SCORECARD: [0-9]+' automation/scorecard.log | grep -oE '[0-9]+' | tail -1); base=${base:-0}
+base=$(grep -oE '[0-9]+/45 cells OK' automation/scorecard.log | head -1 | grep -oE '^[0-9]+'); base=${base:-0}
 echo "baseline: $base/45"
+last_cost=0
 
 for i in $(seq 1 "$MAX_ITERS"); do
   echo "==================== iteration $i / $MAX_ITERS (spent \$$spent, at $base/45) ===================="
+  # Budget PRE-check: don't START an iteration that the last iteration's cost says would blow the cap
+  # (the post-iteration check below can only stop AFTER an overspend; this stops before).
+  if awk "BEGIN{exit !($spent > 0 && $spent + $last_cost > $BUDGET_USD)}"; then
+    echo "*** SKIP iteration $i: spent \$$spent + est \$$last_cost would exceed budget \$$BUDGET_USD ***"; break
+  fi
   out="automation/iter_${i}.json"
 
   claude -p "$(cat automation/NEXT_TASK.md)" \
@@ -48,13 +54,14 @@ for i in $(seq 1 "$MAX_ITERS"); do
 
   # Accumulate cost from the JSON result (grep/awk so we don't require jq on Windows git bash).
   cost=$(grep -oE '"total_cost_usd":[[:space:]]*[0-9.]+' "$out" | grep -oE '[0-9.]+' | tail -1); cost=${cost:-0}
+  last_cost=$cost
   spent=$(awk "BEGIN{printf \"%.4f\", $spent + $cost}")
 
   # Score. run_scorecard.sh exits 0 iff N >= TARGET.
   if bash automation/run_scorecard.sh "$TARGET"; then
     echo "*** TARGET REACHED: $TARGET/45 after iteration $i (spent \$$spent) ***"; break
   fi
-  base=$(grep -oE 'SCORECARD: [0-9]+' automation/scorecard.log | grep -oE '[0-9]+' | tail -1); base=${base:-0}
+  base=$(grep -oE '[0-9]+/45 cells OK' automation/scorecard.log | head -1 | grep -oE '^[0-9]+'); base=${base:-0}
 
   if [ -f automation/BLOCKED.md ]; then
     echo "*** AGENT BLOCKED after iteration $i ***"; cat automation/BLOCKED.md; break
