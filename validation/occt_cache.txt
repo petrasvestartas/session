@@ -1,0 +1,46 @@
+# OCCT boolean reference cache: key<TAB>volume<TAB>nfaces. Pass --refresh (or delete) to regenerate.
+box  x box |common	4.0000000000000009	6
+box  x box |cut	60.000000000000021	11
+box  x box |fuse	68.000000000000014	11
+box  x cone|common	16.755160819145569	2
+box  x cone|cut	47.244839180854441	10
+box  x cone|fuse	64	10
+box  x cyl |common	28.274333882308131	3
+box  x cyl |cut	35.725666117691873	7
+box  x cyl |fuse	78.137166941154049	10
+box  x sph |common	54.45427266606967	7
+box  x sph |cut	9.5457273339689337	7
+box  x sph |fuse	74.995574283757406	13
+box  x tor |common	15.48108012629832	5
+box  x tor |cut	48.518919873975172	7
+box  x tor |fuse	73.785107140490069	16
+cone x cone|common	4.1887902047863914	2
+cone x cone|cut	12.566370614359171	3
+cone x cone|fuse	29.321531433504731	4
+cone x cyl |common	14.137166941154071	3
+cone x cyl |cut	2.617993877991494	3
+cone x cyl |fuse	45.0294947014537	6
+cone x tor |common	0	0
+cone x tor |cut	16.755160819145559	2
+cone x tor |fuse	42.021348085934328	3
+cyl  x cyl |common	17.999999976757191	6
+cyl  x cyl |cut	24.411500846704531	7
+cyl  x cyl |fuse	66.823001670166349	8
+cyl  x tor |common	2.2593152393152049	2
+cyl  x tor |cut	40.152185584146999	5
+cyl  x tor |fuse	65.418372850935754	6
+sph  x cone|common	15.9175408098997	3
+sph  x cone|cut	49.532306139887623	4
+sph  x cone|fuse	66.287466959033239	4
+sph  x cyl |common	31.939525311496361	3
+sph  x cyl |cut	33.510321638290968	2
+sph  x cyl |fuse	75.921822461753166	5
+sph  x sph |common	17.385115595178799	3
+sph  x sph |cut	48.064731354707	2
+sph  x sph |fuse	81.575052992948912	2
+sph  x tor |common	20.370105337457279	2
+sph  x tor |cut	45.079741612330089	3
+sph  x tor |fuse	70.345928879118844	4
+tor  x tor |common	6.5365397936698537	12
+tor  x tor |cut	18.72964747315363	9
+tor  x tor |fuse	43.995834739488167	6

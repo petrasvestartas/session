@@ -207,7 +207,11 @@ static TopoDS_Shape build_solid(const std::string& kind, const std::vector<doubl
 }
 
 static void solid_props(std::ostream& out, const TopoDS_Shape& s) {
-    GProp_GProps vp; BRepGProp::VolumeProperties(s, vp);
+    // Adaptive Gauss with Eps=1e-9: the default fixed-order overload integrates OCCT's own
+    // APPROXIMATED section pcurves and is only ~2e-6 accurate on curved-section solids (box x
+    // torus common: 15.4811080 vs true 15.4810801, +1.8e-6) -- too coarse to referee a 1e-6
+    // volume gate. The adaptive overload refines until each face's relative error <= Eps.
+    GProp_GProps vp; BRepGProp::VolumeProperties(s, vp, 1e-9);
     GProp_GProps sp; BRepGProp::SurfaceProperties(s, sp);
     int nf = 0;
     for (TopExp_Explorer ex(s, TopAbs_FACE); ex.More(); ex.Next()) nf++;
