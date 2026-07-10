@@ -3,7 +3,7 @@
     "group": "Boolean Polyline",
     "test_name": "Overlapping Squares",
     "passed": true,
-    "time_ms": 0.111,
+    "time_ms": 0.097,
     "line": 11,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    Polyline a({Point(-1,-1,0), Point(1,-1,0), Point(1,1,0), Point(-1,1,0), Point(-1,-1,0)});\n    Polyline b({Point(0,0,0), Point(2,0,0), Point(2,2,0), Point(0,2,0), Point(0,0,0)});\n    auto isect = Polyline::boolean_op(a, b, 0);\n    auto uni   = Polyline::boolean_op(a, b, 1);\n    auto diff  = Polyline::boolean_op(a, b, 2);",
     "checks": [
@@ -44,7 +44,7 @@
     "group": "Boolean Polyline",
     "test_name": "Circle Vs Rectangle",
     "passed": true,
-    "time_ms": 0.08,
+    "time_ms": 0.164,
     "line": 27,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts;\n    for (int i = 0; i < 64; i++) {\n        double a = PI2 * i / 64;\n        pts.push_back(Point(5.0 + 1.5 * std::cos(a), 1.5 * std::sin(a), 0.0));\n    }\n    pts.push_back(pts[0]);\n    Polyline circle(pts);\n    Polyline rect({Point(4,-0.5,0), Point(7,-0.5,0), Point(7,0.5,0), Point(4,0.5,0), Point(4,-0.5,0)});\n    auto isect = Polyline::boolean_op(circle, rect, 0);\n    auto uni   = Polyline::boolean_op(circle, rect, 1);\n    auto diff  = Polyline::boolean_op(circle, rect, 2);",
     "checks": [
@@ -85,7 +85,7 @@
     "group": "Boolean Polyline",
     "test_name": "Star Vs Circle",
     "passed": true,
-    "time_ms": 0.059,
+    "time_ms": 0.08,
     "line": 49,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> star_pts;\n    for (int i = 0; i < 10; i++) {\n        double a = PI2 * i / 10;\n        double r = (i % 2 == 0) ? 2.0 : 0.8;\n        star_pts.push_back(Point(10.0 + r * std::cos(a), r * std::sin(a), 0.0));\n    }\n    star_pts.push_back(star_pts[0]);\n    Polyline star(star_pts);\n    std::vector<Point> circ_pts;\n    for (int i = 0; i < 32; i++) {\n        double a = PI2 * i / 32;\n        circ_pts.push_back(Point(10.5 + 1.2 * std::cos(a), 0.5 + 1.2 * std::sin(a), 0.0));\n    }\n    circ_pts.push_back(circ_pts[0]);\n    Polyline circle(circ_pts);\n    auto isect = Polyline::boolean_op(star, circle, 0);\n    auto uni   = Polyline::boolean_op(star, circle, 1);\n    auto diff  = Polyline::boolean_op(star, circle, 2);",
     "checks": [
@@ -126,7 +126,7 @@
     "group": "Boolean Polyline",
     "test_name": "L Shape Vs Rectangle",
     "passed": true,
-    "time_ms": 0.021,
+    "time_ms": 0.024,
     "line": 78,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    Polyline l_shape({\n        Point(15,-1,0), Point(18,-1,0), Point(18,0,0),\n        Point(16,0,0), Point(16,2,0), Point(15,2,0), Point(15,-1,0)\n    });\n    Polyline rect({Point(15.5,-0.5,0), Point(18.5,-0.5,0), Point(18.5,1.5,0), Point(15.5,1.5,0), Point(15.5,-0.5,0)});\n    auto isect = Polyline::boolean_op(l_shape, rect, 0);\n    auto uni   = Polyline::boolean_op(l_shape, rect, 1);\n    auto diff  = Polyline::boolean_op(l_shape, rect, 2);",
     "checks": [
@@ -167,7 +167,7 @@
     "group": "Boolean Polyline",
     "test_name": "Two Large Circles",
     "passed": true,
-    "time_ms": 0.303,
+    "time_ms": 0.569,
     "line": 97,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts_a, pts_b;\n    for (int i = 0; i < 256; i++) {\n        double a = PI2 * i / 256;\n        pts_a.push_back(Point(22.0 + 2.0 * std::cos(a), 2.0 * std::sin(a), 0.0));\n        pts_b.push_back(Point(23.0 + 2.0 * std::cos(a), 0.5 + 2.0 * std::sin(a), 0.0));\n    }\n    pts_a.push_back(pts_a[0]);\n    pts_b.push_back(pts_b[0]);\n    Polyline ca(pts_a), cb(pts_b);\n    auto isect = Polyline::boolean_op(ca, cb, 0);\n    auto uni   = Polyline::boolean_op(ca, cb, 1);\n    auto diff  = Polyline::boolean_op(ca, cb, 2);",
     "checks": [
@@ -208,7 +208,7 @@
     "group": "Boolean Polyline",
     "test_name": "Diamond Vs Triangle",
     "passed": true,
-    "time_ms": 0.023,
+    "time_ms": 0.028,
     "line": 120,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    Polyline diamond({Point(28,0,0), Point(30,-2,0), Point(32,0,0), Point(30,2,0), Point(28,0,0)});\n    Polyline tri({Point(29,-2,0), Point(33,0,0), Point(29,2,0), Point(29,-2,0)});\n    auto isect = Polyline::boolean_op(diamond, tri, 0);\n    auto uni   = Polyline::boolean_op(diamond, tri, 1);\n    auto diff  = Polyline::boolean_op(diamond, tri, 2);",
     "checks": [
@@ -249,7 +249,7 @@
     "group": "Boolean Polyline",
     "test_name": "Star Vs Star",
     "passed": true,
-    "time_ms": 0.049,
+    "time_ms": 0.058,
     "line": 136,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts_a;\n    for (int i = 0; i < 12; i++) {\n        double a = PI2 * i / 12;\n        double r = (i % 2 == 0) ? 2.5 : 1.0;\n        pts_a.push_back(Point(36.0 + r * std::cos(a), r * std::sin(a), 0.0));\n    }\n    pts_a.push_back(pts_a[0]);\n    std::vector<Point> pts_b;\n    for (int i = 0; i < 10; i++) {\n        double a = PI2 * i / 10;\n        double r = (i % 2 == 0) ? 2.0 : 0.8;\n        pts_b.push_back(Point(37.0 + r * std::cos(a), 0.5 + r * std::sin(a), 0.0));\n    }\n    pts_b.push_back(pts_b[0]);\n    Polyline sa(pts_a), sb(pts_b);\n    auto isect = Polyline::boolean_op(sa, sb, 0);\n    auto uni   = Polyline::boolean_op(sa, sb, 1);\n    auto diff  = Polyline::boolean_op(sa, sb, 2);",
     "checks": [
@@ -290,7 +290,7 @@
     "group": "Boolean Polyline",
     "test_name": "Cross Shape",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.023,
     "line": 165,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    Polyline narrow({Point(42,-2,0), Point(44,-2,0), Point(44,2,0), Point(42,2,0), Point(42,-2,0)});\n    Polyline wide({Point(40,-0.5,0), Point(46,-0.5,0), Point(46,0.5,0), Point(40,0.5,0), Point(40,-0.5,0)});\n    auto isect = Polyline::boolean_op(narrow, wide, 0);\n    auto uni   = Polyline::boolean_op(narrow, wide, 1);\n    auto diff  = Polyline::boolean_op(narrow, wide, 2);",
     "checks": [
@@ -331,7 +331,7 @@
     "group": "Boolean Polyline",
     "test_name": "Concave Arrow Vs Circle",
     "passed": true,
-    "time_ms": 0.067,
+    "time_ms": 0.074,
     "line": 181,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    Polyline arrow({\n        Point(49,0,0), Point(52,2,0), Point(51,0.5,0), Point(53,0.5,0),\n        Point(53,-0.5,0), Point(51,-0.5,0), Point(52,-2,0), Point(49,0,0)\n    });\n    std::vector<Point> pts;\n    for (int i = 0; i < 48; i++) {\n        double a = PI2 * i / 48;\n        pts.push_back(Point(51.5 + 1.5 * std::cos(a), 1.5 * std::sin(a), 0.0));\n    }\n    pts.push_back(pts[0]);\n    Polyline circle(pts);\n    auto isect = Polyline::boolean_op(arrow, circle, 0);\n    auto uni   = Polyline::boolean_op(arrow, circle, 1);\n    auto diff  = Polyline::boolean_op(arrow, circle, 2);",
     "checks": [
@@ -372,7 +372,7 @@
     "group": "Boolean Polyline",
     "test_name": "Two Large Circles 1000",
     "passed": true,
-    "time_ms": 1.29,
+    "time_ms": 1.525,
     "line": 206,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> pts_a, pts_b;\n    for (int i = 0; i < 1000; i++) {\n        double a = PI2 * i / 1000;\n        pts_a.push_back(Point(58.0 + 3.0 * std::cos(a), 3.0 * std::sin(a), 0.0));\n        pts_b.push_back(Point(59.5 + 3.0 * std::cos(a), 3.0 * std::sin(a), 0.0));\n    }\n    pts_a.push_back(pts_a[0]);\n    pts_b.push_back(pts_b[0]);\n    Polyline ca(pts_a), cb(pts_b);\n    auto isect = Polyline::boolean_op(ca, cb, 0);\n    auto uni   = Polyline::boolean_op(ca, cb, 1);\n    auto diff  = Polyline::boolean_op(ca, cb, 2);",
     "checks": [
@@ -413,7 +413,7 @@
     "group": "Boolean Polyline",
     "test_name": "Large Coords Auto Scale",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.016,
     "line": 229,
     "code": "    // Coordinates near 1e7 would overflow int64 cross products with the old\n    // fixed 1e9 scale: (1e7*1e9)^2 = 1e32 >> int64::max (~9.2e18)\n    Polyline a({Point(64e6,1e6,0), Point(64e6+2e6,1e6,0), Point(64e6+2e6,1e6+2e6,0), Point(64e6,1e6+2e6,0), Point(64e6,1e6,0)});\n    Polyline b({Point(64e6+1e6,1e6+1e6,0), Point(64e6+3e6,1e6+1e6,0), Point(64e6+3e6,1e6+3e6,0), Point(64e6+1e6,1e6+3e6,0), Point(64e6+1e6,1e6+1e6,0)});\n    auto isect = Polyline::boolean_op(a, b, 0);\n    auto uni   = Polyline::boolean_op(a, b, 1);\n    auto diff  = Polyline::boolean_op(a, b, 2);",
     "checks": [
@@ -454,7 +454,7 @@
     "group": "Boolean Polyline Open",
     "test_name": "Horizontal Line Vs Unit Square",
     "passed": true,
-    "time_ms": 0.013,
+    "time_ms": 0.017,
     "line": 253,
     "code": "    Polyline open_line({Point(-2, 0, 0), Point(2, 0, 0)});\n    Polyline sq({Point(-1,-1,0), Point(1,-1,0), Point(1,1,0), Point(-1,1,0), Point(-1,-1,0)});\n    auto out = BooleanPolyline::clip_open_against_closed(open_line, sq);\n    Point p0 = out[0].get_point(0);\n    Point p1 = out[0].get_point(1);",
     "checks": [
@@ -495,7 +495,7 @@
     "group": "Boolean Polyline Open",
     "test_name": "Diagonal Line Vs Unit Square",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.006,
     "line": 267,
     "code": "    Polyline open_line({Point(-2, -2, 0), Point(2, 2, 0)});\n    Polyline sq({Point(-1,-1,0), Point(1,-1,0), Point(1,1,0), Point(-1,1,0), Point(-1,-1,0)});\n    auto out = BooleanPolyline::clip_open_against_closed(open_line, sq);\n    Point p0 = out[0].get_point(0);\n    Point p1 = out[0].get_point(1);",
     "checks": [
