@@ -23,12 +23,48 @@ cone x cyl |fuse	45.0294947014537	6
 cone x tor |common	0	0
 cone x tor |cut	16.755160819145559	2
 cone x tor |fuse	42.021348085934328	3
+contain    |common	8.0000000000000018	6
+contain    |cut	56	12
+contain    |fuse	64.000000000000014	6
 cyl  x cyl |common	17.999999976757191	6
 cyl  x cyl |cut	24.411500846704531	7
 cyl  x cyl |fuse	66.823001670166349	8
 cyl  x tor |common	2.2593152393152049	2
 cyl  x tor |cut	40.152185584146999	5
 cyl  x tor |fuse	65.418372850935754	6
+cyl flush  |common	28.274333882308131	3
+cyl flush  |cut	35.725666117691873	7
+cyl flush  |fuse	64	8
+cyl tanline|common	0	0
+cyl tanline|cut	42.411500823462198	3
+cyl tanline|fuse	84.823001646920261	7
+disjoint   |common	0	0
+disjoint   |cut	64.000000000000014	6
+disjoint   |fuse	71.999999999999986	12
+edge touch |common	0	0
+edge touch |cut	64.000000000000014	6
+edge touch |fuse	128	12
+eq boxbox  |common	64.000000000000014	6
+eq boxbox  |cut	0	0
+eq boxbox  |fuse	64.000000000000014	6
+eq cylcyl  |common	42.411500823462198	3
+eq cylcyl  |cut	0	0
+eq cylcyl  |fuse	42.411500823462198	3
+eq sphsph  |common	65.449846949787386	1
+eq sphsph  |cut	0	0
+eq sphsph  |fuse	65.449846949787386	1
+eq tortor  |common	25.266187266788759	1
+eq tortor  |cut	0	0
+eq tortor  |fuse	25.266187266788759	1
+face copl  |common	16	6
+face copl  |cut	48.000000000000007	8
+face copl  |fuse	112	14
+face full  |common	0	0
+face full  |cut	64.000000000000014	6
+face full  |fuse	128	10
+face part  |common	0	0
+face part  |cut	64.000000000000014	7
+face part  |fuse	71.999999999999986	11
 sph  x cone|common	15.9175408098997	3
 sph  x cone|cut	49.532306139887623	4
 sph  x cone|fuse	66.287466959033239	4
@@ -41,6 +77,21 @@ sph  x sph |fuse	81.575052992948912	2
 sph  x tor |common	20.370105337457279	2
 sph  x tor |cut	45.079741612330089	3
 sph  x tor |fuse	70.345928879118844	4
+sph inscr  |common	33.510321638291131	1
+sph inscr  |cut	30.489678361708869	7
+sph inscr  |fuse	64.000000000000014	6
+sph tanext |common	0	0
+sph tanext |cut	65.449846949787371	1
+sph tanext |fuse	69.638637154573743	2
+sph tanint |common	4.1887902047863896	1
+sph tanint |cut	61.261056745000957	2
+sph tanint |fuse	65.449846949787343	1
 tor  x tor |common	6.5365397936698537	12
 tor  x tor |cut	18.72964747315363	9
 tor  x tor |fuse	43.995834739488167	6
+tor linked |common	0	0
+tor linked |cut	25.266187266788759	1
+tor linked |fuse	37.329903056573563	4
+vert touch |common	0	0
+vert touch |cut	64.000000000000014	6
+vert touch |fuse	128	12
