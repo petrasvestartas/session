@@ -1,13 +1,10 @@
 # 19 Link the kernel — your first real Mesh
 
-The hand-rolled cube proved the pipeline; now we draw a **real `session_rust::Mesh`**. The kernel is
-already a dependency (the camera uses `Point`/`Vector`/`Quaternion`/`Xform`), so this lesson is about
-one method: **`mesh.gpu_mesh(&device)`**. The kernel mesh is f64 (half-edge, the modeling
-representation). The GPU wants f32. `gpu_mesh` is the bridge — it flattens the mesh to f32 **once**,
-uploads it, and **caches** the result, handing back a `GpuMesh { vbo, ibo, index_count }` we draw
-exactly like lesson 18's cube. No `cast_slice`, no vertex-layout offsets, no `as f32` loop in the
-viewer — the kernel owns all of it (`RenderVertex::layout()`). This is the f64-compute / f32-draw
-boundary from the precision rule, made concrete.
+The hand-rolled cube proved the pipeline; now a **real `session_rust::Mesh`**. One method does it:
+**`mesh.gpu_mesh(&device)`**. Kernel mesh is f64 (half-edge); GPU wants f32 — `gpu_mesh` flattens
+**once**, uploads, **caches**, returning `GpuMesh { vbo, ibo, index_count }`, drawn like lesson 18's
+cube. No `cast_slice`, offsets, or `as f32` loop in the viewer — the kernel owns it all
+(`RenderVertex::layout()`), the f64-compute/f32-draw boundary made concrete.
 
 ## Why
 
@@ -21,28 +18,26 @@ GpuMesh { vbo, ibo, index_count }   f32, GPU-resident; reused every frame, re-bu
 set_vertex_buffer + set_index_buffer(Uint32) + draw_indexed(0..index_count)
 ```
 
-The cube we typed by hand is exactly what a mesh *is*: a vertex buffer + an index buffer. The only
-differences from lesson 18 are that the buffers now come from the kernel (built from f64 geometry,
-cached on the `Mesh`), the vertex format is the kernel's `RenderVertex` (position **+ normal +**
-RGBA, stride 40), and the indices are **`u32`** (`Uint32`, not `Uint16`). Because `gpu_mesh` caches,
-the flatten+upload runs once; every later frame just re-binds the same buffers — the whole point of
-the split.
+The cube we typed by hand is exactly what a mesh *is*: a vertex buffer + an index buffer. Only three
+differ from lesson 18: buffers come from the kernel (f64 geometry, cached on `Mesh`), vertex format is
+`RenderVertex` (position **+ normal +** RGBA, stride 40), indices are **`u32`** (`Uint32`, not
+`Uint16`). `gpu_mesh` caches, so flatten+upload runs once — later frames just re-bind, the whole point
+of the split.
 
 ### How `Mesh` got wgpu (kernel side, done once)
 
-This lesson doesn't add wgpu to the kernel — that plumbing already lives in `session_rust`, so the
-viewer only ever calls one method. Three small additions made it possible:
+This lesson doesn't add wgpu to the kernel — that plumbing already lives in `session_rust`; the viewer
+calls just one method. Three additions made it possible:
 
-- **`wgpu` is a dependency of `session_rust`.** On wasm it's pulled with the
-  `fragile-send-sync-non-atomic-wasm` feature, so a `Mesh` that now holds a `wgpu::Buffer` still
-  counts as `Send` (the kernel iterates `Vec<Mesh>` in parallel).
-- **`Mesh` carries a `#[serde(skip)]` cache,** `gpu_cache: GpuCache` (an `Option<GpuMesh>`). Being
-  `serde(skip)` it never touches JSON/proto, and its `Clone` resets it to `None` — so the cache is
-  rebuilt on demand and silently dropped whenever the mesh is edited or copied.
-- **`gpu_mesh(&device)` fills that cache:** it flattens the f64 half-edge mesh to f32 once
-  (`to_render()` → `RenderVertex`), uploads the `vbo`/`ibo`, and stores the `GpuMesh`.
+- **`wgpu` is a dependency of `session_rust`** — on wasm via the `fragile-send-sync-non-atomic-wasm`
+  feature, so a `Mesh` holding a `wgpu::Buffer` still counts as `Send` (kernel iterates `Vec<Mesh>` in
+  parallel).
+- **`Mesh` carries a `#[serde(skip)]` cache,** `gpu_cache: GpuCache` (`Option<GpuMesh>`) — skips
+  JSON/proto; `Clone` resets it to `None`, rebuilt on demand when the mesh is edited or copied.
+- **`gpu_mesh(&device)` fills that cache:** flattens the f64 half-edge mesh to f32 once
+  (`to_render()` → `RenderVertex`), uploads `vbo`/`ibo`, stores the `GpuMesh`.
 
-So all the wgpu types and the f64→f32 cast stay *inside* the kernel; from the viewer it's just
+All wgpu types and the f64→f32 cast stay *inside* the kernel; from the viewer it's just
 `mesh.gpu_mesh(&device)` plus a bind and a draw. f64 to compute, f32 to draw.
 
 ## Files we touch
@@ -53,13 +48,13 @@ src/shaders/triangle.wgsl        # read RenderVertex's color (location 2, vec4)
 src/engine/gpu.rs                # hold a Mesh; gpu_mesh() + draw_indexed in clear()
 ```
 
-(`Cargo.toml` already lists `session_rust` — added back in the camera chapters. Nothing to add.)
+(`Cargo.toml` already lists `session_rust`, added in the camera chapters — nothing to add.)
 
 ## Step 1 — the pipeline speaks `RenderVertex`: `src/engine/pipelines/build.rs`
 
-The hand-rolled `Vertex` struct (and its `bytemuck` import) are gone — the kernel's `RenderVertex` is
-the vertex format now, and it already declares its own `layout()`. Delete the struct/impl, import
-`RenderVertex`, and point the pipeline at it:
+The hand-rolled `Vertex` struct (and its `bytemuck` import) are gone — `RenderVertex` is the vertex
+format now, declaring its own `layout()`. Delete the struct/impl, import `RenderVertex`, point the
+pipeline at it:
 
 ```rust
 use session_rust::RenderVertex;     // replaces the local `Vertex` struct + bytemuck import
@@ -78,9 +73,9 @@ pub fn build_triangle_pipeline(/* …unchanged… */) -> wgpu::RenderPipeline {
 
 ## Step 2 — the shader reads `RenderVertex`'s color: `src/shaders/triangle.wgsl`
 
-`RenderVertex` puts color at **location 2** (a `vec4`, RGBA), with the normal at location 1. We don't
-shade yet (lesson 21), so the vertex shader just passes color through — but its input must match the
-new layout. Two lines change:
+`RenderVertex` puts color at **location 2** (`vec4`, RGBA), normal at location 1. No shading yet
+(lesson 21), so the vertex shader just passes color through — input must match the new layout. Two
+lines change:
 
 ```wgsl
 struct VsIn {
@@ -97,13 +92,13 @@ fn vs_main(in: VsIn) -> VsOut {
 }
 ```
 
-(A shader may consume a *subset* of a layout's attributes, so skipping the normal at location 1 is
-fine — we'll pick it up when we add lighting.)
+(A shader may consume a *subset* of a layout's attributes — skipping normal at location 1 is fine,
+picked up when lighting arrives.)
 
 ## Step 3 — hold a `Mesh`: `src/engine/gpu.rs`
 
-Swap the cube's buffers for a `Mesh`. Update the imports (drop the local `Vertex`, add `Mesh`/`Color`),
-replace the three buffer fields with one `mesh`, and build a box in `new()`:
+Swap the cube's buffers for a `Mesh`: update imports (drop `Vertex`, add `Mesh`/`Color`), replace the
+three buffer fields with one `mesh`, build a box in `new()`:
 
 ```rust
 use session_rust::{Color, Mesh, Xform};   // was: session_rust::Xform + build::Vertex
@@ -124,14 +119,13 @@ pub struct Gpu {
         // …then return `mesh` in `Ok(Self { … })` instead of the buffer fields.
 ```
 
-(A new `Mesh` defaults to `ColorMode::OBJECTCOLOR`, and `to_render` honors the mode — so the object
-color shows. Per-vertex colors take over only when the mesh is in `POINTCOLORS` mode, i.e. after
-`set_pointcolors(...)`.)
+(A new `Mesh` defaults to `ColorMode::OBJECTCOLOR`; `to_render` honors the mode, so object color
+shows. Per-vertex colors take over only in `POINTCOLORS` mode, after `set_pointcolors(...)`.)
 
 ## Step 4 — draw the mesh: `src/engine/gpu.rs`
 
-In `clear()`, ask the mesh for its `GpuMesh` and draw it. The first call flattens + uploads and
-caches; every later frame returns the same cached buffers. Indices are `u32` → `Uint32`:
+In `clear()`, ask the mesh for its `GpuMesh` and draw it — first call flattens/uploads/caches, later
+frames return the same buffers. Indices are `u32` → `Uint32`:
 
 ```rust
             let gm = self.mesh.gpu_mesh(&self.device);   // build+upload once, cached thereafter
@@ -143,8 +137,8 @@ caches; every later frame returns the same cached buffers. Indices are `u32` →
             pass.draw_indexed(0..gm.index_count, 0, 0..1);
 ```
 
-(`self.mesh.gpu_mesh(&self.device)` borrows `self.mesh` mutably and `self.device` shared — different
-fields, so it compiles inside `&mut self`. The returned `&GpuMesh` lives as long as you use `gm`.)
+(`self.mesh.gpu_mesh(&self.device)` borrows `self.mesh` mutably, `self.device` shared — different
+fields, compiles inside `&mut self`. `&GpuMesh` lives as long as `gm` is used.)
 
 ## Step 5 — run
 
@@ -152,11 +146,10 @@ fields, so it compiles inside `&mut self`. The returned `&GpuMesh` lives as long
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-A blue box — but this one is a genuine `session_rust::Mesh`, the same type the kernel builds NURBS,
-booleans and file-loaded geometry into. Orbit, fit (`F`), named views all work. Swap
-`Mesh::create_box(…)` for `Mesh::cube(1000.0)`, a sphere, or any kernel constructor and it just draws
-— because everything now flows through `gpu_mesh`. (It's a flat solid for now; per-vertex normals and
-lighting arrive in lesson 21, and they're already in the buffer at location 1.)
+A blue box — but a genuine `session_rust::Mesh`, the type the kernel builds NURBS, booleans and
+file-loaded geometry into. Orbit, fit (`F`), named views work. Swap `Mesh::create_box(…)` for
+`Mesh::cube(1000.0)`, a sphere, or any constructor — it draws through `gpu_mesh`. (Flat solid for now;
+normals/lighting arrive lesson 21, already in the buffer at location 1.)
 
 ## Recap
 
@@ -173,6 +166,5 @@ Edited: `pipelines/build.rs` (`RenderVertex::layout()`, drop local `Vertex`), `s
 
 ## Next
 
-`20-grid.md` — a procedural ground grid (a second pipeline: its own shader + one draw), so the box
-has a floor to sit on and the scene reads as 3D space. After that, mesh shading (lesson 21) lights
-the box using the normals already sitting in `RenderVertex`.
+`20-grid.md` — a procedural ground grid (a second pipeline, its own shader + one draw) so the box has
+a floor. Then mesh shading (lesson 21) lights the box using the normals already in `RenderVertex`.

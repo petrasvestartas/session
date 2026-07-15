@@ -9,7 +9,8 @@
 
 use crate::engine::pipelines::Pipelines;
 use crate::engine::pipelines::build::MSAA_SAMPLES;
-use session_rust::{Color, Mesh, Xform, RenderVertex};
+use crate::engine::performance::Performance;
+use session_rust::{Color, Mesh, BRep, Xform, RenderVertex};
 
 pub struct Gpu {
     pub surface: wgpu::Surface<'static>,     // Screen to draw pixels on.
@@ -19,13 +20,18 @@ pub struct Gpu {
     pub pipelines: Pipelines,
     pub mvp_buffer: wgpu::Buffer,            // Camera matrix
     pub mvp_bind_group: wgpu::BindGroup,     // Camera matrix
-    pub meshes: Vec<Mesh>,
+    pub arena_vbo: wgpu::Buffer,
+    pub arena_vids: wgpu::Buffer,
+    pub arena_ibo: wgpu::Buffer,
+    pub arena_index_count: u32,
+    instances: Vec<Instance>,
+    pub instance_bind_group: wgpu::BindGroup,
     pub time: f32,
     pub time_buffer: wgpu::Buffer,
     pub time_bind_group: wgpu::BindGroup,
     pub depth_view: wgpu::TextureView,
-    pub edge_buffers: Vec<(wgpu::Buffer, u32)>,
     pub msaa_view: wgpu::TextureView,
+    pub performance: Performance,
 }
 
 impl Gpu {
@@ -142,44 +148,80 @@ impl Gpu {
 
 
 
+        // A scene of difference meshes 
+        let objects: Vec<(Mesh, Xform, [f32; 4])> = vec![
+            (Mesh::create_box(600.0, 600.0, 600.0),      Xform::translation(-2400.0, 0.0, 0.0), [0.90, 0.30, 0.30, 1.0]),
+            (Mesh::create_dodecahedron(400.0),           Xform::translation(-1200.0, 0.0, 0.0), [0.90, 0.70, 0.20, 1.0]),
+            (BRep::create_sphere(380.0).mesh(),          Xform::translation(    0.0, 0.0, 0.0), [0.30, 0.80, 0.40, 1.0]),
+            (BRep::create_cylinder(320.0, 800.0).mesh(), Xform::translation( 1200.0, 0.0, 0.0), [0.30, 0.60, 0.90, 1.0]),
+            (BRep::create_torus(360.0, 140.0).mesh(),    Xform::translation( 2400.0, 0.0, 0.0), [0.70, 0.40, 0.90, 1.0]),
+        ];
 
-        // Pipelines
-        let pipelines = Pipelines::new(&device, config.format, &mvp_layout, &time_layout);
+        let mut verts: Vec<RenderVertex> = Vec::new(); // slot 0 - every mesh's vertices, concatenated
+        let mut vids: Vec<u32> = Vec::new(); // slot 1 - one row id per vertex (@location 3)
+        let mut idx: Vec<u32> = Vec::new(); // the shared index buffer
+        let mut instances: Vec<Instance> = Vec::with_capacity(objects.len());
 
-        // Create three corners to transfer vertex data to the shader
-        const H: f64 = 1000.0; // half size cube
-        let mut mesh = Mesh::create_box(H, H, H);
-        mesh.set_objectcolor(Color::new(0.2, 0.5, 0.9, 1.0));
-
-        let mut flat = Mesh::create_dodecahedron(500.0);
-        flat.transform(&Xform::translation(-1600.0, 0.0, 0.0));
-        flat.set_objectcolor(Color::new(0.9, 0.5, 0.2, 1.0));
-
-        let mut smooth = Mesh::create_dodecahedron(500.0);
-        smooth.transform(&Xform::translation(1600.0, 0.0, 0.0));
-        smooth.set_objectcolor(Color::new(0.9, 0.5, 0.2, 1.0));
-        smooth.compute_vertex_normals(); // area-weighted, stored per vertex
-
-        let meshes = vec![mesh, flat, smooth];
-
-        let mut edge_buffers: Vec<(wgpu::Buffer, u32)> = Vec::new();
-        for mesh in &meshes {
-            let ec = mesh.get_linecolors().first().cloned().unwrap_or(Color::black());
-            let mut verts: Vec<RenderVertex> = Vec::new();
-            for (a,b) in mesh.edges(){
-                let pa = mesh.vertex_point(a).unwrap();
-                let pb = mesh.vertex_point(b).unwrap();
-                verts.push(RenderVertex::point(pa, &ec ));
-                verts.push(RenderVertex::point(pb, &ec ));
+        for (ri, (mesh, model, color)) in objects.into_iter().enumerate(){
+            instances.push(Instance{model: model.to_f32(), color, flags: 0, _pad: [0; 3]});
+            let base = verts.len() as u32; // where the mesh vertices begin in the arena
+            let rm = mesh.to_render(); // f64 -> f32 flatten
+            for v in &rm.vertices {
+                verts.push(*v);
+                vids.push(ri as u32);
             }
-            let vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
-                label: Some("edges.vbo"),
-                contents: bytemuck::cast_slice(&verts),
-                usage: wgpu::BufferUsages::VERTEX,
-            });
-            edge_buffers.push((vbo, verts.len() as u32));
+            for &i in &rm.indices{
+                idx.push(base + i);
+            }
         }
 
+        let arena_index_count = idx.len() as u32;
+
+
+        let instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("instance.buffer"),
+            contents: bytemuck::cast_slice(&instances),
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let instance_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
+            label: Some("instance.layout"),
+            entries: &[wgpu::BindGroupLayoutEntry{
+                binding: 0,
+                visibility: wgpu::ShaderStages::VERTEX,
+                ty: wgpu::BindingType::Buffer { 
+                    ty: wgpu::BufferBindingType::Storage { read_only: true }, 
+                    has_dynamic_offset: false, 
+                    min_binding_size: None,
+                },
+                count: None,
+            }],
+        });
+
+        let instance_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("instances.bind_group"),
+            layout: &instance_layout,
+            entries: &[wgpu::BindGroupEntry {binding: 0, resource: instance_buffer.as_entire_binding()}],
+        });
+
+        let arena_vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("arena.vbo"),
+            contents: bytemuck::cast_slice(&verts), usage: wgpu::BufferUsages::VERTEX,
+        });
+
+        let arena_vids = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("arena.vids"),
+            contents: bytemuck::cast_slice(&vids), usage: wgpu::BufferUsages::VERTEX,
+        });
+
+        let arena_ibo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("arena.ibo"),
+            contents: bytemuck::cast_slice(&idx), usage: wgpu::BufferUsages::INDEX,
+        });
+
+
+        // Pipelines
+        let pipelines = Pipelines::new(&device, config.format, &mvp_layout, &time_layout, &instance_layout);
 
 
         // Output
@@ -192,13 +234,18 @@ impl Gpu {
             pipelines, 
             mvp_buffer, 
             mvp_bind_group, 
-            meshes,
+            arena_vbo,
+            arena_vids,
+            arena_ibo,
+            arena_index_count,
+            instances,
+            instance_bind_group,
             time: 0.0, 
             time_buffer, 
             time_bind_group,
             depth_view,
-            edge_buffers,
             msaa_view,
+            performance: Performance::new()
          })
     }
 
@@ -232,6 +279,8 @@ impl Gpu {
             label: Some("clear encoder"),
         });
 
+        let mut draws = 0u32;
+
         {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("clear pass"),
@@ -255,40 +304,41 @@ impl Gpu {
                 occlusion_query_set: None,
                 multiview_mask: None,
             });
+       
 
             // Pipelines - sequence of drawing is important
 
             // Background
             pass.set_pipeline(&self.pipelines.background);
-            pass.draw(0..3, 0..1);
+            pass.draw(0..3, 0..1); 
+            draws += 1;
 
             // Grid first as the depth writes are off, all objects paints over it
             pass.set_pipeline(&self.pipelines.grid);
             pass.set_bind_group(0, &self.mvp_bind_group, &[]);
             pass.draw(0..50, 0..1);
+            draws += 1;
 
             // Meshes - coordinates, colors and normals are inside the gb.vbo computed
             pass.set_pipeline(&self.pipelines.triangle);
             pass.set_bind_group(0, &self.mvp_bind_group, &[]);
             pass.set_bind_group(1, &self.time_bind_group, &[]);
-            for mesh in &mut self.meshes{
-                let gm = mesh.gpu_mesh(&self.device); // build and upload once
-                pass.set_vertex_buffer(0, gm.vbo.slice(..));
-                pass.set_index_buffer(gm.ibo.slice(..), wgpu::IndexFormat::Uint32);
-                pass.draw_indexed(0..gm.index_count, 0, 0..1)
-            }
+            pass.set_bind_group(2, &self.instance_bind_group, &[]);
 
-            // Mesh Edges
-            pass.set_pipeline(&self.pipelines.edges);
-            pass.set_bind_group(0, &self.mvp_bind_group, &[]);
-            for (vbo, count) in &self.edge_buffers{
-                pass.set_vertex_buffer(0, vbo.slice(..));
-                pass.draw(0..*count, 0..1);
-            }
+            pass.set_vertex_buffer(0, self.arena_vbo.slice(..)); // slot 0 - vertices
+            pass.set_vertex_buffer(1, self.arena_vids.slice(..)); // slot 1 - per-vertex row ids
+            pass.set_index_buffer(self.arena_ibo.slice(..), wgpu::IndexFormat::Uint32);
+            pass.draw_indexed(0..self.arena_index_count, 0, 0..1); // whole scene, one call
+            draws += 1;
+
+
         }
-        
+
+
+        let objects = self.instances.len() as u32;
         self.queue.submit([encoder.finish()]);
         output.present();
+        self.performance.frame(draws, objects);
         Ok(())
     }
 
@@ -320,4 +370,24 @@ impl Gpu {
         });
         texture.create_view(&wgpu::TextureViewDescriptor::default())
     }
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+struct Instance {
+    model: [f32; 16], // 64 B - column-major, from Xform::to_f32()
+    color: [f32; 4], // 16 B
+    flags: u32, // 4 B - reserved (selection)
+    _pad: [u32; 3], // 12 B - pad the row to 96 B (storage array stride)
+}
+
+// Memory layout is 16 (12+4), 16 (12+4) and 16
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+struct CylinderSegment{
+    p0: [f32; 3],   // 12 B - start point 
+    radius: f32,    // 4 B - 0.0 to screen-constant px (default); > 0 0 -> wolrd mm override
+    p1: [f32; 3],   // 12 B - end point (p0..instance_id = 32 B of geometry)
+    instance_id: u32,  // 4 B - row in instances[]: object model + flags (hide/select later)
+    color: [f32; 4],  // 16 B - per - edge (black crease, naked color, ...)
 }

@@ -39,39 +39,37 @@ wasm-opt = false
 
 ## package
 
-This section describes what this crate is such as name, version, Rust language edition.
-At the time of writing I use `rustc 1.96.0`, which can be update by `rustup update`
+Crate name, version, Rust edition. Written against `rustc 1.96.0` (update via `rustup update`).
 
 ## lib
 
-This section describes what kind of output to produce. `cdylib` stands for "C dynamic library" this is what compiles to WebAssembly (.wasm) for the browser.
-By C, I don't mean C language, but C ABI.
+The output kind. `cdylib` ("C dynamic library" — C ABI, not the C language) compiles to WebAssembly (.wasm) for the browser.
 
 ## dependencies
 
-- session_rust - geometry kernel
-- anyhow - easy erron handling e.g. `Result<T>` with `?`
-- winit - creates the windows + event loop to resize, redraw, close a window
-- wgpu - the GPU API - talks to WebGPU/WebGL
-- log - hands of message
-- console_log - actually prints in web development tools
-- console_error_panic_hook - helps to debug Rust code in web
-- wasm-bindgen - the bridge between Rust <-> Javascript
-- wasm-bindgen-futures - run Rust async like State::new on the browser's event loop
-- web-sys - typed bindings to browser APIs such as Event, Window, Element
-- getrandom - random number support
-- js-sys - Rust bindings to plain JavaScript like Array, Date, Math, read browser pixel ratio when resizin canvas
-- bytemuck - send vertices to GPU
-- pollster - run async in native test
-- egui - draw toolbar
-- egui-wgpu - paint the panel on the same wgpu frame as the 3D scene.
-- egui-winit - enable clicking buttons in the panel
-- egui_extras - show SVG tool icons.
+- session_rust — geometry kernel
+- anyhow — `Result<T>` + `?` error handling
+- winit — window and event loop: resize, redraw, close
+- wgpu — the GPU API, talks to WebGPU/WebGL
+- log — logging facade
+- console_log — prints log messages to devtools
+- console_error_panic_hook — surfaces Rust panics in the browser console
+- wasm-bindgen — the Rust ↔ JavaScript bridge
+- wasm-bindgen-futures — runs Rust async (e.g. `State::new`) on the browser's event loop
+- web-sys — typed bindings to browser APIs (Event, Window, Element, …)
+- getrandom — random number support
+- js-sys — bindings to plain JS (Array, Date, Math); reads the browser pixel ratio on resize
+- bytemuck — casts vertices into GPU byte buffers
+- pollster — runs async in native tests
+- egui — the toolbar UI
+- egui-wgpu — paints the panel in the same wgpu frame as the 3D scene
+- egui-winit — routes input events into egui
+- egui_extras — SVG tool icons
 
 ## profile.release
 
-How releas builds are tuned. When `strip = true` all the debug symbols are removed for smaller download.
+Release-build tuning. `strip = true` drops debug symbols for a smaller download.
 
 ## package.metadata.wasm-pack.profile.release
 
-The option `wasm-opt` is a tool that shrinks the .wasm file after building. We used feature "bulk memoery" which crashed the application. Therefore it is turned off here.
+`wasm-opt` shrinks the .wasm after build, but its "bulk memory" feature crashed the app — disabled here.

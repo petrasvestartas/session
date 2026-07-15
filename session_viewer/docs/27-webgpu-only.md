@@ -1,11 +1,11 @@
 # 27 WebGPU-only — unlock storage buffers (Phase 4 opens)
 
-Everything so far ran under **WebGL2 fallback limits**, and those limits set
+Everything so far ran under **WebGL2 fallback limits**, which set
 `max_storage_buffers_per_shader_stage = 0` — storage buffers are *forbidden*. That's the one feature
-the next phase is built on: instancing (29), the GPU arena (30), and cylinder-lines (31) all stream
-thousands of objects through a **storage buffer** the vertex shader indexes by `instance_index`.
-This lesson makes the locked-in call — **browser-only + WebGPU-only** — and flips three switches to
-turn storage buffers on, with a graceful "WebGPU required" screen for browsers that can't run it.
+the next phase needs: instancing (29), the GPU arena (30), and cylinder-lines (31) all stream
+thousands of objects through a **storage buffer** the vertex shader indexes by `instance_index`. This
+lesson locks in **browser-only + WebGPU-only**, flips three switches to turn storage buffers on, and
+adds a graceful "WebGPU required" screen for browsers that can't run it.
 
 ## Why this trade
 
@@ -17,9 +17,9 @@ max_compute_* = 0                    →   > 0   (future GPU culling, 76)
 runs on WebGL2 fallback browsers     →   needs a real WebGPU browser
 ```
 
-WebGPU is shipping in Chrome, Edge, and Safari 18+, so "needs WebGPU" is a small ask for a CAD tool
-in 2026 — and it buys the entire scalable-rendering half of the roadmap. We drop the WebGL fallback
-rather than carry two code paths forever (the locked decision in `reference_webgpu_cad_caveats`).
+WebGPU ships in Chrome, Edge, and Safari 18+, so "needs WebGPU" is a small ask for a 2026 CAD tool —
+and it buys the entire scalable-rendering half of the roadmap. We drop the WebGL fallback rather than
+carry two code paths forever (locked decision, `reference_webgpu_cad_caveats`).
 
 ## Files we touch
 
@@ -31,8 +31,7 @@ index.html                   # "WebGPU required" overlay + a navigator.gpu check
 
 ## Step 1 — drop the WebGL feature: `Cargo.toml`
 
-The `webgl` feature is what pulls in wgpu's WebGL2 backend. Remove it so the wasm build targets
-WebGPU only:
+The `webgl` feature pulls in wgpu's WebGL2 backend — remove it so the wasm build targets WebGPU only:
 
 ```toml
 wgpu = { version = "29.0" }        # was: features = ["webgl"]
@@ -40,9 +39,8 @@ wgpu = { version = "29.0" }        # was: features = ["webgl"]
 
 ## Step 2 — WebGPU-only device: `src/engine/gpu.rs`
 
-Three edits in `new()`. First, the **backend**: drop `| Backends::GL`. Keep native builds working
-(the `selftest` example) by target-gating — the browser gets WebGPU, a native run gets the real
-platform backends:
+Three edits in `new()`. First, the **backend**: drop `| Backends::GL`, target-gated so native builds
+(the `selftest` example) keep working — browser gets WebGPU, native gets the real platform backends:
 
 ```rust
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
@@ -58,16 +56,16 @@ platform backends:
         });
 ```
 
-Second, the **limits** — this is the line that unlocks storage buffers. Swap the WebGL2 downlevel
-defaults for the full WebGPU defaults:
+Second, the **limits** — the line that unlocks storage buffers. Swap the WebGL2 downlevel defaults for
+the full WebGPU defaults:
 
 ```rust
                 required_limits: wgpu::Limits::default(),   // was downlevel_webgl2_defaults()
 ```
 
 Third, right after `let (device, queue) = adapter.request_device(…).await?;`, register an
-uncaptured-error logger so GPU validation errors show up in the console instead of vanishing (note
-it takes an **`Arc`**, not a `Box`):
+uncaptured-error logger so GPU validation errors show up in the console instead of vanishing (takes an
+**`Arc`**, not a `Box`):
 
 ```rust
         device.on_uncaptured_error(std::sync::Arc::new(|e| {
@@ -75,15 +73,15 @@ it takes an **`Arc`**, not a `Box`):
         }));
 ```
 
-The existing `request_adapter(…).await?` already turns "no WebGPU adapter" into an error that
-propagates out of `new()` — the next step makes that failure legible to the user.
+`request_adapter(…).await?` already turns "no WebGPU adapter" into an error that propagates out of
+`new()` — the next step makes that failure legible to the user.
 
 ## Step 3 — "WebGPU required" screen: `index.html`
 
-If the browser has no WebGPU at all, `Gpu::new()` would fail somewhere deep and the canvas would just
-stay black. Catch it up front with one script — no wasm needed, so it works even when nothing else
-can load. It injects the message **only when WebGPU is missing**, so there's nothing dead in the DOM
-on the common path. Put the look in the existing `<style>` block in the head:
+With no WebGPU at all, `Gpu::new()` fails somewhere deep and the canvas just stays black. Catch it up
+front with one script — no wasm needed, so it works even when nothing else loads. It injects the
+message **only when WebGPU is missing**, so nothing sits dead in the DOM on the common path. Style
+goes in the existing `<style>` block in the head:
 
 ```css
     #no-webgpu { position:fixed; inset:0; background:#111; color:#eee;
@@ -101,8 +99,8 @@ on the common path. Put the look in the existing `<style>` block in the head:
   </script>
 ```
 
-It reads plainly: *if there's no WebGPU, append the message*. `insertAdjacentHTML("beforeend", …)`
-*appends* — it never wipes the body, so the canvas and trunk's wasm loader stay intact. The div is
+Plain reading: *if there's no WebGPU, append the message*. `insertAdjacentHTML("beforeend", …)`
+*appends* — never wipes the body, so the canvas and trunk's wasm loader stay intact. The div is
 `position:fixed` and added last, so it paints over the canvas with no `z-index` needed.
 
 ## Step 4 — run and confirm the unlock
@@ -119,7 +117,7 @@ two ways:
 - Open the page in a browser with WebGPU disabled (or an old one) — the **"WebGPU required"** overlay
   appears instead of a black canvas.
 
-That storage-buffer limit going positive is the green light for lesson 29 onward.
+That positive storage-buffer limit is the green light for lesson 29 onward.
 
 ## Recap
 
@@ -136,7 +134,6 @@ Edited: `Cargo.toml` (drop `webgl`), `engine/gpu.rs` (`BROWSER_WEBGPU`/`PRIMARY`
 
 ## Next
 
-`28-perf.md` — before we start collapsing draw calls, we need to *see* them. A tiny `engine/perf.rs`
-counts frame time, fps, and draw calls (≈3 today: grid, meshes, edges) and logs once a second — so
-when instancing and batching land in 29–30, you watch the draw count fall instead of taking it on
-faith.
+`28-perf.md` — before collapsing draw calls, we need to *see* them. A tiny `engine/perf.rs` counts
+frame time, fps, and draw calls (≈3 today: grid, meshes, edges), logging once a second — so when
+instancing and batching land in 29–30, you watch the draw count fall instead of taking it on faith.

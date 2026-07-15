@@ -1,19 +1,18 @@
 # 14 Named views & reset
 
-Orbit/pan/zoom let you *find* a viewpoint; CAD also wants to *snap* to the canonical ones —
-**Front, Back, Left, Right, Top, Bottom, Iso** — and a single key to get **home** again. Each
-named view is just a fixed `(yaw, pitch)` pair fed into the camera we already have, plus one
-convention: a named view switches to **orthographic** (a measured, parallel projection — the whole
-point of looking "straight on"). No new camera math, no new matrix — only presets and key bindings.
+Orbit/pan/zoom *find* a viewpoint; CAD also wants to *snap* to the canonical ones — **Front, Back,
+Left, Right, Top, Bottom, Iso** — plus a **home** key. A named view is a fixed `(yaw, pitch)` pair
+fed into the existing camera, with one convention: it switches to **orthographic** (measured,
+parallel — the point of looking "straight on"). No new math, no new matrix — just presets and key
+bindings.
 
 ## Why
 
-A named view is the camera's `yaw`/`pitch` set to known angles. "Front" means looking down −Z
-with the eye on +Z; "Right" means the eye on +X; "Iso" is the classic 35.26° three-quarter angle.
-Because our `Camera` already turns `(yaw, pitch, distance, target)` into a `view_proj`, the feature
-collapses to: *pick the two angles, flip to ortho.* The quaternion turntable (lesson 17) will make
-Top/Bottom perfectly pole-stable; for now we sit a hair under the pole, which is why this lesson is
-a handful of lines, not a rewrite.
+A named view is `yaw`/`pitch` set to known angles: "Front" looks down −Z with the eye on +Z, "Right"
+puts the eye on +X, "Iso" is the classic 35.26° three-quarter angle. Since `Camera` already turns
+`(yaw, pitch, distance, target)` into a `view_proj`, the feature is just *pick two angles, flip to
+ortho*. The quaternion turntable (lesson 17) makes Top/Bottom pole-stable; for now we sit a hair
+under the pole.
 
 ```
 Front  (1)  yaw 0       pitch 0          Top    (5)  yaw 0   pitch ~+90°
@@ -32,9 +31,9 @@ src/lib.rs      # bind digit keys 1–7 to the views and `C` to reset
 ## Step 1 — the views: `src/camera.rs`
 
 Add a `View` enum above `impl Camera`, and a `set_view` method inside the existing `impl Camera`
-block. The match picks the two angles; the last line flips to orthographic. `Top`/`Bottom` sit at
+block: the match picks the two angles, the last line flips to orthographic. `Top`/`Bottom` sit at
 `±(π/2 − 0.001)` — dead-on vertical is a gimbal pole for our fixed `up = +Y` (lesson 17 fixes it
-properly with a quaternion):
+with a quaternion):
 
 ```rust
 /// The seven canonical CAD views, as (yaw, pitch) presets for our spherical camera.
@@ -65,8 +64,8 @@ impl Camera {
 
 ## Step 2 — home: `src/camera.rs`
 
-`reset` goes back to the exact state `new()` builds — angles, distance, target, and perspective
-on. Since `new()` already encodes "home", reset is one line:
+`reset` returns to the exact state `new()` builds — angles, distance, target, perspective on. Since
+`new()` already encodes "home", reset is one line:
 
 ```rust
     /// Reset to the home view — the angles, distance and target `new()` starts at, perspective on.
@@ -83,9 +82,9 @@ Bring the `View` enum into scope next to the other `use crate::…` lines:
 use crate::camera::View;
 ```
 
-Then widen the keyboard arm. It currently only handles `Space`; turn the single `if` into a
-`match` on the (pressed, non-repeat) logical key — `Space` still toggles projection, digits `1`–`7`
-snap to a view, and `C` goes home:
+Then widen the keyboard arm: it currently only handles `Space`, so turn the single `if` into a
+`match` on the (pressed, non-repeat) logical key — `Space` toggles projection, `1`–`7` snap to a
+view, `C` goes home:
 
 ```rust
             WindowEvent::KeyboardInput { event, ..} => {
@@ -106,8 +105,8 @@ snap to a view, and `C` goes home:
             }
 ```
 
-(`logical_key.as_ref()` borrows the key as `Key<&str>`, so a `Character` matches a plain string
-literal like `"1"`. `Key` and `NamedKey` are already imported from lesson 9.)
+(`logical_key.as_ref()` borrows the key as `Key<&str>`, so `Character` matches a plain string
+literal like `"1"`; `Key`/`NamedKey` are already imported from lesson 9.)
 
 ## Step 4 — run
 
@@ -115,10 +114,10 @@ literal like `"1"`. `Key` and `NamedKey` are already imported from lesson 9.)
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-Tap `1`–`7` to snap through Front/Back/Left/Right/Top/Bottom/Iso — each one jumps to ortho, so the
-two triangles project flat. Orbit with the right mouse to leave the snap (perspective stays off
-until you hit `Space`), and press `C` to fly home to the three-quarter perspective view. Orbiting
-after a Top view re-clamps the pitch back under the pole — expected until the quaternion camera.
+Tap `1`–`7` to snap through Front/Back/Left/Right/Top/Bottom/Iso — each jumps to ortho, flattening
+the triangles. Right-mouse orbit leaves the snap (perspective stays off until `Space`); `C` flies
+home to the three-quarter view. Orbiting after Top re-clamps the pitch under the pole — expected
+until the quaternion camera.
 
 ## Recap
 
@@ -133,5 +132,5 @@ digit/`C` key arms).
 
 ## Next
 
-`15-fit.md` — **F** frames the scene (or the selection) by setting `target` to the bounding-box
-centre and `distance` so it fills the view — the other half of "get me to a useful viewpoint".
+`15-fit.md` — **F** frames the scene (or selection) by setting `target` to the bounding-box centre
+and `distance` to fill the view — the other half of "get me to a useful viewpoint".

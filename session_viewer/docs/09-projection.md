@@ -1,19 +1,43 @@
 # 09 Perspective vs orthographic
 
-Add a **projection switch**: press **Space** to flip between **perspective** (far looks
-smaller — for 3D) and **orthographic** (no foreshortening, true-to-scale — for CAD views).
-Same camera, same spinning triangle; only the projection matrix changes.
+Press **Space** to flip between **perspective** (far shrinks — 3D) and **orthographic** (no
+foreshortening, true-to-scale — CAD). Same camera, same spinning triangle; only the
+projection matrix changes.
+
+<svg viewBox="0 0 560 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="perspective frustum converges toward the eye; orthographic box stays parallel" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="120" y="16" fill="#888" text-anchor="middle">perspective — converges</text>
+  <g stroke="#6fb3ff" stroke-width="1.5" fill="none">
+    <circle cx="20" cy="75" r="3" fill="#6fb3ff"/>
+    <line x1="20" y1="75" x2="220" y2="30"/>
+    <line x1="20" y1="75" x2="220" y2="120"/>
+    <line x1="120" y1="52" x2="120" y2="98"/>
+    <line x1="220" y1="30" x2="220" y2="120"/>
+  </g>
+  <text x="20" y="94" fill="#666" text-anchor="middle">eye</text>
+  <text x="120" y="112" fill="#666" text-anchor="middle">near</text>
+  <text x="220" y="134" fill="#666" text-anchor="middle">far</text>
+  <text x="430" y="16" fill="#888" text-anchor="middle">orthographic — parallel</text>
+  <g stroke="#6fb3ff" stroke-width="1.5" fill="none">
+    <line x1="330" y1="30" x2="330" y2="120"/>
+    <line x1="530" y1="30" x2="530" y2="120"/>
+    <line x1="330" y1="30" x2="530" y2="30"/>
+    <line x1="330" y1="120" x2="530" y2="120"/>
+  </g>
+  <text x="330" y="134" fill="#666" text-anchor="middle">near</text>
+  <text x="530" y="134" fill="#666" text-anchor="middle">far</text>
+  <text x="430" y="146" fill="#d7dae0" text-anchor="middle">same size at any depth</text>
+</svg>
 
 ## The two projections
 
-- **Perspective** — parallel lines converge, distant things shrink. What an eye/lens sees.
+- **Perspective** — parallel lines converge, distant things shrink; what an eye/lens sees.
   `Xform::perspective(fov_y, aspect, near, far)`.
-- **Orthographic** — no convergence; size is independent of distance. Lengths stay true, so
-  CAD top/front/side views use it. `Xform::orthographic(left, right, bottom, top, near, far)`.
+- **Orthographic** — no convergence, size independent of distance; true lengths, so CAD
+  top/front/side views use it. `Xform::orthographic(left, right, bottom, top, near, far)`.
 
-Both replace only the **projection** in `mvp = projection * view * model` — view and model
-are unchanged. With ortho the spinning triangle keeps a constant size (and flattens to a
-line edge-on); with perspective it grows/shrinks as it turns.
+Both swap only the **projection** in `mvp = projection * view * model` — view and model stay
+put. Ortho keeps the triangle a constant size (flattens to a line edge-on); perspective
+grows/shrinks it as it turns.
 
 ## Files we touch
 
@@ -60,8 +84,8 @@ Add a method to flip it:
     }
 ```
 
-(`Xform::orthographic` is the same 0..1-depth, column-major form as `perspective`, so nothing
-else changes.)
+(`Xform::orthographic` matches `perspective`'s 0..1-depth, column-major form — nothing else
+changes.)
 
 
 ## Step 2 — the Space key toggles it: `src/lib.rs`
@@ -87,7 +111,7 @@ Add a `KeyboardInput` arm to the `match event` in `window_event` (next to
             }
 ```
 
-`!event.repeat` means one flip per physical press (held keys fire repeatedly otherwise).
+`!event.repeat`: one flip per press — held keys repeat otherwise.
 
 
 ## Step 3 — run
@@ -96,9 +120,8 @@ Add a `KeyboardInput` arm to the `match event` in `window_event` (next to
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-Click the canvas (so it has keyboard focus), then tap **Space**: the triangle switches
-between perspective (grows/shrinks as it spins) and orthographic (constant size, flattens
-edge-on). Resize still works in both.
+Click the canvas for focus, then tap **Space**: perspective grows/shrinks as it spins,
+orthographic holds a constant size and flattens edge-on. Resize still works in both.
 
 
 ## Recap
@@ -109,11 +132,11 @@ Ch 9:  projection = if perspective { perspective } else { orthographic }   ← S
 ```
 
 Edited: `gpu.rs` (flag + branch + `toggle_projection`), `lib.rs` (Space key). Untouched:
-the shader, `build.rs`, `mod.rs`, `state.rs`.
+shader, `build.rs`, `mod.rs`, `state.rs`.
 
 
 ## Next
 
-`10-orbit-camera.md` — put the **view** on the mouse: right-drag to orbit, scroll to zoom,
-by moving the `eye` passed to `Xform::look_at_right_handed`. This chapter's keyboard arm is
-the first input handler; chapter 10 adds mouse input the same way.
+`10-orbit-camera.md` — the **view** moves to the mouse: right-drag orbits, scroll zooms, by
+moving the `eye` passed to `Xform::look_at_right_handed`. Same pattern as this chapter's
+keyboard arm, now for mouse input.

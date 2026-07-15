@@ -19,7 +19,7 @@
     "group": "NurbsKnot",
     "test_name": "Make Periodic Uniform",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.0,
     "line": 25,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // 0 1 2 3 4 5 6\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots = nurbsknot::make_periodic_uniform(order, cv_count);",
     "checks": [
@@ -35,7 +35,7 @@
     "group": "NurbsKnot",
     "test_name": "Is Clamped",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.003,
     "line": 35,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // 0 0 0 1 2 2 2\n    // 0 1 2 3 4 5 6\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots_periodic = nurbsknot::make_periodic_uniform(order, cv_count);\n    std::vector<double> nurbsknots_clamped = nurbsknot::make_clamped_uniform(order, cv_count);\n    bool is_not_clamped = nurbsknot::is_clamped(order, cv_count, nurbsknots_periodic);\n    bool is_clamped = nurbsknot::is_clamped(order, cv_count, nurbsknots_clamped);",
     "checks": [
@@ -51,7 +51,7 @@
     "group": "NurbsKnot",
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 50,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // Reverses NURBS curve direction: flip control points + reverse nurbsknots\n    // Steps: 1) reverse array  2) remap nurbsknot[i] = t0 + t1 - nurbsknot[i] to preserve domain\n\n    // Symmetric nurbsknot vector -> reverse gives back the same (palindrome)\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots_sym = nurbsknot::make_clamped_uniform(order, cv_count);\n    nurbsknot::reverse(order, cv_count, nurbsknots_sym);\n\n    // Asymmetric nurbsknot vector -> extra nurbsknot at 0.5 shifts to 1.5 after reverse\n    // 0 0 0 0.5 1 2 2 2 -> 0 0 0 1 1.5 2 2 2\n    std::vector<double> nurbsknots_asym = {0.0, 0.0, 0.0, 0.5, 1.0, 2.0, 2.0, 2.0};\n    nurbsknot::reverse(4, 6, nurbsknots_asym);",
     "checks": [
@@ -120,7 +120,7 @@
     "group": "NurbsKnot",
     "test_name": "Build Interpolation NurbsKnots",
     "passed": true,
-    "time_ms": 0.016,
+    "time_ms": 0.001,
     "line": 106,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    std::vector<double> params = {0.0, 1.0, 2.0, 3.0};\n    int degree = 3;\n    // cv_count = n + 2 = 6 (natural end conditions add 2 CVs)\n    // kc = order + cv_count - 2 = 4 + 6 - 2 = 8\n    //   [0, 0, 0,  |  1, 2,  |  3, 3, 3]\n    //   <-clamp->    interior    <-clamp->\n    std::vector<double> nurbsknots = nurbsknot::build_interp_nurbsknots(params, degree);",
     "checks": [
@@ -168,7 +168,7 @@
     "group": "NurbsKnot",
     "test_name": "Build Fitted NurbsKnots Periodic Adaptive",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 147,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // Periodic version for closed curves -- nurbsknots wrap around\n    // For a regular square (equal turns, equal chords), nurbsknots are uniformly spaced\n    double pts[] = {0,0,0, 1,0,0, 1,1,0, 0,1,0};\n    std::vector<double> params = {0.0, 1.0, 2.0, 3.0, 4.0};\n    std::vector<double> nurbsknots = nurbsknot::build_fitted_nurbsknots_periodic_adaptive(params, pts, 4, 3, 4, 3);",
     "checks": [

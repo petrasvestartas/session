@@ -1,17 +1,16 @@
 # 13 Camera module (refactor)
 
-`gpu.rs` has quietly become two things: the **GPU layer** (device, surface, pipelines, buffers)
-*and* the **camera** (yaw/pitch/distance/target, orbit/pan/zoom, the view·projection matrix).
-This chapter splits them. The camera moves into its own `camera.rs`; `gpu.rs` goes back to being
-pure plumbing that's simply *handed* a matrix to upload. No new feature — same picture on screen —
-but the layering is now "distribute, don't smash": `State` owns the camera and drives the GPU;
-the GPU never reaches up.
+`gpu.rs` has become two things: the **GPU layer** (device, surface, pipelines, buffers) and the
+**camera** (yaw/pitch/distance/target, orbit/pan/zoom, view·projection). This chapter splits them —
+camera math moves to `camera.rs`, `gpu.rs` goes back to plumbing that's simply *handed* a matrix.
+Same picture, better layering: `State` owns the camera and drives the GPU; the GPU never reaches
+up.
 
 ## Why
 
-One file owning unrelated concerns is how viewers rot. Every later camera feature (named views,
-fit, quaternion turntable, mm-scale) would otherwise pile into `gpu.rs`. A `Camera` that knows
-only *math* — and a `Gpu` that knows only *the card* — keeps each small and testable.
+One file owning unrelated concerns is how viewers rot — every later camera feature (named views,
+fit, turntable, mm-scale) would pile into `gpu.rs` otherwise. A `Camera` that knows only *math* and
+a `Gpu` that knows only *the card* stay small and testable.
 
 ```
 before:  Gpu { device, surface, … , yaw, pitch, distance, target, perspective, orbit(), pan(), … }
@@ -32,8 +31,8 @@ src/engine/gpu.rs    # drop the camera fields + methods; clear() now takes the m
 
 ## Step 1 — the `Camera`: `src/camera.rs`
 
-Create a new file `src/camera.rs`. It's the camera math lifted out of `gpu.rs`, unchanged — only
-the home is new. `view_proj` builds `projection · view` for a given surface aspect ratio:
+Create `src/camera.rs` — the camera math lifted straight out of `gpu.rs`, only the home is new.
+`view_proj` builds `projection · view` for a given surface aspect ratio:
 
 ```rust
 use session_rust::{Xform, Point, Vector};
@@ -102,19 +101,19 @@ impl Camera {
 ## Step 2 — slim down `gpu.rs`
 
 **(a)** Delete the five camera fields from `struct Gpu` (`yaw`, `pitch`, `distance`, `target`,
-`perspective`) and their initialisers in `Ok(Self { … })`. Also drop `Point`/`Vector` from the
-top `use` — only `Xform` stays (the mvp buffer still inits to `Xform::identity()`):
+`perspective`) and their initialisers in `Ok(Self { … })`. Drop `Point`/`Vector` from the top `use`
+too — only `Xform` stays (the mvp buffer still inits to `Xform::identity()`):
 
 ```rust
 use session_rust::Xform;
 ```
 
-**(b)** Delete the camera **methods** `orbit`, `pan`, `zoom`, `toggle_projection` — they live on
-`Camera` now.
+**(b)** Delete the camera **methods** `orbit`, `pan`, `zoom`, `toggle_projection` — they now live on
+`Camera`.
 
-**(c)** `clear` no longer *computes* the matrix; it's **handed** one. Change its signature and
-replace the whole "build this frame's camera matrix" block (the `aspect` / `projection` / `eye` /
-`view` / `mvp` lines) with a single upload:
+**(c)** `clear` no longer *computes* the matrix — it's **handed** one. Change its signature and
+replace the "build this frame's camera matrix" block (`aspect`/`projection`/`eye`/`view`/`mvp`)
+with a single upload:
 
 ```rust
     pub fn clear(&mut self, color: wgpu::Color, view_proj: &Xform) -> anyhow::Result<()> {
@@ -127,8 +126,8 @@ replace the whole "build this frame's camera matrix" block (the `aspect` / `proj
 
 ## Step 3 — `State` owns the camera: `src/state.rs`
 
-Add a `Camera` field, build it in `new`, and in `render` compute `view_proj` from the camera +
-the surface aspect ratio and hand it to the GPU:
+Add a `Camera` field, build it in `new`, and in `render` compute `view_proj` from the camera and
+surface aspect ratio, then hand it to the GPU:
 
 ```rust
 use crate::camera::Camera;
@@ -154,7 +153,7 @@ impl State {
 }
 ```
 
-(`resize` is unchanged — it still just forwards to `self.gpu.resize(...)`.)
+(`resize` is unchanged, still forwards to `self.gpu.resize(...)`.)
 
 
 ## Step 4 — route input to the camera: `src/lib.rs`
@@ -165,8 +164,8 @@ impl State {
 mod camera;
 ```
 
-**(b)** The input arms used to call `state.gpu.orbit(...)` etc. Point them at `state.camera`
-instead — four call sites:
+**(b)** The input arms used to call `state.gpu.orbit(...)` etc. — point them at `state.camera`
+instead, four call sites:
 
 ```rust
             // Space key
@@ -184,9 +183,8 @@ instead — four call sites:
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-Identical to chapter 12 — orbit, pan, zoom, Space all still work, the two triangles still depth-sort
-— but `gpu.rs` no longer mentions the camera, and the camera math lives in one small file you can
-grow without touching the GPU layer.
+Same as chapter 12 — orbit, pan, zoom, Space work, triangles still depth-sort — but `gpu.rs` no
+longer mentions the camera, which now lives in its own small file, free to grow untouched.
 
 
 ## Recap
@@ -203,5 +201,5 @@ Edited: `camera.rs` (new `Camera`), `gpu.rs` (camera fields/methods removed, `cl
 
 ## Next
 
-`14-named-views.md` — snap to **Top / Front / Right / Iso** with yaw/pitch presets (now a one-liner
-on `Camera`), switch to orthographic on snap, and **C** to reset to the home view.
+`14-named-views.md` — snap to **Top / Front / Right / Iso** with yaw/pitch presets (a one-liner on
+`Camera`), switch to ortho on snap, and **C** to reset home.

@@ -25,6 +25,7 @@
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepBuilderAPI_Transform.hxx>
 #include <BRepAlgoAPI_Section.hxx>
+#include <STEPControl_Writer.hxx>
 #include <BRep_Tool.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_Edge.hxx>
@@ -740,6 +741,12 @@ int main(int argc, char** argv) {
         out << "OK\n";
         solid_props(out, r);
         write_boundary_samples(out, r, 0.1);  // boundary samples for Hausdorff comparison
+        std::string skw, spath;
+        if (in >> skw >> spath && skw == "STEP") {
+            STEPControl_Writer sw;
+            sw.Transfer(r, STEPControl_AsIs);
+            sw.Write(spath.c_str());
+        }
     }
     else {
         out << "ERROR unknown op " << op << "\n";

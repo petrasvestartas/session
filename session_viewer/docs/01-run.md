@@ -1,8 +1,6 @@
 # 01 Run
 
-The viewer is embedded into TypeScript Vue application. 
-
-For local development we first need to:
+The viewer embeds in a TypeScript Vue app. For local development:
 
 ```bash
 npm install                          # once

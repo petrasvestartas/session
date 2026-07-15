@@ -153,12 +153,12 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     `device.on_uncaptured_error` logging
   - verify: adapter limits log shows storage buffers > 0; app runs in Chrome; overlay appears in a
     browser without WebGPU. Unblocks 29/30 (storage table), 45 (id-buffer), 76 (GPU cull)
-- ▶ 28 Perf counter (console-first) — see batching collapse the draw count before it happens
+- ✅ 28 Perf counter (console-first) — see batching collapse the draw count before it happens
   - files: new `engine/perf.rs` (frame timer, counters), hooks in `engine/gpu.rs`
   - steps: rolling-average frame ms + fps (`web_sys::Performance::now`); `draws += 1` next to every
     draw call; drawn/total objects; `log::info!` once per second (graduates to the HUD, 47)
   - verify: numbers move when meshes are added; ~3 draws today (grid, meshes, edges)
-- ⬜ 29 Instancing — one mesh, many transforms
+- ▶ 29 Instancing — one mesh, many transforms
   - files: `shaders/triangle.wgsl` (instance row), `engine/gpu.rs` (instance storage buffer)
   - steps: `Instance { model: [[f32;4];4], color: [f32;4], flags: u32 }` rows in a STORAGE buffer
     (needs 27) read by `@builtin(instance_index)` in vs (the locked decision — skip step_mode

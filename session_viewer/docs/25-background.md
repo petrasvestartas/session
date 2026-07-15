@@ -1,10 +1,9 @@
 # 25 Background gradient — the scene stops floating in flat grey
 
-Right now everything sits on a flat grey wash — the surface clear color. Real CAD viewers put a soft
-**vertical gradient** back there (Rhino, SolidWorks, Fusion all do): lighter near the horizon,
-deeper toward the top. It reads as depth and light without drawing anything real. This lesson paints
-one with a **fourth pipeline** — and it's the cheapest pipeline yet: no camera, no vertex buffer,
-three vertices, drawn once before everything else.
+Everything currently sits on a flat grey clear color. Real CAD viewers (Rhino, SolidWorks, Fusion)
+paint a soft **vertical gradient** instead — lighter near the horizon, deeper up top — reading as
+depth and light without drawing anything real. This lesson adds it as a **fourth pipeline**, the
+cheapest yet: no camera, no vertex buffer, three vertices, drawn once before everything else.
 
 ## Why
 
@@ -17,9 +16,9 @@ draw order this frame          depth-write   what it does
 4. edges       (LineList)       off           dark outlines, nudged in front
 ```
 
-The background is a **fullscreen triangle** — one big triangle that overhangs the screen so its
-interior covers all of `[-1,1]²`. It comes straight from `@builtin(vertex_index)` (no buffer, same
-vertexless trick as the grid), and the fragment shader mixes two colors by screen height.
+The background is a **fullscreen triangle**: one oversized triangle whose interior covers all of
+`[-1,1]²`, built straight from `@builtin(vertex_index)` — no buffer, same vertexless trick as the
+grid. The fragment shader mixes two colors by screen height.
 
 Two rules keep it *behind* everything without a camera:
 
@@ -28,8 +27,8 @@ depth_write: false   → it never blocks a later fragment
 depth_compare: Always → it always draws (its z sits at the far plane; a `Less` test would reject it)
 ```
 
-Because it writes no depth and is drawn first, every later object paints over it by normal depth
-testing. The clear color is now never seen — the gradient covers the whole frame.
+Drawn first with no depth write, it gets painted over by every later object through normal depth
+testing. The clear color is never seen again — the gradient covers the whole frame.
 
 ## Files we touch
 
@@ -42,8 +41,8 @@ src/engine/gpu.rs                  # draw it FIRST in clear()
 
 ## Step 1 — the background shader: `src/shaders/background.wgsl`
 
-No uniforms at all — the vertex shader hardcodes the three corners of a screen-covering triangle and
-hands the fragment shader a `0→1` height value; the fragment mixes a bottom and top color by it:
+No uniforms: the vertex shader hardcodes the three corners of a screen-covering triangle and passes
+the fragment shader a `0→1` height value, which it mixes between a bottom and top color:
 
 ```wgsl
 struct VsOut {
@@ -75,15 +74,15 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 }
 ```
 
-Change `bottom`/`top` to taste — those two lines are the whole look. (The third corner sits at `y=3`,
-off-screen, so `t` runs a clean `0→1` across the part you actually see.)
+Change `bottom`/`top` to taste — those two lines are the whole look. (The third corner sits off-screen
+at `y=3`, so `t` still runs a clean `0→1` across the visible part.)
 
 ## Step 2 — the pipeline: `src/engine/pipelines/build.rs`
 
-Simplest builder in the file — **no bind-group layouts** (the shader reads nothing) and **no vertex
-buffer**. The two things that matter: depth `Always` + write-off so it never occludes, and
-`count: MSAA_SAMPLES` so it's compatible with the 4× pass from lesson 24 (forget that and wgpu
-validation-errors, exactly like a missed MSAA pipeline there):
+The simplest builder in the file — **no bind-group layouts** (the shader reads nothing), **no vertex
+buffer**. What matters: depth `Always` + write-off so it never occludes, and `count: MSAA_SAMPLES` to
+match the 4× pass from lesson 24 (skip that and wgpu validation-errors, same as a missed MSAA pipeline
+there):
 
 ```rust
 pub fn build_background_pipeline(
@@ -148,11 +147,11 @@ pub fn build_background_pipeline(
 }
 ```
 
-`MSAA_SAMPLES` is already `pub` at the top of this file (lesson 24), so no new import.
+`MSAA_SAMPLES` is already `pub` at the top of this file (lesson 24) — no new import.
 
 ## Step 3 — register it: `src/engine/pipelines/mod.rs`
 
-A `background` field, built with just device + format (it needs no layouts):
+A `background` field, built from just device + format — no layouts needed:
 
 ```rust
 use build::build_background_pipeline;   // add to the other `use build::…` lines
@@ -169,8 +168,8 @@ pub struct Pipelines {
 
 ## Step 4 — draw it first: `src/engine/gpu.rs`
 
-In `clear()`, at the very top of the render pass — **before** the grid — set the background pipeline
-and draw three vertices. It binds nothing (no camera, no time):
+At the very top of `clear()`'s render pass — **before** the grid — set the background pipeline and
+draw three vertices. It binds nothing (no camera, no time):
 
 ```rust
             // Background FIRST — fills every pixel; depth-write off so all geometry paints over it
@@ -183,9 +182,9 @@ and draw three vertices. It binds nothing (no camera, no time):
             pass.draw(0..50, 0..1);
 ```
 
-The `LoadOp::Clear(color)` on the color attachment still runs, but you'll never see it again — the
-background triangle covers every pixel the same frame. (You can leave the clear as-is; it's now just
-a cheap wipe before the gradient.)
+The color attachment's `LoadOp::Clear(color)` still runs, but you'll never see it — the background
+triangle covers every pixel the same frame. Leave the clear as-is; it's now just a cheap wipe before
+the gradient.
 
 ## Step 5 — run
 
@@ -194,8 +193,8 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
 The flat grey is gone: a soft blue-grey gradient sits behind the grid and models, lighter at the
-bottom, deeper at the top. Orbit — the gradient is locked to the **screen**, not the world (it's
-drawn in NDC, no camera), so it stays put like a studio backdrop while the scene turns inside it.
+bottom, deeper at the top. Orbit and it stays put — locked to the **screen**, not the world (drawn in
+NDC, no camera), like a studio backdrop while the scene turns inside it.
 
 ## Recap
 
@@ -211,7 +210,7 @@ Edited: `shaders/background.wgsl` (new), `pipelines/build.rs` (`build_background
 
 ## Next
 
-`26-reverse-z.md` — the last camera fix. We reverse the depth mapping (near → 1, far → 0) so f32
-depth precision stops collapsing in the distance — the proper cure for the z-fighting the lesson-23
-edge nudge and the tightened clip range only worked *around*. Grid, edges, and background keep their
+`26-reverse-z.md` — the last camera fix. Reversing the depth mapping (near → 1, far → 0) stops f32
+depth precision from collapsing in the distance — the proper cure for z-fighting that the lesson-23
+edge nudge and tightened clip range only worked *around*. Grid, edges, and background keep their
 `Always`/off states; only the compare direction and clear value flip.

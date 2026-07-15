@@ -3,7 +3,7 @@
     "group": "SpatialKDTree",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.05,
+    "time_ms": 0.049,
     "line": 8,
     "code": "    from session_py import SpatialKDTree\n    from session_py import Point\n\n    # SpatialKDTree: O(n log n) build, O(log n) nearest \u2014 static point set closest search\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n    ]\n    tree = SpatialKDTree(pts)\n    idx, dist = tree.nearest(Point(2.0, 0.0, 0.0))",
     "checks": [
@@ -24,7 +24,7 @@
     "group": "SpatialKDTree",
     "test_name": "Nearest",
     "passed": true,
-    "time_ms": 0.045,
+    "time_ms": 0.048,
     "line": 26,
     "code": "    from session_py import SpatialKDTree\n    from session_py import Point\n\n    # 5 known points on a line: 0, 1, 2, 3, 4\n    # Query at 1.1 \u2014 nearest should be index 1 (point at x=1), distance 0.1\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = SpatialKDTree(pts)\n    query = Point(1.1, 0.0, 0.0)\n    idx, dist = tree.nearest(query)",
     "checks": [
@@ -45,7 +45,7 @@
     "group": "SpatialKDTree",
     "test_name": "Nearest K",
     "passed": true,
-    "time_ms": 0.085,
+    "time_ms": 0.064,
     "line": 48,
     "code": "    from session_py import SpatialKDTree\n    from session_py import Point\n\n    # 5 points on X axis: 0, 1, 2, 3, 4\n    # Query at 1.5 \u2014 3 nearest are: x=1 (d=0.5), x=2 (d=0.5), x=3 (d=1.5)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    tree = SpatialKDTree(pts)\n    query = Point(1.5, 0.0, 0.0)\n    result = tree.nearest_k(query, 3)",
     "checks": [
@@ -76,7 +76,7 @@
     "group": "SpatialKDTree",
     "test_name": "Radius Search",
     "passed": true,
-    "time_ms": 0.048,
+    "time_ms": 0.041,
     "line": 72,
     "code": "    from session_py import SpatialKDTree\n    from session_py import Point\n\n    # 4 points: 0, 1, 2, 5 on X axis\n    # Query at 0.5, radius 1.1 \u2014 finds x=0 (d=0.5) and x=1 (d=0.5)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n    ]\n    tree = SpatialKDTree(pts)\n    query = Point(0.5, 0.0, 0.0)\n    result = tree.radius_search(query, 1.1)",
     "checks": [

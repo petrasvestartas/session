@@ -1,19 +1,15 @@
 # 17 Quaternion turntable
 
-Our camera stores orientation as two angles, `yaw` and `pitch`, and clamps pitch to ±1.5 rad so it
-can't flip at the poles. That clamp is the tell: **Euler angles have a singularity.** Look straight
-down and "yaw" and "roll" collapse into the same motion (gimbal lock), which is why Top/Bottom in
-lesson 14 had to sit a hair under vertical. The fix the whole industry uses is to store orientation
-as a **quaternion** — a singularity-free rotation. The key insight: a quaternion already encodes a
-*complete* frame (right, up, forward), so we read those axes **straight off it** — there is no pole
-to special-case, no up-vector to reconstruct, no clamp. This is the last piece of the archive-grade
-camera. We also adopt the kernel's **Z-up** convention (CAD standard): the turntable spins about
-world `+Z`. Every public method keeps its signature, so **only `camera.rs` changes**.
+Orientation is `yaw`/`pitch`, clamped to ±1.5 rad to dodge the poles — the tell that **Euler angles
+have a singularity** (gimbal lock: yaw/roll collapse looking straight down, why Top/Bottom in lesson
+14 sat off vertical). Fix: a **quaternion**, already a *complete* frame — read right/up/forward
+**straight off it**, no pole, no clamp. Also switching to **Z-up** (CAD): turntable spins about world
+`+Z`. Signatures stay put — **only `camera.rs` changes**.
 
 ## Why
 
-The orientation quaternion *is* the camera's frame. Apply it to the basis vectors and you get the
-axes directly — no cross products, no degeneracy:
+The orientation quaternion *is* the camera's frame — apply it to the basis vectors for the axes
+directly, no cross products:
 
 ```
 right = orientation · [1, 0, 0]
@@ -22,10 +18,9 @@ fwd   = orientation · [0, 1, 0]        (camera sits on −Y, looking +Y, when o
 eye   = target − distance · fwd
 ```
 
-Because a quaternion has no pole, orbiting straight over the top is just a continuous rotation — the
-view sails over with no flip, no lock, and **no `last_right` reference vector** to track. The frame
-stays upright *by construction*: orbit only ever injects **yaw about world-up** and **pitch about the
-camera's own right**, and neither introduces roll, so `right` stays horizontal forever.
+No pole, so orbiting over the top is continuous — no flip, no lock, **no `last_right`**. Orbit only
+injects **yaw about world-up** and **pitch about the camera's own right**, never roll: `right` stays
+horizontal by construction.
 
 ```
 yaw   → rotate orientation about world_up (+Z)     keeps horizon level (turntable, not trackball)
@@ -41,15 +36,11 @@ src/camera.rs   # the whole camera: quaternion orientation replaces yaw/pitch (o
 
 ## Step 1 — new fields, new `new()`: `src/camera.rs`
 
-Bring in `Quaternion`, then replace `yaw`/`pitch` with the orientation quaternion. **Store the state
-in f64**, as plain **`[f64; 3]`** arrays — *not* `[f32;3]` (forces a cast on every line) and *not*
-`Point`/`Vector`. A `Point` in this kernel is a **document object** — it carries a `guid`, a
-`name: String`, a colour and width, and allocates that String on every `new()`. A camera eye is none
-of those things; it's three numbers recomputed each frame. So `[f64;3]` is the right fit: `Copy`,
-zero-alloc, and the default is just `[0.0; 3]` (no `Point::origin` to reach for — a point has no
-intrinsic zero anyway; that's the affine-vs-vector distinction). We wrap into `Point`/`Vector` only at
-the `look_at` boundary (Step 5). `world_up` is the `+Z` turntable axis; `position`/`up` are *derived*.
-There is **no `last_right`** — the quaternion makes it unnecessary:
+Bring in `Quaternion`, replacing `yaw`/`pitch`. **Store state in f64** as plain **`[f64; 3]`** — not
+`[f32;3]` (casts everywhere), not `Point` (a **document object**: `guid`, `name: String`, colour,
+width, allocated per `new()`, vs. a camera eye's three numbers). `[f64;3]` is `Copy`, zero-alloc,
+default `[0.0; 3]`; it wraps into `Point`/`Vector` only at `look_at` (Step 5). `world_up` is the `+Z`
+axis, `position`/`up` *derived*, **no `last_right`**:
 
 ```rust
 use session_rust::{Point, Quaternion, Vector, Xform};
@@ -91,9 +82,9 @@ impl Camera {
 
 ## Step 2 — derive the frame: `update_position`
 
-The orientation already holds a complete frame, so this is now tiny — apply it to the basis vectors
-and place the eye behind the target along `fwd`. `rotate_vector` returns a `Vector`; we read its
-components into the `f64` arrays — no casts, no per-frame `Point` allocation:
+Already a complete frame, so this is tiny: apply it to the basis vectors, place the eye behind the
+target along `fwd`. `rotate_vector` returns a `Vector`; read its components in — no casts, no
+per-frame `Point` alloc:
 
 ```rust
     /// Recompute `position` and `up` from the orientation. Call after any change to
@@ -110,9 +101,9 @@ components into the `f64` arrays — no casts, no per-frame `Point` allocation:
 
 ## Step 3 — orbit by quaternion: `orbit`
 
-Yaw about `world_up`, pitch about the camera's own right (`orientation·[1,0,0]`), compose onto the
-current orientation. The only casts left are the two mouse-delta scalars (`dx`/`dy` stay `f32` so the
-public signature — and `lib.rs` — don't change). No clamp, no pole code:
+Yaw about `world_up`, pitch about the camera's own right (`orientation·[1,0,0]`), composed onto the
+current orientation. Only `dx`/`dy` still cast (stay `f32`; signature and `lib.rs` don't change). No
+clamp, no pole code:
 
 ```rust
     pub fn orbit(&mut self, dx: f32, dy: f32) {
@@ -128,8 +119,8 @@ public signature — and `lib.rs` — don't change). No clamp, no pole code:
 
 ## Step 4 — pan & zoom follow the derived frame
 
-`pan` slides `target` along the camera's right (`orientation·[1,0,0]`) and the cached `up`; `zoom`
-scales `distance`. Both refresh the derived frame afterward:
+`pan` slides `target` along the camera's right (`orientation·[1,0,0]`) and cached `up`; `zoom` scales
+`distance`. Both refresh the derived frame afterward:
 
 ```rust
     pub fn pan(&mut self, dx: f32, dy: f32) {
@@ -149,10 +140,8 @@ scales `distance`. Both refresh the derived frame afterward:
 
 ## Step 5 — `view_proj` reads the derived eye/up
 
-The projection half (lesson 16) is untouched — except `self.distance` is now `f64`, so its `as f64`
-goes away. This is the **one boundary** where we wrap the `[f64;3]` arrays into `Point`/`Vector` to
-call `look_at` — three constructions per frame, at the edge, not in the math. Still all f64; the f32
-cast is downstream at the GPU upload:
+Projection (lesson 16) is unchanged except `self.distance` is `f64` now. **One boundary**: `[f64;3]`
+wraps into `Point`/`Vector` here for `look_at` — f32 cast stays downstream at the GPU upload:
 
 ```rust
         // … perspective / ortho projection exactly as lesson 16 (use `self.distance` directly) …
@@ -169,10 +158,8 @@ cast is downstream at the GPU upload:
 
 ## Step 6 — named views are single quaternions: `set_view`
 
-Each view is one `from_axis_angle` that rotates the default `[0,−d,0]` offset onto the right axis.
-Because `up` is read straight from the quaternion, every view comes out upright with **no
-special-casing** — a Z-rotation (Front/Back/Left/Right) leaves `+Z` fixed, so up stays `+Z`
-automatically:
+Each view is one `from_axis_angle` rotating the default `[0,−d,0]` offset onto the right axis. `up`
+reads straight from the quaternion, so every view comes out upright **with no special-casing**:
 
 ```rust
     pub fn set_view(&mut self, view: View) {
@@ -199,10 +186,9 @@ automatically:
 
 ## Step 7 — reset & fit refresh the frame
 
-`reset` is still one line (`new()` rebuilds the iso orientation). `fit` is the lesson-16 logic, but
-the struct is now `f64`, so **drop every `as f32`**: write the `[f64;3]` `target` and `f64` `distance`
-directly, and cast the `[f32;3]` AABB to `f64` where it enters (a genuine boundary input). Add
-`update_position()` at the end, since it writes `target`/`distance` directly:
+`reset` is still one line (`new()` rebuilds the iso orientation). `fit` is lesson-16 logic on the
+`f64` struct now: **drop every `as f32`**, write `target`/`distance` directly, casting only the
+`[f32;3]` AABB input. Add `update_position()` at the end:
 
 ```rust
     pub fn reset(&mut self) {
@@ -238,17 +224,13 @@ directly, and cast the `[f32;3]` AABB to `f64` where it enters (a genuine bounda
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-Orbit straight up and over the top: in lesson 14 the camera jammed under the pole; now it sails over
-cleanly, the scene rotating without a flip — a quaternion simply has no pole. The world is now Z-up,
-so press `5` (Top) to look straight down `+Z` and `1` (Front) to look along `+Y`; each named view
-snaps to a clean, upright orthographic axis. Pan, zoom, fit (`F`) and reset (`C`) all behave as
-before — their signatures never changed.
+Orbit over the top: lesson 14 jammed at the pole, now it sails through cleanly. Z-up: `5` (Top) looks
+down `+Z`, `1` (Front) along `+Y`, named views snap to clean orthographic axes. Pan/zoom/fit(`F`)/
+reset(`C`) unchanged.
 
-> Design note (verified native): we read right/up/fwd **straight from the quaternion**, which has no
-> pole, so there's no `last_right` band or up-reconstruction. The archive instead re-levels every
-> frame via `right = fwd × world_up`, which needs an ~11° `last_right` pole band — that buys
-> continuous cancellation of slow roll-drift, at the cost of complexity. We rely on the periodic
-> `.normalized()` instead. If drift ever shows, the band approach is the documented fallback.
+> Verified against the archive: right/up/fwd come **straight from the quaternion**, no pole, no
+> `last_right` band needed. The archive re-levels every frame via `right = fwd × world_up`, needing an
+> ~11° pole band to cancel roll-drift; we rely on periodic `.normalized()` instead.
 
 ## Recap
 
@@ -261,11 +243,11 @@ Ch 17: orientation is a quaternion that encodes the whole frame; update_position
        Z-up turntable. Only camera.rs changed.
 ```
 
-Edited: `camera.rs` only (lightweight f64 `[f64;3]`/`f64` state + quaternion `orientation` + `world_up`
-replace the `f32` `yaw`/`pitch` fields; `new`, `update_position`, `orbit`, `pan`, `zoom`, `view_proj`,
-`set_view`, `fit`). Public method signatures unchanged, so `lib.rs`/`state.rs` are untouched.
+Edited: `camera.rs` only (f64 `[f64;3]`/`f64` state + quaternion `orientation` + `world_up` replace
+`f32` `yaw`/`pitch`; `new`, `update_position`, `orbit`, `pan`, `zoom`, `view_proj`, `set_view`, `fit`).
+Signatures unchanged, so `lib.rs`/`state.rs` are untouched.
 
 ## Next
 
-Phase 2 — **real geometry**. `18-index-buffer.md` draws a cube from indices (DrawIndexed), then
-`19` links the `session_rust` kernel and renders your first real `Mesh`. The camera is done.
+Phase 2 — **real geometry**. `18-index-buffer.md` draws a cube from indices (DrawIndexed), then `19`
+links the `session_rust` kernel and renders your first real `Mesh`. The camera is done.

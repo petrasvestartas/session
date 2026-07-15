@@ -31,14 +31,15 @@ session_viewer/
         └── gpu.rs      # Gpu — our handle to the graphics card (device/queue/surface)
 ```
 
-`the browser` -> `lib.rs` -> `state.rs` -> `engine/gpu.rs.rs`
+`the browser` -> `lib.rs` -> `state.rs` -> `engine/gpu.rs`
 
-This is a minimal code just top a browser window and clear it with a grey color.
+Minimal code to open a browser window and clear it grey.
 
 ## gpu.rs
 
 ### Struct declaration
-It declares a GPU struct, that contains a surface, device, queue and config:
+
+`Gpu` holds a surface, device, queue, and config:
 
 ```rust
 pub struct Gpu {
@@ -49,12 +50,11 @@ pub struct Gpu {
 }
 ```
 
-The implementation of Gpu has 3 methods: `new`, `resize` and `clear`.
+`Gpu` has three methods: `new`, `resize`, `clear`.
 
-### Struct method - new(...)
-The constructor - `new`, boots the wgpu. 
+### `new(...)`
 
-First we create an instance to the `wgpu` with default paramenters:
+Boots wgpu. First, an instance with default parameters:
 ```rust
 pub struct Gpu {
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
@@ -67,7 +67,7 @@ pub struct Gpu {
 }
 ```
 
-From the instance we create a drawable canvas and pass it to the wgpu instance:
+Create the surface from the window, then request an adapter:
 ```rust
 let surface = instance.create_surface(window.clone())?;
 
@@ -80,9 +80,7 @@ let adapter = instance
     .await?;
 ```
 
-Then we take the adapter and open a workign connection to it.
-- device - create a GPU resources: buffers, textures, shaders pipelines
-- submits work and uploads data to the GPU
+Open a connection to the adapter — `device` creates GPU resources (buffers, textures, shaders, pipelines); `queue` submits work and uploads data:
 ```rust
 let (device, queue) = adapter
     .request_device(&wgpu::DeviceDescriptor {
@@ -113,15 +111,15 @@ let config = wgpu::SurfaceConfiguration {
 surface.configure(&device, &config);
 ```
 
-Lastly we print the information and konstructor the struct:
+Log the result and construct the struct:
 ```rust
 log::info!("viewer init OK — surface {}x{}, format {:?}", config.width, config.height, config.format);
 Ok(Self { surface, device, queue, config })
 ```
 
-### Struct method - resize(...)
+### `resize(...)`
 
-We update the width and height:
+Updates width/height and reconfigures the surface:
 
 ```rust
 pub fn resize(&mut self, width: u32, height: u32) {
@@ -133,9 +131,9 @@ pub fn resize(&mut self, width: u32, height: u32) {
 }
 ```
 
-### Struct method - clear(...)
+### `clear(...)`
 
-Clear the window by a color:
+Clears the window to a color:
 
 ```rust
 pub fn clear(&mut self, color: wgpu::Color) -> anyhow::Result<()> {
@@ -181,11 +179,11 @@ pub fn clear(&mut self, color: wgpu::Color) -> anyhow::Result<()> {
 
 ## state.rs
 
-State connector even loop and the gpu. WIindow will be referenced to wpu:
+Connects the event loop to the GPU; also holds a reference to the window.
 
 ### Struct declaration
 
-We hold here the window and the gpu.rs file:
+Holds the window and `Gpu`:
 
 ```rust
 pub struct State {
@@ -194,9 +192,9 @@ pub struct State {
 }
 ```
 
-### Struct method - new(...)
+### `new(...)`
 
-Receive already created windows from the `lib.rs`
+Receives the window already created in `lib.rs`:
 
 ```rust
 pub async fn new(window: Arc<Window>) -> anyhow::Result<Self> {
@@ -205,9 +203,9 @@ pub async fn new(window: Arc<Window>) -> anyhow::Result<Self> {
 }
 ```
 
-### Struct method - resize(...)
+### `resize(...)`
 
-Forwarding to gpu `resize(...)`.
+Forwards to `Gpu::resize`:
 
 ```rust
 
@@ -216,8 +214,9 @@ pub fn resize(&mut self, width: u32, height: u32) {
 }
 ```
 
-### Struct method - render(...)
-Every frame queues next one. Put any animation/state logic before redraw to show on window.
+### `render(...)`
+
+Queues the next frame. Any animation/state logic goes before the redraw call:
 
 ```rust
 pub fn render(&mut self) -> anyhow::Result<()> {
@@ -230,23 +229,15 @@ pub fn render(&mut self) -> anyhow::Result<()> {
 
 ### Imports
 
-`mod engine` looks for a single file; `src/state.rs`
-
-`mod engine` looks for a folder with a `src/engine/mod.rs`. Engine is meant to be a container for many sub-pieces: `gpu/`, `pipelines/`, `camera/`, `pick/`, `text/`, `gumball/`.
-
-`State` is a middle-man between the gpu to create a public surface.
-
-`Arc` allows to make shared ownership of the window.
-
-`wasm_bindgen` connects Rust and Javascript.
-
-`ApplicationHandler` callback interfaces, to avoid loop method for `resumed`, `user_even`, `window_event`.
-
-`WindowEvent` enum of things that happens to a window: resize, close, redraw.
-
-`event_loop` a handle winit hands you insde a callback, use to create windows or exit, and the loop itself created once.
-
-`window` the window and its identifier.
+- `mod state` looks for the single file `src/state.rs`.
+- `mod engine` looks for a folder with `src/engine/mod.rs` — a container for sub-pieces: `gpu/`, `pipelines/`, `camera/`, `pick/`, `text/`, `gumball/`.
+- `State` sits between the GPU and a public surface.
+- `Arc` gives the window shared ownership.
+- `wasm_bindgen` bridges Rust and JavaScript.
+- `ApplicationHandler` is the callback trait for `resumed`, `user_event`, `window_event` — no manual loop needed.
+- `WindowEvent` enumerates what happens to a window: resize, close, redraw.
+- `event_loop` — the handle winit passes into callbacks; use it to create windows or exit. Created once.
+- `window` — the window and its identifier.
 
 ```rust
 mod engine;
@@ -264,9 +255,9 @@ use winit::window::{Window, WindowId};
 
 ### App
 
-App is the object `winit` drives. We use `Option` for the state because it is async. Every event handler check if we have a result yet. We use also `EventLoopProxy` as a thread-safe sender that can push a custom "user even" of type `State` back into the ven loop from the async init task.
+`App` is the object `winit` drives. `state` is an `Option` because init is async — every handler checks whether it's ready yet. `EventLoopProxy` is a thread-safe sender that pushes the finished `State` back into the event loop as a custom user event from the async init task.
 
-First we locally import the  wasm-only spawn_app method into the scope used at the last line. Then we wise Rust log into the browser.Then we create an `EventLoop` of a `State`. Then we construct the proxy. Lastly, we lunch wasm.
+`run()` imports the wasm-only `spawn_app` extension, wires Rust's logger into the browser, builds an `EventLoop<State>`, constructs the proxy, then spawns the wasm app.
 
 
 ```rust
@@ -290,10 +281,10 @@ impl App {
 
 ### ApplicationHandler
 
-There are three callbacks:
-- `resumed` - create the window + start async init
-- `user_event` - receive the finished `State`
-- `window_event` - the live loop
+Three callbacks:
+- `resumed` — create the window, start async init
+- `user_event` — receive the finished `State`
+- `window_event` — the live loop
 
 ```rust
 impl ApplicationHandler<State> for App {
@@ -303,7 +294,7 @@ impl ApplicationHandler<State> for App {
 }
 ```
 
-The resumed functions communicates with JavaScript to access its canvas in async manner:
+`resumed` reaches into JavaScript for the canvas, then spawns the async init:
 
 
 ```rust
@@ -341,7 +332,7 @@ fn user_event(&mut self, _event_loop: &ActiveEventLoop, mut state: State) {
 }
 ```
 
-This contros the window events, when a window is closed, resized or redrawn:
+Handles close, resize, and redraw:
 
 ```rust
 fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
@@ -357,10 +348,9 @@ fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: W
 }
 ```
 
-### run_web = main()
+### `run_web` = `main()`
 
-This funciton servers for web, same as main function for a standalone function.
-`App:run()` launches everything.
+The web entry point, equivalent to a native `main`. `App::run()` launches everything:
 
 ```rust
 #[wasm_bindgen(start)]

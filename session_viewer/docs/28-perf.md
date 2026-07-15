@@ -1,30 +1,30 @@
 # 28 Perf counter — watch the draw calls before you fight them
 
-The next two lessons exist to **collapse draw calls**: instancing (29) turns many mesh draws into
-one, the GPU arena (30) fuses buffers. But "it's faster now" is worthless without a number — you
-can't see a win you don't measure. So before we optimize, we add the gauge: frame time, fps, and
-**how many draw calls** the frame actually issued. Console-first (it graduates to an on-screen HUD in
-lesson 47); today it just logs once a second.
+The next two lessons **collapse draw calls**: instancing (29) turns many mesh draws into one, the GPU
+arena (30) fuses buffers. But "it's faster now" is worthless without a number — you can't see a win
+you don't measure. So before optimizing, we add the gauge: frame time, fps, and **how many draw
+calls** the frame actually issued. Console-first today (graduates to an on-screen HUD in lesson 47),
+logging once a second.
 
 ## Why
 
-Right now every frame issues a draw call for **each** thing: background, grid, and one per mesh and
-per edge-set. With three meshes that's:
+Every frame currently issues a draw call for **each** thing: background, grid, and one per mesh and
+edge-set. With three meshes:
 
 ```
 background(1) + grid(1) + meshes(3) + edges(3)  =  8 draws  for  3 objects
 ```
 
-That 8 is the number instancing and batching will drive down — and you want to *see* it fall, not
-take it on faith. The counter logs a line like:
+That 8 is the number instancing and batching will drive down — you want to *see* it fall, not take it
+on faith. The counter logs a line like:
 
 ```
 perf: 60.0 fps | 16.67 ms | 8 draws | 3 objects
 ```
 
-Two ideas make it honest: a **rolling average** of frame time (a single frame is too jittery to read
-as fps), and a **`draws += 1` next to every draw call** so the count can't drift out of sync with the
-code — when a draw call disappears in lesson 29, the number drops by itself.
+Two things keep it honest: a **rolling average** of frame time (one frame is too jittery to read as
+fps), and a **`draws += 1` beside every draw call** so the count can't drift out of sync with the code
+— when a draw call disappears in lesson 29, the number drops by itself.
 
 ## Files we touch
 
@@ -37,8 +37,8 @@ src/engine/gpu.rs             # own a Perf, count draws, report at frame end
 
 ## Step 1 — the timer needs `Performance`: `Cargo.toml`
 
-The browser clock is `window.performance.now()`; web-sys gates it behind a feature. Add
-`"Performance"` to the existing `web-sys` features list:
+The browser clock, `window.performance.now()`, sits behind a web-sys feature. Add `"Performance"` to
+the existing `web-sys` features list:
 
 ```toml
 web-sys = { version = "0.3", features = [
@@ -49,9 +49,9 @@ web-sys = { version = "0.3", features = [
 
 ## Step 2 — the counter: `src/engine/perf.rs`
 
-A tiny struct that remembers the last frame's timestamp, smooths the frame time, and logs once a
-second. The clock is target-gated so the native `selftest` build still compiles (browser uses
-`performance.now()`, native falls back to the system clock):
+A tiny struct that remembers the last frame's timestamp, smooths frame time, and logs once a second.
+The clock is target-gated so the native `selftest` build still compiles — browser uses
+`performance.now()`, native falls back to the system clock:
 
 ```rust
 //! Frame-time + draw-call counter (ARCHITECTURE.md §9). Console-first; the HUD reads it in ch 47.
@@ -106,7 +106,7 @@ pub mod perf;      // next to `pub mod gpu;` / `pub mod pipelines;`
 
 ## Step 4 — count and report: `src/engine/gpu.rs`
 
-Give `Gpu` a `Perf`. Add the import and the field, and build it in `new()`:
+Give `Gpu` a `Perf`: add the import and field, and build it in `new()`:
 
 ```rust
 use crate::engine::perf::Perf;      // near the other `use crate::engine::…` lines
@@ -121,8 +121,8 @@ use crate::engine::perf::Perf;      // near the other `use crate::engine::…` l
         perf: Perf::new(),
 ```
 
-Then in `clear()`, tally a **local** `draws` counter right next to each draw call (a local dodges any
-borrow fight with the render pass), and report once the pass has ended:
+In `clear()`, tally a **local** `draws` counter beside each draw call (a local dodges any borrow fight
+with the render pass), and report once the pass ends:
 
 ```rust
         let mut draws = 0u32;
@@ -161,8 +161,8 @@ borrow fight with the render pass), and report once the pass has ended:
         Ok(())
 ```
 
-The `draws += 1` sits beside each real draw call, so the count is always the truth — nothing to keep
-in sync by hand.
+`draws += 1` sits beside each real draw call, so the count is always the truth — nothing to keep in
+sync by hand.
 
 ## Step 5 — run
 
@@ -170,10 +170,10 @@ in sync by hand.
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-Open the browser console (F12). Once a second you'll see the perf line — around **60 fps / 16.7 ms**,
-**8 draws**, **3 objects**. Orbit and the ms/fps react to load. Note the mismatch: **8 draw calls for
-3 objects** — that's the waste lesson 29 fixes, when the three mesh draws become one instanced call
-and you watch this number fall.
+Open the console (F12). Once a second you'll see the perf line — around **60 fps / 16.7 ms**, **8
+draws**, **3 objects**. Orbit and the ms/fps react to load. Note the mismatch: **8 draw calls for 3
+objects** — the waste lesson 29 fixes, when three mesh draws become one instanced call and you watch
+this number fall.
 
 ## Recap
 
@@ -192,5 +192,5 @@ Edited: `Cargo.toml` (web-sys `"Performance"`), `engine/perf.rs` (new `Perf`), `
 
 `29-instancing.md` — one mesh, many transforms. An `Instance { model, color, flags }` row per copy in
 a **storage buffer** (unlocked in 27), read by `@builtin(instance_index)`; a 10×10 field of
-dodecahedra drawn with **one** `draw_indexed(.., 0..100)` — and the counter from today shows 100
-objects at a fraction of the draws.
+dodecahedra drawn with **one** `draw_indexed(.., 0..100)` — today's counter shows 100 objects at a
+fraction of the draws.

@@ -1,26 +1,24 @@
 # 21 Mesh shading — give the box a shape
 
-The box is a flat blue silhouette: every face is the same colour, so a cube reads as a hexagon. This
-lesson lights it. We give each face a **normal** (which way it points) and a simple **light model**
-(hemisphere ambient + two directional lights), so faces facing the light read bright and faces turned
-away read dark — the solid finally looks solid.
+The box is a flat blue silhouette — every face the same colour, so a cube reads as a hexagon. This
+lesson gives each face a **normal** and a simple **light model** (hemisphere ambient + two directional
+lights): faces toward the light go bright, faces away go dark.
 
-It's a **one-file** lesson: only the mesh's fragment shader changes. The pipeline, buffers, camera,
-and grid all stay exactly as they are.
+**One file changes**: the mesh's fragment shader. Pipeline, buffers, camera, grid — untouched.
 
 ## Why
 
-Shading needs one thing the flat shader ignored: a **normal** per pixel. Two ways to get it —
+Shading needs a **normal** per pixel — two ways to get one:
 
 ```
 per-vertex normals (in RenderVertex @1)   → smooth shading   ← lesson 22
 per-face normal from screen derivatives   → flat shading     ← THIS lesson
 ```
 
-The box mesh may not carry good vertex normals, and a cube *wants* hard edges anyway, so we take the
-robust route: reconstruct the face normal in the fragment shader from how the world position changes
-across the triangle — `dpdx`/`dpdy` are the screen-space derivatives, and their cross product is the
-face normal. No vertex normals required, works on any mesh.
+The box may lack vertex normals, and a cube wants hard edges anyway — so reconstruct the face normal
+in the fragment shader from how world position changes across the triangle: `dpdx`/`dpdy` are
+screen-space derivatives, their cross product is the face normal. Works on any mesh, no vertex
+normals needed.
 
 ```
 world_pos (passed from the vertex shader)
@@ -31,11 +29,11 @@ light model:  hemisphere ambient  +  key·max(dot(n,key),0)  +  fill·max(dot(n,
 out = base_color × lit
 ```
 
-**Two sign traps** (both from WebGPU's conventions, both easy to get backwards):
-- WebGPU's framebuffer **Y points down**, so `cross(dpdx, dpdy)` points *into* the surface — every
-  dot product goes negative and nothing lights. Use `cross(dpdy, dpdx)` for an **outward** normal.
-- Back faces have the opposite geometric normal, so we flip `n` when `@builtin(front_facing)` is
-  false — otherwise the inside of the box would be the lit side.
+**Two sign traps**, both from WebGPU's conventions:
+- Framebuffer **Y points down**, so `cross(dpdx, dpdy)` points *into* the surface and every dot
+  product goes negative. Use `cross(dpdy, dpdx)` for an **outward** normal.
+- Back faces have the opposite geometric normal — flip `n` when `@builtin(front_facing)` is false, or
+  the box's inside becomes the lit side.
 
 ## Files we touch
 
@@ -43,15 +41,14 @@ out = base_color × lit
 src/shaders/triangle.wgsl   # pass world_pos through; light the fragment (the only change)
 ```
 
-That's it — the mesh still draws through the existing pipeline. (The `time` uniform the old pulse used
-is now unused by this shader; leaving it bound is harmless — we'll drop it when the mesh gets its own
-pipeline in a later lesson.)
+That's it — the mesh still draws through the existing pipeline. (The old `time` uniform is unused now
+but harmless to leave bound; dropped once the mesh gets its own pipeline, later.)
 
 ## Step 1 — pass the world position through: `src/shaders/triangle.wgsl`
 
-The fragment shader needs the un-projected position to take derivatives of. Add it to `VsOut` and set
-it in the vertex shader. The box has no per-object transform yet, so model space *is* world space —
-`in.position` is the world position:
+The fragment shader needs the un-projected position for derivatives. Add it to `VsOut` and set it in
+the vertex shader — the box has no per-object transform yet, so model space *is* world space:
+`in.position` is the world position.
 
 ```wgsl
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
@@ -79,9 +76,9 @@ fn vs_main(in: VsIn) -> VsOut {
 
 ## Step 2 — light the fragment: `src/shaders/triangle.wgsl`
 
-Replace the time-pulse fragment shader with the light model. Compute the normal **first** (derivatives
-must run in uniform control flow, before any `if`), flip it for back faces, then sum ambient + key +
-fill:
+Replace the time-pulse fragment shader with the light model. Compute the normal **first**
+(derivatives need uniform control flow, before any `if`), flip it for back faces, sum
+ambient + key + fill:
 
 ```wgsl
 @fragment
@@ -105,9 +102,8 @@ fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f
 }
 ```
 
-The old `time` uniform declaration (`@group(1) @binding(0) var<uniform> time`) is no longer used —
-you can delete it from the shader or leave it; either compiles. The pipeline still binds group 1, and
-an unused bound group is harmless.
+The old `time` uniform declaration (`@group(1) @binding(0) var<uniform> time`) is unused now — delete
+it or leave it, either compiles; an unused bound group is harmless.
 
 ## Step 3 — run
 
@@ -115,11 +111,10 @@ an unused bound group is harmless.
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-The cube now reads as a cube: its top face is brightest (normal points at the sky term and the key
-light), the sides step down in tone, and the faces turned away sit in ambient. Orbit (right-drag) and
-the shading shifts as faces turn toward and away from the fixed lights — the flat blue hexagon is
-gone. Because the normal is per-face, the edges stay crisp (that's flat shading; smooth shading in
-lesson 22 will round curved meshes without softening a cube's corners).
+The cube reads as a cube: top face brightest (sky + key light), sides stepping down, faces away
+sitting in ambient. Orbit (right-drag) and shading shifts with the lights — the flat blue hexagon is
+gone. Edges stay crisp since the normal is per-face: flat shading. Lesson 22 rounds curved meshes
+without softening a cube's corners.
 
 ## Recap
 
@@ -136,6 +131,6 @@ with a flat-normal hemisphere+key+fill light model).
 
 ## Next
 
-`22-flat-vs-smooth.md` — use the **per-vertex** normal sitting in `RenderVertex` at location 1. A
-smooth term (interpolated normal) rounds curved meshes, while a flag keeps hard edges on a cube — the
-flat-vs-smooth choice, made per mesh.
+`22-flat-vs-smooth.md` — use the **per-vertex** normal already in `RenderVertex` at location 1. An
+interpolated normal rounds curved meshes while a cube keeps hard edges — the flat-vs-smooth choice,
+made per mesh.

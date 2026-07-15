@@ -1,17 +1,32 @@
 # 22 Flat vs smooth — the normal chooses
 
-Lesson 21 lit the box with a normal *reconstructed* from screen derivatives — every triangle one
-flat facet. Right for a box; wrong for anything curved: a sphere-ish mesh renders as a disco ball.
-This lesson finally uses the **per-vertex normal that has been sitting in `RenderVertex` at
-location 1 since lesson 19**: the kernel computes smooth vertex normals, we store them on the mesh,
-and the fragment shader picks — **smooth when the vertex normal exists, flat when it's zero**. One
-mesh keeps hard edges, another goes smooth, same shader.
+Lesson 21 reconstructed the normal from screen derivatives — one flat facet per triangle, fine for a
+box but wrong for anything curved (a sphere-ish mesh becomes a disco ball). This lesson uses the
+**per-vertex normal sitting in `RenderVertex` at location 1 since lesson 19**: the kernel computes
+smooth vertex normals, we store them on the mesh, and the fragment shader picks — **smooth when the
+vertex normal exists, flat when it's zero**. Same shader; one mesh keeps hard edges, another goes
+smooth.
+
+<svg viewBox="0 0 520 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="flat per-face normals versus smooth interpolated vertex normals" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="120" y="16" fill="#888" text-anchor="middle">flat — lesson 21</text>
+  <polygon points="40,120 120,120 80,60" fill="none" stroke="#3a3a3a"/>
+  <polygon points="120,120 200,120 160,60" fill="none" stroke="#3a3a3a"/>
+  <line x1="80" y1="95" x2="80" y2="55" stroke="#6fb3ff" stroke-width="1.5"/>
+  <line x1="160" y1="95" x2="150" y2="50" stroke="#6fb3ff" stroke-width="1.5"/>
+  <text x="120" y="140" fill="#666" text-anchor="middle">same n across each facet → hard seam</text>
+  <text x="400" y="16" fill="#888" text-anchor="middle">smooth — lesson 22</text>
+  <path d="M320,120 Q400,40 480,120" fill="none" stroke="#3a3a3a"/>
+  <line x1="330" y1="112" x2="322" y2="70" stroke="#6fb3ff" stroke-width="1.5"/>
+  <line x1="400" y1="90" x2="400" y2="46" stroke="#6fb3ff" stroke-width="1.5"/>
+  <line x1="470" y1="112" x2="478" y2="70" stroke="#6fb3ff" stroke-width="1.5"/>
+  <text x="400" y="140" fill="#666" text-anchor="middle">n rotates per pixel → curved look</text>
+</svg>
 
 ## Why
 
-A vertex normal is the average of the face normals around that vertex (the kernel weights by face
-area). The GPU interpolates it across each triangle, and normalizing per pixel gives a normal that
-*curves* across the surface — so lighting bends smoothly instead of jumping at each facet:
+A vertex normal averages the surrounding face normals (area-weighted by the kernel). The GPU
+interpolates it per triangle; normalizing per pixel makes the normal *curve* across the surface, so
+lighting bends smoothly instead of jumping at each facet:
 
 ```
 flat   (lesson 21):  n = cross(dpdy, dpdx)      same n for a whole triangle → facets
@@ -23,9 +38,9 @@ carries them, and ZERO if not (render_mesh.rs's documented contract). So:
     vertex normal == 1  → use it, smooth
 ```
 
-That zero-fallback is the whole design: a box we never touch stays flat automatically; a mesh we
-*bake* normals onto turns smooth. (The archive did this with a per-object FLAG_SMOOTH bit — we get
-the same choice data-driven; the flag version returns with instancing, lesson 29/30.)
+That zero-fallback is the whole design: an untouched box stays flat; a mesh we *bake* normals onto
+turns smooth. (The archive used a per-object `FLAG_SMOOTH` bit for the same choice; it returns
+data-driven with instancing in lesson 29/30.)
 
 ## Files we touch
 
@@ -36,8 +51,8 @@ src/engine/gpu.rs           # meshes: Vec<Mesh>; two dodecahedra, one with baked
 
 ## Step 1 — pass the vertex normal through: `src/shaders/triangle.wgsl`
 
-`RenderVertex` is position @0, **normal @1**, color @2 — we've been skipping @1 until now. Add it
-to `VsIn`, hand it to the fragment via `VsOut` (the GPU interpolates everything in `VsOut`):
+`RenderVertex` is position @0, **normal @1**, color @2 — @1 skipped until now. Add it to `VsIn` and
+pass it through `VsOut` (the GPU interpolates everything there):
 
 ```wgsl
 struct VsIn {
@@ -66,10 +81,9 @@ fn vs_main(in: VsIn) -> VsOut {
 
 ## Step 2 — let the data choose: `fs_main`
 
-Only the normal-picking block changes; the lights and the final multiply stay exactly lesson 21.
-A baked normal has length 1, an unbaked one is exactly zero — so `dot(n, n) > 0.5` cleanly asks
-"does this mesh carry normals?". (Careful naming the flag: `smooth` is a **reserved word** in WGSL —
-naga rejects it — so we call it `has_normal`.)
+Only the normal-picking block changes; lights and the final multiply stay lesson 21. A baked normal
+has length 1, an unbaked one is exactly zero, so `dot(n, n) > 0.5` cleanly asks "does this mesh carry
+normals?" (`smooth` is WGSL-**reserved** — naga rejects it — so the flag is `has_normal`.)
 
 ```wgsl
 @fragment
@@ -85,23 +99,22 @@ fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f
     // …key/fill/hemi lighting and `in.color * lit` unchanged from lesson 21…
 ```
 
-(Interpolating unit normals shortens them slightly mid-face — that's why we re-`normalize` per
-pixel. And `select` evaluates both operands: `normalize(zero)` produces a NaN that is simply
-discarded when `flat_n` is chosen — harmless.)
+(Interpolating unit normals shortens them mid-face, hence the per-pixel re-`normalize`. `select`
+evaluates both operands, so `normalize(zero)` produces a NaN — harmless, since `flat_n` is the one
+chosen.)
 
 ## Step 3 — one flat, one smooth: `src/engine/gpu.rs`
 
-Swap the single `mesh` field for a list (this also readies the draw loop for every mesh that
-follows):
+Swap the single `mesh` field for a list — this also readies the draw loop for every mesh that
+follows:
 
 ```rust
     pub meshes: Vec<Mesh>,      // replaces `mesh: Mesh`
 ```
 
-In `new()`, keep the blue box (never baked → stays flat), and add **two identical dodecahedra**:
-the left one untouched (flat), the right one with kernel-computed normals baked in. Note the order —
-**transform first, then bake** (a rotation would invalidate baked normals; keep the habit even for
-a translation):
+In `new()`, keep the blue box (never baked → flat) and add **two identical dodecahedra**: left
+untouched, right with kernel-computed normals baked in. Order matters — **transform first, then
+bake** (a rotation invalidates baked normals; keep the habit even for a translation):
 
 ```rust
         let mut mesh = Mesh::create_box(1000.0, 1000.0, 1000.0);
@@ -119,18 +132,17 @@ a translation):
         let meshes = vec![mesh, flat, smooth];
 ```
 
-(Two kernel notes. `transform(&xf)` — Rust mirrors C++'s two overloads with
-`impl Into<Option<&Xform>>`: pass `&xf` directly, or `None` to apply the mesh's *stored* `xform`.
-And `compute_vertex_normals()` — the familiar name from three.js/Open3D — is `vertex_normals()`
-(the area-weighted average of the face normals around each vertex) stored per vertex via
-`set_normal`, plus the GPU-cache invalidation; one call instead of a hand-written loop.)
+(`transform(&xf)` mirrors C++'s two overloads via `impl Into<Option<&Xform>>` — pass `&xf` directly,
+or `None` for the mesh's *stored* `xform`. `compute_vertex_normals()` — the familiar three.js/Open3D
+name — wraps `vertex_normals()` (area-weighted face-normal average) stored per vertex via
+`set_normal`, plus GPU-cache invalidation: one call instead of a hand-written loop.)
 
 Return `meshes` in the `Ok(Self { … })` instead of `mesh`.
 
 ## Step 4 — draw them all: `src/engine/gpu.rs`
 
-In `clear()`, the pipeline and bind groups are set once; then loop the meshes — each binds its own
-cached buffers and draws:
+In `clear()`, pipeline and bind groups are set once; loop the meshes, each binding its own cached
+buffers and drawing:
 
 ```rust
             pass.set_pipeline(&self.pipelines.triangle);
@@ -144,9 +156,8 @@ cached buffers and draws:
             }
 ```
 
-(One draw call per mesh is fine for three meshes; collapsing many draws into few is exactly the
-batching story of lessons 28–30. If `F` no longer frames everything, widen the `SCENE_*` bounds in
-`lib.rs` to cover x ≈ ±2300.)
+(One draw per mesh is fine for three — collapsing many draws into few is the batching story of
+lessons 28–30. If `F` no longer frames everything, widen `SCENE_*` in `lib.rs` to x ≈ ±2300.)
 
 ## The invalidation contract (when does the GPU copy refresh?)
 
@@ -156,8 +167,8 @@ batching story of lessons 28–30. If `F` no longer frames everything, widen the
   `invalidate_triangle_bvh()`, which also drops the GPU cache (`gpu_cache.0 = None`) — the next
   `gpu_mesh()` re-flattens automatically.
 - **Direct attribute pokes** — like `set_normal` on a vertex — do *not* invalidate.
-  `compute_vertex_normals()` calls `invalidate_gpu()` for you (that's why it exists); poke
-  attributes by hand and you must say so yourself:
+  `compute_vertex_normals()` calls `invalidate_gpu()` internally (that's why it exists); poke
+  attributes by hand and say so yourself:
 
 ```rust
         // try it: set_normal by hand AFTER the first frame and nothing changes — until you add:
@@ -171,12 +182,11 @@ batching story of lessons 28–30. If `F` no longer frames everything, widen the
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-Two orange dodecahedra flank the blue box — **identical geometry, different normals**. The left one
-is faceted: twelve flat pentagons, hard edges, lighting jumps at every seam (the lesson-21
-derivative normal). The right one reads as a smooth rounded solid: the interpolated vertex normals
-bend the light continuously across the facets. The box is untouched and still perfectly crisp —
-zero normals, flat fallback. Orbit and watch the highlight roll smoothly across the right
-dodecahedron while it snaps facet-to-facet on the left.
+Two orange dodecahedra flank the blue box — **identical geometry, different normals**. The left is
+faceted: twelve flat pentagons, lighting jumping at every seam (the lesson-21 derivative normal). The
+right reads as a smooth rounded solid, interpolated normals bending the light continuously. The box
+stays perfectly crisp — zero normals, flat fallback. Orbit: the highlight rolls smoothly on the
+right, snaps facet-to-facet on the left.
 
 ## Recap
 
@@ -195,5 +205,5 @@ Edited: `shaders/triangle.wgsl` (normal @1 in, interpolated @2 out, smooth-or-fl
 
 ## Next
 
-`23-mesh-edges.md` — the other half of the "CAD look": dark edge lines over the shaded solid. An
+`23-mesh-edges.md` — the other half of the "CAD look": dark edge lines over the shaded solid, via an
 edge overlay pipeline built from the kernel's `mesh.edges()`, reusing the lesson-20 overlay pattern.

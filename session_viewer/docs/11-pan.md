@@ -1,14 +1,26 @@
 # 11 Pan the camera
 
-Add **Ctrl + right-drag to pan** — slide the view sideways and up/down. Right-drag still
-orbits (chapter 10); holding **Ctrl** turns that same drag into a pan.
+**Ctrl + right-drag pans** — slides the view sideways and up/down. Right-drag still orbits
+(chapter 10); **Ctrl** turns that same drag into a pan.
 
 ## How panning works
 
-Orbit moved the **eye** around a fixed target. Pan moves the **target itself** (and the eye
-follows it) across the screen plane — along the camera's **right** and **up** axes, scaled by
-distance so it roughly tracks the cursor. So the target stops being a hard-coded origin and
-becomes a stored value.
+Orbit moved the **eye** around a fixed target. Pan moves the **target** itself (eye follows)
+across the screen plane, along the camera's **right**/**up** axes, scaled by distance to
+roughly track the cursor. The target stops being a hard-coded origin and becomes a stored
+value.
+
+<svg viewBox="0 0 320 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="pan moves the target along the camera's screen-space right and up axes" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <circle cx="160" cy="90" r="3" fill="#555"/>
+  <text x="160" y="108" fill="#666" text-anchor="middle">target (old)</text>
+  <line x1="160" y1="90" x2="250" y2="90" stroke="#6fb3ff" stroke-width="1.5"/>
+  <text x="255" y="94" fill="#d7dae0">right</text>
+  <line x1="160" y1="90" x2="160" y2="30" stroke="#6fb3ff" stroke-width="1.5"/>
+  <text x="150" y="24" fill="#d7dae0" text-anchor="end">up</text>
+  <line x1="160" y1="90" x2="90" y2="45" stroke="#888" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <circle cx="90" cy="45" r="3" fill="#6fb3ff"/>
+  <text x="80" y="38" fill="#d7dae0">target (new)</text>
+</svg>
 
 Camera axes from yaw/pitch:
 
@@ -40,7 +52,7 @@ src/lib.rs          # track Ctrl; Ctrl+right-drag → pan, plain right-drag → 
             target: [0.0, 0.0, 0.0],
 ```
 
-**(c)** In `clear`, build the eye **relative to the target** (replace the `let target …` /
+**(c)** In `clear`, build the eye **relative to the target** (replacing the `let target …` /
 `let eye …` block from chapter 10):
 
 ```rust
@@ -107,8 +119,8 @@ src/lib.rs          # track Ctrl; Ctrl+right-drag → pan, plain right-drag → 
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-Right-drag orbits; **Ctrl + right-drag pans**; scroll zooms; Space toggles
-perspective/orthographic. (If pan feels inverted, flip the signs on `-dx` / `dy`.)
+Right-drag orbits, **Ctrl + right-drag pans**, scroll zooms, Space toggles
+perspective/orthographic. (Pan feels inverted? Flip the signs on `-dx`/`dy`.)
 
 
 ## Recap
@@ -119,10 +131,10 @@ Ch 11: target is stored; Ctrl+right-drag moves it along the camera's right/up ax
 ```
 
 Edited: `gpu.rs` (`target` field + `pan` + eye relative to target), `lib.rs` (`ctrl` flag +
-`ModifiersChanged` + branch in `CursorMoved`). The shader, mvp uniform, and zoom are unchanged.
+`ModifiersChanged` + branch in `CursorMoved`). Shader, mvp uniform, and zoom unchanged.
 
 
 ## Next
 
-`12-depth-buffer.md` — add a **depth buffer** (reverse-Z) so nearer surfaces hide farther ones
-regardless of draw order.
+`12-depth-buffer.md` — add a **depth buffer** so nearer surfaces hide farther ones, regardless
+of draw order.

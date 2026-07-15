@@ -1,29 +1,39 @@
 # 12 Depth buffer
 
-Add a **depth buffer** so nearer surfaces correctly hide farther ones — no matter what order
-we draw them in. So far the *last* triangle drawn always paints over the earlier ones, even
-when it's physically behind. A depth buffer makes **distance**, not draw order, decide.
+Add a **depth buffer** so nearer surfaces hide farther ones, regardless of draw order. Right
+now the *last* triangle drawn always paints over earlier ones, even when it's physically
+behind. A depth buffer makes **distance**, not draw order, decide.
+
+<svg viewBox="0 0 420 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a ray through one pixel hits both triangles; the depth test keeps the nearer orange hit" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <circle cx="20" cy="65" r="3" fill="#d7dae0"/>
+  <text x="20" y="82" fill="#666" text-anchor="middle">eye</text>
+  <line x1="20" y1="65" x2="400" y2="65" stroke="#555" stroke-width="1" stroke-dasharray="2,2"/>
+  <line x1="160" y1="20" x2="160" y2="110" stroke="#e08a3c" stroke-width="3"/>
+  <text x="160" y="16" fill="#e08a3c" text-anchor="middle">near · z=+0.3 · orange</text>
+  <line x1="300" y1="20" x2="300" y2="110" stroke="#6fb3ff" stroke-width="3"/>
+  <text x="300" y="16" fill="#6fb3ff" text-anchor="middle">far · z=-0.3 · blue</text>
+  <circle cx="160" cy="65" r="4" fill="#d7dae0"/>
+  <text x="210" y="100" fill="#d7dae0" text-anchor="middle">depth test keeps this hit — draw order doesn't matter</text>
+</svg>
 
 ## How a depth buffer works
 
-A depth buffer is a second texture, the size of the screen, holding one number per pixel: the
-depth of the *closest* fragment drawn so far. Each new fragment compares its depth against that
-value and is kept only if it's nearer — so distance, not draw order, decides who wins. We clear
-it to `1.0` (the far plane — every pixel starts maximally distant) and keep a fragment when its
-depth is **less** than what's stored. We use a `Depth32Float` texture.
+A depth buffer is a second screen-sized texture holding one number per pixel: the depth of the
+*closest* fragment drawn so far. Each new fragment compares against that value and survives
+only if nearer. Cleared to `1.0` (far — every pixel starts maximally distant); a fragment
+passes when its depth is **less** than what's stored. Format: `Depth32Float`.
 
 ```
 depth buffer:   per-pixel "nearest so far"; farther fragments are discarded
 standard depth: near -> 0.0, far -> 1.0    (clear 1.0, test Less, write the nearer)
 ```
 
-> **Aside — reverse-Z (deferred).** You'll hear that *reverse-Z* (map near→`1.0`, far→`0.0`,
-> clear `0.0`, test `Greater`) gives better `float32` precision far from the camera, because the
-> `1/z` curve crowds the distance exactly where float is densest. That's real — but in **WebGPU**
-> you can't get it from the viewport: `setViewport(…, minDepth, maxDepth)` requires
-> `minDepth ≤ maxDepth`, so a `1.0 → 0.0` swap is **rejected at runtime** (that's the validation
-> error if you try it). Proper reverse-Z lives in the **projection matrix**; we'll revisit it with
-> the camera-precision work. For two triangles at the origin, plain standard depth is all we need.
+> **Aside — reverse-Z (deferred).** *Reverse-Z* (near→`1.0`, far→`0.0`, clear `0.0`, test
+> `Greater`) gives better `float32` precision far from the camera — the `1/z` curve crowds
+> precision exactly where float is densest. Real benefit, but not from the viewport:
+> `setViewport(…, minDepth, maxDepth)` requires `minDepth ≤ maxDepth`, so a `1.0 → 0.0` swap is
+> **rejected at runtime**. Proper reverse-Z lives in the **projection matrix** — revisited with
+> the camera-precision work. For two triangles at the origin, standard depth is enough.
 
 ## Files we touch
 
@@ -68,10 +78,10 @@ to the returned `Ok(Self { … })`:
         Ok(Self { /* …existing fields…, */ depth_view })
 ```
 
-**(d)** The depth texture must always match the canvas, so re-create it on resize — in `resize`,
-after `self.surface.configure(...)`. **Mind the `self.`**: in `new`, `device` and `config` are
-local variables, but in `resize` they're *fields*, so you pass `&self.device, &self.config`.
-Bare `&device, &config` (the `new` form) won't compile here — those names aren't in scope:
+**(d)** The depth texture must match the canvas, so recreate it on resize — in `resize`, after
+`self.surface.configure(...)`. **Mind the `self.`**: in `new`, `device`/`config` are local
+variables; in `resize` they're *fields*, so pass `&self.device, &self.config` — the bare
+`new`-style names aren't in scope here:
 
 ```rust
             self.depth_view = Self::create_depth_view(&self.device, &self.config);
@@ -95,10 +105,10 @@ Replace the pipeline's `depth_stencil: None,` with a real depth state:
 
 ## Step 3 — attach the depth buffer + two objects: `gpu.rs`
 
-**(a)** Give the render pass a depth attachment, cleared to `1.0` (the far plane). This is **not**
-in `create_render_pipeline` — that was Step 2's `depth_stencil`. This goes in the
-`wgpu::RenderPassDescriptor` inside the `clear()` method: find the `depth_stencil_attachment: None,`
-line (right after `color_attachments: &[ … ]`) and replace the `None` with:
+**(a)** Give the render pass a depth attachment, cleared to `1.0` (the far plane). Not in
+`create_render_pipeline` — that was Step 2's `depth_stencil`. This goes in the
+`wgpu::RenderPassDescriptor` inside `clear()`: find `depth_stencil_attachment: None,` (right
+after `color_attachments: &[ … ]`) and replace `None` with:
 
 ```rust
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
@@ -111,11 +121,10 @@ line (right after `color_attachments: &[ … ]`) and replace the `None` with:
                 }),
 ```
 
-**(b)** Now give the depth test something to prove: draw **two triangles at different depths in
-space**. The orange one sits in front at `z = +0.3`; the blue one is behind it at `z = -0.3` and
-is drawn **second** — so without the depth buffer it would wrongly paint over the orange one.
-Replace the `TRIANGLE` constant (and rename `TRIANGLE` → `TRIANGLES` in the two lines that build
-`vertex_buffer` and `num_vertices`):
+**(b)** Give the depth test something to prove: draw **two triangles at different depths**.
+Orange sits in front at `z = +0.3`; blue is behind at `z = -0.3` and drawn **second** —
+without depth testing it would wrongly paint over orange. Replace the `TRIANGLE` constant
+(and rename `TRIANGLE` → `TRIANGLES` in the two lines building `vertex_buffer`/`num_vertices`):
 
 ```rust
         const TRIANGLES: &[Vertex] = &[
@@ -137,10 +146,10 @@ Replace the `TRIANGLE` constant (and rename `TRIANGLE` → `TRIANGLES` in the tw
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-The orange triangle sits correctly in front of the blue one — and **stays** correct as you
-right-drag to orbit around them in 3D. As a test, set `depth_compare: Some(wgpu::CompareFunction::Always)`
-(or drop the depth attachment): the blue triangle, drawn *last*, wrongly jumps in front. That's
-the draw-order bug the depth buffer removes.
+Orange sits correctly in front of blue — and **stays** correct as you right-drag to orbit
+around them in 3D. Test it: set `depth_compare: Some(wgpu::CompareFunction::Always)` (or drop
+the depth attachment) and blue, drawn *last*, wrongly jumps in front. That's the draw-order
+bug the depth buffer removes.
 
 
 ## Recap
@@ -150,12 +159,12 @@ Ch 11: one triangle; last-drawn wins (no depth)
 Ch 12: depth texture + Less test (clear 1.0); the nearer fragment wins, whatever the draw order
 ```
 
-Edited: `build.rs` (`depth_stencil`), `gpu.rs` (`depth_view` field + `create_depth_view` +
-build it in `new`/`resize`, depth attachment cleared to `1.0`, a second triangle). The shader,
-mvp uniform, and camera are unchanged.
+Edited: `build.rs` (`depth_stencil`), `gpu.rs` (`depth_view` field + `create_depth_view`, built
+in `new`/`resize`, depth attachment cleared to `1.0`, second triangle). Shader, mvp uniform,
+and camera unchanged.
 
 
 ## Next
 
-`13-camera-module.md` — pull the camera state and orbit/pan/zoom + `view_proj` out of `gpu.rs`
-into its own `camera.rs` (`Camera` + `CameraController`): the "distribute, don't smash" refactor.
+`13-camera-module.md` — camera state and orbit/pan/zoom + `view_proj` move out of `gpu.rs`
+into `camera.rs` (`Camera` + `CameraController`): the "distribute, don't smash" refactor.

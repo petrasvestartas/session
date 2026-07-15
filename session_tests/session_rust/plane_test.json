@@ -88,7 +88,7 @@
     "line": 8,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.081
+    "time_ms": 0.091
   },
   {
     "checks": [
@@ -124,7 +124,7 @@
     "line": 105,
     "passed": true,
     "test_name": "Reverse",
-    "time_ms": 0.003
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -140,7 +140,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Rotate",
-    "time_ms": 0.008
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -187,7 +187,7 @@
     "line": 174,
     "passed": true,
     "test_name": "Is Coplanar",
-    "time_ms": 0.007
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -213,7 +213,7 @@
     "line": 216,
     "passed": true,
     "test_name": "Transform",
-    "time_ms": 0.007
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -234,7 +234,7 @@
     "line": 247,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 13.936
+    "time_ms": 14.735
   },
   {
     "checks": [
@@ -255,7 +255,33 @@
     "line": 268,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 13.535
+    "time_ms": 13.971
+  },
+  {
+    "checks": [
+      {
+        "code_line": "Plane::is_same_direction(&p1, &p2, true)",
+        "line": 153,
+        "passed": true
+      },
+      {
+        "code_line": "Plane::is_same_direction(&p1, &p3, true)",
+        "line": 154,
+        "passed": true
+      },
+      {
+        "code_line": "Plane::is_same_direction(&p1, &p3, false)",
+        "line": 155,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Plane;\n\n        let p1 = Plane::xy_plane();\n        let p2 = Plane::xy_plane();\n        let mut p3 = Plane::xy_plane();\n        p3.reverse();\n",
+    "failures": [],
+    "group": "Plane",
+    "line": 145,
+    "passed": true,
+    "test_name": "Is Same Direction",
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -286,96 +312,7 @@
     "line": 231,
     "passed": true,
     "test_name": "Transformed",
-    "time_ms": 0.008
-  },
-  {
-    "checks": [
-      {
-        "code_line": "pl.has_on_negative_side(&below)",
-        "line": 304,
-        "passed": true
-      },
-      {
-        "code_line": "!pl.has_on_negative_side(&above)",
-        "line": 305,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);",
-    "failures": [],
-    "group": "Plane",
-    "line": 299,
-    "passed": true,
-    "test_name": "Has On Negative Side",
-    "time_ms": 0.002
-  },
-  {
-    "checks": [
-      {
-        "code_line": "Plane::is_same_direction(&p1, &p2, true)",
-        "line": 153,
-        "passed": true
-      },
-      {
-        "code_line": "Plane::is_same_direction(&p1, &p3, true)",
-        "line": 154,
-        "passed": true
-      },
-      {
-        "code_line": "Plane::is_same_direction(&p1, &p3, false)",
-        "line": 155,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Plane;\n\n        let p1 = Plane::xy_plane();\n        let p2 = Plane::xy_plane();\n        let mut p3 = Plane::xy_plane();\n        p3.reverse();\n",
-    "failures": [],
-    "group": "Plane",
-    "line": 145,
-    "passed": true,
-    "test_name": "Is Same Direction",
-    "time_ms": 0.004
-  },
-  {
-    "checks": [
-      {
-        "code_line": "Plane::is_same_position(&p1, &Plane::xy_plane())",
-        "line": 168,
-        "passed": true
-      },
-      {
-        "code_line": "!Plane::is_same_position(&p1, &p2)",
-        "line": 169,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Plane;\n        use crate::Vector;\n\n        let p1 = Plane::xy_plane();\n        let mut p2 = Plane::xy_plane();\n        p2 += Vector::new(0.0, 0.0, 1.0);\n",
-    "failures": [],
-    "group": "Plane",
-    "line": 160,
-    "passed": true,
-    "test_name": "Is Same Position",
-    "time_ms": 0.003
-  },
-  {
-    "checks": [
-      {
-        "code_line": "pl.is_valid()",
-        "line": 99,
-        "passed": true
-      },
-      {
-        "code_line": "!invalid.is_valid()",
-        "line": 100,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Plane;\n\n        let pl = Plane::xy_plane();\n        let invalid = Plane::invalid();\n",
-    "failures": [],
-    "group": "Plane",
-    "line": 93,
-    "passed": true,
-    "test_name": "Is Valid",
-    "time_ms": 0.003
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -411,7 +348,49 @@
     "line": 201,
     "passed": true,
     "test_name": "Base1 Base2",
-    "time_ms": 0.003
+    "time_ms": 0.006
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pl.is_valid()",
+        "line": 99,
+        "passed": true
+      },
+      {
+        "code_line": "!invalid.is_valid()",
+        "line": 100,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Plane;\n\n        let pl = Plane::xy_plane();\n        let invalid = Plane::invalid();\n",
+    "failures": [],
+    "group": "Plane",
+    "line": 93,
+    "passed": true,
+    "test_name": "Is Valid",
+    "time_ms": 0.007
+  },
+  {
+    "checks": [
+      {
+        "code_line": "Plane::is_same_position(&p1, &Plane::xy_plane())",
+        "line": 168,
+        "passed": true
+      },
+      {
+        "code_line": "!Plane::is_same_position(&p1, &p2)",
+        "line": 169,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Plane;\n        use crate::Vector;\n\n        let p1 = Plane::xy_plane();\n        let mut p2 = Plane::xy_plane();\n        p2 += Vector::new(0.0, 0.0, 1.0);\n",
+    "failures": [],
+    "group": "Plane",
+    "line": 160,
+    "passed": true,
+    "test_name": "Is Same Position",
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -432,6 +411,27 @@
     "line": 189,
     "passed": true,
     "test_name": "Translate By Normal",
+    "time_ms": 0.011
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pl.has_on_negative_side(&below)",
+        "line": 304,
+        "passed": true
+      },
+      {
+        "code_line": "!pl.has_on_negative_side(&above)",
+        "line": 305,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{Plane, Point};\n        let pl = Plane::xy_plane();\n        let above = Point::new(0.0, 0.0, 1.0);\n        let below = Point::new(0.0, 0.0, -1.0);",
+    "failures": [],
+    "group": "Plane",
+    "line": 299,
+    "passed": true,
+    "test_name": "Has On Negative Side",
     "time_ms": 0.005
   }
 ]

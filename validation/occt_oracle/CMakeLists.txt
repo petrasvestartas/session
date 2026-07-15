@@ -36,7 +36,7 @@ endif()
 
 # Link order matters for static libs: dependents before dependencies.
 set(OCCT_LIB_TARGETS "")
-set(OCCT_MODULES TKBool TKFillet TKOffset TKFeat TKPrim TKBO TKMesh TKHLR TKShHealing TKTopAlgo TKGeomAlgo TKBRep TKGeomBase TKG3d TKG2d TKMath TKernel)
+set(OCCT_MODULES TKDESTEP TKXSBase TKBool TKFillet TKOffset TKFeat TKPrim TKBO TKMesh TKHLR TKShHealing TKTopAlgo TKGeomAlgo TKBRep TKGeomBase TKG3d TKG2d TKMath TKernel)
 foreach(MODULE ${OCCT_MODULES})
     list(APPEND OCCT_LIB_TARGETS "${OCCT_LIB_DIR}/${LIB_PREFIX}${MODULE}${LIB_EXT}")
 endforeach()

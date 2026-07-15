@@ -440,6 +440,7 @@ window.API_INDEX = {
         "AABB.closest_point",
         "AABB.contains",
         "AABB.corner",
+        "AABB.corners_f32",
         "AABB.diagonal",
         "AABB.from_nurbscurve",
         "AABB.from_nurbssurface",
@@ -909,6 +910,7 @@ window.API_INDEX = {
         "AABB.closest_point",
         "AABB.contains",
         "AABB.corners",
+        "AABB.corners_f32",
         "AABB.diagonal",
         "AABB.from_nurbscurve",
         "AABB.from_nurbssurface",
@@ -6673,6 +6675,7 @@ window.API_INDEX = {
         "BRep.p2pl",
         "BRep.pt_to_polyline",
         "BRep.sew_coincident_edges",
+        "BRep.split_by_brep",
         "BRep.split_multi",
         "BRep.str",
         "BRep.vertex_count",
@@ -7090,7 +7093,7 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "BRep split_by_brep(const BRep& cutter, double tolerance)",
-          "code": "BRep BRep::split_by_brep(const BRep& cutter, double tolerance) const {\n    std::vector<std::pair<std::array<double, 3>, std::array<double, 3>>> cutter_bbs;\n    for (const auto& cs : cutter.m_surfaces) cutter_bbs.push_back(aabb_from_surface(cs));\n    return split_with(tolerance, [&](const NurbsSurface& srf) {\n        std::vector<NurbsCurve> out;\n        auto srf_bb = aabb_from_surface(srf);\n        double margin = std::max({srf_bb.second[0] - srf_bb.first[0],\n                                  srf_bb.second[1] - srf_bb.first[1],\n                                  srf_bb.second[2] - srf_bb.first[2]}",
+          "code": "BRep BRep::split_by_brep(const BRep& cutter, double tolerance) const {\n    std::vector<std::pair<std::array<double, 3>, std::array<double, 3>>> cutter_bbs;\n    for (const auto& cs : cutter.m_surfaces) cutter_bbs.push_back(aabb_from_surface(cs));\n\n    // Trim-aware cutting (gated): intersect against the cutter's TRIMMED faces and clip each\n    // target section to the face's trim loops, so a section that leaves one cutter patch's\n    // parametric rectangle stops at the true trim boundary (where it continues onto the adjacent\n    // cutter face) instead of ending in the target's interior. Legacy path (gate off) loops raw\n    // cutter SURFACES and is byte-identical.\n    static const bool s_trimcut = (std::getenv(\"SESSION_TRIM_CUT\") != nullptr\n                                   || std::getenv(\"SESSION_BOOL_SHARED_EDGES\") != nullptr);\n    struct FaceTrim {\n        int surf_index = -1;\n        std::vector<std::vector<std::array<double, 2>>> outer, inner;\n    }",
           "file": "brep.cpp"
         },
         "rust": {
@@ -7119,8 +7122,10 @@ window.API_INDEX = {
         "BRep.map_vertex",
         "BRep.new",
         "BRep.pt_to_polyline",
+        "BRep.rec",
         "BRep.split_by_plane_pieces",
         "BRep.split_with",
+        "BRep.str",
         "BRep.subset"
       ]
     },
@@ -9326,7 +9331,9 @@ window.API_INDEX = {
         "Color.silver",
         "Color.str",
         "Color.teal",
+        "Color.to_f32",
         "Color.to_float_array",
+        "Color.to_rgb",
         "Color.to_unified_array",
         "Color.violet",
         "Color.white",
@@ -9394,7 +9401,9 @@ window.API_INDEX = {
         "Color.silver",
         "Color.str",
         "Color.teal",
+        "Color.to_f32",
         "Color.to_float_array",
+        "Color.to_rgb",
         "Color.to_unified_array",
         "Color.violet",
         "Color.white",
@@ -9465,7 +9474,9 @@ window.API_INDEX = {
         "Color.silver",
         "Color.str",
         "Color.teal",
+        "Color.to_f32",
         "Color.to_float_array",
+        "Color.to_rgb",
         "Color.to_unified_array",
         "Color.violet",
         "Color.white",
@@ -9535,6 +9546,7 @@ window.API_INDEX = {
         "Color.silver",
         "Color.str",
         "Color.teal",
+        "Color.to_f32",
         "Color.to_float_array",
         "Color.to_unified_array",
         "Color.violet",
@@ -18587,6 +18599,908 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "InstanceRef.__init__",
+      "implementations": {
+        "python": {
+          "sig": "__init__(definition_guid=\"\", xform=None)",
+          "code": "def __init__(self, definition_guid=\"\", xform=None):\n\n        self._guid = None\n        self.name = \"my_instance_ref\"\n        self.definition_guid = definition_guid\n        self._xform = xform\n        self._color = None\n        self.flags = 0\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    @property\n    def color(self):\n        if self._color is None:\n            self._color = Color.white()\n        return self._color\n\n    @color.setter\n    def color(self, value):\n        self._color = value\n\n    @classmethod\n    def with_name(cls, name, definition_guid, xform):\n        \"\"\"Create an instance reference with a specific name.\n\n        Returns\n        -------\n        InstanceRef\n            New named instance reference.\n        \"\"\"\n        ref = cls(definition_guid, xform)\n        ref.name = name\n        return ref\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this instance with a new GUID.\n\n        Returns\n        -------\n        :class:`InstanceRef`\n            A new InstanceRef with identical values but a different GUID.\n        \"\"\"\n        import copy\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def transform(self, t):\n        \"\"\"Compose an extra transform onto the placement (in-place): xform = t * xform.\"\"\"\n        self.xform = t * self.xform\n\n    def transformed(self, t):\n        \"\"\"Return a copy with an extra transform composed onto the placement.\n\n        Returns\n        -------\n        :class:`InstanceRef`\n            A new InstanceRef with the transform composed.\n        \"\"\"\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(t)\n        return result",
+          "file": "instance_ref.py"
+        }
+      },
+      "related": [
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.guid",
+        "InstanceRef.new",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.with_name",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.guid",
+      "implementations": {
+        "python": {
+          "sig": "guid(value: str)",
+          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    @property\n    def color(self):\n        if self._color is None:\n            self._color = Color.white()\n        return self._color\n\n    @color.setter\n    def color(self, value):\n        self._color = value\n\n    @classmethod\n    def with_name(cls, name, definition_guid, xform):\n        \"\"\"Create an instance reference with a specific name.\n\n        Returns\n        -------\n        InstanceRef\n            New named instance reference.\n        \"\"\"\n        ref = cls(definition_guid, xform)\n        ref.name = name\n        return ref\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this instance with a new GUID.\n\n        Returns\n        -------\n        :class:`InstanceRef`\n            A new InstanceRef with identical values but a different GUID.\n        \"\"\"\n        import copy\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def transform(self, t):\n        \"\"\"Compose an extra transform onto the placement (in-place): xform = t * xform.\"\"\"\n        self.xform = t * self.xform\n\n    def transformed(self, t):\n        \"\"\"Return a copy with an extra transform composed onto the placement.\n\n        Returns\n        -------\n        :class:`InstanceRef`\n            A new InstanceRef with the transform composed.\n        \"\"\"\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(t)\n        return result\n\n    def __getitem__(self, index):\n        \"\"\"Get placement matrix element by index (0-15, column-major).\"\"\"\n        return self.xform.m[index]\n\n    def __setitem__(self, index, value):\n        \"\"\"Set placement matrix element by index (0-15, column-major).\"\"\"\n        if index < 0 or index >= 16:\n            raise IndexError(\"Index out of bounds\")\n        self.xform.m[index] = value\n\n    def __eq__(self, other):\n        if not isinstance(other, InstanceRef):\n            return NotImplemented\n        return (",
+          "file": "instance_ref.py"
+        },
+        "cpp": {
+          "sig": "const std::string& guid()",
+          "code": "const std::string& guid() const { if (_guid.empty()) _guid = ::guid(); return _guid; }",
+          "file": "instance_ref.h"
+        },
+        "rust": {
+          "sig": "guid() -> &str",
+          "code": "pub fn guid(&self) -> &str {\n        self.guid.get_or_init(|| uuid::Uuid::new_v4().to_string())\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__init__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__repr__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.__str__",
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.jsondump",
+        "InstanceRef.jsonload",
+        "InstanceRef.new",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_load",
+        "InstanceRef.pb_loads",
+        "InstanceRef.repr",
+        "InstanceRef.set_guid",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.with_name",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.xform",
+      "implementations": {
+        "python": {
+          "sig": "xform(value)",
+          "code": "def xform(self, value):\n\n        self._xform = value\n\n    @property\n    def color(self):\n        if self._color is None:\n            self._color = Color.white()\n        return self._color\n\n    @color.setter\n    def color(self, value):\n        self._color = value\n\n    @classmethod\n    def with_name(cls, name, definition_guid, xform):\n        \"\"\"Create an instance reference with a specific name.\n\n        Returns\n        -------\n        InstanceRef\n            New named instance reference.\n        \"\"\"\n        ref = cls(definition_guid, xform)\n        ref.name = name\n        return ref\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this instance with a new GUID.\n\n        Returns\n        -------\n        :class:`InstanceRef`\n            A new InstanceRef with identical values but a different GUID.\n        \"\"\"\n        import copy\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def transform(self, t):\n        \"\"\"Compose an extra transform onto the placement (in-place): xform = t * xform.\"\"\"\n        self.xform = t * self.xform\n\n    def transformed(self, t):\n        \"\"\"Return a copy with an extra transform composed onto the placement.\n\n        Returns\n        -------\n        :class:`InstanceRef`\n            A new InstanceRef with the transform composed.\n        \"\"\"\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(t)\n        return result\n\n    def __getitem__(self, index):\n        \"\"\"Get placement matrix element by index (0-15, column-major).\"\"\"\n        return self.xform.m[index]\n\n    def __setitem__(self, index, value):\n        \"\"\"Set placement matrix element by index (0-15, column-major).\"\"\"\n        if index < 0 or index >= 16:\n            raise IndexError(\"Index out of bounds\")\n        self.xform.m[index] = value\n\n    def __eq__(self, other):\n        if not isinstance(other, InstanceRef):\n            return NotImplemented\n        return (\n            self.definition_guid == other.definition_guid\n            and self.xform == other.xform\n            and self.color == other.color\n            and self.flags == other.flags\n        )\n\n    def __ne__(self, other):\n        result = self.__eq__(other)\n        if result is NotImplemented:\n            return result",
+          "file": "instance_ref.py"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__init__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.__str__",
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.guid",
+        "InstanceRef.jsondump",
+        "InstanceRef.jsonload",
+        "InstanceRef.new",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_load",
+        "InstanceRef.pb_loads",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.with_name"
+      ]
+    },
+    {
+      "name": "InstanceRef.color",
+      "implementations": {
+        "python": {
+          "sig": "color(value)",
+          "code": "def color(self, value):\n\n        self._color = value\n\n    @classmethod\n    def with_name(cls, name, definition_guid, xform):\n        \"\"\"Create an instance reference with a specific name.\n\n        Returns\n        -------\n        InstanceRef\n            New named instance reference.\n        \"\"\"\n        ref = cls(definition_guid, xform)\n        ref.name = name\n        return ref\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this instance with a new GUID.\n\n        Returns\n        -------\n        :class:`InstanceRef`\n            A new InstanceRef with identical values but a different GUID.\n        \"\"\"\n        import copy\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def transform(self, t):\n        \"\"\"Compose an extra transform onto the placement (in-place): xform = t * xform.\"\"\"\n        self.xform = t * self.xform\n\n    def transformed(self, t):\n        \"\"\"Return a copy with an extra transform composed onto the placement.\n\n        Returns\n        -------\n        :class:`InstanceRef`\n            A new InstanceRef with the transform composed.\n        \"\"\"\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(t)\n        return result\n\n    def __getitem__(self, index):\n        \"\"\"Get placement matrix element by index (0-15, column-major).\"\"\"\n        return self.xform.m[index]\n\n    def __setitem__(self, index, value):\n        \"\"\"Set placement matrix element by index (0-15, column-major).\"\"\"\n        if index < 0 or index >= 16:\n            raise IndexError(\"Index out of bounds\")\n        self.xform.m[index] = value\n\n    def __eq__(self, other):\n        if not isinstance(other, InstanceRef):\n            return NotImplemented\n        return (\n            self.definition_guid == other.definition_guid\n            and self.xform == other.xform\n            and self.color == other.color\n            and self.flags == other.flags\n        )\n\n    def __ne__(self, other):\n        result = self.__eq__(other)\n        if result is NotImplemented:\n            return result\n        return not result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {",
+          "file": "instance_ref.py"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__init__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__repr__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.__str__",
+        "InstanceRef.duplicate",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsondump",
+        "InstanceRef.jsonload",
+        "InstanceRef.new",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_load",
+        "InstanceRef.pb_loads",
+        "InstanceRef.repr",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.with_name",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.with_name",
+      "implementations": {
+        "python": {
+          "sig": "with_name(cls, name, definition_guid, xform)",
+          "code": "def with_name(cls, name, definition_guid, xform):\n\n        \"\"\"Create an instance reference with a specific name.\n\n        Returns\n        -------\n        InstanceRef\n            New named instance reference.\n        \"\"\"\n        ref = cls(definition_guid, xform)\n        ref.name = name\n        return ref\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this instance with a new GUID.\n\n        Returns\n        -------\n        :class:`InstanceRef`\n            A new InstanceRef with identical values but a different GUID.\n        \"\"\"\n        import copy\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def transform(self, t):\n        \"\"\"Compose an extra transform onto the placement (in-place): xform = t * xform.\"\"\"\n        self.xform = t * self.xform\n\n    def transformed(self, t):\n        \"\"\"Return a copy with an extra transform composed onto the placement.\n\n        Returns\n        -------\n        :class:`InstanceRef`\n            A new InstanceRef with the transform composed.\n        \"\"\"\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(t)\n        return result\n\n    def __getitem__(self, index):\n        \"\"\"Get placement matrix element by index (0-15, column-major).\"\"\"\n        return self.xform.m[index]\n\n    def __setitem__(self, index, value):\n        \"\"\"Set placement matrix element by index (0-15, column-major).\"\"\"\n        if index < 0 or index >= 16:\n            raise IndexError(\"Index out of bounds\")\n        self.xform.m[index] = value\n\n    def __eq__(self, other):\n        if not isinstance(other, InstanceRef):\n            return NotImplemented\n        return (\n            self.definition_guid == other.definition_guid\n            and self.xform == other.xform\n            and self.color == other.color\n            and self.flags == other.flags\n        )\n\n    def __ne__(self, other):\n        result = self.__eq__(other)\n        if result is NotImplemented:\n            return result\n        return not result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"color\": self.color.__jsondump__(),\n            \"definition_guid\": self.definition_guid,\n            \"flags\": self.flags,\n            \"guid\": self.guid,",
+          "file": "instance_ref.py"
+        },
+        "cpp": {
+          "sig": "InstanceRef with_name(const std::string& name, const std::string& definition_guid, const Xform& xform)",
+          "code": "InstanceRef InstanceRef::with_name(const std::string& name, const std::string& definition_guid, const Xform& xform) {\n    InstanceRef ref(definition_guid, xform);\n    ref.name = name;\n    return ref;\n}",
+          "file": "instance_ref.cpp"
+        },
+        "rust": {
+          "sig": "with_name(name: &str, definition_guid: &str, xform: Xform) -> Self",
+          "code": "pub fn with_name(name: &str, definition_guid: &str, xform: Xform) -> Self {\n        Self {\n            name: name.to_string(),\n            definition_guid: definition_guid.to_string(),\n            xform,\n            ..Default::default()\n        }\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__init__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsondump",
+        "InstanceRef.new",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.duplicate",
+      "implementations": {
+        "python": {
+          "sig": "duplicate()",
+          "code": "def duplicate(self):\n\n        \"\"\"Create a deep copy of this instance with a new GUID.\n\n        Returns\n        -------\n        :class:`InstanceRef`\n            A new InstanceRef with identical values but a different GUID.\n        \"\"\"\n        import copy\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def transform(self, t):\n        \"\"\"Compose an extra transform onto the placement (in-place): xform = t * xform.\"\"\"\n        self.xform = t * self.xform\n\n    def transformed(self, t):\n        \"\"\"Return a copy with an extra transform composed onto the placement.\n\n        Returns\n        -------\n        :class:`InstanceRef`\n            A new InstanceRef with the transform composed.\n        \"\"\"\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(t)\n        return result\n\n    def __getitem__(self, index):\n        \"\"\"Get placement matrix element by index (0-15, column-major).\"\"\"\n        return self.xform.m[index]\n\n    def __setitem__(self, index, value):\n        \"\"\"Set placement matrix element by index (0-15, column-major).\"\"\"\n        if index < 0 or index >= 16:\n            raise IndexError(\"Index out of bounds\")\n        self.xform.m[index] = value\n\n    def __eq__(self, other):\n        if not isinstance(other, InstanceRef):\n            return NotImplemented\n        return (\n            self.definition_guid == other.definition_guid\n            and self.xform == other.xform\n            and self.color == other.color\n            and self.flags == other.flags\n        )\n\n    def __ne__(self, other):\n        result = self.__eq__(other)\n        if result is NotImplemented:\n            return result\n        return not result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"color\": self.color.__jsondump__(),\n            \"definition_guid\": self.definition_guid,\n            \"flags\": self.flags,\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"xform\": self.xform.__jsondump__(),\n        }\n\n    def file_json_dump(self, filepath):\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod",
+          "file": "instance_ref.py"
+        },
+        "rust": {
+          "sig": "duplicate() -> Self",
+          "code": "pub fn duplicate(&self) -> Self {\n        let mut copy = self.clone();\n        copy.guid = std::sync::OnceLock::new();\n        copy\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__init__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.color",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsondump",
+        "InstanceRef.new",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.with_name",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.transform",
+      "implementations": {
+        "python": {
+          "sig": "transform(t)",
+          "code": "def transform(self, t):\n\n        \"\"\"Compose an extra transform onto the placement (in-place): xform = t * xform.\"\"\"\n        self.xform = t * self.xform\n\n    def transformed(self, t):\n        \"\"\"Return a copy with an extra transform composed onto the placement.\n\n        Returns\n        -------\n        :class:`InstanceRef`\n            A new InstanceRef with the transform composed.\n        \"\"\"\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(t)\n        return result\n\n    def __getitem__(self, index):\n        \"\"\"Get placement matrix element by index (0-15, column-major).\"\"\"\n        return self.xform.m[index]\n\n    def __setitem__(self, index, value):\n        \"\"\"Set placement matrix element by index (0-15, column-major).\"\"\"\n        if index < 0 or index >= 16:\n            raise IndexError(\"Index out of bounds\")\n        self.xform.m[index] = value\n\n    def __eq__(self, other):\n        if not isinstance(other, InstanceRef):\n            return NotImplemented\n        return (\n            self.definition_guid == other.definition_guid\n            and self.xform == other.xform\n            and self.color == other.color\n            and self.flags == other.flags\n        )\n\n    def __ne__(self, other):\n        result = self.__eq__(other)\n        if result is NotImplemented:\n            return result\n        return not result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"color\": self.color.__jsondump__(),\n            \"definition_guid\": self.definition_guid,\n            \"flags\": self.flags,\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"xform\": self.xform.__jsondump__(),\n        }\n\n    def file_json_dump(self, filepath):\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def file_json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def file_json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod",
+          "file": "instance_ref.py"
+        },
+        "cpp": {
+          "sig": "void transform(const Xform& t)",
+          "code": "void InstanceRef::transform(const Xform& t) {\n    xform = t * xform;\n}",
+          "file": "instance_ref.cpp"
+        },
+        "rust": {
+          "sig": "transform(t: &Xform)",
+          "code": "pub fn transform(&mut self, t: &Xform) {\n        self.xform = t * &self.xform;\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__init__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsondump",
+        "InstanceRef.jsonload",
+        "InstanceRef.new",
+        "InstanceRef.str",
+        "InstanceRef.transformed",
+        "InstanceRef.with_name",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.transformed",
+      "implementations": {
+        "python": {
+          "sig": "transformed(t)",
+          "code": "def transformed(self, t):\n\n        \"\"\"Return a copy with an extra transform composed onto the placement.\n\n        Returns\n        -------\n        :class:`InstanceRef`\n            A new InstanceRef with the transform composed.\n        \"\"\"\n        import copy\n        result = copy.deepcopy(self)\n        result.transform(t)\n        return result\n\n    def __getitem__(self, index):\n        \"\"\"Get placement matrix element by index (0-15, column-major).\"\"\"\n        return self.xform.m[index]\n\n    def __setitem__(self, index, value):\n        \"\"\"Set placement matrix element by index (0-15, column-major).\"\"\"\n        if index < 0 or index >= 16:\n            raise IndexError(\"Index out of bounds\")\n        self.xform.m[index] = value\n\n    def __eq__(self, other):\n        if not isinstance(other, InstanceRef):\n            return NotImplemented\n        return (\n            self.definition_guid == other.definition_guid\n            and self.xform == other.xform\n            and self.color == other.color\n            and self.flags == other.flags\n        )\n\n    def __ne__(self, other):\n        result = self.__eq__(other)\n        if result is NotImplemented:\n            return result\n        return not result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"color\": self.color.__jsondump__(),\n            \"definition_guid\": self.definition_guid,\n            \"flags\": self.flags,\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"xform\": self.xform.__jsondump__(),\n        }\n\n    def file_json_dump(self, filepath):\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def file_json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def file_json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def file_json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))",
+          "file": "instance_ref.py"
+        },
+        "cpp": {
+          "sig": "InstanceRef transformed(const Xform& t)",
+          "code": "InstanceRef InstanceRef::transformed(const Xform& t) const {\n    InstanceRef result = *this;\n    result.transform(t);\n    return result;\n}",
+          "file": "instance_ref.cpp"
+        },
+        "rust": {
+          "sig": "transformed(t: &Xform) -> Self",
+          "code": "pub fn transformed(&self, t: &Xform) -> Self {\n        let mut result = self.clone();\n        result.transform(t);\n        result\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__init__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsondump",
+        "InstanceRef.jsonload",
+        "InstanceRef.new",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.with_name",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.__getitem__",
+      "implementations": {
+        "python": {
+          "sig": "__getitem__(index)",
+          "code": "def __getitem__(self, index):\n\n        \"\"\"Get placement matrix element by index (0-15, column-major).\"\"\"\n        return self.xform.m[index]\n\n    def __setitem__(self, index, value):\n        \"\"\"Set placement matrix element by index (0-15, column-major).\"\"\"\n        if index < 0 or index >= 16:\n            raise IndexError(\"Index out of bounds\")\n        self.xform.m[index] = value\n\n    def __eq__(self, other):\n        if not isinstance(other, InstanceRef):\n            return NotImplemented\n        return (\n            self.definition_guid == other.definition_guid\n            and self.xform == other.xform\n            and self.color == other.color\n            and self.flags == other.flags\n        )\n\n    def __ne__(self, other):\n        result = self.__eq__(other)\n        if result is NotImplemented:\n            return result\n        return not result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"color\": self.color.__jsondump__(),\n            \"definition_guid\": self.definition_guid,\n            \"flags\": self.flags,\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"xform\": self.xform.__jsondump__(),\n        }\n\n    def file_json_dump(self, filepath):\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def file_json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def file_json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def file_json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .file_encoders import file_decode_node\n\n        ref = cls(data.get(\"definition_guid\", \"\"))\n        ref.guid = guid if guid is not None else data.get(\"guid\", ref.guid)\n        ref.name = name if name is not None else data.get(\"name\", ref.name)\n        if \"xform\" in data:\n            ref.xform = file_decode_node(data[\"xform\"])\n        if \"color\" in data:\n            ref.color = file_decode_node(data[\"color\"])",
+          "file": "instance_ref.py"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsondump",
+        "InstanceRef.jsonload",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.with_name",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.__setitem__",
+      "implementations": {
+        "python": {
+          "sig": "__setitem__(index, value)",
+          "code": "def __setitem__(self, index, value):\n\n        \"\"\"Set placement matrix element by index (0-15, column-major).\"\"\"\n        if index < 0 or index >= 16:\n            raise IndexError(\"Index out of bounds\")\n        self.xform.m[index] = value\n\n    def __eq__(self, other):\n        if not isinstance(other, InstanceRef):\n            return NotImplemented\n        return (\n            self.definition_guid == other.definition_guid\n            and self.xform == other.xform\n            and self.color == other.color\n            and self.flags == other.flags\n        )\n\n    def __ne__(self, other):\n        result = self.__eq__(other)\n        if result is NotImplemented:\n            return result\n        return not result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"color\": self.color.__jsondump__(),\n            \"definition_guid\": self.definition_guid,\n            \"flags\": self.flags,\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"xform\": self.xform.__jsondump__(),\n        }\n\n    def file_json_dump(self, filepath):\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def file_json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def file_json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def file_json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .file_encoders import file_decode_node\n\n        ref = cls(data.get(\"definition_guid\", \"\"))\n        ref.guid = guid if guid is not None else data.get(\"guid\", ref.guid)\n        ref.name = name if name is not None else data.get(\"name\", ref.name)\n        if \"xform\" in data:\n            ref.xform = file_decode_node(data[\"xform\"])\n        if \"color\" in data:\n            ref.color = file_decode_node(data[\"color\"])\n        if \"flags\" in data:\n            ref.flags = data[\"flags\"]\n        return ref",
+          "file": "instance_ref.py"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsondump",
+        "InstanceRef.jsonload",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.with_name",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.__eq__",
+      "implementations": {
+        "python": {
+          "sig": "__eq__(other)",
+          "code": "def __eq__(self, other):\n\n        if not isinstance(other, InstanceRef):\n            return NotImplemented\n        return (\n            self.definition_guid == other.definition_guid\n            and self.xform == other.xform\n            and self.color == other.color\n            and self.flags == other.flags\n        )\n\n    def __ne__(self, other):\n        result = self.__eq__(other)\n        if result is NotImplemented:\n            return result\n        return not result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"color\": self.color.__jsondump__(),\n            \"definition_guid\": self.definition_guid,\n            \"flags\": self.flags,\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"xform\": self.xform.__jsondump__(),\n        }\n\n    def file_json_dump(self, filepath):\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def file_json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def file_json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def file_json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .file_encoders import file_decode_node\n\n        ref = cls(data.get(\"definition_guid\", \"\"))\n        ref.guid = guid if guid is not None else data.get(\"guid\", ref.guid)\n        ref.name = name if name is not None else data.get(\"name\", ref.name)\n        if \"xform\" in data:\n            ref.xform = file_decode_node(data[\"xform\"])\n        if \"color\" in data:\n            ref.color = file_decode_node(data[\"color\"])\n        if \"flags\" in data:\n            ref.flags = data[\"flags\"]\n        return ref\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"",
+          "file": "instance_ref.py"
+        }
+      },
+      "related": [
+        "InstanceRef.__getitem__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsondump",
+        "InstanceRef.jsonload",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.with_name",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.__ne__",
+      "implementations": {
+        "python": {
+          "sig": "__ne__(other)",
+          "code": "def __ne__(self, other):\n\n        result = self.__eq__(other)\n        if result is NotImplemented:\n            return result\n        return not result\n\n    ###########################################################################################\n    # Polymorphic JSON Serialization\n    ###########################################################################################\n\n    def __jsondump__(self):\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"color\": self.color.__jsondump__(),\n            \"definition_guid\": self.definition_guid,\n            \"flags\": self.flags,\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"xform\": self.xform.__jsondump__(),\n        }\n\n    def file_json_dump(self, filepath):\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def file_json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def file_json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def file_json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .file_encoders import file_decode_node\n\n        ref = cls(data.get(\"definition_guid\", \"\"))\n        ref.guid = guid if guid is not None else data.get(\"guid\", ref.guid)\n        ref.name = name if name is not None else data.get(\"name\", ref.name)\n        if \"xform\" in data:\n            ref.xform = file_decode_node(data[\"xform\"])\n        if \"color\" in data:\n            ref.color = file_decode_node(data[\"color\"])\n        if \"flags\" in data:\n            ref.flags = data[\"flags\"]\n        return ref\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import instance_ref_pb2\n\n        proto = instance_ref_pb2.InstanceRef()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.definition_guid = self.definition_guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n        proto.color.r = self.color.r\n        proto.color.g = self.color.g",
+          "file": "instance_ref.py"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsondump",
+        "InstanceRef.jsonload",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.with_name",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.__jsondump__",
+      "implementations": {
+        "python": {
+          "sig": "__jsondump__()",
+          "code": "def __jsondump__(self):\n\n        \"\"\"Serialize to polymorphic JSON format with type field.\"\"\"\n        # Alphabetical order to match Rust's serde_json\n        return {\n            \"color\": self.color.__jsondump__(),\n            \"definition_guid\": self.definition_guid,\n            \"flags\": self.flags,\n            \"guid\": self.guid,\n            \"name\": self.name,\n            \"type\": f\"{self.__class__.__name__}\",\n            \"xform\": self.xform.__jsondump__(),\n        }\n\n    def file_json_dump(self, filepath):\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def file_json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def file_json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def file_json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .file_encoders import file_decode_node\n\n        ref = cls(data.get(\"definition_guid\", \"\"))\n        ref.guid = guid if guid is not None else data.get(\"guid\", ref.guid)\n        ref.name = name if name is not None else data.get(\"name\", ref.name)\n        if \"xform\" in data:\n            ref.xform = file_decode_node(data[\"xform\"])\n        if \"color\" in data:\n            ref.color = file_decode_node(data[\"color\"])\n        if \"flags\" in data:\n            ref.flags = data[\"flags\"]\n        return ref\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import instance_ref_pb2\n\n        proto = instance_ref_pb2.InstanceRef()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.definition_guid = self.definition_guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n        proto.color.r = self.color.r\n        proto.color.g = self.color.g\n        proto.color.b = self.color.b\n        proto.color.a = self.color.a\n        proto.flags = self.flags\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create InstanceRef from protobuf binary data.\"\"\"\n        from .proto import instance_ref_pb2",
+          "file": "instance_ref.py"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsondump",
+        "InstanceRef.jsonload",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_load",
+        "InstanceRef.pb_loads",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.with_name",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.file_json_dump",
+      "implementations": {
+        "python": {
+          "sig": "file_json_dump(filepath)",
+          "code": "def file_json_dump(self, filepath):\n\n        \"\"\"Write JSON to file.\"\"\"\n        import json\n        with open(filepath, 'w') as f:\n            json.dump(self.__jsondump__(), f, indent=2)\n\n    @classmethod\n    def file_json_load(cls, filepath):\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def file_json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def file_json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .file_encoders import file_decode_node\n\n        ref = cls(data.get(\"definition_guid\", \"\"))\n        ref.guid = guid if guid is not None else data.get(\"guid\", ref.guid)\n        ref.name = name if name is not None else data.get(\"name\", ref.name)\n        if \"xform\" in data:\n            ref.xform = file_decode_node(data[\"xform\"])\n        if \"color\" in data:\n            ref.color = file_decode_node(data[\"color\"])\n        if \"flags\" in data:\n            ref.flags = data[\"flags\"]\n        return ref\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import instance_ref_pb2\n\n        proto = instance_ref_pb2.InstanceRef()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.definition_guid = self.definition_guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n        proto.color.r = self.color.r\n        proto.color.g = self.color.g\n        proto.color.b = self.color.b\n        proto.color.a = self.color.a\n        proto.flags = self.flags\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create InstanceRef from protobuf binary data.\"\"\"\n        from .proto import instance_ref_pb2\n\n        proto = instance_ref_pb2.InstanceRef()\n        proto.ParseFromString(data)\n\n        ref = cls(proto.definition_guid)\n        ref.guid = proto.guid\n        ref.name = proto.name\n        if proto.HasField('xform'):\n            ref.xform = Xform()\n            ref.xform.name = proto.xform.name\n            ref.xform.m = list(proto.xform.matrix)\n        if proto.HasField('color'):\n            ref.color = Color(proto.color.r, proto.color.g, proto.color.b, proto.color.a)\n        ref.flags = proto.flags",
+          "file": "instance_ref.py"
+        },
+        "cpp": {
+          "sig": "void file_json_dump(const std::string& filename)",
+          "code": "void InstanceRef::file_json_dump(const std::string& filename) const {\n    std::ofstream ofs(filename);\n    ofs << jsondump().dump(4);\n    ofs.close();\n}",
+          "file": "instance_ref.cpp"
+        },
+        "rust": {
+          "sig": "file_json_dump(filepath: &str) -> Result<(), Box<dyn std::error::Error>>",
+          "code": "pub fn file_json_dump(&self, filepath: &str) -> Result<(), Box<dyn std::error::Error>> {\n        let json = self.jsondump()?;\n        std::fs::write(filepath, json)?;\n        Ok(())\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsondump",
+        "InstanceRef.jsonload",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_load",
+        "InstanceRef.pb_loads",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.file_json_load",
+      "implementations": {
+        "python": {
+          "sig": "file_json_load(cls, filepath)",
+          "code": "def file_json_load(cls, filepath):\n\n        \"\"\"Read JSON from file.\"\"\"\n        import json\n        with open(filepath, 'r') as f:\n            data = json.load(f)\n        return cls.__jsonload__(data)\n\n    def file_json_dumps(self):\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def file_json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .file_encoders import file_decode_node\n\n        ref = cls(data.get(\"definition_guid\", \"\"))\n        ref.guid = guid if guid is not None else data.get(\"guid\", ref.guid)\n        ref.name = name if name is not None else data.get(\"name\", ref.name)\n        if \"xform\" in data:\n            ref.xform = file_decode_node(data[\"xform\"])\n        if \"color\" in data:\n            ref.color = file_decode_node(data[\"color\"])\n        if \"flags\" in data:\n            ref.flags = data[\"flags\"]\n        return ref\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import instance_ref_pb2\n\n        proto = instance_ref_pb2.InstanceRef()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.definition_guid = self.definition_guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n        proto.color.r = self.color.r\n        proto.color.g = self.color.g\n        proto.color.b = self.color.b\n        proto.color.a = self.color.a\n        proto.flags = self.flags\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create InstanceRef from protobuf binary data.\"\"\"\n        from .proto import instance_ref_pb2\n\n        proto = instance_ref_pb2.InstanceRef()\n        proto.ParseFromString(data)\n\n        ref = cls(proto.definition_guid)\n        ref.guid = proto.guid\n        ref.name = proto.name\n        if proto.HasField('xform'):\n            ref.xform = Xform()\n            ref.xform.name = proto.xform.name\n            ref.xform.m = list(proto.xform.matrix)\n        if proto.HasField('color'):\n            ref.color = Color(proto.color.r, proto.color.g, proto.color.b, proto.color.a)\n        ref.flags = proto.flags\n        return ref\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)",
+          "file": "instance_ref.py"
+        },
+        "cpp": {
+          "sig": "InstanceRef file_json_load(const std::string& filename)",
+          "code": "InstanceRef InstanceRef::file_json_load(const std::string& filename) {\n    std::ifstream ifs(filename);\n    nlohmann::json data = nlohmann::json::parse(ifs);\n    ifs.close();\n    return jsonload(data);\n}",
+          "file": "instance_ref.cpp"
+        },
+        "rust": {
+          "sig": "file_json_load(filepath: &str) -> Result<Self, Box<dyn std::error::Error>>",
+          "code": "pub fn file_json_load(filepath: &str) -> Result<Self, Box<dyn std::error::Error>> {\n        let json = std::fs::read_to_string(filepath)?;\n        Self::jsonload(&json)\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.color",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsondump",
+        "InstanceRef.jsonload",
+        "InstanceRef.parse",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_load",
+        "InstanceRef.pb_loads",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.file_json_dumps",
+      "implementations": {
+        "python": {
+          "sig": "file_json_dumps()",
+          "code": "def file_json_dumps(self):\n\n        \"\"\"Convert to JSON string.\"\"\"\n        import json\n        return json.dumps(self.__jsondump__())\n\n    @classmethod\n    def file_json_loads(cls, json_string):\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .file_encoders import file_decode_node\n\n        ref = cls(data.get(\"definition_guid\", \"\"))\n        ref.guid = guid if guid is not None else data.get(\"guid\", ref.guid)\n        ref.name = name if name is not None else data.get(\"name\", ref.name)\n        if \"xform\" in data:\n            ref.xform = file_decode_node(data[\"xform\"])\n        if \"color\" in data:\n            ref.color = file_decode_node(data[\"color\"])\n        if \"flags\" in data:\n            ref.flags = data[\"flags\"]\n        return ref\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import instance_ref_pb2\n\n        proto = instance_ref_pb2.InstanceRef()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.definition_guid = self.definition_guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n        proto.color.r = self.color.r\n        proto.color.g = self.color.g\n        proto.color.b = self.color.b\n        proto.color.a = self.color.a\n        proto.flags = self.flags\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create InstanceRef from protobuf binary data.\"\"\"\n        from .proto import instance_ref_pb2\n\n        proto = instance_ref_pb2.InstanceRef()\n        proto.ParseFromString(data)\n\n        ref = cls(proto.definition_guid)\n        ref.guid = proto.guid\n        ref.name = proto.name\n        if proto.HasField('xform'):\n            ref.xform = Xform()\n            ref.xform.name = proto.xform.name\n            ref.xform.m = list(proto.xform.matrix)\n        if proto.HasField('color'):\n            ref.color = Color(proto.color.r, proto.color.g, proto.color.b, proto.color.a)\n        ref.flags = proto.flags\n        return ref\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)",
+          "file": "instance_ref.py"
+        },
+        "cpp": {
+          "sig": "std::string file_json_dumps()",
+          "code": "std::string InstanceRef::file_json_dumps() const {\n    return jsondump().dump();\n}",
+          "file": "instance_ref.cpp"
+        },
+        "rust": {
+          "sig": "file_json_dumps() -> String",
+          "code": "pub fn file_json_dumps(&self) -> String {\n        self.jsondump().unwrap_or_default()\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.color",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsondump",
+        "InstanceRef.jsonload",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_load",
+        "InstanceRef.pb_loads",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.file_json_loads",
+      "implementations": {
+        "python": {
+          "sig": "file_json_loads(cls, json_string)",
+          "code": "def file_json_loads(cls, json_string):\n\n        \"\"\"Load from JSON string.\"\"\"\n        import json\n        return cls.__jsonload__(json.loads(json_string))\n\n    @classmethod\n    def __jsonload__(cls, data, guid=None, name=None):\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .file_encoders import file_decode_node\n\n        ref = cls(data.get(\"definition_guid\", \"\"))\n        ref.guid = guid if guid is not None else data.get(\"guid\", ref.guid)\n        ref.name = name if name is not None else data.get(\"name\", ref.name)\n        if \"xform\" in data:\n            ref.xform = file_decode_node(data[\"xform\"])\n        if \"color\" in data:\n            ref.color = file_decode_node(data[\"color\"])\n        if \"flags\" in data:\n            ref.flags = data[\"flags\"]\n        return ref\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import instance_ref_pb2\n\n        proto = instance_ref_pb2.InstanceRef()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.definition_guid = self.definition_guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n        proto.color.r = self.color.r\n        proto.color.g = self.color.g\n        proto.color.b = self.color.b\n        proto.color.a = self.color.a\n        proto.flags = self.flags\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create InstanceRef from protobuf binary data.\"\"\"\n        from .proto import instance_ref_pb2\n\n        proto = instance_ref_pb2.InstanceRef()\n        proto.ParseFromString(data)\n\n        ref = cls(proto.definition_guid)\n        ref.guid = proto.guid\n        ref.name = proto.name\n        if proto.HasField('xform'):\n            ref.xform = Xform()\n            ref.xform.name = proto.xform.name\n            ref.xform.m = list(proto.xform.matrix)\n        if proto.HasField('color'):\n            ref.color = Color(proto.color.r, proto.color.g, proto.color.b, proto.color.a)\n        ref.flags = proto.flags\n        return ref\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n    def __str__(self):\n        \"\"\"String representation (definition + placement translation).\"\"\"\n        return f\"{self.definition_guid} @ [{self.xform.m[12]}, {self.xform.m[13]}, {self.xform.m[14]}]\"\n\n    def __repr__(self):",
+          "file": "instance_ref.py"
+        },
+        "cpp": {
+          "sig": "InstanceRef file_json_loads(const std::string& json_string)",
+          "code": "InstanceRef InstanceRef::file_json_loads(const std::string& json_string) {\n    return jsonload(nlohmann::ordered_json::parse(json_string));\n}",
+          "file": "instance_ref.cpp"
+        },
+        "rust": {
+          "sig": "file_json_loads(json_string: &str) -> Self",
+          "code": "pub fn file_json_loads(json_string: &str) -> Self {\n        Self::jsonload(json_string).unwrap_or_else(|_| Self::default())\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__repr__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.__str__",
+        "InstanceRef.color",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsonload",
+        "InstanceRef.parse",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_load",
+        "InstanceRef.pb_loads",
+        "InstanceRef.repr",
+        "InstanceRef.str",
+        "InstanceRef.transformed",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.__jsonload__",
+      "implementations": {
+        "python": {
+          "sig": "__jsonload__(cls, data, guid=None, name=None)",
+          "code": "def __jsonload__(cls, data, guid=None, name=None):\n\n        \"\"\"Deserialize from polymorphic JSON format.\"\"\"\n        from .file_encoders import file_decode_node\n\n        ref = cls(data.get(\"definition_guid\", \"\"))\n        ref.guid = guid if guid is not None else data.get(\"guid\", ref.guid)\n        ref.name = name if name is not None else data.get(\"name\", ref.name)\n        if \"xform\" in data:\n            ref.xform = file_decode_node(data[\"xform\"])\n        if \"color\" in data:\n            ref.color = file_decode_node(data[\"color\"])\n        if \"flags\" in data:\n            ref.flags = data[\"flags\"]\n        return ref\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import instance_ref_pb2\n\n        proto = instance_ref_pb2.InstanceRef()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.definition_guid = self.definition_guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n        proto.color.r = self.color.r\n        proto.color.g = self.color.g\n        proto.color.b = self.color.b\n        proto.color.a = self.color.a\n        proto.flags = self.flags\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create InstanceRef from protobuf binary data.\"\"\"\n        from .proto import instance_ref_pb2\n\n        proto = instance_ref_pb2.InstanceRef()\n        proto.ParseFromString(data)\n\n        ref = cls(proto.definition_guid)\n        ref.guid = proto.guid\n        ref.name = proto.name\n        if proto.HasField('xform'):\n            ref.xform = Xform()\n            ref.xform.name = proto.xform.name\n            ref.xform.m = list(proto.xform.matrix)\n        if proto.HasField('color'):\n            ref.color = Color(proto.color.r, proto.color.g, proto.color.b, proto.color.a)\n        ref.flags = proto.flags\n        return ref\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n    def __str__(self):\n        \"\"\"String representation (definition + placement translation).\"\"\"\n        return f\"{self.definition_guid} @ [{self.xform.m[12]}, {self.xform.m[13]}, {self.xform.m[14]}]\"\n\n    def __repr__(self):\n        \"\"\"Detailed representation.\"\"\"\n        return f\"InstanceRef({self.name}, {self.definition_guid}, {repr(self.color)}, {self.flags})\"",
+          "file": "instance_ref.py"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__repr__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.__str__",
+        "InstanceRef.color",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsonload",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_load",
+        "InstanceRef.pb_loads",
+        "InstanceRef.repr",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.pb_dumps",
+      "implementations": {
+        "python": {
+          "sig": "pb_dumps()",
+          "code": "def pb_dumps(self):\n\n        \"\"\"Convert to protobuf binary format.\"\"\"\n        from .proto import instance_ref_pb2\n\n        proto = instance_ref_pb2.InstanceRef()\n        proto.guid = self.guid\n        proto.name = self.name\n        proto.definition_guid = self.definition_guid\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n        proto.color.r = self.color.r\n        proto.color.g = self.color.g\n        proto.color.b = self.color.b\n        proto.color.a = self.color.a\n        proto.flags = self.flags\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create InstanceRef from protobuf binary data.\"\"\"\n        from .proto import instance_ref_pb2\n\n        proto = instance_ref_pb2.InstanceRef()\n        proto.ParseFromString(data)\n\n        ref = cls(proto.definition_guid)\n        ref.guid = proto.guid\n        ref.name = proto.name\n        if proto.HasField('xform'):\n            ref.xform = Xform()\n            ref.xform.name = proto.xform.name\n            ref.xform.m = list(proto.xform.matrix)\n        if proto.HasField('color'):\n            ref.color = Color(proto.color.r, proto.color.g, proto.color.b, proto.color.a)\n        ref.flags = proto.flags\n        return ref\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n    def __str__(self):\n        \"\"\"String representation (definition + placement translation).\"\"\"\n        return f\"{self.definition_guid} @ [{self.xform.m[12]}, {self.xform.m[13]}, {self.xform.m[14]}]\"\n\n    def __repr__(self):\n        \"\"\"Detailed representation.\"\"\"\n        return f\"InstanceRef({self.name}, {self.definition_guid}, {repr(self.color)}, {self.flags})\"",
+          "file": "instance_ref.py"
+        },
+        "cpp": {
+          "sig": "std::string pb_dumps()",
+          "code": "std::string InstanceRef::pb_dumps() const {\n    session_proto::InstanceRef proto;\n    proto.set_guid(guid());\n    proto.set_name(name);\n    proto.set_definition_guid(definition_guid);\n    auto* proto_xform = proto.mutable_xform();\n    proto_xform->set_name(xform.name);\n    for (int i = 0; i < 16; ++i) {\n        proto_xform->add_matrix(xform.m[i]);\n    }",
+          "file": "instance_ref.cpp"
+        },
+        "rust": {
+          "sig": "pb_dumps() -> Vec<u8>",
+          "code": "pub fn pb_dumps(&self) -> Vec<u8> {\n        use prost::Message;\n        let proto = crate::proto::InstanceRef {\n            guid: self.guid().to_string(),\n            name: self.name.clone(),\n            definition_guid: self.definition_guid.clone(),\n            xform: Some(crate::proto::Xform {\n                guid: String::new(),\n                name: self.xform.name.clone(),\n                matrix: self.xform.m.to_vec(),\n            }),\n            color: Some(crate::proto::Color {\n                guid: String::new(),\n                r: self.color.r,\n                g: self.color.g,\n                b: self.color.b,\n                a: self.color.a,\n                name: String::new(),\n            }),\n            flags: self.flags,\n        };\n        proto.encode_to_vec()\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__repr__",
+        "InstanceRef.__str__",
+        "InstanceRef.color",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.new",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_load",
+        "InstanceRef.pb_loads",
+        "InstanceRef.repr",
+        "InstanceRef.set_guid",
+        "InstanceRef.str",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.pb_loads",
+      "implementations": {
+        "python": {
+          "sig": "pb_loads(cls, data)",
+          "code": "def pb_loads(cls, data):\n\n        \"\"\"Create InstanceRef from protobuf binary data.\"\"\"\n        from .proto import instance_ref_pb2\n\n        proto = instance_ref_pb2.InstanceRef()\n        proto.ParseFromString(data)\n\n        ref = cls(proto.definition_guid)\n        ref.guid = proto.guid\n        ref.name = proto.name\n        if proto.HasField('xform'):\n            ref.xform = Xform()\n            ref.xform.name = proto.xform.name\n            ref.xform.m = list(proto.xform.matrix)\n        if proto.HasField('color'):\n            ref.color = Color(proto.color.r, proto.color.g, proto.color.b, proto.color.a)\n        ref.flags = proto.flags\n        return ref\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n    def __str__(self):\n        \"\"\"String representation (definition + placement translation).\"\"\"\n        return f\"{self.definition_guid} @ [{self.xform.m[12]}, {self.xform.m[13]}, {self.xform.m[14]}]\"\n\n    def __repr__(self):\n        \"\"\"Detailed representation.\"\"\"\n        return f\"InstanceRef({self.name}, {self.definition_guid}, {repr(self.color)}, {self.flags})\"",
+          "file": "instance_ref.py"
+        },
+        "cpp": {
+          "sig": "InstanceRef pb_loads(const std::string& data)",
+          "code": "InstanceRef InstanceRef::pb_loads(const std::string& data) {\n    session_proto::InstanceRef proto;\n    proto.ParseFromString(data);\n    InstanceRef ref;\n    ref.guid() = proto.guid();\n    ref.name = proto.name();\n    ref.definition_guid = proto.definition_guid();\n    if (proto.has_xform()) {\n        ref.xform.name = proto.xform().name();\n        for (int i = 0; i < proto.xform().matrix_size() && i < 16; ++i) {\n            ref.xform.m[i] = proto.xform().matrix(i);\n        }",
+          "file": "instance_ref.cpp"
+        },
+        "rust": {
+          "sig": "pb_loads(data: &[u8]) -> Result<Self, prost::DecodeError>",
+          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, prost::DecodeError> {\n        use prost::Message;\n        let proto = crate::proto::InstanceRef::decode(data)?;\n        let mut ref_ = Self::new(&proto.definition_guid, Xform::identity());\n        ref_.set_guid(proto.guid);\n        ref_.name = proto.name;\n        if let Some(x) = proto.xform {\n            ref_.xform.name = x.name;\n            for (i, v) in x.matrix.iter().enumerate() {\n                if i < 16 {\n                    ref_.xform.m[i] = *v;\n                }\n            }\n        }\n        if let Some(c) = proto.color {\n            ref_.color.r = c.r;\n            ref_.color.g = c.g;\n            ref_.color.b = c.b;\n            ref_.color.a = c.a;\n        }\n        ref_.flags = proto.flags;\n        Ok(ref_)\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__repr__",
+        "InstanceRef.__str__",
+        "InstanceRef.color",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.guid",
+        "InstanceRef.new",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_load",
+        "InstanceRef.repr",
+        "InstanceRef.set_guid",
+        "InstanceRef.str",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.pb_dump",
+      "implementations": {
+        "python": {
+          "sig": "pb_dump(filepath)",
+          "code": "def pb_dump(self, filepath):\n\n        \"\"\"Write protobuf to file.\"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n    def __str__(self):\n        \"\"\"String representation (definition + placement translation).\"\"\"\n        return f\"{self.definition_guid} @ [{self.xform.m[12]}, {self.xform.m[13]}, {self.xform.m[14]}]\"\n\n    def __repr__(self):\n        \"\"\"Detailed representation.\"\"\"\n        return f\"InstanceRef({self.name}, {self.definition_guid}, {repr(self.color)}, {self.flags})\"",
+          "file": "instance_ref.py"
+        },
+        "cpp": {
+          "sig": "void pb_dump(const std::string& filename)",
+          "code": "void InstanceRef::pb_dump(const std::string& filename) const {\n    std::ofstream ofs(filename, std::ios::binary);\n    ofs << pb_dumps();\n    ofs.close();\n}",
+          "file": "instance_ref.cpp"
+        },
+        "rust": {
+          "sig": "pb_dump(filepath: &str)",
+          "code": "pub fn pb_dump(&self, filepath: &str) {\n        let data = self.pb_dumps();\n        std::fs::write(filepath, data).expect(\"Failed to write protobuf file\");\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__repr__",
+        "InstanceRef.__str__",
+        "InstanceRef.color",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.guid",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_load",
+        "InstanceRef.pb_loads",
+        "InstanceRef.repr",
+        "InstanceRef.str",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.pb_load",
+      "implementations": {
+        "python": {
+          "sig": "pb_load(cls, filepath)",
+          "code": "def pb_load(cls, filepath):\n\n        \"\"\"Read protobuf from file.\"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n    def __str__(self):\n        \"\"\"String representation (definition + placement translation).\"\"\"\n        return f\"{self.definition_guid} @ [{self.xform.m[12]}, {self.xform.m[13]}, {self.xform.m[14]}]\"\n\n    def __repr__(self):\n        \"\"\"Detailed representation.\"\"\"\n        return f\"InstanceRef({self.name}, {self.definition_guid}, {repr(self.color)}, {self.flags})\"",
+          "file": "instance_ref.py"
+        },
+        "cpp": {
+          "sig": "InstanceRef pb_load(const std::string& filename)",
+          "code": "InstanceRef InstanceRef::pb_load(const std::string& filename) {\n    std::ifstream ifs(filename, std::ios::binary);\n    std::string data((std::istreambuf_iterator<char>(ifs)),\n                      std::istreambuf_iterator<char>());\n    ifs.close();\n    return pb_loads(data);\n}",
+          "file": "instance_ref.cpp"
+        },
+        "rust": {
+          "sig": "pb_load(filepath: &str) -> Self",
+          "code": "pub fn pb_load(filepath: &str) -> Self {\n        let data = std::fs::read(filepath).expect(\"Failed to read protobuf file\");\n        Self::pb_loads(&data).expect(\"Failed to parse protobuf\")\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__repr__",
+        "InstanceRef.__str__",
+        "InstanceRef.color",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.guid",
+        "InstanceRef.parse",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_loads",
+        "InstanceRef.repr",
+        "InstanceRef.str",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.__str__",
+      "implementations": {
+        "python": {
+          "sig": "__str__()",
+          "code": "def __str__(self):\n\n        \"\"\"String representation (definition + placement translation).\"\"\"\n        return f\"{self.definition_guid} @ [{self.xform.m[12]}, {self.xform.m[13]}, {self.xform.m[14]}]\"\n\n    def __repr__(self):\n        \"\"\"Detailed representation.\"\"\"\n        return f\"InstanceRef({self.name}, {self.definition_guid}, {repr(self.color)}, {self.flags})\"",
+          "file": "instance_ref.py"
+        }
+      },
+      "related": [
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__repr__",
+        "InstanceRef.color",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.guid",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_load",
+        "InstanceRef.pb_loads",
+        "InstanceRef.repr",
+        "InstanceRef.str",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.__repr__",
+      "implementations": {
+        "python": {
+          "sig": "__repr__()",
+          "code": "def __repr__(self):\n\n        \"\"\"Detailed representation.\"\"\"\n        return f\"InstanceRef({self.name}, {self.definition_guid}, {repr(self.color)}, {self.flags})\"",
+          "file": "instance_ref.py"
+        }
+      },
+      "related": [
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__str__",
+        "InstanceRef.color",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.guid",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_load",
+        "InstanceRef.pb_loads",
+        "InstanceRef.repr"
+      ]
+    },
+    {
       "name": "Line.__init__",
       "implementations": {
         "python": {
@@ -24799,6 +25713,7 @@ window.API_INDEX = {
         "Mesh.edges_on_boundary",
         "Mesh.edges_where",
         "Mesh.edges_where_predicate",
+        "Mesh.edges_with_colors",
         "Mesh.euler",
         "Mesh.face_attribute",
         "Mesh.face_edges",
@@ -25483,6 +26398,7 @@ window.API_INDEX = {
         "Mesh.duplicate",
         "Mesh.edge_faces",
         "Mesh.edges",
+        "Mesh.edges_with_colors",
         "Mesh.euler",
         "Mesh.facecolors",
         "Mesh.faces",
@@ -41451,8 +42367,8 @@ window.API_INDEX = {
           "file": "nurbssurface_trimmed.py"
         },
         "cpp": {
-          "sig": "std::vector<NurbsSurfaceTrimmed> split_by_uv_curves(const NurbsSurface& srf, const std::vector<NurbsCurve>& pcurves, double tolerance, bool use_domain_border, int n_boundary)",
-          "code": "std::vector<NurbsSurfaceTrimmed> NurbsSurfaceTrimmed::split_by_uv_curves(const NurbsSurface& srf, const std::vector<NurbsCurve>& pcurves, double tolerance, bool use_domain_border, int n_boundary) {\n    if (!srf.is_valid()) return {}",
+          "sig": "std::vector<NurbsSurfaceTrimmed> split_by_uv_curves(const NurbsSurface& srf, const std::vector<NurbsCurve>& pcurves, double tolerance, bool use_domain_border, int n_boundary, double snap_cuts_to_boundary)",
+          "code": "std::vector<NurbsSurfaceTrimmed> NurbsSurfaceTrimmed::split_by_uv_curves(const NurbsSurface& srf, const std::vector<NurbsCurve>& pcurves, double tolerance, bool use_domain_border, int n_boundary, double snap_cuts_to_boundary) {\n    if (!srf.is_valid()) return {}",
           "file": "nurbssurface_trimmed.cpp"
         },
         "rust": {
@@ -44328,6 +45244,7 @@ window.API_INDEX = {
         "OBB.closest_point",
         "OBB.contains",
         "OBB.corner",
+        "OBB.corners_f32",
         "OBB.diagonal",
         "OBB.from_points_with_plane",
         "OBB.get_corners",
@@ -44706,6 +45623,7 @@ window.API_INDEX = {
         "OBB.collides_with_broad",
         "OBB.contains",
         "OBB.corners",
+        "OBB.corners_f32",
         "OBB.diagonal",
         "OBB.from_point",
         "OBB.from_points",
@@ -46243,6 +47161,7 @@ window.API_INDEX = {
         "Plane.reverse",
         "Plane.rotate",
         "Plane.str",
+        "Plane.to_f32",
         "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
@@ -46326,6 +47245,7 @@ window.API_INDEX = {
         "Plane.reverse",
         "Plane.rotate",
         "Plane.str",
+        "Plane.to_f32",
         "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
@@ -46409,6 +47329,7 @@ window.API_INDEX = {
         "Plane.reverse",
         "Plane.rotate",
         "Plane.str",
+        "Plane.to_f32",
         "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
@@ -46492,6 +47413,7 @@ window.API_INDEX = {
         "Plane.reverse",
         "Plane.rotate",
         "Plane.str",
+        "Plane.to_f32",
         "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
@@ -46583,6 +47505,7 @@ window.API_INDEX = {
         "Plane.reverse",
         "Plane.rotate",
         "Plane.str",
+        "Plane.to_f32",
         "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
@@ -46677,6 +47600,7 @@ window.API_INDEX = {
         "Plane.rotate",
         "Plane.set_guid",
         "Plane.str",
+        "Plane.to_f32",
         "Plane.to_polylines",
         "Plane.transform",
         "Plane.transformed",
@@ -49137,6 +50061,7 @@ window.API_INDEX = {
         "Point.str",
         "Point.sub",
         "Point.sum",
+        "Point.to_f32",
         "Point.transform",
         "Point.transformed",
         "Point.with_name",
@@ -49197,6 +50122,7 @@ window.API_INDEX = {
         "Point.str",
         "Point.sub",
         "Point.sum",
+        "Point.to_f32",
         "Point.transform",
         "Point.transformed",
         "Point.with_name",
@@ -49255,6 +50181,7 @@ window.API_INDEX = {
         "Point.str",
         "Point.sub",
         "Point.sum",
+        "Point.to_f32",
         "Point.transform",
         "Point.transformed",
         "Point.with_name",
@@ -69777,6 +70704,7 @@ window.API_INDEX = {
         "Vector.side_from_sine_law",
         "Vector.str",
         "Vector.sum_of_vectors",
+        "Vector.to_f32",
         "Vector.transform",
         "Vector.transformed",
         "Vector.with_name",
@@ -69865,6 +70793,7 @@ window.API_INDEX = {
         "Vector.side_from_sine_law",
         "Vector.str",
         "Vector.sum_of_vectors",
+        "Vector.to_f32",
         "Vector.transform",
         "Vector.transformed",
         "Vector.with_name",
@@ -69950,6 +70879,7 @@ window.API_INDEX = {
         "Vector.side_from_sine_law",
         "Vector.str",
         "Vector.sum_of_vectors",
+        "Vector.to_f32",
         "Vector.transform",
         "Vector.transformed",
         "Vector.with_name",
@@ -74699,6 +75629,19 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "BRepTrimType.append_brep",
+      "implementations": {
+        "cpp": {
+          "sig": "void append_brep(const BRep& other)",
+          "code": "void append_brep(const BRep& other);",
+          "file": "brep.h"
+        }
+      },
+      "related": [
+        "BRepTrimType.boolean_xor"
+      ]
+    },
+    {
       "name": "BRepTrimType.split_by_plane_pieces",
       "implementations": {
         "cpp": {
@@ -74799,6 +75742,16 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "BRepTrimType.merge_coplanar_faces",
+      "implementations": {
+        "cpp": {
+          "sig": "void merge_coplanar_faces(double tolerance = 0.0)",
+          "code": "void merge_coplanar_faces(double tolerance = 0.0);",
+          "file": "brep.h"
+        }
+      }
+    },
+    {
       "name": "BRepTrimType.boolean_union",
       "implementations": {
         "cpp": {
@@ -74808,8 +75761,7 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "BRepTrimType.boolean",
-        "BRepTrimType.boolean_xor"
+        "BRepTrimType.boolean"
       ]
     },
     {
@@ -74846,14 +75798,14 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "BRep boolean_xor(const BRep& other, double tolerance = 0.0)",
-          "code": "BRep boolean_xor(const BRep& other, double tolerance = 0.0) const {\n        BRep ab = boolean_difference(other, tolerance);\n        BRep ba = other.boolean_difference(*this, tolerance);\n        if (ab.face_count() == 0) return ba;    // A inside B -> xor = B - A\n        if (ba.face_count() == 0) return ab;    // B inside A -> xor = A - B\n        return ab.boolean_union(ba, tolerance);\n    }",
+          "code": "BRep boolean_xor(const BRep& other, double tolerance = 0.0) const {\n        BRep ab = boolean_difference(other, tolerance);\n        BRep ba = other.boolean_difference(*this, tolerance);\n        if (ab.face_count() == 0) return ba;    // A inside B -> xor = B - A\n        if (ba.face_count() == 0) return ab;    // B inside A -> xor = A - B\n        ab.append_brep(ba);\n        return ab;\n    }",
           "file": "brep.h"
         }
       },
       "related": [
+        "BRepTrimType.append_brep",
         "BRepTrimType.boolean",
         "BRepTrimType.boolean_difference",
-        "BRepTrimType.boolean_union",
         "BRepTrimType.face_count"
       ]
     },
@@ -75228,6 +76180,26 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "BRep.append_brep",
+      "implementations": {
+        "cpp": {
+          "sig": "void append_brep(const BRep& other)",
+          "code": "void BRep::append_brep(const BRep& other) {\n    // Disjoint assembly: concatenate the other BRep's geometry pools and topology tables\n    // with index offsets. No sewing -- each side keeps its own (already mated) edges, so\n    // two solids that touch only along coincident section edges stay two watertight shells.\n    int voff=(int)m_vertices.size(), tvoff=(int)m_topology_vertices.size();\n    int soff=(int)m_surfaces.size(), c2off=(int)m_curves_2d.size();\n    int c3off=(int)m_curves_3d.size(), eoff=(int)m_topology_edges.size();\n    int loff=(int)m_loops.size(), foff=(int)m_faces.size(), toff=(int)m_trims.size();\n    for (auto& p : other.m_vertices) m_vertices.push_back(p);\n    for (auto& s : other.m_surfaces) m_surfaces.push_back(s);\n    for (auto& c : other.m_curves_2d) m_curves_2d.push_back(c);\n    for (auto& c : other.m_curves_3d) m_curves_3d.push_back(c);\n    for (auto tv : other.m_topology_vertices) { tv.point_index += voff; tv.edge_indices.clear(); m_topology_vertices.push_back(tv); }",
+          "file": "brep.cpp"
+        }
+      }
+    },
+    {
+      "name": "std.sqrt",
+      "implementations": {
+        "cpp": {
+          "sig": "return sqrt(a * a + b * b - 2.0 * a * b * std::cos(ang_between * to_rad)",
+          "code": "return std::sqrt(a * a + b * b - 2.0 * a * b * std::cos(ang_between * to_rad));\n}",
+          "file": "vector.cpp"
+        }
+      }
+    },
+    {
       "name": "BRep.split_with",
       "implementations": {
         "cpp": {
@@ -75281,6 +76253,16 @@ window.API_INDEX = {
       "related": [
         "BRep.volume"
       ]
+    },
+    {
+      "name": "BRep.merge_coplanar_faces",
+      "implementations": {
+        "cpp": {
+          "sig": "void merge_coplanar_faces(double tolerance)",
+          "code": "void BRep::merge_coplanar_faces(double tolerance) {\n    int nf = (int)m_faces.size();\n    if (nf < 2) return;\n    double diag = 0.0;\n    {\n        double mn[3] = {1e300,1e300,1e300}",
+          "file": "brep.cpp"
+        }
+      }
     },
     {
       "name": "BRep.jsondump",
@@ -75393,6 +76375,7 @@ window.API_INDEX = {
         "BRep.pt3d",
         "BRep.rec",
         "BRep.repr",
+        "BRep.split_by_brep",
         "BRep.split_multi",
         "BRep.subset_of",
         "BRep.surfacecolor",
@@ -75451,16 +76434,6 @@ window.API_INDEX = {
           "sig": "return make_tuple(center, plane, cr[2])",
           "code": "return std::make_tuple(center, plane, cr[2]);\n}",
           "file": "polyline.cpp"
-        }
-      }
-    },
-    {
-      "name": "std.sqrt",
-      "implementations": {
-        "cpp": {
-          "sig": "return sqrt(a * a + b * b - 2.0 * a * b * std::cos(ang_between * to_rad)",
-          "code": "return std::sqrt(a * a + b * b - 2.0 * a * b * std::cos(ang_between * to_rad));\n}",
-          "file": "vector.cpp"
         }
       }
     },
@@ -78296,6 +79269,203 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "InstanceRef.constructor",
+      "implementations": {
+        "cpp": {
+          "sig": "InstanceRef()",
+          "code": "InstanceRef();",
+          "file": "instance_ref.h"
+        }
+      }
+    },
+    {
+      "name": "InstanceRef.str",
+      "implementations": {
+        "cpp": {
+          "sig": "std::string str()",
+          "code": "std::string InstanceRef::str() const {\n    int prec = static_cast<int>(Tolerance::ROUNDING);\n    return fmt::format(\n        \"{}",
+          "file": "instance_ref.cpp"
+        },
+        "rust": {
+          "sig": "str() -> String",
+          "code": "pub fn str(&self) -> String {\n        use crate::tolerance::TOLERANCE;\n        let prec = crate::tolerance::Tolerance::ROUNDING;\n        format!(\n            \"{} @ [{}, {}, {}]\",\n            self.definition_guid,\n            TOLERANCE.format_number(self.xform.m[12], prec),\n            TOLERANCE.format_number(self.xform.m[13], prec),\n            TOLERANCE.format_number(self.xform.m[14], prec),\n        )\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__init__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.__str__",
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.jsondump",
+        "InstanceRef.jsonload",
+        "InstanceRef.new",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_load",
+        "InstanceRef.pb_loads",
+        "InstanceRef.repr",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.with_name",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.repr",
+      "implementations": {
+        "cpp": {
+          "sig": "std::string repr()",
+          "code": "std::string InstanceRef::repr() const {\n    return fmt::format(\n        \"InstanceRef({}",
+          "file": "instance_ref.cpp"
+        },
+        "rust": {
+          "sig": "repr() -> String",
+          "code": "pub fn repr(&self) -> String {\n        format!(\n            \"InstanceRef({}, {}, Color({}, {}, {}, {}), {})\",\n            self.name,\n            self.definition_guid,\n            self.color.r,\n            self.color.g,\n            self.color.b,\n            self.color.a,\n            self.flags,\n        )\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__repr__",
+        "InstanceRef.__str__",
+        "InstanceRef.color",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.format",
+        "InstanceRef.guid",
+        "InstanceRef.pb_dump",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_load",
+        "InstanceRef.pb_loads",
+        "InstanceRef.str"
+      ]
+    },
+    {
+      "name": "InstanceRef.jsondump",
+      "implementations": {
+        "cpp": {
+          "sig": "nlohmann::ordered_json jsondump()",
+          "code": "nlohmann::ordered_json InstanceRef::jsondump() const {\n    // Alphabetical order to match Rust's serde_json\n    nlohmann::ordered_json data;\n    data[\"color\"] = color.jsondump();\n    data[\"definition_guid\"] = definition_guid;\n    data[\"flags\"] = flags;\n    data[\"guid\"] = guid();\n    data[\"name\"] = name;\n    data[\"type\"] = \"InstanceRef\";\n    data[\"xform\"] = xform.jsondump();\n    return data;\n}",
+          "file": "instance_ref.cpp"
+        },
+        "rust": {
+          "sig": "jsondump() -> Result<String, Box<dyn std::error::Error>>",
+          "code": "pub fn jsondump(&self) -> Result<String, Box<dyn std::error::Error>> {\n        crate::file_encoders::sorted_json_string(self)\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.guid",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.with_name",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.jsonload",
+      "implementations": {
+        "cpp": {
+          "sig": "InstanceRef jsonload(const nlohmann::json& data)",
+          "code": "InstanceRef InstanceRef::jsonload(const nlohmann::json& data) {\n    InstanceRef ref;\n    ref.color = Color::jsonload(data[\"color\"]);\n    ref.definition_guid = data[\"definition_guid\"];\n    ref.flags = data[\"flags\"];\n    ref.guid() = data[\"guid\"];\n    ref.name = data[\"name\"];\n    ref.xform = Xform::jsonload(data[\"xform\"]);\n    return ref;\n}",
+          "file": "instance_ref.cpp"
+        },
+        "rust": {
+          "sig": "jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>>",
+          "code": "pub fn jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {\n        Ok(serde_json::from_str(json_data)?)\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.color",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.guid",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.parse",
+      "implementations": {
+        "cpp": {
+          "sig": "constexpr auto parse(fmt::format_parse_context& ctx)",
+          "code": "constexpr auto parse(fmt::format_parse_context& ctx) { return ctx.begin(); }",
+          "file": "instance_ref.h"
+        }
+      },
+      "related": [
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.format",
+        "InstanceRef.pb_load"
+      ]
+    },
+    {
+      "name": "InstanceRef.format",
+      "implementations": {
+        "cpp": {
+          "sig": "auto format(const session_cpp::InstanceRef& o, fmt::format_context& ctx)",
+          "code": "auto format(const session_cpp::InstanceRef& o, fmt::format_context& ctx) const {\n    return fmt::format_to(ctx.out(), \"{}",
+          "file": "instance_ref.h"
+        }
+      },
+      "related": [
+        "InstanceRef.__eq__",
+        "InstanceRef.__getitem__",
+        "InstanceRef.__jsondump__",
+        "InstanceRef.__jsonload__",
+        "InstanceRef.__ne__",
+        "InstanceRef.__setitem__",
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.file_json_dump",
+        "InstanceRef.file_json_dumps",
+        "InstanceRef.file_json_load",
+        "InstanceRef.file_json_loads",
+        "InstanceRef.parse",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.repr",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.with_name"
+      ]
+    },
+    {
       "name": "Intersection.line_line",
       "implementations": {
         "cpp": {
@@ -80994,6 +82164,36 @@ window.API_INDEX = {
         "cpp": {
           "sig": "double volume()",
           "code": "double volume() const;",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
+      "name": "ColorMode.boolean_difference",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh boolean_difference(const Mesh& other, int resolution = 96)",
+          "code": "Mesh boolean_difference(const Mesh& other, int resolution = 96) const;",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
+      "name": "ColorMode.boolean_union",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh boolean_union(const Mesh& other, int resolution = 96)",
+          "code": "Mesh boolean_union(const Mesh& other, int resolution = 96) const;",
+          "file": "mesh.h"
+        }
+      }
+    },
+    {
+      "name": "ColorMode.boolean_intersection",
+      "implementations": {
+        "cpp": {
+          "sig": "Mesh boolean_intersection(const Mesh& other, int resolution = 96)",
+          "code": "Mesh boolean_intersection(const Mesh& other, int resolution = 96) const;",
           "file": "mesh.h"
         }
       }
@@ -88503,6 +89703,20 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "AABB.corners_f32",
+      "implementations": {
+        "rust": {
+          "sig": "corners_f32() -> [[f32; 3]; 8]",
+          "code": "pub fn corners_f32(&self) -> [[f32; 3]; 8] {\n        self.corners().map(|p| p.to_f32())\n    }",
+          "file": "aabb.rs"
+        }
+      },
+      "related": [
+        "AABB.corner",
+        "AABB.corners"
+      ]
+    },
+    {
       "name": "Sc.boolean_op",
       "implementations": {
         "rust": {
@@ -88784,6 +89998,37 @@ window.API_INDEX = {
         "Color.b",
         "Color.g",
         "Color.new",
+        "Color.r"
+      ]
+    },
+    {
+      "name": "Color.to_f32",
+      "implementations": {
+        "rust": {
+          "sig": "to_f32() -> [f32; 4]",
+          "code": "pub fn to_f32(&self) -> [f32; 4] {\n        [self.r, self.g, self.b, self.a]\n    }",
+          "file": "color.rs"
+        }
+      },
+      "related": [
+        "Color.a",
+        "Color.b",
+        "Color.g",
+        "Color.r"
+      ]
+    },
+    {
+      "name": "Color.to_rgb",
+      "implementations": {
+        "rust": {
+          "sig": "to_rgb() -> [f32; 3]",
+          "code": "pub fn to_rgb(&self) -> [f32; 3] {\n        [self.r, self.g, self.b]\n    }",
+          "file": "color.rs"
+        }
+      },
+      "related": [
+        "Color.b",
+        "Color.g",
         "Color.r"
       ]
     },
@@ -89473,6 +90718,44 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "InstanceRef.new",
+      "implementations": {
+        "rust": {
+          "sig": "new(definition_guid: &str, xform: Xform) -> Self",
+          "code": "pub fn new(definition_guid: &str, xform: Xform) -> Self {\n        Self {\n            definition_guid: definition_guid.to_string(),\n            xform,\n            ..Default::default()\n        }\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.__init__",
+        "InstanceRef.color",
+        "InstanceRef.duplicate",
+        "InstanceRef.guid",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_loads",
+        "InstanceRef.str",
+        "InstanceRef.transform",
+        "InstanceRef.transformed",
+        "InstanceRef.with_name",
+        "InstanceRef.xform"
+      ]
+    },
+    {
+      "name": "InstanceRef.set_guid",
+      "implementations": {
+        "rust": {
+          "sig": "set_guid(g: String)",
+          "code": "pub fn set_guid(&self, g: String) {\n        let _ = self.guid.set(g);\n    }",
+          "file": "instance_ref.rs"
+        }
+      },
+      "related": [
+        "InstanceRef.guid",
+        "InstanceRef.pb_dumps",
+        "InstanceRef.pb_loads"
+      ]
+    },
+    {
       "name": "Default.face_to_face_wood",
       "implementations": {
         "rust": {
@@ -89661,6 +90944,7 @@ window.API_INDEX = {
         "Mesh.edge_attribute",
         "Mesh.edge_edges",
         "Mesh.edges",
+        "Mesh.edges_with_colors",
         "Mesh.ensure_triangle_bvh",
         "Mesh.face_area",
         "Mesh.face_attribute",
@@ -89725,6 +91009,21 @@ window.API_INDEX = {
         "Mesh.pointcolors",
         "Mesh.str",
         "Mesh.widths"
+      ]
+    },
+    {
+      "name": "Mesh.edges_with_colors",
+      "implementations": {
+        "rust": {
+          "sig": "edges_with_colors() -> Vec<(usize, usize, Color)>",
+          "code": "pub fn edges_with_colors(&self) -> Vec<(usize, usize, Color)> {\n        let mut seen: HashSet<(usize, usize)> = HashSet::new();\n        let mut out: Vec<(usize, usize, Color)> = Vec::new();\n        let mut ci = 0usize;\n        let mut fkeys: Vec<usize> = self.face.keys().copied().collect();\n        fkeys.sort_unstable();\n        for fk in fkeys {\n            let vs = &self.face[&fk];\n            for i in 0..vs.len() {\n                let u = vs[i];\n                let v = vs[(i + 1) % vs.len()];\n                let e = if u < v { (u, v) } else { (v, u) };\n                if seen.insert(e) {\n                    let c = self.linecolors.get(ci).cloned().unwrap_or_else(Color::black);\n                    out.push((e.0, e.1, c));\n                    ci += 1;\n                }\n            }\n        }\n        out\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.edges",
+        "Mesh.linecolors",
+        "Mesh.new"
       ]
     },
     {
@@ -90584,6 +91883,20 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "OBB.corners_f32",
+      "implementations": {
+        "rust": {
+          "sig": "corners_f32() -> [[f32; 3]; 8]",
+          "code": "pub fn corners_f32(&self) -> [[f32; 3]; 8] {\n        self.corners().map(|p| p.to_f32())\n    }",
+          "file": "obb.rs"
+        }
+      },
+      "related": [
+        "OBB.corner",
+        "OBB.corners"
+      ]
+    },
+    {
       "name": "Component.guid",
       "implementations": {
         "rust": {
@@ -90892,6 +92205,24 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Plane.to_f32",
+      "implementations": {
+        "rust": {
+          "sig": "to_f32() -> [f32; 16]",
+          "code": "pub fn to_f32(&self) -> [f32; 16] {\n        let x = &self._x_axis;\n        let y = &self._y_axis;\n        let z = &self._z_axis;\n        let o = &self._origin;\n        [\n            x[0] as f32, x[1] as f32, x[2] as f32, 0.0,\n            y[0] as f32, y[1] as f32, y[2] as f32, 0.0,\n            z[0] as f32, z[1] as f32, z[2] as f32, 0.0,\n            o[0] as f32, o[1] as f32, o[2] as f32, 1.0,\n        ]\n    }",
+          "file": "plane.rs"
+        }
+      },
+      "related": [
+        "Plane.a",
+        "Plane.b",
+        "Plane.origin",
+        "Plane.x_axis",
+        "Plane.y_axis",
+        "Plane.z_axis"
+      ]
+    },
+    {
       "name": "Point.new",
       "implementations": {
         "rust": {
@@ -90959,6 +92290,21 @@ window.API_INDEX = {
         "Point.guid",
         "Point.pb_dumps",
         "Point.pb_loads"
+      ]
+    },
+    {
+      "name": "Point.to_f32",
+      "implementations": {
+        "rust": {
+          "sig": "to_f32() -> [f32; 3]",
+          "code": "pub fn to_f32(&self) -> [f32; 3] {\n        [self._x as f32, self._y as f32, self._z as f32]\n    }",
+          "file": "point.rs"
+        }
+      },
+      "related": [
+        "Point.x",
+        "Point.y",
+        "Point.z"
       ]
     },
     {
@@ -91273,6 +92619,16 @@ window.API_INDEX = {
       "related": [
         "Quaternion.guid"
       ]
+    },
+    {
+      "name": "Quaternion.to_f32",
+      "implementations": {
+        "rust": {
+          "sig": "to_f32() -> [f32; 4]",
+          "code": "pub fn to_f32(&self) -> [f32; 4] {\n        [\n            self.vector[0] as f32,\n            self.vector[1] as f32,\n            self.vector[2] as f32,\n            self.scalar as f32,\n        ]\n    }",
+          "file": "quaternion.rs"
+        }
+      }
     },
     {
       "name": "RemeshNurbsSurfaceAdaptive.new",
@@ -92343,6 +93699,21 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "Vector.to_f32",
+      "implementations": {
+        "rust": {
+          "sig": "to_f32() -> [f32; 3]",
+          "code": "pub fn to_f32(&self) -> [f32; 3] {\n        [self._x as f32, self._y as f32, self._z as f32]\n    }",
+          "file": "vector.rs"
+        }
+      },
+      "related": [
+        "Vector.x",
+        "Vector.y",
+        "Vector.z"
+      ]
+    },
+    {
       "name": "fmt.average_normal",
       "implementations": {
         "rust": {
@@ -92392,19 +93763,6 @@ window.API_INDEX = {
         "Xform.x",
         "Xform.y",
         "Xform.z"
-      ]
-    },
-    {
-      "name": "Xform.to_f32",
-      "implementations": {
-        "rust": {
-          "sig": "to_f32() -> [f32; 16]",
-          "code": "pub fn to_f32(&self) -> [f32; 16] {\n        std::array::from_fn(|i| self.m[i] as f32)\n    }",
-          "file": "xform.rs"
-        }
-      },
-      "related": [
-        "Xform.y"
       ]
     },
     {
@@ -92646,6 +94004,19 @@ window.API_INDEX = {
         "Xform.translation",
         "Xform.world_to_frame",
         "Xform.xy_to_plane"
+      ]
+    },
+    {
+      "name": "Xform.to_f32",
+      "implementations": {
+        "rust": {
+          "sig": "to_f32() -> [f32; 16]",
+          "code": "pub fn to_f32(&self) -> [f32; 16] {\n        std::array::from_fn(|i| self.m[i] as f32)\n    }",
+          "file": "xform.rs"
+        }
+      },
+      "related": [
+        "Xform.y"
       ]
     },
     {
@@ -95894,6 +97265,86 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "InstanceRef.test_Constructor",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"InstanceRef\", \"Constructor\")",
+          "code": "MINI_TEST(\"InstanceRef\", \"Constructor\") {\n    // uncomment #include \"instance_ref.h\"\n    // uncomment #include \"xform.h\"\n    // uncomment #include \"color.h\"\n\n    // Constructor from a definition guid and a placement transform\n    Xform x = Xform::translation(10.0, 20.0, 30.0);\n    InstanceRef ref(\"def-123\", x);\n\n    // Setter on a copy (keep ref pristine for the == check below)\n    InstanceRef refset = ref;\n    refset[0] = 2.0;\n    double m0 = refset[0];\n\n    // Minimal and Full String Representation\n    std::string rstr = ref.str();\n    std::string rrepr = ref.repr();\n\n    // Copy (duplicate everything but guid())\n    InstanceRef rcopy = ref;\n    InstanceRef rother(\"def-123\", x);\n\n    // with_name constructor\n    InstanceRef rwn = InstanceRef::with_name(\"custom\", \"def-9\", Xform::identity());\n\n    MINI_CHECK(ref.name == \"my_instance_ref\");\n    MINI_CHECK(ref.definition_guid == \"def-123\");\n    MINI_CHECK(!ref.guid().empty());\n    MINI_CHECK(m0 == 2.0);\n    MINI_CHECK(ref[12] == 10.0 && ref[13] == 20.0 && ref[14] == 30.0);\n    MINI_CHECK(rstr.find(\"def-123\") != std::string::npos);\n    MINI_CHECK(rrepr.find(\"InstanceRef\") != std::string::npos);\n    MINI_CHECK(rrepr.find(\"my_instance_ref\") != std::string::npos);\n    MINI_CHECK(rcopy.guid() != ref.guid());\n    MINI_CHECK(ref == rother);\n    MINI_CHECK(ref != rwn);\n    MINI_CHECK(rwn.name == \"custom\" && rwn.definition_guid == \"def-9\");\n}",
+          "file": "instance_ref_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"InstanceRef\", \"Constructor\")",
+          "code": "@MINI_TEST(\"InstanceRef\", \"Constructor\")\ndef test_instance_ref_constructor():\n    from session_py import InstanceRef\n    from session_py import Xform\n\n    # Constructor from a definition guid and a placement transform\n    x = Xform.translation(10.0, 20.0, 30.0)\n    r = InstanceRef(\"def-123\", x.duplicate())\n\n    # Setter on a copy (keep r pristine for the == check below)\n    rset = r.duplicate()\n    rset[0] = 2.0\n    m0 = rset[0]\n\n    # Minimal and Full String Representation\n    rstr = str(r)\n    rrepr = repr(r)\n\n    # Copy (duplicate everything but guid)\n    rcopy = r.duplicate()\n    rother = InstanceRef(\"def-123\", x.duplicate())\n\n    # with_name constructor\n    rwn = InstanceRef.with_name(\"custom\", \"def-9\", Xform.identity())\n\n    MINI_CHECK(r.name == \"my_instance_ref\")\n    MINI_CHECK(r.definition_guid == \"def-123\")\n    MINI_CHECK(len(r.guid) > 0)\n    MINI_CHECK(m0 == 2.0)\n    MINI_CHECK(r[12] == 10.0 and r[13] == 20.0 and r[14] == 30.0)\n    MINI_CHECK(\"def-123\" in rstr)\n    MINI_CHECK(\"InstanceRef\" in rrepr and \"my_instance_ref\" in rrepr)\n    MINI_CHECK(rcopy.guid != r.guid)\n    MINI_CHECK(r == rother)\n    MINI_CHECK(r != rwn)\n    MINI_CHECK(rwn.name == \"custom\" and rwn.definition_guid == \"def-9\")",
+          "file": "instance_ref_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"InstanceRef\", \"Constructor\")",
+          "code": "MINI_TEST!(\"InstanceRef\", \"Constructor\", crate::instance_ref_test::run_instance_ref_constructor);\nREGISTER_MINI_TEST!(\"InstanceRef\", \"Transformation\", crate::instance_ref_test::run_instance_ref_transformation);\nREGISTER_MINI_TEST!(\"InstanceRef\", \"Json Roundtrip\", crate::instance_ref_test::run_instance_ref_json_roundtrip);\nREGISTER_MINI_TEST!(\"InstanceRef\", \"Protobuf Roundtrip\", crate::instance_ref_test::run_instance_ref_protobuf_roundtrip);",
+          "file": "instance_ref_test.rs"
+        }
+      }
+    },
+    {
+      "name": "InstanceRef.test_Transformation",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"InstanceRef\", \"Transformation\")",
+          "code": "MINI_TEST(\"InstanceRef\", \"Transformation\") {\n    // uncomment #include \"instance_ref.h\"\n    // uncomment #include \"xform.h\"\n\n    InstanceRef ref(\"def\", Xform::translation(1.0, 0.0, 0.0));\n    InstanceRef moved = ref.transformed(Xform::translation(5.0, 0.0, 0.0)); // Make a copy\n    ref.transform(Xform::translation(5.0, 0.0, 0.0)); // compose in place\n\n    // translation(5) * translation(1) => translation(6)\n    MINI_CHECK(TOLERANCE.is_close(moved[12], 6.0));\n    MINI_CHECK(TOLERANCE.is_close(ref[12], 6.0));\n}",
+          "file": "instance_ref_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"InstanceRef\", \"Transformation\")",
+          "code": "@MINI_TEST(\"InstanceRef\", \"Transformation\")\ndef test_instance_ref_transformation():\n    from session_py import InstanceRef\n    from session_py import Xform\n\n    r = InstanceRef(\"def\", Xform.translation(1.0, 0.0, 0.0))\n    moved = r.transformed(Xform.translation(5.0, 0.0, 0.0))  # Make a copy\n    r.transform(Xform.translation(5.0, 0.0, 0.0))  # compose in place\n\n    # translation(5) * translation(1) => translation(6)\n    MINI_CHECK(TOLERANCE.is_close(moved[12], 6.0))\n    MINI_CHECK(TOLERANCE.is_close(r[12], 6.0))",
+          "file": "instance_ref_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"InstanceRef\", \"Transformation\")",
+          "code": "MINI_TEST!(\"InstanceRef\", \"Transformation\", crate::instance_ref_test::run_instance_ref_transformation);\nREGISTER_MINI_TEST!(\"InstanceRef\", \"Json Roundtrip\", crate::instance_ref_test::run_instance_ref_json_roundtrip);\nREGISTER_MINI_TEST!(\"InstanceRef\", \"Protobuf Roundtrip\", crate::instance_ref_test::run_instance_ref_protobuf_roundtrip);",
+          "file": "instance_ref_test.rs"
+        }
+      }
+    },
+    {
+      "name": "InstanceRef.test_Json Roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"InstanceRef\", \"Json Roundtrip\")",
+          "code": "MINI_TEST(\"InstanceRef\", \"Json Roundtrip\") {\n    // uncomment #include \"instance_ref.h\"\n\n    InstanceRef ref(\"def-abc\", Xform::translation(1.0, 2.0, 3.0));\n    ref.name = \"test_ref\";\n    ref.flags = 7;\n\n    // JSON object\n    nlohmann::ordered_json j = ref.jsondump();\n    InstanceRef loaded_j = InstanceRef::jsonload(j);\n\n    MINI_CHECK(loaded_j.name == \"test_ref\");\n    MINI_CHECK(loaded_j.definition_guid == \"def-abc\");\n    MINI_CHECK(loaded_j.flags == 7);\n    MINI_CHECK(TOLERANCE.is_close(loaded_j[12], 1.0));\n\n    // String\n    std::string s = ref.file_json_dumps();\n    InstanceRef loaded_s = InstanceRef::file_json_loads(s);\n    MINI_CHECK(loaded_s.name == \"test_ref\");\n    MINI_CHECK(loaded_s.definition_guid == \"def-abc\");\n\n    // File\n    std::string fname = \"serialization/test_instance_ref.json\";\n    ref.file_json_dump(fname);\n    InstanceRef loaded = InstanceRef::file_json_load(fname);\n    MINI_CHECK(loaded.name == \"test_ref\");\n    MINI_CHECK(loaded.definition_guid == \"def-abc\");\n    MINI_CHECK(loaded.flags == 7);\n    MINI_CHECK(TOLERANCE.is_close(loaded[12], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(loaded[13], 2.0));\n    MINI_CHECK(TOLERANCE.is_close(loaded[14], 3.0));\n}",
+          "file": "instance_ref_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"InstanceRef\", \"Json Roundtrip\")",
+          "code": "@MINI_TEST(\"InstanceRef\", \"Json Roundtrip\")\ndef test_instance_ref_json_roundtrip():\n    from session_py import InstanceRef\n    from session_py import Xform\n\n    r = InstanceRef(\"def-abc\", Xform.translation(1.0, 2.0, 3.0))\n    r.name = \"test_ref\"\n    r.flags = 7\n\n    # JSON object\n    j = r.__jsondump__()\n    loaded_j = InstanceRef.__jsonload__(j)\n\n    MINI_CHECK(loaded_j.name == \"test_ref\")\n    MINI_CHECK(loaded_j.definition_guid == \"def-abc\")\n    MINI_CHECK(loaded_j.flags == 7)\n    MINI_CHECK(TOLERANCE.is_close(loaded_j[12], 1.0))\n\n    # String\n    s = r.file_json_dumps()\n    loaded_s = InstanceRef.file_json_loads(s)\n    MINI_CHECK(loaded_s.name == \"test_ref\")\n    MINI_CHECK(loaded_s.definition_guid == \"def-abc\")\n\n    # File\n    fname = \"serialization/test_instance_ref.json\"\n    r.file_json_dump(fname)\n    loaded = InstanceRef.file_json_load(fname)\n    MINI_CHECK(loaded.name == \"test_ref\")\n    MINI_CHECK(loaded.definition_guid == \"def-abc\")\n    MINI_CHECK(loaded.flags == 7)\n    MINI_CHECK(TOLERANCE.is_close(loaded[12], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(loaded[13], 2.0))\n    MINI_CHECK(TOLERANCE.is_close(loaded[14], 3.0))",
+          "file": "instance_ref_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"InstanceRef\", \"Json Roundtrip\")",
+          "code": "MINI_TEST!(\"InstanceRef\", \"Json Roundtrip\", crate::instance_ref_test::run_instance_ref_json_roundtrip);\nREGISTER_MINI_TEST!(\"InstanceRef\", \"Protobuf Roundtrip\", crate::instance_ref_test::run_instance_ref_protobuf_roundtrip);",
+          "file": "instance_ref_test.rs"
+        }
+      }
+    },
+    {
+      "name": "InstanceRef.test_Protobuf Roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"InstanceRef\", \"Protobuf Roundtrip\")",
+          "code": "MINI_TEST(\"InstanceRef\", \"Protobuf Roundtrip\") {\n    // uncomment #include \"instance_ref.h\"\n\n    InstanceRef ref(\"def-xyz\", Xform::translation(1.0, 2.0, 3.0));\n    ref.name = \"test_ref\";\n    ref.flags = 5;\n\n    // String\n    std::string s = ref.pb_dumps();\n    InstanceRef loaded_s = InstanceRef::pb_loads(s);\n\n    MINI_CHECK(loaded_s.name == \"test_ref\");\n    MINI_CHECK(loaded_s.definition_guid == \"def-xyz\");\n    MINI_CHECK(loaded_s.flags == 5);\n    MINI_CHECK(loaded_s.guid() == ref.guid());\n    MINI_CHECK(TOLERANCE.is_close(loaded_s[14], 3.0));\n\n    // File\n    std::string fname = \"serialization/test_instance_ref.bin\";\n    ref.pb_dump(fname);\n    InstanceRef loaded = InstanceRef::pb_load(fname);\n    MINI_CHECK(loaded.name == \"test_ref\");\n    MINI_CHECK(loaded.definition_guid == \"def-xyz\");\n    MINI_CHECK(loaded.guid() == ref.guid());\n    MINI_CHECK(TOLERANCE.is_close(loaded[12], 1.0));\n    MINI_CHECK(TOLERANCE.is_close(loaded[13], 2.0));\n    MINI_CHECK(TOLERANCE.is_close(loaded[14], 3.0));\n}",
+          "file": "instance_ref_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"InstanceRef\", \"Protobuf Roundtrip\")",
+          "code": "@MINI_TEST(\"InstanceRef\", \"Protobuf Roundtrip\")\ndef test_instance_ref_protobuf_roundtrip():\n    from session_py import InstanceRef\n    from session_py import Xform\n\n    r = InstanceRef(\"def-xyz\", Xform.translation(1.0, 2.0, 3.0))\n    r.name = \"test_ref\"\n    r.flags = 5\n\n    # Bytes\n    b = r.pb_dumps()\n    loaded_s = InstanceRef.pb_loads(b)\n\n    MINI_CHECK(loaded_s.name == \"test_ref\")\n    MINI_CHECK(loaded_s.definition_guid == \"def-xyz\")\n    MINI_CHECK(loaded_s.flags == 5)\n    MINI_CHECK(loaded_s.guid == r.guid)\n    MINI_CHECK(TOLERANCE.is_close(loaded_s[14], 3.0))\n\n    # File\n    fname = \"serialization/test_instance_ref.bin\"\n    r.pb_dump(fname)\n    loaded = InstanceRef.pb_load(fname)\n    MINI_CHECK(loaded.name == \"test_ref\")\n    MINI_CHECK(loaded.definition_guid == \"def-xyz\")\n    MINI_CHECK(loaded.guid == r.guid)\n    MINI_CHECK(TOLERANCE.is_close(loaded[12], 1.0))\n    MINI_CHECK(TOLERANCE.is_close(loaded[13], 2.0))\n    MINI_CHECK(TOLERANCE.is_close(loaded[14], 3.0))\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "file": "instance_ref_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"InstanceRef\", \"Protobuf Roundtrip\")",
+          "code": "MINI_TEST!(\"InstanceRef\", \"Protobuf Roundtrip\", crate::instance_ref_test::run_instance_ref_protobuf_roundtrip);",
+          "file": "instance_ref_test.rs"
+        }
+      }
+    },
+    {
       "name": "Intersection.test_Line Line",
       "implementations": {
         "cpp": {
@@ -98355,6 +99806,36 @@ window.API_INDEX = {
           "sig": "@MINI_TEST(\"Mesh\", \"Edges Where Predicate\")",
           "code": "@MINI_TEST(\"Mesh\", \"Edges Where Predicate\")\ndef test_mesh_edges_where_predicate():\n    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.update_default_edge_attributes(weight=0.0)\n    mesh.edge_attribute((0, 1), \"weight\", 5.0)\n    big = mesh.edges_where_predicate(lambda e, a: a[\"weight\"] > 1.0)\n    MINI_CHECK(len(big) == 1)\n    MINI_CHECK(big[0] == (0, 1))\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
           "file": "mesh_test.py"
+        }
+      }
+    },
+    {
+      "name": "Mesh.test_Boolean Difference",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Mesh\", \"Boolean Difference\")",
+          "code": "MINI_TEST(\"Mesh\", \"Boolean Difference\") {\n        Mesh a = Mesh::create_box(2, 2, 2);\n        Mesh b = Mesh::create_box(2, 2, 2);\n        b.transform(Xform::translation(1, 0, 0));\n        Mesh result = a.boolean_difference(b, 48);\n        MINI_CHECK(result.is_closed());\n        MINI_CHECK(std::abs(std::abs(result.volume()) - 4.0) < 0.2);\n    }",
+          "file": "mesh_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Mesh.test_Boolean Union",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Mesh\", \"Boolean Union\")",
+          "code": "MINI_TEST(\"Mesh\", \"Boolean Union\") {\n        Mesh a = Mesh::create_box(2, 2, 2);\n        Mesh b = Mesh::create_box(2, 2, 2);\n        b.transform(Xform::translation(1, 0, 0));\n        Mesh result = a.boolean_union(b, 48);\n        MINI_CHECK(result.is_closed());\n        MINI_CHECK(std::abs(std::abs(result.volume()) - 12.0) < 0.4);\n    }",
+          "file": "mesh_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Mesh.test_Boolean Intersection",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Mesh\", \"Boolean Intersection\")",
+          "code": "MINI_TEST(\"Mesh\", \"Boolean Intersection\") {\n        Mesh a = Mesh::create_box(2, 2, 2);\n        Mesh b = Mesh::create_box(2, 2, 2);\n        b.transform(Xform::translation(1, 0, 0));\n        Mesh result = a.boolean_intersection(b, 48);\n        MINI_CHECK(result.is_closed());\n        MINI_CHECK(std::abs(std::abs(result.volume()) - 4.0) < 0.2);\n    }",
+          "file": "mesh_test.cpp"
         }
       }
     },
@@ -106973,11 +108454,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "circle",
         "n",
-        "points",
         "into",
         "subdivide",
+        "points",
+        "circle",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -106991,11 +108472,11 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "arc",
-        "ellipse",
-        "length",
         "subdivide",
+        "arc",
         "by",
+        "length",
+        "ellipse",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -107009,9 +108490,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
+        "points",
         "through",
         "arc",
-        "points",
         "nurbscurve",
         "primitives",
         "point"
@@ -107026,11 +108507,11 @@ window.API_INDEX = {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
         "adaptive",
-        "polyline",
+        "curve",
         "open",
+        "polyline",
         "points",
         "from",
-        "curve",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -107045,8 +108526,8 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "parameter",
         "evaluation",
+        "parameter",
         "at",
         "curve",
         "set_domain",
@@ -107067,10 +108548,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "along",
         "length",
-        "curve",
         "frames",
+        "curve",
+        "along",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -107092,9 +108573,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
-        "perpendicular",
-        "ellipse",
         "frames",
+        "ellipse",
+        "perpendicular",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -107134,10 +108615,10 @@ window.API_INDEX = {
       "title": "Mesh from Vertices and Faces",
       "tags": [
         "faces",
-        "vertices",
         "mesh",
-        "and",
         "from",
+        "vertices",
+        "and",
         "add_vertex",
         "add_face",
         "vertex"
@@ -107185,6 +108666,7 @@ window.API_INDEX = {
     "Vertex": "A graph vertex with a unique identifier and attribute string.",
     "Edge": "A graph edge connecting two vertices with an attribute string.",
     "Graph": "A graph data structure with string-only vertices and attributes.",
+    "InstanceRef": "A block reference: places a definition (by guid) at a transform.",
     "Line": "A 3D line segment with visual properties.",
     "Matrix": "Matrix geometry class",
     "VertexData": "Vertex data containing position and attributes.",
@@ -107285,11 +108767,11 @@ window.API_INDEX = {
       ],
       "summary": "NurbsSurfaceTrimmed geometry class"
     },
-    "GeometryFileEncoder": {
+    "GeometryFileDecoder": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
+      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
     },
     "GlobalSessionConfig": {
       "composition": [],
@@ -107297,17 +108779,17 @@ window.API_INDEX = {
       "uses": [],
       "summary": "GlobalSessionConfig geometry class"
     },
+    "GeometryFileEncoder": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
+    },
     "CurveNurbsKnotStyle": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
-    },
-    "GeometryFileDecoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
     },
     "TriangulateResult": {
       "composition": [],
@@ -107346,6 +108828,12 @@ window.API_INDEX = {
       ],
       "summary": "GlobalTolerance geometry class"
     },
+    "ElementSchoring": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
+    },
     "BooleanPolyline": {
       "composition": [],
       "factories": [],
@@ -107354,11 +108842,11 @@ window.API_INDEX = {
       ],
       "summary": "BooleanPolyline geometry class"
     },
-    "ElementSchoring": {
+    "_PartitionVars": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
+      "summary": "_PartitionVars geometry class"
     },
     "ToleranceGuard": {
       "composition": [],
@@ -107367,18 +108855,6 @@ window.API_INDEX = {
         "Tolerance"
       ],
       "summary": "ToleranceGuard geometry class"
-    },
-    "VIntersectNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VIntersectNode geometry class"
-    },
-    "_PartitionVars": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_PartitionVars geometry class"
     },
     "SpatialBVHNode": {
       "composition": [],
@@ -107392,11 +108868,11 @@ window.API_INDEX = {
       ],
       "summary": "A node in the SpatialBVH tree."
     },
-    "SessionConfig": {
+    "VIntersectNode": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "SessionConfig geometry class"
+      "summary": "VIntersectNode geometry class"
     },
     "ElementColumn": {
       "composition": [],
@@ -107411,6 +108887,12 @@ window.API_INDEX = {
       ],
       "summary": "ElementColumn geometry class"
     },
+    "SessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SessionConfig geometry class"
+    },
     "SpatialKDTree": {
       "composition": [],
       "factories": [],
@@ -107419,6 +108901,12 @@ window.API_INDEX = {
         "_Node"
       ],
       "summary": "KD-tree for point-to-point nearest-neighbor queries."
+    },
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
     },
     "VattiScratch": {
       "composition": [],
@@ -107466,18 +108954,6 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
-    "ScanlineHeap": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "ScanlineHeap geometry class"
-    },
-    "VLocalMinima": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VLocalMinima geometry class"
-    },
     "Intersection": {
       "composition": [
         "Element",
@@ -107497,17 +108973,11 @@ window.API_INDEX = {
       ],
       "summary": "Intersection geometry class"
     },
-    "BRepLoopType": {
+    "SpatialRTree": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepLoopType geometry class"
-    },
-    "LoftWallFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftWallFace geometry class"
+      "summary": "SpatialRTree geometry class"
     },
     "ElementPlate": {
       "composition": [],
@@ -107524,11 +108994,23 @@ window.API_INDEX = {
       ],
       "summary": "ElementPlate geometry class"
     },
-    "SpatialRTree": {
+    "LoftWallFace": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "SpatialRTree geometry class"
+      "summary": "LoftWallFace geometry class"
+    },
+    "ScanlineHeap": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "ScanlineHeap geometry class"
+    },
+    "BRepLoopType": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoopType geometry class"
     },
     "ElementBeam": {
       "composition": [],
@@ -107557,29 +109039,29 @@ window.API_INDEX = {
       "uses": [],
       "summary": "LoftAdjPair geometry class"
     },
+    "InstanceRef": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Xform",
+        "session_cpp"
+      ],
+      "summary": "A block reference: places a definition (by guid) at a transform."
+    },
     "_Delaunay2D": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Delaunay2D geometry class"
     },
-    "VertexData": {
+    "ConvexHull": {
       "composition": [],
       "factories": [],
       "uses": [
+        "Mesh",
         "Point"
       ],
-      "summary": "Vertex data containing position and attributes."
-    },
-    "Quaternion": {
-      "composition": [
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Plane"
-      ],
-      "summary": "A quaternion for 3D rotations (scalar + vector)."
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
     },
     "NurbsCurve": {
       "composition": [
@@ -107603,6 +109085,29 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
+    "SpatialBVH": {
+      "composition": [],
+      "factories": [
+        "SpatialBVHNode"
+      ],
+      "uses": [
+        "AABB",
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
+    },
+    "Quaternion": {
+      "composition": [
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Plane"
+      ],
+      "summary": "A quaternion for 3D rotations (scalar + vector)."
+    },
     "Primitives": {
       "composition": [
         "CurveInterpStyle",
@@ -107620,6 +109125,20 @@ window.API_INDEX = {
       ],
       "summary": "Static factory methods for creating NURBS curve primitives."
     },
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
+    },
+    "VertexData": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "Vertex data containing position and attributes."
+    },
     "PointCloud": {
       "composition": [
         "Color",
@@ -107634,21 +109153,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
-    },
-    "Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Delaunay2D geometry class"
-    },
-    "ConvexHull": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Point"
-      ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
     },
     "BRepVertex": {
       "composition": [],
@@ -107666,61 +109170,11 @@ window.API_INDEX = {
       ],
       "summary": "MeshOffset geometry class"
     },
-    "SpatialBVH": {
-      "composition": [],
-      "factories": [
-        "SpatialBVHNode"
-      ],
-      "uses": [
-        "AABB",
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
-    },
-    "RemeshCDT": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Polyline"
-      ],
-      "summary": "RemeshCDT geometry class"
-    },
-    "VHorzJoin": {
+    "_Vertex2D": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VHorzJoin geometry class"
-    },
-    "_Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay geometry class"
-    },
-    "_Triangle": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Triangle geometry class"
-    },
-    "Component": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Component geometry class"
-    },
-    "Tolerance": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "ToleranceGuard",
-        "Vector"
-      ],
-      "summary": "Tolerance settings for geometric operations."
+      "summary": "_Vertex2D geometry class"
     },
     "ColorMode": {
       "composition": [],
@@ -107738,6 +109192,24 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
+    "LoftPanel": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftPanel geometry class"
+    },
+    "Component": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Component geometry class"
+    },
+    "_Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay geometry class"
+    },
     "FlatMap64": {
       "composition": [],
       "factories": [],
@@ -107749,17 +109221,57 @@ window.API_INDEX = {
       ],
       "summary": "FlatMap64 geometry class"
     },
-    "LoftPanel": {
+    "RemeshCDT": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "LoftPanel geometry class"
+      "uses": [
+        "Mesh",
+        "Polyline"
+      ],
+      "summary": "RemeshCDT geometry class"
     },
-    "_Vertex2D": {
+    "VHorzJoin": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Vertex2D geometry class"
+      "summary": "VHorzJoin geometry class"
+    },
+    "_Triangle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Triangle geometry class"
+    },
+    "Tolerance": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "ToleranceGuard",
+        "Vector"
+      ],
+      "summary": "Tolerance settings for geometric operations."
+    },
+    "BRepLoop": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoop geometry class"
+    },
+    "BRepFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepFace geometry class"
+    },
+    "Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Edge",
+        "TriangulateResult"
+      ],
+      "summary": "Delaunay geometry class"
     },
     "Geometry": {
       "composition": [],
@@ -107767,11 +109279,19 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Geometry geometry class"
     },
-    "BRepLoop": {
+    "BRepEdge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepLoop geometry class"
+      "summary": "BRepEdge geometry class"
+    },
+    "TreeNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Tree"
+      ],
+      "summary": "A node of a tree data structure."
     },
     "Polyline": {
       "composition": [
@@ -107797,29 +109317,6 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Edge",
-        "TriangulateResult"
-      ],
-      "summary": "Delaunay geometry class"
-    },
-    "TreeNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tree"
-      ],
-      "summary": "A node of a tree data structure."
-    },
-    "BRepEdge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
-    },
     "BRepTrim": {
       "composition": [],
       "factories": [],
@@ -107832,23 +109329,23 @@ window.API_INDEX = {
       "uses": [],
       "summary": "VHorzSeg geometry class"
     },
-    "BRepFace": {
-      "composition": [],
+    "Element": {
+      "composition": [
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
       "factories": [],
-      "uses": [],
-      "summary": "BRepFace geometry class"
-    },
-    "Dataset": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Dataset geometry class"
-    },
-    "VActive": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VActive geometry class"
+      "uses": [
+        "AABB",
+        "BRep",
+        "Xform"
+      ],
+      "summary": "Element geometry class"
     },
     "Closest": {
       "composition": [],
@@ -107865,38 +109362,11 @@ window.API_INDEX = {
       ],
       "summary": "Static methods for finding closest points between geometry objects."
     },
-    "_Branch": {
+    "VOutRec": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Branch geometry class"
-    },
-    "VVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VVertex geometry class"
-    },
-    "Objects": {
-      "composition": [
-        "BRep",
-        "Component",
-        "Element",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "A collection of all geometry objects."
+      "summary": "VOutRec geometry class"
     },
     "Default": {
       "composition": [],
@@ -107908,6 +109378,18 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "Default geometry class"
+    },
+    "_Branch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Branch geometry class"
+    },
+    "Dataset": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Dataset geometry class"
     },
     "Session": {
       "composition": [
@@ -107937,29 +109419,56 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "VOutRec": {
+    "VActive": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VOutRec geometry class"
+      "summary": "VActive geometry class"
     },
-    "Element": {
+    "VVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VVertex geometry class"
+    },
+    "Objects": {
       "composition": [
+        "BRep",
+        "Component",
+        "Element",
         "Line",
         "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
         "OBB",
         "Plane",
         "Point",
-        "Polyline",
-        "Vector"
+        "PointCloud",
+        "Polyline"
       ],
       "factories": [],
       "uses": [
-        "AABB",
-        "BRep",
-        "Xform"
+        "session_cpp"
       ],
-      "summary": "Element geometry class"
+      "summary": "A collection of all geometry objects."
+    },
+    "BIVec2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BIVec2 geometry class"
+    },
+    "VOutPt": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutPt geometry class"
+    },
+    "RayHit": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "RayHit geometry class"
     },
     "Vertex": {
       "composition": [],
@@ -107970,11 +109479,11 @@ window.API_INDEX = {
       ],
       "summary": "A graph vertex with a unique identifier and attribute string."
     },
-    "VOutPt": {
+    "Matrix": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VOutPt geometry class"
+      "summary": "Matrix geometry class"
     },
     "Vector": {
       "composition": [],
@@ -107989,24 +109498,6 @@ window.API_INDEX = {
         "session_cpp"
       ],
       "summary": "A 3D vector with visual properties."
-    },
-    "RayHit": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RayHit geometry class"
-    },
-    "BIVec2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BIVec2 geometry class"
-    },
-    "Matrix": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Matrix geometry class"
     },
     "Point": {
       "composition": [],
@@ -108036,20 +109527,17 @@ window.API_INDEX = {
       ],
       "summary": "A 3D plane defined by origin and coordinate axes."
     },
-    "Xform": {
-      "composition": [
-        "Point",
-        "Vector"
-      ],
-      "factories": [
-        "Element"
-      ],
-      "uses": [
-        "Line",
-        "Plane",
-        "Polyline"
-      ],
-      "summary": "Xform geometry class"
+    "_Rect": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Rect geometry class"
+    },
+    "_Node": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Node geometry class"
     },
     "Color": {
       "composition": [],
@@ -108065,11 +109553,20 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_Edge geometry class"
     },
-    "_Rect": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Rect geometry class"
+    "Xform": {
+      "composition": [
+        "Point",
+        "Vector"
+      ],
+      "factories": [
+        "Element"
+      ],
+      "uses": [
+        "Line",
+        "Plane",
+        "Polyline"
+      ],
+      "summary": "Xform geometry class"
     },
     "Graph": {
       "composition": [
@@ -108081,11 +109578,27 @@ window.API_INDEX = {
       ],
       "summary": "A graph data structure with string-only vertices and attributes."
     },
-    "_Node": {
+    "_P64": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Node geometry class"
+      "summary": "_P64 geometry class"
+    },
+    "AABB": {
+      "composition": [],
+      "factories": [
+        "OBB"
+      ],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Axis-aligned bounding box (center + half-size)."
     },
     "Edge": {
       "composition": [],
@@ -108102,48 +109615,11 @@ window.API_INDEX = {
       "uses": [],
       "summary": "A hierarchical data structure with parent-child relationships."
     },
-    "Mesh": {
-      "composition": [
-        "ColorMode",
-        "LoftAdjPair",
-        "LoftPanel",
-        "LoftWallFace",
-        "SpatialAABBTree"
-      ],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Element",
-        "MeshOffset",
-        "OBB",
-        "RemeshCDT",
-        "RemeshNurbsSurfaceGrid"
-      ],
-      "uses": [
-        "Color",
-        "Line",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "A halfedge mesh data structure for representing polygonal surfaces."
-    },
-    "Line": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Mesh",
-        "OBB"
-      ],
-      "uses": [
-        "Vector",
-        "session_cpp"
-      ],
-      "summary": "A 3D line segment with visual properties."
+    "_Tri": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Tri geometry class"
     },
     "BRep": {
       "composition": [
@@ -108172,39 +109648,48 @@ window.API_INDEX = {
       ],
       "summary": "BRep geometry class"
     },
-    "_Tri": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Tri geometry class"
-    },
-    "_P64": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_P64 geometry class"
-    },
-    "AABB": {
-      "composition": [],
+    "Line": {
+      "composition": [
+        "Point"
+      ],
       "factories": [
+        "AABB",
+        "ColorMode",
+        "Mesh",
         "OBB"
       ],
       "uses": [
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
+        "Vector",
+        "session_cpp"
       ],
-      "summary": "Axis-aligned bounding box (center + half-size)."
+      "summary": "A 3D line segment with visual properties."
     },
-    "_V2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_V2 geometry class"
+    "Mesh": {
+      "composition": [
+        "ColorMode",
+        "LoftAdjPair",
+        "LoftPanel",
+        "LoftWallFace",
+        "SpatialAABBTree"
+      ],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Element",
+        "MeshOffset",
+        "OBB",
+        "RemeshCDT",
+        "RemeshNurbsSurfaceGrid"
+      ],
+      "uses": [
+        "Color",
+        "Line",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
     "OBB": {
       "composition": [
@@ -108227,6 +109712,12 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
+    },
+    "_V2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],
@@ -108412,6 +109903,7 @@ window.API_INDEX = {
       "Vertex.__init__",
       "Edge.__init__",
       "Graph.__init__",
+      "InstanceRef.__init__",
       "Line.__init__",
       "Matrix.__init__",
       "VertexData.__init__",
@@ -108464,6 +109956,7 @@ window.API_INDEX = {
       "ElementColumn.__eq__",
       "ElementPlate.__eq__",
       "ElementSchoring.__eq__",
+      "InstanceRef.__eq__",
       "Matrix.__eq__",
       "VertexData.__eq__",
       "Mesh.__eq__",
@@ -108488,6 +109981,7 @@ window.API_INDEX = {
       "ElementColumn.__ne__",
       "ElementPlate.__ne__",
       "ElementSchoring.__ne__",
+      "InstanceRef.__ne__",
       "Matrix.__ne__",
       "VertexData.__ne__",
       "Mesh.__ne__",
@@ -108822,6 +110316,7 @@ window.API_INDEX = {
       "Vertex.guid",
       "Edge.guid",
       "Graph.guid",
+      "InstanceRef.guid",
       "Line.guid",
       "Matrix.guid",
       "Mesh.guid",
@@ -108854,6 +110349,7 @@ window.API_INDEX = {
     ],
     "xform": [
       "BRep.xform",
+      "InstanceRef.xform",
       "Line.xform",
       "Mesh.xform",
       "NurbsCurve.xform",
@@ -108874,6 +110370,7 @@ window.API_INDEX = {
       "ElementPlate.__str__",
       "ElementSchoring.__str__",
       "Graph.__str__",
+      "InstanceRef.__str__",
       "Line.__str__",
       "Matrix.__str__",
       "Mesh.__str__",
@@ -108901,6 +110398,7 @@ window.API_INDEX = {
       "ElementPlate.__repr__",
       "ElementSchoring.__repr__",
       "Graph.__repr__",
+      "InstanceRef.__repr__",
       "Line.__repr__",
       "Matrix.__repr__",
       "Mesh.__repr__",
@@ -108925,6 +110423,7 @@ window.API_INDEX = {
       "BRep.duplicate",
       "Color.duplicate",
       "Element.duplicate",
+      "InstanceRef.duplicate",
       "Line.duplicate",
       "Matrix.duplicate",
       "Mesh.duplicate",
@@ -109223,15 +110722,18 @@ window.API_INDEX = {
     ],
     "boolean_union": [
       "BRep.boolean_union",
-      "BRepTrimType.boolean_union"
+      "BRepTrimType.boolean_union",
+      "ColorMode.boolean_union"
     ],
     "boolean_difference": [
       "BRep.boolean_difference",
-      "BRepTrimType.boolean_difference"
+      "BRepTrimType.boolean_difference",
+      "ColorMode.boolean_difference"
     ],
     "boolean_intersection": [
       "BRep.boolean_intersection",
-      "BRepTrimType.boolean_intersection"
+      "BRepTrimType.boolean_intersection",
+      "ColorMode.boolean_intersection"
     ],
     "__add__": [
       "BRep.__add__",
@@ -109281,6 +110783,7 @@ window.API_INDEX = {
     ],
     "transform": [
       "BRep.transform",
+      "InstanceRef.transform",
       "Line.transform",
       "Mesh.transform",
       "NurbsCurve.transform",
@@ -109297,6 +110800,7 @@ window.API_INDEX = {
     ],
     "transformed": [
       "BRep.transformed",
+      "InstanceRef.transformed",
       "Line.transformed",
       "Mesh.transformed",
       "NurbsCurve.transformed",
@@ -109322,6 +110826,7 @@ window.API_INDEX = {
       "Vertex.__jsondump__",
       "Edge.__jsondump__",
       "Graph.__jsondump__",
+      "InstanceRef.__jsondump__",
       "Line.__jsondump__",
       "Matrix.__jsondump__",
       "Mesh.__jsondump__",
@@ -109352,6 +110857,7 @@ window.API_INDEX = {
       "Vertex.__jsonload__",
       "Edge.__jsonload__",
       "Graph.__jsonload__",
+      "InstanceRef.__jsonload__",
       "Line.__jsonload__",
       "Matrix.__jsonload__",
       "Mesh.__jsonload__",
@@ -109377,6 +110883,7 @@ window.API_INDEX = {
       "Element.file_json_dump",
       "GeometryFileDecoder.file_json_dump",
       "Graph.file_json_dump",
+      "InstanceRef.file_json_dump",
       "Line.file_json_dump",
       "Matrix.file_json_dump",
       "Mesh.file_json_dump",
@@ -109405,6 +110912,7 @@ window.API_INDEX = {
       "Element.file_json_load",
       "GeometryFileDecoder.file_json_load",
       "Graph.file_json_load",
+      "InstanceRef.file_json_load",
       "Line.file_json_load",
       "Matrix.file_json_load",
       "Mesh.file_json_load",
@@ -109436,6 +110944,7 @@ window.API_INDEX = {
       "Element.file_json_dumps",
       "GeometryFileDecoder.file_json_dumps",
       "Graph.file_json_dumps",
+      "InstanceRef.file_json_dumps",
       "Line.file_json_dumps",
       "Matrix.file_json_dumps",
       "Mesh.file_json_dumps",
@@ -109464,6 +110973,7 @@ window.API_INDEX = {
       "Element.file_json_loads",
       "GeometryFileDecoder.file_json_loads",
       "Graph.file_json_loads",
+      "InstanceRef.file_json_loads",
       "Line.file_json_loads",
       "Matrix.file_json_loads",
       "Mesh.file_json_loads",
@@ -109498,6 +111008,7 @@ window.API_INDEX = {
       "ElementPlate.pb_dumps",
       "ElementSchoring.pb_dumps",
       "Graph.pb_dumps",
+      "InstanceRef.pb_dumps",
       "Line.pb_dumps",
       "Matrix.pb_dumps",
       "Mesh.pb_dumps",
@@ -109530,6 +111041,7 @@ window.API_INDEX = {
       "ElementPlate.pb_loads",
       "ElementSchoring.pb_loads",
       "Graph.pb_loads",
+      "InstanceRef.pb_loads",
       "Line.pb_loads",
       "Matrix.pb_loads",
       "Mesh.pb_loads",
@@ -109559,6 +111071,7 @@ window.API_INDEX = {
       "Color.pb_dump",
       "Element.pb_dump",
       "Graph.pb_dump",
+      "InstanceRef.pb_dump",
       "Line.pb_dump",
       "Matrix.pb_dump",
       "Mesh.pb_dump",
@@ -109586,6 +111099,7 @@ window.API_INDEX = {
       "Color.pb_load",
       "Element.pb_load",
       "Graph.pb_load",
+      "InstanceRef.pb_load",
       "Line.pb_load",
       "Matrix.pb_load",
       "Mesh.pb_load",
@@ -109732,6 +111246,7 @@ window.API_INDEX = {
     ],
     "__getitem__": [
       "Color.__getitem__",
+      "InstanceRef.__getitem__",
       "Line.__getitem__",
       "Matrix.__getitem__",
       "VertexData.__getitem__",
@@ -109744,6 +111259,7 @@ window.API_INDEX = {
     ],
     "__setitem__": [
       "Color.__setitem__",
+      "InstanceRef.__setitem__",
       "Line.__setitem__",
       "Matrix.__setitem__",
       "VertexData.__setitem__",
@@ -110185,6 +111701,20 @@ window.API_INDEX = {
       "Graph.cycle_basis",
       "Vertex.cycle_basis"
     ],
+    "color": [
+      "InstanceRef.color",
+      "VertexData.color",
+      "ColorMode.color",
+      "TreeNode.color"
+    ],
+    "with_name": [
+      "InstanceRef.with_name",
+      "Line.with_name",
+      "Color.with_name",
+      "Plane.with_name",
+      "Point.with_name",
+      "Vector.with_name"
+    ],
     "linecolor": [
       "Line.linecolor",
       "Plane.linecolor",
@@ -110198,13 +111728,6 @@ window.API_INDEX = {
     ],
     "from_point_direction_length": [
       "Line.from_point_direction_length"
-    ],
-    "with_name": [
-      "Line.with_name",
-      "Color.with_name",
-      "Plane.with_name",
-      "Point.with_name",
-      "Vector.with_name"
     ],
     "squared_length": [
       "Line.squared_length"
@@ -110397,11 +111920,6 @@ window.API_INDEX = {
     "set_position": [
       "VertexData.set_position",
       "ColorMode.set_position"
-    ],
-    "color": [
-      "VertexData.color",
-      "ColorMode.color",
-      "TreeNode.color"
     ],
     "set_color": [
       "VertexData.set_color",
@@ -111450,6 +112968,7 @@ window.API_INDEX = {
       "Vertex.jsondump",
       "Edge.jsondump",
       "Graph.jsondump",
+      "InstanceRef.jsondump",
       "Line.jsondump",
       "Matrix.jsondump",
       "ColorMode.jsondump",
@@ -111482,6 +113001,7 @@ window.API_INDEX = {
       "Vertex.jsonload",
       "Edge.jsonload",
       "Graph.jsonload",
+      "InstanceRef.jsonload",
       "Line.jsonload",
       "Matrix.jsonload",
       "ColorMode.jsonload",
@@ -111793,6 +113313,7 @@ window.API_INDEX = {
       "Vertex.str",
       "Edge.str",
       "Graph.str",
+      "InstanceRef.str",
       "Line.str",
       "Matrix.str",
       "ColorMode.str",
@@ -111820,6 +113341,7 @@ window.API_INDEX = {
       "ElementColumn.repr",
       "ElementBeam.repr",
       "ElementPlate.repr",
+      "InstanceRef.repr",
       "Line.repr",
       "Matrix.repr",
       "ColorMode.repr",
@@ -113220,6 +114742,10 @@ window.API_INDEX = {
       "BRepTrimType.check_trim_orientation",
       "BRep.check_trim_orientation"
     ],
+    "append_brep": [
+      "BRepTrimType.append_brep",
+      "BRep.append_brep"
+    ],
     "make_shared_section_edges": [
       "BRepTrimType.make_shared_section_edges",
       "BRep.make_shared_section_edges"
@@ -113235,6 +114761,10 @@ window.API_INDEX = {
     "sameparameter_planar_pcurves": [
       "BRepTrimType.sameparameter_planar_pcurves",
       "BRep.sameparameter_planar_pcurves"
+    ],
+    "merge_coplanar_faces": [
+      "BRepTrimType.merge_coplanar_faces",
+      "BRep.merge_coplanar_faces"
     ],
     "boolean_xor": [
       "BRepTrimType.boolean_xor"
@@ -113257,6 +114787,7 @@ window.API_INDEX = {
       "ElementBeam.constructor",
       "ElementPlate.constructor",
       "Vertex.constructor",
+      "InstanceRef.constructor",
       "Line.constructor",
       "Matrix.constructor",
       "Mesh.constructor",
@@ -113286,6 +114817,9 @@ window.API_INDEX = {
     "atan2": [
       "std.atan2"
     ],
+    "sqrt": [
+      "std.sqrt"
+    ],
     "split_with": [
       "BRep.split_with"
     ],
@@ -113296,6 +114830,7 @@ window.API_INDEX = {
       "fmt.format",
       "Color.format",
       "Vertex.format",
+      "InstanceRef.format",
       "Line.format",
       "NurbsCurve.format",
       "Objects.format",
@@ -113306,15 +114841,13 @@ window.API_INDEX = {
     "make_tuple": [
       "std.make_tuple"
     ],
-    "sqrt": [
-      "std.sqrt"
-    ],
     "format_to": [
       "fmt.format_to"
     ],
     "parse": [
       "Color.parse",
       "Vertex.parse",
+      "InstanceRef.parse",
       "Line.parse",
       "NurbsCurve.parse",
       "Objects.parse",
@@ -114161,6 +115694,7 @@ window.API_INDEX = {
       "Vertex.new",
       "Edge.new",
       "Graph.new",
+      "InstanceRef.new",
       "Line.new",
       "VertexData.new",
       "Mesh.new",
@@ -114191,6 +115725,10 @@ window.API_INDEX = {
       "Vector.new",
       "Xform.new"
     ],
+    "corners_f32": [
+      "AABB.corners_f32",
+      "OBB.corners_f32"
+    ],
     "set_guid": [
       "BRep.set_guid",
       "Color.set_guid",
@@ -114198,6 +115736,7 @@ window.API_INDEX = {
       "Vertex.set_guid",
       "Edge.set_guid",
       "Graph.set_guid",
+      "InstanceRef.set_guid",
       "Line.set_guid",
       "Matrix.set_guid",
       "Mesh.set_guid",
@@ -114230,6 +115769,17 @@ window.API_INDEX = {
     ],
     "from_float": [
       "Color.from_float"
+    ],
+    "to_f32": [
+      "Color.to_f32",
+      "Plane.to_f32",
+      "Point.to_f32",
+      "Quaternion.to_f32",
+      "Vector.to_f32",
+      "Xform.to_f32"
+    ],
+    "to_rgb": [
+      "Color.to_rgb"
     ],
     "with_transformation": [
       "Element.with_transformation"
@@ -114299,6 +115849,9 @@ window.API_INDEX = {
     ],
     "strip_render_data": [
       "Mesh.strip_render_data"
+    ],
+    "edges_with_colors": [
+      "Mesh.edges_with_colors"
     ],
     "pointcolors_mut": [
       "Mesh.pointcolors_mut"
@@ -114436,17 +115989,14 @@ window.API_INDEX = {
     ],
     "with_tolerance_mut": [
       "GlobalTolerance.with_tolerance_mut"
-    ],
-    "to_f32": [
-      "Xform.to_f32"
     ]
   },
   "parity_status": {
     "AABB": {
       "cpp": 26,
       "python": 27,
-      "rust": 28,
-      "gaps": 2,
+      "rust": 29,
+      "gaps": 3,
       "present_in": [
         "cpp",
         "python",
@@ -114576,10 +116126,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "BRepTrimType": {
-      "cpp": 65,
+      "cpp": 67,
       "python": 2,
       "rust": 0,
-      "gaps": 67,
+      "gaps": 69,
       "present_in": [
         "cpp",
         "python"
@@ -114647,10 +116197,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "BRep": {
-      "cpp": 61,
+      "cpp": 63,
       "python": 108,
       "rust": 60,
-      "gaps": 75,
+      "gaps": 77,
       "present_in": [
         "cpp",
         "python",
@@ -114673,8 +116223,8 @@ window.API_INDEX = {
     "Color": {
       "cpp": 41,
       "python": 49,
-      "rust": 42,
-      "gaps": 29,
+      "rust": 44,
+      "gaps": 31,
       "present_in": [
         "cpp",
         "python",
@@ -114815,6 +116365,18 @@ window.API_INDEX = {
       ],
       "status": "TODO"
     },
+    "InstanceRef": {
+      "cpp": 19,
+      "python": 24,
+      "rust": 19,
+      "gaps": 21,
+      "present_in": [
+        "cpp",
+        "python",
+        "rust"
+      ],
+      "status": "TODO"
+    },
     "Line": {
       "cpp": 41,
       "python": 50,
@@ -114883,8 +116445,8 @@ window.API_INDEX = {
     "Mesh": {
       "cpp": 124,
       "python": 158,
-      "rust": 113,
-      "gaps": 114,
+      "rust": 114,
+      "gaps": 115,
       "present_in": [
         "cpp",
         "python",
@@ -114983,8 +116545,8 @@ window.API_INDEX = {
     "OBB": {
       "cpp": 48,
       "python": 47,
-      "rust": 53,
-      "gaps": 24,
+      "rust": 54,
+      "gaps": 25,
       "present_in": [
         "cpp",
         "python",
@@ -115007,8 +116569,8 @@ window.API_INDEX = {
     "Plane": {
       "cpp": 47,
       "python": 59,
-      "rust": 56,
-      "gaps": 34,
+      "rust": 57,
+      "gaps": 35,
       "present_in": [
         "cpp",
         "python",
@@ -115019,8 +116581,8 @@ window.API_INDEX = {
     "Point": {
       "cpp": 29,
       "python": 45,
-      "rust": 30,
-      "gaps": 35,
+      "rust": 31,
+      "gaps": 36,
       "present_in": [
         "cpp",
         "python",
@@ -115067,8 +116629,8 @@ window.API_INDEX = {
     "Quaternion": {
       "cpp": 33,
       "python": 40,
-      "rust": 33,
-      "gaps": 21,
+      "rust": 34,
+      "gaps": 22,
       "present_in": [
         "cpp",
         "python",
@@ -115325,8 +116887,8 @@ window.API_INDEX = {
     "Vector": {
       "cpp": 55,
       "python": 73,
-      "rust": 53,
-      "gaps": 37,
+      "rust": 54,
+      "gaps": 38,
       "present_in": [
         "cpp",
         "python",
@@ -115388,10 +116950,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "ColorMode": {
-      "cpp": 150,
+      "cpp": 153,
       "python": 0,
       "rust": 0,
-      "gaps": 150,
+      "gaps": 153,
       "present_in": [
         "cpp"
       ],

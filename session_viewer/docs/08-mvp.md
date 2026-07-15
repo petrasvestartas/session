@@ -1,16 +1,16 @@
 # 08 MVP matrix
 
-Give the triangle a real **camera**: instead of `p.x / aspect`, send one 4×4 matrix that
-places it in a 3D world and looks at it. The triangle starts to **spin in perspective**.
+Give the triangle a real **camera**: instead of `p.x / aspect`, send one 4×4 matrix
+placing it in a 3D world and looking at it. The triangle **spins in perspective**.
 
 ## What an MVP matrix is
 
 Three matrices multiplied into one, read right-to-left (the order a corner travels):
 
-- **Model** — where the object sits / how it's rotated in the world (we spin it by `time`).
-- **View** — where the camera is and which way it looks.
-- **Projection** — 3D → flat screen, with perspective (far looks smaller). It also takes the
-  window's width/height, so the old `aspect` uniform goes away this chapter.
+- **Model** — object position/rotation (spun by `time`).
+- **View** — camera position and look direction.
+- **Projection** — 3D → flat screen, perspective (far looks smaller); takes
+  width/height too, so `aspect` goes away this chapter.
 
 ```
 clip = Projection × View × Model × corner   →   one matrix: "mvp"
@@ -25,14 +25,14 @@ src/shaders/triangle.wgsl   # group 0 becomes a mat4; multiply position by it
 src/engine/gpu.rs           # build the mvp each frame; replaces aspect
 ```
 
-`build.rs` / `pipelines/mod.rs` don't change — group 0 is still one vertex-stage uniform
-buffer, only its contents grow from 1 float to 16.
+`build.rs` / `pipelines/mod.rs` don't change — group 0 is still one vertex-stage
+uniform buffer, contents just grow from 1 float to 16.
 
 
 ## Step 1 — shader takes a matrix: `triangle.wgsl`
 
-Group-0 uniform becomes a 4×4 matrix; multiply each corner by it. `time` (group 1) is
-unchanged.
+Group-0 uniform becomes a 4×4 matrix; multiply each corner by it. `time` (group 1)
+is unchanged.
 
 ```wgsl
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;   // was: aspect: f32
@@ -62,9 +62,9 @@ use session_rust::{Xform, Point, Vector};
 
 **(b)** Rename the two `aspect_*` fields to `mvp_*` in `struct Gpu` (same types).
 
-**(c)** Replace the aspect setup in `Gpu::new` with the mvp uniform — buffer + layout + bind
-group. Keep the `use wgpu::util::DeviceExt;` line (`create_buffer_init` needs it). Start at
-identity; `clear()` fills it each frame:
+**(c)** Replace the aspect setup in `Gpu::new` with the mvp uniform — buffer +
+layout + bind group. Keep `use wgpu::util::DeviceExt;`. Start at identity;
+`clear()` fills it each frame:
 
 ```rust
         use wgpu::util::DeviceExt;
@@ -106,8 +106,8 @@ reconfigure.
         self.queue.write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&mvp.to_f32()));
 ```
 
-`Xform::perspective` is 0..1-depth and column-major, so it uploads straight into WGSL's
-`mat4x4` (no transpose).
+`Xform::perspective` is 0..1-depth and column-major, so it uploads straight into
+WGSL's `mat4x4` — no transpose.
 
 Bind it in the pass (renamed field):
 
@@ -123,9 +123,9 @@ Bind it in the pass (renamed field):
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-The triangle spins in perspective (and still pulses colour). Resize stays correct via the
-projection's aspect. Experiments: move the camera with `Point::new(0.0,0.0,2.0)`; change the
-`60` degrees for the lens.
+The triangle spins in perspective, still pulsing colour. Resize stays correct via
+the projection's aspect. Experiments: move `Point::new(0.0,0.0,2.0)`; change the
+`60`-degree lens.
 
 
 ## Recap
@@ -135,12 +135,13 @@ Ch 7:  group 0 = aspect (1 float);  p.x / aspect
 Ch 8:  group 0 = mvp (4×4), rebuilt each frame;  mvp * position → model + camera + perspective
 ```
 
-Edited: `triangle.wgsl`, `gpu.rs`. Untouched: `Cargo.toml`, `build.rs`, `mod.rs`, `lib.rs`,
-`state.rs`.
+Edited: `triangle.wgsl`, `gpu.rs`. Untouched: `Cargo.toml`, `build.rs`, `mod.rs`,
+`lib.rs`, `state.rs`.
 
 
 ## Next
 
-`09-projection.md` — split view from projection and toggle **perspective** vs
-**orthographic** (`Xform::perspective` / `Xform::orthographic`); then ch 10 puts the camera
+`09-projection.md` — split view from projection, toggle **perspective** vs
+**orthographic** (`Xform::perspective`/`Xform::orthographic`); ch 10 puts the camera
 on the mouse (orbit + zoom).
+</content>

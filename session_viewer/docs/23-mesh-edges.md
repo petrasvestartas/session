@@ -1,14 +1,14 @@
 # 23 Mesh edges — the CAD look, part one
 
-A shaded solid without edges is a rendering; with dark edges it's a **drawing**. Every CAD default
-display (Rhino, SolidWorks, Fusion) is shaded-plus-edges, because edges carry the shape when faces
-share a color. This lesson adds them: the kernel lists each mesh's unique edges, we upload them once
-as line segments, and a third pipeline draws them dark over the solids.
+A shaded solid without edges is a rendering; with dark edges it's a **drawing** — every CAD default
+(Rhino, SolidWorks, Fusion) is shaded-plus-edges, because edges carry the shape when faces share a
+color. This lesson adds them: the kernel lists each mesh's unique edges, we upload them once as line
+segments, and a third pipeline draws them dark over the solids.
 
-**v1 on purpose.** These are 1 px hardware lines — thickness control needs the storage-buffer
-cylinder path, which unlocks at lesson 27 and lands at 31. The *extraction* you write today is
-permanent (31/62/63 reuse it); only the pipeline is temporary — and even then it survives as the
-wireframe/overlay path, exactly like the archive kept its `line.wgsl`.
+**v1 on purpose.** These are 1 px hardware lines — thickness needs the storage-buffer cylinder path
+(unlocked at lesson 27, landed at 31). The *extraction* written today is permanent (31/62/63 reuse
+it); only the pipeline is temporary, surviving as the wireframe/overlay path, like the archive's
+`line.wgsl`.
 
 ## Why
 
@@ -20,17 +20,17 @@ mesh.edges()      kernel: every unique undirected edge, as (vkey_a, vkey_b) pair
 edges pipeline    LineList, drawn AFTER the solids, depth-tested (Less, no write)
 ```
 
-The catch is **z-fighting**: an edge lies *exactly on* the surface it outlines, so line and face
-fragments have (nearly) equal depth and flicker. The classic fix — the pipeline's `DepthBiasState`
-— **does not apply to line topologies in WebGPU** (it's triangles-only). So we bias in the shader
-instead: the vertex shader pulls each edge a hair toward the camera,
+The catch is **z-fighting**: an edge sits *exactly on* the surface it outlines, so line and face
+fragments have near-equal depth and flicker. The classic fix, `DepthBiasState`, **doesn't apply to
+line topologies in WebGPU** (triangles-only) — so we bias in the shader instead, pulling each edge a
+hair toward the camera:
 
 ```
 o.pos.z = o.pos.z - 1e-4 * o.pos.w;    // after the perspective divide: z_ndc shifts by 1e-4
 ```
 
-which beats the face's depth everywhere without visibly floating. (Lesson 31's tubes won't need
-any of this — a cylinder physically protrudes from the surface.)
+which beats the face's depth everywhere without visibly floating. (Lesson 31's tubes skip this — a
+cylinder physically protrudes from the surface.)
 
 ## Files we touch
 
@@ -43,8 +43,8 @@ src/engine/gpu.rs                  # edge buffer per mesh; draw them after the s
 
 ## Step 1 — the edges shader: `src/shaders/edges.wgsl`
 
-Reads the camera and a `RenderVertex` (position @0, color @2 — the normal @1 is present but
-unused), passes color through, and applies the depth nudge:
+Reads the camera and a `RenderVertex` (position @0, color @2, normal @1 unused), passes color
+through, and applies the depth nudge:
 
 ```wgsl
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
@@ -76,8 +76,8 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 
 ## Step 2 — the pipeline: `src/engine/pipelines/build.rs`
 
-Copy `build_grid_pipeline` and change three things: the label(s), the shader file, and — because
-edges DO have a vertex buffer, unlike the vertexless grid — the buffers:
+Copy `build_grid_pipeline`, changing three things: label(s), shader file, and — since edges DO have
+a vertex buffer, unlike the vertexless grid — the buffers:
 
 ```rust
 pub fn build_edges_pipeline(
@@ -95,7 +95,7 @@ pub fn build_edges_pipeline(
 
 ## Step 3 — register it: `src/engine/pipelines/mod.rs`
 
-Same move as lesson 20: an `edges` field on `Pipelines`, built with the camera layout only:
+Same move as lesson 20 — an `edges` field on `Pipelines`, built with the camera layout only:
 
 ```rust
 pub struct Pipelines {
@@ -108,7 +108,7 @@ pub struct Pipelines {
 
 ## Step 4 — extract + upload the edges: `src/engine/gpu.rs`
 
-Add `RenderVertex` to the kernel import and a buffer list to the struct:
+Add `RenderVertex` to the kernel import, and a buffer list to the struct:
 
 ```rust
 use session_rust::{Color, Mesh, RenderVertex, Xform};   // + RenderVertex
@@ -118,21 +118,19 @@ use session_rust::{Color, Mesh, RenderVertex, Xform};   // + RenderVertex
     pub edge_buffers: Vec<(wgpu::Buffer, u32)>,   // one (vbo, vertex_count) per mesh
 ```
 
-In `new()`, right after `let meshes = vec![…]`: ask the kernel for each mesh's edges and flatten
-them to line vertices — two per edge. Building each vertex goes through `RenderVertex::point(pt,
-&color)`, a kernel constructor that takes a `Point` + a `&Color` and does **both conversions
-inside** — the f64→f32 position cast and the `Color`→`[f32; 4]` unpack — so the call site passes
-kernel types straight in with no `as f32` and no `[c.r, c.g, c.b, c.a]` (it also zeroes the normal,
-which the unlit edge shader ignores).
+In `new()`, right after `let meshes = vec![…]`, ask the kernel for each mesh's edges and flatten to
+line vertices — two per edge — via `RenderVertex::point(pt, &color)`, a kernel constructor taking a
+`Point` + a `&Color` that does **both conversions inside**: f64→f32 position cast and
+`Color`→`[f32; 4]` unpack. No `as f32`, no `[c.r, c.g, c.b, c.a]` at the call site (it also zeroes
+the normal, which the unlit edge shader ignores).
 
 **Don't invent the color — read it from the kernel.** `Mesh::add_face` seeds every new edge
-`Color::black()` (mesh.rs / mesh.cpp / mesh.py — one shared default across all three languages), and
-`RenderVertex::point` takes the `&Color` directly (it unpacks the `r/g/b/a: f32` fields internally).
-We sample **one** color per mesh rather than per edge on purpose: `edges()` returns edges in
-sorted `(u,v)` order while `linecolors` is stored in `add_face` insertion order — the two are **not
-index-aligned**, so `linecolors[i]` would mismatch `edges()[i]` the moment edges carry different
-colors. Every edge shares the default here, so one sample is exact; true per-edge colors wait for
-the first-class edge path in lesson 31.
+`Color::black()` (mesh.rs / mesh.cpp / mesh.py — one shared default across languages); `RenderVertex::
+point` takes the `&Color` directly. We sample **one** color per mesh, not per edge, on purpose:
+`edges()` returns sorted `(u,v)` order while `linecolors` is `add_face` insertion order — **not
+index-aligned**, so `linecolors[i]` would mismatch `edges()[i]` once edges carry different colors.
+Every edge shares the default here, so one sample is exact; true per-edge colors wait for the
+first-class edge path in lesson 31.
 
 ```rust
         let mut edge_buffers: Vec<(wgpu::Buffer, u32)> = Vec::new();
@@ -155,14 +153,13 @@ the first-class edge path in lesson 31.
         }
 ```
 
-Return `edge_buffers` in the `Ok(Self { … })`. (Built once, like `gpu_mesh` — these meshes never
-change in this lesson. When edits arrive, edge buffers rebuild on the same invalidation the
-GpuMesh uses.)
+Return `edge_buffers` in `Ok(Self { … })`. (Built once, like `gpu_mesh` — these meshes never change
+here. When edits arrive, edge buffers rebuild on the same invalidation GpuMesh uses.)
 
 ## Step 5 — draw them after the solids: `src/engine/gpu.rs`
 
-In `clear()`, after the mesh loop — edges bind only the camera (group 0), one plain `draw` per
-mesh (lines aren't indexed):
+In `clear()`, after the mesh loop: edges bind only the camera (group 0), one plain `draw` per mesh
+(lines aren't indexed):
 
 ```rust
             // edges last — the shader nudges them toward the camera so they beat the faces
@@ -180,11 +177,10 @@ mesh (lines aren't indexed):
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-The box shows its 12 dark edges, each dodecahedron its 30 — suddenly everything reads as a *part*,
-not a blob. Orbit: the edges stay glued to the surface with no flicker (that's the nudge working).
-Note the smooth dodecahedron shows all 30 edges too — a real CAD display would only outline
-*creases* on a smooth solid; that dihedral-angle filter arrives with the cylinder path in
-lesson 31.
+The box shows its 12 dark edges, each dodecahedron its 30 — everything reads as a *part*, not a
+blob. Orbit: edges stay glued to the surface, no flicker (the nudge at work). The smooth
+dodecahedron shows all 30 edges too — a real CAD display would outline only *creases* on a smooth
+solid; that dihedral-angle filter arrives with the cylinder path in lesson 31.
 
 ## Recap
 

@@ -1,0 +1,221 @@
+[
+  {
+    "checks": [
+      {
+        "code_line": "r.name == \"my_instance_ref\" && !r.guid().is_empty()",
+        "line": 31,
+        "passed": true
+      },
+      {
+        "code_line": "r.definition_guid == \"def-123\"",
+        "line": 32,
+        "passed": true
+      },
+      {
+        "code_line": "m0 == 2.0",
+        "line": 33,
+        "passed": true
+      },
+      {
+        "code_line": "r[12] == 10.0 && r[13] == 20.0 && r[14] == 30.0",
+        "line": 34,
+        "passed": true
+      },
+      {
+        "code_line": "rstr.contains(\"def-123\")",
+        "line": 35,
+        "passed": true
+      },
+      {
+        "code_line": "rrepr.contains(\"InstanceRef\") && rrepr.contains(\"my_instance_ref\")",
+        "line": 36,
+        "passed": true
+      },
+      {
+        "code_line": "rcopy.guid() != r.guid()",
+        "line": 37,
+        "passed": true
+      },
+      {
+        "code_line": "r == rother",
+        "line": 38,
+        "passed": true
+      },
+      {
+        "code_line": "r != rwn",
+        "line": 39,
+        "passed": true
+      },
+      {
+        "code_line": "rwn.name == \"custom\" && rwn.definition_guid == \"def-9\"",
+        "line": 40,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::InstanceRef;\n        use crate::Xform;\n\n        // Constructor from a definition guid and a placement transform\n        let x = Xform::translation(10.0, 20.0, 30.0);\n        let r = InstanceRef::new(\"def-123\", x.clone());\n\n        // Setter on a copy (keep r pristine for the == check below)\n        let mut rset = r.duplicate();\n        rset[0] = 2.0;\n        let m0 = rset[0];\n\n        // Minimal and Full String Representation\n        let rstr = r.str();\n        let rrepr = r.repr();\n\n        // Copy (duplicate everything but guid)\n        let rcopy = r.duplicate();\n        let rother = InstanceRef::new(\"def-123\", x.clone());\n\n        // with_name constructor\n        let rwn = InstanceRef::with_name(\"custom\", \"def-9\", Xform::identity());\n",
+    "failures": [],
+    "group": "InstanceRef",
+    "line": 7,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.046
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded_s.name == \"test_ref\"",
+        "line": 110,
+        "passed": true
+      },
+      {
+        "code_line": "loaded_s.definition_guid == \"def-xyz\"",
+        "line": 111,
+        "passed": true
+      },
+      {
+        "code_line": "loaded_s.flags == 5",
+        "line": 112,
+        "passed": true
+      },
+      {
+        "code_line": "loaded_s.guid() == r.guid()",
+        "line": 113,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded_s[14], 3.0)",
+        "line": 114,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.name == \"test_ref\"",
+        "line": 121,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.definition_guid == \"def-xyz\"",
+        "line": 122,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.guid() == r.guid()",
+        "line": 123,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded[12], 1.0)",
+        "line": 124,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded[13], 2.0)",
+        "line": 125,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded[14], 3.0)",
+        "line": 126,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::InstanceRef;\n        use crate::Xform;\n\n        let mut r = InstanceRef::new(\"def-xyz\", Xform::translation(1.0, 2.0, 3.0));\n        r.name = \"test_ref\".to_string();\n        r.flags = 5;\n\n        // Bytes\n        let b = r.pb_dumps();\n        let loaded_s = InstanceRef::pb_loads(&b).unwrap();\n\n\n        // File\n        let fname = \"serialization/test_instance_ref.bin\";\n        r.pb_dump(fname);\n        let loaded = InstanceRef::pb_load(fname);\n",
+    "failures": [],
+    "group": "InstanceRef",
+    "line": 98,
+    "passed": true,
+    "test_name": "Protobuf Roundtrip",
+    "time_ms": 14.232
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(moved[12], 6.0)",
+        "line": 54,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(r[12], 6.0)",
+        "line": 55,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::InstanceRef;\n        use crate::Xform;\n\n        let mut r = InstanceRef::new(\"def\", Xform::translation(1.0, 0.0, 0.0));\n        let moved = r.transformed(&Xform::translation(5.0, 0.0, 0.0)); // Make a copy\n        r.transform(&Xform::translation(5.0, 0.0, 0.0)); // compose in place\n\n        // translation(5) * translation(1) => translation(6)",
+    "failures": [],
+    "group": "InstanceRef",
+    "line": 45,
+    "passed": true,
+    "test_name": "Transformation",
+    "time_ms": 0.011
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded_j.name == \"test_ref\"",
+        "line": 72,
+        "passed": true
+      },
+      {
+        "code_line": "loaded_j.definition_guid == \"def-abc\"",
+        "line": 73,
+        "passed": true
+      },
+      {
+        "code_line": "loaded_j.flags == 7",
+        "line": 74,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded_j[12], 1.0)",
+        "line": 75,
+        "passed": true
+      },
+      {
+        "code_line": "loaded_s.name == \"test_ref\"",
+        "line": 80,
+        "passed": true
+      },
+      {
+        "code_line": "loaded_s.definition_guid == \"def-abc\"",
+        "line": 81,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.name == \"test_ref\"",
+        "line": 88,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.definition_guid == \"def-abc\"",
+        "line": 89,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.flags == 7",
+        "line": 90,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded[12], 1.0)",
+        "line": 91,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded[13], 2.0)",
+        "line": 92,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded[14], 3.0)",
+        "line": 93,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::InstanceRef;\n        use crate::Xform;\n\n        let mut r = InstanceRef::new(\"def-abc\", Xform::translation(1.0, 2.0, 3.0));\n        r.name = \"test_ref\".to_string();\n        r.flags = 7;\n\n        // JSON object (string)\n        let js = r.jsondump().unwrap();\n        let loaded_j = InstanceRef::jsonload(&js).unwrap();\n\n\n        // String\n        let s = r.file_json_dumps();\n        let loaded_s = InstanceRef::file_json_loads(&s);\n\n        // File\n        let fname = \"serialization/test_instance_ref.json\";\n        r.file_json_dump(fname).unwrap();\n        let loaded = InstanceRef::file_json_load(fname).unwrap();\n",
+    "failures": [],
+    "group": "InstanceRef",
+    "line": 60,
+    "passed": true,
+    "test_name": "Json Roundtrip",
+    "time_ms": 16.195
+  }
+]

@@ -1,22 +1,36 @@
 # 10 Orbit camera
 
-Make the camera interactive: **right-drag to orbit**, **scroll wheel to zoom**. The triangle
-stops auto-spinning; instead you fly the camera around it.
+The camera goes interactive: **right-drag orbits**, **scroll wheel zooms**. The triangle
+stops auto-spinning — you fly the camera around it instead.
 
 ## How an orbit camera works
 
-The camera sits on a sphere around a **target** (here the origin), described by three numbers:
+The camera sits on a sphere around a **target** (the origin), given by three numbers:
 
 - **yaw** — angle around the up-axis (left/right),
 - **pitch** — elevation (up/down),
 - **distance** — radius from the target (zoom).
 
-Each frame, turn (yaw, pitch, distance) into an **eye** position and feed it to
-`look_at_right_handed(eye, target, up)`. Right-drag changes yaw/pitch; scroll changes distance.
+Each frame these become an **eye** position fed to `look_at_right_handed(eye, target, up)`.
+Right-drag drives yaw/pitch; scroll drives distance.
 
 ```
 eye = target + distance · (cos(pitch)·sin(yaw),  sin(pitch),  cos(pitch)·cos(yaw))
 ```
+
+<svg viewBox="0 0 360 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="yaw, pitch and distance place the eye on a sphere around the target" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <ellipse cx="180" cy="100" rx="140" ry="50" fill="none" stroke="#333"/>
+  <circle cx="180" cy="100" r="3" fill="#6fb3ff"/>
+  <text x="180" y="120" fill="#666" text-anchor="middle">target</text>
+  <line x1="180" y1="100" x2="295" y2="50" stroke="#6fb3ff" stroke-width="1.5"/>
+  <circle cx="295" cy="50" r="3" fill="#6fb3ff"/>
+  <text x="305" y="46" fill="#d7dae0">eye</text>
+  <text x="230" y="68" fill="#666" font-size="10">distance</text>
+  <path d="M 240 100 A 60 40 0 0 0 210 62" fill="none" stroke="#888"/>
+  <text x="248" y="80" fill="#888">pitch</text>
+  <path d="M 260 100 A 80 22 0 0 0 190 88" fill="none" stroke="#888"/>
+  <text x="255" y="118" fill="#888">yaw</text>
+</svg>
 
 ## Files we touch
 
@@ -56,9 +70,9 @@ src/lib.rs          # right-drag + scroll → orbit()/zoom()
     }
 ```
 
-**(d)** In `clear`, replace the fixed `eye` + spinning `model` block (the `let eye … let mvp =
-projection * view * model;` lines) with an eye computed from the angles, and **drop the spin**
-(model becomes identity):
+**(d)** In `clear`, replace the fixed `eye` + spinning `model` block (`let eye … let mvp =
+projection * view * model;`) with an eye computed from the angles — **drop the spin** (model
+becomes identity):
 
 ```rust
         let target = Point::new(0.0, 0.0, 0.0);
@@ -75,7 +89,7 @@ projection * view * model;` lines) with an eye computed from the angles, and **d
         self.queue.write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&mvp.to_f32()));
 ```
 
-(`time` still increments above for the colour pulse — it just no longer rotates the model.)
+(`time` still increments for the colour pulse; it no longer rotates the model.)
 
 
 ## Step 2 — mouse input: `lib.rs`
@@ -97,7 +111,7 @@ pub struct App {
 }
 ```
 
-and set them where `App { … }` is built in `App::run`:
+Set them where `App { … }` is built, in `App::run`:
 
 ```rust
         let app = App { proxy: Some(event_loop.create_proxy()), state: None,
@@ -134,9 +148,9 @@ and set them where `App { … }` is built in `App::run`:
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-**Right-drag** to orbit around the triangle, **scroll** to zoom. **Space** still toggles
-perspective/orthographic. (The triangle is flat, so edge-on it thins to a line — expected for a
-single 2D triangle; real meshes arrive in Phase 2.)
+**Right-drag** orbits the triangle, **scroll** zooms. **Space** still toggles
+perspective/orthographic. (Flat triangle thins to a line edge-on — expected; real meshes
+arrive in Phase 2.)
 
 
 ## Recap
@@ -147,10 +161,10 @@ Ch 10: eye from (yaw, pitch, distance); right-drag orbits, scroll zooms; model =
 ```
 
 Edited: `gpu.rs` (camera angles + `orbit`/`zoom` + view), `lib.rs` (mouse handlers). The `mvp`
-uniform, the shader, and the command pipeline are unchanged.
+uniform, shader, and command pipeline are unchanged.
 
 
 ## Next
 
-`11-pan.md` — **Ctrl + right-drag** to **pan** the target along the camera's right/up axes
-(the eye follows). Named views and camera-relative precision come in later camera lessons.
+`11-pan.md` — **Ctrl + right-drag pans** the target along the camera's right/up axes (eye
+follows). Named views and camera-relative precision arrive in later camera lessons.

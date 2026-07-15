@@ -1,30 +1,26 @@
 # 16 Projection polish
 
-The camera *works*, but it has three rough edges we want gone before real geometry arrives.
-**One:** flipping perspective↔ortho (Space) jumps the apparent size — the ortho frustum is a fixed
-`h = 1.0`, unrelated to where you're standing. **Two:** in ortho, the scroll wheel does nothing —
-zoom changes `distance`, but the ortho size ignores it. **Three:** `near`/`far` are fixed at
-`0.1`/`100`, so depth precision rots as you zoom, and the world has no real unit. All three live in
-one method — `view_proj` — and all three are a few lines of arithmetic on numbers we already have.
+The camera *works* but has three rough edges before real geometry arrives. **One:**
+perspective↔ortho (Space) jumps in size — the ortho frustum is a fixed `h = 1.0`, unrelated to
+`distance`. **Two:** in ortho the scroll wheel does nothing — zoom changes `distance`, ortho ignores
+it. **Three:** `near`/`far` are fixed at `0.1`/`100`, so depth precision rots as you zoom, with no
+real unit. All three live in `view_proj`, fixed with arithmetic on numbers we already have.
 
 ## Why
 
-- **Seamless switch.** A 60° perspective shows, at the target plane (`distance` away), a half-height
-  of `distance · tan 30°`. Make the ortho half-height *exactly that* and the two projections agree
-  at the target — toggling no longer pops. Because it's derived from `distance`, ortho also gains
-  zoom for free. (The archive keeps a separate `ortho_scale` field to decouple dolly from zoom; with
-  our single-`distance` camera, deriving it is equivalent and needs no new state.)
-- **Adaptive depth.** The depth buffer spreads a fixed number of bits across `[near, far]`; in
-  perspective they bunch up near the camera, and the `far/near` *ratio* sets the quality. Pin both
-  ends to `distance` (`near = distance·0.001`, `far = distance·100`) and the ratio is **constant
-  (~100 000) at every zoom** — precision never degrades. (Cost: geometry past 100× your focus
-  distance clips. The archive lifts that with reverse-Z, a later lesson.) Ortho depth is *linear*,
-  so a wide symmetric range is free.
-- **Real units, set in code.** The viewer renders in **metres**, but geometry can be authored in
-  **millimetres** (session geometry) *or* metres. Rather than bake one magic `0.001`, we make the
-  unit an **enum** the camera carries — each variant knows its scale to metres — and bake that scale
-  into `view_proj`. The unit is a property of the model, so it's **fixed in code** (the `new()`
-  default, or `set_unit` when your API loads geometry) — not a runtime key.
+- **Seamless switch.** A 60° perspective shows a half-height of `distance · tan 30°` at the target
+  plane. Making ortho's half-height match means the two agree at the target — no pop on toggle — and
+  since it tracks `distance`, ortho gains zoom for free. (The archive uses a separate `ortho_scale`
+  to decouple dolly from zoom; deriving it from our single `distance` needs no new state.)
+- **Adaptive depth.** The depth buffer's bits spread across `[near, far]`; in perspective they bunch
+  near the camera, and the `far/near` *ratio* sets quality. Pinning both to `distance`
+  (`near = distance·0.001`, `far = distance·100`) keeps that ratio **constant (~100 000) at every
+  zoom** — precision never degrades. (Cost: geometry past 100× focus distance clips; the archive
+  lifts that with reverse-Z, later.) Ortho depth is *linear*, so a wide range is free.
+- **Real units, set in code.** The viewer renders in **metres**; geometry may be authored in
+  **millimetres** or metres. Instead of one magic `0.001`, the unit is an **enum** the camera
+  carries — each variant knows its scale to metres, baked into `view_proj`. It's a model property,
+  so it's **fixed in code** (`new()`'s default, or `set_unit` from the API) — not a runtime key.
 
 ```
 perspective:  near = distance × 0.001    far = distance × 100     →  far/near ≈ 100 000, always
@@ -42,9 +38,9 @@ src/lib.rs      # SCENE_* in millimetres
 
 ## Step 1 — the unit: `src/camera.rs`
 
-Add a `Unit` enum above `impl Camera`. Each variant carries its own scale-to-metres, so adding cm
-or inches later is one line — no scattered constants. Give `Camera` a `unit` field (default
-`Millimeters`), and a `set_unit` setter your API calls when it loads a model of a known unit:
+Add a `Unit` enum above `impl Camera` — each variant carries its own scale-to-metres, so cm or
+inches later is one line, no scattered constants. Give `Camera` a `unit` field (default
+`Millimeters`) and a `set_unit` setter the API calls when a model's unit is known:
 
 ```rust
 /// The unit the loaded geometry is authored in. The viewer renders in metres, so each variant
@@ -92,7 +88,7 @@ Self { yaw: 0.6, pitch: 0.5, distance: 3.0, target: [0.0, 0.0, 0.0], perspective
 
 ## Step 2 — the polish: `src/camera.rs`
 
-Rewrite `view_proj`. The `eye`/`target`/`view` middle is exactly lesson 13's — only the projection
+Rewrite `view_proj` — the `eye`/`target`/`view` middle is exactly lesson 13's; only the projection
 ends and the final unit scale are new:
 
 ```rust
@@ -131,7 +127,7 @@ ends and the final unit scale are new:
 ## Step 3 — fit follows the unit: `src/camera.rs`
 
 `fit` receives a box in the geometry's **authoring unit**, but `target`/`distance` are the camera's
-**metres** — so convert with the *same* `to_meters` scale. Now F frames correctly in either unit:
+**metres** — convert with the *same* `to_meters` scale, so F frames correctly in either unit:
 
 ```rust
     pub fn fit(&mut self, min: [f32; 3], max: [f32; 3], aspect: f64){
@@ -156,10 +152,9 @@ ends and the final unit scale are new:
 
 ## Step 4 — the demo geometry, in millimetres: `src/engine/gpu.rs`
 
-The two triangles were in arbitrary units; make them real by multiplying every coordinate by
-**1000** — now they're a ~1.4 m scene in mm, the camera's default unit. After the `0.001` scale they
-land at exactly the same place on screen, so nothing *looks* different — the numbers are just
-meaningful now:
+The triangles were in arbitrary units — multiply each coordinate by **1000** to make them real: a
+~1.4 m scene in mm, the camera's default unit. After the `0.001` scale they land at the same screen
+position, so nothing *looks* different, the numbers are just meaningful now:
 
 ```rust
         const TRIANGLES: &[Vertex] = &[
@@ -188,12 +183,11 @@ const SCENE_MAX: [f32; 3] = [ 700.0,  500.0,  300.0];
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-The picture is identical to lesson 15 — but the rough edges are gone. Press **Space**: perspective
-and ortho no longer jump in size. **Scroll in ortho**: it finally zooms. Orbit far out and back: the
-orange triangle stays cleanly in front of the blue one at every distance — adaptive near/far holding
-depth precision steady. The world is now honest millimetres viewed by a metre camera; to render a
-model authored in metres, set `Unit::Meters` in `new()` (or call `set_unit` from your API) — no other
-change needed.
+Same picture as lesson 15, rough edges gone. **Space** no longer jumps size between perspective and
+ortho. **Scroll in ortho** finally zooms. Orbit far out and back: orange stays cleanly in front of
+blue at every distance — adaptive near/far holding precision steady. The world is honest millimetres
+viewed by a metre camera; for metres-authored geometry, set `Unit::Meters` in `new()` (or call
+`set_unit`) — nothing else changes.
 
 ## Recap
 
@@ -209,6 +203,6 @@ Edited: `camera.rs` (`Unit` enum + `unit` field + `set_unit`, `view_proj`, `fit`
 
 ## Next
 
-`17-quaternion-camera.md` — replace spherical yaw/pitch with a **quaternion** turntable (+ a
+`17-quaternion-camera.md` — replace spherical yaw/pitch with a **quaternion** turntable (+
 `last_right` vector) so Top/Bottom are pole-stable and named views become single rotations — the
-last piece of the archive-grade camera before real geometry in Phase 2.
+last piece of the archive-grade camera before Phase 2.

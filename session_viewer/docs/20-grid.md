@@ -1,21 +1,19 @@
 # 20 Grid — a second pipeline
 
-The box floats in a void. A ground grid fixes that in one move and teaches the lesson the rest of the
-viewer leans on: **a render pass can run more than one pipeline.** So far every frame has used the
-single `triangle` pipeline. The grid is a *second* pipeline — its own shader, its own primitive type
-(**lines**, not triangles), its own depth rule — drawn in the *same* pass, right before the box. It
-gives the scene a floor and a sense of scale (each cell is 1 m), and it's the pattern we'll reuse for
-every overlay later: edges, gizmos, selection highlights.
+The box floats in a void. A ground grid fixes that, teaching a core lesson: **a render pass can run
+more than one pipeline.** The grid is a *second* pipeline beside `triangle` — own shader, primitive
+type (**lines**), depth rule — drawn in the *same* pass before the box, giving scale (1 m cells). The
+pattern reused for every later overlay: edges, gizmos, selection highlights.
 
-The grid is **static** — a fixed reference floor that never changes — so it needs no vertex buffer at
-all. The shader *generates* every line endpoint from `@builtin(vertex_index)`; the CPU just says
-"draw 46 vertices." No buffer to upload, no `RenderVertex`, no kernel geometry.
+The grid is **static** — never changes — so needs no vertex buffer: the shader *generates* every line
+endpoint from `@builtin(vertex_index)`, CPU just says "draw 46 vertices." No buffer, no `RenderVertex`,
+no kernel geometry.
 
 ## Why
 
 A pipeline bakes in *one* shader + *one* primitive topology + *one* depth/blend rule. The box needs
-filled triangles that write depth; a grid needs thin lines that must **never** hide the box. Those
-are different recipes, so they're different pipelines — but they share the camera and the frame:
+filled triangles that write depth; the grid needs thin lines that must **never** hide it — different
+pipelines, sharing the camera and frame:
 
 ```
 render pass (one frame, one depth buffer)
@@ -25,9 +23,8 @@ both bind group(0) = camera mvp; the grid skips group(1) = time
 ```
 
 Drawing the grid **first with depth-writes off** is the trick: it lays down floor pixels but leaves
-the depth buffer cleared, so the box (drawn second, depth-writes on) paints over the grid wherever it
-covers screen — the box looks solid and sits *in* the grid, while grid lines stay visible everywhere
-the box isn't. No z-fighting, no grid bleeding through the solid.
+the depth buffer untouched, so the box (drawn second, writes on) paints over it — solid, sitting *in*
+the grid, lines visible where the box isn't. No z-fighting, no bleed-through.
 
 ## Files we touch
 
@@ -40,20 +37,45 @@ src/engine/gpu.rs                  # draw the grid first in clear() — no buffe
 
 ## Step 1 — the grid shader: `src/shaders/grid.wgsl`
 
-No vertex input. The grid's size, spacing, and colors are compile-time `const`s, and the vertex shader
-turns each `@builtin(vertex_index)` into a world-space line endpoint by arithmetic. We author in
-**mm** — the camera's `mvp` already applies the mm→m scale (lesson 16) — so a ±5000 mm grid stepping
-every 1000 mm is a ±5 m floor with 1 m cells.
+No vertex input: size, spacing, colors are compile-time `const`s; the vertex shader turns each
+`@builtin(vertex_index)` into a world-space line endpoint by arithmetic. Authored in **mm** —
+camera's `mvp` applies mm→m (lesson 16) — so a ±5000 mm grid stepping every 1000 mm is a ±5 m floor,
+1 m cells.
 
-The floor lines are **all grey**. The colored axes are a coordinate *frame*: three separate segments
-that run from the origin **outward in the positive direction only** — +X red, +Y green, +Z blue. They
-sit exactly on top of the grey centre lines, so each axis reads colored on its positive half and grey
-on the negative half (the grid line still showing through). Because the grid pipeline never writes
-depth, the axes — drawn last (highest `vid`) — simply paint over the grey underneath.
+Floor lines are **all grey**. Colored axes form a coordinate *frame*: three segments running
+**outward from the origin, positive direction only** — +X red, +Y green, +Z blue — sitting exactly on
+the grey centre lines, so each axis reads colored on its positive half, grey on the negative. Since
+the grid never writes depth, the axes (drawn last, highest `vid`) paint over the grey underneath.
 
-The index layout: 11 lines per direction × 2 endpoints = 22 vertices per direction, X-parallel lines
-first then Y-parallel = **44** floor vertices, then **6** more for the three axes (2 each) = **50
-vertices** total. From `vid` we recover which direction, which line, and which endpoint:
+Index layout: 11 lines/direction × 2 endpoints = 22 vertices/direction, X-parallel then Y-parallel =
+**44** floor vertices, plus **6** for the three axes = **50** total. From `vid` we recover direction,
+line, endpoint:
+
+<svg viewBox="0 0 620 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="vertex_index layout: 44 floor vertices then 6 axis vertices, 50 total" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="278" y="14" fill="#888" text-anchor="middle">vid 0 .. 49 — one draw(0..50), no vertex buffer</text>
+  <g stroke="#0d0f12" stroke-width="1">
+    <rect x="16"  y="26" width="231" height="28" fill="#2b4a63"/>
+    <rect x="247" y="26" width="231" height="28" fill="#2b4a63"/>
+    <rect x="478" y="26" width="21"  height="28" fill="#6b3a3a"/>
+    <rect x="499" y="26" width="21"  height="28" fill="#3a6b3a"/>
+    <rect x="520" y="26" width="21"  height="28" fill="#3a4a6b"/>
+  </g>
+  <g fill="#d7dae0" text-anchor="middle">
+    <text x="131" y="44">X-parallel · 22</text>
+    <text x="362" y="44">Y-parallel · 22</text>
+  </g>
+  <g fill="#666" text-anchor="middle" font-size="10">
+    <text x="16"  y="70">0</text>
+    <text x="247" y="70">22</text>
+    <text x="478" y="70">44</text>
+    <text x="541" y="70">50</text>
+  </g>
+  <g fill="#888" text-anchor="middle" font-size="10">
+    <text x="488" y="88">+X</text>
+    <text x="509" y="88">+Y</text>
+    <text x="530" y="88">+Z</text>
+  </g>
+</svg>
 
 ```wgsl
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
@@ -116,9 +138,9 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 
 ## Step 2 — the grid pipeline: `src/engine/pipelines/build.rs`
 
-Copy `build_triangle_pipeline` and change four things: the shader, **`buffers: &[]`** (no vertex
-buffer — the shader generates positions), **`topology: LineList`**, and
-**`depth_write_enabled: Some(false)`**. It binds only group 0 (the camera) — no `time_layout`:
+Copy `build_triangle_pipeline` and change four things: the shader, **`buffers: &[]`** (shader
+generates positions), **`topology: LineList`**, and **`depth_write_enabled: Some(false)`**. Binds only
+group 0 (the camera) — no `time_layout`:
 
 ```rust
 pub fn build_grid_pipeline(
@@ -182,7 +204,7 @@ pub fn build_grid_pipeline(
 ## Step 3 — register it: `src/engine/pipelines/mod.rs`
 
 Add a `grid` field and build it. `Pipelines::new` already receives `aspect_layout`, so its signature
-doesn't change:
+is unchanged:
 
 ```rust
 use build::{build_grid_pipeline, build_triangle_pipeline};
@@ -209,9 +231,9 @@ impl Pipelines {
 
 ## Step 4 — draw it first: `src/engine/gpu.rs`
 
-No new struct fields, no buffer, no `new()` changes — the geometry lives entirely in the shader. In
-`clear()`, inside the render pass and **before** the mesh draw, run the grid pipeline: bind only group
-0 (the camera), then draw the 44 vertices with **no vertex buffer**:
+No new struct fields, no buffer, no `new()` changes — geometry lives in the shader. In `clear()`,
+inside the render pass, **before** the mesh draw: run the grid pipeline, bind group 0 (camera), draw
+with **no vertex buffer**:
 
 ```rust
             // grid first — depth-writes are off, so the solid mesh drawn next paints over it.
@@ -229,12 +251,11 @@ No new struct fields, no buffer, no `new()` changes — the geometry lives entir
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-The blue box now sits on a grey grid with a coordinate frame at the origin: +X red, +Y green, +Z blue,
-each colored only on its positive half (the negative half stays grey). Orbit (right-drag) and the grid anchors the
-motion — you can finally tell you're circling a ground plane, not a floating cube. Press `1`–`7`:
-**Top** looks straight down the grid, **Front** sees it edge-on. (The box is centred on the origin, so
-it straddles the plane; it reads as solid because the grid never writes depth and the box paints over
-it. Sitting the box *on* the grid is a later tweak.)
+The blue box sits on a grey grid with a coordinate frame at the origin: +X red, +Y green, +Z blue,
+colored only on its positive half. Orbit (right-drag) — the grid anchors the motion, finally showing
+you're circling a ground plane. `1`–`7`: **Top** looks straight down, **Front** edge-on. (Box is
+centred on the origin, straddling the plane; reads solid since the grid never writes depth. Sitting
+it *on* the grid is a later tweak.)
 
 ## Recap
 
@@ -246,16 +267,15 @@ Ch 20: a SECOND pipeline (grid.wgsl) shares the pass — LineList topology, dept
        frame) from @builtin(vertex_index). This is the overlay pattern for edges/gizmos.
 ```
 
-Because the grid is static, generating it in the shader is strictly simpler than a CPU buffer: nothing
-to allocate, upload, or keep in sync. (These are still hardware 1 px lines; a crisp anti-aliased
-*infinite* grid — a fullscreen triangle with `fract`/`fwidth` in the fragment shader — is a later,
-separate step.)
+Because the grid is static, generating it in the shader beats a CPU buffer: nothing to allocate,
+upload, or sync. (Still hardware 1 px lines; a crisp anti-aliased *infinite* grid — fullscreen
+triangle with `fract`/`fwidth` — is a later, separate step.)
 
 Edited: `shaders/grid.wgsl` (new, vertexless), `pipelines/build.rs` (`build_grid_pipeline`,
 `buffers: &[]`), `pipelines/mod.rs` (`grid` field), `engine/gpu.rs` (draw grid first in `clear()`).
 
 ## Next
 
-`21-mesh-shading.md` — light the box. We finally use the `normal` already sitting in every
-`RenderVertex`: a lambert/hemisphere term in the mesh fragment shader turns the flat blue solid into a
-shaded form, so faces read by orientation instead of a single flat colour.
+`21-mesh-shading.md` — light the box using the `normal` already sitting in every `RenderVertex`: a
+lambert/hemisphere term in the mesh fragment shader turns the flat blue solid into a shaded form,
+faces reading by orientation.

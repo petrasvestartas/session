@@ -1,28 +1,23 @@
 # 05 Resize
 
-Stop the triangle from stretching. Make it fill the window crisply at any size.
+Stop the triangle from stretching — fill the window crisply at any size.
 
-In Chapter 4 the triangle looked squashed — wide and flat instead of evenly
-shaped. Nothing is wrong with the shader; the problem is the **canvas size**. This
-chapter fixes it with one small helper, and along the way explains the three
-different "sizes" a web canvas has. No new files — we only edit `lib.rs`.
+Chapter 4's triangle looked squashed — wide and flat. The shader's fine; the
+**canvas size** is wrong. One `lib.rs` helper fixes it and explains the canvas's
+three "sizes" along the way.
 
 
 ## Why it stretches (read this first)
 
-A browser canvas has **two independent sizes**, and a third number that links them:
+A browser canvas has **two independent sizes**, plus a linking number:
 
-- **CSS size** — how big the canvas *looks* on the page. Ours is `100vw × 100vh`
-  (full window), set in `index.html`.
-- **Drawing-buffer size** — how many *pixels* the GPU actually renders into
-  (`canvas.width × canvas.height`). This defaults to **300 × 150** and does **not**
-  change just because the CSS size does.
-- **devicePixelRatio (DPR)** — how many physical screen pixels equal one CSS pixel.
-  `1.0` on a normal monitor, `2.0` on a Retina/4K laptop, `1.25`/`1.5` at OS zoom.
+- **CSS size** — page look (`100vw × 100vh`, set in `index.html`).
+- **Drawing-buffer size** — GPU pixels (`canvas.width/height`), defaults **300 × 150**,
+  ignores CSS size.
+- **DPR** — physical px per CSS px: `1.0` normal, `2.0` Retina/4K, `1.25`–`1.5` OS zoom.
 
-The stretch is a **mismatch of aspect ratios**: the GPU draws into a 300 × 150
-buffer (2:1, wide) and the browser then stretches that image to fill a 16:9 window.
-Anything drawn — including our triangle — gets distorted by the same factor.
+Stretch = **aspect-ratio mismatch**: the 300 × 150 (2:1) buffer stretches to fill a
+16:9 window — the triangle distorts along with everything else.
 
 ```
 drawing buffer  300 × 150  (2:1)          what the GPU renders
@@ -31,9 +26,8 @@ drawing buffer  300 × 150  (2:1)          what the GPU renders
 CSS size       1920 × 1080 (16:9)         what you see  →  squashed
 ```
 
-The fix: make the drawing buffer the **same size and shape** as the display area.
-And to also be sharp on high-DPI screens, multiply by DPR so one buffer pixel maps
-to one *physical* pixel.
+Fix: match the buffer to the display area's size and shape, scaled by DPR for one
+buffer pixel per physical pixel.
 
 ```
 want:  buffer = clientWidth × DPR  ,  clientHeight × DPR
@@ -42,7 +36,7 @@ want:  buffer = clientWidth × DPR  ,  clientHeight × DPR
 
 ## The plumbing we already have
 
-Resizing the GPU surface already exists from Chapter 3 — `gpu.rs` has:
+Chapter 3 already resizes the GPU surface — `gpu.rs` has:
 
 ```rust
 pub fn resize(&mut self, width: u32, height: u32) {
@@ -54,16 +48,14 @@ pub fn resize(&mut self, width: u32, height: u32) {
 }
 ```
 
-On the web, `surface.configure` sets the canvas drawing-buffer to `width × height`
-for us. So all we're missing is: **compute the right width/height and call `resize`
-with them.** That's this whole chapter.
+`surface.configure` sizes the canvas buffer to `width × height` on the web — missing
+piece: **compute the right size and call `resize`.**
 
 
 ## Step 1 — a helper that reads the desired size
 
-Add this free function to `src/lib.rs` (anywhere at the top level — e.g. just above
-`run_web`). It asks the browser three questions — DPR, canvas client width, canvas
-client height — and returns the pixel size the buffer *should* be.
+Add this free function anywhere at top level in `src/lib.rs` (e.g. above `run_web`)
+— reads DPR + client width/height, returns the buffer's target size.
 
 ```rust
 /// The real pixel size the canvas's drawing buffer should have: its CSS display size
@@ -85,17 +77,15 @@ fn desired_canvas_size() -> Option<(u32, u32)> {
 }
 ```
 
-- `client_width`/`client_height` are the **CSS** size in CSS pixels.
-- `device_pixel_ratio()` is the DPR.
-- We return `None` (rather than `0`) before the canvas is laid out, so the caller can
-  simply skip the resize that frame.
+- `client_width`/`client_height` — **CSS** size, in CSS pixels.
+- `device_pixel_ratio()` — the DPR.
+- `None` (not `0`) before layout — caller skips that frame's resize.
 
 
 ## Step 2 — set the size when the viewer starts
 
-`user_event` runs once, right after `State` finishes initialising. Use the helper for
-the first sizing instead of winit's `inner_size` (which is unreliable for an adopted
-canvas). Replace the body of `user_event`:
+`user_event` runs once, after `State` initialises. Use this helper instead of
+winit's `inner_size` (unreliable for an adopted canvas). Replace the body:
 
 ```rust
 fn user_event(&mut self, _event_loop: &ActiveEventLoop, mut state: State) {
@@ -110,11 +100,9 @@ fn user_event(&mut self, _event_loop: &ActiveEventLoop, mut state: State) {
 
 ## Step 3 — keep it correct every frame
 
-The window can change size at any moment — the user drags the corner, zooms the page,
-or drags the tab to a screen with a different DPR. The simplest robust approach: check
-the desired size **each frame** before drawing, and only reconfigure when it actually
-changed (reconfiguring every frame would be wasteful). Edit the `RedrawRequested` arm
-in `window_event`:
+The window can resize any moment: corner drag, page zoom, a different-DPR screen.
+Simplest fix — check the size **each frame**, reconfigure only on a real change.
+Edit the `RedrawRequested` arm in `window_event`:
 
 ```rust
 WindowEvent::RedrawRequested => {
@@ -135,22 +123,18 @@ WindowEvent::RedrawRequested => {
 cd session_viewer && trunk serve   # http://localhost:8770  (open in Chrome/Edge)
 ```
 
-The triangle is now drawn into a **correctly-sized, sharp buffer**: no more double-stretch
-from the old 300×150 default, and on a high-DPI screen the edges are crisp, not soft. Try
-dragging the window between two monitors with different scaling — it should re-sharpen on
-the next frame.
+The triangle now draws into a **correctly-sized, sharp buffer** — no more
+double-stretch from the 300×150 default, crisp on high-DPI screens. Drag between
+monitors with different scaling to see it re-sharpen.
 
-> **It still changes shape when the window aspect changes — that's expected here.** Read the
-> next section before assuming the resize code is broken.
+> **It still changes shape when the window aspect changes — that's expected here.**
+> Read the next section before assuming the resize code is broken.
 
 
 ## "The triangle still stretches when I resize!" (expected at this chapter)
 
-If you make the window wide the triangle gets wide; tall and it gets tall. **This is not a
-bug in the resize code** — it's how clip space works, and a camera/projection (next chapter)
-is what fixes it.
-
-The shader emits the triangle in raw **clip space (NDC)**:
+Window wide → triangle wide, window tall → triangle tall — **not a resize bug**,
+just raw clip space. The shader emits the triangle in **clip space (NDC)**:
 
 ```wgsl
 vec4<f32>(0.0,  0.5, 0.0, 1.0),   // these [-1,1] coords map to the FULL buffer…
@@ -158,33 +142,28 @@ vec4<f32>(-0.5, -0.5, 0.0, 1.0),
 vec4<f32>(0.5, -0.5, 0.0, 1.0)
 ```
 
-NDC `[-1, 1]` **always** stretches to fill the buffer on *both* axes. So once the buffer
-matches the window (what this chapter did), the triangle simply follows the **window's**
-aspect ratio. Resizing the buffer can't change that — only an aspect/projection term can.
+NDC `[-1, 1]` **always** stretches to fill the buffer on both axes, so once the
+buffer matches the window the triangle just follows its aspect ratio. A
+camera/projection (next chapter) is the real fix.
 
-What this chapter fixes vs. what it doesn't:
+What this chapter fixes vs. doesn't:
 
-- ✅ Removes the *extra* distortion from the default 300×150 buffer being stretched to fill.
-- ✅ Keeps the image crisp on HiDPI screens (buffer = CSS size × DPR).
-- ❌ Does **not** make a clip-space triangle aspect-independent — that needs a projection.
+- ✅ Removes the 300×150 stretch and keeps HiDPI screens crisp (buffer = CSS size × DPR).
+- ❌ Does **not** make a clip-space triangle aspect-independent — needs a projection.
 
-**Confirm it's this and not a real resize failure:** make the window tall-and-narrow, then
-short-and-wide. If the triangle is **crisp** and just follows the window proportions →
-resize is working correctly, this is normal NDC behaviour. If it's **blurry/pixelated** →
-the buffer genuinely isn't resizing, so re-check `desired_canvas_size()` and the
-`RedrawRequested` arm in `lib.rs`.
+**To confirm:** resize tall-then-wide. **Crisp** + proportional → working, normal
+NDC. **Blurry** → the buffer isn't resizing; recheck `desired_canvas_size()` and
+`RedrawRequested`.
 
 ### Aspect uniform: keep the shape stable now (chapters 6–7 build on this)
 
-> **Do this section — it's not throwaway.** Chapters 6 and 7 reuse this `aspect` uniform (the
-> `@group(0)` binding, `aspect_buffer`/`aspect_layout`/`aspect_bind_group`) before chapter 8
-> replaces it with the MVP matrix. If you skip it here, chapter 6 won't compile.
+> **Do this section — it's not throwaway.** Chapters 6–7 reuse this `aspect` uniform
+> (`@group(0)`, `aspect_buffer`/`aspect_layout`/`aspect_bind_group`) before chapter
+> 8's MVP matrix replaces it. Skip it and chapter 6 won't compile.
 
-If you want the triangle to hold its shape *before* the camera chapter, feed the aspect
-ratio (`width / height`) to the shader and divide `x` by it. This is a uniform — a small
-constant the GPU reads every frame — so it needs four pieces of plumbing: declare it in the
-shader, create a buffer + bind group, tell the pipeline the bind group exists, and write the
-value whenever the size changes. Five small edits across four files.
+To hold shape before the camera, feed `width / height` to the shader and divide `x`
+by it: shader decl, buffer + bind group, pipeline layout, per-resize write — five
+edits, four files.
 
 **1 — `src/shaders/triangle.wgsl`: declare and use the uniform.**
 
@@ -204,8 +183,8 @@ output.pos = p;
 
 **2 — `src/engine/pipelines/build.rs`: give the pipeline a bind-group layout.**
 
-The pipeline currently declares "no external data" (`bind_group_layouts: &[]`). Make the
-function accept a layout and use it. Change the signature:
+The pipeline currently declares no external data (`bind_group_layouts: &[]`). Give
+the function a layout parameter. Change the signature:
 
 ```rust
 pub fn build_triangle_pipeline(
@@ -253,7 +232,7 @@ pub struct Gpu {
 }
 ```
 
-In `new()`, **before** `Pipelines::new(...)`, build the uniform (a single `f32`, 4 bytes):
+In `new()`, **before** `Pipelines::new(...)`, build the uniform (one `f32`, 4 bytes):
 
 ```rust
     use wgpu::util::DeviceExt;
@@ -324,9 +303,8 @@ bytemuck = "1"
 # which is on by default; nothing to add unless you disabled default-features.
 ```
 
-Then `cargo check` (wasm32) — clean build, and the triangle now holds its shape at any window
-aspect. This is exactly where the **camera** chapter begins (a uniform fed to the vertex
-shader), so it's fine to skip all of the above and let the camera handle aspect properly.
+`cargo check` (wasm32) — clean build; shape now holds at any aspect. This is exactly
+where the **camera** chapter begins, so skipping it is equally fine.
 
 
 ## What changed vs Chapter 4 (recap)
@@ -336,15 +314,14 @@ Chapter 4:  buffer stuck at 300×150  →  browser stretches it to fill  →  sq
 Chapter 5:  buffer = clientSize × DPR →  1 buffer px = 1 screen px      →  crisp & correct
 ```
 
-Edited: `lib.rs` only — one new helper `desired_canvas_size`, used in `user_event`
-(initial) and `window_event` (every frame).
-Untouched: `state.rs`, `gpu.rs`, the shader, the pipeline.
+Edited: `lib.rs` only — helper `desired_canvas_size`, used in `user_event` (initial)
+and `window_event` (every frame). Untouched: `state.rs`, `gpu.rs`, shader, pipeline.
 
 
 
 ## Next
 
-A clear, correctly-sized triangle is the last "hello world" milestone. From here the
-viewer starts becoming a CAD tool — beginning with a **camera** so we can look at the
-scene from any angle instead of fixed clip-space coordinates. See the curriculum in
-`viewer_sections/` for the full path.
+A clear, correctly-sized triangle is the last "hello world" milestone. Next, the
+viewer becomes a CAD tool — starting with a **camera**. Full path in
+`viewer_sections/`.
+</content>

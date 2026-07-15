@@ -1,11 +1,10 @@
 # 24 MSAA — smooth edges and lines everywhere
 
-Zoom in on the box's silhouette or a glancing grid line and you'll see the staircase: hard pixel
-steps along every slanted edge. That's **aliasing** — one sample per pixel, so a pixel is either
-fully the edge's color or fully the background, nothing in between. Every CAD app hides this, and
-the cheapest fix is **MSAA** (multisample anti-aliasing): render into a texture that keeps **4
-samples per pixel**, let the GPU decide how many of the 4 a triangle covers, then average them down
-to one final pixel. Slanted edges get soft gradient steps instead of hard ones — instantly cleaner.
+Zoom into the box's silhouette or a glancing grid line and you'll see the staircase: hard pixel steps
+on every slanted edge. That's **aliasing** — one sample per pixel, so a pixel is either fully edge
+color or fully background. The cheapest fix is **MSAA** (multisample anti-aliasing): render into a
+texture holding **4 samples per pixel**, let the GPU decide how many a triangle covers, then average
+down to one final pixel — soft gradient steps instead of hard ones.
 
 ## Why
 
@@ -16,9 +15,9 @@ to one final pixel. Slanted edges get soft gradient steps instead of hard ones �
 └───┴───┴───┘                    └───┴───┴───┘        soft step
 ```
 
-MSAA is nearly free because the extra samples only matter at triangle *edges* — the fragment shader
-still runs **once per pixel**, not once per sample. The cost is memory (a 4× color + 4× depth
-texture) and one **resolve** step that averages the 4 samples into the single-sample surface.
+MSAA is nearly free: extra samples matter only at triangle *edges*, so the fragment shader still runs
+**once per pixel**. The cost is memory (4× color + 4× depth texture) and one **resolve** step
+averaging the 4 samples into the single-sample surface.
 
 Three things have to agree or wgpu rejects the frame:
 
@@ -28,7 +27,24 @@ every pipeline           →  4 samples   (triangle, grid, edges — ALL of them
 the surface itself       →  1 sample    (unchanged — the resolve target we average INTO)
 ```
 
-The surface stays single-sample: you never *present* 4 samples, you present the resolved average.
+The surface stays single-sample: you never *present* 4 samples, only the resolved average.
+
+<svg viewBox="0 0 600 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="4x color and depth textures resolve into the single-sample surface" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="90" y="16" fill="#888" text-anchor="middle">4× color</text>
+  <rect x="30" y="26" width="120" height="70" fill="none" stroke="#6fb3ff" stroke-width="1.5"/>
+  <text x="90" y="64" fill="#d7dae0" text-anchor="middle">msaa_view</text>
+  <text x="90" y="80" fill="#666" text-anchor="middle">4 samples/px</text>
+  <text x="230" y="16" fill="#888" text-anchor="middle">4× depth</text>
+  <rect x="170" y="26" width="120" height="70" fill="none" stroke="#3a3a3a" stroke-width="1.5"/>
+  <text x="230" y="64" fill="#d7dae0" text-anchor="middle">depth_view</text>
+  <text x="230" y="80" fill="#666" text-anchor="middle">4 samples/px</text>
+  <text x="345" y="62" fill="#6fb3ff" font-size="16">▶</text>
+  <text x="345" y="78" fill="#666" font-size="10">resolve</text>
+  <text x="480" y="16" fill="#888" text-anchor="middle">surface</text>
+  <rect x="400" y="26" width="160" height="70" fill="none" stroke="#6fb3ff" stroke-width="1.5"/>
+  <text x="480" y="64" fill="#d7dae0" text-anchor="middle">resolve_target</text>
+  <text x="480" y="80" fill="#666" text-anchor="middle">1 sample/px — presented</text>
+</svg>
 
 ## Files we touch
 
@@ -39,8 +55,8 @@ src/engine/gpu.rs               # 4× color + 4× depth textures; resolve in the
 
 ## Step 1 — one sample-count knob: `src/engine/pipelines/build.rs`
 
-Put the sample count in a single `const` so the whole app has one MSAA knob (set it to `1` to turn
-MSAA off, `4` for the normal quality — 4 is universally supported). Add it at the top of the file:
+Put the sample count in one `const` — a single MSAA knob (`1` = off, `4` = normal, universally
+supported). Add it at the top of the file:
 
 ```rust
 /// Samples per pixel for MSAA. 1 = off, 4 = standard (universally supported). Must match the
@@ -48,8 +64,8 @@ MSAA off, `4` for the normal quality — 4 is universally supported). Add it at 
 pub const MSAA_SAMPLES: u32 = 4;
 ```
 
-Then in **each** of the three pipeline builders, replace the default multisample state with one that
-uses the const. Change `multisample: wgpu::MultisampleState::default(),` (which is 1 sample) to:
+Then in **each** of the three pipeline builders, replace the default multisample state with the
+const. Change `multisample: wgpu::MultisampleState::default(),` (1 sample) to:
 
 ```rust
             multisample: wgpu::MultisampleState {
@@ -59,15 +75,15 @@ uses the const. Change `multisample: wgpu::MultisampleState::default(),` (which 
             },
 ```
 
-Do this in `build_triangle_pipeline`, `build_grid_pipeline`, **and** `build_edges_pipeline`. Miss
-one and wgpu throws a validation error the moment that pipeline draws into the 4× pass (the gotcha
-the roadmap warns about — the pipeline's sample count must equal the attachment's).
+Do this in `build_triangle_pipeline`, `build_grid_pipeline`, **and** `build_edges_pipeline` — miss
+one and wgpu throws a validation error the moment it draws into the 4× pass, since a pipeline's
+sample count must equal its attachment's.
 
 ## Step 2 — two multisampled targets: `src/engine/gpu.rs`
 
-The depth texture must now hold 4 samples too (depth and color sample counts have to match), and we
-need a **new** 4× color texture to render into. Import the const and bump `create_depth_view` from
-`sample_count: 1` to the const, then add a twin helper for the color texture:
+The depth texture must now hold 4 samples too (depth and color counts must match), plus a **new** 4×
+color texture to render into. Import the const, bump `create_depth_view` from `sample_count: 1` to
+it, then add a twin helper for color:
 
 ```rust
 use crate::engine::pipelines::build::MSAA_SAMPLES;
@@ -120,10 +136,10 @@ Add the field to the struct and build it in `new()` next to `depth_view`:
 
 ## Step 3 — resolve in the render pass: `src/engine/gpu.rs`
 
-This is the one line that makes MSAA actually happen. In `clear()`, the color attachment now renders
-into the **4× texture** and names the **surface** as its `resolve_target` — wgpu averages the 4
-samples into the surface automatically when the pass ends. The depth attachment just points at the
-now-4× depth view (no change to that line — only its texture got deeper):
+The line that makes MSAA actually happen. In `clear()`, the color attachment now renders into the
+**4× texture** and names the **surface** as its `resolve_target` — wgpu averages the 4 samples
+automatically when the pass ends. The depth attachment needs no change — only its texture got
+deeper:
 
 ```rust
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -137,21 +153,21 @@ now-4× depth view (no change to that line — only its texture got deeper):
                 })],
 ```
 
-Everything else in the pass — the depth attachment, the grid/mesh/edge draws — is untouched. They
-were already drawing into `self.depth_view`; it's simply 4-sample now.
+Everything else in the pass — depth attachment, grid/mesh/edge draws — is untouched; they were
+already drawing into `self.depth_view`, now simply 4-sample.
 
 ## Step 4 — rebuild both on resize: `src/engine/gpu.rs`
 
-The MSAA textures are sized to the window, so they must be recreated when it changes, exactly like
-the depth texture already is. In `resize()`, next to the depth line:
+MSAA textures are sized to the window, so they must be recreated on resize, like the depth texture
+already is. In `resize()`, next to the depth line:
 
 ```rust
             self.depth_view = Self::create_depth_view(&self.device, &self.config);
             self.msaa_view = Self::create_msaa_view(&self.device, &self.config);   // ← new
 ```
 
-Forget this and the app renders fine until the first resize, then panics with a size mismatch
-between the old MSAA texture and the new surface.
+Forget this and the app runs fine until the first resize, then panics on a size mismatch between the
+old MSAA texture and the new surface.
 
 ## Step 5 — run
 
@@ -159,9 +175,9 @@ between the old MSAA texture and the new surface.
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-Orbit and zoom into any silhouette: the box edges, the dodecahedron pentagons, the grid lines, and
-the colored frame axes are all smooth now — no staircase. Flip `MSAA_SAMPLES` back to `1`, rebuild,
-and compare: the jaggies return, proving the whole effect rides on that one const.
+Orbit and zoom into any silhouette: box edges, dodecahedron pentagons, grid lines, colored frame axes
+are all smooth now — no staircase. Flip `MSAA_SAMPLES` back to `1` and compare: jaggies return,
+proving the effect rides on that one const.
 
 ## Recap
 

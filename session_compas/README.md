@@ -51,3 +51,24 @@ session.objects.points.append(Point(1, 2, 3))
 session.file_json_dump("scene.json")
 session.pb_dump("scene.pb")
 ```
+
+## Documentation
+
+`compas_viewer` has its own dedicated website — it is **not** bundled with the core COMPAS geometry docs.
+
+| Package | Docs |
+|---------|------|
+| Viewer (`compas_viewer`) | https://compas.dev/compas_viewer/ |
+| Core geometry (`compas`) | https://compas.dev/compas/ |
+
+There is nothing to open locally — just visit the site (e.g. `python -m webbrowser https://compas.dev/compas_viewer/`).
+
+To build the viewer docs offline instead, clone the repo and run Sphinx:
+
+```bash
+git clone https://github.com/compas-dev/compas_viewer
+cd compas_viewer
+pip install -e ".[dev]"
+sphinx-build -b html docs docs/_build/html
+python -m webbrowser docs/_build/html/index.html
+```

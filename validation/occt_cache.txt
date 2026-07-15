@@ -2,6 +2,15 @@
 box  x box |common	4.0000000000000009	6
 box  x box |cut	60.000000000000021	11
 box  x box |fuse	68.000000000000014	11
+box  x boxR|common	26.06068977079422	7
+box  x boxR|cut	37.93931022920578	9
+box  x boxR|fuse	101.9393102292058	13
+box  x cone3|common	6.7706311766265168	3
+box  x cone3|cut	57.229368828236453	7
+box  x cone3|fuse	73.984529646589678	8
+box  x coneT|common	10.566235363156441	4
+box  x coneT|cut	53.433764637819529	8
+box  x coneT|fuse	67.005444901169668	10
 box  x cone|common	16.755160819145569	2
 box  x cone|cut	47.244839180854441	10
 box  x cone|fuse	64	10
@@ -14,6 +23,15 @@ box  x sph |fuse	74.995574283757406	13
 box  x tor |common	15.48108012629832	5
 box  x tor |cut	48.518919873975172	7
 box  x tor |fuse	73.785107140490069	16
+box  x torR|common	19.434447562060619	7
+box  x torR|cut	44.565552438204598	7
+box  x torR|fuse	69.831739704673183	16
+boxR x cyl |common	11.363704466409009	5
+boxR x cyl |cut	52.636295533589212	9
+boxR x cyl |fuse	95.047796357050103	10
+boxR x sph |common	25.35276976605844	7
+boxR x sph |cut	38.647230233893502	11
+boxR x sph |fuse	104.0970771836818	10
 cone x cone|common	4.1887902047863914	2
 cone x cone|cut	12.566370614359171	3
 cone x cone|fuse	29.321531433504731	4
@@ -23,18 +41,27 @@ cone x cyl |fuse	45.0294947014537	6
 cone x tor |common	0	0
 cone x tor |cut	16.755160819145559	2
 cone x tor |fuse	42.021348085934328	3
+cone x tor3|common	3.0410255479676391	2
+cone x tor3|cut	13.714135271177909	4
+cone x tor3|fuse	38.980322537966657	5
 contain    |common	8.0000000000000018	6
 contain    |cut	56	12
 contain    |fuse	64.000000000000014	6
 cyl  x cyl |common	17.999999976757191	6
 cyl  x cyl |cut	24.411500846704531	7
 cyl  x cyl |fuse	66.823001670166349	8
+cyl  x cylR|common	21.44744392462799	7
+cyl  x cylR|cut	20.96405689823229	8
+cyl  x cylR|fuse	63.375557720734562	8
 cyl  x tor |common	2.2593152393152049	2
 cyl  x tor |cut	40.152185584146999	5
 cyl  x tor |fuse	65.418372850935754	6
 cyl flush  |common	28.274333882308131	3
 cyl flush  |cut	35.725666117691873	7
 cyl flush  |fuse	64	8
+cyl overlap|common	9.2924462403358579	5
+cyl overlap|cut	33.11905458311788	4
+cyl overlap|fuse	75.530555406572347	9
 cyl tanline|common	0	0
 cyl tanline|cut	42.411500823462198	3
 cyl tanline|fuse	84.823001646920261	7
@@ -59,6 +86,9 @@ eq tortor  |fuse	25.266187266788759	1
 face copl  |common	16	6
 face copl  |cut	48.000000000000007	8
 face copl  |fuse	112	14
+face copl3d|common	8.0000000000000018	6
+face copl3d|cut	56	9
+face copl3d|fuse	120	12
 face full  |common	0	0
 face full  |cut	64.000000000000014	6
 face full  |fuse	128	10

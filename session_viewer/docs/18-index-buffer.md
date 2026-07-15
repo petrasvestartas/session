@@ -1,19 +1,15 @@
 # 18 Index buffer
 
-The two triangles have carried us through the whole camera — but they hide a waste. Every triangle
-listed its **three** corners in full, so the six-vertex buffer repeated positions a real shape would
-share. A cube makes it obvious: 8 corners, but 12 triangles × 3 = **36 vertices** if listed flat —
-each corner duplicated four or five times. An **index buffer** fixes this: store the 8 unique corners
-**once**, then a list of 36 small integers that say "use corner 3, then 0, then 7…". The GPU reads
-the index list, looks each vertex up, and even **caches** the transformed result so a shared corner
-is processed once, not five times. This is exactly how every real mesh is drawn — and exactly the
-shape the kernel's `GpuMesh` hands us next lesson.
+Every triangle lists its **three** corners in full — a cube's 36 vertices (12 triangles × 3) if flat,
+each duplicated 4-5×. An **index buffer** fixes this: store 8 corners **once**, then 36 integers
+saying "corner 3, 0, 7…"; GPU fetches and **caches** each vertex once — how every real mesh is drawn,
+and the shape `GpuMesh` hands us next.
 
 ## Why
 
-A draw call has two modes. `draw(0..n)` walks the vertex buffer straight through — fine for a
-throwaway triangle, wasteful for anything with shared corners. `draw_indexed(0..m)` walks an
-**index buffer** instead, and each index points into the vertex buffer:
+A draw call has two modes: `draw(0..n)` walks the vertex buffer straight through, wasteful once
+corners are shared; `draw_indexed(0..m)` walks an **index buffer** instead, each index pointing into
+the vertex buffer:
 
 ```
 vertices: [ v0  v1  v2  v3  v4  v5  v6  v7 ]      8 unique corners, stored once
@@ -21,11 +17,9 @@ indices:  [ 0 1 2  0 2 3  4 5 6 … ]               36 entries → 12 triangles,
 draw_indexed(0..36) → GPU reads indices, fetches+caches each vertex, assembles triangles
 ```
 
-The vertex buffer holds *what* the corners are; the index buffer holds *how* they connect. Memory
-drops (8 × 24 B + 36 × 2 B = 264 B vs 36 × 24 B = 864 B here, and the gap widens with size), and the
-post-transform vertex cache means each corner's vertex shader runs ~once. The pipeline and shader
-don't change at all — indexing happens *before* the vertex shader, so the same `Vertex::layout()`
-just works.
+Vertex buffer holds *what* corners are; index buffer holds *how* they connect. Memory drops (264 B vs
+864 B here, gap widening with size); post-transform cache runs each vertex shader ~once. Pipeline and
+shader don't change — indexing happens *before* the vertex shader.
 
 ## Files we touch
 
@@ -33,13 +27,13 @@ just works.
 src/engine/gpu.rs   # cube vertices + index list; an index buffer; draw_indexed in clear()
 ```
 
-(The pipeline and `triangle.wgsl` are untouched — indexing is invisible to the shader.)
+(Pipeline and `triangle.wgsl` untouched — indexing is invisible to the shader.)
 
 ## Step 1 — the cube data: `src/engine/gpu.rs`
 
-Replace the `TRIANGLES` const (the 6 triangle vertices) with **8 cube corners** plus a **36-entry
-index list**. The cube is 1 m wide expressed in mm (`H = 500`), so it sits nicely at the camera's
-start distance; each corner gets a distinct colour so the faces read as gradients:
+Replace `TRIANGLES` (6 vertices) with **8 cube corners** + a **36-entry index list**. Cube is 1 m wide
+in mm (`H = 500`), sized for the camera's start distance; each corner gets a distinct colour so faces
+read as gradients:
 
 ```rust
         const H: f32 = 500.0;                       // half-size, mm → a 1 m cube (lesson 16 units)
@@ -65,14 +59,13 @@ start distance; each corner gets a distinct colour so the faces read as gradient
         ];
 ```
 
-(Winding doesn't matter yet — the pipeline's `cull_mode` is `None`, so every face draws and the depth
-test sorts them. Consistent outward winding starts to matter when we add back-face culling and
-normals, lesson 21.)
+(Winding doesn't matter yet: `cull_mode` is `None`, every face draws, depth test sorts them. Matters
+once back-face culling + normals arrive, lesson 21.)
 
 ## Step 2 — an index buffer: `src/engine/gpu.rs`
 
-The `Gpu` struct currently has `vertex_buffer` + `num_vertices`. Swap `num_vertices` for an
-`index_buffer` and `num_indices`:
+`Gpu` currently has `vertex_buffer` + `num_vertices`. Swap `num_vertices` for `index_buffer` and
+`num_indices`:
 
 ```rust
     pub vertex_buffer: wgpu::Buffer,
@@ -80,8 +73,8 @@ The `Gpu` struct currently has `vertex_buffer` + `num_vertices`. Swap `num_verti
     pub num_indices: u32,
 ```
 
-In `new()`, build the vertex buffer from `CUBE` (as before, just the new data) and add the index
-buffer with `INDEX` usage:
+In `new()`, build the vertex buffer from `CUBE` as before, and add the index buffer with `INDEX`
+usage:
 
 ```rust
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -102,8 +95,7 @@ Return `index_buffer` and `num_indices` in the struct instead of `num_vertices`.
 
 ## Step 3 — draw it indexed: `src/engine/gpu.rs`
 
-In `clear()`, after binding the vertex buffer, **bind the index buffer** and switch `draw` →
-`draw_indexed`:
+In `clear()`, after the vertex buffer, **bind the index buffer** and switch `draw` → `draw_indexed`:
 
 ```rust
             pass.set_pipeline(&self.pipelines.triangle);
@@ -114,9 +106,9 @@ In `clear()`, after binding the vertex buffer, **bind the index buffer** and swi
             pass.draw_indexed(0..self.num_indices, 0, 0..1);
 ```
 
-`set_index_buffer` takes the format (`Uint16` — our indices fit in `u16`). `draw_indexed(indices,
-base_vertex, instances)`: the `0` base-vertex is added to every index (handy when packing many meshes
-into one buffer — lesson 31); `0..1` is the single instance, same as before.
+`set_index_buffer` takes the format (`Uint16` — indices fit in `u16`); `draw_indexed(indices,
+base_vertex, instances)` adds `0` base-vertex to every index (packing many meshes — lesson 31), `0..1`
+is the single instance.
 
 ## Step 4 — run
 
@@ -124,10 +116,9 @@ into one buffer — lesson 31); `0..1` is the single instance, same as before.
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-A solid colour-cube replaces the two triangles. Orbit it (right-drag) — the quaternion camera sails
-around it, the depth test keeps near faces in front, and `1`–`7` snap to the named views (now you can
-*see* "Top" vs "Front" on a real solid). It's drawn from **8 vertices and 36 indices**, not 36
-vertices — the memory layout every real mesh uses.
+A solid colour-cube replaces the two triangles. Orbit it (right-drag), `1`–`7` snap to named views —
+now you *see* "Top" vs "Front" on a real solid. Drawn from **8 vertices and 36 indices**, the memory
+layout every real mesh uses.
 
 ## Recap
 
@@ -143,7 +134,6 @@ replace `num_vertices`; `draw_indexed` in `clear()`).
 
 ## Next
 
-`19-link-the-kernel.md` — add `session_rust` as a dependency and draw your first **real `Mesh`** with
-one call: `mesh.gpu_mesh(&device)` returns a cached `GpuMesh { vbo, ibo, index_count }` built once via
-`to_render()`. The hand-rolled cube becomes a kernel mesh, and the vertex/index pair you just learned
-is exactly what it hands back.
+`19-link-the-kernel.md` — draw your first **real `Mesh`**: `mesh.gpu_mesh(&device)` returns a cached
+`GpuMesh { vbo, ibo, index_count }` via `to_render()`. The hand-rolled cube becomes a kernel mesh —
+same vertex/index pair you just learned.

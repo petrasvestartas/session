@@ -2,27 +2,29 @@
 
 Draw a single triangle on the grey background.
 
-In Chapter 3 the GPU only *cleared* the screen. Now we make it *draw*. We add the smallest possible thing a GPU can draw: one triangle whose 3 corners are written **inside the shader** — no data buffers yet. Buffers come in a later chapter; this chapter proves the drawing machinery works.
+Chapter 3 only *cleared* the screen; now the GPU *draws*. The smallest thing a GPU
+can draw: one triangle whose 3 corners are written **inside the shader** — no
+vertex buffers yet (those come later). This chapter proves the drawing machinery
+works.
 
 
 ## Mental model (read this first)
 
-Three new words. Keep them straight and the rest is easy.
+Three terms, and the rest is easy:
 
-- **Shader** — a tiny program that runs *on the GPU*. We write it in a language
-  called **WGSL** (`.wgsl` file). It has two parts:
-  - the **vertex shader** decides *where* each corner of the triangle goes,
-  - the **fragment shader** decides *what colour* each pixel is.
-- **Pipeline** — the *recipe* that tells the GPU: "use this shader, draw triangles,
-  write into this pixel format". You build it once, then reuse it every frame.
-- **Draw call** — the actual command `draw(0..3, 0..1)` = "run the vertex shader 3
-  times (3 corners = 1 triangle), 1 copy of it".
+- **Shader** — a tiny GPU program, written in **WGSL** (`.wgsl`). Two parts: the
+  **vertex shader** decides *where* each corner goes; the **fragment shader**
+  decides *what colour* each pixel is.
+- **Pipeline** — the *recipe*: "use this shader, draw triangles, write into this
+  pixel format". Built once, reused every frame.
+- **Draw call** — `draw(0..3, 0..1)` = run the vertex shader 3 times (3 corners =
+  1 triangle), 1 copy.
 
 
 ## The file tree (what we add)
 
-We copy the archive's layout exactly: shaders live in `src/shaders/`, pipeline
-builders live in `src/engine/pipelines/`.
+Same layout as the archive: shaders in `src/shaders/`, pipeline builders in
+`src/engine/pipelines/`.
 
 ```bash
 session_viewer/
@@ -37,13 +39,13 @@ session_viewer/
     │       └── build.rs        # NEW — the function that builds the recipe
 ```
 
-`lib.rs` and `state.rs` do **not** change. All the new work is inside `gpu.rs` and
-the two new files it leans on.
+`lib.rs` and `state.rs` don't change — all new work is in `gpu.rs` and the two
+files it leans on.
 
 
 ## Step 1 — the shader: `src/shaders/triangle.wgsl`
 
-This is the GPU program. Create the file with exactly this:
+The GPU program. Create the file with exactly this:
 
 ```wgsl
 // One hard-coded triangle. No vertex buffer — the 3 corners live here in the
@@ -79,20 +81,19 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 }
 ```
 
-What to notice:
-- Screen coordinates here go from `-1` to `+1`. `(0, 0)` is the centre, `+y` is up.
-  So `(0.0, 0.5)` is top-middle. This space is called **clip space** (camera/3D
-  comes in a later chapter — for now we place corners directly).
-- The vertex shader **returns** a `VsOut`; the GPU automatically blends those values
-  across the triangle and hands the blended result to the fragment shader. That's
-  why a red+green+blue triangle has a smooth rainbow inside.
+Notice:
+- Screen coordinates run `-1` to `+1`, `(0, 0)` centre, `+y` up — so `(0.0, 0.5)` is
+  top-middle. This is **clip space** (camera/3D comes later; for now corners are
+  placed directly).
+- The vertex shader **returns** a `VsOut`; the GPU blends those values across the
+  triangle and hands the result to the fragment shader — hence the smooth rainbow
+  inside a red+green+blue triangle.
 
 
 ## Step 2 — the pipeline builder: `src/engine/pipelines/build.rs`
 
-This is the recipe constructor. It is a trimmed-down copy of the archive's
-`build_background_pipeline` (the archive's simplest pipeline — also no buffers, no
-bind groups). Create the file:
+The recipe constructor — a trimmed copy of the archive's `build_background_pipeline`
+(its simplest pipeline: no buffers, no bind groups). Create the file:
 
 ```rust
 
@@ -152,15 +153,15 @@ pub fn build_triangle_pipeline(
 }
 ```
 
-You don't need to memorise every field — most are `None`/`default` and stay that way
-for chapters. The three that matter: the **shader module** (step 1), the
-**entry points** (`vs_main`/`fs_main`), and the **format** (must match the surface).
+Most fields stay `None`/`default` for chapters to come. Three matter: the **shader
+module** (step 1), the **entry points** (`vs_main`/`fs_main`), and the **format**
+(must match the surface).
 
 
 ## Step 3 — the `Pipelines` struct: `src/engine/pipelines/mod.rs`
 
-The archive keeps all its pipelines in one struct called `Pipelines`, built in a
-`new()`. We do the same — but with a single field today. Create the file:
+The archive keeps all pipelines in one `Pipelines` struct, built in `new()` — same
+shape here, just one field today. Create the file:
 
 ```rust
 //! Render pipelines. Today just one: the hard-coded triangle. As the viewer grows,
@@ -183,14 +184,13 @@ impl Pipelines {
 }
 ```
 
-This is the same shape as the archive's `Pipelines::new` — just with one line
-instead of twenty. Every future pipeline is "add a field here, add a builder in
-`build.rs`".
+Same shape as the archive's `Pipelines::new`, one line instead of twenty. Every
+future pipeline: add a field here, add a builder in `build.rs`.
 
 
 ## Step 4 — register the module: `src/engine/mod.rs`
 
-The engine folder needs to know `pipelines` exists. Add one line:
+Add one line so `engine` knows `pipelines` exists:
 
 ```rust
 pub mod gpu;
@@ -200,8 +200,7 @@ pub mod pipelines;   // <- ADD THIS
 
 ## Step 5 — hold the pipeline in `Gpu`: `src/engine/gpu.rs`
 
-The recipe is built once and reused every frame, so `Gpu` stores it. Three small
-edits.
+Built once, reused every frame — `Gpu` stores it. Three edits.
 
 **(a) Import it** (top of the file, near the other `use`s):
 
@@ -234,14 +233,14 @@ then add it to the returned struct:
 }
 ```
 
-Note we pass `config.format` — that's the same pixel format we told the pipeline to
-target in Step 2. They must agree, or wgpu rejects the draw.
+`config.format` must be the same pixel format passed to the pipeline in Step 2, or
+wgpu rejects the draw.
 
 
 ## Step 6 — draw it: the render pass in `gpu.rs`
 
-This is the payoff. In Chapter 3 the render pass was empty — it just cleared. Now we
-give it two commands: "use the triangle recipe" and "draw 3 vertices".
+The payoff. Chapter 3's render pass only cleared; now it gets two commands: "use
+the triangle recipe" and "draw 3 vertices".
 
 Find the `clear` method's render-pass block and change it from this:
 
@@ -265,8 +264,8 @@ to this:
 }
 ```
 
-Two changes only: `let _pass` becomes `let mut pass` (we need to call methods on it),
-and the two new lines before the block closes.
+Two changes: `let _pass` becomes `let mut pass` (we need to call methods on it),
+plus the two new lines before the block closes.
 
 
 ## Step 7 — run it
@@ -275,11 +274,11 @@ and the two new lines before the block closes.
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-You should see a triangle on the grey background: red at the top, green bottom-left,
-blue bottom-right, with the colours blending smoothly inside.
+A triangle on the grey background: red top, green bottom-left, blue bottom-right,
+blending smoothly inside.
 
-If the screen is still plain grey, check the browser console (F12):
-- a WGSL error → typo in `triangle.wgsl` (it's compiled at runtime, so errors show
+Still plain grey? Check the browser console (F12):
+- WGSL error → typo in `triangle.wgsl` (compiled at runtime, so errors show up
   there, not at `cargo build`).
 - "format mismatch" → Step 5(c) didn't pass `config.format`, or Step 2's target
   format differs.
@@ -300,6 +299,6 @@ Untouched: `lib.rs`, `state.rs`.
 
 ## Next
 
-Move the triangle's corners out of the shader and into a **vertex buffer** — the
-first time we upload real data to the GPU (this is what `bytemuck` in the deps is
-for). That's the gateway to drawing actual geometry from the kernel.
+Move the triangle's corners out of the shader into a **vertex buffer** — the first
+real data upload to the GPU (what `bytemuck` is for). The gateway to drawing actual
+geometry from the kernel.

@@ -2,24 +2,20 @@
 
 Move the triangle's corners out of the shader and into a **buffer on the GPU**.
 
-Until now the 3 corners were hard-coded inside `triangle.wgsl` and picked by
-`vertex_index`. That only works for shapes you can type by hand. Real geometry — a
-mesh from the kernel — has thousands of vertices that live in memory and must be
-*uploaded* to the GPU. This chapter is the first time we send our own data across:
-the smallest possible upload, one triangle. The machinery here is exactly what later
-chapters reuse for meshes, lines, and points.
+Until now the 3 corners were hard-coded in `triangle.wgsl`, picked by
+`vertex_index` — fine by hand, but a real kernel mesh has thousands of vertices that
+must be *uploaded*. This chapter sends the first real data across: one triangle, the
+smallest upload — the same machinery later chapters reuse for meshes, lines, points.
 
 
 ## Mental model (read this first)
 
-- **Vertex buffer** — a flat block of bytes on the GPU holding one struct per vertex.
-  The GPU walks it, handing one struct to the vertex shader per invocation.
-- **Vertex layout** (`VertexBufferLayout`) — the *map* that tells the GPU how to read
-  those bytes: "each vertex is 24 bytes; bytes 0–11 are `@location(0)` as 3 floats,
-  bytes 12–23 are `@location(1)` as 3 floats". Rust struct ⇄ shader inputs must agree.
-- **`bytemuck`** — lets us reinterpret a `&[Vertex]` as the raw `&[u8]` the GPU wants,
-  with no copying. The struct must be `#[repr(C)]` + `Pod` (plain old data) for this
-  to be sound.
+- **Vertex buffer** — flat GPU bytes, one struct per vertex/invocation.
+- **Vertex layout** (`VertexBufferLayout`) — the *map* for those bytes: "24
+  bytes/vertex; 0–11 = `@location(0)`, 12–23 = `@location(1)`", 3 floats each. Rust
+  struct ⇄ shader inputs must agree.
+- **`bytemuck`** — reinterprets `&[Vertex]` as raw `&[u8]`, no copy; needs
+  `#[repr(C)]` + `Pod`.
 
 ## Files we touch
 
@@ -31,16 +27,14 @@ session_viewer/src/
     └── gpu.rs                             # EDIT — create the buffer, bind & draw it
 ```
 
-No new files. (In the archive this `Vertex` type lives in `engine/gpu/types.rs`
-alongside `MeshVertex`/`LineVertex`; we keep it next to the pipeline for now and move
-it later when there's more than one.)
+No new files. (In the archive, `Vertex` lives in `engine/gpu/types.rs` alongside
+`MeshVertex`/`LineVertex`; we keep it next to the pipeline until there's more than one.)
 
 
 ## Step 1 — describe a vertex: `engine/pipelines/build.rs`
 
-At the **top** of `build.rs`, add the vertex struct and its layout. This is a trimmed
-copy of the archive's `MeshVertex` (position + colour, minus the normal and packed
-colour we don't need yet):
+At the **top** of `build.rs`, add the vertex struct and layout — a trimmed copy of
+the archive's `MeshVertex` (position + colour, minus normal and packed colour):
 
 ```rust
 use bytemuck::{Pod, Zeroable};
@@ -71,13 +65,13 @@ impl Vertex {
 ```
 
 > `vertex_attr_array![0 => Float32x3, 1 => Float32x3]` computes the byte offsets for
-> you (location 1 starts at offset 12). If you reorder the struct fields, update this.
+> you (location 1 starts at offset 12) — reorder the struct fields, update this.
 
 
 ## Step 2 — give the layout to the pipeline (same file)
 
-In `build_triangle_pipeline`, the `VertexState` currently says `buffers: &[]` ("no
-vertex buffer — corners are in the shader"). Now there *is* one — pass its layout:
+In `build_triangle_pipeline`, `VertexState` currently says `buffers: &[]` (no vertex
+buffer, corners live in the shader). Now there's one — pass its layout:
 
 ```rust
         vertex: wgpu::VertexState {
@@ -88,13 +82,13 @@ vertex buffer — corners are in the shader"). Now there *is* one — pass its l
         },
 ```
 
-That single change tells the pipeline to expect one vertex buffer shaped like `Vertex`.
+That one change tells the pipeline to expect a vertex buffer shaped like `Vertex`.
 
 
 ## Step 3 — read inputs in the shader: `shaders/triangle.wgsl`
 
-Replace the whole file. The vertex shader no longer builds arrays and indexes them —
-it just **receives** a position and colour per vertex:
+Replace the whole file — the vertex shader no longer builds/indexes arrays, it just
+**receives** a position and colour per vertex:
 
 ```wgsl
 // Corners now come from a vertex buffer (one Vertex per invocation), not from
@@ -129,38 +123,36 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 }
 ```
 
-> **Don't name the variable `out`.** `out` is a reserved word in WGSL, so `var out: VsOut;`
-> fails to parse — the variable is never declared, and the compiler then reports every
-> `out.pos` / `return out` below as *"out is not declared"* (the error points at the uses,
-> not the real culprit). Use `o` (or `output`). Note that `in` as a *parameter* name is
-> fine — it isn't reserved — which is why `fn vs_main(in: VsIn)` works.
+> **Don't name the variable `out`.** It's a reserved WGSL word — `var out: VsOut;`
+> fails to parse, so the compiler reports every `out.pos`/`return out` after it as
+> *"out is not declared"*, not the real cause. Use `o` (or `output`). `in` as a
+> *parameter* name is fine — it isn't reserved.
 
-> Keep `@group(0) @binding(0)` — the pipeline layout (`build.rs`) and the bind group
-> (`gpu.rs`) for `aspect` already exist from chapter 05, so the shader must still declare
-> the uniform or wgpu will reject the bound-but-undeclared group.
+> Keep `@group(0) @binding(0)` — `build.rs`'s layout and `gpu.rs`'s bind group for
+> `aspect` already exist from chapter 05; the shader must still declare it or wgpu
+> rejects the bound-but-undeclared group.
 
-The locations are the contract: `@location(0)` here ⇄ `0 => Float32x3` in `ATTRIBS` ⇄
-`position` field. Get one out of sync and wgpu rejects the pipeline.
+The locations are the contract: `@location(0)` here ⇄ `0 => Float32x3` in `ATTRIBS`
+⇄ `position`. One out of sync and wgpu rejects the pipeline.
 
 
 ## Step 4 — create and store the buffer: `engine/gpu.rs`
 
-**(a)** First make the `build` module public so `gpu.rs` can import `Vertex` from it.
-In `engine/pipelines/mod.rs` change the first line:
+**(a)** Make the `build` module public so `gpu.rs` can import `Vertex`. In
+`engine/pipelines/mod.rs`, change the first line:
 
 ```rust
 pub mod build;   // was: mod build;
 ```
 
-Then at the top of `gpu.rs`, bring in the `Vertex` type. (`use wgpu::util::DeviceExt;`
-is already in scope from chapter 05's aspect buffer — reuse it, don't add a second one in
-the same scope.)
+At the top of `gpu.rs`, import `Vertex`. (`use wgpu::util::DeviceExt;` is already in
+scope from chapter 05's aspect buffer — reuse it, don't duplicate.)
 
 ```rust
 use crate::engine::pipelines::build::Vertex;
 ```
 
-**(b)** Add two fields to `struct Gpu` (the buffer and how many vertices it holds):
+**(b)** Add two fields to `struct Gpu` — the buffer and its vertex count:
 
 ```rust
 pub struct Gpu {
@@ -176,8 +168,8 @@ pub struct Gpu {
 }
 ```
 
-**(c)** In `Gpu::new`, after `let pipelines = …`, define the 3 corners and upload them,
-then add both fields to the returned struct:
+**(c)** In `Gpu::new`, after `let pipelines = …`, define the 3 corners, upload them,
+and add both fields to the returned struct:
 
 ```rust
         // `aspect_buffer` / `aspect_layout` / `aspect_bind_group` were set up just above
@@ -204,8 +196,8 @@ then add both fields to the returned struct:
 
 ## Step 5 — bind the buffer in the draw: `engine/gpu.rs`
 
-In `clear`, the render pass currently does `set_pipeline` then `draw(0..3, 0..1)`. Bind
-the vertex buffer to slot 0 between them, and use `num_vertices` instead of the literal:
+In `clear`, the render pass does `set_pipeline` then `draw(0..3, 0..1)`. Bind the
+vertex buffer to slot 0 between them, and use `num_vertices` instead of the literal:
 
 ```rust
             pass.set_pipeline(&self.pipelines.triangle);
@@ -214,9 +206,9 @@ the vertex buffer to slot 0 between them, and use `num_vertices` instead of the 
             pass.draw(0..self.num_vertices, 0..1);                     // was 0..3
 ```
 
-`slice(..)` means "the whole buffer". The vertex-buffer slot `0` matches the single
-`buffers: &[…]` entry from Step 2; the bind-group slot `0` is a *separate* namespace (the
-`aspect` uniform from chapter 05) — keep that line or the shape correction is lost.
+`slice(..)` means "the whole buffer". Vertex-buffer slot `0` matches the `buffers:
+&[…]` entry from Step 2; bind-group slot `0` is a *separate* namespace (`aspect`) —
+keep that line or shape correction is lost.
 
 
 ## Step 6 — run it
@@ -225,12 +217,12 @@ the vertex buffer to slot 0 between them, and use `num_vertices` instead of the 
 cd session_viewer && trunk serve   # http://localhost:8770  (Chrome/Edge)
 ```
 
-You should see the **exact same rainbow triangle** as Chapter 4 — that's the point.
-Nothing changed on screen; what changed is *where the data lives*. The corners are now
-real bytes on the GPU that we control from Rust, not constants baked in the shader.
+Same **rainbow triangle** as Chapter 4 — that's the point. Nothing changed on
+screen, only *where the data lives*: real GPU bytes controlled from Rust, not
+constants baked in the shader.
 
-Quick proof it's data-driven: tweak a `position` or `color` in `TRIANGLE`, save, and the
-triangle moves/recolours without touching the shader.
+Proof it's data-driven: tweak a `position`/`color` in `TRIANGLE`, save — the
+triangle moves/recolours with no shader change.
 
 
 ## What changed vs Chapter 4 (recap)
@@ -249,19 +241,17 @@ bind + draw). Untouched: `lib.rs`, `state.rs`.
 ## Compare to the archive
 
 `session_viewer_archive` does exactly this, scaled up:
-- The vertex types live in `engine/gpu/types.rs`: `MeshVertex` (position + **normal** +
-  colour + `instance_id`), `LineVertex`, `PointVertex` — each with the same
-  `ATTRIBS` / `layout()` pattern you just wrote.
-- Colour there is packed as `Unorm8x4` (4 bytes, `[u8;4]`) instead of 3 floats, to
-  halve vertex size — an optimisation worth doing once vertex counts get large.
-- Buffers aren't created once for a fixed triangle; they live in a growable `GpuArena`
-  that re-uploads as the scene changes. Same `create_buffer_init` / `cast_slice` core.
+- Vertex types live in `engine/gpu/types.rs`: `MeshVertex` (+ **normal** + colour +
+  `instance_id`), `LineVertex`, `PointVertex` — same `ATTRIBS`/`layout()` pattern.
+- Colour is packed `Unorm8x4` (4 bytes) vs 3 floats, halving vertex size at scale.
+- Buffers live in a growable `GpuArena`, re-uploaded as the scene changes, not a
+  fixed triangle. Same `create_buffer_init`/`cast_slice` core.
 
 
 ## Next
 
-The triangle is data now, but still flat in clip space and the colour is baked into the
-geometry. Next (`07-uniforms.md`) we send a value from Rust into the shader via a
-**uniform + bind group** — the same mechanism that will later carry the camera matrix.
-That leads into **MVP matrix** and the **orbit camera**, where this vertex data finally
-sits in a real 3D world. (Index/cube geometry comes a little later — see `_ROADMAP.md`.)
+The triangle is data now, but still flat in clip space, colour baked into the
+geometry. Next (`07-uniforms.md`): a value sent from Rust via a **uniform + bind
+group** — the mechanism that later carries the camera matrix, leading to **MVP** and
+the **orbit camera**. (Index/cube geometry comes later — see `_ROADMAP.md`.)
+</content>
