@@ -33,7 +33,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Expand Bits",
-    "time_ms": 0.008
+    "time_ms": 0.317
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 46,
     "passed": true,
     "test_name": "Morton Code Origin",
-    "time_ms": 0.003
+    "time_ms": 0.175
   },
   {
     "checks": [
@@ -117,7 +117,7 @@
     "line": 79,
     "passed": true,
     "test_name": "Node Creation",
-    "time_ms": 0.004
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -169,7 +169,7 @@
     "line": 102,
     "passed": true,
     "test_name": "Creation",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -185,7 +185,7 @@
     "line": 114,
     "passed": true,
     "test_name": "Build Empty",
-    "time_ms": 0.005
+    "time_ms": 0.174
   },
   {
     "checks": [
@@ -201,7 +201,7 @@
     "line": 124,
     "passed": true,
     "test_name": "Build Single",
-    "time_ms": 0.034
+    "time_ms": 0.041
   },
   {
     "checks": [
@@ -222,7 +222,7 @@
     "line": 142,
     "passed": true,
     "test_name": "Build Multiple",
-    "time_ms": 0.044
+    "time_ms": 0.054
   },
   {
     "checks": [
@@ -243,7 +243,7 @@
     "line": 164,
     "passed": true,
     "test_name": "Aabb Intersect",
-    "time_ms": 0.011
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -274,7 +274,7 @@
     "line": 183,
     "passed": true,
     "test_name": "Check All Collisions",
-    "time_ms": 0.036
+    "time_ms": 0.039
   },
   {
     "checks": [
@@ -516,7 +516,7 @@
     "line": 224,
     "passed": true,
     "test_name": "Fixed 100 Boxes",
-    "time_ms": 0.463
+    "time_ms": 0.568
   },
   {
     "checks": [
@@ -552,7 +552,7 @@
     "line": 386,
     "passed": true,
     "test_name": "Query Aabb",
-    "time_ms": 0.044
+    "time_ms": 0.045
   },
   {
     "checks": [
@@ -573,7 +573,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.039
+    "time_ms": 0.041
   },
   {
     "checks": [
@@ -604,6 +604,6 @@
     "line": 358,
     "passed": true,
     "test_name": "Nearest Neighbors",
-    "time_ms": 0.043
+    "time_ms": 0.042
   }
 ]

@@ -165,14 +165,14 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     Instance, go straight to the storage table); demo 10×10 field of dodecahedra;
     `draw_indexed(.., 0..100)`
   - verify: 100 objects, ONE draw call on the 28-counter; orbit stays smooth
-- ⬜ 30 Batching & the GPU arena — **#1 large-scene win**; scaling successor to gpu_mesh-per-Mesh
+- ✅ 30 Batching & the GPU arena — **#1 large-scene win**; scaling successor to gpu_mesh-per-Mesh
   - files: `engine/gpu/arena.rs` (`GpuArena`: growable vbo/ibo, bump alloc, free list),
     `engine/gpu.rs`
   - steps: all meshes flatten into ONE vertex+index buffer (record base_vertex/first_index per
     object) + one instance-table row each → draw contiguous ranges in a few `draw_indexed` calls;
     grow-on-demand (copy to bigger buffer); static geometry baked once
   - verify: draw count collapses to ~1–3 for N meshes; add/remove a mesh without full re-upload
-- ⬜ 31 Lines as cylinders — THE linework lesson: ALL thick lines in the app, ported from the
+- ✅ 31 Lines as cylinders — THE linework lesson: ALL thick lines in the app, ported from the
   archive's proven design (reference_linework_rendering)
   - files: `shaders/cylinder.wgsl`, `engine/gpu/templates.rs` (unit cylinder registered once),
     adapters (`pts_to_segments`), `engine/gpu.rs` (flat segment storage buffer)
@@ -203,7 +203,7 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     `update_object_segments` for single-object edits
   - verify: polylines + box edges as thick tubes, ONE cylinder draw call on the perf HUD;
     thickness changes without re-upload
-- ⬜ 32 Points: spheres where it matters, billboards at scale (archive's actual split)
+- ✅ 32 Points: spheres where it matters, billboards at scale (archive's actual split)
   - sphere glyphs (unit sphere 74 v/432 idx = 144 tris) for line/curve ENDPOINTS + edit handles
     only; mesh-vertex glyphs behind `FLAG_GLYPHS_HIDDEN`, hidden by default — 144 tris per vertex
     is the real iGPU cost
@@ -212,14 +212,14 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     ~70× cheaper
   - verify: 100k-point cloud stays interactive; endpoints show as spheres; glyph toggle works;
     one draw call each (spheres, billboards)
-- ⬜ 33 Camera-relative rendering — locked decision, now explicit (reference_f64_f32_boundary)
+- ✅ 33 Camera-relative rendering — locked decision, now explicit (reference_f64_f32_boundary)
   - why: f32 world positions jitter far from origin even with the f64 kernel
   - files: `engine/camera.rs`, instance-row upload in `engine/gpu.rs`
   - steps: origin = camera target (f64); view = look_at(eye−origin, target−origin, up) in kernel
     `Xform` math; every instance row's translation −= origin at upload (f64 subtract, THEN cast);
     vertices stay local + per-object matrix
   - verify: demo scene at x = 1e7 mm — orbit jitters without, rock-solid with
-- ⬜ 34 Load a Session — the kernel file format arrives
+- ✅ 34 Load a Session — the kernel file format arrives
   - files: `app/persistence.rs` (load half), demo hook
   - steps: fetch bytes (or `<input type=file>`) → `Session` from `.pb`/`.json` (serde/prost) →
     iterate objects → meshes/lines/points into the arena + instance table via the 31/32 adapters
@@ -228,20 +228,23 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     technical drawing (`30700 Querschnitt G-G.pdf`) converted by `session_data/pdf_to_session.py`
     (lines/polylines/béziers→curves). Record perf-HUD fps + segment count; whole drawing visible
     after `F`; interactive orbit/pan at that density
-- ⬜ 35 Scene struct — the app layer takes shape (ARCHITECTURE §2)
-  - files: `app/scene.rs` (`Scene { session, guid→row map, visibility, … }`), `state.rs` wiring
-  - steps: move the mesh list out of `Gpu` into `Scene`; `Gpu` back to device/surface/pipelines
-    purity; per-object color + visibility flags in the instance row; static-vs-dynamic split note
-  - verify: identical visuals; `engine/` no longer names any scene/demo symbol (litmus test)
+- ✅ 35 Scene struct — the app layer takes shape (ARCHITECTURE §2)
+  - files: `app/scene.rs` (`Scene { session, order, guid→row map, hidden }`), `engine/gpu/mod.rs`
+    (`ArenaUpload`, pub row structs), `state.rs` wiring
+  - steps: the WHOLE 34 walk (all Geometry variants + push_mesh + line/point adapters) moves out of
+    `Gpu` into `Scene::build → ArenaUpload`; `Gpu` back to device/surface/pipelines purity, keeps 33's
+    per-frame rebase; per-object color + `FLAG_HIDDEN` via `objects_base`; static-vs-dynamic split note
+  - verify: identical visuals (meshes+lines+points all survive); `grep Session|Mesh|BRep src/engine/`
+    is empty (litmus test)
 
 ## Phase 5 — Acceleration & culling  (BEFORE picking/scenes grow)
-- ⬜ 36 Scene AABB BVH — ONE broad-phase for culling, picking, and box-select
+- ✅ 36 Scene AABB BVH — ONE broad-phase for culling, picking, and box-select
   - files: `engine/bvh.rs` (or reuse the kernel's spatial AABB tree if its API fits — check
     `session_rust` spatial_bvh/aabbtree first, don't rewrite what exists)
   - steps: node = AABB + children/leaf(object id); build median-split over per-object WORLD AABBs;
     refit on transform, insert/remove on add/delete (incremental, not full rebuild)
   - verify: `#[cfg(test)]` query box → same id set as brute force over all objects
-- ⬜ 37 Frustum culling — draw only what's on screen
+- ✅ 37 Frustum culling — draw only what's on screen
   - files: `engine/cull.rs`, hook in the instance-table upload
   - steps: extract 6 planes from view_proj (f64, kernel math) → walk the BVH, AABB-vs-planes →
     survivors keep their instance rows (or set a culled flag the vs collapses, archive-style bit 7);
@@ -250,7 +253,7 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     "AABB intersects but center outside" case). CPU cull now; GPU compute cull is 76
 
 ## Phase 6 — Document & file sync (the `.pb` file is the source, like a real CAD app)
-- ⬜ 38 Document ↔ scene reconcile — never rebuild the whole scene
+- ▶ 38 Document ↔ scene reconcile — never rebuild the whole scene
   - files: `app/reconcile.rs`; extend `app/scene.rs`'s `guid → (hash, row/handle)` map
   - steps: on (re)load diff by `guid`: added → build+upload; removed → free arena range + row;
     changed (content-hash differs) → re-flatten that object only; unchanged → skip

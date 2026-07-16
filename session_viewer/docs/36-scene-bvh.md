@@ -1,0 +1,227 @@
+# 36 Scene BVH — one broad-phase, three consumers
+
+`Scene` (35) has a fixed, ordered object list. Two lessons ahead need the same question answered fast:
+**which objects fall inside this box?** — picking (42: box = a thin sliver around the ray) and
+box-select (45: box = the drag rectangle's sub-frustum). Both do a *per-object* test (ray↔triangle,
+point-in-frustum) that is far too expensive to run N times, so they can't afford to scan all 42,232
+objects in the stress file. So `Scene` gains one spatial index — an AABB **BVH** — and they query it
+for a short candidate list instead. (Frustum culling, 37, turns out to ship a linear scan — it must
+touch every object's flag anyway — so it *doesn't* need the tree; the same index could still accelerate
+it at extreme scale. Building it once, here, means all of them share it.)
+
+The kernel already ships the tree: `session_rust::SpatialBVH` (median-split, `build_with_guids` /
+`query_aabb` / `ray_cast`). The roadmap's rule is *don't rewrite what exists* — so this lesson wires
+that up, it doesn't reimplement a BVH. The real work is one subtlety the kernel can't do for us.
+
+## Why the viewer builds its own boxes
+
+`Session` can build a BVH itself (`get_collisions` does, for its collision graph). But its
+per-object box routine, `compute_bounding_box`, treats a **Mesh** as its raw stored vertices:
+
+```rust
+// session_rust/src/session.rs — the kernel's own mesh box:
+Geometry::Mesh(m) => {
+    let points = m.vertex.values().map(|v| Point::new(v.x, v.y, v.z)).collect();
+    OBB::from_points(&points, inflate)     // LOCAL verts — mesh.xform is NOT applied
+}
+```
+
+That's correct for the kernel, where a mesh's vertices *are* its world coordinates. But lessons 33–35
+established the opposite convention for the viewer: `Mesh::to_render()` ignores `mesh.xform`, so the
+viewer treats **`mesh.xform` as the placement** (the instance model matrix). A box built from local
+vertices would sit at the origin, not where the mesh actually draws — every mesh in the tree would be
+in the wrong place. (`BRep` is fine — the kernel *does* transform `b.m_vertices` by `b.xform` there —
+but Mesh is the common case and it's wrong for us.) So the viewer computes each object's **world** box
+from the same placement the instance row uses, then feeds those boxes to the kernel's tree.
+
+<svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="per-object world OBBs are built by Scene and fed to the kernel SpatialBVH, whose query_aabb serves culling, picking and box-select" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="10" y="18" fill="#888">Scene::build_bvh — world boxes (placement applied)</text>
+  <g fill="none" stroke="#6fb3ff" stroke-width="1.3">
+    <rect x="14" y="28" width="150" height="26"/>
+    <rect x="14" y="60" width="150" height="26"/>
+    <rect x="14" y="92" width="150" height="26"/>
+  </g>
+  <g fill="#d7dae0"><text x="24" y="45">Mesh → local box · xform</text><text x="24" y="77">Line/Polyline → world box</text><text x="24" y="109">Point → world box</text></g>
+  <line x1="164" y1="73" x2="214" y2="73" stroke="#6fb3ff" stroke-width="1.5" marker-end="url(#ah36)"/>
+  <rect x="216" y="52" width="150" height="42" fill="none" stroke="#6fb3ff" stroke-width="1.5"/>
+  <text x="291" y="70" fill="#d7dae0" text-anchor="middle">SpatialBVH</text>
+  <text x="291" y="85" fill="#666" text-anchor="middle">(kernel — reused)</text>
+  <text x="291" y="112" fill="#555" text-anchor="middle" font-size="10">query_aabb(OBB) → object_ids</text>
+  <g stroke="#6fb3ff" stroke-width="1.3"><line x1="366" y1="73" x2="440" y2="45" marker-end="url(#ah36)"/><line x1="366" y1="73" x2="440" y2="73" marker-end="url(#ah36)"/><line x1="366" y1="73" x2="440" y2="101" marker-end="url(#ah36)"/></g>
+  <g fill="none" stroke="#3a3a3a"><rect x="442" y="32" width="220" height="26"/><rect x="442" y="60" width="220" height="26"/><rect x="442" y="88" width="220" height="26"/></g>
+  <g fill="#d7dae0"><text x="452" y="49">42 picking — box = ray sliver</text><text x="452" y="77">45 box-select — box = drag frustum</text><text x="452" y="105" fill="#888">(37 frustum cull — linear; tree optional)</text></g>
+  <text x="10" y="140" fill="#666">one tree, built once here; picking &amp; box-select query it instead of scanning N objects.</text>
+  <defs><marker id="ah36" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6fb3ff"/></marker></defs>
+</svg>
+
+## Files we touch
+
+```
+src/app/scene.rs   # Scene gains `bvh: SpatialBVH`; world_obb() per object; objects_in(query) → guids; #[cfg(test)] parity
+```
+
+Just `scene.rs` — the BVH is document state, so it lives beside `session`/`order`/`guid_to_row`, and
+nothing in `engine/` learns it exists (the 35 litmus test still holds).
+
+## Step 1 — a world box per object: `src/app/scene.rs`
+
+Extend the top-of-file import (35 already brought `Session`/`Geometry`/`Mesh`/`Point`/…):
+
+```rust
+use session_rust::{AABB, OBB, SpatialBVH};   // ← ADD to the existing session_rust use
+```
+
+Add a free function next to 35's converters — the kernel's own transform idiom (set the box's
+`xform`, then `transformed()` bakes it), so the mesh box lands where the instance row draws it:
+
+```rust
+/// The object's WORLD box. Mesh/BRep verts are LOCAL (to_render ignores xform, 33-35), so build the
+/// local box and BAKE the placement — exactly the transform the instance model applies. Line, Polyline
+/// and Point already hold world coordinates (identity model in objects_base), so their box is direct.
+fn world_obb(geom: &Geometry) -> OBB {
+    const PAD: f64 = 1e-6;   // planar meshes give a zero-thickness box; a hair of pad keeps intersects robust
+    match geom {
+        Geometry::Mesh(m) => {
+            let mut o = OBB::from_aabb(AABB::from_mesh(m, PAD));
+            o.xform = m.xform.duplicate();     // the placement 33's rebuild_instances also uses
+            o.transformed()                    // bake xform → world (may tilt the box; query collapses to its AABB)
+        }
+        Geometry::BRep(b) => {
+            let bm = b.mesh();
+            let mut o = OBB::from_aabb(AABB::from_mesh(&bm, PAD));
+            o.xform = bm.xform.duplicate();
+            o.transformed()
+        }
+        Geometry::Line(l) => OBB::from_line(l, PAD),
+        Geometry::Polyline(pl) => OBB::from_polyline(pl, PAD),
+        Geometry::Point(p) => OBB::from_point(p.clone(), PAD),
+        _ => OBB::from_point(Point::new(0.0, 0.0, 0.0), PAD),   // unreachable: `order` is pre-filtered to the 5 above
+    }
+}
+```
+
+`query_aabb` collapses any OBB back to its enclosing AABB internally, so a tilted mesh box just yields
+a slightly looser world AABB — conservative, never a false miss. Broad-phase wants exactly that.
+
+## Step 2 — build the tree in lock-step with `order`: `src/app/scene.rs`
+
+`build_with_guids` keeps its input order: the `object_id` a query returns is the **index into the slice
+you passed**. Build that slice in `self.order` order and the mapping back to a guid is just
+`self.order[id]` — no dependence on the tree's internals.
+
+**2a. Add the field** to `struct Scene`:
+
+```rust
+pub struct Scene {
+    pub session: Session,
+    order: Vec<String>,
+    pub guid_to_row: HashMap<String, u32>,
+    pub hidden: HashSet<String>,
+    bvh: SpatialBVH,   // ← ADD — broad-phase over world boxes, object_id == index into `order`
+}
+```
+
+**2b. Build it in `Scene::new`**, right after `order`/`guid_to_row` are filled (35), and add it to the
+initializer:
+
+```rust
+        let bvh = Self::build_bvh(&session, &order);
+        Self { session, order, guid_to_row, hidden: HashSet::new(), bvh }
+    }
+
+    /// Rebuild the whole tree from `order`. Called once at construction; a later lesson (38) refits
+    /// incrementally on edit instead of rebuilding. Boxes go in `order` order → object_id == order index.
+    fn build_bvh(session: &Session, order: &[String]) -> SpatialBVH {
+        let boxes: Vec<(OBB, String)> = order.iter()
+            .map(|guid| (world_obb(&session.lookup[guid]), guid.clone()))
+            .collect();
+        let mut bvh = SpatialBVH::new();
+        bvh.build_with_guids(&boxes);   // empty slice → empty tree; query returns [] (no panic)
+        bvh
+    }
+```
+
+## Step 3 — the query every later lesson calls: `src/app/scene.rs`
+
+One public method, in `impl Scene`. It's what 37/42/45 build on — they differ only in the box they
+pass:
+
+```rust
+    /// Guids whose world box intersects `query` — the broad-phase. Callers narrow further
+    /// (37 tests the frustum's own planes, 42 does ray↔triangle) on this short list, not all N.
+    pub fn objects_in(&self, query: &OBB) -> Vec<&str> {
+        self.bvh.query_aabb(query)
+            .into_iter()
+            .map(|id| self.order[id].as_str())   // object_id → guid, via the slice we built in Step 2
+            .collect()
+    }
+```
+
+## Step 4 — prove it: `#[cfg(test)]` broad-phase == brute force
+
+A BVH is only trustworthy if it returns *exactly* the brute-force set — no misses, no phantoms. Add
+this at the bottom of `scene.rs`; it needs no GPU, so `cargo test -p session_viewer` runs it headless:
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn bvh_matches_brute_force() {
+        // A few objects at known, separated positions — build with whatever Session test helper your
+        // kernel bindings expose (insert a couple of Lines + a Mesh at distinct places).
+        let scene = Scene::new(demo_session());
+        let query = OBB::from_aabb(AABB::new(0.0, 0.0, 0.0, 500.0, 500.0, 500.0));
+
+        let mut got: Vec<&str> = scene.objects_in(&query);
+        let mut want: Vec<&str> = scene.order.iter()
+            .filter(|g| scene.bvh.aabb_intersect(&world_obb(&scene.session.lookup[*g]), &query))
+            .map(|g| g.as_str())
+            .collect();
+        got.sort(); want.sort();
+        assert_eq!(got, want, "BVH broad-phase must equal the linear scan");
+    }
+}
+```
+
+`SpatialBVH::aabb_intersect(&OBB, &OBB)` is the kernel's own overlap primitive — the same OBB →
+enclosing AABB → `intersects` collapse `query_aabb` uses per node — so the brute-force scan and the
+tree are tested against an identical predicate. The point is that the *tree's* set and the *scan's* set
+agree on every object, at any scene size. Once green, every downstream query trusts the broad-phase.
+
+## Run
+
+```bash
+cd session_viewer && trunk serve   # http://localhost:8770 — visuals UNCHANGED (nothing draws the BVH yet)
+cargo test -p session_viewer bvh   # the parity test above
+```
+
+Nothing on screen moves this lesson — the tree is pure infrastructure. Lesson 37 is where it earns its
+keep: the drawn-object count on the perf HUD drops the moment you zoom in.
+
+## Recap
+
+```
+Ch 35: Scene owns session + order + guid_to_row + hidden, emits one ArenaUpload.
+Ch 36: Scene gains ONE broad-phase — the kernel's SpatialBVH (reused, not rewritten). The catch:
+       the kernel's own box routine reads mesh verts as world coords, but the viewer treats
+       mesh.xform as the placement (33-35), so `world_obb()` builds each mesh/BRep box LOCAL then
+       bakes xform (OBB::from_aabb → set .xform → transformed()); lines/polylines/points are already
+       world. build_bvh feeds those boxes to build_with_guids in `order` order, so a query's
+       object_id maps straight back to order[id] → guid. objects_in(OBB) → guids is the one call
+       picking (42, ray sliver) and box-select (45, marquee) narrow from; 37's frustum cull stays a
+       linear scan and doesn't need it. A #[cfg(test)] proves the tree's set equals brute force. Zero
+       visual change — infrastructure for the lessons that query it.
+```
+
+Edited: `app/scene.rs` (`world_obb()` world-box-per-object, `bvh: SpatialBVH` field,
+`Scene::build_bvh`, `objects_in(&OBB) -> Vec<&str>`, `#[cfg(test)]` parity).
+
+## Next
+
+`37-frustum-culling.md` — extract the view frustum's 6 planes from `view_proj` (Gribb–Hartmann, f64),
+rebase them to world (the camera-relative `view_proj` and 36's world boxes are in different frames),
+plane-test every object's world AABB, and set `FLAG_CULLED` on everything off-screen. The shader
+collapses a culled instance to a degenerate vertex, so the whole arena still draws in **one** call —
+and the perf HUD's drawn/total split finally moves.

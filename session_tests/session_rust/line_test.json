@@ -128,7 +128,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.067
+    "time_ms": 0.063
   },
   {
     "checks": [
@@ -154,7 +154,7 @@
     "line": 116,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.013
+    "time_ms": 0.309
   },
   {
     "checks": [
@@ -215,7 +215,7 @@
     "line": 132,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 18.332
+    "time_ms": 15.485
   },
   {
     "checks": [
@@ -281,7 +281,7 @@
     "line": 173,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 14.774
+    "time_ms": 13.592
   },
   {
     "checks": [
@@ -318,7 +318,7 @@
     "line": 222,
     "passed": true,
     "test_name": "To Vector",
-    "time_ms": 0.007
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -375,7 +375,7 @@
     "line": 247,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.009
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -509,7 +509,7 @@
     "line": 316,
     "passed": true,
     "test_name": "Subdivide",
-    "time_ms": 0.011
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -530,7 +530,7 @@
     "line": 361,
     "passed": true,
     "test_name": "Extend",
-    "time_ms": 0.014
+    "time_ms": 0.218
   },
   {
     "checks": [
@@ -551,7 +551,7 @@
     "line": 350,
     "passed": true,
     "test_name": "Overlap Average",
-    "time_ms": 0.035
+    "time_ms": 0.205
   },
   {
     "checks": [
@@ -572,6 +572,6 @@
     "line": 339,
     "passed": true,
     "test_name": "Overlap",
-    "time_ms": 0.011
+    "time_ms": 0.013
   }
 ]
