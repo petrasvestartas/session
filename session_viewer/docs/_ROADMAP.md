@@ -8,7 +8,7 @@ heading `# NN Title`, and a standalone crate snapshot `NN_title/`. Lessons aim a
 Rule of thumb: if a lesson would touch more than ~2–3 files or introduce more than one new
 idea, split it into the next numbered day. Every lesson ends with something visible on screen.
 
-Legend: ✅ done · ▶ next · ⬜ planned. Archive feature in (parens).
+Legend: ✅ done · ▶ next · ⬜ planned. ALL 77 LESSONS WRITTEN (2026-07-16). Archive feature in (parens).
 
 ## Architecture decisions (locked — see "Research sources" at the end)
 - **Browser-only (wasm)** — the target is the browser canvas, forever.
@@ -470,18 +470,18 @@ start instead of being retrofitted at lesson 69 like the old plan.
   - verify: labels face the camera, readable at the four named views
 
 ## Phase 13 — Sub-object editing & polish
-- ▶ 73 Control-point edit — F10 mode (reference_viewer_subobject_edit)
+- ✅ 73 Control-point edit — F10 mode (reference_viewer_subobject_edit)
   - steps: sub-pick (43) grabs verts/CVs; gumball moves them; **partial GPU update**
     (`queue.write_buffer` only the changed vertex range) instead of full re-flatten; kernel
     gotchas: `set_cv_4d` not `set_cv` (weights), mesh edits need `invalidate_triangle_bvh`
   - verify: dragging one vertex updates just that range (perf HUD upload counter)
-- ⬜ 74 Edit points (Greville) — reshape curve/surface via R⁻¹ refit, weights kept
+- ✅ 74 Edit points (Greville) — reshape curve/surface via R⁻¹ refit, weights kept
   (project_edit_points_greville); F10+modifier switches raw-CV vs edit-point mode
   - verify: curve passes through the dragged edit point; validate against the kernel refit test
-- ⬜ 75 CAD plane / work plane — construction plane (cad_plane.rs): set by 3 points / to-object
+- ✅ 75 CAD plane / work plane — construction plane (cad_plane.rs): set by 3 points / to-object
   (CLI command, 48); draw tools (57/58) and grid snap (59) target the active plane
   - verify: rectangle drawn on a tilted work plane lands in that plane
-- ⬜ 76 Advanced perf — LOD/decimation, occlusion culling, GPU compute cull + indirect draw
+- ✅ 76 Advanced perf — LOD/decimation, occlusion culling, GPU compute cull + indirect draw
   (culling + batching already landed in 30/37; 27 unlocked compute)
   - verify: perf HUD before/after on the capstone scene
 - (optional appendix, unnumbered) Materials & textures — old Phase 3 compressed, only if a
@@ -490,7 +490,7 @@ start instead of being retrofitted at lesson 69 like the old plan.
   look (shaded + edges + arctic GI) does not use textures.
 
 ## Capstone
-- ⬜ 77 Load the floor model — the compas_tf demo as a first-class scene
+- ✅ 77 Load the floor model — the compas_tf demo as a first-class scene
   - steps: load the `.pb` (34/38), fit (15), run the full loop: pick → tree reveal → gumball →
     numeric entry → draw with snap → save → undo history — fixing whatever breaks IS the lesson
   - second acceptance scene: the PDF drawing (`30700_querschnitt_gg.pb`, 34) — the curve-heavy
