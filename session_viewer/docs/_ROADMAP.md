@@ -366,23 +366,23 @@ start instead of being retrofitted at lesson 69 like the old plan.
 - ✅ 56 Numeric entry — click a handle, type `500`, exact move (reuses the Get-loop input, 48;
   archive gotchas: lmb_down gate, deferred drag, Escape guard — reference_gumball_widget)
   - verify: typed value applies once, Esc cancels cleanly mid-entry
-- ▶ 57 Draw tools I — ARCHITECTURE pattern (b) lands: creating geometry
+- ✅ 57 Draw tools I — ARCHITECTURE pattern (b) lands: creating geometry
   - files: `app/tools/{mod,point,line}.rs`, `app/history/add.rs`
   - steps: `trait Tool { on_click / on_move / preview / finish → Box<dyn Command> }` + a ToolHost
     slot on State — NEVER a DrawTool enum; `PointTool` (1 click), `LineTool` (2 clicks), driven by
     the Get-loop prompts (48); finish yields `AddGeometry` → undoable for free
   - verify: `line` command: click-click → line exists in the Session, undo removes it
-- ⬜ 58 Draw tools II — `PolylineTool` (N clicks, Enter finishes), `RectangleTool`/`BoxTool` (on
+- ✅ 58 Draw tools II — `PolylineTool` (N clicks, Enter finishes), `RectangleTool`/`BoxTool` (on
   the z=0 plane until 74's work plane); ghost preview via a transient instance row on `on_move`
   - verify: preview follows the cursor, never enters the Session until finish
-- ⬜ 59 Snapping — drawing becomes precise (was lesson 74 — belongs WITH drawing)
+- ✅ 59 Snapping — drawing becomes precise (was lesson 74 — belongs WITH drawing)
   - files: `app/snap.rs`; extend `engine/pick.rs` with nearest-candidate queries
   - steps: candidates = vertex / endpoint / grid intersection within a screen-px radius; the
     Get-loop's point acquisition consults snap FIRST; on-screen marker glyph at the active snap
   - verify: line endpoints land exactly on box corners / grid crossings; toggle via CLI option
 
 ## Phase 10 — Curved geometry
-- ⬜ 60 NurbsCurve — evaluate + draw
+- ▶ 60 NurbsCurve — evaluate + draw
   - steps: kernel `NurbsCurve` sampled by parameter (adaptive count from span count) → polyline →
     the 31 cylinder path; `NurbsCurveTool` (N control clicks + Enter) via the Tool trait (57)
   - verify: curve renders smooth at every zoom; tool-drawn curve undoes as one Command
