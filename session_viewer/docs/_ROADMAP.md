@@ -382,21 +382,21 @@ start instead of being retrofitted at lesson 69 like the old plan.
   - verify: line endpoints land exactly on box corners / grid crossings; toggle via CLI option
 
 ## Phase 10 — Curved geometry
-- ▶ 60 NurbsCurve — evaluate + draw
+- ✅ 60 NurbsCurve — evaluate + draw
   - steps: kernel `NurbsCurve` sampled by parameter (adaptive count from span count) → polyline →
     the 31 cylinder path; `NurbsCurveTool` (N control clicks + Enter) via the Tool trait (57)
   - verify: curve renders smooth at every zoom; tool-drawn curve undoes as one Command
-- ⬜ 61 NurbsSurface — tessellate to a mesh (reference_viewer_nurbs_brep_pipeline)
+- ✅ 61 NurbsSurface — tessellate to a mesh (reference_viewer_nurbs_brep_pipeline)
   - steps: kernel tessellation (grid/adaptive remesh, ~24×24 archive default) → mesh WITH baked
     vertex normals → smooth shading arrives free via 22's data-driven select; cache the
     tessellation; transform stays matrix-only (re-tessellating on gumball commit was the archive's
     perf bug — project_viewer_perf_plan)
   - verify: sphere/torus surfaces read smooth; dragging a surface never re-tessellates (perf HUD)
-- ⬜ 62 Iso-curve boundaries — surface edges + iso lines through the 23/31 line path
+- ✅ 62 Iso-curve boundaries — surface edges + iso lines through the 23/31 line path
   - verify: boundaries hug the surface with no z-fight (uses 23's depth bias)
-- ⬜ 63 BRep — faces + edges as one object; transform matrix-only (project_viewer_edge_brep_fixes)
+- ✅ 63 BRep — faces + edges as one object; transform matrix-only (project_viewer_edge_brep_fixes)
   - verify: pick selects the whole BRep; edges + faces move together under the gumball
-- ⬜ 64 Trimmed surface — first-class `NurbsSurfaceTrimmed` (reference_viewer_trimmed_firstclass:
+- ✅ 64 Trimmed surface — first-class `NurbsSurfaceTrimmed` (reference_viewer_trimmed_firstclass:
   include it in every object map — tree, picking, visibility — the archive forgot repeatedly)
   - verify: trimmed circle/cut renders the hole; picking respects the trim
 
@@ -409,7 +409,7 @@ start instead of being retrofitted at lesson 69 like the old plan.
 > crawled on an iGPU. The rebuild deletes the waste WITHOUT touching quality — **USER RULE:
 > quality must NOT decrease while rotating/interacting.** No motion-adaptive degradation; the
 > savings come from architecture: skip unchanged frames, AO at half-res, fewer-but-smarter taps.
-- ⬜ 65 Analytic ground + infinite grid — white ground with distance fade
+- ▶ 65 Analytic ground + infinite grid — white ground with distance fade
   (project_arctic_ssao_viewer's analytic-plane technique: per-pixel ray∩plane in the fragment
   shader, exact `frag_depth`, horizon alpha fade; NEVER a giant world-space quad — it flickers);
   optionally upgrade the lesson-20 grid to the fragment-shader infinite grid (`fract`/`fwidth`)
