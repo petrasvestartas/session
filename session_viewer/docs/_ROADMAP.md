@@ -258,12 +258,12 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
   - steps: on (re)load diff by `guid`: added → build+upload; removed → free arena range + row;
     changed (content-hash differs) → re-flatten that object only; unchanged → skip
   - verify: reload a file with 1 of N objects edited → log shows 1 changed / N−1 skipped
-- ▶ 39 Save (viewer → file) — write only when something actually changed
+- ✅ 39 Save (viewer → file) — write only when something actually changed
   - files: `app/persistence.rs` (save half), dirty hooks where mutations happen
   - steps: mutation → dirty flag → debounce (~1 s) → recompute content-hash, skip if unchanged →
     `pb_dumps` → Blob download (or File System Access write); new objects get a `guid`
   - verify: one save fires after an edit burst; zero writes when nothing changed
-- ⬜ 40 Watch (file → viewer) — external edits flow in
+- ✅ 40 Watch (file → viewer) — external edits flow in
   - steps: browser can't watch the FS — File System Access handle + poll `lastModified` (or a
     watcher→WebSocket bridge); on change run the 38-reconcile; **self-write guard**: ignore events
     whose hash matches your own last save
