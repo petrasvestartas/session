@@ -3,7 +3,7 @@
     "group": "ElementPlate",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.135,
+    "time_ms": 0.127,
     "line": 13,
     "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    ElementPlate p(polygon, 0.2, \"plate1\");\n\n    auto& geo = p.geometry();\n    std::string name = p.name;\n    const std::string& guid = p.guid();\n    std::string pstr = p.str();\n    std::string prepr = p.repr();\n\n    ElementPlate pcopy = p.duplicate();\n    ElementPlate p2(polygon, 0.2, \"plate1\");\n    ElementPlate p3(polygon, 0.5, \"plate1\");",
     "checks": [
@@ -64,7 +64,7 @@
     "group": "ElementPlate",
     "test_name": "Default Polygon",
     "passed": true,
-    "time_ms": 0.031,
+    "time_ms": 0.032,
     "line": 47,
     "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"mesh.h\"\n    ElementPlate p;",
     "checks": [
@@ -116,7 +116,7 @@
     "group": "ElementPlate",
     "test_name": "Mesh Topology",
     "passed": true,
-    "time_ms": 0.029,
+    "time_ms": 0.031,
     "line": 74,
     "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    };\n    ElementPlate p(polygon, 0.5);\n    auto& geo = std::get<Mesh>(p.geometry());",
     "checks": [
@@ -163,7 +163,7 @@
     "group": "ElementPlate",
     "test_name": "Compute Point",
     "passed": true,
-    "time_ms": 0.065,
+    "time_ms": 0.07,
     "line": 109,
     "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    ElementPlate p(polygon, 0.2);\n    Point pt = p.point();",
     "checks": [
@@ -189,7 +189,7 @@
     "group": "ElementPlate",
     "test_name": "Triangle Polygon",
     "passed": true,
-    "time_ms": 0.027,
+    "time_ms": 0.028,
     "line": 126,
     "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(0.5, 1, 0),\n    };\n    ElementPlate p(polygon, 0.1);\n    auto& geo = std::get<Mesh>(p.geometry());",
     "checks": [
@@ -210,7 +210,7 @@
     "group": "ElementPlate",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 16.141,
+    "time_ms": 17.454,
     "line": 142,
     "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    ElementPlate p(polygon, 0.3, \"json_plate\");\n    p.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string fname = \"serialization/test_plate_element.json\";\n    p.file_json_dump(fname);\n    ElementPlate loaded = ElementPlate::file_json_load(fname);",
     "checks": [
@@ -241,7 +241,7 @@
     "group": "ElementPlate",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 12.895,
+    "time_ms": 14.05,
     "line": 165,
     "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n    std::vector<Point> polygon = {\n        Point(0, 0, 0),\n        Point(2, 0, 0),\n        Point(2, 2, 0),\n        Point(0, 2, 0),\n    };\n    ElementPlate p(polygon, 0.3, \"proto_plate\");\n    p.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string path = \"serialization/test_plate_element.bin\";\n    p.pb_dump(path);\n    ElementPlate loaded = ElementPlate::pb_load(path);",
     "checks": [
@@ -272,7 +272,7 @@
     "group": "ElementPlate",
     "test_name": "From Top Bottom",
     "passed": true,
-    "time_ms": 0.078,
+    "time_ms": 0.079,
     "line": 188,
     "code": "    // uncomment #include \"element_plate.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> bottom = {Point(0,0,0), Point(2,0,0), Point(2,2,0), Point(0,2,0), Point(0,0,0)};\n    std::vector<Point> top    = {Point(0,0,1), Point(2,0,1), Point(2,2,1), Point(0,2,1), Point(0,0,1)};\n    ElementPlate p(bottom, top, \"tb_plate\");\n    // Reversed argument order should auto-swap\n    ElementPlate pr(top, bottom, \"tb_plate_r\");",
     "checks": [
@@ -318,7 +318,7 @@
     "group": "ElementPlate",
     "test_name": "Polylines",
     "passed": true,
-    "time_ms": 0.069,
+    "time_ms": 0.072,
     "line": 209,
     "code": "    std::vector<Point> polygon = {Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0)};\n    ElementPlate p(polygon, 0.2);\n    auto pls = p.polylines();",
     "checks": [
@@ -364,7 +364,7 @@
     "group": "ElementPlate",
     "test_name": "Planes",
     "passed": true,
-    "time_ms": 0.047,
+    "time_ms": 0.049,
     "line": 219,
     "code": "    std::vector<Point> polygon = {Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0)};\n    ElementPlate p(polygon, 0.2);\n    auto pls = p.planes();",
     "checks": [
@@ -390,7 +390,7 @@
     "group": "ElementPlate",
     "test_name": "Edge Vectors",
     "passed": true,
-    "time_ms": 0.038,
+    "time_ms": 0.037,
     "line": 228,
     "code": "    std::vector<Point> polygon = {Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0)};\n    ElementPlate p(polygon, 0.2);\n    auto evs = p.edge_vectors();",
     "checks": [
@@ -426,7 +426,7 @@
     "group": "ElementPlate",
     "test_name": "Axis",
     "passed": true,
-    "time_ms": 0.034,
+    "time_ms": 0.035,
     "line": 239,
     "code": "    std::vector<Point> polygon = {Point(0,0,0), Point(2,0,0), Point(2,2,0), Point(0,2,0)};\n    ElementPlate p(polygon, 0.4);\n    auto ax = p.axis();",
     "checks": [
@@ -462,7 +462,7 @@
     "group": "ElementPlate",
     "test_name": "Joint Types",
     "passed": true,
-    "time_ms": 0.029,
+    "time_ms": 0.035,
     "line": 250,
     "code": "    ElementPlate p;\n    p.set_joint_types({1, 2, 3, 4});",
     "checks": [
@@ -493,7 +493,7 @@
     "group": "ElementPlate",
     "test_name": "J Mf",
     "passed": true,
-    "time_ms": 0.029,
+    "time_ms": 0.03,
     "line": 259,
     "code": "    ElementPlate p;\n    p.set_j_mf({\n        {{0, true, 0.5}, {1, false, 0.3}},\n        {},\n        {{2, true, 0.8}},\n    });",
     "checks": [
@@ -539,7 +539,7 @@
     "group": "ElementPlate",
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.033,
+    "time_ms": 0.034,
     "line": 275,
     "code": "    ElementPlate p;\n    p.set_key(\"plate_A\");",
     "checks": [
@@ -560,7 +560,7 @@
     "group": "ElementPlate",
     "test_name": "Component Plane",
     "passed": true,
-    "time_ms": 0.029,
+    "time_ms": 0.031,
     "line": 282,
     "code": "    ElementPlate p;\n    p.set_component_plane(Plane(Point(1, 2, 3), Vector(1, 0, 0), Vector(0, 1, 0)));",
     "checks": [
@@ -586,7 +586,7 @@
     "group": "ElementPlate",
     "test_name": "Json Roundtrip Joinery",
     "passed": true,
-    "time_ms": 16.219,
+    "time_ms": 16.74,
     "line": 290,
     "code": "    std::vector<Point> polygon = {Point(0,0,0), Point(2,0,0), Point(2,2,0), Point(0,2,0)};\n    ElementPlate p(polygon, 0.3, \"joinery_plate\");\n    p.set_joint_types({1, 2, 3, 4});\n    p.set_j_mf({{{0, true, 0.5}}, {}, {{1, false, 0.3}}});\n    p.set_key(\"plate_A\");\n    p.set_component_plane(Plane(Point(1, 2, 3), Vector(1, 0, 0), Vector(0, 1, 0)));\n\n    std::string fname = \"serialization/test_plate_element_joinery.json\";\n    p.file_json_dump(fname);\n    ElementPlate loaded = ElementPlate::file_json_load(fname);",
     "checks": [
@@ -622,7 +622,7 @@
     "group": "ElementPlate",
     "test_name": "Protobuf Roundtrip Joinery",
     "passed": true,
-    "time_ms": 14.772,
+    "time_ms": 15.2,
     "line": 309,
     "code": "    std::vector<Point> polygon = {Point(0,0,0), Point(2,0,0), Point(2,2,0), Point(0,2,0)};\n    ElementPlate p(polygon, 0.3, \"joinery_plate\");\n    p.set_joint_types({1, 2, 3, 4});\n    p.set_j_mf({{{0, true, 0.5}}, {}, {{1, false, 0.3}}});\n    p.set_key(\"plate_A\");\n    p.set_component_plane(Plane(Point(1, 2, 3), Vector(1, 0, 0), Vector(0, 1, 0)));\n\n    std::string path = \"serialization/test_plate_element_joinery.bin\";\n    p.pb_dump(path);\n    ElementPlate loaded = ElementPlate::pb_load(path);",
     "checks": [
