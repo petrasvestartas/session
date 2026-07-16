@@ -7092,8 +7092,8 @@ window.API_INDEX = {
           "file": "brep.py"
         },
         "cpp": {
-          "sig": "BRep split_by_brep(const BRep& cutter, double tolerance)",
-          "code": "BRep BRep::split_by_brep(const BRep& cutter, double tolerance) const {\n    std::vector<std::pair<std::array<double, 3>, std::array<double, 3>>> cutter_bbs;\n    for (const auto& cs : cutter.m_surfaces) cutter_bbs.push_back(aabb_from_surface(cs));\n\n    // Trim-aware cutting (gated): intersect against the cutter's TRIMMED faces and clip each\n    // target section to the face's trim loops, so a section that leaves one cutter patch's\n    // parametric rectangle stops at the true trim boundary (where it continues onto the adjacent\n    // cutter face) instead of ending in the target's interior. Legacy path (gate off) loops raw\n    // cutter SURFACES and is byte-identical.\n    static const bool s_trimcut = (std::getenv(\"SESSION_TRIM_CUT\") != nullptr\n                                   || std::getenv(\"SESSION_BOOL_SHARED_EDGES\") != nullptr);\n    struct FaceTrim {\n        int surf_index = -1;\n        std::vector<std::vector<std::array<double, 2>>> outer, inner;\n    }",
+          "sig": "BRep split_by_brep(const BRep& cutter, double tolerance, bool imported_freeform,\n                         const std::vector<std::vector<NurbsCurve>>* pre_cuts)",
+          "code": "BRep BRep::split_by_brep(const BRep& cutter, double tolerance, bool imported_freeform,\n                         const std::vector<std::vector<NurbsCurve>>* pre_cuts) const {\n    std::vector<std::pair<std::array<double, 3>, std::array<double, 3>>> cutter_bbs;\n    for (const auto& cs : cutter.m_surfaces) cutter_bbs.push_back(aabb_from_surface(cs));\n\n    // Trim-aware cutting (gated): intersect against the cutter's TRIMMED faces and clip each\n    // target section to the face's trim loops, so a section that leaves one cutter patch's\n    // parametric rectangle stops at the true trim boundary (where it continues onto the adjacent\n    // cutter face) instead of ending in the target's interior. Legacy path (gate off) loops raw\n    // cutter SURFACES and is byte-identical.\n    static const bool s_trimcut = (std::getenv(\"SESSION_TRIM_CUT\") != nullptr\n                                   || std::getenv(\"SESSION_BOOL_SHARED_EDGES\") != nullptr);\n    struct FaceTrim {\n        int surf_index = -1;\n        std::vector<std::vector<std::array<double, 2>>> outer, inner;\n    }",
           "file": "brep.cpp"
         },
         "rust": {
@@ -31330,7 +31330,7 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "bool is_valid()",
-          "code": "bool NurbsCurve::is_valid() const {\n    if (m_dim <= 0) return false;\n    if (m_order < 2) return false;\n    if (m_cv_count < m_order) return false;\n    if (m_cv_stride < cv_size()) return false;\n    if (m_cv.empty() || m_nurbsknot.empty()) return false;\n    if (!is_valid_nurbsknot_vector()) return false;\n    \n    // Check CVs for valid values\n    for (size_t i = 0; i < m_cv.size(); i++) {\n        if (!std::isfinite(m_cv[i])) return false;\n    }",
+          "code": "bool NurbsCurve::is_valid() const {\n    if (m_dim <= 0) return false;\n    if (m_order < 2) return false;\n    if (m_cv_count < m_order) return false;\n    if (m_cv_stride < cv_size()) return false;\n    if (m_cv.empty() || m_nurbsknot.empty()) return false;\n    // Storage must actually hold m_cv_count CVs: a count/array mismatch (e.g. a partially\n    // merged join) otherwise passes validation and every point_at reads out of bounds.\n    if ((int)m_cv.size() < (m_cv_count - 1) * m_cv_stride + cv_size()) return false;\n    if (!is_valid_nurbsknot_vector()) return false;\n    \n    // Check CVs for valid values\n    for (size_t i = 0; i < m_cv.size(); i++) {\n        if (!std::isfinite(m_cv[i])) return false;\n    }",
           "file": "nurbscurve.cpp"
         },
         "rust": {
@@ -73404,7 +73404,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__(m=None)",
-          "code": "def __init__(self, m=None):\n\n        self._guid = None\n        self.name = \"my_xform\"\n        if m is None:\n            self.m = [\n                1.0,\n                0.0,\n                0.0,\n                0.0,\n                0.0,\n                1.0,\n                0.0,\n                0.0,\n                0.0,\n                0.0,\n                1.0,\n                0.0,\n                0.0,\n                0.0,\n                0.0,\n                1.0,\n            ]\n        else:\n            self.m = list(m)\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def __eq__(self, other):\n        if not isinstance(other, Xform):\n            return False\n        return self.m == other.m\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation (name, guid prefix).\"\"\"\n        return f\"Xform({self.name}, {self.guid[:8]})\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x",
+          "code": "def __init__(self, m=None):\n\n        self._guid = None\n        self.name = \"my_xform\"\n        if m is None:\n            self.m = [\n                1.0,\n                0.0,\n                0.0,\n                0.0,\n                0.0,\n                1.0,\n                0.0,\n                0.0,\n                0.0,\n                0.0,\n                1.0,\n                0.0,\n                0.0,\n                0.0,\n                0.0,\n                1.0,\n            ]\n        else:\n            self.m = list(m)\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def __eq__(self, other):\n        if not isinstance(other, Xform):\n            return False\n        return self.m == other.m\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation (name, guid prefix).\"\"\"\n        return f\"Xform({self.name}, {self.guid[:8]})\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        return Xform()\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z",
           "file": "xform.py"
         }
       },
@@ -73431,7 +73431,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "guid(value: str)",
-          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def __eq__(self, other):\n        if not isinstance(other, Xform):\n            return False\n        return self.m == other.m\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation (name, guid prefix).\"\"\"\n        return f\"Xform({self.name}, {self.guid[:8]})\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle, degrees=False):",
+          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def __eq__(self, other):\n        if not isinstance(other, Xform):\n            return False\n        return self.m == other.m\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation (name, guid prefix).\"\"\"\n        return f\"Xform({self.name}, {self.guid[:8]})\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        return Xform()\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)",
           "file": "xform.py"
         },
         "cpp": {
@@ -73470,8 +73470,10 @@ window.API_INDEX = {
         "Xform.jsondump",
         "Xform.jsonload",
         "Xform.new",
+        "Xform.orthographic",
         "Xform.pb_dumps",
         "Xform.pb_loads",
+        "Xform.perspective",
         "Xform.project_to_plane",
         "Xform.project_to_plane_by_axis",
         "Xform.repr",
@@ -73493,7 +73495,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__eq__(other)",
-          "code": "def __eq__(self, other):\n\n        if not isinstance(other, Xform):\n            return False\n        return self.m == other.m\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation (name, guid prefix).\"\"\"\n        return f\"Xform({self.name}, {self.guid[:8]})\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()",
+          "code": "def __eq__(self, other):\n\n        if not isinstance(other, Xform):\n            return False\n        return self.m == other.m\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation (name, guid prefix).\"\"\"\n        return f\"Xform({self.name}, {self.guid[:8]})\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        return Xform()\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)",
           "file": "xform.py"
         }
       },
@@ -73524,7 +73526,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__ne__(other)",
-          "code": "def __ne__(self, other):\n\n        return not self.__eq__(other)\n\n    def __str__(self):\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation (name, guid prefix).\"\"\"\n        return f\"Xform({self.name}, {self.guid[:8]})\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle",
+          "code": "def __ne__(self, other):\n\n        return not self.__eq__(other)\n\n    def __str__(self):\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation (name, guid prefix).\"\"\"\n        return f\"Xform({self.name}, {self.guid[:8]})\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        return Xform()\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform",
           "file": "xform.py"
         }
       },
@@ -73555,7 +73557,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__str__()",
-          "code": "def __str__(self):\n\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation (name, guid prefix).\"\"\"\n        return f\"Xform({self.name}, {self.guid[:8]})\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform",
+          "code": "def __str__(self):\n\n        \"\"\"Compact matrix representation as 4x4 rows.\"\"\"\n        # Format as 4 rows for readability\n        rows = []\n        for i in range(4):\n            row_vals = [f\"{self.m[i*4 + j]:f}\" for j in range(4)]\n            rows.append(f\"[{', '.join(row_vals)}]\")\n        return '\\n'.join(rows)\n\n    def __repr__(self):\n        \"\"\"Full representation (name, guid prefix).\"\"\"\n        return f\"Xform({self.name}, {self.guid[:8]})\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        return Xform()\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle, degrees=False):",
           "file": "xform.py"
         }
       },
@@ -73586,7 +73588,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__repr__()",
-          "code": "def __repr__(self):\n\n        \"\"\"Full representation (name, guid prefix).\"\"\"\n        return f\"Xform({self.name}, {self.guid[:8]})\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        axis = axis.normalized()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        one_minus_cos = 1.0 - cos_angle",
+          "code": "def __repr__(self):\n\n        \"\"\"Full representation (name, guid prefix).\"\"\"\n        return f\"Xform({self.name}, {self.guid[:8]})\"\n\n    def duplicate(self):\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        return Xform()\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        axis = axis.normalized()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]",
           "file": "xform.py"
         }
       },
@@ -73616,7 +73618,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "duplicate()",
-          "code": "def duplicate(self):\n\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        axis = axis.normalized()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]\n        xz = axis[0] * axis[2]\n        yy = axis[1] * axis[1]",
+          "code": "def duplicate(self):\n\n        \"\"\"Create a copy with a new GUID.\"\"\"\n        copy = Xform(self.m)\n        copy.name = self.name\n        return copy\n\n    @staticmethod\n    def identity():\n        return Xform()\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        axis = axis.normalized()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]\n        xz = axis[0] * axis[2]\n        yy = axis[1] * axis[1]\n        yz = axis[1] * axis[2]\n        zz = axis[2] * axis[2]",
           "file": "xform.py"
         },
         "rust": {
@@ -73650,7 +73652,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "identity()",
-          "code": "def identity():\n\n        if Xform._identity_cache is None:\n            Xform._identity_cache = Xform()\n        return Xform._identity_cache\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        axis = axis.normalized()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]\n        xz = axis[0] * axis[2]\n        yy = axis[1] * axis[1]\n        yz = axis[1] * axis[2]\n        zz = axis[2] * axis[2]\n        xform.m[0] = cos_angle + xx * one_minus_cos\n        xform.m[1] = xy * one_minus_cos + axis[2] * sin_angle\n        xform.m[2] = xz * one_minus_cos - axis[1] * sin_angle\n        xform.m[4] = xy * one_minus_cos - axis[2] * sin_angle\n        xform.m[5] = cos_angle + yy * one_minus_cos",
+          "code": "def identity():\n\n        return Xform()\n\n    @staticmethod\n    def from_matrix(m):\n        return Xform(m)\n\n    ###########################################################################################\n    # Transformations\n    ###########################################################################################\n\n    @staticmethod\n    def translation(x, y, z):\n        xform = Xform()\n        xform.m[12] = x\n        xform.m[13] = y\n        xform.m[14] = z\n        return xform\n\n    @staticmethod\n    def rotation_x(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[5] = cos_angle\n        xform.m[6] = sin_angle\n        xform.m[9] = -sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_y(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[2] = -sin_angle\n        xform.m[8] = sin_angle\n        xform.m[10] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation_z(angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        xform.m[0] = cos_angle\n        xform.m[1] = sin_angle\n        xform.m[4] = -sin_angle\n        xform.m[5] = cos_angle\n        return xform\n\n    @staticmethod\n    def rotation(axis, angle, degrees=False):\n        if degrees:\n            angle = angle * (PI / 180.0)\n        xform = Xform()\n        axis = axis.normalized()\n        cos_angle = math.cos(angle)\n        sin_angle = math.sin(angle)\n        one_minus_cos = 1.0 - cos_angle\n        xx = axis[0] * axis[0]\n        xy = axis[0] * axis[1]\n        xz = axis[0] * axis[2]\n        yy = axis[1] * axis[1]\n        yz = axis[1] * axis[2]\n        zz = axis[2] * axis[2]\n        xform.m[0] = cos_angle + xx * one_minus_cos\n        xform.m[1] = xy * one_minus_cos + axis[2] * sin_angle\n        xform.m[2] = xz * one_minus_cos - axis[1] * sin_angle\n        xform.m[4] = xy * one_minus_cos - axis[2] * sin_angle\n        xform.m[5] = cos_angle + yy * one_minus_cos\n        xform.m[6] = yz * one_minus_cos + axis[0] * sin_angle\n        xform.m[8] = xz * one_minus_cos + axis[1] * sin_angle",
           "file": "xform.py"
         },
         "cpp": {
@@ -73689,6 +73691,7 @@ window.API_INDEX = {
         "Xform.pb_loads",
         "Xform.plane_to_plane",
         "Xform.plane_to_xy",
+        "Xform.project_to_plane",
         "Xform.project_to_plane_by_axis",
         "Xform.rotation",
         "Xform.rotation_around_line",
@@ -74577,7 +74580,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "perspective(fov_y, aspect, near, far)",
-          "code": "def perspective(fov_y, aspect, near, far):\n\n        f = 1.0 / math.tan(fov_y / 2.0)\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = f / aspect\n        xform.m[5] = f\n        xform.m[10] = far / nf\n        xform.m[11] = -1.0\n        xform.m[14] = (near * far) / nf\n        return xform\n\n    @staticmethod\n    def orthographic(left, right, bottom, top, near, far):\n        rl = right - left\n        tb = top - bottom\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = 2.0 / rl\n        xform.m[5] = 2.0 / tb\n        xform.m[10] = 1.0 / nf\n        xform.m[12] = (left + right) / (left - right)\n        xform.m[13] = (bottom + top) / (bottom - top)\n        xform.m[14] = near / nf\n        xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane(plane):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - nx * nx;  xform.m[4]  = -nx * ny;        xform.m[8]  = -nx * nz;        xform.m[12] = nx * d\n        xform.m[1]  = -ny * nx;       xform.m[5]  = 1.0 - ny * ny;   xform.m[9]  = -ny * nz;        xform.m[13] = ny * d\n        xform.m[2]  = -nz * nx;       xform.m[6]  = -nz * ny;        xform.m[10] = 1.0 - nz * nz;   xform.m[14] = nz * d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane_by_axis(plane, direction):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        a00 = self.m[0]\n        a01 = self.m[4]\n        a02 = self.m[8]\n        a10 = self.m[1]\n        a11 = self.m[5]\n        a12 = self.m[9]\n        a20 = self.m[2]\n        a21 = self.m[6]\n        a22 = self.m[10]\n        det = (\n            a00 * (a11 * a22 - a12 * a21)\n            - a01 * (a10 * a22 - a12 * a20)\n            + a02 * (a10 * a21 - a11 * a20)\n        )\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        m00 = (a11 * a22 - a12 * a21) * inv_det\n        m01 = (a02 * a21 - a01 * a22) * inv_det\n        m02 = (a01 * a12 - a02 * a11) * inv_det",
+          "code": "def perspective(fov_y, aspect, near, far):\n\n        f = 1.0 / math.tan(fov_y / 2.0)\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = f / aspect\n        xform.m[5] = f\n        xform.m[10] = far / nf\n        xform.m[11] = -1.0\n        xform.m[14] = (near * far) / nf\n        return xform\n\n    @staticmethod\n    def orthographic(left, right, bottom, top, near, far):\n        rl = right - left\n        tb = top - bottom\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = 2.0 / rl\n        xform.m[5] = 2.0 / tb\n        xform.m[10] = 1.0 / nf\n        xform.m[12] = (left + right) / (left - right)\n        xform.m[13] = (bottom + top) / (bottom - top)\n        xform.m[14] = near / nf\n        xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane(plane):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - nx * nx;  xform.m[4]  = -nx * ny;        xform.m[8]  = -nx * nz;        xform.m[12] = nx * d\n        xform.m[1]  = -ny * nx;       xform.m[5]  = 1.0 - ny * ny;   xform.m[9]  = -ny * nz;        xform.m[13] = ny * d\n        xform.m[2]  = -nz * nx;       xform.m[6]  = -nz * ny;        xform.m[10] = 1.0 - nz * nz;   xform.m[14] = nz * d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane_by_axis(plane, direction):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        s0 = self.m[0] * self.m[5] - self.m[1] * self.m[4]\n        s1 = self.m[0] * self.m[9] - self.m[1] * self.m[8]\n        s2 = self.m[0] * self.m[13] - self.m[1] * self.m[12]\n        s3 = self.m[4] * self.m[9] - self.m[5] * self.m[8]\n        s4 = self.m[4] * self.m[13] - self.m[5] * self.m[12]\n        s5 = self.m[8] * self.m[13] - self.m[9] * self.m[12]\n        c5 = self.m[10] * self.m[15] - self.m[11] * self.m[14]\n        c4 = self.m[6] * self.m[15] - self.m[7] * self.m[14]\n        c3 = self.m[6] * self.m[11] - self.m[7] * self.m[10]\n        c2 = self.m[2] * self.m[15] - self.m[3] * self.m[14]\n        c1 = self.m[2] * self.m[11] - self.m[3] * self.m[10]\n        c0 = self.m[2] * self.m[7] - self.m[3] * self.m[6]\n        det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = (self.m[5] * c5 - self.m[9] * c4 + self.m[13] * c3) * inv_det",
           "file": "xform.py"
         },
         "cpp": {
@@ -74593,6 +74596,7 @@ window.API_INDEX = {
       },
       "related": [
         "Xform.axis_rotation",
+        "Xform.guid",
         "Xform.inverse",
         "Xform.look_at_right_handed",
         "Xform.look_to_right_handed",
@@ -74611,7 +74615,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "orthographic(left, right, bottom, top, near, far)",
-          "code": "def orthographic(left, right, bottom, top, near, far):\n\n        rl = right - left\n        tb = top - bottom\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = 2.0 / rl\n        xform.m[5] = 2.0 / tb\n        xform.m[10] = 1.0 / nf\n        xform.m[12] = (left + right) / (left - right)\n        xform.m[13] = (bottom + top) / (bottom - top)\n        xform.m[14] = near / nf\n        xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane(plane):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - nx * nx;  xform.m[4]  = -nx * ny;        xform.m[8]  = -nx * nz;        xform.m[12] = nx * d\n        xform.m[1]  = -ny * nx;       xform.m[5]  = 1.0 - ny * ny;   xform.m[9]  = -ny * nz;        xform.m[13] = ny * d\n        xform.m[2]  = -nz * nx;       xform.m[6]  = -nz * ny;        xform.m[10] = 1.0 - nz * nz;   xform.m[14] = nz * d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane_by_axis(plane, direction):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        a00 = self.m[0]\n        a01 = self.m[4]\n        a02 = self.m[8]\n        a10 = self.m[1]\n        a11 = self.m[5]\n        a12 = self.m[9]\n        a20 = self.m[2]\n        a21 = self.m[6]\n        a22 = self.m[10]\n        det = (\n            a00 * (a11 * a22 - a12 * a21)\n            - a01 * (a10 * a22 - a12 * a20)\n            + a02 * (a10 * a21 - a11 * a20)\n        )\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        m00 = (a11 * a22 - a12 * a21) * inv_det\n        m01 = (a02 * a21 - a01 * a22) * inv_det\n        m02 = (a01 * a12 - a02 * a11) * inv_det\n        m10 = (a12 * a20 - a10 * a22) * inv_det\n        m11 = (a00 * a22 - a02 * a20) * inv_det\n        m12 = (a02 * a10 - a00 * a12) * inv_det\n        m20 = (a10 * a21 - a11 * a20) * inv_det\n        m21 = (a01 * a20 - a00 * a21) * inv_det\n        m22 = (a00 * a11 - a01 * a10) * inv_det\n        tx = self.m[12]\n        ty = self.m[13]\n        tz = self.m[14]\n        itx = -(m00 * tx + m01 * ty + m02 * tz)\n        ity = -(m10 * tx + m11 * ty + m12 * tz)\n        itz = -(m20 * tx + m21 * ty + m22 * tz)",
+          "code": "def orthographic(left, right, bottom, top, near, far):\n\n        rl = right - left\n        tb = top - bottom\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = 2.0 / rl\n        xform.m[5] = 2.0 / tb\n        xform.m[10] = 1.0 / nf\n        xform.m[12] = (left + right) / (left - right)\n        xform.m[13] = (bottom + top) / (bottom - top)\n        xform.m[14] = near / nf\n        xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane(plane):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - nx * nx;  xform.m[4]  = -nx * ny;        xform.m[8]  = -nx * nz;        xform.m[12] = nx * d\n        xform.m[1]  = -ny * nx;       xform.m[5]  = 1.0 - ny * ny;   xform.m[9]  = -ny * nz;        xform.m[13] = ny * d\n        xform.m[2]  = -nz * nx;       xform.m[6]  = -nz * ny;        xform.m[10] = 1.0 - nz * nz;   xform.m[14] = nz * d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane_by_axis(plane, direction):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        s0 = self.m[0] * self.m[5] - self.m[1] * self.m[4]\n        s1 = self.m[0] * self.m[9] - self.m[1] * self.m[8]\n        s2 = self.m[0] * self.m[13] - self.m[1] * self.m[12]\n        s3 = self.m[4] * self.m[9] - self.m[5] * self.m[8]\n        s4 = self.m[4] * self.m[13] - self.m[5] * self.m[12]\n        s5 = self.m[8] * self.m[13] - self.m[9] * self.m[12]\n        c5 = self.m[10] * self.m[15] - self.m[11] * self.m[14]\n        c4 = self.m[6] * self.m[15] - self.m[7] * self.m[14]\n        c3 = self.m[6] * self.m[11] - self.m[7] * self.m[10]\n        c2 = self.m[2] * self.m[15] - self.m[3] * self.m[14]\n        c1 = self.m[2] * self.m[11] - self.m[3] * self.m[10]\n        c0 = self.m[2] * self.m[7] - self.m[3] * self.m[6]\n        det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = (self.m[5] * c5 - self.m[9] * c4 + self.m[13] * c3) * inv_det\n        res.m[4] = (-self.m[4] * c5 + self.m[8] * c4 - self.m[12] * c3) * inv_det\n        res.m[8] = (self.m[7] * s5 - self.m[11] * s4 + self.m[15] * s3) * inv_det\n        res.m[12] = (-self.m[6] * s5 + self.m[10] * s4 - self.m[14] * s3) * inv_det\n        res.m[1] = (-self.m[1] * c5 + self.m[9] * c2 - self.m[13] * c1) * inv_det\n        res.m[5] = (self.m[0] * c5 - self.m[8] * c2 + self.m[12] * c1) * inv_det\n        res.m[9] = (-self.m[3] * s5 + self.m[11] * s2 - self.m[15] * s1) * inv_det\n        res.m[13] = (self.m[2] * s5 - self.m[10] * s2 + self.m[14] * s1) * inv_det\n        res.m[2] = (self.m[1] * c4 - self.m[5] * c2 + self.m[13] * c0) * inv_det\n        res.m[6] = (-self.m[0] * c4 + self.m[4] * c2 - self.m[12] * c0) * inv_det\n        res.m[10] = (self.m[3] * s4 - self.m[7] * s2 + self.m[15] * s0) * inv_det\n        res.m[14] = (-self.m[2] * s4 + self.m[6] * s2 - self.m[14] * s0) * inv_det\n        res.m[3] = (-self.m[1] * c3 + self.m[5] * c1 - self.m[9] * c0) * inv_det",
           "file": "xform.py"
         },
         "cpp": {
@@ -74626,6 +74630,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Xform.guid",
         "Xform.inverse",
         "Xform.look_at_right_handed",
         "Xform.look_to_right_handed",
@@ -74643,7 +74648,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "project_to_plane(plane)",
-          "code": "def project_to_plane(plane):\n\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - nx * nx;  xform.m[4]  = -nx * ny;        xform.m[8]  = -nx * nz;        xform.m[12] = nx * d\n        xform.m[1]  = -ny * nx;       xform.m[5]  = 1.0 - ny * ny;   xform.m[9]  = -ny * nz;        xform.m[13] = ny * d\n        xform.m[2]  = -nz * nx;       xform.m[6]  = -nz * ny;        xform.m[10] = 1.0 - nz * nz;   xform.m[14] = nz * d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane_by_axis(plane, direction):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        a00 = self.m[0]\n        a01 = self.m[4]\n        a02 = self.m[8]\n        a10 = self.m[1]\n        a11 = self.m[5]\n        a12 = self.m[9]\n        a20 = self.m[2]\n        a21 = self.m[6]\n        a22 = self.m[10]\n        det = (\n            a00 * (a11 * a22 - a12 * a21)\n            - a01 * (a10 * a22 - a12 * a20)\n            + a02 * (a10 * a21 - a11 * a20)\n        )\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        m00 = (a11 * a22 - a12 * a21) * inv_det\n        m01 = (a02 * a21 - a01 * a22) * inv_det\n        m02 = (a01 * a12 - a02 * a11) * inv_det\n        m10 = (a12 * a20 - a10 * a22) * inv_det\n        m11 = (a00 * a22 - a02 * a20) * inv_det\n        m12 = (a02 * a10 - a00 * a12) * inv_det\n        m20 = (a10 * a21 - a11 * a20) * inv_det\n        m21 = (a01 * a20 - a00 * a21) * inv_det\n        m22 = (a00 * a11 - a01 * a10) * inv_det\n        tx = self.m[12]\n        ty = self.m[13]\n        tz = self.m[14]\n        itx = -(m00 * tx + m01 * ty + m02 * tz)\n        ity = -(m10 * tx + m11 * ty + m12 * tz)\n        itz = -(m20 * tx + m21 * ty + m22 * tz)\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = m00\n        res.m[4] = m01\n        res.m[8] = m02\n        res.m[12] = itx\n        res.m[1] = m10\n        res.m[5] = m11\n        res.m[9] = m12\n        res.m[13] = ity\n        res.m[2] = m20\n        res.m[6] = m21\n        res.m[10] = m22\n        res.m[14] = itz",
+          "code": "def project_to_plane(plane):\n\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - nx * nx;  xform.m[4]  = -nx * ny;        xform.m[8]  = -nx * nz;        xform.m[12] = nx * d\n        xform.m[1]  = -ny * nx;       xform.m[5]  = 1.0 - ny * ny;   xform.m[9]  = -ny * nz;        xform.m[13] = ny * d\n        xform.m[2]  = -nz * nx;       xform.m[6]  = -nz * ny;        xform.m[10] = 1.0 - nz * nz;   xform.m[14] = nz * d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane_by_axis(plane, direction):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        s0 = self.m[0] * self.m[5] - self.m[1] * self.m[4]\n        s1 = self.m[0] * self.m[9] - self.m[1] * self.m[8]\n        s2 = self.m[0] * self.m[13] - self.m[1] * self.m[12]\n        s3 = self.m[4] * self.m[9] - self.m[5] * self.m[8]\n        s4 = self.m[4] * self.m[13] - self.m[5] * self.m[12]\n        s5 = self.m[8] * self.m[13] - self.m[9] * self.m[12]\n        c5 = self.m[10] * self.m[15] - self.m[11] * self.m[14]\n        c4 = self.m[6] * self.m[15] - self.m[7] * self.m[14]\n        c3 = self.m[6] * self.m[11] - self.m[7] * self.m[10]\n        c2 = self.m[2] * self.m[15] - self.m[3] * self.m[14]\n        c1 = self.m[2] * self.m[11] - self.m[3] * self.m[10]\n        c0 = self.m[2] * self.m[7] - self.m[3] * self.m[6]\n        det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = (self.m[5] * c5 - self.m[9] * c4 + self.m[13] * c3) * inv_det\n        res.m[4] = (-self.m[4] * c5 + self.m[8] * c4 - self.m[12] * c3) * inv_det\n        res.m[8] = (self.m[7] * s5 - self.m[11] * s4 + self.m[15] * s3) * inv_det\n        res.m[12] = (-self.m[6] * s5 + self.m[10] * s4 - self.m[14] * s3) * inv_det\n        res.m[1] = (-self.m[1] * c5 + self.m[9] * c2 - self.m[13] * c1) * inv_det\n        res.m[5] = (self.m[0] * c5 - self.m[8] * c2 + self.m[12] * c1) * inv_det\n        res.m[9] = (-self.m[3] * s5 + self.m[11] * s2 - self.m[15] * s1) * inv_det\n        res.m[13] = (self.m[2] * s5 - self.m[10] * s2 + self.m[14] * s1) * inv_det\n        res.m[2] = (self.m[1] * c4 - self.m[5] * c2 + self.m[13] * c0) * inv_det\n        res.m[6] = (-self.m[0] * c4 + self.m[4] * c2 - self.m[12] * c0) * inv_det\n        res.m[10] = (self.m[3] * s4 - self.m[7] * s2 + self.m[15] * s0) * inv_det\n        res.m[14] = (-self.m[2] * s4 + self.m[6] * s2 - self.m[14] * s0) * inv_det\n        res.m[3] = (-self.m[1] * c3 + self.m[5] * c1 - self.m[9] * c0) * inv_det\n        res.m[7] = (self.m[0] * c3 - self.m[4] * c1 + self.m[8] * c0) * inv_det\n        res.m[11] = (-self.m[3] * s3 + self.m[7] * s1 - self.m[11] * s0) * inv_det\n        res.m[15] = (self.m[2] * s3 - self.m[6] * s1 + self.m[10] * s0) * inv_det\n        return res\n\n    def is_identity(self):\n        identity = Xform.identity()\n        for i in range(16):\n            if abs(self.m[i] - identity.m[i]) > 1e-10:\n                return False\n        return True\n\n    def to_cols(self):\n        return [\n            [self.m[0],  self.m[1],  self.m[2],  self.m[3] ],",
           "file": "xform.py"
         },
         "cpp": {
@@ -74659,13 +74664,16 @@ window.API_INDEX = {
       },
       "related": [
         "Xform.guid",
+        "Xform.identity",
         "Xform.inverse",
+        "Xform.is_identity",
         "Xform.look_at_right_handed",
         "Xform.look_to_right_handed",
         "Xform.new",
         "Xform.orthographic",
         "Xform.perspective",
         "Xform.project_to_plane_by_axis",
+        "Xform.to_cols",
         "Xform.x",
         "Xform.y",
         "Xform.z"
@@ -74676,7 +74684,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "project_to_plane_by_axis(plane, direction)",
-          "code": "def project_to_plane_by_axis(plane, direction):\n\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        a00 = self.m[0]\n        a01 = self.m[4]\n        a02 = self.m[8]\n        a10 = self.m[1]\n        a11 = self.m[5]\n        a12 = self.m[9]\n        a20 = self.m[2]\n        a21 = self.m[6]\n        a22 = self.m[10]\n        det = (\n            a00 * (a11 * a22 - a12 * a21)\n            - a01 * (a10 * a22 - a12 * a20)\n            + a02 * (a10 * a21 - a11 * a20)\n        )\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        m00 = (a11 * a22 - a12 * a21) * inv_det\n        m01 = (a02 * a21 - a01 * a22) * inv_det\n        m02 = (a01 * a12 - a02 * a11) * inv_det\n        m10 = (a12 * a20 - a10 * a22) * inv_det\n        m11 = (a00 * a22 - a02 * a20) * inv_det\n        m12 = (a02 * a10 - a00 * a12) * inv_det\n        m20 = (a10 * a21 - a11 * a20) * inv_det\n        m21 = (a01 * a20 - a00 * a21) * inv_det\n        m22 = (a00 * a11 - a01 * a10) * inv_det\n        tx = self.m[12]\n        ty = self.m[13]\n        tz = self.m[14]\n        itx = -(m00 * tx + m01 * ty + m02 * tz)\n        ity = -(m10 * tx + m11 * ty + m12 * tz)\n        itz = -(m20 * tx + m21 * ty + m22 * tz)\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = m00\n        res.m[4] = m01\n        res.m[8] = m02\n        res.m[12] = itx\n        res.m[1] = m10\n        res.m[5] = m11\n        res.m[9] = m12\n        res.m[13] = ity\n        res.m[2] = m20\n        res.m[6] = m21\n        res.m[10] = m22\n        res.m[14] = itz\n        return res\n\n    def is_identity(self):\n        identity = Xform.identity()\n        for i in range(16):\n            if abs(self.m[i] - identity.m[i]) > 1e-10:\n                return False\n        return True\n\n    def to_cols(self):\n        return [\n            [self.m[0],  self.m[1],  self.m[2],  self.m[3] ],\n            [self.m[4],  self.m[5],  self.m[6],  self.m[7] ],",
+          "code": "def project_to_plane_by_axis(plane, direction):\n\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        s0 = self.m[0] * self.m[5] - self.m[1] * self.m[4]\n        s1 = self.m[0] * self.m[9] - self.m[1] * self.m[8]\n        s2 = self.m[0] * self.m[13] - self.m[1] * self.m[12]\n        s3 = self.m[4] * self.m[9] - self.m[5] * self.m[8]\n        s4 = self.m[4] * self.m[13] - self.m[5] * self.m[12]\n        s5 = self.m[8] * self.m[13] - self.m[9] * self.m[12]\n        c5 = self.m[10] * self.m[15] - self.m[11] * self.m[14]\n        c4 = self.m[6] * self.m[15] - self.m[7] * self.m[14]\n        c3 = self.m[6] * self.m[11] - self.m[7] * self.m[10]\n        c2 = self.m[2] * self.m[15] - self.m[3] * self.m[14]\n        c1 = self.m[2] * self.m[11] - self.m[3] * self.m[10]\n        c0 = self.m[2] * self.m[7] - self.m[3] * self.m[6]\n        det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = (self.m[5] * c5 - self.m[9] * c4 + self.m[13] * c3) * inv_det\n        res.m[4] = (-self.m[4] * c5 + self.m[8] * c4 - self.m[12] * c3) * inv_det\n        res.m[8] = (self.m[7] * s5 - self.m[11] * s4 + self.m[15] * s3) * inv_det\n        res.m[12] = (-self.m[6] * s5 + self.m[10] * s4 - self.m[14] * s3) * inv_det\n        res.m[1] = (-self.m[1] * c5 + self.m[9] * c2 - self.m[13] * c1) * inv_det\n        res.m[5] = (self.m[0] * c5 - self.m[8] * c2 + self.m[12] * c1) * inv_det\n        res.m[9] = (-self.m[3] * s5 + self.m[11] * s2 - self.m[15] * s1) * inv_det\n        res.m[13] = (self.m[2] * s5 - self.m[10] * s2 + self.m[14] * s1) * inv_det\n        res.m[2] = (self.m[1] * c4 - self.m[5] * c2 + self.m[13] * c0) * inv_det\n        res.m[6] = (-self.m[0] * c4 + self.m[4] * c2 - self.m[12] * c0) * inv_det\n        res.m[10] = (self.m[3] * s4 - self.m[7] * s2 + self.m[15] * s0) * inv_det\n        res.m[14] = (-self.m[2] * s4 + self.m[6] * s2 - self.m[14] * s0) * inv_det\n        res.m[3] = (-self.m[1] * c3 + self.m[5] * c1 - self.m[9] * c0) * inv_det\n        res.m[7] = (self.m[0] * c3 - self.m[4] * c1 + self.m[8] * c0) * inv_det\n        res.m[11] = (-self.m[3] * s3 + self.m[7] * s1 - self.m[11] * s0) * inv_det\n        res.m[15] = (self.m[2] * s3 - self.m[6] * s1 + self.m[10] * s0) * inv_det\n        return res\n\n    def is_identity(self):\n        identity = Xform.identity()\n        for i in range(16):\n            if abs(self.m[i] - identity.m[i]) > 1e-10:\n                return False\n        return True\n\n    def to_cols(self):\n        return [\n            [self.m[0],  self.m[1],  self.m[2],  self.m[3] ],\n            [self.m[4],  self.m[5],  self.m[6],  self.m[7] ],\n            [self.m[8],  self.m[9],  self.m[10], self.m[11]],\n            [self.m[12], self.m[13], self.m[14], self.m[15]],\n        ]\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        result = Xform()\n        result.m = [0.0] * 16\n        for i in range(4):",
           "file": "xform.py"
         },
         "cpp": {
@@ -74691,6 +74699,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "Xform.__mul__",
         "Xform.guid",
         "Xform.identity",
         "Xform.inverse",
@@ -74711,21 +74720,23 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "inverse() -> Optional[\"Xform\"]",
-          "code": "def inverse(self) -> Optional[\"Xform\"]:\n\n        a00 = self.m[0]\n        a01 = self.m[4]\n        a02 = self.m[8]\n        a10 = self.m[1]\n        a11 = self.m[5]\n        a12 = self.m[9]\n        a20 = self.m[2]\n        a21 = self.m[6]\n        a22 = self.m[10]\n        det = (\n            a00 * (a11 * a22 - a12 * a21)\n            - a01 * (a10 * a22 - a12 * a20)\n            + a02 * (a10 * a21 - a11 * a20)\n        )\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        m00 = (a11 * a22 - a12 * a21) * inv_det\n        m01 = (a02 * a21 - a01 * a22) * inv_det\n        m02 = (a01 * a12 - a02 * a11) * inv_det\n        m10 = (a12 * a20 - a10 * a22) * inv_det\n        m11 = (a00 * a22 - a02 * a20) * inv_det\n        m12 = (a02 * a10 - a00 * a12) * inv_det\n        m20 = (a10 * a21 - a11 * a20) * inv_det\n        m21 = (a01 * a20 - a00 * a21) * inv_det\n        m22 = (a00 * a11 - a01 * a10) * inv_det\n        tx = self.m[12]\n        ty = self.m[13]\n        tz = self.m[14]\n        itx = -(m00 * tx + m01 * ty + m02 * tz)\n        ity = -(m10 * tx + m11 * ty + m12 * tz)\n        itz = -(m20 * tx + m21 * ty + m22 * tz)\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = m00\n        res.m[4] = m01\n        res.m[8] = m02\n        res.m[12] = itx\n        res.m[1] = m10\n        res.m[5] = m11\n        res.m[9] = m12\n        res.m[13] = ity\n        res.m[2] = m20\n        res.m[6] = m21\n        res.m[10] = m22\n        res.m[14] = itz\n        return res\n\n    def is_identity(self):\n        identity = Xform.identity()\n        for i in range(16):\n            if abs(self.m[i] - identity.m[i]) > 1e-10:\n                return False\n        return True\n\n    def to_cols(self):\n        return [\n            [self.m[0],  self.m[1],  self.m[2],  self.m[3] ],\n            [self.m[4],  self.m[5],  self.m[6],  self.m[7] ],\n            [self.m[8],  self.m[9],  self.m[10], self.m[11]],\n            [self.m[12], self.m[13], self.m[14], self.m[15]],\n        ]\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        result = Xform()\n        result.m = [0.0] * 16\n        for i in range(4):\n            for j in range(4):\n                sum_val = 0.0\n                for k in range(4):\n                    sum_val += self.m[k * 4 + i] * other.m[j * 4 + k]\n                result.m[j * 4 + i] = sum_val\n        return result",
+          "code": "def inverse(self) -> Optional[\"Xform\"]:\n\n        s0 = self.m[0] * self.m[5] - self.m[1] * self.m[4]\n        s1 = self.m[0] * self.m[9] - self.m[1] * self.m[8]\n        s2 = self.m[0] * self.m[13] - self.m[1] * self.m[12]\n        s3 = self.m[4] * self.m[9] - self.m[5] * self.m[8]\n        s4 = self.m[4] * self.m[13] - self.m[5] * self.m[12]\n        s5 = self.m[8] * self.m[13] - self.m[9] * self.m[12]\n        c5 = self.m[10] * self.m[15] - self.m[11] * self.m[14]\n        c4 = self.m[6] * self.m[15] - self.m[7] * self.m[14]\n        c3 = self.m[6] * self.m[11] - self.m[7] * self.m[10]\n        c2 = self.m[2] * self.m[15] - self.m[3] * self.m[14]\n        c1 = self.m[2] * self.m[11] - self.m[3] * self.m[10]\n        c0 = self.m[2] * self.m[7] - self.m[3] * self.m[6]\n        det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = (self.m[5] * c5 - self.m[9] * c4 + self.m[13] * c3) * inv_det\n        res.m[4] = (-self.m[4] * c5 + self.m[8] * c4 - self.m[12] * c3) * inv_det\n        res.m[8] = (self.m[7] * s5 - self.m[11] * s4 + self.m[15] * s3) * inv_det\n        res.m[12] = (-self.m[6] * s5 + self.m[10] * s4 - self.m[14] * s3) * inv_det\n        res.m[1] = (-self.m[1] * c5 + self.m[9] * c2 - self.m[13] * c1) * inv_det\n        res.m[5] = (self.m[0] * c5 - self.m[8] * c2 + self.m[12] * c1) * inv_det\n        res.m[9] = (-self.m[3] * s5 + self.m[11] * s2 - self.m[15] * s1) * inv_det\n        res.m[13] = (self.m[2] * s5 - self.m[10] * s2 + self.m[14] * s1) * inv_det\n        res.m[2] = (self.m[1] * c4 - self.m[5] * c2 + self.m[13] * c0) * inv_det\n        res.m[6] = (-self.m[0] * c4 + self.m[4] * c2 - self.m[12] * c0) * inv_det\n        res.m[10] = (self.m[3] * s4 - self.m[7] * s2 + self.m[15] * s0) * inv_det\n        res.m[14] = (-self.m[2] * s4 + self.m[6] * s2 - self.m[14] * s0) * inv_det\n        res.m[3] = (-self.m[1] * c3 + self.m[5] * c1 - self.m[9] * c0) * inv_det\n        res.m[7] = (self.m[0] * c3 - self.m[4] * c1 + self.m[8] * c0) * inv_det\n        res.m[11] = (-self.m[3] * s3 + self.m[7] * s1 - self.m[11] * s0) * inv_det\n        res.m[15] = (self.m[2] * s3 - self.m[6] * s1 + self.m[10] * s0) * inv_det\n        return res\n\n    def is_identity(self):\n        identity = Xform.identity()\n        for i in range(16):\n            if abs(self.m[i] - identity.m[i]) > 1e-10:\n                return False\n        return True\n\n    def to_cols(self):\n        return [\n            [self.m[0],  self.m[1],  self.m[2],  self.m[3] ],\n            [self.m[4],  self.m[5],  self.m[6],  self.m[7] ],\n            [self.m[8],  self.m[9],  self.m[10], self.m[11]],\n            [self.m[12], self.m[13], self.m[14], self.m[15]],\n        ]\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        result = Xform()\n        result.m = [0.0] * 16\n        for i in range(4):\n            for j in range(4):\n                sum_val = 0.0\n                for k in range(4):\n                    sum_val += self.m[k * 4 + i] * other.m[j * 4 + k]\n                result.m[j * 4 + i] = sum_val\n        return result\n\n    def __imul__(self, other):\n        temp = self * other\n        self.m = temp.m\n        return self\n\n    def __getitem__(self, idx):\n        if isinstance(idx, tuple) and len(idx) == 2:\n            row, col = idx\n            if not (0 <= row < 4 and 0 <= col < 4):\n                raise IndexError(f\"Index out of bounds: ({row}, {col})\")\n            return self.m[col * 4 + row]\n        raise TypeError(\"Index must be a tuple of (row, col)\")",
           "file": "xform.py"
         },
         "cpp": {
           "sig": "std::optional<Xform> inverse()",
-          "code": "std::optional<Xform> Xform::inverse() const {\n    double a00 = m[0], a01 = m[4], a02 = m[8];\n    double a10 = m[1], a11 = m[5], a12 = m[9];\n    double a20 = m[2], a21 = m[6], a22 = m[10];\n\n    double det = a00 * (a11 * a22 - a12 * a21) \n              - a01 * (a10 * a22 - a12 * a20)\n              + a02 * (a10 * a21 - a11 * a20);\n    \n    if (std::abs(det) < 1e-12) {\n        return std::nullopt;\n    }",
+          "code": "std::optional<Xform> Xform::inverse() const {\n    double s0 = m[0] * m[5] - m[1] * m[4];\n    double s1 = m[0] * m[9] - m[1] * m[8];\n    double s2 = m[0] * m[13] - m[1] * m[12];\n    double s3 = m[4] * m[9] - m[5] * m[8];\n    double s4 = m[4] * m[13] - m[5] * m[12];\n    double s5 = m[8] * m[13] - m[9] * m[12];\n    double c5 = m[10] * m[15] - m[11] * m[14];\n    double c4 = m[6] * m[15] - m[7] * m[14];\n    double c3 = m[6] * m[11] - m[7] * m[10];\n    double c2 = m[2] * m[15] - m[3] * m[14];\n    double c1 = m[2] * m[11] - m[3] * m[10];\n    double c0 = m[2] * m[7] - m[3] * m[6];\n    double det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0;\n\n    if (std::abs(det) < 1e-12) {\n        return std::nullopt;\n    }",
           "file": "xform.cpp"
         },
         "rust": {
           "sig": "inverse() -> Option<Xform>",
-          "code": "pub fn inverse(&self) -> Option<Xform> {\n        let a00 = self[(0, 0)];\n        let a01 = self[(0, 1)];\n        let a02 = self[(0, 2)];\n        let a10 = self[(1, 0)];\n        let a11 = self[(1, 1)];\n        let a12 = self[(1, 2)];\n        let a20 = self[(2, 0)];\n        let a21 = self[(2, 1)];\n        let a22 = self[(2, 2)];\n\n        let det = a00 * (a11 * a22 - a12 * a21) - a01 * (a10 * a22 - a12 * a20)\n            + a02 * (a10 * a21 - a11 * a20);\n        if det.abs() < 1e-12 {\n            return None;\n        }\n        let inv_det = 1.0 / det;\n\n        let m00 = (a11 * a22 - a12 * a21) * inv_det;\n        let m01 = (a02 * a21 - a01 * a22) * inv_det;\n        let m02 = (a01 * a12 - a02 * a11) * inv_det;\n        let m10 = (a12 * a20 - a10 * a22) * inv_det;\n        let m11 = (a00 * a22 - a02 * a20) * inv_det;\n        let m12 = (a02 * a10 - a00 * a12) * inv_det;\n        let m20 = (a10 * a21 - a11 * a20) * inv_det;\n        let m21 = (a01 * a20 - a00 * a21) * inv_det;\n        let m22 = (a00 * a11 - a01 * a10) * inv_det;\n\n        let tx = self[(0, 3)];\n        let ty = self[(1, 3)];\n        let tz = self[(2, 3)];\n        let itx = -(m00 * tx + m01 * ty + m02 * tz);\n        let ity = -(m10 * tx + m11 * ty + m12 * tz);\n        let itz = -(m20 * tx + m21 * ty + m22 * tz);\n\n        let mut res = Xform::identity();\n        res[(0, 0)] = m00;\n        res[(0, 1)] = m01;\n        res[(0, 2)] = m02;\n        res[(1, 0)] = m10;\n        res[(1, 1)] = m11;\n        res[(1, 2)] = m12;\n        res[(2, 0)] = m20;\n        res[(2, 1)] = m21;\n        res[(2, 2)] = m22;\n        res[(0, 3)] = itx;\n        res[(1, 3)] = ity;\n        res[(2, 3)] = itz;\n        Some(res)\n    }",
+          "code": "pub fn inverse(&self) -> Option<Xform> {\n        let s0 = self.m[0] * self.m[5] - self.m[1] * self.m[4];\n        let s1 = self.m[0] * self.m[9] - self.m[1] * self.m[8];\n        let s2 = self.m[0] * self.m[13] - self.m[1] * self.m[12];\n        let s3 = self.m[4] * self.m[9] - self.m[5] * self.m[8];\n        let s4 = self.m[4] * self.m[13] - self.m[5] * self.m[12];\n        let s5 = self.m[8] * self.m[13] - self.m[9] * self.m[12];\n        let c5 = self.m[10] * self.m[15] - self.m[11] * self.m[14];\n        let c4 = self.m[6] * self.m[15] - self.m[7] * self.m[14];\n        let c3 = self.m[6] * self.m[11] - self.m[7] * self.m[10];\n        let c2 = self.m[2] * self.m[15] - self.m[3] * self.m[14];\n        let c1 = self.m[2] * self.m[11] - self.m[3] * self.m[10];\n        let c0 = self.m[2] * self.m[7] - self.m[3] * self.m[6];\n        let det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0;\n        if det.abs() < 1e-12 {\n            return None;\n        }\n        let inv_det = 1.0 / det;\n        let mut res = Xform::identity();\n        res.m[0] = (self.m[5] * c5 - self.m[9] * c4 + self.m[13] * c3) * inv_det;\n        res.m[4] = (-self.m[4] * c5 + self.m[8] * c4 - self.m[12] * c3) * inv_det;\n        res.m[8] = (self.m[7] * s5 - self.m[11] * s4 + self.m[15] * s3) * inv_det;\n        res.m[12] = (-self.m[6] * s5 + self.m[10] * s4 - self.m[14] * s3) * inv_det;\n        res.m[1] = (-self.m[1] * c5 + self.m[9] * c2 - self.m[13] * c1) * inv_det;\n        res.m[5] = (self.m[0] * c5 - self.m[8] * c2 + self.m[12] * c1) * inv_det;\n        res.m[9] = (-self.m[3] * s5 + self.m[11] * s2 - self.m[15] * s1) * inv_det;\n        res.m[13] = (self.m[2] * s5 - self.m[10] * s2 + self.m[14] * s1) * inv_det;\n        res.m[2] = (self.m[1] * c4 - self.m[5] * c2 + self.m[13] * c0) * inv_det;\n        res.m[6] = (-self.m[0] * c4 + self.m[4] * c2 - self.m[12] * c0) * inv_det;\n        res.m[10] = (self.m[3] * s4 - self.m[7] * s2 + self.m[15] * s0) * inv_det;\n        res.m[14] = (-self.m[2] * s4 + self.m[6] * s2 - self.m[14] * s0) * inv_det;\n        res.m[3] = (-self.m[1] * c3 + self.m[5] * c1 - self.m[9] * c0) * inv_det;\n        res.m[7] = (self.m[0] * c3 - self.m[4] * c1 + self.m[8] * c0) * inv_det;\n        res.m[11] = (-self.m[3] * s3 + self.m[7] * s1 - self.m[11] * s0) * inv_det;\n        res.m[15] = (self.m[2] * s3 - self.m[6] * s1 + self.m[10] * s0) * inv_det;\n        Some(res)\n    }",
           "file": "xform.rs"
         }
       },
       "related": [
+        "Xform.__getitem__",
+        "Xform.__imul__",
         "Xform.__mul__",
         "Xform.guid",
         "Xform.identity",
@@ -74736,8 +74747,7 @@ window.API_INDEX = {
         "Xform.project_to_plane_by_axis",
         "Xform.to_cols",
         "Xform.x",
-        "Xform.y",
-        "Xform.z"
+        "Xform.y"
       ]
     },
     {
@@ -74771,6 +74781,7 @@ window.API_INDEX = {
         "Xform.inverse",
         "Xform.jsondump",
         "Xform.jsonload",
+        "Xform.project_to_plane",
         "Xform.project_to_plane_by_axis",
         "Xform.to_cols",
         "Xform.x",
@@ -74809,6 +74820,7 @@ window.API_INDEX = {
         "Xform.is_identity",
         "Xform.jsondump",
         "Xform.jsonload",
+        "Xform.project_to_plane",
         "Xform.project_to_plane_by_axis",
         "Xform.str",
         "Xform.x",
@@ -74838,6 +74850,7 @@ window.API_INDEX = {
         "Xform.is_identity",
         "Xform.jsondump",
         "Xform.jsonload",
+        "Xform.project_to_plane_by_axis",
         "Xform.str",
         "Xform.to_cols",
         "Xform.x",
@@ -74863,6 +74876,7 @@ window.API_INDEX = {
         "Xform.file_json_dump",
         "Xform.from_matrix",
         "Xform.guid",
+        "Xform.inverse",
         "Xform.is_identity",
         "Xform.jsondump",
         "Xform.jsonload",
@@ -74892,6 +74906,7 @@ window.API_INDEX = {
         "Xform.file_json_load",
         "Xform.from_matrix",
         "Xform.guid",
+        "Xform.inverse",
         "Xform.is_identity",
         "Xform.jsondump",
         "Xform.jsonload",
@@ -75612,8 +75627,8 @@ window.API_INDEX = {
       "name": "BRepTrimType.split_by_brep",
       "implementations": {
         "cpp": {
-          "sig": "BRep split_by_brep(const BRep& cutter, double tolerance = 0.0)",
-          "code": "BRep split_by_brep(const BRep& cutter, double tolerance = 0.0) const;",
+          "sig": "BRep split_by_brep(const BRep& cutter, double tolerance = 0.0, bool imported_freeform = false,\n                       const std::vector<std::vector<NurbsCurve>>* pre_cuts = nullptr)",
+          "code": "BRep split_by_brep(const BRep& cutter, double tolerance = 0.0, bool imported_freeform = false,\n                       const std::vector<std::vector<NurbsCurve>>* pre_cuts = nullptr) const;",
           "file": "brep.h"
         }
       }
@@ -76204,7 +76219,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "BRep split_with(double tolerance, const std::function<std::vector<NurbsCurve>(const NurbsSurface&)",
-          "code": "BRep BRep::split_with(double tolerance, const std::function<std::vector<NurbsCurve>(const NurbsSurface&)>& cut_for) const {\n    BRep result;\n    result.name = name;\n    std::map<std::tuple<long long, long long, long long>, int> vmap;\n    std::map<std::tuple<int, int, long long, long long, long long>, int> emap;\n    static const bool s_prof = (std::getenv(\"SESSION_BOOL_PROFILE\") != nullptr);\n    double prof_ssi = 0, prof_arr = 0, prof_lift = 0;\n    auto pf_now = []{ return std::chrono::high_resolution_clock::now(); }",
+          "code": "BRep BRep::split_with(double tolerance, const std::function<std::vector<NurbsCurve>(const NurbsSurface&)>& cut_for, bool imported_freeform) const {\n    BRep result;\n    result.name = name;\n    std::map<std::tuple<long long, long long, long long>, int> vmap;\n    std::map<std::tuple<int, int, long long, long long, long long>, int> emap;\n    static const bool s_prof = (std::getenv(\"SESSION_BOOL_PROFILE\") != nullptr);\n    double prof_ssi = 0, prof_arr = 0, prof_lift = 0;\n    auto pf_now = []{ return std::chrono::high_resolution_clock::now(); }",
           "file": "brep.cpp"
         }
       },
@@ -93975,7 +93990,6 @@ window.API_INDEX = {
         "Xform.from_matrix",
         "Xform.guid",
         "Xform.identity",
-        "Xform.inverse",
         "Xform.is_identity",
         "Xform.look_at_right_handed",
         "Xform.look_to_right_handed",
@@ -108274,12 +108288,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Xform\", \"Inverse\")",
-          "code": "MINI_TEST(\"Xform\", \"Inverse\") {\n    // uncomment #include \"xform.h\"\n    // uncomment #include \"mesh.h\"\n    Xform t = Xform::translation(1.0, 0.5, 0.5);\n    Xform s = Xform::scale_xyz(1.5, 1.2, 1.3);\n    Xform composite = t * s;\n    Xform inv = composite.inverse().value();\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh forward = mesh.transformed(composite);\n    Mesh roundtrip = forward.transformed(inv);\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(0).value(), Point(-1, -1, -1)));\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(1).value(), Point(1, -1, -1)));\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(2).value(), Point(1, 1, -1)));\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(3).value(), Point(-1, 1, -1)));\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(4).value(), Point(-1, -1, 1)));\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(5).value(), Point(1, -1, 1)));\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(6).value(), Point(1, 1, 1)));\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(7).value(), Point(-1, 1, 1)));\n}",
+          "code": "MINI_TEST(\"Xform\", \"Inverse\") {\n    // uncomment #include \"xform.h\"\n    // uncomment #include \"mesh.h\"\n    Xform t = Xform::translation(1.0, 0.5, 0.5);\n    Xform s = Xform::scale_xyz(1.5, 1.2, 1.3);\n    Xform composite = t * s;\n    Xform inv = composite.inverse().value();\n    Mesh mesh = Mesh::create_box(2, 2, 2);\n    Mesh forward = mesh.transformed(composite);\n    Mesh roundtrip = forward.transformed(inv);\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(0).value(), Point(-1, -1, -1)));\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(1).value(), Point(1, -1, -1)));\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(2).value(), Point(1, 1, -1)));\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(3).value(), Point(-1, 1, -1)));\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(4).value(), Point(-1, -1, 1)));\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(5).value(), Point(1, -1, 1)));\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(6).value(), Point(1, 1, 1)));\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(7).value(), Point(-1, 1, 1)));\n\n    Xform p = Xform::identity();\n    p.m[0] = 1.2;\n    p.m[5] = 0.8;\n    p.m[10] = 1.1;\n    p.m[14] = 0.5;\n    p.m[11] = -1.0;\n    p.m[15] = 0.0;\n    Xform pinv = p.inverse().value();\n    Xform prod = p * pinv;\n    MINI_CHECK(prod.is_identity());\n}",
           "file": "xform_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Xform\", \"Inverse\")",
-          "code": "@MINI_TEST(\"Xform\", \"Inverse\")\ndef test_xform_inverse():\n    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    t = Xform.translation(1.0, 0.5, 0.5)\n    s = Xform.scale_xyz(1.5, 1.2, 1.3)\n    composite = t * s\n    inv = composite.inverse()\n    mesh = Mesh.create_box(2, 2, 2)\n    forward = mesh.transformed(composite)\n    roundtrip = forward.transformed(inv)\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(0), Point(-1, -1, -1)))\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(1), Point(1, -1, -1)))\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(2), Point(1, 1, -1)))\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(3), Point(-1, 1, -1)))\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(4), Point(-1, -1, 1)))\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(5), Point(1, -1, 1)))\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(6), Point(1, 1, 1)))\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(7), Point(-1, 1, 1)))",
+          "code": "@MINI_TEST(\"Xform\", \"Inverse\")\ndef test_xform_inverse():\n    from session_py import Xform\n    from session_py import Mesh\n    from session_py import Point\n\n    t = Xform.translation(1.0, 0.5, 0.5)\n    s = Xform.scale_xyz(1.5, 1.2, 1.3)\n    composite = t * s\n    inv = composite.inverse()\n    mesh = Mesh.create_box(2, 2, 2)\n    forward = mesh.transformed(composite)\n    roundtrip = forward.transformed(inv)\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(0), Point(-1, -1, -1)))\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(1), Point(1, -1, -1)))\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(2), Point(1, 1, -1)))\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(3), Point(-1, 1, -1)))\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(4), Point(-1, -1, 1)))\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(5), Point(1, -1, 1)))\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(6), Point(1, 1, 1)))\n    MINI_CHECK(TOLERANCE.is_point_close(roundtrip.vertex_point(7), Point(-1, 1, 1)))\n\n    p = Xform.identity()\n    p.m[0] = 1.2\n    p.m[5] = 0.8\n    p.m[10] = 1.1\n    p.m[14] = 0.5\n    p.m[11] = -1.0\n    p.m[15] = 0.0\n    pinv = p.inverse()\n    prod = p * pinv\n    MINI_CHECK(prod.is_identity())",
           "file": "xform_test.py"
         },
         "rust": {
@@ -108454,11 +108468,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
-        "n",
-        "subdivide",
         "points",
         "circle",
+        "into",
+        "subdivide",
+        "n",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -108472,10 +108486,10 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
-        "length",
         "ellipse",
         "by",
         "subdivide",
+        "length",
         "arc",
         "divide_by_length",
         "nurbscurve",
@@ -108490,9 +108504,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
+        "points",
         "through",
         "arc",
-        "points",
         "nurbscurve",
         "primitives",
         "point"
@@ -108506,12 +108520,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "curve",
-        "from",
-        "polyline",
         "points",
-        "adaptive",
         "open",
+        "adaptive",
+        "from",
+        "curve",
+        "polyline",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -108526,10 +108540,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
+        "evaluation",
+        "at",
         "parameter",
         "curve",
-        "at",
-        "evaluation",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -108550,8 +108564,8 @@ window.API_INDEX = {
       "tags": [
         "length",
         "frames",
-        "curve",
         "along",
+        "curve",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -108574,8 +108588,8 @@ window.API_INDEX = {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
         "ellipse",
-        "frames",
         "perpendicular",
+        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -108596,10 +108610,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "surface",
-        "cylinder",
-        "evaluate",
         "point",
+        "evaluate",
+        "cylinder",
+        "surface",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -108614,10 +108628,10 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "faces",
-        "from",
-        "mesh",
         "and",
+        "faces",
+        "mesh",
+        "from",
         "vertices",
         "add_vertex",
         "add_face",
@@ -108760,6 +108774,12 @@ window.API_INDEX = {
       "uses": [],
       "summary": "GlobalSessionConfig geometry class"
     },
+    "CurveNurbsKnotStyle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
+    },
     "NurbsSurfaceTrimmed": {
       "composition": [],
       "factories": [],
@@ -108773,23 +108793,17 @@ window.API_INDEX = {
       ],
       "summary": "NurbsSurfaceTrimmed geometry class"
     },
-    "CurveNurbsKnotStyle": {
+    "GeometryFileEncoder": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
+      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
     },
     "GeometryFileDecoder": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
-    },
-    "GeometryFileEncoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
     },
     "TriangulateResult": {
       "composition": [],
@@ -108816,6 +108830,14 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
     },
+    "BooleanPolyline": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Polyline"
+      ],
+      "summary": "BooleanPolyline geometry class"
+    },
     "GlobalTolerance": {
       "composition": [],
       "factories": [],
@@ -108834,14 +108856,6 @@ window.API_INDEX = {
       ],
       "summary": "SpatialAABBTree geometry class"
     },
-    "BooleanPolyline": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Polyline"
-      ],
-      "summary": "BooleanPolyline geometry class"
-    },
     "SpatialBVHNode": {
       "composition": [],
       "factories": [],
@@ -108853,12 +108867,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "A node in the SpatialBVH tree."
-    },
-    "_PartitionVars": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_PartitionVars geometry class"
     },
     "VIntersectNode": {
       "composition": [],
@@ -108874,18 +108882,11 @@ window.API_INDEX = {
       ],
       "summary": "ToleranceGuard geometry class"
     },
-    "ElementColumn": {
+    "_PartitionVars": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "Plane",
-        "Polyline",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "ElementColumn geometry class"
+      "uses": [],
+      "summary": "_PartitionVars geometry class"
     },
     "SessionConfig": {
       "composition": [],
@@ -108902,11 +108903,33 @@ window.API_INDEX = {
       ],
       "summary": "KD-tree for point-to-point nearest-neighbor queries."
     },
-    "VLocalMinima": {
+    "ElementColumn": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "VLocalMinima geometry class"
+      "uses": [
+        "Line",
+        "Mesh",
+        "Plane",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "ElementColumn geometry class"
+    },
+    "ElementPlate": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "ElementPlate geometry class"
     },
     "NurbsSurface": {
       "composition": [
@@ -108950,39 +108973,6 @@ window.API_INDEX = {
       ],
       "summary": "Intersection geometry class"
     },
-    "VattiScratch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VattiScratch geometry class"
-    },
-    "SpatialRTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SpatialRTree geometry class"
-    },
-    "ElementPlate": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "ElementPlate geometry class"
-    },
-    "BRepLoopType": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoopType geometry class"
-    },
     "BRepTrimType": {
       "composition": [],
       "factories": [],
@@ -109000,11 +108990,17 @@ window.API_INDEX = {
       ],
       "summary": "BRepTrimType geometry class"
     },
-    "ScanlineHeap": {
+    "VattiScratch": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "ScanlineHeap geometry class"
+      "summary": "VattiScratch geometry class"
+    },
+    "SpatialRTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SpatialRTree geometry class"
     },
     "LoftWallFace": {
       "composition": [],
@@ -109012,17 +109008,29 @@ window.API_INDEX = {
       "uses": [],
       "summary": "LoftWallFace geometry class"
     },
+    "ScanlineHeap": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "ScanlineHeap geometry class"
+    },
+    "BRepLoopType": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoopType geometry class"
+    },
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
+    },
     "LoftAdjPair": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "LoftAdjPair geometry class"
-    },
-    "_Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay2D geometry class"
     },
     "ElementBeam": {
       "composition": [],
@@ -109037,14 +109045,6 @@ window.API_INDEX = {
       ],
       "summary": "ElementBeam geometry class"
     },
-    "session_cpp": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "session_cpp geometry class"
-    },
     "InstanceRef": {
       "composition": [],
       "factories": [],
@@ -109053,6 +109053,52 @@ window.API_INDEX = {
         "session_cpp"
       ],
       "summary": "A block reference: places a definition (by guid) at a transform."
+    },
+    "session_cpp": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "session_cpp geometry class"
+    },
+    "_Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay2D geometry class"
+    },
+    "PointCloud": {
+      "composition": [
+        "Color",
+        "Xform"
+      ],
+      "factories": [
+        "AABB",
+        "OBB"
+      ],
+      "uses": [
+        "Point",
+        "Vector"
+      ],
+      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
+    },
+    "VertexData": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "Vertex data containing position and attributes."
+    },
+    "ConvexHull": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Point"
+      ],
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
     },
     "NurbsCurve": {
       "composition": [
@@ -109075,41 +109121,6 @@ window.API_INDEX = {
         "session_cpp"
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
-    },
-    "PointCloud": {
-      "composition": [
-        "Color",
-        "Xform"
-      ],
-      "factories": [
-        "AABB",
-        "OBB"
-      ],
-      "uses": [
-        "Point",
-        "Vector"
-      ],
-      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
-    },
-    "BRepVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepVertex geometry class"
-    },
-    "Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Delaunay2D geometry class"
-    },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "Vertex data containing position and attributes."
     },
     "Quaternion": {
       "composition": [
@@ -109138,6 +109149,12 @@ window.API_INDEX = {
       ],
       "summary": "Static factory methods for creating NURBS curve primitives."
     },
+    "BRepVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepVertex geometry class"
+    },
     "SpatialBVH": {
       "composition": [],
       "factories": [
@@ -109161,26 +109178,49 @@ window.API_INDEX = {
       ],
       "summary": "MeshOffset geometry class"
     },
-    "ConvexHull": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Point"
-      ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
-    },
-    "_Triangle": {
+    "Delaunay2D": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Triangle geometry class"
+      "summary": "Delaunay2D geometry class"
+    },
+    "FlatMap64": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Delaunay2D",
+        "NurbsCurve",
+        "Point",
+        "Vector"
+      ],
+      "summary": "FlatMap64 geometry class"
+    },
+    "LoftPanel": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftPanel geometry class"
     },
     "VHorzJoin": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VHorzJoin geometry class"
+    },
+    "RemeshCDT": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Polyline"
+      ],
+      "summary": "RemeshCDT geometry class"
+    },
+    "_Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay geometry class"
     },
     "ColorMode": {
       "composition": [],
@@ -109198,49 +109238,17 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
-    "FlatMap64": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Delaunay2D",
-        "NurbsCurve",
-        "Point",
-        "Vector"
-      ],
-      "summary": "FlatMap64 geometry class"
-    },
-    "_Vertex2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Vertex2D geometry class"
-    },
-    "_Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay geometry class"
-    },
-    "LoftPanel": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftPanel geometry class"
-    },
     "Component": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Component geometry class"
     },
-    "RemeshCDT": {
+    "_Triangle": {
       "composition": [],
       "factories": [],
-      "uses": [
-        "Mesh",
-        "Polyline"
-      ],
-      "summary": "RemeshCDT geometry class"
+      "uses": [],
+      "summary": "_Triangle geometry class"
     },
     "Tolerance": {
       "composition": [],
@@ -109252,26 +109260,29 @@ window.API_INDEX = {
       ],
       "summary": "Tolerance settings for geometric operations."
     },
+    "_Vertex2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Vertex2D geometry class"
+    },
+    "BRepFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepFace geometry class"
+    },
     "BRepLoop": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepLoop geometry class"
     },
-    "Geometry": {
+    "BRepTrim": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Geometry geometry class"
-    },
-    "Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Edge",
-        "TriangulateResult"
-      ],
-      "summary": "Delaunay geometry class"
+      "summary": "BRepTrim geometry class"
     },
     "BRepEdge": {
       "composition": [],
@@ -109285,11 +109296,11 @@ window.API_INDEX = {
       "uses": [],
       "summary": "VHorzSeg geometry class"
     },
-    "BRepFace": {
+    "Geometry": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepFace geometry class"
+      "summary": "Geometry geometry class"
     },
     "TreeNode": {
       "composition": [],
@@ -109299,11 +109310,14 @@ window.API_INDEX = {
       ],
       "summary": "A node of a tree data structure."
     },
-    "BRepTrim": {
+    "Delaunay": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "BRepTrim geometry class"
+      "uses": [
+        "Edge",
+        "TriangulateResult"
+      ],
+      "summary": "Delaunay geometry class"
     },
     "Polyline": {
       "composition": [
@@ -109329,32 +109343,28 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "VVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VVertex geometry class"
-    },
-    "Closest": {
+    "Default": {
       "composition": [],
       "factories": [],
       "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
       ],
-      "summary": "Static methods for finding closest points between geometry objects."
+      "summary": "Default geometry class"
     },
-    "_Branch": {
+    "Dataset": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Branch geometry class"
+      "summary": "Dataset geometry class"
+    },
+    "VOutRec": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutRec geometry class"
     },
     "Session": {
       "composition": [
@@ -109384,17 +109394,20 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "VOutRec": {
+    "Closest": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "VOutRec geometry class"
-    },
-    "Dataset": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Dataset geometry class"
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Static methods for finding closest points between geometry objects."
     },
     "Objects": {
       "composition": [
@@ -109417,6 +109430,24 @@ window.API_INDEX = {
       ],
       "summary": "A collection of all geometry objects."
     },
+    "VActive": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VActive geometry class"
+    },
+    "_Branch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Branch geometry class"
+    },
+    "VVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VVertex geometry class"
+    },
     "Element": {
       "composition": [
         "Line",
@@ -109435,34 +109466,32 @@ window.API_INDEX = {
       ],
       "summary": "Element geometry class"
     },
-    "Default": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "Default geometry class"
-    },
-    "VActive": {
+    "BIVec2": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VActive geometry class"
-    },
-    "RayHit": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RayHit geometry class"
+      "summary": "BIVec2 geometry class"
     },
     "VOutPt": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VOutPt geometry class"
+    },
+    "Vertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Graph",
+        "session_cpp"
+      ],
+      "summary": "A graph vertex with a unique identifier and attribute string."
+    },
+    "RayHit": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "RayHit geometry class"
     },
     "Vector": {
       "composition": [],
@@ -109478,32 +109507,39 @@ window.API_INDEX = {
       ],
       "summary": "A 3D vector with visual properties."
     },
-    "BIVec2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BIVec2 geometry class"
-    },
-    "Vertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Graph",
-        "session_cpp"
-      ],
-      "summary": "A graph vertex with a unique identifier and attribute string."
-    },
     "Matrix": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Matrix geometry class"
     },
+    "_Node": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Node geometry class"
+    },
+    "_Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Edge geometry class"
+    },
     "_Rect": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Rect geometry class"
+    },
+    "Graph": {
+      "composition": [
+        "Edge"
+      ],
+      "factories": [],
+      "uses": [
+        "Vertex"
+      ],
+      "summary": "A graph data structure with string-only vertices and attributes."
     },
     "Color": {
       "composition": [],
@@ -109513,31 +109549,19 @@ window.API_INDEX = {
       ],
       "summary": "An index-based 0.0-1.0 color with RGBA values."
     },
-    "_Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Edge geometry class"
-    },
-    "_Node": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Node geometry class"
-    },
-    "Plane": {
+    "Point": {
       "composition": [],
       "factories": [
+        "AABB",
+        "ColorMode",
+        "Line",
+        "Mesh",
         "OBB",
-        "Quaternion"
+        "Plane",
+        "Vector"
       ],
-      "uses": [
-        "Point",
-        "Polyline",
-        "Vector",
-        "session_cpp"
-      ],
-      "summary": "A 3D plane defined by origin and coordinate axes."
+      "uses": [],
+      "summary": "A 3D point with visual properties."
     },
     "Xform": {
       "composition": [
@@ -109554,68 +109578,25 @@ window.API_INDEX = {
       ],
       "summary": "Xform geometry class"
     },
-    "Graph": {
-      "composition": [
-        "Edge"
-      ],
-      "factories": [],
-      "uses": [
-        "Vertex"
-      ],
-      "summary": "A graph data structure with string-only vertices and attributes."
-    },
-    "Point": {
+    "Plane": {
       "composition": [],
       "factories": [
-        "AABB",
-        "ColorMode",
-        "Line",
-        "Mesh",
         "OBB",
-        "Plane",
-        "Vector"
-      ],
-      "uses": [],
-      "summary": "A 3D point with visual properties."
-    },
-    "Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
-    },
-    "BRep": {
-      "composition": [
-        "BRepEdge",
-        "BRepFace",
-        "BRepLoop",
-        "BRepLoopType",
-        "BRepTrim",
-        "BRepTrimType",
-        "BRepVertex",
-        "Intersection",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "Vector"
-      ],
-      "factories": [
-        "BRepTrimType",
-        "Element"
+        "Quaternion"
       ],
       "uses": [
-        "Line",
-        "Mesh",
-        "Plane",
-        "Polyline"
+        "Point",
+        "Polyline",
+        "Vector",
+        "session_cpp"
       ],
-      "summary": "BRep geometry class"
+      "summary": "A 3D plane defined by origin and coordinate axes."
     },
-    "_P64": {
+    "_Tri": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_P64 geometry class"
+      "summary": "_Tri geometry class"
     },
     "Tree": {
       "composition": [
@@ -109625,28 +109606,6 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "A hierarchical data structure with parent-child relationships."
-    },
-    "_Tri": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Tri geometry class"
-    },
-    "AABB": {
-      "composition": [],
-      "factories": [
-        "OBB"
-      ],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Axis-aligned bounding box (center + half-size)."
     },
     "Line": {
       "composition": [
@@ -109691,11 +109650,60 @@ window.API_INDEX = {
       ],
       "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
-    "_V2": {
+    "_P64": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_V2 geometry class"
+      "summary": "_P64 geometry class"
+    },
+    "BRep": {
+      "composition": [
+        "BRepEdge",
+        "BRepFace",
+        "BRepLoop",
+        "BRepLoopType",
+        "BRepTrim",
+        "BRepTrimType",
+        "BRepVertex",
+        "Intersection",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "Vector"
+      ],
+      "factories": [
+        "BRepTrimType",
+        "Element"
+      ],
+      "uses": [
+        "Line",
+        "Mesh",
+        "Plane",
+        "Polyline"
+      ],
+      "summary": "BRep geometry class"
+    },
+    "Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
+    "AABB": {
+      "composition": [],
+      "factories": [
+        "OBB"
+      ],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Axis-aligned bounding box (center + half-size)."
     },
     "OBB": {
       "composition": [
@@ -109718,6 +109726,12 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
+    },
+    "_V2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],

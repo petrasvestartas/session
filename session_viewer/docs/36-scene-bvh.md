@@ -34,7 +34,9 @@ Geometry::Mesh(m) => {
 
 That's correct for the kernel, where a mesh's vertices *are* its world coordinates. But lessons 33–35
 established the opposite convention for the viewer: `Mesh::to_render()` ignores `mesh.xform`, so the
-viewer treats **`mesh.xform` as the placement** (the instance model matrix). A box built from local
+viewer treats **`mesh.xform` as the placement** (the instance model matrix). (This inconsistency is
+kernel-gap #3 in `_KERNEL_GAPS.md` — if the kernel ever unifies placement semantics, `world_obb`
+below collapses to one call.) A box built from local
 vertices would sit at the origin, not where the mesh actually draws — every mesh in the tree would be
 in the wrong place. (`BRep` is fine — the kernel *does* transform `b.m_vertices` by `b.xform` there —
 but Mesh is the common case and it's wrong for us.) So the viewer computes each object's **world** box

@@ -1,8 +1,16 @@
 use session_rust::RenderVertex;
 
 pub const MSAA_SAMPLES: u32 = 4;
-const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![3 => Uint32];
-const CYL_TEMPLATE_ATTRIBS: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Float32x3];
+const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
+    offset: 0,
+    shader_location: 3,
+    format: wgpu::VertexFormat::Uint32,
+}];
+const CYL_TEMPLATE_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
+    offset: 0,
+    shader_location: 0,
+    format: wgpu::VertexFormat::Float32x3,
+}];
 
 
 // This helps the GPU to read the second vertex buffer - the instance row id.
@@ -15,7 +23,7 @@ fn instance_id_layout() -> wgpu::VertexBufferLayout<'static>{
     }
 }
 
-fn cyl_template() -> wgpu::VertexBufferLayout<'static>{
+fn cyl_template_layout() -> wgpu::VertexBufferLayout<'static>{
     wgpu::VertexBufferLayout {
         array_stride: 12, // one vec3<f32> per templete vertex
         step_mode: wgpu::VertexStepMode::Vertex,
@@ -224,6 +232,66 @@ pub fn build_edges_pipeline(
             cache: None,
         }
     )
+}
+
+pub fn build_cylinder_pipeline(
+    device: &wgpu::Device,
+    color_format: wgpu::TextureFormat,
+    mvp_layout: &wgpu::BindGroupLayout,
+    line_layout: &wgpu::BindGroupLayout,
+    instance_layout: &wgpu::BindGroupLayout,
+    segment_layout: &wgpu::BindGroupLayout,
+) -> wgpu::RenderPipeline {
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("cylinder.shader"),
+        source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/cylinder.wgsl").into()),
+    });
+
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("cylinder.layout"),
+        bind_group_layouts: &[Some(mvp_layout), Some(line_layout), Some(instance_layout), Some(segment_layout)],
+        immediate_size: 0,
+    });
+
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("cylinder"),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState {
+            module: &shader,
+            entry_point: Some("vs_main"),
+            buffers: &[cyl_template_layout()],   // slot 0 — the unit-cylinder positions
+            compilation_options: Default::default(),
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &shader,
+            entry_point: Some("fs_main"),
+            targets: &[Some(wgpu::ColorTargetState {
+                format: color_format,
+                blend: None,
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+            compilation_options: Default::default(),
+        }),
+        primitive: wgpu::PrimitiveState {
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: None,                     // thin tubes — keep both faces
+            polygon_mode: wgpu::PolygonMode::Fill,
+            unclipped_depth: false,
+            conservative: false,
+        },
+        depth_stencil: Some(wgpu::DepthStencilState {
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: Some(true),     // solid tubes occlude correctly, no bias needed
+            depth_compare: Some(wgpu::CompareFunction::Greater),  // reverse-Z (lesson 26)
+            stencil: wgpu::StencilState::default(),
+            bias: wgpu::DepthBiasState::default(),
+        }),
+        multisample: wgpu::MultisampleState { count: MSAA_SAMPLES, mask: !0, alpha_to_coverage_enabled: false },
+        multiview_mask: None,
+        cache: None,
+    })
 }
 
 pub fn build_background_pipeline(

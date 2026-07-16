@@ -124,6 +124,9 @@ impl Scene {
 }
 ```
 
+(`pick_ray` needs `&mut self` only because the kernel's lazy triangle BVH builds through plain
+mutation — kernel-gap #9 in `_KERNEL_GAPS.md`; interior mutability there would make picking `&self`.)
+
 And the tiny result type, `src/app/pick.rs`:
 
 ```rust

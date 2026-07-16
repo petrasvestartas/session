@@ -6,7 +6,8 @@
 > (`session.objects.nurbscurves`, `.nurbssurfaces`, `.nurbssurfacetrimmeds`). Every map the viewer
 > keeps (draw order, world boxes, picking, visibility) must include them *explicitly* — the archive
 > forgot, repeatedly, and each forget was a bug ("surface draws but won't pick", "trimmed surface
-> vanishes from the tree"). This phase's discipline: **one collection, every map.**
+> vanishes from the tree"). This phase's discipline: **one collection, every map.** (The root cause is
+> kernel-gap #4 in `_KERNEL_GAPS.md` — nurbs types as `Geometry` variants would retire the bug class.)
 
 <svg viewBox="0 0 680 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a nurbs curve is sampled at parameters into a polyline whose segments feed the cylinder path; the sample count adapts to the span count" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <path d="M 30,100 C 110,20 190,120 270,50" fill="none" stroke="#6fb3ff" stroke-width="2"/>

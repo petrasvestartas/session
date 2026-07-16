@@ -34,7 +34,9 @@ was the archive's entire pick path.
 Two of its arms we deliberately ignore: its **Mesh** arm casts against local vertices — placement-blind
 for our `mesh.xform` convention (the same trap as 36) — and its **BRep** arm is a no-op by design
 ("viewers must use pre-cached tessellations"). 42's viewer-side mesh cast already handles both
-correctly. So: **kernel cast for thin, 42 for solid, merge with a priority rule.**
+correctly. So: **kernel cast for thin, 42 for solid, merge with a priority rule.** (Kernel-gaps #3/#7
+in `_KERNEL_GAPS.md` — placement-aware casting plus a cached BRep mesh would let `Session::ray_cast`
+be the whole picker.)
 
 ## Files we touch
 

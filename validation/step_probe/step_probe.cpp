@@ -26,6 +26,8 @@
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <BRepPrimAPI_MakeTorus.hxx>
 #include <BRepAlgoAPI_Cut.hxx>
+#include <BRepAlgoAPI_Common.hxx>
+#include <BRepAlgoAPI_Fuse.hxx>
 #include <BRepBuilderAPI_Transform.hxx>
 #include <BRepBuilderAPI_NurbsConvert.hxx>
 #include <BRepPrimAPI_MakeSphere.hxx>
@@ -66,18 +68,25 @@ int main(int argc, char** argv) {
     // Boolean oracle on IMPORTED files: --cut A.step B.step reads both with the strict
     // importer, runs OCCT's cut, and reports the result -- the truth reference for our
     // imported-brep boolean campaign (oracle.exe only builds primitives).
-    if (std::strcmp(argv[1], "--cut") == 0 && argc >= 4) {
+    if ((std::strcmp(argv[1], "--cut") == 0 || std::strcmp(argv[1], "--common") == 0
+         || std::strcmp(argv[1], "--fuse") == 0) && argc >= 4) {
         STEPControl_Reader ra, rb;
         if (ra.ReadFile(argv[2]) != IFSelect_RetDone) { std::printf("READ_FAIL A\n"); return 1; }
         if (rb.ReadFile(argv[3]) != IFSelect_RetDone) { std::printf("READ_FAIL B\n"); return 1; }
         ra.TransferRoots(); rb.TransferRoots();
-        TopoDS_Shape rr = BRepAlgoAPI_Cut(ra.OneShape(), rb.OneShape()).Shape();
+        TopoDS_Shape rr;
+        if (std::strcmp(argv[1], "--common") == 0)
+            rr = BRepAlgoAPI_Common(ra.OneShape(), rb.OneShape()).Shape();
+        else if (std::strcmp(argv[1], "--fuse") == 0)
+            rr = BRepAlgoAPI_Fuse(ra.OneShape(), rb.OneShape()).Shape();
+        else
+            rr = BRepAlgoAPI_Cut(ra.OneShape(), rb.OneShape()).Shape();
         int nsolid = 0, nface = 0;
         for (TopExp_Explorer e(rr, TopAbs_SOLID); e.More(); e.Next()) nsolid++;
         for (TopExp_Explorer e(rr, TopAbs_FACE); e.More(); e.Next()) nface++;
         double vol = 0.0;
         if (nface > 0) { GProp_GProps vp; BRepGProp::VolumeProperties(rr, vp, 1e-9); vol = vp.Mass(); }
-        std::printf("CUT_SOLIDS %d\nCUT_FACES %d\nCUT_VOLUME %.9f\nCUT_VALID %d\n",
+        std::printf("OP_SOLIDS %d\nOP_FACES %d\nOP_VOLUME %.9f\nOP_VALID %d\n",
                     nsolid, nface, vol, nface > 0 ? (BRepCheck_Analyzer(rr).IsValid() ? 1 : 0) : 0);
         return 0;
     }

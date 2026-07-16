@@ -46,7 +46,8 @@ would differ even when the geometry is byte-identical — marking every mesh "ch
 
 Use the kernel's `jsondump` instead: it emits **sorted** JSON (deterministic regardless of map order),
 and every variant that has it round-trips through it in the minitests. `BRep` has no `jsondump`, so
-fingerprint it by its tessellation plus placement:
+fingerprint it by its tessellation plus placement (kernel-gap #6 in `_KERNEL_GAPS.md`: a uniform
+`Geometry::jsondump()` / `content_hash()` would make this function one line):
 
 ```rust
 use std::hash::{Hash, Hasher};

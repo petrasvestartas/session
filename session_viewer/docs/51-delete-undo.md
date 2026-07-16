@@ -148,7 +148,8 @@ impl Command for RemoveObjects {
 ## Step 3 — restoring a snapshot: `src/app/scene.rs`
 
 The kernel removes generically (`Session::remove_object(guid)`) but adds per type — a small dispatch
-closes the gap:
+closes the gap (kernel-gap #8 in `_KERNEL_GAPS.md`: a kernel `add_geometry(Geometry)` would delete
+this function):
 
 ```rust
     /// Re-insert a snapshot into the Session (lookup + collections + tree). Guid is inside the object.

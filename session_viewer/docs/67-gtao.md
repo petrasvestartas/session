@@ -54,8 +54,9 @@ fn view_pos(ndc: vec2<f32>, d: f32) -> vec3<f32> {
 }
 ```
 
-Two multiplies per axis, exact, no matrix. (The archive's root perspective bug lived here — its CPU
-`Xform::inverse` is affine-only, 41's warning; the analytic form sidesteps the whole class.)
+Two multiplies per axis, exact, no matrix. (The archive's root perspective bug lived here — the
+kernel's `Xform::inverse` used to be affine-only; lesson 41 found and fixed it kernel-wide. The
+analytic form is still the right choice *here* regardless: fewer ops per pixel and no matrix upload.)
 
 **2. Interleaved Gradient Noise, STATIC.** Every AO needs per-pixel randomization of sample
 directions or it bands. Use IGN — `fract(52.9829189 * fract(0.06711056·x + 0.00583715·y))` — a
@@ -128,8 +129,8 @@ Ch 66: render-on-demand — idle is free.
 Ch 67: GTAO, CONSTANT QUALITY. Scene → offscreen color; AO at HALF res in R16Float (banding), 3
        slices × 6 steps, horizons integrated closed-form; ONE 5-tap depth-aware blur; composite does
        depth-aware upsample × scene. Budget ≈ 12 reads/px/drawn-frame vs the archive's ~112. The five
-       ported traps: (1) view-pos via ANALYTIC inv-projection — never a matrix inverse (the affine-
-       only Xform::inverse bug, shader edition); (2) IGN noise, STATIC — per-frame jitter shimmers
+       ported traps: (1) view-pos via ANALYTIC inv-projection — cheaper and exact (and the historic
+       affine-only Xform::inverse bug, fixed in 41, lived here); (2) IGN noise, STATIC — per-frame jitter shimmers
        during rotation and violates the quality rule; (3) the tangent-plane gate dot(Δ,N) > len·0.07
        + bias — mandatory or grazing floors stripe; (4) radius = %-of-bbox-diag, clamped; (5) MSAA
        depth via textureLoad sample 0. Bent normal written beside AO — free from the horizon search,

@@ -434,7 +434,7 @@ start instead of being retrofitted at lesson 69 like the old plan.
     super-refinement rejected for the same reason: if idle looks better, starting a rotation
     reads as a quality DROP.)
   - port from the archive (proven, don't re-derive): view-pos reconstruction via ANALYTIC
-    inv_proj (`Xform::inverse` is affine-only — the archive's root perspective bug), IGN noise,
+    inv_proj (`Xform::inverse` WAS affine-only — found & fixed kernel-wide in lesson 41), IGN noise,
     the tangent-plane gate (`dot(D,N) > len·0.07 + bias` — MANDATORY or grazing planes stripe),
     radius = %-of-bbox-diag clamped, R16Float against banding, MSAA depth `textureLoad` sample 0
   - output a BENT NORMAL beside AO (free byproduct of GTAO horizon search) → 68 consumes it

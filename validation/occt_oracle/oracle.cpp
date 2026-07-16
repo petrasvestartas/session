@@ -26,6 +26,7 @@
 #include <BRepBuilderAPI_Transform.hxx>
 #include <BRepAlgoAPI_Section.hxx>
 #include <STEPControl_Writer.hxx>
+#include <STEPControl_Reader.hxx>
 #include <BRep_Tool.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_Edge.hxx>
@@ -721,7 +722,13 @@ int main(int argc, char** argv) {
             else if (kind == "sphere") { p.resize(1); in >> p[0]; }
             else if (kind == "cone") { p.resize(2); in >> p[0] >> p[1]; }
             else if (kind == "torus") { p.resize(2); in >> p[0] >> p[1]; }
-            shp = (kind == "nurbs") ? build_nurbs_solid(in) : build_solid(kind, p);
+            if (kind == "step") {
+                std::string path; in >> path;
+                STEPControl_Reader rd;
+                if (rd.ReadFile(path.c_str()) == IFSelect_RetDone) { rd.TransferRoots(); shp = rd.OneShape(); }
+            } else {
+                shp = (kind == "nurbs") ? build_nurbs_solid(in) : build_solid(kind, p);
+            }
             std::string xfkw; Spec sp; sp.hasXf = true;
             in >> xfkw >> sp.tx >> sp.ty >> sp.tz >> sp.ax >> sp.ay >> sp.az >> sp.deg;  // XF ...
             if (!shp.IsNull() && (sp.tx || sp.ty || sp.tz || sp.deg)) {

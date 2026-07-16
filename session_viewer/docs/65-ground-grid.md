@@ -126,10 +126,10 @@ ground is real geometry that occludes and is occluded; `frag_depth` makes that e
 ```
 
 Draw order in `clear()`: background gradient (25) → **ground** → grid (20) → meshes/lines/points.
-The per-frame uniform fills from values already at hand: `mat4_inverse(&view_proj.to_cols())` — 41's
-**full** 4×4 inverse, NOT the kernel's affine-only `Xform::inverse()` (41's warning applies doubly
-here: this matrix contains the projection) — `eye − origin`, fade radius ≈ 30× the camera distance
-(feels infinite without banding), and `−origin[2]`.
+The per-frame uniform fills from values already at hand: `view_proj.inverse()` (the kernel's full
+4×4 inverse — fixed during lesson 41; this matrix contains the projection, which the old affine-only
+version got wrong), `eye − origin`, fade radius ≈ 30× the camera distance (feels infinite without
+banding), and `−origin[2]`.
 
 > **Grid upgrade (optional but natural here).** Lesson 20's vertex grid is 50 fixed lines — fine on
 > the demo, small on a big scene. The same analytic trick renders an **infinite** grid: in this very

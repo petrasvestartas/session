@@ -28,7 +28,8 @@ src/state.rs       # gumball path: surfaces take the mesh fast-path (matrix-only
 ## Step 1 — the cache: `src/app/scene.rs`
 
 The kernel does the hard part — `NurbsSurface::mesh()` returns a `Mesh` with **baked vertex normals**
-(the deflection-refined pipeline shared by all three languages). Cache it by guid:
+(the deflection-refined pipeline shared by all three languages). Cache it by guid (kernel-gap #7 in
+`_KERNEL_GAPS.md`: a kernel-side cached render mesh would serve every consumer, not just this viewer):
 
 ```rust
     pub tess_cache: std::collections::HashMap<String, Mesh>,   // ← ADD to Scene (init empty)

@@ -161,6 +161,7 @@ impl Gpu {
         let mut vids: Vec<u32> = Vec::new(); // slot 1 - one row id per vertex (@location 3)
         let mut idx: Vec<u32> = Vec::new(); // the shared index buffer
         let mut instances: Vec<Instance> = Vec::with_capacity(objects.len());
+        let mut segments: Vec<CylinderSegment> = Vec::new();
 
         for (ri, (mesh, model, color)) in objects.into_iter().enumerate(){
             instances.push(Instance{model: model.to_f32(), color, flags: 0, _pad: [0; 3]});
@@ -173,6 +174,15 @@ impl Gpu {
             for &i in &rm.indices{
                 idx.push(base + i);
             }
+            // Edge - one cylinswe wXH;
+            // instance_id = this object's new (ri)
+            // Point::to_f32() / Color::to_f32() are the kernel's GPU-edge casts
+            for (a, b, col) in mesh.edges_with_colors(){
+                let pa = mesh.vertex_point(a).unwrap();
+                let pb = mesh.vertex_point(b).unwrap();
+                segments.push(CylinderSegment { p0: pa.to_f32(), radius: 0.0, p1: pb.to_f32(), instance_id: ri as u32, color: col.to_f32(), });
+            }
+
         }
 
         let arena_index_count = idx.len() as u32;
