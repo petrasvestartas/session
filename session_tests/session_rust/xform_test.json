@@ -63,7 +63,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.044
+    "time_ms": 0.038
   },
   {
     "checks": [
@@ -165,7 +165,7 @@
     "line": 84,
     "passed": true,
     "test_name": "Rotation X",
-    "time_ms": 0.146
+    "time_ms": 0.147
   },
   {
     "checks": [
@@ -216,7 +216,7 @@
     "line": 105,
     "passed": true,
     "test_name": "Rotation Y",
-    "time_ms": 0.138
+    "time_ms": 0.147
   },
   {
     "checks": [
@@ -267,7 +267,7 @@
     "line": 126,
     "passed": true,
     "test_name": "Rotation Z",
-    "time_ms": 0.15
+    "time_ms": 0.141
   },
   {
     "checks": [
@@ -318,7 +318,7 @@
     "line": 147,
     "passed": true,
     "test_name": "Rotation Axis",
-    "time_ms": 0.183
+    "time_ms": 0.15
   },
   {
     "checks": [
@@ -369,7 +369,7 @@
     "line": 171,
     "passed": true,
     "test_name": "Rotation Around Line",
-    "time_ms": 0.16
+    "time_ms": 0.156
   },
   {
     "checks": [
@@ -420,7 +420,7 @@
     "line": 194,
     "passed": true,
     "test_name": "Change Basis",
-    "time_ms": 0.158
+    "time_ms": 0.157
   },
   {
     "checks": [
@@ -471,7 +471,7 @@
     "line": 223,
     "passed": true,
     "test_name": "Plane To Plane",
-    "time_ms": 0.159
+    "time_ms": 0.162
   },
   {
     "checks": [
@@ -522,7 +522,7 @@
     "line": 247,
     "passed": true,
     "test_name": "Scale XYZ",
-    "time_ms": 0.139
+    "time_ms": 0.146
   },
   {
     "checks": [
@@ -573,7 +573,7 @@
     "line": 267,
     "passed": true,
     "test_name": "Scale Uniform",
-    "time_ms": 0.141
+    "time_ms": 0.149
   },
   {
     "checks": [
@@ -624,7 +624,7 @@
     "line": 288,
     "passed": true,
     "test_name": "Scale Non Uniform",
-    "time_ms": 0.143
+    "time_ms": 0.145
   },
   {
     "checks": [
@@ -675,7 +675,7 @@
     "line": 309,
     "passed": true,
     "test_name": "Look At Right Handed",
-    "time_ms": 0.238
+    "time_ms": 0.151
   },
   {
     "checks": [
@@ -726,7 +726,7 @@
     "line": 332,
     "passed": true,
     "test_name": "Look To Right Handed",
-    "time_ms": 0.261
+    "time_ms": 0.144
   },
   {
     "checks": [
@@ -777,7 +777,7 @@
     "line": 355,
     "passed": true,
     "test_name": "Perspective",
-    "time_ms": 0.21
+    "time_ms": 0.15
   },
   {
     "checks": [
@@ -828,7 +828,7 @@
     "line": 378,
     "passed": true,
     "test_name": "Orthographic",
-    "time_ms": 0.218
+    "time_ms": 0.142
   },
   {
     "checks": [
@@ -864,7 +864,7 @@
     "line": 400,
     "passed": true,
     "test_name": "Project To Plane",
-    "time_ms": 0.059
+    "time_ms": 0.032
   },
   {
     "checks": [
@@ -900,7 +900,7 @@
     "line": 429,
     "passed": true,
     "test_name": "Project To Plane By Axis",
-    "time_ms": 0.053
+    "time_ms": 0.029
   },
   {
     "checks": [
@@ -956,7 +956,7 @@
     "line": 459,
     "passed": true,
     "test_name": "Inverse",
-    "time_ms": 0.317
+    "time_ms": 0.174
   },
   {
     "checks": [
@@ -1007,7 +1007,7 @@
     "line": 550,
     "passed": true,
     "test_name": "Transform Geometry",
-    "time_ms": 0.072
+    "time_ms": 0.038
   },
   {
     "checks": [
@@ -1068,7 +1068,7 @@
     "line": 607,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 16.692
+    "time_ms": 12.785
   },
   {
     "checks": [
@@ -1129,7 +1129,7 @@
     "line": 631,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 14.356
+    "time_ms": 13.883
   },
   {
     "checks": [
@@ -1155,7 +1155,7 @@
     "line": 681,
     "passed": true,
     "test_name": "From Change Of Basis",
-    "time_ms": 0.039
+    "time_ms": 0.037
   },
   {
     "checks": [
@@ -1176,7 +1176,7 @@
     "line": 517,
     "passed": true,
     "test_name": "Transform Vector",
-    "time_ms": 0.009
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -1197,7 +1197,7 @@
     "line": 494,
     "passed": true,
     "test_name": "Transform Point",
-    "time_ms": 0.013
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -1243,6 +1243,6 @@
     "line": 534,
     "passed": true,
     "test_name": "To Cols",
-    "time_ms": 0.003
+    "time_ms": 0.002
   }
 ]

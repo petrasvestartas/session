@@ -4395,7 +4395,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "to_str(v)",
-          "code": "def to_str(v):\n\n        return \"inner\" if v == 1 else \"outer\"\n\n    @staticmethod\n    def from_str(s):\n        return 1 if s == \"inner\" else 0\n\n\nclass BRepVertex:\n    def __init__(self):\n        self.point_index = -1\n        self.edge_indices = []\n\n\nclass BRepEdge:\n    def __init__(self):\n        self.curve_3d_index = -1\n        self.start_vertex = -1\n        self.end_vertex = -1\n        self.trim_indices = []\n\n\nclass BRepTrim:\n    def __init__(self):\n        self.curve_2d_index = -1\n        self.edge_index = -1\n        self.loop_index = -1\n        self.reversed = False\n        self.type = BRepTrimType.Boundary\n\n\nclass BRepLoop:\n    def __init__(self):\n        self.trim_indices = []\n        self.face_index = -1\n        self.type = BRepLoopType.Outer\n\n\nclass BRepFace:\n    def __init__(self):\n        self.surface_index = -1\n        self.loop_indices = []\n        self.reversed = False\n        self.facecolor = None\n\n\nclass BRep:\n    def __init__(self):\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter",
+          "code": "def to_str(v):\n\n        return \"inner\" if v == 1 else \"outer\"\n\n    @staticmethod\n    def from_str(s):\n        return 1 if s == \"inner\" else 0\n\n\nclass BRepVertex:\n    def __init__(self):\n        self.point_index = -1\n        self.edge_indices = []\n\n\nclass BRepEdge:\n    def __init__(self):\n        self.curve_3d_index = -1\n        self.start_vertex = -1\n        self.end_vertex = -1\n        self.trim_indices = []\n\n\nclass BRepTrim:\n    def __init__(self):\n        self.curve_2d_index = -1\n        self.edge_index = -1\n        self.loop_index = -1\n        self.reversed = False\n        self.type = BRepTrimType.Boundary\n\n\nclass BRepLoop:\n    def __init__(self):\n        self.trim_indices = []\n        self.face_index = -1\n        self.type = BRepLoopType.Outer\n\n\nclass BRepFace:\n    def __init__(self):\n        self.surface_index = -1\n        self.loop_indices = []\n        self.reversed = False\n        self.facecolor = None\n\n\nclass BRep:\n    def __init__(self):\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:",
           "file": "brep.py"
         }
       },
@@ -4408,7 +4408,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "from_str(s)",
-          "code": "def from_str(s):\n\n        return 1 if s == \"inner\" else 0\n\n\nclass BRepVertex:\n    def __init__(self):\n        self.point_index = -1\n        self.edge_indices = []\n\n\nclass BRepEdge:\n    def __init__(self):\n        self.curve_3d_index = -1\n        self.start_vertex = -1\n        self.end_vertex = -1\n        self.trim_indices = []\n\n\nclass BRepTrim:\n    def __init__(self):\n        self.curve_2d_index = -1\n        self.edge_index = -1\n        self.loop_index = -1\n        self.reversed = False\n        self.type = BRepTrimType.Boundary\n\n\nclass BRepLoop:\n    def __init__(self):\n        self.trim_indices = []\n        self.face_index = -1\n        self.type = BRepLoopType.Outer\n\n\nclass BRepFace:\n    def __init__(self):\n        self.surface_index = -1\n        self.loop_indices = []\n        self.reversed = False\n        self.facecolor = None\n\n\nclass BRep:\n    def __init__(self):\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property",
+          "code": "def from_str(s):\n\n        return 1 if s == \"inner\" else 0\n\n\nclass BRepVertex:\n    def __init__(self):\n        self.point_index = -1\n        self.edge_indices = []\n\n\nclass BRepEdge:\n    def __init__(self):\n        self.curve_3d_index = -1\n        self.start_vertex = -1\n        self.end_vertex = -1\n        self.trim_indices = []\n\n\nclass BRepTrim:\n    def __init__(self):\n        self.curve_2d_index = -1\n        self.edge_index = -1\n        self.loop_index = -1\n        self.reversed = False\n        self.type = BRepTrimType.Boundary\n\n\nclass BRepLoop:\n    def __init__(self):\n        self.trim_indices = []\n        self.face_index = -1\n        self.type = BRepLoopType.Outer\n\n\nclass BRepFace:\n    def __init__(self):\n        self.surface_index = -1\n        self.loop_indices = []\n        self.reversed = False\n        self.facecolor = None\n\n\nclass BRep:\n    def __init__(self):\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter",
           "file": "brep.py"
         }
       },
@@ -4421,7 +4421,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__()",
-          "code": "def __init__(self):\n\n        self.point_index = -1\n        self.edge_indices = []\n\n\nclass BRepEdge:\n    def __init__(self):\n        self.curve_3d_index = -1\n        self.start_vertex = -1\n        self.end_vertex = -1\n        self.trim_indices = []\n\n\nclass BRepTrim:\n    def __init__(self):\n        self.curve_2d_index = -1\n        self.edge_index = -1\n        self.loop_index = -1\n        self.reversed = False\n        self.type = BRepTrimType.Boundary\n\n\nclass BRepLoop:\n    def __init__(self):\n        self.trim_indices = []\n        self.face_index = -1\n        self.type = BRepLoopType.Outer\n\n\nclass BRepFace:\n    def __init__(self):\n        self.surface_index = -1\n        self.loop_indices = []\n        self.reversed = False\n        self.facecolor = None\n\n\nclass BRep:\n    def __init__(self):\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform",
+          "code": "def __init__(self):\n\n        self.point_index = -1\n        self.edge_indices = []\n\n\nclass BRepEdge:\n    def __init__(self):\n        self.curve_3d_index = -1\n        self.start_vertex = -1\n        self.end_vertex = -1\n        self.trim_indices = []\n\n\nclass BRepTrim:\n    def __init__(self):\n        self.curve_2d_index = -1\n        self.edge_index = -1\n        self.loop_index = -1\n        self.reversed = False\n        self.type = BRepTrimType.Boundary\n\n\nclass BRepLoop:\n    def __init__(self):\n        self.trim_indices = []\n        self.face_index = -1\n        self.type = BRepLoopType.Outer\n\n\nclass BRepFace:\n    def __init__(self):\n        self.surface_index = -1\n        self.loop_indices = []\n        self.reversed = False\n        self.facecolor = None\n\n\nclass BRep:\n    def __init__(self):\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):",
           "file": "brep.py"
         }
       }
@@ -4431,7 +4431,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__()",
-          "code": "def __init__(self):\n\n        self.curve_3d_index = -1\n        self.start_vertex = -1\n        self.end_vertex = -1\n        self.trim_indices = []\n\n\nclass BRepTrim:\n    def __init__(self):\n        self.curve_2d_index = -1\n        self.edge_index = -1\n        self.loop_index = -1\n        self.reversed = False\n        self.type = BRepTrimType.Boundary\n\n\nclass BRepLoop:\n    def __init__(self):\n        self.trim_indices = []\n        self.face_index = -1\n        self.type = BRepLoopType.Outer\n\n\nclass BRepFace:\n    def __init__(self):\n        self.surface_index = -1\n        self.loop_indices = []\n        self.reversed = False\n        self.facecolor = None\n\n\nclass BRep:\n    def __init__(self):\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __str__(self):\n        return f\"BRep(name={self.name}, faces={self.face_count()}, edges={self.edge_count()}, vertices={self.vertex_count()})\"",
+          "code": "def __init__(self):\n\n        self.curve_3d_index = -1\n        self.start_vertex = -1\n        self.end_vertex = -1\n        self.trim_indices = []\n\n\nclass BRepTrim:\n    def __init__(self):\n        self.curve_2d_index = -1\n        self.edge_index = -1\n        self.loop_index = -1\n        self.reversed = False\n        self.type = BRepTrimType.Boundary\n\n\nclass BRepLoop:\n    def __init__(self):\n        self.trim_indices = []\n        self.face_index = -1\n        self.type = BRepLoopType.Outer\n\n\nclass BRepFace:\n    def __init__(self):\n        self.surface_index = -1\n        self.loop_indices = []\n        self.reversed = False\n        self.facecolor = None\n\n\nclass BRep:\n    def __init__(self):\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):",
           "file": "brep.py"
         }
       }
@@ -4441,7 +4441,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__()",
-          "code": "def __init__(self):\n\n        self.curve_2d_index = -1\n        self.edge_index = -1\n        self.loop_index = -1\n        self.reversed = False\n        self.type = BRepTrimType.Boundary\n\n\nclass BRepLoop:\n    def __init__(self):\n        self.trim_indices = []\n        self.face_index = -1\n        self.type = BRepLoopType.Outer\n\n\nclass BRepFace:\n    def __init__(self):\n        self.surface_index = -1\n        self.loop_indices = []\n        self.reversed = False\n        self.facecolor = None\n\n\nclass BRep:\n    def __init__(self):\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __str__(self):\n        return f\"BRep(name={self.name}, faces={self.face_count()}, edges={self.edge_count()}, vertices={self.vertex_count()})\"\n\n    def __repr__(self):\n        return f\"BRep(\\n  name={self.name},\\n  faces={self.face_count()},\\n  edges={self.edge_count()},\\n  vertices={self.vertex_count()},\\n  solid={'true' if self.is_solid() else 'false'}\\n)\"\n\n    def __eq__(self, other):\n        if not isinstance(other, BRep):\n            return False\n        if self.name != other.name:",
+          "code": "def __init__(self):\n\n        self.curve_2d_index = -1\n        self.edge_index = -1\n        self.loop_index = -1\n        self.reversed = False\n        self.type = BRepTrimType.Boundary\n\n\nclass BRepLoop:\n    def __init__(self):\n        self.trim_indices = []\n        self.face_index = -1\n        self.type = BRepLoopType.Outer\n\n\nclass BRepFace:\n    def __init__(self):\n        self.surface_index = -1\n        self.loop_indices = []\n        self.reversed = False\n        self.facecolor = None\n\n\nclass BRep:\n    def __init__(self):\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __str__(self):\n        return f\"BRep(name={self.name}, faces={self.face_count()}, edges={self.edge_count()}, vertices={self.vertex_count()})\"\n\n    def __repr__(self):\n        return f\"BRep(\\n  name={self.name},\\n  faces={self.face_count()},\\n  edges={self.edge_count()},\\n  vertices={self.vertex_count()},\\n  solid={'true' if self.is_solid() else 'false'}\\n)\"",
           "file": "brep.py"
         }
       }
@@ -4451,7 +4451,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__()",
-          "code": "def __init__(self):\n\n        self.trim_indices = []\n        self.face_index = -1\n        self.type = BRepLoopType.Outer\n\n\nclass BRepFace:\n    def __init__(self):\n        self.surface_index = -1\n        self.loop_indices = []\n        self.reversed = False\n        self.facecolor = None\n\n\nclass BRep:\n    def __init__(self):\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __str__(self):\n        return f\"BRep(name={self.name}, faces={self.face_count()}, edges={self.edge_count()}, vertices={self.vertex_count()})\"\n\n    def __repr__(self):\n        return f\"BRep(\\n  name={self.name},\\n  faces={self.face_count()},\\n  edges={self.edge_count()},\\n  vertices={self.vertex_count()},\\n  solid={'true' if self.is_solid() else 'false'}\\n)\"\n\n    def __eq__(self, other):\n        if not isinstance(other, BRep):\n            return False\n        if self.name != other.name:\n            return False\n        if self.width != other.width:\n            return False\n        if self.surfacecolor != other.surfacecolor:\n            return False\n        if self.xform != other.xform:\n            return False\n        if len(self.m_faces) != len(other.m_faces):\n            return False",
+          "code": "def __init__(self):\n\n        self.trim_indices = []\n        self.face_index = -1\n        self.type = BRepLoopType.Outer\n\n\nclass BRepFace:\n    def __init__(self):\n        self.surface_index = -1\n        self.loop_indices = []\n        self.reversed = False\n        self.facecolor = None\n\n\nclass BRep:\n    def __init__(self):\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __str__(self):\n        return f\"BRep(name={self.name}, faces={self.face_count()}, edges={self.edge_count()}, vertices={self.vertex_count()})\"\n\n    def __repr__(self):\n        return f\"BRep(\\n  name={self.name},\\n  faces={self.face_count()},\\n  edges={self.edge_count()},\\n  vertices={self.vertex_count()},\\n  solid={'true' if self.is_solid() else 'false'}\\n)\"\n\n    def __eq__(self, other):\n        if not isinstance(other, BRep):\n            return False\n        if self.name != other.name:\n            return False\n        if self.width != other.width:\n            return False\n        if self.surfacecolor != other.surfacecolor:\n            return False",
           "file": "brep.py"
         }
       }
@@ -4461,7 +4461,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__()",
-          "code": "def __init__(self):\n\n        self.surface_index = -1\n        self.loop_indices = []\n        self.reversed = False\n        self.facecolor = None\n\n\nclass BRep:\n    def __init__(self):\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __str__(self):\n        return f\"BRep(name={self.name}, faces={self.face_count()}, edges={self.edge_count()}, vertices={self.vertex_count()})\"\n\n    def __repr__(self):\n        return f\"BRep(\\n  name={self.name},\\n  faces={self.face_count()},\\n  edges={self.edge_count()},\\n  vertices={self.vertex_count()},\\n  solid={'true' if self.is_solid() else 'false'}\\n)\"\n\n    def __eq__(self, other):\n        if not isinstance(other, BRep):\n            return False\n        if self.name != other.name:\n            return False\n        if self.width != other.width:\n            return False\n        if self.surfacecolor != other.surfacecolor:\n            return False\n        if self.xform != other.xform:\n            return False\n        if len(self.m_faces) != len(other.m_faces):\n            return False\n        if len(self.m_surfaces) != len(other.m_surfaces):\n            return False\n        if len(self.m_topology_edges) != len(other.m_topology_edges):\n            return False\n        if len(self.m_vertices) != len(other.m_vertices):\n            return False\n        return True",
+          "code": "def __init__(self):\n\n        self.surface_index = -1\n        self.loop_indices = []\n        self.reversed = False\n        self.facecolor = None\n\n\nclass BRep:\n    def __init__(self):\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __str__(self):\n        return f\"BRep(name={self.name}, faces={self.face_count()}, edges={self.edge_count()}, vertices={self.vertex_count()})\"\n\n    def __repr__(self):\n        return f\"BRep(\\n  name={self.name},\\n  faces={self.face_count()},\\n  edges={self.edge_count()},\\n  vertices={self.vertex_count()},\\n  solid={'true' if self.is_solid() else 'false'}\\n)\"\n\n    def __eq__(self, other):\n        if not isinstance(other, BRep):\n            return False\n        if self.name != other.name:\n            return False\n        if self.width != other.width:\n            return False\n        if self.surfacecolor != other.surfacecolor:\n            return False\n        if self.xform != other.xform:\n            return False\n        if len(self.m_faces) != len(other.m_faces):\n            return False\n        if len(self.m_surfaces) != len(other.m_surfaces):\n            return False\n        if len(self.m_topology_edges) != len(other.m_topology_edges):",
           "file": "brep.py"
         }
       }
@@ -4471,7 +4471,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__()",
-          "code": "def __init__(self):\n\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __str__(self):\n        return f\"BRep(name={self.name}, faces={self.face_count()}, edges={self.edge_count()}, vertices={self.vertex_count()})\"\n\n    def __repr__(self):\n        return f\"BRep(\\n  name={self.name},\\n  faces={self.face_count()},\\n  edges={self.edge_count()},\\n  vertices={self.vertex_count()},\\n  solid={'true' if self.is_solid() else 'false'}\\n)\"\n\n    def __eq__(self, other):\n        if not isinstance(other, BRep):\n            return False\n        if self.name != other.name:\n            return False\n        if self.width != other.width:\n            return False\n        if self.surfacecolor != other.surfacecolor:\n            return False\n        if self.xform != other.xform:\n            return False\n        if len(self.m_faces) != len(other.m_faces):\n            return False\n        if len(self.m_surfaces) != len(other.m_surfaces):\n            return False\n        if len(self.m_topology_edges) != len(other.m_topology_edges):\n            return False\n        if len(self.m_vertices) != len(other.m_vertices):\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def duplicate(self):\n        b = BRep()\n        b.guid = str(uuid.uuid4())\n        b.name = self.name",
+          "code": "def __init__(self):\n\n        self._guid = None\n        self.name = \"my_brep\"\n        self.width = 1.0\n        self._surfacecolor = None\n        self._xform = None\n        self.m_surfaces = []\n        self.m_curves_3d = []\n        self.m_curves_2d = []\n        self.m_vertices = []\n        self.m_topology_vertices = []\n        self.m_topology_edges = []\n        self.m_trims = []\n        self.m_loops = []\n        self.m_faces = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __str__(self):\n        return f\"BRep(name={self.name}, faces={self.face_count()}, edges={self.edge_count()}, vertices={self.vertex_count()})\"\n\n    def __repr__(self):\n        return f\"BRep(\\n  name={self.name},\\n  faces={self.face_count()},\\n  edges={self.edge_count()},\\n  vertices={self.vertex_count()},\\n  solid={'true' if self.is_solid() else 'false'}\\n)\"\n\n    def __eq__(self, other):\n        if not isinstance(other, BRep):\n            return False\n        if self.name != other.name:\n            return False\n        if self.width != other.width:\n            return False\n        if self.surfacecolor != other.surfacecolor:\n            return False\n        if self.xform != other.xform:\n            return False\n        if len(self.m_faces) != len(other.m_faces):\n            return False\n        if len(self.m_surfaces) != len(other.m_surfaces):\n            return False\n        if len(self.m_topology_edges) != len(other.m_topology_edges):\n            return False\n        if len(self.m_vertices) != len(other.m_vertices):\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)",
           "file": "brep.py"
         }
       },
@@ -4485,6 +4485,7 @@ window.API_INDEX = {
         "BRep.face_count",
         "BRep.guid",
         "BRep.is_solid",
+        "BRep.refresh_guid",
         "BRep.repr",
         "BRep.str",
         "BRep.surfacecolor",
@@ -4497,7 +4498,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "guid(value: str)",
-          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __str__(self):\n        return f\"BRep(name={self.name}, faces={self.face_count()}, edges={self.edge_count()}, vertices={self.vertex_count()})\"\n\n    def __repr__(self):\n        return f\"BRep(\\n  name={self.name},\\n  faces={self.face_count()},\\n  edges={self.edge_count()},\\n  vertices={self.vertex_count()},\\n  solid={'true' if self.is_solid() else 'false'}\\n)\"\n\n    def __eq__(self, other):\n        if not isinstance(other, BRep):\n            return False\n        if self.name != other.name:\n            return False\n        if self.width != other.width:\n            return False\n        if self.surfacecolor != other.surfacecolor:\n            return False\n        if self.xform != other.xform:\n            return False\n        if len(self.m_faces) != len(other.m_faces):\n            return False\n        if len(self.m_surfaces) != len(other.m_surfaces):\n            return False\n        if len(self.m_topology_edges) != len(other.m_topology_edges):\n            return False\n        if len(self.m_vertices) != len(other.m_vertices):\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def duplicate(self):\n        b = BRep()\n        b.guid = str(uuid.uuid4())\n        b.name = self.name\n        b.width = self.width\n        b.surfacecolor = copy.deepcopy(self.surfacecolor)\n        b.xform = copy.deepcopy(self.xform)\n        b.m_surfaces = copy.deepcopy(self.m_surfaces)\n        b.m_curves_3d = copy.deepcopy(self.m_curves_3d)\n        b.m_curves_2d = copy.deepcopy(self.m_curves_2d)\n        b.m_vertices = copy.deepcopy(self.m_vertices)\n        b.m_topology_vertices = copy.deepcopy(self.m_topology_vertices)\n        b.m_topology_edges = copy.deepcopy(self.m_topology_edges)\n        b.m_trims = copy.deepcopy(self.m_trims)\n        b.m_loops = copy.deepcopy(self.m_loops)\n        b.m_faces = copy.deepcopy(self.m_faces)\n        return b\n\n    ###########################################################################\n    # Accessors\n    ###########################################################################\n\n    def face_count(self):\n        return len(self.m_faces)\n\n    def edge_count(self):\n        return len(self.m_topology_edges)",
+          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __str__(self):\n        return f\"BRep(name={self.name}, faces={self.face_count()}, edges={self.edge_count()}, vertices={self.vertex_count()})\"\n\n    def __repr__(self):\n        return f\"BRep(\\n  name={self.name},\\n  faces={self.face_count()},\\n  edges={self.edge_count()},\\n  vertices={self.vertex_count()},\\n  solid={'true' if self.is_solid() else 'false'}\\n)\"\n\n    def __eq__(self, other):\n        if not isinstance(other, BRep):\n            return False\n        if self.name != other.name:\n            return False\n        if self.width != other.width:\n            return False\n        if self.surfacecolor != other.surfacecolor:\n            return False\n        if self.xform != other.xform:\n            return False\n        if len(self.m_faces) != len(other.m_faces):\n            return False\n        if len(self.m_surfaces) != len(other.m_surfaces):\n            return False\n        if len(self.m_topology_edges) != len(other.m_topology_edges):\n            return False\n        if len(self.m_vertices) != len(other.m_vertices):\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def duplicate(self):\n        b = BRep()\n        b.guid = str(uuid.uuid4())\n        b.name = self.name\n        b.width = self.width\n        b.surfacecolor = copy.deepcopy(self.surfacecolor)\n        b.xform = copy.deepcopy(self.xform)\n        b.m_surfaces = copy.deepcopy(self.m_surfaces)\n        b.m_curves_3d = copy.deepcopy(self.m_curves_3d)\n        b.m_curves_2d = copy.deepcopy(self.m_curves_2d)\n        b.m_vertices = copy.deepcopy(self.m_vertices)\n        b.m_topology_vertices = copy.deepcopy(self.m_topology_vertices)\n        b.m_topology_edges = copy.deepcopy(self.m_topology_edges)\n        b.m_trims = copy.deepcopy(self.m_trims)\n        b.m_loops = copy.deepcopy(self.m_loops)\n        b.m_faces = copy.deepcopy(self.m_faces)\n        return b\n\n    ###########################################################################\n    # Accessors\n    ###########################################################################\n\n    def face_count(self):",
           "file": "brep.py"
         },
         "rust": {
@@ -4534,12 +4535,46 @@ window.API_INDEX = {
         "BRep.point_at",
         "BRep.project_curve_to_uv",
         "BRep.pt3d",
+        "BRep.refresh_guid",
         "BRep.repr",
         "BRep.set_guid",
         "BRep.str",
         "BRep.surfacecolor",
         "BRep.transform",
         "BRep.transformed",
+        "BRep.vertex_count",
+        "BRep.xform"
+      ]
+    },
+    {
+      "name": "BRep.refresh_guid",
+      "implementations": {
+        "python": {
+          "sig": "refresh_guid()",
+          "code": "def refresh_guid(self):\n\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def surfacecolor(self):\n        if self._surfacecolor is None:\n            self._surfacecolor = Color.black()\n        return self._surfacecolor\n\n    @surfacecolor.setter\n    def surfacecolor(self, value):\n        self._surfacecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __str__(self):\n        return f\"BRep(name={self.name}, faces={self.face_count()}, edges={self.edge_count()}, vertices={self.vertex_count()})\"\n\n    def __repr__(self):\n        return f\"BRep(\\n  name={self.name},\\n  faces={self.face_count()},\\n  edges={self.edge_count()},\\n  vertices={self.vertex_count()},\\n  solid={'true' if self.is_solid() else 'false'}\\n)\"\n\n    def __eq__(self, other):\n        if not isinstance(other, BRep):\n            return False\n        if self.name != other.name:\n            return False\n        if self.width != other.width:\n            return False\n        if self.surfacecolor != other.surfacecolor:\n            return False\n        if self.xform != other.xform:\n            return False\n        if len(self.m_faces) != len(other.m_faces):\n            return False\n        if len(self.m_surfaces) != len(other.m_surfaces):\n            return False\n        if len(self.m_topology_edges) != len(other.m_topology_edges):\n            return False\n        if len(self.m_vertices) != len(other.m_vertices):\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def duplicate(self):\n        b = BRep()\n        b.guid = str(uuid.uuid4())\n        b.name = self.name\n        b.width = self.width\n        b.surfacecolor = copy.deepcopy(self.surfacecolor)\n        b.xform = copy.deepcopy(self.xform)\n        b.m_surfaces = copy.deepcopy(self.m_surfaces)\n        b.m_curves_3d = copy.deepcopy(self.m_curves_3d)\n        b.m_curves_2d = copy.deepcopy(self.m_curves_2d)\n        b.m_vertices = copy.deepcopy(self.m_vertices)\n        b.m_topology_vertices = copy.deepcopy(self.m_topology_vertices)\n        b.m_topology_edges = copy.deepcopy(self.m_topology_edges)\n        b.m_trims = copy.deepcopy(self.m_trims)\n        b.m_loops = copy.deepcopy(self.m_loops)\n        b.m_faces = copy.deepcopy(self.m_faces)\n        return b\n\n    ###########################################################################\n    # Accessors\n    ###########################################################################\n\n    def face_count(self):\n        return len(self.m_faces)\n\n    def edge_count(self):",
+          "file": "brep.py"
+        },
+        "rust": {
+          "sig": "refresh_guid()",
+          "code": "pub fn refresh_guid(&mut self) {\n        self.guid = std::sync::OnceLock::new();\n    }",
+          "file": "brep.rs"
+        }
+      },
+      "related": [
+        "BRep.__eq__",
+        "BRep.__init__",
+        "BRep.__ne__",
+        "BRep.__repr__",
+        "BRep.__str__",
+        "BRep.duplicate",
+        "BRep.edge_count",
+        "BRep.face_count",
+        "BRep.guid",
+        "BRep.is_solid",
+        "BRep.new",
+        "BRep.repr",
+        "BRep.str",
+        "BRep.surfacecolor",
         "BRep.vertex_count",
         "BRep.xform"
       ]
@@ -4581,6 +4616,7 @@ window.API_INDEX = {
         "BRep.pb_loads",
         "BRep.point_at",
         "BRep.pt3d",
+        "BRep.refresh_guid",
         "BRep.repr",
         "BRep.str",
         "BRep.transform",
@@ -4628,6 +4664,7 @@ window.API_INDEX = {
         "BRep.point_at",
         "BRep.project_curve_to_uv",
         "BRep.pt3d",
+        "BRep.refresh_guid",
         "BRep.repr",
         "BRep.str",
         "BRep.surfacecolor",
@@ -4656,6 +4693,7 @@ window.API_INDEX = {
         "BRep.guid",
         "BRep.is_solid",
         "BRep.is_valid",
+        "BRep.refresh_guid",
         "BRep.repr",
         "BRep.str",
         "BRep.surfacecolor",
@@ -4683,6 +4721,7 @@ window.API_INDEX = {
         "BRep.guid",
         "BRep.is_solid",
         "BRep.is_valid",
+        "BRep.refresh_guid",
         "BRep.repr",
         "BRep.str",
         "BRep.surfacecolor",
@@ -4712,6 +4751,7 @@ window.API_INDEX = {
         "BRep.guid",
         "BRep.is_solid",
         "BRep.is_valid",
+        "BRep.refresh_guid",
         "BRep.str",
         "BRep.surfacecolor",
         "BRep.vertex_count",
@@ -4741,6 +4781,7 @@ window.API_INDEX = {
         "BRep.is_solid",
         "BRep.is_valid",
         "BRep.point_at",
+        "BRep.refresh_guid",
         "BRep.str",
         "BRep.surfacecolor",
         "BRep.vertex_count",
@@ -4778,6 +4819,7 @@ window.API_INDEX = {
         "BRep.new",
         "BRep.normal_at",
         "BRep.point_at",
+        "BRep.refresh_guid",
         "BRep.str",
         "BRep.surfacecolor",
         "BRep.transform",
@@ -4826,6 +4868,7 @@ window.API_INDEX = {
         "BRep.mesh",
         "BRep.point_at",
         "BRep.rec",
+        "BRep.refresh_guid",
         "BRep.repr",
         "BRep.str",
         "BRep.surfacecolor",
@@ -4874,6 +4917,7 @@ window.API_INDEX = {
         "BRep.normal_at",
         "BRep.point_at",
         "BRep.rec",
+        "BRep.refresh_guid",
         "BRep.repr",
         "BRep.str",
         "BRep.surfacecolor",
@@ -4923,6 +4967,7 @@ window.API_INDEX = {
         "BRep.normal_at",
         "BRep.point_at",
         "BRep.rec",
+        "BRep.refresh_guid",
         "BRep.repr",
         "BRep.str",
         "BRep.surfacecolor",
@@ -5037,6 +5082,7 @@ window.API_INDEX = {
         "BRep.normal_at",
         "BRep.point_at",
         "BRep.rec",
+        "BRep.refresh_guid",
         "BRep.repr",
         "BRep.str",
         "BRep.surfacecolor",
@@ -7092,8 +7138,8 @@ window.API_INDEX = {
           "file": "brep.py"
         },
         "cpp": {
-          "sig": "BRep split_by_brep(const BRep& cutter, double tolerance, bool imported_freeform,\n                         const std::vector<std::vector<NurbsCurve>>* pre_cuts)",
-          "code": "BRep BRep::split_by_brep(const BRep& cutter, double tolerance, bool imported_freeform,\n                         const std::vector<std::vector<NurbsCurve>>* pre_cuts) const {\n    std::vector<std::pair<std::array<double, 3>, std::array<double, 3>>> cutter_bbs;\n    for (const auto& cs : cutter.m_surfaces) cutter_bbs.push_back(aabb_from_surface(cs));\n\n    // Trim-aware cutting (gated): intersect against the cutter's TRIMMED faces and clip each\n    // target section to the face's trim loops, so a section that leaves one cutter patch's\n    // parametric rectangle stops at the true trim boundary (where it continues onto the adjacent\n    // cutter face) instead of ending in the target's interior. Legacy path (gate off) loops raw\n    // cutter SURFACES and is byte-identical.\n    static const bool s_trimcut = (std::getenv(\"SESSION_TRIM_CUT\") != nullptr\n                                   || std::getenv(\"SESSION_BOOL_SHARED_EDGES\") != nullptr);\n    struct FaceTrim {\n        int surf_index = -1;\n        std::vector<std::vector<std::array<double, 2>>> outer, inner;\n    }",
+          "sig": "BRep split_by_brep(const BRep& cutter, double tolerance, bool imported_freeform,\n                         const std::vector<std::vector<NurbsCurve>>* pre_cuts,\n                         const SectionScaffold* scaf, bool scaf_is_A,\n                         std::map<int, std::array<int, 3>>* sec_edges_out)",
+          "code": "BRep BRep::split_by_brep(const BRep& cutter, double tolerance, bool imported_freeform,\n                         const std::vector<std::vector<NurbsCurve>>* pre_cuts,\n                         const SectionScaffold* scaf, bool scaf_is_A,\n                         std::map<int, std::array<int, 3>>* sec_edges_out) const {\n    std::vector<std::pair<std::array<double, 3>, std::array<double, 3>>> cutter_bbs;\n    for (const auto& cs : cutter.m_surfaces) cutter_bbs.push_back(aabb_from_surface(cs));\n\n    // Trim-aware cutting (gated): intersect against the cutter's TRIMMED faces and clip each\n    // target section to the face's trim loops, so a section that leaves one cutter patch's\n    // parametric rectangle stops at the true trim boundary (where it continues onto the adjacent\n    // cutter face) instead of ending in the target's interior. Legacy path (gate off) loops raw\n    // cutter SURFACES and is byte-identical.\n    static const bool s_trimcut = (std::getenv(\"SESSION_TRIM_CUT\") != nullptr\n                                   || std::getenv(\"SESSION_BOOL_SHARED_EDGES\") != nullptr);\n    struct FaceTrim {\n        int surf_index = -1;\n        std::vector<std::vector<std::array<double, 2>>> outer, inner;\n    }",
           "file": "brep.cpp"
         },
         "rust": {
@@ -7138,8 +7184,8 @@ window.API_INDEX = {
           "file": "brep.py"
         },
         "cpp": {
-          "sig": "BRep subset(const std::vector<int>& face_indices)",
-          "code": "BRep BRep::subset(const std::vector<int>& face_indices) const {\n    BRep sub;\n    sub.name = name;\n    std::map<int, int> s_map, c2_map, c3_map, v_map, e_map;\n\n    auto map_surface = [&](int i) -> int {\n        auto it = s_map.find(i);\n        if (it != s_map.end()) return it->second;\n        int x = sub.add_surface(m_surfaces[i]);\n        s_map[i] = x;\n        return x;\n    }",
+          "sig": "BRep subset(const std::vector<int>& face_indices, std::map<int, int>* edge_remap)",
+          "code": "BRep BRep::subset(const std::vector<int>& face_indices, std::map<int, int>* edge_remap) const {\n    BRep sub;\n    sub.name = name;\n    std::map<int, int> s_map, c2_map, c3_map, v_map, e_map;\n\n    auto map_surface = [&](int i) -> int {\n        auto it = s_map.find(i);\n        if (it != s_map.end()) return it->second;\n        int x = sub.add_surface(m_surfaces[i]);\n        s_map[i] = x;\n        return x;\n    }",
           "file": "brep.cpp"
         },
         "rust": {
@@ -7580,6 +7626,7 @@ window.API_INDEX = {
         "BRep.pt_to_polyline",
         "BRep.rec",
         "BRep.split_by_brep",
+        "BRep.split_with",
         "BRep.str",
         "BRep.subset",
         "BRep.vertex_count",
@@ -19505,7 +19552,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__(x0=0.0, y0=0.0, z0=0.0, x1=0.0, y1=0.0, z1=1.0)",
-          "code": "def __init__(self, x0=0.0, y0=0.0, z0=0.0, x1=0.0, y1=0.0, z1=1.0):\n\n        self._guid = None\n        self.name = \"my_line\"\n        self._x0 = x0\n        self._y0 = y0\n        self._z0 = z0\n        self._x1 = x1\n        self._y1 = y1\n        self._z1 = z1\n        self.width = 1.0\n        self._linecolor = None\n        self._xform = None\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def linecolor(self):\n        if self._linecolor is None:\n            self._linecolor = Color.black()\n        return self._linecolor\n\n    @linecolor.setter\n    def linecolor(self, value):\n        self._linecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this line with a new GUID.\n\n        Returns\n        -------\n        :class:`Line`\n            A new Line with identical values but a different GUID.\n\n        \"\"\"\n        import copy\n        import uuid\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    @classmethod\n    def fit_points(cls, points, length=None):\n        \"\"\"Fit a line to a set of points using least squares (PCA).\n\n        Uses Principal Component Analysis to find the best-fit line\n        that minimizes perpendicular distances to all points.\n\n        Parameters\n        ----------\n        points : list of Point\n            List of points to fit (minimum 2 points required).\n        length : float, optional\n            Length of the resulting line. If None, uses the extent\n            of points projected onto the line direction.\n\n        Returns\n        -------\n        Line\n            Best-fit line through the points.\n\n        Raises\n        ------",
+          "code": "def __init__(self, x0=0.0, y0=0.0, z0=0.0, x1=0.0, y1=0.0, z1=1.0):\n\n        self._guid = None\n        self.name = \"my_line\"\n        self._x0 = x0\n        self._y0 = y0\n        self._z0 = z0\n        self._x1 = x1\n        self._y1 = y1\n        self._z1 = z1\n        self.width = 1.0\n        self._linecolor = None\n        self._xform = None\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def linecolor(self):\n        if self._linecolor is None:\n            self._linecolor = Color.black()\n        return self._linecolor\n\n    @linecolor.setter\n    def linecolor(self, value):\n        self._linecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this line with a new GUID.\n\n        Returns\n        -------\n        :class:`Line`\n            A new Line with identical values but a different GUID.\n\n        \"\"\"\n        import copy\n        import uuid\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    @classmethod\n    def fit_points(cls, points, length=None):\n        \"\"\"Fit a line to a set of points using least squares (PCA).\n\n        Uses Principal Component Analysis to find the best-fit line\n        that minimizes perpendicular distances to all points.\n\n        Parameters\n        ----------\n        points : list of Point\n            List of points to fit (minimum 2 points required).\n        length : float, optional\n            Length of the resulting line. If None, uses the extent\n            of points projected onto the line direction.\n\n        Returns\n        -------\n        Line",
           "file": "line.py"
         }
       },
@@ -19517,6 +19564,7 @@ window.API_INDEX = {
         "Line.length",
         "Line.linecolor",
         "Line.new",
+        "Line.refresh_guid",
         "Line.str",
         "Line.xform"
       ]
@@ -19526,7 +19574,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "guid(value: str)",
-          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    @property\n    def linecolor(self):\n        if self._linecolor is None:\n            self._linecolor = Color.black()\n        return self._linecolor\n\n    @linecolor.setter\n    def linecolor(self, value):\n        self._linecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this line with a new GUID.\n\n        Returns\n        -------\n        :class:`Line`\n            A new Line with identical values but a different GUID.\n\n        \"\"\"\n        import copy\n        import uuid\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    @classmethod\n    def fit_points(cls, points, length=None):\n        \"\"\"Fit a line to a set of points using least squares (PCA).\n\n        Uses Principal Component Analysis to find the best-fit line\n        that minimizes perpendicular distances to all points.\n\n        Parameters\n        ----------\n        points : list of Point\n            List of points to fit (minimum 2 points required).\n        length : float, optional\n            Length of the resulting line. If None, uses the extent\n            of points projected onto the line direction.\n\n        Returns\n        -------\n        Line\n            Best-fit line through the points.\n\n        Raises\n        ------\n        ValueError\n            If fewer than 2 points are provided.\n        \"\"\"\n        if len(points) < 2:\n            raise ValueError(\"At least 2 points are required for line fitting\")\n\n        n = len(points)\n\n        # Compute centroid\n        cx = sum(p[0] for p in points) / n\n        cy = sum(p[1] for p in points) / n\n        cz = sum(p[2] for p in points) / n\n\n        # Compute covariance matrix elements\n        cxx = cyy = czz = cxy = cxz = cyz = 0.0\n        for p in points:\n            dx = p[0] - cx\n            dy = p[1] - cy\n            dz = p[2] - cz\n            cxx += dx * dx",
+          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def linecolor(self):\n        if self._linecolor is None:\n            self._linecolor = Color.black()\n        return self._linecolor\n\n    @linecolor.setter\n    def linecolor(self, value):\n        self._linecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this line with a new GUID.\n\n        Returns\n        -------\n        :class:`Line`\n            A new Line with identical values but a different GUID.\n\n        \"\"\"\n        import copy\n        import uuid\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    @classmethod\n    def fit_points(cls, points, length=None):\n        \"\"\"Fit a line to a set of points using least squares (PCA).\n\n        Uses Principal Component Analysis to find the best-fit line\n        that minimizes perpendicular distances to all points.\n\n        Parameters\n        ----------\n        points : list of Point\n            List of points to fit (minimum 2 points required).\n        length : float, optional\n            Length of the resulting line. If None, uses the extent\n            of points projected onto the line direction.\n\n        Returns\n        -------\n        Line\n            Best-fit line through the points.\n\n        Raises\n        ------\n        ValueError\n            If fewer than 2 points are provided.\n        \"\"\"\n        if len(points) < 2:\n            raise ValueError(\"At least 2 points are required for line fitting\")\n\n        n = len(points)\n\n        # Compute centroid\n        cx = sum(p[0] for p in points) / n\n        cy = sum(p[1] for p in points) / n\n        cz = sum(p[2] for p in points) / n\n\n        # Compute covariance matrix elements\n        cxx = cyy = czz = cxy = cxz = cyz = 0.0\n        for p in points:",
           "file": "line.py"
         },
         "cpp": {
@@ -19561,9 +19609,42 @@ window.API_INDEX = {
         "Line.overlap_average",
         "Line.pb_dumps",
         "Line.pb_loads",
+        "Line.refresh_guid",
         "Line.set_guid",
         "Line.str",
         "Line.transformed",
+        "Line.xform"
+      ]
+    },
+    {
+      "name": "Line.refresh_guid",
+      "implementations": {
+        "python": {
+          "sig": "refresh_guid()",
+          "code": "def refresh_guid(self):\n\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def linecolor(self):\n        if self._linecolor is None:\n            self._linecolor = Color.black()\n        return self._linecolor\n\n    @linecolor.setter\n    def linecolor(self, value):\n        self._linecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this line with a new GUID.\n\n        Returns\n        -------\n        :class:`Line`\n            A new Line with identical values but a different GUID.\n\n        \"\"\"\n        import copy\n        import uuid\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    @classmethod\n    def fit_points(cls, points, length=None):\n        \"\"\"Fit a line to a set of points using least squares (PCA).\n\n        Uses Principal Component Analysis to find the best-fit line\n        that minimizes perpendicular distances to all points.\n\n        Parameters\n        ----------\n        points : list of Point\n            List of points to fit (minimum 2 points required).\n        length : float, optional\n            Length of the resulting line. If None, uses the extent\n            of points projected onto the line direction.\n\n        Returns\n        -------\n        Line\n            Best-fit line through the points.\n\n        Raises\n        ------\n        ValueError\n            If fewer than 2 points are provided.\n        \"\"\"\n        if len(points) < 2:\n            raise ValueError(\"At least 2 points are required for line fitting\")\n\n        n = len(points)\n\n        # Compute centroid\n        cx = sum(p[0] for p in points) / n\n        cy = sum(p[1] for p in points) / n\n        cz = sum(p[2] for p in points) / n\n\n        # Compute covariance matrix elements\n        cxx = cyy = czz = cxy = cxz = cyz = 0.0\n        for p in points:\n            dx = p[0] - cx\n            dy = p[1] - cy\n            dz = p[2] - cz",
+          "file": "line.py"
+        },
+        "cpp": {
+          "sig": "void refresh_guid()",
+          "code": "void refresh_guid() { _guid.clear(); }",
+          "file": "line.h"
+        },
+        "rust": {
+          "sig": "refresh_guid()",
+          "code": "pub fn refresh_guid(&mut self) {\n        self.guid = std::sync::OnceLock::new();\n    }",
+          "file": "line.rs"
+        }
+      },
+      "related": [
+        "Line.__init__",
+        "Line.duplicate",
+        "Line.end",
+        "Line.fit_points",
+        "Line.guid",
+        "Line.length",
+        "Line.linecolor",
+        "Line.new",
+        "Line.str",
         "Line.xform"
       ]
     },
@@ -19600,6 +19681,7 @@ window.API_INDEX = {
         "Line.pb_dump",
         "Line.pb_load",
         "Line.pb_loads",
+        "Line.refresh_guid",
         "Line.repr",
         "Line.str",
         "Line.xform"
@@ -19643,6 +19725,7 @@ window.API_INDEX = {
         "Line.overlap_average",
         "Line.pb_dumps",
         "Line.pb_loads",
+        "Line.refresh_guid",
         "Line.str",
         "Line.transform",
         "Line.transformed"
@@ -19670,6 +19753,7 @@ window.API_INDEX = {
         "Line.length",
         "Line.linecolor",
         "Line.new",
+        "Line.refresh_guid",
         "Line.str",
         "Line.xform"
       ]
@@ -19701,6 +19785,7 @@ window.API_INDEX = {
         "Line.length",
         "Line.linecolor",
         "Line.new",
+        "Line.refresh_guid",
         "Line.xform"
       ]
     },
@@ -19872,6 +19957,7 @@ window.API_INDEX = {
         "Line.overlap",
         "Line.overlap_average",
         "Line.point_at",
+        "Line.refresh_guid",
         "Line.squared_length",
         "Line.start",
         "Line.subdivide",
@@ -20191,6 +20277,7 @@ window.API_INDEX = {
         "Line.pb_dumps",
         "Line.pb_loads",
         "Line.point_at",
+        "Line.refresh_guid",
         "Line.scale",
         "Line.squared_length",
         "Line.start",
@@ -23968,7 +24055,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__()",
-          "code": "def __init__(self):\n\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self._guid = None\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._xform = None\n        self._triangle_bvh_built = False\n        self._triangle_bvh = None\n        self._triangle_aabbs_cache = []\n        self._triangle_indices_cache = []\n        self._triangle_face_subidx_cache = []\n        self._vertices_cache = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m.face_holes = {k: [list(r) for r in v] for k, v in self.face_holes.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m._pointcolors = list(self._pointcolors)\n        m._facecolors = list(self._facecolors)\n        m._linecolors = list(self._linecolors)\n        m._widths = list(self._widths)\n        m._objectcolor = self._objectcolor\n        m.color_mode = self.color_mode\n        m.xform = self.xform\n        return m",
+          "code": "def __init__(self):\n\n        self.halfedge = {}\n        self.vertex = {}\n        self.face = {}\n        self.facedata = {}\n        self.edgedata = {}\n        self.default_vertex_attributes = {\"x\": 0.0, \"y\": 0.0, \"z\": 0.0}\n        self.default_face_attributes = {}\n        self.default_edge_attributes = {}\n        self.triangulation = {}\n        self.face_holes = {}\n        self._max_vertex = 0\n        self._max_face = 0\n        self._guid = None\n        self.name = \"my_mesh\"\n        self._pointcolors = []\n        self._facecolors = []\n        self._linecolors = []\n        self._widths = []\n        self._objectcolor = None\n        self.color_mode = ColorMode.OBJECTCOLOR\n        self._xform = None\n        self._triangle_bvh_built = False\n        self._triangle_bvh = None\n        self._triangle_aabbs_cache = []\n        self._triangle_indices_cache = []\n        self._triangle_face_subidx_cache = []\n        self._vertices_cache = []\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m.face_holes = {k: [list(r) for r in v] for k, v in self.face_holes.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m._pointcolors = list(self._pointcolors)\n        m._facecolors = list(self._facecolors)\n        m._linecolors = list(self._linecolors)\n        m._widths = list(self._widths)",
           "file": "mesh.py"
         }
       },
@@ -23982,6 +24069,7 @@ window.API_INDEX = {
         "Mesh.linecolors",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
+        "Mesh.refresh_guid",
         "Mesh.str",
         "Mesh.vertex_attribute",
         "Mesh.vertices",
@@ -23994,7 +24082,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "guid(value: str)",
-          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m.face_holes = {k: [list(r) for r in v] for k, v in self.face_holes.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m._pointcolors = list(self._pointcolors)\n        m._facecolors = list(self._facecolors)\n        m._linecolors = list(self._linecolors)\n        m._widths = list(self._widths)\n        m._objectcolor = self._objectcolor\n        m.color_mode = self.color_mode\n        m.xform = self.xform\n        return m\n\n    def __eq__(self, other):\n        if not isinstance(other, Mesh):\n            return NotImplemented\n        if self.name != other.name:\n            return False\n        if self.vertex != other.vertex:\n            return False\n        if self.face != other.face:\n            return False\n        if self.xform != other.xform:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        return f\"Mesh(name={self.name}, vertices={self.number_of_vertices()}, faces={self.number_of_faces()})\"\n\n    def __repr__(self):\n        return f\"Mesh(\\n  name={self.name},\\n  vertices={self.number_of_vertices()},\\n  faces={self.number_of_faces()},\\n  edges={self.number_of_edges()}\\n)\"\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polylines(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------\n        polygons : list of list of Point",
+          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m.face_holes = {k: [list(r) for r in v] for k, v in self.face_holes.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m._pointcolors = list(self._pointcolors)\n        m._facecolors = list(self._facecolors)\n        m._linecolors = list(self._linecolors)\n        m._widths = list(self._widths)\n        m._objectcolor = self._objectcolor\n        m.color_mode = self.color_mode\n        m.xform = self.xform\n        return m\n\n    def __eq__(self, other):\n        if not isinstance(other, Mesh):\n            return NotImplemented\n        if self.name != other.name:\n            return False\n        if self.vertex != other.vertex:\n            return False\n        if self.face != other.face:\n            return False\n        if self.xform != other.xform:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        return f\"Mesh(name={self.name}, vertices={self.number_of_vertices()}, faces={self.number_of_faces()})\"\n\n    def __repr__(self):\n        return f\"Mesh(\\n  name={self.name},\\n  vertices={self.number_of_vertices()},\\n  faces={self.number_of_faces()},\\n  edges={self.number_of_edges()}\\n)\"\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polylines(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.",
           "file": "mesh.py"
         },
         "rust": {
@@ -24038,8 +24126,53 @@ window.API_INDEX = {
         "Mesh.pb_fill",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
+        "Mesh.refresh_guid",
         "Mesh.repr",
         "Mesh.set_guid",
+        "Mesh.str",
+        "Mesh.vertex_attribute",
+        "Mesh.vertices",
+        "Mesh.widths",
+        "Mesh.xform"
+      ]
+    },
+    {
+      "name": "Mesh.refresh_guid",
+      "implementations": {
+        "python": {
+          "sig": "refresh_guid()",
+          "code": "def refresh_guid(self):\n\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def duplicate(self) -> \"Mesh\":\n        import copy\n        result = copy.copy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    def __copy__(self):\n        m = Mesh()\n        m.name = self.name\n        m.halfedge = {u: dict(v) for u, v in self.halfedge.items()}\n        m.vertex = {k: VertexData(v.position()) for k, v in self.vertex.items()}\n        for k, v in self.vertex.items():\n            m.vertex[k].attributes = dict(v.attributes)\n        m.face = {k: list(v) for k, v in self.face.items()}\n        m.facedata = {k: dict(v) for k, v in self.facedata.items()}\n        m.edgedata = {k: dict(v) for k, v in self.edgedata.items()}\n        m.default_vertex_attributes = dict(self.default_vertex_attributes)\n        m.default_face_attributes = dict(self.default_face_attributes)\n        m.default_edge_attributes = dict(self.default_edge_attributes)\n        m.triangulation = {k: list(v) for k, v in self.triangulation.items()}\n        m.face_holes = {k: [list(r) for r in v] for k, v in self.face_holes.items()}\n        m._max_vertex = self._max_vertex\n        m._max_face = self._max_face\n        m._pointcolors = list(self._pointcolors)\n        m._facecolors = list(self._facecolors)\n        m._linecolors = list(self._linecolors)\n        m._widths = list(self._widths)\n        m._objectcolor = self._objectcolor\n        m.color_mode = self.color_mode\n        m.xform = self.xform\n        return m\n\n    def __eq__(self, other):\n        if not isinstance(other, Mesh):\n            return NotImplemented\n        if self.name != other.name:\n            return False\n        if self.vertex != other.vertex:\n            return False\n        if self.face != other.face:\n            return False\n        if self.xform != other.xform:\n            return False\n        return True\n\n    def __ne__(self, other):\n        return not self.__eq__(other)\n\n    def __str__(self):\n        return f\"Mesh(name={self.name}, vertices={self.number_of_vertices()}, faces={self.number_of_faces()})\"\n\n    def __repr__(self):\n        return f\"Mesh(\\n  name={self.name},\\n  vertices={self.number_of_vertices()},\\n  faces={self.number_of_faces()},\\n  edges={self.number_of_edges()}\\n)\"\n\n    ###########################################################################################\n    # Construction\n    ###########################################################################################\n\n    @staticmethod\n    def from_polylines(\n        polygons: List[List[Point]], precision: Optional[float] = None\n    ) -> \"Mesh\":\n        \"\"\"Create a mesh from a list of polygons.\n\n        Parameters\n        ----------",
+          "file": "mesh.py"
+        },
+        "rust": {
+          "sig": "refresh_guid()",
+          "code": "pub fn refresh_guid(&mut self) {\n        self.guid = std::sync::OnceLock::new();\n    }",
+          "file": "mesh.rs"
+        }
+      },
+      "related": [
+        "Mesh.__copy__",
+        "Mesh.__eq__",
+        "Mesh.__init__",
+        "Mesh.__ne__",
+        "Mesh.__repr__",
+        "Mesh.__str__",
+        "Mesh.duplicate",
+        "Mesh.edge_attribute",
+        "Mesh.edges",
+        "Mesh.face_attribute",
+        "Mesh.facecolors",
+        "Mesh.faces",
+        "Mesh.from_polylines",
+        "Mesh.guid",
+        "Mesh.linecolors",
+        "Mesh.new",
+        "Mesh.number_of_edges",
+        "Mesh.number_of_faces",
+        "Mesh.number_of_vertices",
+        "Mesh.objectcolor",
+        "Mesh.pointcolors",
+        "Mesh.repr",
         "Mesh.str",
         "Mesh.vertex_attribute",
         "Mesh.vertices",
@@ -24086,6 +24219,7 @@ window.API_INDEX = {
         "Mesh.pb_fill",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
+        "Mesh.refresh_guid",
         "Mesh.repr",
         "Mesh.str",
         "Mesh.to_vertices_and_faces",
@@ -24134,6 +24268,7 @@ window.API_INDEX = {
         "Mesh.number_of_vertices",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
+        "Mesh.refresh_guid",
         "Mesh.repr",
         "Mesh.str",
         "Mesh.vertex_attribute",
@@ -24172,6 +24307,7 @@ window.API_INDEX = {
         "Mesh.number_of_vertices",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
+        "Mesh.refresh_guid",
         "Mesh.repr",
         "Mesh.str",
         "Mesh.vertex_attribute",
@@ -24205,6 +24341,7 @@ window.API_INDEX = {
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
+        "Mesh.refresh_guid",
         "Mesh.repr",
         "Mesh.str",
         "Mesh.vertices",
@@ -24236,6 +24373,7 @@ window.API_INDEX = {
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
+        "Mesh.refresh_guid",
         "Mesh.repr",
         "Mesh.str",
         "Mesh.vertices",
@@ -24267,6 +24405,7 @@ window.API_INDEX = {
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
+        "Mesh.refresh_guid",
         "Mesh.repr",
         "Mesh.str",
         "Mesh.vertices",
@@ -24298,6 +24437,7 @@ window.API_INDEX = {
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
+        "Mesh.refresh_guid",
         "Mesh.repr",
         "Mesh.str",
         "Mesh.vertices",
@@ -24344,6 +24484,7 @@ window.API_INDEX = {
         "Mesh.guid",
         "Mesh.loft_panels",
         "Mesh.new",
+        "Mesh.refresh_guid",
         "Mesh.side_faces",
         "Mesh.str",
         "Mesh.vertices",
@@ -25253,6 +25394,7 @@ window.API_INDEX = {
         "Mesh.number_of_faces",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
+        "Mesh.refresh_guid",
         "Mesh.repr",
         "Mesh.set_facecolors",
         "Mesh.set_pointcolors",
@@ -25304,6 +25446,7 @@ window.API_INDEX = {
         "Mesh.number_of_vertices",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
+        "Mesh.refresh_guid",
         "Mesh.repr",
         "Mesh.set_facecolors",
         "Mesh.set_linecolors",
@@ -25425,6 +25568,7 @@ window.API_INDEX = {
         "Mesh.pb_loads",
         "Mesh.pointcolors",
         "Mesh.ray_cast_bvh",
+        "Mesh.refresh_guid",
         "Mesh.remove_face",
         "Mesh.remove_vertex",
         "Mesh.repr",
@@ -25568,6 +25712,7 @@ window.API_INDEX = {
         "Mesh.pb_fill",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
+        "Mesh.refresh_guid",
         "Mesh.remove_edge",
         "Mesh.remove_face",
         "Mesh.remove_vertex",
@@ -25654,6 +25799,7 @@ window.API_INDEX = {
         "Mesh.number_of_vertices",
         "Mesh.objectcolor",
         "Mesh.pointcolors",
+        "Mesh.refresh_guid",
         "Mesh.remove_edge",
         "Mesh.remove_face",
         "Mesh.remove_vertex",
@@ -25766,6 +25912,7 @@ window.API_INDEX = {
         "Mesh.pb_fill",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
+        "Mesh.refresh_guid",
         "Mesh.remove_edge",
         "Mesh.remove_face",
         "Mesh.remove_vertex",
@@ -26296,6 +26443,7 @@ window.API_INDEX = {
         "Mesh.pb_load",
         "Mesh.pb_loads",
         "Mesh.pointcolors_mut",
+        "Mesh.refresh_guid",
         "Mesh.remove_face",
         "Mesh.remove_vertex",
         "Mesh.set_facecolors",
@@ -26362,6 +26510,7 @@ window.API_INDEX = {
         "Mesh.pb_load",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
+        "Mesh.refresh_guid",
         "Mesh.remove_face",
         "Mesh.set_face_color",
         "Mesh.set_facecolors",
@@ -26425,6 +26574,7 @@ window.API_INDEX = {
         "Mesh.pb_load",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
+        "Mesh.refresh_guid",
         "Mesh.remove_edge",
         "Mesh.remove_face",
         "Mesh.remove_vertex",
@@ -26617,6 +26767,7 @@ window.API_INDEX = {
         "Mesh.pb_load",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
+        "Mesh.refresh_guid",
         "Mesh.remove_edge",
         "Mesh.remove_face",
         "Mesh.remove_vertex",
@@ -26684,6 +26835,7 @@ window.API_INDEX = {
         "Mesh.pb_fill",
         "Mesh.pb_loads",
         "Mesh.pointcolors",
+        "Mesh.refresh_guid",
         "Mesh.set_facecolors",
         "Mesh.set_linecolors",
         "Mesh.set_objectcolor",
@@ -28687,6 +28839,7 @@ window.API_INDEX = {
         "Mesh.pb_dumps",
         "Mesh.pb_fill",
         "Mesh.pb_loads",
+        "Mesh.refresh_guid",
         "Mesh.set_vertex_attribute",
         "Mesh.str",
         "Mesh.update_default_edge_attributes",
@@ -28746,6 +28899,7 @@ window.API_INDEX = {
         "Mesh.pb_dumps",
         "Mesh.pb_fill",
         "Mesh.pb_loads",
+        "Mesh.refresh_guid",
         "Mesh.set_face_attribute",
         "Mesh.str",
         "Mesh.update_default_edge_attributes",
@@ -28806,6 +28960,7 @@ window.API_INDEX = {
         "Mesh.pb_dumps",
         "Mesh.pb_fill",
         "Mesh.pb_loads",
+        "Mesh.refresh_guid",
         "Mesh.set_edge_attribute",
         "Mesh.str",
         "Mesh.update_default_edge_attributes",
@@ -30608,7 +30763,6 @@ window.API_INDEX = {
         "NurbsCurve.domain",
         "NurbsCurve.duplicate",
         "NurbsCurve.file_json_dump",
-        "NurbsCurve.guid",
         "NurbsCurve.initialize",
         "NurbsCurve.is_valid",
         "NurbsCurve.jsonload",
@@ -30894,7 +31048,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__(dimension: int = 3, is_rational: bool = False,\n                 order: int = 4, cv_count: int = 0)",
-          "code": "def __init__(self, dimension: int = 3, is_rational: bool = False,\n                 order: int = 4, cv_count: int = 0):\n\n        self._guid = None\n        self.name = \"my_nurbscurve\"\n        self.width = 1.0\n        self.pointcolors = []\n        self.linecolors = []\n        self._xform = None\n\n        self.m_dim = dimension\n        self.m_is_rat = 1 if is_rational else 0\n        self.m_order = order\n        self.m_cv_count = cv_count\n        self.m_cv_stride = (dimension + 1) if is_rational else dimension\n\n        if cv_count > 0 and order > 0 and cv_count >= order:\n            nurbsknot_count = order + cv_count - 2\n            self.m_nurbsknot = np.zeros(nurbsknot_count, dtype=np.float64)\n            self.m_cv = np.zeros(cv_count * self.m_cv_stride, dtype=np.float64)\n        else:\n            self.m_nurbsknot = np.array([], dtype=np.float64)\n            self.m_cv = np.array([], dtype=np.float64)\n\n        self._rmf_cache = None\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __eq__(self, other) -> bool:\n        if not isinstance(other, NurbsCurve):\n            return False\n        if self.m_dim != other.m_dim or self.m_is_rat != other.m_is_rat:\n            return False\n        if self.m_order != other.m_order or self.m_cv_count != other.m_cv_count:\n            return False\n        if self.m_cv_stride != other.m_cv_stride:\n            return False\n        if self.name != other.name:\n            return False\n        if abs(self.width - other.width) > Tolerance.ZERO_TOLERANCE:\n            return False\n        if self.pointcolors != other.pointcolors:\n            return False\n        if self.linecolors != other.linecolors:\n            return False\n        if len(self.m_nurbsknot) != len(other.m_nurbsknot):\n            return False\n        for i in range(len(self.m_nurbsknot)):\n            if abs(float(self.m_nurbsknot[i]) - float(other.m_nurbsknot[i])) > Tolerance.ZERO_TOLERANCE:\n                return False\n        if len(self.m_cv) != len(other.m_cv):\n            return False\n        for i in range(len(self.m_cv)):\n            if abs(float(self.m_cv[i]) - float(other.m_cv[i])) > Tolerance.ZERO_TOLERANCE:\n                return False\n        return True\n\n    def __ne__(self, other) -> bool:\n        return not self.__eq__(other)\n\n    def duplicate(self) -> \"NurbsCurve\":\n        \"\"\"Create a duplicate with a new GUID.\n\n        Returns",
+          "code": "def __init__(self, dimension: int = 3, is_rational: bool = False,\n                 order: int = 4, cv_count: int = 0):\n\n        self._guid = None\n        self.name = \"my_nurbscurve\"\n        self.width = 1.0\n        self.pointcolors = []\n        self.linecolors = []\n        self._xform = None\n\n        self.m_dim = dimension\n        self.m_is_rat = 1 if is_rational else 0\n        self.m_order = order\n        self.m_cv_count = cv_count\n        self.m_cv_stride = (dimension + 1) if is_rational else dimension\n\n        if cv_count > 0 and order > 0 and cv_count >= order:\n            nurbsknot_count = order + cv_count - 2\n            self.m_nurbsknot = np.zeros(nurbsknot_count, dtype=np.float64)\n            self.m_cv = np.zeros(cv_count * self.m_cv_stride, dtype=np.float64)\n        else:\n            self.m_nurbsknot = np.array([], dtype=np.float64)\n            self.m_cv = np.array([], dtype=np.float64)\n\n        self._rmf_cache = None\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __eq__(self, other) -> bool:\n        if not isinstance(other, NurbsCurve):\n            return False\n        if self.m_dim != other.m_dim or self.m_is_rat != other.m_is_rat:\n            return False\n        if self.m_order != other.m_order or self.m_cv_count != other.m_cv_count:\n            return False\n        if self.m_cv_stride != other.m_cv_stride:\n            return False\n        if self.name != other.name:\n            return False\n        if abs(self.width - other.width) > Tolerance.ZERO_TOLERANCE:\n            return False\n        if self.pointcolors != other.pointcolors:\n            return False\n        if self.linecolors != other.linecolors:\n            return False\n        if len(self.m_nurbsknot) != len(other.m_nurbsknot):\n            return False\n        for i in range(len(self.m_nurbsknot)):\n            if abs(float(self.m_nurbsknot[i]) - float(other.m_nurbsknot[i])) > Tolerance.ZERO_TOLERANCE:\n                return False\n        if len(self.m_cv) != len(other.m_cv):\n            return False\n        for i in range(len(self.m_cv)):\n            if abs(float(self.m_cv[i]) - float(other.m_cv[i])) > Tolerance.ZERO_TOLERANCE:\n                return False\n        return True\n\n    def __ne__(self, other) -> bool:\n        return not self.__eq__(other)",
           "file": "nurbscurve.py"
         }
       },
@@ -30907,10 +31061,10 @@ window.API_INDEX = {
         "NurbsCurve.duplicate",
         "NurbsCurve.guid",
         "NurbsCurve.is_rational",
-        "NurbsCurve.new",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.nurbsknot_count",
         "NurbsCurve.order",
+        "NurbsCurve.refresh_guid",
         "NurbsCurve.str",
         "NurbsCurve.xform"
       ]
@@ -30920,7 +31074,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "guid(value: str)",
-          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __eq__(self, other) -> bool:\n        if not isinstance(other, NurbsCurve):\n            return False\n        if self.m_dim != other.m_dim or self.m_is_rat != other.m_is_rat:\n            return False\n        if self.m_order != other.m_order or self.m_cv_count != other.m_cv_count:\n            return False\n        if self.m_cv_stride != other.m_cv_stride:\n            return False\n        if self.name != other.name:\n            return False\n        if abs(self.width - other.width) > Tolerance.ZERO_TOLERANCE:\n            return False\n        if self.pointcolors != other.pointcolors:\n            return False\n        if self.linecolors != other.linecolors:\n            return False\n        if len(self.m_nurbsknot) != len(other.m_nurbsknot):\n            return False\n        for i in range(len(self.m_nurbsknot)):\n            if abs(float(self.m_nurbsknot[i]) - float(other.m_nurbsknot[i])) > Tolerance.ZERO_TOLERANCE:\n                return False\n        if len(self.m_cv) != len(other.m_cv):\n            return False\n        for i in range(len(self.m_cv)):\n            if abs(float(self.m_cv[i]) - float(other.m_cv[i])) > Tolerance.ZERO_TOLERANCE:\n                return False\n        return True\n\n    def __ne__(self, other) -> bool:\n        return not self.__eq__(other)\n\n    def duplicate(self) -> \"NurbsCurve\":\n        \"\"\"Create a duplicate with a new GUID.\n\n        Returns\n        -------\n        NurbsCurve\n            A copy of the curve with a new GUID.\n        \"\"\"\n        import copy\n        import uuid\n        new_curve = copy.deepcopy(self)\n        new_curve.guid = str(uuid.uuid4())\n        return new_curve\n\n\n    ###########################################################################################\n    # Initialization & Creation\n    ###########################################################################################\n\n    def initialize(self):\n        \"\"\"Initialize all fields to zero/empty.\n        \n        Returns\n        -------\n        None\n        \"\"\"\n        self.m_dim = 0\n        self.m_is_rat = 0\n        self.m_order = 0\n        self.m_cv_count = 0\n        self.m_cv_stride = 0\n        self.m_nurbsknot = np.array([], dtype=np.float64)\n        self.m_cv = np.array([], dtype=np.float64)\n\n    def create_curve(self, dimension: int, is_rational: bool,",
+          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __eq__(self, other) -> bool:\n        if not isinstance(other, NurbsCurve):\n            return False\n        if self.m_dim != other.m_dim or self.m_is_rat != other.m_is_rat:\n            return False\n        if self.m_order != other.m_order or self.m_cv_count != other.m_cv_count:\n            return False\n        if self.m_cv_stride != other.m_cv_stride:\n            return False\n        if self.name != other.name:\n            return False\n        if abs(self.width - other.width) > Tolerance.ZERO_TOLERANCE:\n            return False\n        if self.pointcolors != other.pointcolors:\n            return False\n        if self.linecolors != other.linecolors:\n            return False\n        if len(self.m_nurbsknot) != len(other.m_nurbsknot):\n            return False\n        for i in range(len(self.m_nurbsknot)):\n            if abs(float(self.m_nurbsknot[i]) - float(other.m_nurbsknot[i])) > Tolerance.ZERO_TOLERANCE:\n                return False\n        if len(self.m_cv) != len(other.m_cv):\n            return False\n        for i in range(len(self.m_cv)):\n            if abs(float(self.m_cv[i]) - float(other.m_cv[i])) > Tolerance.ZERO_TOLERANCE:\n                return False\n        return True\n\n    def __ne__(self, other) -> bool:\n        return not self.__eq__(other)\n\n    def duplicate(self) -> \"NurbsCurve\":\n        \"\"\"Create a duplicate with a new GUID.\n\n        Returns\n        -------\n        NurbsCurve\n            A copy of the curve with a new GUID.\n        \"\"\"\n        import copy\n        import uuid\n        new_curve = copy.deepcopy(self)\n        new_curve.guid = str(uuid.uuid4())\n        return new_curve\n\n\n    ###########################################################################################\n    # Initialization & Creation\n    ###########################################################################################\n\n    def initialize(self):\n        \"\"\"Initialize all fields to zero/empty.\n        \n        Returns\n        -------\n        None\n        \"\"\"\n        self.m_dim = 0\n        self.m_is_rat = 0\n        self.m_order = 0\n        self.m_cv_count = 0\n        self.m_cv_stride = 0",
           "file": "nurbscurve.py"
         },
         "cpp": {
@@ -30940,13 +31094,10 @@ window.API_INDEX = {
         "NurbsCurve.__jsondump__",
         "NurbsCurve.__jsonload__",
         "NurbsCurve.__ne__",
-        "NurbsCurve.create",
-        "NurbsCurve.create_curve",
         "NurbsCurve.cv",
         "NurbsCurve.cv_count",
         "NurbsCurve.deep_copy_from",
         "NurbsCurve.default",
-        "NurbsCurve.dimension",
         "NurbsCurve.duplicate",
         "NurbsCurve.file_json_dump",
         "NurbsCurve.file_json_dumps",
@@ -30954,17 +31105,52 @@ window.API_INDEX = {
         "NurbsCurve.file_json_loads",
         "NurbsCurve.from_protobuf",
         "NurbsCurve.initialize",
-        "NurbsCurve.is_rational",
         "NurbsCurve.new",
         "NurbsCurve.nurbsknot",
         "NurbsCurve.order",
         "NurbsCurve.pb_dumps",
         "NurbsCurve.pb_fill",
         "NurbsCurve.pb_loads",
+        "NurbsCurve.refresh_guid",
         "NurbsCurve.set_guid",
         "NurbsCurve.str",
         "NurbsCurve.to_protobuf",
         "NurbsCurve.transformed",
+        "NurbsCurve.xform"
+      ]
+    },
+    {
+      "name": "NurbsCurve.refresh_guid",
+      "implementations": {
+        "python": {
+          "sig": "refresh_guid()",
+          "code": "def refresh_guid(self):\n\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    def __eq__(self, other) -> bool:\n        if not isinstance(other, NurbsCurve):\n            return False\n        if self.m_dim != other.m_dim or self.m_is_rat != other.m_is_rat:\n            return False\n        if self.m_order != other.m_order or self.m_cv_count != other.m_cv_count:\n            return False\n        if self.m_cv_stride != other.m_cv_stride:\n            return False\n        if self.name != other.name:\n            return False\n        if abs(self.width - other.width) > Tolerance.ZERO_TOLERANCE:\n            return False\n        if self.pointcolors != other.pointcolors:\n            return False\n        if self.linecolors != other.linecolors:\n            return False\n        if len(self.m_nurbsknot) != len(other.m_nurbsknot):\n            return False\n        for i in range(len(self.m_nurbsknot)):\n            if abs(float(self.m_nurbsknot[i]) - float(other.m_nurbsknot[i])) > Tolerance.ZERO_TOLERANCE:\n                return False\n        if len(self.m_cv) != len(other.m_cv):\n            return False\n        for i in range(len(self.m_cv)):\n            if abs(float(self.m_cv[i]) - float(other.m_cv[i])) > Tolerance.ZERO_TOLERANCE:\n                return False\n        return True\n\n    def __ne__(self, other) -> bool:\n        return not self.__eq__(other)\n\n    def duplicate(self) -> \"NurbsCurve\":\n        \"\"\"Create a duplicate with a new GUID.\n\n        Returns\n        -------\n        NurbsCurve\n            A copy of the curve with a new GUID.\n        \"\"\"\n        import copy\n        import uuid\n        new_curve = copy.deepcopy(self)\n        new_curve.guid = str(uuid.uuid4())\n        return new_curve\n\n\n    ###########################################################################################\n    # Initialization & Creation\n    ###########################################################################################\n\n    def initialize(self):\n        \"\"\"Initialize all fields to zero/empty.\n        \n        Returns\n        -------\n        None\n        \"\"\"\n        self.m_dim = 0\n        self.m_is_rat = 0\n        self.m_order = 0\n        self.m_cv_count = 0\n        self.m_cv_stride = 0\n        self.m_nurbsknot = np.array([], dtype=np.float64)\n        self.m_cv = np.array([], dtype=np.float64)",
+          "file": "nurbscurve.py"
+        },
+        "cpp": {
+          "sig": "void refresh_guid()",
+          "code": "void refresh_guid() { _guid.clear(); }",
+          "file": "nurbscurve.h"
+        },
+        "rust": {
+          "sig": "refresh_guid()",
+          "code": "pub fn refresh_guid(&mut self) {\n        self.guid = std::sync::OnceLock::new();\n    }",
+          "file": "nurbscurve.rs"
+        }
+      },
+      "related": [
+        "NurbsCurve.__eq__",
+        "NurbsCurve.__init__",
+        "NurbsCurve.__ne__",
+        "NurbsCurve.cv",
+        "NurbsCurve.cv_count",
+        "NurbsCurve.duplicate",
+        "NurbsCurve.guid",
+        "NurbsCurve.initialize",
+        "NurbsCurve.new",
+        "NurbsCurve.nurbsknot",
+        "NurbsCurve.order",
+        "NurbsCurve.str",
         "NurbsCurve.xform"
       ]
     },
@@ -31005,6 +31191,7 @@ window.API_INDEX = {
         "NurbsCurve.pb_dumps",
         "NurbsCurve.pb_fill",
         "NurbsCurve.pb_loads",
+        "NurbsCurve.refresh_guid",
         "NurbsCurve.str",
         "NurbsCurve.to_protobuf",
         "NurbsCurve.transform",
@@ -31036,6 +31223,7 @@ window.API_INDEX = {
         "NurbsCurve.nurbsknot",
         "NurbsCurve.nurbsknot_count",
         "NurbsCurve.order",
+        "NurbsCurve.refresh_guid",
         "NurbsCurve.str",
         "NurbsCurve.xform"
       ]
@@ -31067,6 +31255,7 @@ window.API_INDEX = {
         "NurbsCurve.nurbsknot",
         "NurbsCurve.nurbsknot_count",
         "NurbsCurve.order",
+        "NurbsCurve.refresh_guid",
         "NurbsCurve.set_cv",
         "NurbsCurve.str",
         "NurbsCurve.weight",
@@ -31113,6 +31302,7 @@ window.API_INDEX = {
         "NurbsCurve.nurbsknot",
         "NurbsCurve.nurbsknot_count",
         "NurbsCurve.order",
+        "NurbsCurve.refresh_guid",
         "NurbsCurve.set_cv",
         "NurbsCurve.split",
         "NurbsCurve.str",
@@ -31154,6 +31344,7 @@ window.API_INDEX = {
         "NurbsCurve.nurbsknot",
         "NurbsCurve.nurbsknot_count",
         "NurbsCurve.order",
+        "NurbsCurve.refresh_guid",
         "NurbsCurve.set_cv",
         "NurbsCurve.str",
         "NurbsCurve.weight",
@@ -31180,7 +31371,6 @@ window.API_INDEX = {
         "NurbsCurve.destroy",
         "NurbsCurve.dimension",
         "NurbsCurve.duplicate",
-        "NurbsCurve.guid",
         "NurbsCurve.initialize",
         "NurbsCurve.is_rational",
         "NurbsCurve.is_valid",
@@ -31482,7 +31672,6 @@ window.API_INDEX = {
         "NurbsCurve.file_json_loads",
         "NurbsCurve.from_protobuf",
         "NurbsCurve.get_cv",
-        "NurbsCurve.guid",
         "NurbsCurve.initialize",
         "NurbsCurve.is_closed",
         "NurbsCurve.is_linear",
@@ -32080,7 +32269,6 @@ window.API_INDEX = {
         "NurbsCurve.from_protobuf",
         "NurbsCurve.get_cv",
         "NurbsCurve.get_nurbsknots",
-        "NurbsCurve.guid",
         "NurbsCurve.initialize",
         "NurbsCurve.is_clamped",
         "NurbsCurve.is_continuous",
@@ -32221,6 +32409,7 @@ window.API_INDEX = {
         "NurbsCurve.pb_loads",
         "NurbsCurve.pdist",
         "NurbsCurve.point_at",
+        "NurbsCurve.refresh_guid",
         "NurbsCurve.reverse",
         "NurbsCurve.set_cv",
         "NurbsCurve.set_domain",
@@ -32441,6 +32630,7 @@ window.API_INDEX = {
         "NurbsCurve.point_at_end",
         "NurbsCurve.point_at_middle",
         "NurbsCurve.point_at_start",
+        "NurbsCurve.refresh_guid",
         "NurbsCurve.repr",
         "NurbsCurve.reverse",
         "NurbsCurve.set_cv",
@@ -32967,6 +33157,7 @@ window.API_INDEX = {
         "NurbsCurve.point_at_end",
         "NurbsCurve.point_at_middle",
         "NurbsCurve.point_at_start",
+        "NurbsCurve.refresh_guid",
         "NurbsCurve.repr",
         "NurbsCurve.reserve_cv_capacity",
         "NurbsCurve.reverse",
@@ -33358,6 +33549,7 @@ window.API_INDEX = {
         "NurbsCurve.point_at_end",
         "NurbsCurve.point_at_middle",
         "NurbsCurve.point_at_start",
+        "NurbsCurve.refresh_guid",
         "NurbsCurve.repair_bad_nurbsknots",
         "NurbsCurve.reserve_nurbsknot_capacity",
         "NurbsCurve.reverse",
@@ -36890,7 +37082,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__(dimension: int = 3, is_rational: bool = False,\n                 order0: int = 4, order1: int = 4,\n                 cv_count0: int = 0, cv_count1: int = 0,\n                 is_periodic_u: bool = False, is_periodic_v: bool = False,\n                 nurbsknot_delta_u: float = 1.0, nurbsknot_delta_v: float = 1.0)",
-          "code": "def __init__(self, dimension: int = 3, is_rational: bool = False,\n                 order0: int = 4, order1: int = 4,\n                 cv_count0: int = 0, cv_count1: int = 0,\n                 is_periodic_u: bool = False, is_periodic_v: bool = False,\n                 nurbsknot_delta_u: float = 1.0, nurbsknot_delta_v: float = 1.0):\n\n        \"\"\"Initialize a NURBS surface.\"\"\"\n        self._guid = None\n        self.name = \"my_nurbssurface\"\n        self.width = 1.0\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self._xform = None\n\n        # Core NURBS data\n        self.m_dim = 0\n        self.m_is_rat = 0\n        self.m_order = [0, 0]\n        self.m_cv_count = [0, 0]\n        self.m_cv_stride = [0, 0]\n\n        # Data arrays\n        self.m_nurbsknot = [np.array([], dtype=np.float64), np.array([], dtype=np.float64)]\n        self.m_cv = np.array([], dtype=np.float64)\n        self.m_mesh = None\n\n        # Create if parameters provided\n        if cv_count0 > 0 and cv_count1 > 0:\n            self._create_impl(dimension, is_rational, order0, order1, cv_count0, cv_count1)\n\n            # Initialize nurbsknot vectors\n            if is_periodic_u:\n                self.make_periodic_uniform_nurbsknot_vector(0, nurbsknot_delta_u)\n            else:\n                self.make_clamped_uniform_nurbsknot_vector(0, nurbsknot_delta_u)\n\n            if is_periodic_v:\n                self.make_periodic_uniform_nurbsknot_vector(1, nurbsknot_delta_v)\n            else:\n                self.make_clamped_uniform_nurbsknot_vector(1, nurbsknot_delta_v)\n    \n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################\n    # INITIALIZATION & CREATION\n    ###########################################################################\n\n    def initialize(self):\n        \"\"\"Initialize all fields to zero/empty.\"\"\"\n        self._guid = None\n        self.name = \"my_nurbssurface\"\n        self.width = 1.0\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self._xform = None\n\n        self.m_dim = 0\n        self.m_is_rat = 0\n        self.m_order = [0, 0]\n        self.m_cv_count = [0, 0]\n        self.m_cv_stride = [0, 0]\n\n        self.m_nurbsknot = [np.array([], dtype=np.float64), np.array([], dtype=np.float64)]\n        self.m_cv = np.array([], dtype=np.float64)",
+          "code": "def __init__(self, dimension: int = 3, is_rational: bool = False,\n                 order0: int = 4, order1: int = 4,\n                 cv_count0: int = 0, cv_count1: int = 0,\n                 is_periodic_u: bool = False, is_periodic_v: bool = False,\n                 nurbsknot_delta_u: float = 1.0, nurbsknot_delta_v: float = 1.0):\n\n        \"\"\"Initialize a NURBS surface.\"\"\"\n        self._guid = None\n        self.name = \"my_nurbssurface\"\n        self.width = 1.0\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self._xform = None\n\n        # Core NURBS data\n        self.m_dim = 0\n        self.m_is_rat = 0\n        self.m_order = [0, 0]\n        self.m_cv_count = [0, 0]\n        self.m_cv_stride = [0, 0]\n\n        # Data arrays\n        self.m_nurbsknot = [np.array([], dtype=np.float64), np.array([], dtype=np.float64)]\n        self.m_cv = np.array([], dtype=np.float64)\n        self.m_mesh = None\n\n        # Create if parameters provided\n        if cv_count0 > 0 and cv_count1 > 0:\n            self._create_impl(dimension, is_rational, order0, order1, cv_count0, cv_count1)\n\n            # Initialize nurbsknot vectors\n            if is_periodic_u:\n                self.make_periodic_uniform_nurbsknot_vector(0, nurbsknot_delta_u)\n            else:\n                self.make_clamped_uniform_nurbsknot_vector(0, nurbsknot_delta_u)\n\n            if is_periodic_v:\n                self.make_periodic_uniform_nurbsknot_vector(1, nurbsknot_delta_v)\n            else:\n                self.make_clamped_uniform_nurbsknot_vector(1, nurbsknot_delta_v)\n    \n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################\n    # INITIALIZATION & CREATION\n    ###########################################################################\n\n    def initialize(self):\n        \"\"\"Initialize all fields to zero/empty.\"\"\"\n        self._guid = None\n        self.name = \"my_nurbssurface\"\n        self.width = 1.0\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self._xform = None\n\n        self.m_dim = 0\n        self.m_is_rat = 0\n        self.m_order = [0, 0]\n        self.m_cv_count = [0, 0]\n        self.m_cv_stride = [0, 0]",
           "file": "nurbssurface.py"
         }
       },
@@ -36900,6 +37092,7 @@ window.API_INDEX = {
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
         "NurbsSurface.dimension",
+        "NurbsSurface.duplicate",
         "NurbsSurface.guid",
         "NurbsSurface.initialize",
         "NurbsSurface.is_periodic",
@@ -36909,6 +37102,7 @@ window.API_INDEX = {
         "NurbsSurface.mesh",
         "NurbsSurface.nurbsknot",
         "NurbsSurface.order",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.str",
         "NurbsSurface.xform"
       ]
@@ -36918,7 +37112,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "guid(value: str)",
-          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################\n    # INITIALIZATION & CREATION\n    ###########################################################################\n\n    def initialize(self):\n        \"\"\"Initialize all fields to zero/empty.\"\"\"\n        self._guid = None\n        self.name = \"my_nurbssurface\"\n        self.width = 1.0\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self._xform = None\n\n        self.m_dim = 0\n        self.m_is_rat = 0\n        self.m_order = [0, 0]\n        self.m_cv_count = [0, 0]\n        self.m_cv_stride = [0, 0]\n\n        self.m_nurbsknot = [np.array([], dtype=np.float64), np.array([], dtype=np.float64)]\n        self.m_cv = np.array([], dtype=np.float64)\n    \n    @staticmethod\n    def create_raw(dimension: int, is_rational: bool,\n               order0: int, order1: int,\n               cv_count0: int, cv_count1: int,\n               is_periodic_u: bool = False, is_periodic_v: bool = False,\n               nurbsknot_delta_u: float = 1.0, nurbsknot_delta_v: float = 1.0) -> 'NurbsSurface':\n        \"\"\"Create NURBS surface with specified parameters (static factory method).\n\n        Parameters\n        ----------\n        dimension : int\n            Dimension of the surface (typically 3).\n        is_rational : bool\n            Whether the surface should be rational.\n        order0 : int\n            Order in u direction (degree + 1).\n        order1 : int\n            Order in v direction (degree + 1).\n        cv_count0 : int\n            Number of control vertices in u direction.\n        cv_count1 : int\n            Number of control vertices in v direction.\n        is_periodic_u : bool, optional\n            If True, creates periodic uniform nurbsknot vector in u direction. Defaults to False.\n        is_periodic_v : bool, optional\n            If True, creates periodic uniform nurbsknot vector in v direction. Defaults to False.\n        nurbsknot_delta_u : float, optional\n            NurbsKnot spacing in u direction. Defaults to 1.0.\n        nurbsknot_delta_v : float, optional\n            NurbsKnot spacing in v direction. Defaults to 1.0.\n\n        Returns\n        -------\n        NurbsSurface or None\n            The created surface, or None if parameters are invalid.\n        \"\"\"\n        surf = NurbsSurface()\n        if surf._create_impl(dimension, is_rational, order0, order1, cv_count0, cv_count1):\n            # Initialize nurbsknot vectors\n            if is_periodic_u:\n                surf.make_periodic_uniform_nurbsknot_vector(0, nurbsknot_delta_u)\n            else:\n                surf.make_clamped_uniform_nurbsknot_vector(0, nurbsknot_delta_u)",
+          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################\n    # INITIALIZATION & CREATION\n    ###########################################################################\n\n    def initialize(self):\n        \"\"\"Initialize all fields to zero/empty.\"\"\"\n        self._guid = None\n        self.name = \"my_nurbssurface\"\n        self.width = 1.0\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self._xform = None\n\n        self.m_dim = 0\n        self.m_is_rat = 0\n        self.m_order = [0, 0]\n        self.m_cv_count = [0, 0]\n        self.m_cv_stride = [0, 0]\n\n        self.m_nurbsknot = [np.array([], dtype=np.float64), np.array([], dtype=np.float64)]\n        self.m_cv = np.array([], dtype=np.float64)\n    \n    @staticmethod\n    def create_raw(dimension: int, is_rational: bool,\n               order0: int, order1: int,\n               cv_count0: int, cv_count1: int,\n               is_periodic_u: bool = False, is_periodic_v: bool = False,\n               nurbsknot_delta_u: float = 1.0, nurbsknot_delta_v: float = 1.0) -> 'NurbsSurface':\n        \"\"\"Create NURBS surface with specified parameters (static factory method).\n\n        Parameters\n        ----------\n        dimension : int\n            Dimension of the surface (typically 3).\n        is_rational : bool\n            Whether the surface should be rational.\n        order0 : int\n            Order in u direction (degree + 1).\n        order1 : int\n            Order in v direction (degree + 1).\n        cv_count0 : int\n            Number of control vertices in u direction.\n        cv_count1 : int\n            Number of control vertices in v direction.\n        is_periodic_u : bool, optional\n            If True, creates periodic uniform nurbsknot vector in u direction. Defaults to False.\n        is_periodic_v : bool, optional\n            If True, creates periodic uniform nurbsknot vector in v direction. Defaults to False.\n        nurbsknot_delta_u : float, optional\n            NurbsKnot spacing in u direction. Defaults to 1.0.\n        nurbsknot_delta_v : float, optional\n            NurbsKnot spacing in v direction. Defaults to 1.0.\n\n        Returns\n        -------\n        NurbsSurface or None\n            The created surface, or None if parameters are invalid.\n        \"\"\"\n        surf = NurbsSurface()\n        if surf._create_impl(dimension, is_rational, order0, order1, cv_count0, cv_count1):\n            # Initialize nurbsknot vectors\n            if is_periodic_u:",
           "file": "nurbssurface.py"
         },
         "cpp": {
@@ -36957,14 +37151,13 @@ window.API_INDEX = {
         "NurbsSurface.is_periodic",
         "NurbsSurface.is_rational",
         "NurbsSurface.is_valid_nurbsknot_vector",
-        "NurbsSurface.make_clamped_uniform_nurbsknot_vector",
-        "NurbsSurface.make_periodic_uniform_nurbsknot_vector",
         "NurbsSurface.new",
         "NurbsSurface.nurbsknot",
         "NurbsSurface.order",
         "NurbsSurface.pb_dumps",
         "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.set_guid",
         "NurbsSurface.str",
         "NurbsSurface.to_string",
@@ -36972,6 +37165,48 @@ window.API_INDEX = {
         "NurbsSurface.transformed",
         "NurbsSurface.xform",
         "NurbsSurface.zero_cvs"
+      ]
+    },
+    {
+      "name": "NurbsSurface.refresh_guid",
+      "implementations": {
+        "python": {
+          "sig": "refresh_guid()",
+          "code": "def refresh_guid(self):\n\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################\n    # INITIALIZATION & CREATION\n    ###########################################################################\n\n    def initialize(self):\n        \"\"\"Initialize all fields to zero/empty.\"\"\"\n        self._guid = None\n        self.name = \"my_nurbssurface\"\n        self.width = 1.0\n        self.pointcolors = []\n        self.facecolors = []\n        self.linecolors = []\n        self._xform = None\n\n        self.m_dim = 0\n        self.m_is_rat = 0\n        self.m_order = [0, 0]\n        self.m_cv_count = [0, 0]\n        self.m_cv_stride = [0, 0]\n\n        self.m_nurbsknot = [np.array([], dtype=np.float64), np.array([], dtype=np.float64)]\n        self.m_cv = np.array([], dtype=np.float64)\n    \n    @staticmethod\n    def create_raw(dimension: int, is_rational: bool,\n               order0: int, order1: int,\n               cv_count0: int, cv_count1: int,\n               is_periodic_u: bool = False, is_periodic_v: bool = False,\n               nurbsknot_delta_u: float = 1.0, nurbsknot_delta_v: float = 1.0) -> 'NurbsSurface':\n        \"\"\"Create NURBS surface with specified parameters (static factory method).\n\n        Parameters\n        ----------\n        dimension : int\n            Dimension of the surface (typically 3).\n        is_rational : bool\n            Whether the surface should be rational.\n        order0 : int\n            Order in u direction (degree + 1).\n        order1 : int\n            Order in v direction (degree + 1).\n        cv_count0 : int\n            Number of control vertices in u direction.\n        cv_count1 : int\n            Number of control vertices in v direction.\n        is_periodic_u : bool, optional\n            If True, creates periodic uniform nurbsknot vector in u direction. Defaults to False.\n        is_periodic_v : bool, optional\n            If True, creates periodic uniform nurbsknot vector in v direction. Defaults to False.\n        nurbsknot_delta_u : float, optional\n            NurbsKnot spacing in u direction. Defaults to 1.0.\n        nurbsknot_delta_v : float, optional\n            NurbsKnot spacing in v direction. Defaults to 1.0.\n\n        Returns\n        -------\n        NurbsSurface or None\n            The created surface, or None if parameters are invalid.\n        \"\"\"\n        surf = NurbsSurface()\n        if surf._create_impl(dimension, is_rational, order0, order1, cv_count0, cv_count1):\n            # Initialize nurbsknot vectors\n            if is_periodic_u:\n                surf.make_periodic_uniform_nurbsknot_vector(0, nurbsknot_delta_u)\n            else:\n                surf.make_clamped_uniform_nurbsknot_vector(0, nurbsknot_delta_u)",
+          "file": "nurbssurface.py"
+        },
+        "cpp": {
+          "sig": "void refresh_guid()",
+          "code": "void refresh_guid() { _guid.clear(); }",
+          "file": "nurbssurface.h"
+        },
+        "rust": {
+          "sig": "refresh_guid()",
+          "code": "pub fn refresh_guid(&mut self) {\n        self.guid = std::sync::OnceLock::new();\n    }",
+          "file": "nurbssurface.rs"
+        }
+      },
+      "related": [
+        "NurbsSurface.__init__",
+        "NurbsSurface._create_impl",
+        "NurbsSurface.create",
+        "NurbsSurface.create_raw",
+        "NurbsSurface.cv",
+        "NurbsSurface.cv_count",
+        "NurbsSurface.degree",
+        "NurbsSurface.dimension",
+        "NurbsSurface.duplicate",
+        "NurbsSurface.guid",
+        "NurbsSurface.initialize",
+        "NurbsSurface.is_periodic",
+        "NurbsSurface.is_rational",
+        "NurbsSurface.make_clamped_uniform_nurbsknot_vector",
+        "NurbsSurface.make_periodic_uniform_nurbsknot_vector",
+        "NurbsSurface.new",
+        "NurbsSurface.nurbsknot",
+        "NurbsSurface.order",
+        "NurbsSurface.str",
+        "NurbsSurface.xform"
       ]
     },
     {
@@ -37015,6 +37250,7 @@ window.API_INDEX = {
         "NurbsSurface.pb_dumps",
         "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.split",
         "NurbsSurface.str",
         "NurbsSurface.transform",
@@ -37056,6 +37292,7 @@ window.API_INDEX = {
         "NurbsSurface.make_periodic_uniform_nurbsknot_vector",
         "NurbsSurface.nurbsknot",
         "NurbsSurface.order",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.str",
         "NurbsSurface.xform"
       ]
@@ -37107,6 +37344,7 @@ window.API_INDEX = {
         "NurbsSurface.nurbsknot_count",
         "NurbsSurface.order",
         "NurbsSurface.pb_loads",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.set_cv",
         "NurbsSurface.str",
         "NurbsSurface.weight",
@@ -37170,6 +37408,7 @@ window.API_INDEX = {
         "NurbsSurface.order",
         "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.set_cv",
         "NurbsSurface.set_cv_4d",
         "NurbsSurface.split_by_brep",
@@ -37294,6 +37533,7 @@ window.API_INDEX = {
         "NurbsSurface.order",
         "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.set_weight",
         "NurbsSurface.str",
         "NurbsSurface.weight",
@@ -37471,6 +37711,7 @@ window.API_INDEX = {
         "NurbsSurface.pb_dumps",
         "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.xform",
         "NurbsSurface.zero_cvs"
       ]
@@ -37547,6 +37788,7 @@ window.API_INDEX = {
         "NurbsSurface.nurbsknot",
         "NurbsSurface.nurbsknot_count",
         "NurbsSurface.order",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.xform"
       ]
     },
@@ -37793,6 +38035,7 @@ window.API_INDEX = {
       },
       "related": [
         "NurbsSurface.__eq__",
+        "NurbsSurface.__init__",
         "NurbsSurface.__ne__",
         "NurbsSurface.cv",
         "NurbsSurface.cv_count",
@@ -37810,6 +38053,7 @@ window.API_INDEX = {
         "NurbsSurface.new",
         "NurbsSurface.order",
         "NurbsSurface.ray_intersect",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.str"
       ]
     },
@@ -37876,6 +38120,7 @@ window.API_INDEX = {
         "NurbsSurface.pb_dumps",
         "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.to_string",
         "NurbsSurface.xform",
         "NurbsSurface.zero_cvs"
@@ -37983,6 +38228,7 @@ window.API_INDEX = {
         "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
         "NurbsSurface.point_at",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.reverse",
         "NurbsSurface.set_domain",
         "NurbsSurface.set_nurbsknot",
@@ -38058,6 +38304,7 @@ window.API_INDEX = {
         "NurbsSurface.nurbsknot",
         "NurbsSurface.nurbsknot_count",
         "NurbsSurface.order",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.repr",
         "NurbsSurface.span_count",
         "NurbsSurface.split",
@@ -38174,6 +38421,7 @@ window.API_INDEX = {
         "NurbsSurface.pb_loads",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.repr",
         "NurbsSurface.reverse",
         "NurbsSurface.set_domain",
@@ -38475,6 +38723,7 @@ window.API_INDEX = {
         "NurbsSurface.pb_loads",
         "NurbsSurface.point_at",
         "NurbsSurface.point_at_corner",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.repr",
         "NurbsSurface.reverse",
         "NurbsSurface.set_cv",
@@ -38834,6 +39083,7 @@ window.API_INDEX = {
         "NurbsSurface.pb_fill",
         "NurbsSurface.pb_loads",
         "NurbsSurface.point_at",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.reverse",
         "NurbsSurface.set_domain",
         "NurbsSurface.set_nurbsknot",
@@ -39121,11 +39371,11 @@ window.API_INDEX = {
         "NurbsSurface.domain",
         "NurbsSurface.find_span",
         "NurbsSurface.get_span_vector",
-        "NurbsSurface.guid",
         "NurbsSurface.initialize",
         "NurbsSurface.make_periodic_uniform_nurbsknot_vector",
         "NurbsSurface.nurbsknot",
         "NurbsSurface.order",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.set_domain",
         "NurbsSurface.xform"
       ]
@@ -39159,11 +39409,11 @@ window.API_INDEX = {
         "NurbsSurface.cv_count",
         "NurbsSurface.find_span",
         "NurbsSurface.get_span_vector",
-        "NurbsSurface.guid",
         "NurbsSurface.initialize",
         "NurbsSurface.make_clamped_uniform_nurbsknot_vector",
         "NurbsSurface.nurbsknot",
         "NurbsSurface.order",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.xform"
       ]
     },
@@ -49718,7 +49968,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__(x=0.0, y=0.0, z=0.0, name=\"my_point\")",
-          "code": "def __init__(self, x=0.0, y=0.0, z=0.0, name=\"my_point\"):\n\n        self._guid = None\n        self.name = name\n        self._x = x\n        self._y = y\n        self._z = z\n        self.width = 1.0\n        self._pointcolor = None\n        self._xform = None\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def pointcolor(self):\n        if self._pointcolor is None:\n            self._pointcolor = Color.blue()\n        return self._pointcolor\n\n    @pointcolor.setter\n    def pointcolor(self, value):\n        self._pointcolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = copy.deepcopy(self.name, memo)\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result.width = self.width\n        result.pointcolor = copy.deepcopy(self.pointcolor, memo)\n        result.xform = copy.deepcopy(self.xform, memo)\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this point with a new GUID.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with identical values but a different GUID.\n\n        \"\"\"\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    @staticmethod\n    def sum(p0, p1):\n        \"\"\"Returns a new point that is the sum of two points.",
+          "code": "def __init__(self, x=0.0, y=0.0, z=0.0, name=\"my_point\"):\n\n        self._guid = None\n        self.name = name\n        self._x = x\n        self._y = y\n        self._z = z\n        self.width = 1.0\n        self._pointcolor = None\n        self._xform = None\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def pointcolor(self):\n        if self._pointcolor is None:\n            self._pointcolor = Color.blue()\n        return self._pointcolor\n\n    @pointcolor.setter\n    def pointcolor(self, value):\n        self._pointcolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = copy.deepcopy(self.name, memo)\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result.width = self.width\n        result.pointcolor = copy.deepcopy(self.pointcolor, memo)\n        result.xform = copy.deepcopy(self.xform, memo)\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this point with a new GUID.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with identical values but a different GUID.\n\n        \"\"\"\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result",
           "file": "point.py"
         }
       },
@@ -49728,8 +49978,8 @@ window.API_INDEX = {
         "Point.guid",
         "Point.new",
         "Point.pointcolor",
+        "Point.refresh_guid",
         "Point.str",
-        "Point.sum",
         "Point.x",
         "Point.xform",
         "Point.y",
@@ -49741,7 +49991,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "guid(value: str)",
-          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    @property\n    def pointcolor(self):\n        if self._pointcolor is None:\n            self._pointcolor = Color.blue()\n        return self._pointcolor\n\n    @pointcolor.setter\n    def pointcolor(self, value):\n        self._pointcolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = copy.deepcopy(self.name, memo)\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result.width = self.width\n        result.pointcolor = copy.deepcopy(self.pointcolor, memo)\n        result.xform = copy.deepcopy(self.xform, memo)\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this point with a new GUID.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with identical values but a different GUID.\n\n        \"\"\"\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    @staticmethod\n    def sum(p0, p1):\n        \"\"\"Returns a new point that is the sum of two points.\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            First point.\n        p1 : :class:`Point`\n            Second point.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with coordinates (p0.x + p1.x, p0.y + p1.y, p0.z + p1.z).\n\n        \"\"\"\n        return Point(p0[0] + p1[0], p0[1] + p1[1], p0[2] + p1[2])\n\n    @staticmethod\n    def sub(p0, p1):",
+          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def pointcolor(self):\n        if self._pointcolor is None:\n            self._pointcolor = Color.blue()\n        return self._pointcolor\n\n    @pointcolor.setter\n    def pointcolor(self, value):\n        self._pointcolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = copy.deepcopy(self.name, memo)\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result.width = self.width\n        result.pointcolor = copy.deepcopy(self.pointcolor, memo)\n        result.xform = copy.deepcopy(self.xform, memo)\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this point with a new GUID.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with identical values but a different GUID.\n\n        \"\"\"\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    @staticmethod\n    def sum(p0, p1):\n        \"\"\"Returns a new point that is the sum of two points.\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            First point.\n        p1 : :class:`Point`\n            Second point.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with coordinates (p0.x + p1.x, p0.y + p1.y, p0.z + p1.z).\n\n        \"\"\"",
           "file": "point.py"
         },
         "cpp": {
@@ -49772,9 +50022,43 @@ window.API_INDEX = {
         "Point.pb_dumps",
         "Point.pb_loads",
         "Point.pointcolor",
+        "Point.refresh_guid",
         "Point.set_guid",
         "Point.str",
-        "Point.sub",
+        "Point.sum",
+        "Point.x",
+        "Point.xform",
+        "Point.y",
+        "Point.z"
+      ]
+    },
+    {
+      "name": "Point.refresh_guid",
+      "implementations": {
+        "python": {
+          "sig": "refresh_guid()",
+          "code": "def refresh_guid(self):\n\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def pointcolor(self):\n        if self._pointcolor is None:\n            self._pointcolor = Color.blue()\n        return self._pointcolor\n\n    @pointcolor.setter\n    def pointcolor(self, value):\n        self._pointcolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = copy.deepcopy(self.name, memo)\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result.width = self.width\n        result.pointcolor = copy.deepcopy(self.pointcolor, memo)\n        result.xform = copy.deepcopy(self.xform, memo)\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this point with a new GUID.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with identical values but a different GUID.\n\n        \"\"\"\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    @staticmethod\n    def sum(p0, p1):\n        \"\"\"Returns a new point that is the sum of two points.\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            First point.\n        p1 : :class:`Point`\n            Second point.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with coordinates (p0.x + p1.x, p0.y + p1.y, p0.z + p1.z).\n\n        \"\"\"\n        return Point(p0[0] + p1[0], p0[1] + p1[1], p0[2] + p1[2])\n\n    @staticmethod",
+          "file": "point.py"
+        },
+        "cpp": {
+          "sig": "void refresh_guid()",
+          "code": "void refresh_guid() { _guid.clear(); }",
+          "file": "point.h"
+        },
+        "rust": {
+          "sig": "refresh_guid()",
+          "code": "pub fn refresh_guid(&mut self) {\n        self.guid = std::sync::OnceLock::new();\n    }",
+          "file": "point.rs"
+        }
+      },
+      "related": [
+        "Point.__deepcopy__",
+        "Point.__init__",
+        "Point.duplicate",
+        "Point.guid",
+        "Point.new",
+        "Point.pointcolor",
+        "Point.str",
         "Point.sum",
         "Point.x",
         "Point.xform",
@@ -49813,6 +50097,7 @@ window.API_INDEX = {
         "Point.pb_dumps",
         "Point.pb_load",
         "Point.pb_loads",
+        "Point.refresh_guid",
         "Point.repr",
         "Point.str",
         "Point.sub",
@@ -49865,6 +50150,7 @@ window.API_INDEX = {
         "Point.pb_load",
         "Point.pb_loads",
         "Point.pointcolor",
+        "Point.refresh_guid",
         "Point.str",
         "Point.sub",
         "Point.sum",
@@ -49890,6 +50176,7 @@ window.API_INDEX = {
         "Point.guid",
         "Point.new",
         "Point.pointcolor",
+        "Point.refresh_guid",
         "Point.str",
         "Point.sub",
         "Point.sum",
@@ -49919,6 +50206,7 @@ window.API_INDEX = {
         "Point.guid",
         "Point.new",
         "Point.pointcolor",
+        "Point.refresh_guid",
         "Point.str",
         "Point.sub",
         "Point.sum",
@@ -49950,13 +50238,13 @@ window.API_INDEX = {
       "related": [
         "Point.__deepcopy__",
         "Point.__getitem__",
-        "Point.__init__",
         "Point.area",
         "Point.centroid_quad",
         "Point.duplicate",
         "Point.guid",
         "Point.new",
         "Point.pointcolor",
+        "Point.refresh_guid",
         "Point.sub",
         "Point.x",
         "Point.xform",
@@ -49996,7 +50284,6 @@ window.API_INDEX = {
         "Point.__sub__",
         "Point.__truediv__",
         "Point.duplicate",
-        "Point.guid",
         "Point.new",
         "Point.pointcolor",
         "Point.sum",
@@ -50056,6 +50343,7 @@ window.API_INDEX = {
         "Point.pb_load",
         "Point.pb_loads",
         "Point.pointcolor",
+        "Point.refresh_guid",
         "Point.repr",
         "Point.squared_distance",
         "Point.str",
@@ -50117,6 +50405,7 @@ window.API_INDEX = {
         "Point.pb_load",
         "Point.pb_loads",
         "Point.pointcolor",
+        "Point.refresh_guid",
         "Point.repr",
         "Point.squared_distance",
         "Point.str",
@@ -50176,6 +50465,7 @@ window.API_INDEX = {
         "Point.pb_load",
         "Point.pb_loads",
         "Point.pointcolor",
+        "Point.refresh_guid",
         "Point.repr",
         "Point.squared_distance",
         "Point.str",
@@ -53263,12 +53553,13 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__(points: Optional[List[Point]] = None)",
-          "code": "def __init__(self, points: Optional[List[Point]] = None):\n\n        \"\"\"Creates a new Polyline with default guid and name.\n\n        Args:\n            points: The collection of points (converted to flat coords internally).\n        \"\"\"\n        self._guid = None\n        self.name = \"my_polyline\"\n        self.width = 1.0\n        self._linecolor = None\n        self._xform = None\n\n        # Flat coordinate array [x0, y0, z0, x1, y1, z1, ...]\n        self.coords: List[float] = []\n        if points is not None:\n            for p in points:\n                self.coords.extend([p[0], p[1], p[2]])\n\n        # Plane computed lazily on first access\n        self._plane = None\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    @property\n    def plane(self):\n        if self._plane is None:\n            n = self.point_count()\n            if n >= 3:\n                pts = self.get_points()\n                p0 = pts[0]\n                found = False\n                for i in range(1, n):\n                    v1 = Vector(pts[i][0]-p0[0], pts[i][1]-p0[1], pts[i][2]-p0[2])\n                    if v1[0]*v1[0]+v1[1]*v1[1]+v1[2]*v1[2] < 1e-20:\n                        continue\n                    for j in range(i + 1, n):\n                        v2 = Vector(pts[j][0]-p0[0], pts[j][1]-p0[1], pts[j][2]-p0[2])\n                        normal = v1.cross(v2)\n                        if normal[0]*normal[0]+normal[1]*normal[1]+normal[2]*normal[2] < 1e-20:\n                            continue\n                        normal.normalize_self()\n                        v1.normalize_self()\n                        yax = normal.cross(v1)\n                        yax.normalize_self()\n                        self._plane = Plane(p0, v1, yax)\n                        found = True\n                        break\n                    if found:\n                        break\n                if not found:\n                    self._plane = Plane()\n            else:\n                self._plane = Plane()\n        return self._plane\n\n    @plane.setter\n    def plane(self, value):\n        self._plane = value\n\n    @property\n    def linecolor(self):\n        if self._linecolor is None:\n            self._linecolor = Color.black()\n        return self._linecolor\n\n    @linecolor.setter\n    def linecolor(self, value):\n        self._linecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:",
+          "code": "def __init__(self, points: Optional[List[Point]] = None):\n\n        \"\"\"Creates a new Polyline with default guid and name.\n\n        Args:\n            points: The collection of points (converted to flat coords internally).\n        \"\"\"\n        self._guid = None\n        self.name = \"my_polyline\"\n        self.width = 1.0\n        self._linecolor = None\n        self._xform = None\n\n        # Flat coordinate array [x0, y0, z0, x1, y1, z1, ...]\n        self.coords: List[float] = []\n        if points is not None:\n            for p in points:\n                self.coords.extend([p[0], p[1], p[2]])\n\n        # Plane computed lazily on first access\n        self._plane = None\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def plane(self):\n        if self._plane is None:\n            n = self.point_count()\n            if n >= 3:\n                pts = self.get_points()\n                p0 = pts[0]\n                found = False\n                for i in range(1, n):\n                    v1 = Vector(pts[i][0]-p0[0], pts[i][1]-p0[1], pts[i][2]-p0[2])\n                    if v1[0]*v1[0]+v1[1]*v1[1]+v1[2]*v1[2] < 1e-20:\n                        continue\n                    for j in range(i + 1, n):\n                        v2 = Vector(pts[j][0]-p0[0], pts[j][1]-p0[1], pts[j][2]-p0[2])\n                        normal = v1.cross(v2)\n                        if normal[0]*normal[0]+normal[1]*normal[1]+normal[2]*normal[2] < 1e-20:\n                            continue\n                        normal.normalize_self()\n                        v1.normalize_self()\n                        yax = normal.cross(v1)\n                        yax.normalize_self()\n                        self._plane = Plane(p0, v1, yax)\n                        found = True\n                        break\n                    if found:\n                        break\n                if not found:\n                    self._plane = Plane()\n            else:\n                self._plane = Plane()\n        return self._plane\n\n    @plane.setter\n    def plane(self, value):\n        self._plane = value\n\n    @property\n    def linecolor(self):\n        if self._linecolor is None:\n            self._linecolor = Color.black()\n        return self._linecolor\n\n    @linecolor.setter\n    def linecolor(self, value):\n        self._linecolor = value",
           "file": "polyline.py"
         }
       },
       "related": [
         "Polyline.Polyline",
+        "Polyline.duplicate",
         "Polyline.get_point",
         "Polyline.get_points",
         "Polyline.guid",
@@ -53278,6 +53569,7 @@ window.API_INDEX = {
         "Polyline.point_count",
         "Polyline.points",
         "Polyline.pt",
+        "Polyline.refresh_guid",
         "Polyline.str",
         "Polyline.xform"
       ]
@@ -53287,7 +53579,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "guid(value: str)",
-          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    @property\n    def plane(self):\n        if self._plane is None:\n            n = self.point_count()\n            if n >= 3:\n                pts = self.get_points()\n                p0 = pts[0]\n                found = False\n                for i in range(1, n):\n                    v1 = Vector(pts[i][0]-p0[0], pts[i][1]-p0[1], pts[i][2]-p0[2])\n                    if v1[0]*v1[0]+v1[1]*v1[1]+v1[2]*v1[2] < 1e-20:\n                        continue\n                    for j in range(i + 1, n):\n                        v2 = Vector(pts[j][0]-p0[0], pts[j][1]-p0[1], pts[j][2]-p0[2])\n                        normal = v1.cross(v2)\n                        if normal[0]*normal[0]+normal[1]*normal[1]+normal[2]*normal[2] < 1e-20:\n                            continue\n                        normal.normalize_self()\n                        v1.normalize_self()\n                        yax = normal.cross(v1)\n                        yax.normalize_self()\n                        self._plane = Plane(p0, v1, yax)\n                        found = True\n                        break\n                    if found:\n                        break\n                if not found:\n                    self._plane = Plane()\n            else:\n                self._plane = Plane()\n        return self._plane\n\n    @plane.setter\n    def plane(self, value):\n        self._plane = value\n\n    @property\n    def linecolor(self):\n        if self._linecolor is None:\n            self._linecolor = Color.black()\n        return self._linecolor\n\n    @linecolor.setter\n    def linecolor(self, value):\n        self._linecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    @classmethod\n    def from_coords(cls, coords: List[float]) -> \"Polyline\":\n        \"\"\"Create a Polyline from a flat coordinate array.\n\n        Args:\n            coords: Flat array [x0, y0, z0, x1, y1, z1, ...]\n\n        Returns:\n            New Polyline instance.\n        \"\"\"\n        pl = cls()\n        pl.coords = list(coords)\n        if pl.point_count() >= 3:\n            pl.plane = Plane.from_points(pl.get_points())\n        return pl\n\n    ###########################################################################################\n    # Point Access (compatibility layer)\n    ###########################################################################################\n\n    def point_count(self) -> int:",
+          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def plane(self):\n        if self._plane is None:\n            n = self.point_count()\n            if n >= 3:\n                pts = self.get_points()\n                p0 = pts[0]\n                found = False\n                for i in range(1, n):\n                    v1 = Vector(pts[i][0]-p0[0], pts[i][1]-p0[1], pts[i][2]-p0[2])\n                    if v1[0]*v1[0]+v1[1]*v1[1]+v1[2]*v1[2] < 1e-20:\n                        continue\n                    for j in range(i + 1, n):\n                        v2 = Vector(pts[j][0]-p0[0], pts[j][1]-p0[1], pts[j][2]-p0[2])\n                        normal = v1.cross(v2)\n                        if normal[0]*normal[0]+normal[1]*normal[1]+normal[2]*normal[2] < 1e-20:\n                            continue\n                        normal.normalize_self()\n                        v1.normalize_self()\n                        yax = normal.cross(v1)\n                        yax.normalize_self()\n                        self._plane = Plane(p0, v1, yax)\n                        found = True\n                        break\n                    if found:\n                        break\n                if not found:\n                    self._plane = Plane()\n            else:\n                self._plane = Plane()\n        return self._plane\n\n    @plane.setter\n    def plane(self, value):\n        self._plane = value\n\n    @property\n    def linecolor(self):\n        if self._linecolor is None:\n            self._linecolor = Color.black()\n        return self._linecolor\n\n    @linecolor.setter\n    def linecolor(self, value):\n        self._linecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    @classmethod\n    def from_coords(cls, coords: List[float]) -> \"Polyline\":\n        \"\"\"Create a Polyline from a flat coordinate array.\n\n        Args:\n            coords: Flat array [x0, y0, z0, x1, y1, z1, ...]\n\n        Returns:\n            New Polyline instance.\n        \"\"\"\n        pl = cls()\n        pl.coords = list(coords)\n        if pl.point_count() >= 3:\n            pl.plane = Plane.from_points(pl.get_points())\n        return pl\n\n    ###########################################################################################",
           "file": "polyline.py"
         },
         "cpp": {
@@ -53339,6 +53631,7 @@ window.API_INDEX = {
         "Polyline.project",
         "Polyline.pt",
         "Polyline.pt_in_poly",
+        "Polyline.refresh_guid",
         "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.reverse",
@@ -53347,6 +53640,42 @@ window.API_INDEX = {
         "Polyline.set_point",
         "Polyline.str",
         "Polyline.two_rects_from_frame",
+        "Polyline.xform"
+      ]
+    },
+    {
+      "name": "Polyline.refresh_guid",
+      "implementations": {
+        "python": {
+          "sig": "refresh_guid()",
+          "code": "def refresh_guid(self):\n\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def plane(self):\n        if self._plane is None:\n            n = self.point_count()\n            if n >= 3:\n                pts = self.get_points()\n                p0 = pts[0]\n                found = False\n                for i in range(1, n):\n                    v1 = Vector(pts[i][0]-p0[0], pts[i][1]-p0[1], pts[i][2]-p0[2])\n                    if v1[0]*v1[0]+v1[1]*v1[1]+v1[2]*v1[2] < 1e-20:\n                        continue\n                    for j in range(i + 1, n):\n                        v2 = Vector(pts[j][0]-p0[0], pts[j][1]-p0[1], pts[j][2]-p0[2])\n                        normal = v1.cross(v2)\n                        if normal[0]*normal[0]+normal[1]*normal[1]+normal[2]*normal[2] < 1e-20:\n                            continue\n                        normal.normalize_self()\n                        v1.normalize_self()\n                        yax = normal.cross(v1)\n                        yax.normalize_self()\n                        self._plane = Plane(p0, v1, yax)\n                        found = True\n                        break\n                    if found:\n                        break\n                if not found:\n                    self._plane = Plane()\n            else:\n                self._plane = Plane()\n        return self._plane\n\n    @plane.setter\n    def plane(self, value):\n        self._plane = value\n\n    @property\n    def linecolor(self):\n        if self._linecolor is None:\n            self._linecolor = Color.black()\n        return self._linecolor\n\n    @linecolor.setter\n    def linecolor(self, value):\n        self._linecolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    @classmethod\n    def from_coords(cls, coords: List[float]) -> \"Polyline\":\n        \"\"\"Create a Polyline from a flat coordinate array.\n\n        Args:\n            coords: Flat array [x0, y0, z0, x1, y1, z1, ...]\n\n        Returns:\n            New Polyline instance.\n        \"\"\"\n        pl = cls()\n        pl.coords = list(coords)\n        if pl.point_count() >= 3:\n            pl.plane = Plane.from_points(pl.get_points())\n        return pl\n\n    ###########################################################################################\n    # Point Access (compatibility layer)\n    ###########################################################################################",
+          "file": "polyline.py"
+        },
+        "cpp": {
+          "sig": "void refresh_guid()",
+          "code": "void refresh_guid() { _guid.clear(); }",
+          "file": "polyline.h"
+        },
+        "rust": {
+          "sig": "refresh_guid()",
+          "code": "pub fn refresh_guid(&mut self) {\n        self.guid = std::sync::OnceLock::new();\n    }",
+          "file": "polyline.rs"
+        }
+      },
+      "related": [
+        "Polyline.Polyline",
+        "Polyline.__init__",
+        "Polyline.duplicate",
+        "Polyline.from_coords",
+        "Polyline.get_point",
+        "Polyline.get_points",
+        "Polyline.guid",
+        "Polyline.linecolor",
+        "Polyline.new",
+        "Polyline.plane",
+        "Polyline.point_count",
+        "Polyline.points",
+        "Polyline.pt",
         "Polyline.xform"
       ]
     },
@@ -53425,6 +53754,7 @@ window.API_INDEX = {
         "Polyline.qh_upper",
         "Polyline.quick_hull",
         "Polyline.recompute_plane_if_needed",
+        "Polyline.refresh_guid",
         "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.reverse",
@@ -53500,6 +53830,7 @@ window.API_INDEX = {
         "Polyline.project",
         "Polyline.pt",
         "Polyline.pt_in_poly",
+        "Polyline.refresh_guid",
         "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.reverse",
@@ -53565,6 +53896,7 @@ window.API_INDEX = {
         "Polyline.project",
         "Polyline.pt",
         "Polyline.pt_in_poly",
+        "Polyline.refresh_guid",
         "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.reverse",
@@ -53640,6 +53972,7 @@ window.API_INDEX = {
         "Polyline.points",
         "Polyline.pt",
         "Polyline.quadratic_points",
+        "Polyline.refresh_guid",
         "Polyline.remove_point",
         "Polyline.reverse",
         "Polyline.reversed",
@@ -53731,6 +54064,7 @@ window.API_INDEX = {
         "Polyline.points",
         "Polyline.project",
         "Polyline.pt",
+        "Polyline.refresh_guid",
         "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.repr",
@@ -53856,6 +54190,7 @@ window.API_INDEX = {
         "Polyline.pt",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
+        "Polyline.refresh_guid",
         "Polyline.remove_consecutive_duplicates",
         "Polyline.segment_count",
         "Polyline.simplify",
@@ -53955,6 +54290,7 @@ window.API_INDEX = {
         "Polyline.qh_upper",
         "Polyline.quadratic_points",
         "Polyline.quick_hull",
+        "Polyline.refresh_guid",
         "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.repr",
@@ -54506,6 +54842,7 @@ window.API_INDEX = {
         "Polyline.pt",
         "Polyline.qh_upper",
         "Polyline.quick_hull",
+        "Polyline.refresh_guid",
         "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.reverse",
@@ -54910,6 +55247,7 @@ window.API_INDEX = {
         "Polyline.__eq__",
         "Polyline.__iadd__",
         "Polyline.__imul__",
+        "Polyline.__init__",
         "Polyline.__isub__",
         "Polyline.__itruediv__",
         "Polyline.__mul__",
@@ -54937,6 +55275,7 @@ window.API_INDEX = {
         "Polyline.plane",
         "Polyline.point_count",
         "Polyline.points",
+        "Polyline.refresh_guid",
         "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.reverse",
@@ -57988,6 +58327,7 @@ window.API_INDEX = {
         "Polyline.qh_upper",
         "Polyline.quadratic_points",
         "Polyline.quick_hull",
+        "Polyline.refresh_guid",
         "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.segment_count",
@@ -75422,8 +75762,22 @@ window.API_INDEX = {
       },
       "related": [
         "BRepTrimType.from_str",
+        "BRepTrimType.refresh_guid",
         "BRepTrimType.str",
         "BRepTrimType.to_str"
+      ]
+    },
+    {
+      "name": "BRepTrimType.refresh_guid",
+      "implementations": {
+        "cpp": {
+          "sig": "void refresh_guid()",
+          "code": "void refresh_guid() { _guid.clear(); }",
+          "file": "brep.h"
+        }
+      },
+      "related": [
+        "BRepTrimType.guid"
       ]
     },
     {
@@ -75716,18 +76070,21 @@ window.API_INDEX = {
       "name": "BRepTrimType.split_by_brep",
       "implementations": {
         "cpp": {
-          "sig": "BRep split_by_brep(const BRep& cutter, double tolerance = 0.0, bool imported_freeform = false,\n                       const std::vector<std::vector<NurbsCurve>>* pre_cuts = nullptr)",
-          "code": "BRep split_by_brep(const BRep& cutter, double tolerance = 0.0, bool imported_freeform = false,\n                       const std::vector<std::vector<NurbsCurve>>* pre_cuts = nullptr) const;",
+          "sig": "BRep split_by_brep(const BRep& cutter, double tolerance = 0.0, bool imported_freeform = false,\n                       const std::vector<std::vector<NurbsCurve>>* pre_cuts = nullptr,\n                       const struct SectionScaffold* scaf = nullptr, bool scaf_is_A = true,\n                       std::map<int, std::array<int, 3>>* sec_edges_out = nullptr)",
+          "code": "BRep split_by_brep(const BRep& cutter, double tolerance = 0.0, bool imported_freeform = false,\n                       const std::vector<std::vector<NurbsCurve>>* pre_cuts = nullptr,\n                       const struct SectionScaffold* scaf = nullptr, bool scaf_is_A = true,\n                       std::map<int, std::array<int, 3>>* sec_edges_out = nullptr) const;",
           "file": "brep.h"
         }
-      }
+      },
+      "related": [
+        "BRepTrimType.str"
+      ]
     },
     {
       "name": "BRepTrimType.subset",
       "implementations": {
         "cpp": {
-          "sig": "BRep subset(const std::vector<int>& face_indices)",
-          "code": "BRep subset(const std::vector<int>& face_indices) const;",
+          "sig": "BRep subset(const std::vector<int>& face_indices,\n                std::map<int, int>* edge_remap = nullptr)",
+          "code": "BRep subset(const std::vector<int>& face_indices,\n                std::map<int, int>* edge_remap = nullptr) const;",
           "file": "brep.h"
         }
       }
@@ -75801,6 +76158,16 @@ window.API_INDEX = {
         "cpp": {
           "sig": "void co_refine_coincident_edges(double tol = 0.0)",
           "code": "void co_refine_coincident_edges(double tol = 0.0);",
+          "file": "brep.h"
+        }
+      }
+    },
+    {
+      "name": "BRepTrimType.snap_section_edges",
+      "implementations": {
+        "cpp": {
+          "sig": "void snap_section_edges(const std::vector<NurbsCurve>& sections, double tol = 0.0)",
+          "code": "void snap_section_edges(const std::vector<NurbsCurve>& sections, double tol = 0.0);",
           "file": "brep.h"
         }
       }
@@ -76169,6 +76536,7 @@ window.API_INDEX = {
         "BRepTrimType.pb_load",
         "BRepTrimType.pb_loads",
         "BRepTrimType.repr",
+        "BRepTrimType.split_by_brep",
         "BRepTrimType.to_str"
       ]
     },
@@ -76308,17 +76676,19 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "BRep split_with(double tolerance, const std::function<std::vector<NurbsCurve>(const NurbsSurface&)",
-          "code": "BRep BRep::split_with(double tolerance, const std::function<std::vector<NurbsCurve>(const NurbsSurface&)>& cut_for, bool imported_freeform) const {\n    BRep result;\n    result.name = name;\n    std::map<std::tuple<long long, long long, long long>, int> vmap;\n    std::map<std::tuple<int, int, long long, long long, long long>, int> emap;\n    static const bool s_prof = (std::getenv(\"SESSION_BOOL_PROFILE\") != nullptr);\n    double prof_ssi = 0, prof_arr = 0, prof_lift = 0;\n    auto pf_now = []{ return std::chrono::high_resolution_clock::now(); }",
+          "code": "BRep BRep::split_with(double tolerance, const std::function<std::vector<NurbsCurve>(const NurbsSurface&)>& cut_for, bool imported_freeform,\n                      const SectionScaffold* scaf, bool scaf_is_A,\n                      std::map<int, std::array<int, 3>>* sec_edges_out) const {\n    BRep result;\n    result.name = name;\n    std::map<std::tuple<long long, long long, long long>, int> vmap;\n    std::map<std::tuple<int, int, long long, long long, long long>, int> emap;\n    // OCCT-adoption S2: section edges are keyed by scaffold identity (seg_id) so the two\n    // fragments flanking a section within one operand share ONE edge by construction, and\n    // sec_edges_out lets BRep::boolean merge the operands' copies at combine.\n    std::map<int, int> sec_emap;   // seg_id -> result topology-edge index\n    static const bool s_prof = (std::getenv(\"SESSION_BOOL_PROFILE\") != nullptr);\n    double prof_ssi = 0, prof_arr = 0, prof_lift = 0;\n    auto pf_now = []{ return std::chrono::high_resolution_clock::now(); }",
           "file": "brep.cpp"
         }
       },
       "related": [
+        "BRep.boolean",
         "BRep.cut_for",
         "BRep.lift",
         "BRep.split_by_brep",
         "BRep.split_by_curves",
         "BRep.split_by_plane",
-        "BRep.split_by_surface"
+        "BRep.split_by_surface",
+        "BRep.str"
       ]
     },
     {
@@ -76344,6 +76714,16 @@ window.API_INDEX = {
         "BRep.boolean",
         "BRep.cross"
       ]
+    },
+    {
+      "name": "BRep.snap_section_edges",
+      "implementations": {
+        "cpp": {
+          "sig": "void snap_section_edges(const std::vector<NurbsCurve>& sections, double tol)",
+          "code": "void BRep::snap_section_edges(const std::vector<NurbsCurve>& sections, double tol) {\n    if (sections.empty()) return;\n    double diag;\n    {\n        double xmn=1e300,ymn=1e300,zmn=1e300,xmx=-1e300,ymx=-1e300,zmx=-1e300;\n        for (const auto& p : m_vertices) {\n            xmn=std::min(xmn,p[0]); ymn=std::min(ymn,p[1]); zmn=std::min(zmn,p[2]);\n            xmx=std::max(xmx,p[0]); ymx=std::max(ymx,p[1]); zmx=std::max(zmx,p[2]);\n        }",
+          "file": "brep.cpp"
+        }
+      }
     },
     {
       "name": "BRep.sameparameter_planar_pcurves",
@@ -76478,9 +76858,11 @@ window.API_INDEX = {
         "BRep.project_curve_to_uv",
         "BRep.pt3d",
         "BRep.rec",
+        "BRep.refresh_guid",
         "BRep.repr",
         "BRep.split_by_brep",
         "BRep.split_multi",
+        "BRep.split_with",
         "BRep.subset_of",
         "BRep.surfacecolor",
         "BRep.transform",
@@ -76525,6 +76907,7 @@ window.API_INDEX = {
         "BRep.face_count",
         "BRep.guid",
         "BRep.is_solid",
+        "BRep.refresh_guid",
         "BRep.str",
         "BRep.surfacecolor",
         "BRep.vertex_count",
@@ -80259,6 +80642,7 @@ window.API_INDEX = {
         "Line.pb_dumps",
         "Line.pb_load",
         "Line.pb_loads",
+        "Line.refresh_guid",
         "Line.repr",
         "Line.with_name",
         "Line.xform"
@@ -80749,7 +81133,22 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "ColorMode.refresh_guid",
         "ColorMode.str"
+      ]
+    },
+    {
+      "name": "ColorMode.refresh_guid",
+      "implementations": {
+        "cpp": {
+          "sig": "void refresh_guid()",
+          "code": "void refresh_guid() { _guid.clear(); }",
+          "file": "mesh.h"
+        }
+      },
+      "related": [
+        "ColorMode.clear",
+        "ColorMode.guid"
       ]
     },
     {
@@ -81452,7 +81851,8 @@ window.API_INDEX = {
         "ColorMode.clear_facecolors",
         "ColorMode.clear_linecolors",
         "ColorMode.clear_pointcolors",
-        "ColorMode.clear_triangle_bvh"
+        "ColorMode.clear_triangle_bvh",
+        "ColorMode.refresh_guid"
       ]
     },
     {
@@ -82899,6 +83299,7 @@ window.API_INDEX = {
         "Mesh.pb_load",
         "Mesh.pb_loads",
         "Mesh.proj",
+        "Mesh.refresh_guid",
         "Mesh.repr",
         "Mesh.sarea",
         "Mesh.set_edge_attribute",
@@ -82948,6 +83349,7 @@ window.API_INDEX = {
         "Mesh.number_of_edges",
         "Mesh.number_of_faces",
         "Mesh.number_of_vertices",
+        "Mesh.refresh_guid",
         "Mesh.str",
         "Mesh.vertices",
         "Mesh.xform"
@@ -83253,6 +83655,7 @@ window.API_INDEX = {
         "NurbsCurve.point_at",
         "NurbsCurve.protobuf_dump",
         "NurbsCurve.protobuf_load",
+        "NurbsCurve.refresh_guid",
         "NurbsCurve.repr",
         "NurbsCurve.reverse",
         "NurbsCurve.set_cv",
@@ -84017,6 +84420,7 @@ window.API_INDEX = {
         "NurbsSurface.pb_fill",
         "NurbsSurface.pb_load",
         "NurbsSurface.pb_loads",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.repr",
         "NurbsSurface.reverse",
         "NurbsSurface.span_count",
@@ -84358,7 +84762,7 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "void deep_copy_from(const NurbsSurfaceTrimmed& src)",
-          "code": "void NurbsSurfaceTrimmed::deep_copy_from(const NurbsSurfaceTrimmed& src) {\n    _guid.clear();\n    name = src.name;\n    width = src.width;\n    surfacecolor = src.surfacecolor;\n    xform = src.xform;\n    m_surface = src.m_surface;\n    m_outer_loop = src.m_outer_loop;\n    m_inner_loops = src.m_inner_loops;\n    m_outer_segments = src.m_outer_segments;\n    m_inner_segments = src.m_inner_segments;\n}",
+          "code": "void NurbsSurfaceTrimmed::deep_copy_from(const NurbsSurfaceTrimmed& src) {\n    _guid.clear();\n    name = src.name;\n    width = src.width;\n    surfacecolor = src.surfacecolor;\n    xform = src.xform;\n    m_surface = src.m_surface;\n    m_outer_loop = src.m_outer_loop;\n    m_inner_loops = src.m_inner_loops;\n    m_outer_segments = src.m_outer_segments;\n    m_inner_segments = src.m_inner_segments;\n    m_outer_segment_srcs = src.m_outer_segment_srcs;\n    m_inner_segment_srcs = src.m_inner_segment_srcs;\n}",
           "file": "nurbssurface_trimmed.cpp"
         }
       },
@@ -85369,6 +85773,7 @@ window.API_INDEX = {
         "Point.pb_load",
         "Point.pb_loads",
         "Point.pointcolor",
+        "Point.refresh_guid",
         "Point.repr",
         "Point.with_name",
         "Point.x",
@@ -85768,6 +86173,7 @@ window.API_INDEX = {
         "Polyline.quadratic_points",
         "Polyline.quick_hull",
         "Polyline.recompute_plane_if_needed",
+        "Polyline.refresh_guid",
         "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.repr",
@@ -89908,6 +90314,7 @@ window.API_INDEX = {
         "BRep.project_curve_to_uv",
         "BRep.pt3d",
         "BRep.pt_to_polyline",
+        "BRep.refresh_guid",
         "BRep.sew_coincident_edges",
         "BRep.split_by_brep",
         "BRep.split_by_curves",
@@ -90946,6 +91353,7 @@ window.API_INDEX = {
         "Line.pb_dumps",
         "Line.pb_loads",
         "Line.point_at",
+        "Line.refresh_guid",
         "Line.start",
         "Line.to_vector",
         "Line.transform",
@@ -91080,6 +91488,7 @@ window.API_INDEX = {
         "Mesh.pb_loads",
         "Mesh.pointcolors",
         "Mesh.ray_cast_bvh",
+        "Mesh.refresh_guid",
         "Mesh.remove_edge",
         "Mesh.str",
         "Mesh.to_vertices_and_faces",
@@ -91317,7 +91726,6 @@ window.API_INDEX = {
       },
       "related": [
         "NurbsCurve.__eq__",
-        "NurbsCurve.__init__",
         "NurbsCurve.__ne__",
         "NurbsCurve._deriv_params",
         "NurbsCurve._increment_degree",
@@ -91357,6 +91765,7 @@ window.API_INDEX = {
         "NurbsCurve.perpendicular_plane_at",
         "NurbsCurve.plane_at",
         "NurbsCurve.point_at",
+        "NurbsCurve.refresh_guid",
         "NurbsCurve.speed_at",
         "NurbsCurve.split",
         "NurbsCurve.str",
@@ -91592,6 +92001,7 @@ window.API_INDEX = {
         "NurbsSurface.pb_loads",
         "NurbsSurface.point_at",
         "NurbsSurface.ray_intersect",
+        "NurbsSurface.refresh_guid",
         "NurbsSurface.reverse",
         "NurbsSurface.set_weight",
         "NurbsSurface.split_by_brep",
@@ -92354,6 +92764,7 @@ window.API_INDEX = {
         "Point.mid_point",
         "Point.pb_loads",
         "Point.pointcolor",
+        "Point.refresh_guid",
         "Point.sub",
         "Point.sum",
         "Point.transform",
@@ -92527,6 +92938,7 @@ window.API_INDEX = {
         "Polyline.project",
         "Polyline.pt",
         "Polyline.quick_hull",
+        "Polyline.refresh_guid",
         "Polyline.remove_consecutive_duplicates",
         "Polyline.remove_point",
         "Polyline.reverse",
@@ -96731,7 +97143,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"FileObj\", \"Read Bunny\")",
-          "code": "MINI_TEST!(\"FileObj\", \"Read Bunny\", crate::file_obj_test::run_file_obj_read_bunny);\nREGISTER_MINI_TEST!(\"FileObj\", \"Write Read Roundtrip\", crate::file_obj_test::run_file_obj_write_read_roundtrip);",
+          "code": "MINI_TEST!(\"FileObj\", \"Read Bunny\", crate::file_obj_test::run_file_obj_read_bunny);\nREGISTER_MINI_TEST!(\"FileObj\", \"String Roundtrip\", crate::file_obj_test::run_file_obj_string_roundtrip);\nREGISTER_MINI_TEST!(\"FileObj\", \"Write Read Roundtrip\", crate::file_obj_test::run_file_obj_write_read_roundtrip);",
           "file": "file_obj_test.rs"
         }
       }
@@ -96746,12 +97158,32 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"FileObj\", \"Write Read Roundtrip\")",
-          "code": "@MINI_TEST(\"FileObj\", \"Write Read Roundtrip\")\ndef test_write_read_roundtrip():\n    # build a small mesh (4 verts, 2 faces), write to OBJ, read back, compare counts\n    from session_py import Mesh, Point\n    from session_py.file_obj import read_file_obj, write_file_obj\n    original_mesh = Mesh()\n    v0 = original_mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = original_mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = original_mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    v3 = original_mesh.add_vertex(Point(0.0, 0.0, 1.0))\n    original_mesh.add_face([v0, v1, v2])\n    original_mesh.add_face([v0, v1, v3])\n\n    MINI_CHECK(original_mesh.number_of_vertices() == 4)\n    MINI_CHECK(original_mesh.number_of_faces() == 2)\n    temp_file = str(Path(__file__).resolve().parents[2] / \"serialization\" / \"test_temp_roundtrip.obj\")\n    write_file_obj(original_mesh, temp_file)\n    MINI_CHECK(os.path.exists(temp_file))\n    loaded_mesh = read_file_obj(temp_file)\n    MINI_CHECK(loaded_mesh.number_of_vertices() == original_mesh.number_of_vertices())\n    MINI_CHECK(loaded_mesh.number_of_faces() == original_mesh.number_of_faces())\n    os.remove(temp_file)\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "code": "@MINI_TEST(\"FileObj\", \"Write Read Roundtrip\")\ndef test_write_read_roundtrip():\n    # build a small mesh (4 verts, 2 faces), write to OBJ, read back, compare counts\n    from session_py import Mesh, Point\n    from session_py.file_obj import read_file_obj, write_file_obj\n    original_mesh = Mesh()\n    v0 = original_mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = original_mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = original_mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    v3 = original_mesh.add_vertex(Point(0.0, 0.0, 1.0))\n    original_mesh.add_face([v0, v1, v2])\n    original_mesh.add_face([v0, v1, v3])\n\n    MINI_CHECK(original_mesh.number_of_vertices() == 4)\n    MINI_CHECK(original_mesh.number_of_faces() == 2)\n    temp_file = str(Path(__file__).resolve().parents[2] / \"serialization\" / \"test_temp_roundtrip.obj\")\n    write_file_obj(original_mesh, temp_file)\n    MINI_CHECK(os.path.exists(temp_file))\n    loaded_mesh = read_file_obj(temp_file)\n    MINI_CHECK(loaded_mesh.number_of_vertices() == original_mesh.number_of_vertices())\n    MINI_CHECK(loaded_mesh.number_of_faces() == original_mesh.number_of_faces())\n    os.remove(temp_file)",
           "file": "file_obj_test.py"
         },
         "rust": {
           "sig": "MINI_TEST!(\"FileObj\", \"Write Read Roundtrip\")",
           "code": "MINI_TEST!(\"FileObj\", \"Write Read Roundtrip\", crate::file_obj_test::run_file_obj_write_read_roundtrip);",
+          "file": "file_obj_test.rs"
+        }
+      }
+    },
+    {
+      "name": "FileObj.test_String Roundtrip",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"FileObj\", \"String Roundtrip\")",
+          "code": "MINI_TEST(\"FileObj\", \"String Roundtrip\") {\n    Mesh original_mesh;\n    auto v0 = original_mesh.add_vertex(Point(0.0, 0.0, 0.0));\n    auto v1 = original_mesh.add_vertex(Point(1.0, 0.0, 0.0));\n    auto v2 = original_mesh.add_vertex(Point(0.0, 1.0, 0.0));\n    auto v3 = original_mesh.add_vertex(Point(0.0, 0.0, 1.0));\n    original_mesh.add_face({v0, v1, v2});\n    original_mesh.add_face({v0, v1, v3});\n    std::string s = file_obj::write_file_obj_to_string(original_mesh);\n    Mesh loaded_mesh = file_obj::read_file_obj_from_str(s);\n\n    MINI_CHECK(loaded_mesh.number_of_vertices() == original_mesh.number_of_vertices());\n    MINI_CHECK(loaded_mesh.number_of_faces() == original_mesh.number_of_faces());\n    MINI_CHECK(TOLERANCE.is_close(loaded_mesh.area(), original_mesh.area()));\n}",
+          "file": "file_obj_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"FileObj\", \"String Roundtrip\")",
+          "code": "@MINI_TEST(\"FileObj\", \"String Roundtrip\")\ndef test_string_roundtrip():\n    from session_py import Mesh, Point\n    from session_py.file_obj import read_file_obj_from_str, write_file_obj_to_string\n    from session_py.tolerance import TOLERANCE\n    original_mesh = Mesh()\n    v0 = original_mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = original_mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = original_mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    v3 = original_mesh.add_vertex(Point(0.0, 0.0, 1.0))\n    original_mesh.add_face([v0, v1, v2])\n    original_mesh.add_face([v0, v1, v3])\n    s = write_file_obj_to_string(original_mesh)\n    loaded_mesh = read_file_obj_from_str(s)\n\n    MINI_CHECK(loaded_mesh.number_of_vertices() == original_mesh.number_of_vertices())\n    MINI_CHECK(loaded_mesh.number_of_faces() == original_mesh.number_of_faces())\n    MINI_CHECK(TOLERANCE.is_close(loaded_mesh.area(), original_mesh.area()))\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "file": "file_obj_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"FileObj\", \"String Roundtrip\")",
+          "code": "MINI_TEST!(\"FileObj\", \"String Roundtrip\", crate::file_obj_test::run_file_obj_string_roundtrip);\nREGISTER_MINI_TEST!(\"FileObj\", \"Write Read Roundtrip\", crate::file_obj_test::run_file_obj_write_read_roundtrip);",
           "file": "file_obj_test.rs"
         }
       }
@@ -99131,7 +99563,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Constructor\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Constructor\", crate::mesh_test::run_mesh_constructor);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polylines\", crate::mesh_test::run_mesh_from_polylines);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Lines\", crate::mesh_test::run_mesh_from_lines);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes\", crate::mesh_test::run_mesh_from_polygon_with_holes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft\", crate::mesh_test::run_mesh_loft);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes Many\", crate::mesh_test::run_mesh_from_polygon_with_holes_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft Many\", crate::mesh_test::run_mesh_loft_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Constructor\", crate::mesh_test::run_mesh_constructor);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polylines\", crate::mesh_test::run_mesh_from_polylines);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Lines\", crate::mesh_test::run_mesh_from_lines);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes\", crate::mesh_test::run_mesh_from_polygon_with_holes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft\", crate::mesh_test::run_mesh_loft);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes Many\", crate::mesh_test::run_mesh_from_polygon_with_holes_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft Many\", crate::mesh_test::run_mesh_loft_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99151,7 +99583,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"From Polylines\")",
-          "code": "MINI_TEST!(\"Mesh\", \"From Polylines\", crate::mesh_test::run_mesh_from_polylines);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Lines\", crate::mesh_test::run_mesh_from_lines);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes\", crate::mesh_test::run_mesh_from_polygon_with_holes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft\", crate::mesh_test::run_mesh_loft);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes Many\", crate::mesh_test::run_mesh_from_polygon_with_holes_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft Many\", crate::mesh_test::run_mesh_loft_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"From Polylines\", crate::mesh_test::run_mesh_from_polylines);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Lines\", crate::mesh_test::run_mesh_from_lines);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes\", crate::mesh_test::run_mesh_from_polygon_with_holes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft\", crate::mesh_test::run_mesh_loft);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes Many\", crate::mesh_test::run_mesh_from_polygon_with_holes_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft Many\", crate::mesh_test::run_mesh_loft_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99171,7 +99603,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"From Lines\")",
-          "code": "MINI_TEST!(\"Mesh\", \"From Lines\", crate::mesh_test::run_mesh_from_lines);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes\", crate::mesh_test::run_mesh_from_polygon_with_holes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft\", crate::mesh_test::run_mesh_loft);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes Many\", crate::mesh_test::run_mesh_from_polygon_with_holes_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft Many\", crate::mesh_test::run_mesh_loft_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"From Lines\", crate::mesh_test::run_mesh_from_lines);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes\", crate::mesh_test::run_mesh_from_polygon_with_holes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft\", crate::mesh_test::run_mesh_loft);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes Many\", crate::mesh_test::run_mesh_from_polygon_with_holes_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft Many\", crate::mesh_test::run_mesh_loft_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99191,7 +99623,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"From Polygon With Holes\")",
-          "code": "MINI_TEST!(\"Mesh\", \"From Polygon With Holes\", crate::mesh_test::run_mesh_from_polygon_with_holes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft\", crate::mesh_test::run_mesh_loft);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes Many\", crate::mesh_test::run_mesh_from_polygon_with_holes_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft Many\", crate::mesh_test::run_mesh_loft_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"From Polygon With Holes\", crate::mesh_test::run_mesh_from_polygon_with_holes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft\", crate::mesh_test::run_mesh_loft);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes Many\", crate::mesh_test::run_mesh_from_polygon_with_holes_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft Many\", crate::mesh_test::run_mesh_loft_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99211,7 +99643,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Loft\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Loft\", crate::mesh_test::run_mesh_loft);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes Many\", crate::mesh_test::run_mesh_from_polygon_with_holes_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft Many\", crate::mesh_test::run_mesh_loft_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Loft\", crate::mesh_test::run_mesh_loft);\nREGISTER_MINI_TEST!(\"Mesh\", \"From Polygon With Holes Many\", crate::mesh_test::run_mesh_from_polygon_with_holes_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft Many\", crate::mesh_test::run_mesh_loft_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99246,7 +99678,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"From Polygon With Holes Many\")",
-          "code": "MINI_TEST!(\"Mesh\", \"From Polygon With Holes Many\", crate::mesh_test::run_mesh_from_polygon_with_holes_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft Many\", crate::mesh_test::run_mesh_loft_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"From Polygon With Holes Many\", crate::mesh_test::run_mesh_from_polygon_with_holes_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft Many\", crate::mesh_test::run_mesh_loft_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99266,7 +99698,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Loft Many\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Loft Many\", crate::mesh_test::run_mesh_loft_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Loft Many\", crate::mesh_test::run_mesh_loft_many);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99286,7 +99718,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Loft with quads and triangles\", crate::mesh_test::run_mesh_loft_panels);\nREGISTER_MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99306,7 +99738,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Boolean Queries\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Boolean Queries\", crate::mesh_test::run_mesh_boolean_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99326,7 +99758,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Attributes\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Attributes\", crate::mesh_test::run_mesh_attributes);\nREGISTER_MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99346,7 +99778,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Create Dodecahedron\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99366,7 +99798,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99386,7 +99818,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Connectivity Queries\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99406,7 +99838,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Geometric Properties\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99426,7 +99858,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Transformation\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99446,7 +99878,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Json Roundtrip\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99466,7 +99898,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99486,7 +99918,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Edges\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Edges\", crate::mesh_test::run_mesh_edges);\nREGISTER_MINI_TEST!(\"Mesh\", \"Create Dodecahedron\", crate::mesh_test::run_mesh_create_dodecahedron);\nREGISTER_MINI_TEST!(\"Mesh\", \"Vertex and Face Operations\", crate::mesh_test::run_mesh_vertex_and_face_operations);\nREGISTER_MINI_TEST!(\"Mesh\", \"Connectivity Queries\", crate::mesh_test::run_mesh_connectivity_queries);\nREGISTER_MINI_TEST!(\"Mesh\", \"Geometric Properties\", crate::mesh_test::run_mesh_geometric_properties);\nREGISTER_MINI_TEST!(\"Mesh\", \"Transformation\", crate::mesh_test::run_mesh_transformation);\nREGISTER_MINI_TEST!(\"Mesh\", \"Json Roundtrip\", crate::mesh_test::run_mesh_json_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Protobuf Roundtrip\", crate::mesh_test::run_mesh_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99516,7 +99948,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -99916,7 +100348,7 @@ window.API_INDEX = {
         },
         "python": {
           "sig": "@MINI_TEST(\"Mesh\", \"Edges Where Predicate\")",
-          "code": "@MINI_TEST(\"Mesh\", \"Edges Where Predicate\")\ndef test_mesh_edges_where_predicate():\n    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.update_default_edge_attributes(weight=0.0)\n    mesh.edge_attribute((0, 1), \"weight\", 5.0)\n    big = mesh.edges_where_predicate(lambda e, a: a[\"weight\"] > 1.0)\n    MINI_CHECK(len(big) == 1)\n    MINI_CHECK(big[0] == (0, 1))\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "code": "@MINI_TEST(\"Mesh\", \"Edges Where Predicate\")\ndef test_mesh_edges_where_predicate():\n    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.update_default_edge_attributes(weight=0.0)\n    mesh.edge_attribute((0, 1), \"weight\", 5.0)\n    big = mesh.edges_where_predicate(lambda e, a: a[\"weight\"] > 1.0)\n    MINI_CHECK(len(big) == 1)\n    MINI_CHECK(big[0] == (0, 1))",
           "file": "mesh_test.py"
         }
       }
@@ -99948,6 +100380,26 @@ window.API_INDEX = {
           "sig": "MINI_TEST(\"Mesh\", \"Boolean Intersection\")",
           "code": "MINI_TEST(\"Mesh\", \"Boolean Intersection\") {\n        Mesh a = Mesh::create_box(2, 2, 2);\n        Mesh b = Mesh::create_box(2, 2, 2);\n        b.transform(Xform::translation(1, 0, 0));\n        Mesh result = a.boolean_intersection(b, 48);\n        MINI_CHECK(result.is_closed());\n        MINI_CHECK(std::abs(std::abs(result.volume()) - 4.0) < 0.2);\n    }",
           "file": "mesh_test.cpp"
+        }
+      }
+    },
+    {
+      "name": "Mesh.test_Refresh Guid",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Mesh\", \"Refresh Guid\")",
+          "code": "MINI_TEST(\"Mesh\", \"Refresh Guid\") {\n        Mesh mesh = Mesh::create_box(1.0, 1.0, 1.0);\n        std::string original = mesh.guid();\n        Mesh copy = mesh;\n\n        MINI_CHECK(copy.guid() == original);\n        copy.refresh_guid();\n        MINI_CHECK(copy.guid() != original);\n        MINI_CHECK(mesh.guid() == original);\n    }",
+          "file": "mesh_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Mesh\", \"Refresh Guid\")",
+          "code": "@MINI_TEST(\"Mesh\", \"Refresh Guid\")\ndef test_mesh_refresh_guid():\n    from session_py import Mesh\n    import copy as copy_module\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    original = mesh.guid\n    copy = copy_module.deepcopy(mesh)\n\n    MINI_CHECK(copy.guid == original)\n    copy.refresh_guid()\n    MINI_CHECK(copy.guid != original)\n    MINI_CHECK(mesh.guid == original)\n\n\nif __name__ == \"__main__\":\n    run_all(language=\"python\")",
+          "file": "mesh_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Mesh\", \"Refresh Guid\")",
+          "code": "MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
+          "file": "mesh_test.rs"
         }
       }
     },
@@ -108561,7 +109013,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\")",
-          "code": "MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);",
+          "code": "MINI_TEST!(\"Mesh\", \"Loft plate_failing 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_failing);\nREGISTER_MINI_TEST!(\"Mesh\", \"Loft plate_v2 15-vert outer + 3 holes\", crate::mesh_test::run_mesh_loft_plate_v2);\nREGISTER_MINI_TEST!(\"Mesh\", \"Refresh Guid\", crate::mesh_test::run_mesh_refresh_guid);",
           "file": "mesh_test.rs"
         }
       }
@@ -108616,11 +109068,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
+        "subdivide",
+        "points",
         "into",
         "circle",
         "n",
-        "points",
-        "subdivide",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -108635,10 +109087,10 @@ window.API_INDEX = {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
         "ellipse",
-        "by",
-        "length",
-        "subdivide",
         "arc",
+        "subdivide",
+        "length",
+        "by",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -108668,12 +109120,12 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "from",
-        "curve",
-        "open",
+        "polyline",
         "adaptive",
         "points",
-        "polyline",
+        "curve",
+        "open",
+        "from",
         "to_polyline_adaptive",
         "create",
         "point",
@@ -108688,10 +109140,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "curve",
-        "at",
-        "evaluation",
         "parameter",
+        "curve",
+        "evaluation",
+        "at",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -108710,10 +109162,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "curve",
-        "length",
         "frames",
+        "curve",
         "along",
+        "length",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -108736,8 +109188,8 @@ window.API_INDEX = {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
         "frames",
-        "ellipse",
         "perpendicular",
+        "ellipse",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -108759,9 +109211,9 @@ window.API_INDEX = {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
         "cylinder",
+        "surface",
         "point",
         "evaluate",
-        "surface",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -108776,11 +109228,11 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
+        "and",
+        "vertices",
         "faces",
         "from",
         "mesh",
-        "and",
-        "vertices",
         "add_vertex",
         "add_face",
         "vertex"
@@ -108916,17 +109368,17 @@ window.API_INDEX = {
       ],
       "summary": "RemeshNurbsSurfaceGrid geometry class"
     },
-    "GlobalSessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "GlobalSessionConfig geometry class"
-    },
     "GeometryFileDecoder": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
+    },
+    "CurveNurbsKnotStyle": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
     },
     "NurbsSurfaceTrimmed": {
       "composition": [],
@@ -108941,17 +109393,17 @@ window.API_INDEX = {
       ],
       "summary": "NurbsSurfaceTrimmed geometry class"
     },
+    "GlobalSessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "GlobalSessionConfig geometry class"
+    },
     "GeometryFileEncoder": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
-    },
-    "CurveNurbsKnotStyle": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
     },
     "TriangulateResult": {
       "composition": [],
@@ -108972,6 +109424,22 @@ window.API_INDEX = {
       ],
       "summary": "End-tangent (boundary) condition for cubic interpolation."
     },
+    "ElementSchoring": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
+    },
+    "GlobalTolerance": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "Tolerance",
+        "Vector"
+      ],
+      "summary": "GlobalTolerance geometry class"
+    },
     "SpatialAABBTree": {
       "composition": [],
       "factories": [],
@@ -108988,41 +109456,11 @@ window.API_INDEX = {
       ],
       "summary": "BooleanPolyline geometry class"
     },
-    "GlobalTolerance": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "Tolerance",
-        "Vector"
-      ],
-      "summary": "GlobalTolerance geometry class"
-    },
-    "ElementSchoring": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
-    },
-    "ToleranceGuard": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tolerance"
-      ],
-      "summary": "ToleranceGuard geometry class"
-    },
     "VIntersectNode": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VIntersectNode geometry class"
-    },
-    "_PartitionVars": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_PartitionVars geometry class"
     },
     "SpatialBVHNode": {
       "composition": [],
@@ -109035,6 +109473,29 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "A node in the SpatialBVH tree."
+    },
+    "_PartitionVars": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_PartitionVars geometry class"
+    },
+    "ToleranceGuard": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Tolerance"
+      ],
+      "summary": "ToleranceGuard geometry class"
+    },
+    "SpatialKDTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point",
+        "_Node"
+      ],
+      "summary": "KD-tree for point-to-point nearest-neighbor queries."
     },
     "SessionConfig": {
       "composition": [],
@@ -109055,14 +109516,49 @@ window.API_INDEX = {
       ],
       "summary": "ElementColumn geometry class"
     },
-    "SpatialKDTree": {
+    "BRepTrimType": {
       "composition": [],
       "factories": [],
       "uses": [
+        "BRep",
+        "BRepLoopType",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Plane",
         "Point",
-        "_Node"
+        "Polyline",
+        "Vector"
       ],
-      "summary": "KD-tree for point-to-point nearest-neighbor queries."
+      "summary": "BRepTrimType geometry class"
+    },
+    "LoftWallFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftWallFace geometry class"
+    },
+    "ScanlineHeap": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "ScanlineHeap geometry class"
+    },
+    "ElementPlate": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "ElementPlate geometry class"
     },
     "VattiScratch": {
       "composition": [],
@@ -109089,6 +109585,24 @@ window.API_INDEX = {
       ],
       "summary": "Intersection geometry class"
     },
+    "SpatialRTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SpatialRTree geometry class"
+    },
+    "BRepLoopType": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoopType geometry class"
+    },
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
+    },
     "NurbsSurface": {
       "composition": [
         "Color",
@@ -109112,88 +109626,25 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
-    "VLocalMinima": {
+    "LoftAdjPair": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VLocalMinima geometry class"
+      "summary": "LoftAdjPair geometry class"
     },
-    "ScanlineHeap": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "ScanlineHeap geometry class"
-    },
-    "SpatialRTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SpatialRTree geometry class"
-    },
-    "LoftWallFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftWallFace geometry class"
-    },
-    "ElementPlate": {
+    "session_cpp": {
       "composition": [],
       "factories": [],
       "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
+        "Point"
       ],
-      "summary": "ElementPlate geometry class"
-    },
-    "BRepLoopType": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoopType geometry class"
-    },
-    "BRepTrimType": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "BRep",
-        "BRepLoopType",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRepTrimType geometry class"
+      "summary": "session_cpp geometry class"
     },
     "_Delaunay2D": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Delaunay2D geometry class"
-    },
-    "InstanceRef": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Xform",
-        "session_cpp"
-      ],
-      "summary": "A block reference: places a definition (by guid) at a transform."
-    },
-    "LoftAdjPair": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftAdjPair geometry class"
     },
     "ElementBeam": {
       "composition": [],
@@ -109208,40 +109659,14 @@ window.API_INDEX = {
       ],
       "summary": "ElementBeam geometry class"
     },
-    "session_cpp": {
+    "InstanceRef": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Point"
+        "Xform",
+        "session_cpp"
       ],
-      "summary": "session_cpp geometry class"
-    },
-    "Primitives": {
-      "composition": [
-        "CurveInterpStyle",
-        "CurveNurbsKnotStyle",
-        "NurbsCurve",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsSurface",
-        "Point",
-        "Xform"
-      ],
-      "summary": "Static factory methods for creating NURBS curve primitives."
-    },
-    "MeshOffset": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Plane",
-        "Point"
-      ],
-      "summary": "MeshOffset geometry class"
+      "summary": "A block reference: places a definition (by guid) at a transform."
     },
     "SpatialBVH": {
       "composition": [],
@@ -109255,36 +109680,6 @@ window.API_INDEX = {
         "Vector"
       ],
       "summary": "Boundary Volume Hierarchy for spatial acceleration."
-    },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "Vertex data containing position and attributes."
-    },
-    "Quaternion": {
-      "composition": [
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Plane"
-      ],
-      "summary": "A quaternion for 3D rotations (scalar + vector)."
-    },
-    "BRepVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepVertex geometry class"
-    },
-    "Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Delaunay2D geometry class"
     },
     "NurbsCurve": {
       "composition": [
@@ -109308,6 +109703,52 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
+    "VertexData": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "Vertex data containing position and attributes."
+    },
+    "BRepVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepVertex geometry class"
+    },
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
+    },
+    "Primitives": {
+      "composition": [
+        "CurveInterpStyle",
+        "CurveNurbsKnotStyle",
+        "NurbsCurve",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsSurface",
+        "Point",
+        "Xform"
+      ],
+      "summary": "Static factory methods for creating NURBS curve primitives."
+    },
+    "ConvexHull": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Point"
+      ],
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+    },
     "PointCloud": {
       "composition": [
         "Color",
@@ -109323,35 +109764,31 @@ window.API_INDEX = {
       ],
       "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
     },
-    "ConvexHull": {
+    "Quaternion": {
+      "composition": [
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Plane"
+      ],
+      "summary": "A quaternion for 3D rotations (scalar + vector)."
+    },
+    "MeshOffset": {
       "composition": [],
       "factories": [],
       "uses": [
         "Mesh",
+        "Plane",
         "Point"
       ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+      "summary": "MeshOffset geometry class"
     },
-    "_Delaunay": {
+    "VHorzJoin": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Delaunay geometry class"
-    },
-    "_Vertex2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Vertex2D geometry class"
-    },
-    "RemeshCDT": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Mesh",
-        "Polyline"
-      ],
-      "summary": "RemeshCDT geometry class"
+      "summary": "VHorzJoin geometry class"
     },
     "ColorMode": {
       "composition": [],
@@ -109368,18 +109805,6 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "ColorMode geometry class"
-    },
-    "Component": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Component geometry class"
-    },
-    "VHorzJoin": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzJoin geometry class"
     },
     "_Triangle": {
       "composition": [],
@@ -109398,12 +109823,6 @@ window.API_INDEX = {
       ],
       "summary": "FlatMap64 geometry class"
     },
-    "LoftPanel": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftPanel geometry class"
-    },
     "Tolerance": {
       "composition": [],
       "factories": [],
@@ -109414,11 +109833,44 @@ window.API_INDEX = {
       ],
       "summary": "Tolerance settings for geometric operations."
     },
-    "VHorzSeg": {
+    "LoftPanel": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VHorzSeg geometry class"
+      "summary": "LoftPanel geometry class"
+    },
+    "_Vertex2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Vertex2D geometry class"
+    },
+    "Component": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Component geometry class"
+    },
+    "_Delaunay": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Delaunay geometry class"
+    },
+    "RemeshCDT": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Polyline"
+      ],
+      "summary": "RemeshCDT geometry class"
+    },
+    "BRepEdge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepEdge geometry class"
     },
     "TreeNode": {
       "composition": [],
@@ -109428,17 +109880,11 @@ window.API_INDEX = {
       ],
       "summary": "A node of a tree data structure."
     },
-    "BRepTrim": {
+    "Geometry": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepTrim geometry class"
-    },
-    "BRepFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepFace geometry class"
+      "summary": "Geometry geometry class"
     },
     "Delaunay": {
       "composition": [],
@@ -109449,17 +109895,29 @@ window.API_INDEX = {
       ],
       "summary": "Delaunay geometry class"
     },
-    "BRepEdge": {
+    "BRepLoop": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepEdge geometry class"
+      "summary": "BRepLoop geometry class"
     },
-    "Geometry": {
+    "VHorzSeg": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Geometry geometry class"
+      "summary": "VHorzSeg geometry class"
+    },
+    "BRepFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepFace geometry class"
+    },
+    "BRepTrim": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepTrim geometry class"
     },
     "Polyline": {
       "composition": [
@@ -109485,23 +109943,17 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "BRepLoop": {
+    "VActive": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepLoop geometry class"
+      "summary": "VActive geometry class"
     },
-    "VOutRec": {
+    "VVertex": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VOutRec geometry class"
-    },
-    "Dataset": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Dataset geometry class"
+      "summary": "VVertex geometry class"
     },
     "Session": {
       "composition": [
@@ -109531,46 +109983,11 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "VVertex": {
+    "_Branch": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VVertex geometry class"
-    },
-    "Default": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "Default geometry class"
-    },
-    "Element": {
-      "composition": [
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "BRep",
-        "Xform"
-      ],
-      "summary": "Element geometry class"
-    },
-    "VActive": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VActive geometry class"
+      "summary": "_Branch geometry class"
     },
     "Objects": {
       "composition": [
@@ -109593,11 +110010,28 @@ window.API_INDEX = {
       ],
       "summary": "A collection of all geometry objects."
     },
-    "_Branch": {
+    "Default": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "Default geometry class"
+    },
+    "VOutRec": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Branch geometry class"
+      "summary": "VOutRec geometry class"
+    },
+    "Dataset": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Dataset geometry class"
     },
     "Closest": {
       "composition": [],
@@ -109614,26 +110048,47 @@ window.API_INDEX = {
       ],
       "summary": "Static methods for finding closest points between geometry objects."
     },
-    "BIVec2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BIVec2 geometry class"
-    },
-    "Vertex": {
-      "composition": [],
+    "Element": {
+      "composition": [
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
       "factories": [],
       "uses": [
-        "Graph",
-        "session_cpp"
+        "AABB",
+        "BRep",
+        "Xform"
       ],
-      "summary": "A graph vertex with a unique identifier and attribute string."
+      "summary": "Element geometry class"
     },
     "Matrix": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Matrix geometry class"
+    },
+    "VOutPt": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutPt geometry class"
+    },
+    "RayHit": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "RayHit geometry class"
+    },
+    "BIVec2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BIVec2 geometry class"
     },
     "Vector": {
       "composition": [],
@@ -109649,37 +110104,14 @@ window.API_INDEX = {
       ],
       "summary": "A 3D vector with visual properties."
     },
-    "VOutPt": {
+    "Vertex": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "VOutPt geometry class"
-    },
-    "RayHit": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "RayHit geometry class"
-    },
-    "_Rect": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Rect geometry class"
-    },
-    "Point": {
-      "composition": [],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Vector"
+      "uses": [
+        "Graph",
+        "session_cpp"
       ],
-      "uses": [],
-      "summary": "A 3D point with visual properties."
+      "summary": "A graph vertex with a unique identifier and attribute string."
     },
     "Plane": {
       "composition": [],
@@ -109695,32 +110127,19 @@ window.API_INDEX = {
       ],
       "summary": "A 3D plane defined by origin and coordinate axes."
     },
-    "Xform": {
-      "composition": [
-        "Point",
+    "Point": {
+      "composition": [],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
         "Vector"
       ],
-      "factories": [
-        "Element"
-      ],
-      "uses": [
-        "Line",
-        "Plane",
-        "Polyline"
-      ],
-      "summary": "Xform geometry class"
-    },
-    "_Node": {
-      "composition": [],
-      "factories": [],
       "uses": [],
-      "summary": "_Node geometry class"
-    },
-    "_Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Edge geometry class"
+      "summary": "A 3D point with visual properties."
     },
     "Color": {
       "composition": [],
@@ -109740,6 +110159,39 @@ window.API_INDEX = {
       ],
       "summary": "A graph data structure with string-only vertices and attributes."
     },
+    "_Node": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Node geometry class"
+    },
+    "_Rect": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Rect geometry class"
+    },
+    "_Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Edge geometry class"
+    },
+    "Xform": {
+      "composition": [
+        "Point",
+        "Vector"
+      ],
+      "factories": [
+        "Element"
+      ],
+      "uses": [
+        "Line",
+        "Plane",
+        "Polyline"
+      ],
+      "summary": "Xform geometry class"
+    },
     "AABB": {
       "composition": [],
       "factories": [
@@ -109755,76 +110207,6 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "Axis-aligned bounding box (center + half-size)."
-    },
-    "Mesh": {
-      "composition": [
-        "ColorMode",
-        "LoftAdjPair",
-        "LoftPanel",
-        "LoftWallFace",
-        "SpatialAABBTree"
-      ],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Element",
-        "MeshOffset",
-        "OBB",
-        "RemeshCDT",
-        "RemeshNurbsSurfaceGrid"
-      ],
-      "uses": [
-        "Color",
-        "Line",
-        "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
-      ],
-      "summary": "A halfedge mesh data structure for representing polygonal surfaces."
-    },
-    "_P64": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_P64 geometry class"
-    },
-    "Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
-    },
-    "Line": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Mesh",
-        "OBB"
-      ],
-      "uses": [
-        "Vector",
-        "session_cpp"
-      ],
-      "summary": "A 3D line segment with visual properties."
-    },
-    "Tree": {
-      "composition": [
-        "Color",
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
-    },
-    "_Tri": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Tri geometry class"
     },
     "BRep": {
       "composition": [
@@ -109853,11 +110235,75 @@ window.API_INDEX = {
       ],
       "summary": "BRep geometry class"
     },
-    "_V2": {
+    "Line": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Mesh",
+        "OBB"
+      ],
+      "uses": [
+        "Vector",
+        "session_cpp"
+      ],
+      "summary": "A 3D line segment with visual properties."
+    },
+    "Edge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_V2 geometry class"
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
+    "Mesh": {
+      "composition": [
+        "ColorMode",
+        "LoftAdjPair",
+        "LoftPanel",
+        "LoftWallFace",
+        "SpatialAABBTree"
+      ],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Element",
+        "MeshOffset",
+        "OBB",
+        "RemeshCDT",
+        "RemeshNurbsSurfaceGrid"
+      ],
+      "uses": [
+        "Color",
+        "Line",
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
+      ],
+      "summary": "A halfedge mesh data structure for representing polygonal surfaces."
+    },
+    "Tree": {
+      "composition": [
+        "Color",
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A hierarchical data structure with parent-child relationships."
+    },
+    "_P64": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_P64 geometry class"
+    },
+    "_Tri": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Tri geometry class"
     },
     "OBB": {
       "composition": [
@@ -109880,6 +110326,12 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
+    },
+    "_V2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],
@@ -110504,6 +110956,17 @@ window.API_INDEX = {
       "Component.guid",
       "Geometry.guid",
       "RayHit.guid"
+    ],
+    "refresh_guid": [
+      "BRep.refresh_guid",
+      "Line.refresh_guid",
+      "Mesh.refresh_guid",
+      "NurbsCurve.refresh_guid",
+      "NurbsSurface.refresh_guid",
+      "Point.refresh_guid",
+      "Polyline.refresh_guid",
+      "BRepTrimType.refresh_guid",
+      "ColorMode.refresh_guid"
     ],
     "surfacecolor": [
       "BRep.surfacecolor",
@@ -114914,6 +115377,10 @@ window.API_INDEX = {
       "BRepTrimType.append_brep",
       "BRep.append_brep"
     ],
+    "snap_section_edges": [
+      "BRepTrimType.snap_section_edges",
+      "BRep.snap_section_edges"
+    ],
     "make_shared_section_edges": [
       "BRepTrimType.make_shared_section_edges",
       "BRep.make_shared_section_edges"
@@ -116294,10 +116761,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "BRepTrimType": {
-      "cpp": 67,
+      "cpp": 69,
       "python": 2,
       "rust": 0,
-      "gaps": 69,
+      "gaps": 71,
       "present_in": [
         "cpp",
         "python"
@@ -116365,10 +116832,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "BRep": {
-      "cpp": 63,
-      "python": 108,
-      "rust": 60,
-      "gaps": 77,
+      "cpp": 64,
+      "python": 109,
+      "rust": 61,
+      "gaps": 79,
       "present_in": [
         "cpp",
         "python",
@@ -116546,9 +117013,9 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Line": {
-      "cpp": 41,
-      "python": 50,
-      "rust": 39,
+      "cpp": 42,
+      "python": 51,
+      "rust": 40,
       "gaps": 31,
       "present_in": [
         "cpp",
@@ -116612,9 +117079,9 @@ window.API_INDEX = {
     },
     "Mesh": {
       "cpp": 124,
-      "python": 158,
-      "rust": 114,
-      "gaps": 115,
+      "python": 159,
+      "rust": 115,
+      "gaps": 116,
       "present_in": [
         "cpp",
         "python",
@@ -116635,9 +117102,9 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "NurbsCurve": {
-      "cpp": 122,
-      "python": 135,
-      "rust": 110,
+      "cpp": 123,
+      "python": 136,
+      "rust": 111,
       "gaps": 78,
       "present_in": [
         "cpp",
@@ -116657,9 +117124,9 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "NurbsSurface": {
-      "cpp": 89,
-      "python": 119,
-      "rust": 91,
+      "cpp": 90,
+      "python": 120,
+      "rust": 92,
       "gaps": 54,
       "present_in": [
         "cpp",
@@ -116747,9 +117214,9 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Point": {
-      "cpp": 29,
-      "python": 45,
-      "rust": 31,
+      "cpp": 30,
+      "python": 46,
+      "rust": 32,
       "gaps": 36,
       "present_in": [
         "cpp",
@@ -116771,9 +117238,9 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Polyline": {
-      "cpp": 80,
-      "python": 113,
-      "rust": 83,
+      "cpp": 81,
+      "python": 114,
+      "rust": 84,
       "gaps": 70,
       "present_in": [
         "cpp",
@@ -117118,10 +117585,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "ColorMode": {
-      "cpp": 153,
+      "cpp": 154,
       "python": 0,
       "rust": 0,
-      "gaps": 153,
+      "gaps": 154,
       "present_in": [
         "cpp"
       ],

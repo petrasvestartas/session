@@ -8,7 +8,7 @@ heading `# NN Title`, and a standalone crate snapshot `NN_title/`. Lessons aim a
 Rule of thumb: if a lesson would touch more than ~2–3 files or introduce more than one new
 idea, split it into the next numbered day. Every lesson ends with something visible on screen.
 
-Legend: ✅ done · ▶ next · ⬜ planned. ALL 77 LESSONS WRITTEN (2026-07-16). Archive feature in (parens).
+Legend: ✅ done · ▶ next · ⬜ planned. ALL 84 LESSONS WRITTEN (Phase 14 added + completed 2026-07-16). Archive feature in (parens).
 
 ## Architecture decisions (locked — see "Research sources" at the end)
 - **Browser-only (wasm)** — the target is the browser canvas, forever.
@@ -492,38 +492,38 @@ start instead of being retrofitted at lesson 69 like the old plan.
 ## Phase 14 — CAD completeness (post-capstone review, 2026-07-16; ranked by importance)
 Gaps found by reviewing the finished 77-lesson plan against "what does a real CAD viewer that
 people trust actually have". None block the capstone; 78–80 are the ones users notice first.
-- ⬜ 78 Section / clipping planes — THE missing CAD feature (AEC scenes demand cuts)
+- ✅ 78 Section / clipping planes — THE missing CAD feature (AEC scenes demand cuts)
   - steps: N world clip planes in a uniform; every geometry fs gains `if (dot(p, plane) < 0) {
     discard; }` behind a plane-count uniform (0 = free); `section` command sets a plane by 3 points
     or from the work plane (75), gumball-draggable along its normal; optional: darker "cut" tint on
     back faces as a cheap cap illusion (true caps = kernel plane-splits, later)
   - picking must respect the cut: 42's local-frame cast filters hits behind active planes
   - verify: section a floor model wall — the inside reads; drag the plane through the building live
-- ⬜ 79 Import / export OBJ + STEP — the kernel codecs are ALREADY THERE (file_obj, file_step,
+- ✅ 79 Import / export OBJ + STEP — the kernel codecs are ALREADY THERE (file_obj, file_step,
   round-tripped by minitests); the viewer only speaks .pb/.json today
   - steps: extend 34a's extension dispatch (`.obj`/`.step` → the kernel decoders) + `<input
     type=file>` open (34a's noted alternative) + `export obj|step` verbs via 39's download path
   - verify: drag a real .step in → tessellated BReps appear; export → reopens in FreeCAD/Rhino
-- ⬜ 80 Copy / duplicate / array — daily-use editing (trivially cheap on this architecture)
+- ✅ 80 Copy / duplicate / array — daily-use editing (trivially cheap on this architecture)
   - steps: `copy` verb = clone selection, fresh guids, offset via Get-loop point pair →
     AddGeometry (57) so undo is free; Alt+gumball-drag = drag a copy (54's skeleton, clone at
     begin_drag); `array N dx dy dz` as the loop form
   - verify: Alt-drag a beam → original stays, copy follows; Ctrl+Z removes the copy only
-- ⬜ 81 Layers via tree groups — CAD organization users expect (Session::add_group already exists)
+- ✅ 81 Layers via tree groups — CAD organization users expect (Session::add_group already exists)
   - steps: group nodes get eye/color chips in the tree (70); branch visibility = 46's set ops;
     `layer <name>` verb creates + assigns selection; new objects land on the active layer
   - verify: hide "beams" layer → all beams gone from draw AND pick; saved file round-trips groups
-- ⬜ 82 Measure + status bar — `probe` (49) grows up: `distance`, `angle` (3 points), `radius`
+- ✅ 82 Measure + status bar — `probe` (49) grows up: `distance`, `angle` (3 points), `radius`
   (3 points on an arc), object info (`what`: type/verts/area from the kernel); a one-line status
   bar showing live cursor world coords + active snap + selection count
   - verify: measured beam length matches the kernel value to the digit
-- ⬜ 83 Developer toolbox — the workflow lesson (headless selftest + debugging)
+- ✅ 83 Developer toolbox — the workflow lesson (headless selftest + debugging)
   - steps: `cargo run --example selftest` — headless kernel+scene checks without a browser (the
     archive's proven pattern); wgpu error scopes surfaced to the CLI log instead of silent console;
     a "black screen checklist" appendix (naga validate → error scope → perf HUD counts → 28's
     draw-count sanity); CI: `trunk build` + selftest on push
   - verify: an intentionally broken shader reports IN the viewer's CLI log, not just F12
-- ⬜ 84 Web polish — load-time & size (the 17.5 MB stress file over a real network)
+- ✅ 84 Web polish — load-time & size (the 17.5 MB stress file over a real network)
   - steps: streaming fetch with a progress bar in the CLI log line (Content-Length → %),
     `wasm-opt -O2` + release profile (`opt-level = 'z'`, `lto = true`) — measure the wasm size
     before/after in the lesson; optional: gzip/brotli note for static hosts

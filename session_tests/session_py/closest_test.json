@@ -3,7 +3,7 @@
     "group": "Closest",
     "test_name": "Line Point",
     "passed": true,
-    "time_ms": 0.128,
+    "time_ms": 0.08,
     "line": 7,
     "code": "    from session_py import Closest\n    from session_py import Line\n    from session_py import Point\n\n    l = Line(0.0, 0.0, 0.0, 10.0, 0.0, 0.0)\n\n    cp1, t1, d1 = Closest.line_point(l, Point(5.0, 5.0, 0.0))\n\n\n    cp2, t2, d2 = Closest.line_point(l, Point(-5.0, 0.0, 0.0))\n\n    cp3, t3, d3 = Closest.line_point(l, Point(15.0, 0.0, 0.0))",
     "checks": [
@@ -64,7 +64,7 @@
     "group": "Closest",
     "test_name": "Polyline Point",
     "passed": true,
-    "time_ms": 0.094,
+    "time_ms": 0.108,
     "line": 33,
     "code": "    from session_py import Closest\n    from session_py import Polyline\n    from session_py import Point\n\n    pl = Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    ])\n\n    cp1, t1, d1 = Closest.polyline_point(pl, Point(5.0, 5.0, 0.0))\n\n\n    cp2, t2, d2 = Closest.polyline_point(pl, Point(10.0, 5.0, 0.0))",
     "checks": [
@@ -95,7 +95,7 @@
     "group": "Closest",
     "test_name": "Curve Point",
     "passed": true,
-    "time_ms": 3.457,
+    "time_ms": 3.716,
     "line": 55,
     "code": "    from session_py import Closest\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 2.0, 0.0),\n        Point(3.0, 2.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    ]\n    crv = NurbsCurve.create(False, 3, pts)\n\n    t, dist = Closest.curve_point(crv, Point(2.0, 3.0, 0.0))\n\n    cp = crv.point_at(t)\n\n    t2, dist2 = Closest.curve_point(crv, Point(0.0, 0.0, 0.0))",
     "checks": [
@@ -121,7 +121,7 @@
     "group": "Closest",
     "test_name": "Surface Point",
     "passed": true,
-    "time_ms": 9.668,
+    "time_ms": 15.307,
     "line": 79,
     "code": "    from session_py import Closest\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(1.0, 1.0, 1.0),\n        Point(2.0, 1.0, 1.0),\n        Point(3.0, 1.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n        Point(1.0, 2.0, 1.0),\n        Point(2.0, 2.0, 1.0),\n        Point(3.0, 2.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n        Point(1.0, 3.0, 0.0),\n        Point(2.0, 3.0, 0.0),\n        Point(3.0, 3.0, 0.0),\n    ]\n    srf = NurbsSurface.create(False, False, 3, 3, 4, 4, pts)\n\n    u, v, dist = Closest.surface_point(srf, Point(1.5, 1.5, 2.0))\n\n    cp = srf.point_at(u, v)\n\n    u2, v2, dist2 = Closest.surface_point(srf, Point(0.0, 0.0, 0.0))",
     "checks": [
@@ -147,7 +147,7 @@
     "group": "Closest",
     "test_name": "Surface Curve",
     "passed": true,
-    "time_ms": 1105.005,
+    "time_ms": 1312.565,
     "line": 115,
     "code": "    import math\n    from session_py import Closest\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.primitives import Primitives\n    from session_py.tolerance import PI\n\n    cyl = Primitives.cylinder_surface(0.0, 0.0, 0.0, 1.0, 4.0)\n    u0, u1 = cyl.domain(0)\n    v0, v1 = cyl.domain(1)\n    ps = cyl.point_at(u0, 0.5)\n    seam_ang = math.atan2(ps[1], ps[0])\n    crv_pts = []\n    for i in range(21):\n        a = seam_ang - 0.8 + 1.6 * i / 20.0\n        z = 1.0 + 2.0 * i / 20.0\n        crv_pts.append(Point(math.cos(a), math.sin(a), z))\n    crv = NurbsCurve.create_interpolated(crv_pts)\n\n    pcurves = Closest.surface_curve(cyl, crv)\n\n    on_border = 0\n    inside = True\n    for pcurve in pcurves:\n        for e in [0.0, 1.0]:\n            p2 = pcurve.point_at(e)\n            if abs(p2[0] - u0) < 1e-9 or abs(p2[0] - u1) < 1e-9:\n                on_border += 1\n        for i in range(17):\n            p2 = pcurve.point_at(i / 16.0)\n            if p2[0] < u0 - 1e-6 or p2[0] > u1 + 1e-6 or p2[1] < v0 - 1e-6 or p2[1] > v1 + 1e-6:\n                inside = False\n\n    off = NurbsCurve.create(False, 1, [Point(20.0, 20.0, 20.0), Point(30.0, 30.0, 30.0)])",
     "checks": [
@@ -188,7 +188,7 @@
     "group": "Closest",
     "test_name": "Mesh Point",
     "passed": true,
-    "time_ms": 1.302,
+    "time_ms": 2.393,
     "line": 159,
     "code": "    from session_py import Closest\n    from session_py import Primitives\n    from session_py import Point\n\n    m = Primitives.cube(2.0)\n\n    cp1, fk1, d1 = Closest.mesh_point(m, Point(0.0, 0.0, 2.0))\n\n\n    cp2, fk2, d2 = Closest.mesh_point(m, Point(1.0, 1.0, 1.0))",
     "checks": [
@@ -214,7 +214,7 @@
     "group": "Closest",
     "test_name": "Mesh Point AABB",
     "passed": true,
-    "time_ms": 0.978,
+    "time_ms": 1.793,
     "line": 176,
     "code": "    from session_py import Closest\n    from session_py import Primitives\n    from session_py import Point\n\n    m = Primitives.cube(2.0)\n\n    cp1, fk1, d1 = Closest.mesh_point_aabb(m, Point(0.0, 0.0, 2.0))\n\n\n    cp2, fk2, d2 = Closest.mesh_point_aabb(m, Point(1.0, 1.0, 1.0))",
     "checks": [
@@ -240,7 +240,7 @@
     "group": "Closest",
     "test_name": "Pointcloud Point",
     "passed": true,
-    "time_ms": 0.052,
+    "time_ms": 0.112,
     "line": 193,
     "code": "    from session_py import Closest\n    from session_py import PointCloud\n    from session_py import Point\n\n    pc = PointCloud([\n        Point(0.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    ])\n\n    cp1, i1, d1 = Closest.pointcloud_point(pc, Point(4.0, 0.0, 0.0))\n\n\n    cp2, i2, d2 = Closest.pointcloud_point(pc, Point(10.0, 10.0, 0.0))",
     "checks": [
@@ -276,7 +276,7 @@
     "group": "Closest",
     "test_name": "Pointcloud Point SpatialKDTree",
     "passed": true,
-    "time_ms": 0.107,
+    "time_ms": 0.207,
     "line": 217,
     "code": "    from session_py import Closest\n    from session_py import PointCloud\n    from session_py import Point\n\n    # SpatialKDTree variant: same result as linear scan, O(log n) query\n    pc = PointCloud([\n        Point(0.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n        Point(10.0, 10.0, 0.0),\n    ])\n\n    cp1, i1, d1 = Closest.pointcloud_point_kdtree(pc, Point(4.0, 0.0, 0.0))\n\n\n    cp2, i2, d2 = Closest.pointcloud_point_kdtree(pc, Point(10.0, 10.0, 0.0))",
     "checks": [
@@ -312,7 +312,7 @@
     "group": "Closest",
     "test_name": "Lines Closest",
     "passed": true,
-    "time_ms": 0.127,
+    "time_ms": 0.219,
     "line": 242,
     "code": "    from session_py import Closest\n    from session_py import Line\n\n    # 3 lines: first two sharing an endpoint, third far away\n    lines = [\n        Line(0.0, 0.0, 0.0, 5.0, 0.0, 0.0),\n        Line(5.0, 0.0, 0.0, 10.0, 0.0, 0.0),\n        Line(100.0, 0.0, 0.0, 110.0, 0.0, 0.0),\n    ]\n\n    pairs = Closest.lines_closest(lines, 0.01)",
     "checks": [
@@ -338,7 +338,7 @@
     "group": "Closest",
     "test_name": "Polylines Closest",
     "passed": true,
-    "time_ms": 0.122,
+    "time_ms": 0.222,
     "line": 261,
     "code": "    from session_py import Closest\n    from session_py import Polyline\n    from session_py import Point\n\n    pls = [\n        Polyline([Point(0.0, 0.0, 0.0), Point(5.0, 0.0, 0.0)]),\n        Polyline([Point(5.0, 0.0, 0.0), Point(10.0, 0.0, 0.0)]),\n        Polyline([Point(100.0, 0.0, 0.0), Point(110.0, 0.0, 0.0)]),\n    ]\n\n    pairs = Closest.polylines_closest(pls, 0.01)",
     "checks": [
@@ -364,7 +364,7 @@
     "group": "Closest",
     "test_name": "Nurbscurves Closest",
     "passed": true,
-    "time_ms": 2.434,
+    "time_ms": 5.554,
     "line": 280,
     "code": "    from session_py import Closest\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    curves = [\n        NurbsCurve.create(False, 1, [Point(0.0, 0.0, 0.0), Point(5.0, 0.0, 0.0)]),\n        NurbsCurve.create(False, 1, [Point(5.0, 0.0, 0.0), Point(10.0, 0.0, 0.0)]),\n        NurbsCurve.create(False, 1, [Point(100.0, 0.0, 0.0), Point(110.0, 0.0, 0.0)]),\n    ]\n\n    pairs = Closest.nurbscurves_closest(curves, 0.01)",
     "checks": [
@@ -390,7 +390,7 @@
     "group": "Closest",
     "test_name": "Boxes Closest",
     "passed": true,
-    "time_ms": 0.064,
+    "time_ms": 0.133,
     "line": 299,
     "code": "    from session_py import AABB\n    from session_py import Closest\n\n    # 3 boxes: first two touching faces (shared at x=1), third far away\n    boxes = [\n        AABB(0.0, 0.0, 0.0, 1.0, 1.0, 1.0),\n        AABB(2.0, 0.0, 0.0, 1.0, 1.0, 1.0),\n        AABB(20.0, 0.0, 0.0, 1.0, 1.0, 1.0),\n    ]\n\n    pairs = Closest.boxes_closest(boxes, 0.01)",
     "checks": [

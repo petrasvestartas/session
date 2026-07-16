@@ -53,7 +53,7 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) si:u32) -> VsO
     let axis = w1-w0;
     let len = length(axis);
     let dir = select(vec3<f32>(0.0, 0.0, 1.0), axis / len, len > 1e-9);
-    let ref0 = select(vec3<f32>(1.0, 0.0, 0.0), vec3<f32>(0.0, 1.0, 0.0), abs(dir.z) > 0.9);
+    let ref0 = select(vec3<f32>(0.0, 0.0, 1.0), vec3<f32>(1.0, 0.0, 0.0), abs(dir.z) > 0.9);
     let right = normalize(cross(ref0, dir));
     let up = cross(dir, right);
 

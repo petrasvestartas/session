@@ -13,7 +13,7 @@
     "line": 24,
     "passed": true,
     "test_name": "Creation",
-    "time_ms": 0.008
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -66,7 +66,7 @@
     "line": 55,
     "passed": true,
     "test_name": "Search Hit",
-    "time_ms": 0.005
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -82,7 +82,7 @@
     "line": 71,
     "passed": true,
     "test_name": "Search Miss",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 93,
     "passed": true,
     "test_name": "Remove All",
-    "time_ms": 0.004
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -1167,7 +1167,7 @@
     "line": 134,
     "passed": true,
     "test_name": "Search 100 Boxes",
-    "time_ms": 0.459
+    "time_ms": 0.495
   },
   {
     "checks": [
@@ -1183,6 +1183,6 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.009
+    "time_ms": 0.003
   }
 ]

@@ -4,45 +4,71 @@
     "code": "        // load Stanford Bunny (real-world OBJ: 2503 vertices, 4968 faces)\n        use std::path::PathBuf;\n        use crate::file_obj::read_file_obj;\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let bunny_path = src_dir.parent().unwrap().join(\"session_data\").join(\"bunny.obj\");\n        if !bunny_path.exists() {\n            return Ok(());\n        }\n        let mesh = read_file_obj(bunny_path.to_str().unwrap()).unwrap();\n\n        let (vertices, faces) = mesh.to_vertices_and_faces();\n        let has_non_zero = vertices.iter().any(|v| v[0] != 0.0 || v[1] != 0.0 || v[2] != 0.0);",
     "failures": [],
     "group": "FileObj",
-    "line": 6,
+    "line": 7,
     "passed": true,
     "test_name": "Read Bunny",
-    "time_ms": 0.077
+    "time_ms": 0.04
   },
   {
     "checks": [
       {
         "code_line": "original_mesh.number_of_vertices() == 4",
-        "line": 42,
-        "passed": true
-      },
-      {
-        "code_line": "original_mesh.number_of_faces() == 2",
         "line": 43,
         "passed": true
       },
       {
+        "code_line": "original_mesh.number_of_faces() == 2",
+        "line": 44,
+        "passed": true
+      },
+      {
         "code_line": "temp_file.exists()",
-        "line": 48,
+        "line": 49,
         "passed": true
       },
       {
         "code_line": "loaded_mesh.number_of_vertices() == original_mesh.number_of_vertices()",
-        "line": 50,
+        "line": 51,
         "passed": true
       },
       {
         "code_line": "loaded_mesh.number_of_faces() == original_mesh.number_of_faces()",
-        "line": 51,
+        "line": 52,
         "passed": true
       }
     ],
     "code": "        // build a small mesh (4 verts, 2 faces), write to OBJ, read back, compare counts\n        use crate::{Mesh, Point};\n        use crate::file_obj::{read_file_obj, write_file_obj};\n        use std::path::PathBuf;\n        let mut original_mesh = Mesh::new();\n        let v0 = original_mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = original_mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = original_mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        let v3 = original_mesh.add_vertex(Point::new(0.0, 0.0, 1.0), None);\n        let _ = original_mesh.add_face(vec![v0, v1, v2], None);\n        let _ = original_mesh.add_face(vec![v0, v1, v3], None);\n\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let temp_file = src_dir.join(\"serialization\").join(\"test_temp_roundtrip.obj\");\n        let temp_str = temp_file.to_str().unwrap();\n        write_file_obj(&original_mesh, temp_str).unwrap();\n        let loaded_mesh = read_file_obj(temp_str).unwrap();\n        let _ = std::fs::remove_file(&temp_file);",
     "failures": [],
     "group": "FileObj",
-    "line": 29,
+    "line": 30,
     "passed": true,
     "test_name": "Write Read Roundtrip",
-    "time_ms": 15.861
+    "time_ms": 2.269
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded_mesh.number_of_vertices() == original_mesh.number_of_vertices()",
+        "line": 71,
+        "passed": true
+      },
+      {
+        "code_line": "loaded_mesh.number_of_faces() == original_mesh.number_of_faces()",
+        "line": 72,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded_mesh.area(), original_mesh.area())",
+        "line": 73,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{Mesh, Point};\n        use crate::file_obj::{read_file_obj_from_str, write_file_obj_to_string};\n        let mut original_mesh = Mesh::new();\n        let v0 = original_mesh.add_vertex(Point::new(0.0, 0.0, 0.0), None);\n        let v1 = original_mesh.add_vertex(Point::new(1.0, 0.0, 0.0), None);\n        let v2 = original_mesh.add_vertex(Point::new(0.0, 1.0, 0.0), None);\n        let v3 = original_mesh.add_vertex(Point::new(0.0, 0.0, 1.0), None);\n        let _ = original_mesh.add_face(vec![v0, v1, v2], None);\n        let _ = original_mesh.add_face(vec![v0, v1, v3], None);\n        let s = write_file_obj_to_string(&original_mesh);\n        let loaded_mesh = read_file_obj_from_str(&s);\n",
+    "failures": [],
+    "group": "FileObj",
+    "line": 58,
+    "passed": true,
+    "test_name": "String Roundtrip",
+    "time_ms": 0.149
   }
 ]

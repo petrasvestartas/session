@@ -23,7 +23,7 @@
     "line": 425,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 16.385
+    "time_ms": 15.66
   },
   {
     "checks": [
@@ -44,7 +44,7 @@
     "line": 177,
     "passed": true,
     "test_name": "From Euler",
-    "time_ms": 0.014
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -130,7 +130,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.056
+    "time_ms": 0.04
   },
   {
     "checks": [
@@ -167,7 +167,7 @@
     "line": 127,
     "passed": true,
     "test_name": "From Axis Angle",
-    "time_ms": 0.005
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -193,7 +193,7 @@
     "line": 376,
     "passed": true,
     "test_name": "Slerp",
-    "time_ms": 0.039
+    "time_ms": 0.024
   },
   {
     "checks": [
@@ -219,7 +219,7 @@
     "line": 455,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 1.879
+    "time_ms": 2.014
   },
   {
     "checks": [
@@ -235,7 +235,7 @@
     "line": 268,
     "passed": true,
     "test_name": "Magnitude",
-    "time_ms": 0.006
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -306,7 +306,7 @@
     "line": 93,
     "passed": true,
     "test_name": "From Components",
-    "time_ms": 0.021
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -327,7 +327,7 @@
     "line": 403,
     "passed": true,
     "test_name": "Nlerp",
-    "time_ms": 0.024
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -353,7 +353,7 @@
     "line": 319,
     "passed": true,
     "test_name": "Conjugate",
-    "time_ms": 0.007
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -369,7 +369,7 @@
     "line": 285,
     "passed": true,
     "test_name": "Magnitude Squared",
-    "time_ms": 0.004
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -395,7 +395,7 @@
     "line": 197,
     "passed": true,
     "test_name": "From Rotation",
-    "time_ms": 0.051
+    "time_ms": 0.019
   },
   {
     "checks": [
@@ -431,7 +431,7 @@
     "line": 147,
     "passed": true,
     "test_name": "From Arc",
-    "time_ms": 0.035
+    "time_ms": 0.018
   },
   {
     "checks": [
@@ -462,7 +462,7 @@
     "line": 74,
     "passed": true,
     "test_name": "Identity",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -478,7 +478,7 @@
     "line": 301,
     "passed": true,
     "test_name": "Normalized",
-    "time_ms": 0.005
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -509,7 +509,7 @@
     "line": 245,
     "passed": true,
     "test_name": "Get Rotation",
-    "time_ms": 0.012
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -540,7 +540,7 @@
     "line": 339,
     "passed": true,
     "test_name": "Invert",
-    "time_ms": 0.015
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -566,6 +566,6 @@
     "line": 223,
     "passed": true,
     "test_name": "Rotate Vector",
-    "time_ms": 0.011
+    "time_ms": 0.006
   }
 ]
