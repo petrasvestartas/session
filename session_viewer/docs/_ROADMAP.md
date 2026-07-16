@@ -308,7 +308,7 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
 Commands-only is the locked interface (reference_webgpu_cad_caveats). The bus lands **before**
 gumball and tools, so every later mutation is born as a command — pattern (a)/(b) compose from the
 start instead of being retrofitted at lesson 69 like the old plan.
-- ▶ 47 egui overlay + perf HUD + first settings
+- ✅ 47 egui overlay + perf HUD + first settings
   - files: `ui/mod.rs` (`build_ui`), `ui/settings.rs`, egui-wgpu/egui-winit wiring in
     `app/render.rs` + `lib.rs` (feed winit events to egui FIRST; it reports "consumed")
   - steps: egui render pass AFTER the 3D pass, same encoder; HUD window = fps / frame ms /
@@ -317,7 +317,7 @@ start instead of being retrofitted at lesson 69 like the old plan.
   - rule: UI collects intent inside the closure into a small struct, applied to `State` AFTER it
     (can't borrow `self` mutably inside)
   - verify: unchecking grid hides it next frame; typing in egui doesn't orbit the camera
-- ⬜ 48 Command bus + Get-loop — THE interface arrives
+- ✅ 48 Command bus + Get-loop — THE interface arrives
   - files: `app/commands.rs` (registry: verb → factory), `app/getloop.rs` (state machine),
     `ui/cli.rs` (input line docked at the screen edge)
   - steps: `enum GetState { Idle, WaitingPoint(prompt), WaitingOption(..) }`; a running command
@@ -325,14 +325,14 @@ start instead of being retrofitted at lesson 69 like the old plan.
     one prompt; every mutation goes bus → kernel → `Session` → reconcile (38); first verbs:
     `hide`/`show`/`zoom`
   - verify: type `hide` → selection hides; unknown verb → friendly message in the CLI log
-- ⬜ 49 Command options & modal multi-step
+- ✅ 49 Command options & modal multi-step
   - steps: option kinds toggle/number/list registered per command, rendered in the prompt line
     (`Line (From, Snap=On):`); chained prompts (from → to) with Esc = cancel, Enter = accept
     default, one-step-back
   - verify: a two-step dummy command completes, cancels, and steps back correctly
-- ⬜ 50 History & autocomplete — ↑/↓ recall, Tab prefix-complete, alias table (`l` → `line`)
+- ✅ 50 History & autocomplete — ↑/↓ recall, Tab prefix-complete, alias table (`l` → `line`)
   - verify: ↑ recalls last command; `li<Tab>` completes; aliases dispatch
-- ⬜ 51 Delete + undo/redo — the FIRST scene mutation, so ARCHITECTURE pattern (a) lands HERE
+- ✅ 51 Delete + undo/redo — the FIRST scene mutation, so ARCHITECTURE pattern (a) lands HERE
   - files: `app/history/{mod,remove}.rs`, `ui/toolbar.rs`
   - steps: `trait Command { apply(scene,gpu) / revert / label }` + `History { done, undone }`
     stacks — NEVER an UndoAction enum (archive's documented dead-end); `RemoveObjects` holds
@@ -341,7 +341,7 @@ start instead of being retrofitted at lesson 69 like the old plan.
   - verify: delete → undo restores identical guids/rows; redo repeats; HUD object count tracks
 
 ## Phase 9 — Transform & draw (every tool is a command)
-- ⬜ 52 Gumball geometry — the 3-axis gizmo appears (reference_gumball_widget has the full recipe)
+- ▶ 52 Gumball geometry — the 3-axis gizmo appears (reference_gumball_widget has the full recipe)
   - files: `engine/gumball/mod.rs` (geometry + handle ids), `app/gumball_state.rs`
   - steps: 3 axis cylinders + cone tips + 3 rotate arcs + 3 scale boxes, built from kernel meshes
     into instance rows (31's templates); one stable id per handle; drawn last, depth-tested but
