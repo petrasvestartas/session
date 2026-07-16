@@ -25,43 +25,43 @@ return fresh values; Python diverged. **Fix shipped:** cache removed, fresh inst
 (Found because the new inverse test mutated the "identity" it was handed — the minitest caught a
 second bug while verifying the first.)
 
-## 🔴 3. Placement semantics are inconsistent: `mesh.xform` is sometimes honored, sometimes not
+## ✅ 3. Placement semantics unified: `mesh.xform` is the placement, everywhere — FIXED
 
-The kernel's own code disagrees with itself about what `Mesh.xform` means:
+The kernel used to disagree with itself: `compute_bounding_box`'s BRep arm applied `b.xform` while
+its Mesh arm read raw local vertices; `Session::ray_cast`'s Mesh arm was placement-blind.
+**Fix shipped (all three languages):** the Mesh box arm bakes `m.xform` via `transform_point`; the
+Mesh ray arm inverse-transforms the ray into the mesh's local frame, casts against the cached
+triangle BVH, and returns the hit in world coordinates. The Ray Cast minitest gained a placed-mesh
+check (translated mesh, ray at the new location, world hit asserted) in py/rust/cpp. Bonus finds
+while sweeping: C++ had **no BRep box arm at all** (fell to a degenerate origin box — added), and
+**both C++ and Python `remove_object` only removed `Point`** from the typed collections, so deleted
+objects of any other type resurrected on save — both completed to Rust parity.
 
-- `Session::compute_bounding_box`: the **BRep** arm transforms `m_vertices` by `b.xform`; the
-  **Mesh** arm reads raw local vertices and ignores `m.xform`.
-- `Session::ray_cast`: the Mesh arm casts against local vertices — placement-blind.
-- `Mesh::to_render()`: ignores `xform` (the viewer relies on this: xform = instance model).
+## ✅ 4. NURBS types as `Geometry` variants — FIXED for curve + surface (Trimmed remains)
 
-Consequences in the tutorials: lesson 36 builds its own world boxes (`world_obb` bakes the xform);
-lesson 44 must *filter mesh hits out* of `Session::ray_cast` and keep a parallel viewer-side mesh
-ray-cast (42). **Proposal:** pick one contract — "`xform` is the placement, all spatial queries apply
-it" — and sweep `compute_bounding_box` / `ray_cast` / any AABB helpers to honor it (BRep already
-does). This deletes the viewer's `world_obb` special-casing and makes `Session::ray_cast` usable as
-the *whole* pick backend.
+The audit's premise turned out sharper than expected: **C++ (ground truth) already had
+`NurbsCurve`/`NurbsSurface` in its `Geometry` variant and full `add_nurbscurve`/`add_nurbssurface`
+methods, and Python registered them in `lookup` too — only Rust was behind.** And `lookup` is
+`#[serde(skip)]` (derived from `objects.*` on load), so no proto change was ever needed.
+**Fix shipped:** Rust `Geometry` gained the two variants; compiler-guided sweep covered guid
+dispatch, all three lookup-rebuild sites, `remove_object`, `compute_bounding_box` (CV-hull arms, C++
+parity), `ray_cast` (explicit skip arms, C++ parity), the transformed-lookup walk, and new
+`add_nurbscurve`/`add_nurbssurface` methods + "Add Nurbscurve"/"Add Nurbssurface" minitests (ported
+from py/cpp, which already had them).
+**Remaining:** `NurbsSurfaceTrimmed` is still collection-only in *all three* languages — adding it to
+the C++ variant + ports is the follow-up; until then the viewer's `all_objects()` (lesson 64) still
+earns its keep for Trimmed.
 
-## 🔴 4. NURBS types are second-class: not `Geometry` variants, parallel collections
+## ✅ 5. `Xform::transform_point` / `transform_vector` — FIXED
 
-`NurbsCurve` / `NurbsSurface` / `NurbsSurfaceTrimmed` live in `session.objects.*` vectors, outside
-`lookup: HashMap<guid, Geometry>`. Every consumer must remember **two sources** — the archive forgot
-repeatedly ("draws but won't pick", "missing from the tree"), and lessons 60/64 had to build
-`ObjRef` + `all_objects()` purely to compensate. `Session::remove_object` doesn't remove them;
-`ray_cast` never sees them; reconcile (38b) needs extra arms.
-**Proposal:** add the three variants to `Geometry` and register them in `lookup` like everything
-else. This is the biggest-ticket item (touches the proto schema + serialization + all three
-languages + existing fixtures), so it's a design decision, not a patch — but it retires an entire
-bug class at the root instead of at every call site.
-
-## 🔴 5. No `Xform × Point` — transforming a point requires the carry-xform idiom
-
-The only way to apply a transform is `p.xform = xf; p.transformed()` — mutate-a-field-then-call, with
-a clone per use. The viewer hand-rolls row-dot `M·v` in three places (41 unproject, 43 projection,
-65's uniform prep), and every `world_obb`/`to_local` in lessons 36/42/43 pays the clone-and-carry
-dance. **Proposal:** `Xform::transform_point(&Point) -> Point` and `transform_vector(&Vector) ->
-Vector` (plus optionally `impl Mul<&Point> for &Xform`) — pure functions, no field mutation, ported
-×3. Cheap to add; large ergonomic payoff (the kernel's own BRep bbox code already hand-rolls exactly
-this loop — it would use it too).
+Transforming a point used to require the carry-xform idiom (`p.xform = xf; p.transformed()` — a
+clone and a field mutation per use); the viewer hand-rolled row-dot `M·v` in three lessons.
+**Fix shipped (all three languages):** `transform_point(&Point) -> Point` (full homogeneous multiply,
+divides by `w` when projective — so it's also correct through perspective matrices) and
+`transform_vector(&Vector) -> Vector` (rotation/scale only — translation doesn't move directions).
+Two new minitests each in py/rust/cpp ("Transform Point" incl. a projective w-divide check,
+"Transform Vector" incl. the translation-doesn't-move-vectors semantic). The kernel dogfoods it:
+`compute_bounding_box`'s BRep arm replaced its hand-rolled loop, and gap #3's fixes are built on it.
 
 ## 🟡 6. No deterministic content fingerprint on `Geometry`
 

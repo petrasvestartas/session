@@ -44,18 +44,14 @@ compare adding a type before (edit four functions, forget one, ship a bug) and a
 ```rust
 /// Every renderable object in the document, whatever container it lives in.
 pub enum ObjRef<'a> {
-    Geom(&'a Geometry),                                  // lookup: Mesh/BRep/Line/Polyline/Point
-    Curve(&'a NurbsCurve),                               // objects.nurbscurves (60)
-    Surface(&'a NurbsSurface),                           // objects.nurbssurfaces (61)
-    Trimmed(&'a NurbsSurfaceTrimmed),                    // objects.nurbssurfacetrimmeds (NEW)
+    Geom(&'a Geometry),                                  // lookup — incl. NurbsCurve/NurbsSurface (gap #4, fixed)
+    Trimmed(&'a NurbsSurfaceTrimmed),                    // objects.nurbssurfacetrimmeds — the ONE type still outside
 }
 
 impl ObjRef<'_> {
     pub fn guid(&self) -> &str {
         match self {
             ObjRef::Geom(g) => g.guid(),
-            ObjRef::Curve(c) => c.guid(),
-            ObjRef::Surface(s) => s.guid(),
             ObjRef::Trimmed(t) => t.guid(),
         }
     }
@@ -65,8 +61,6 @@ impl Scene {
     /// THE registration point. Every map iterates this; a new geometry source is one new chain link.
     pub fn all_objects(&self) -> impl Iterator<Item = ObjRef<'_>> {
         self.session.lookup.values().filter(|g| is_renderable(g)).map(ObjRef::Geom)
-            .chain(self.session.objects.nurbscurves.iter().map(ObjRef::Curve))
-            .chain(self.session.objects.nurbssurfaces.iter().map(ObjRef::Surface))
             .chain(self.session.objects.nurbssurfacetrimmeds.iter().map(ObjRef::Trimmed))
     }
 }
@@ -76,14 +70,14 @@ impl Scene {
 
 Mechanical refactor, worth doing carefully once:
 
-- **`Scene::new` (order/rows):** one loop over `all_objects()` replaces the lookup loop + 60's and
-  61's bolted-on loops.
-- **`build` / `apply_object`:** one `match ObjRef` whose arms are the existing bodies — `Geom` keeps
-  35/38b's inner match; `Curve` is 60's sampling arm; `Surface`/`Trimmed` go through the cache.
+- **`Scene::new` (order/rows):** one loop over `all_objects()` replaces the lookup loop plus any
+  trimmed special-casing.
+- **`build` / `apply_object`:** one `match ObjRef` — `Geom` keeps the existing inner match (which
+  already has 60/61's curve and surface arms); `Trimmed` goes through the cache.
 - **`world_obb`:** `match ObjRef` — `Trimmed` boxes via its cached mesh (`AABB::from_mesh` on the
   tessellation + xform bake, 36's recipe; the kernel's `from_nurbssurface` sampler doesn't know about
   trims, and the *cached mesh* is what's actually on screen anyway).
-- **pick:** `Surface`/`Trimmed` resolve through `render_mesh` (63); `Curve` keeps 60's segment test.
+- **pick:** `Trimmed` resolves through `render_mesh` (63), exactly like surfaces already do.
 
 `hidden`, selection, and the gumball never change — flags and `guid_to_row` again.
 
@@ -136,7 +130,7 @@ Ch 64: TRIMMED + STRUCTURE. NurbsSurfaceTrimmed::mesh() (= mesh_q(20°, 0.005), 
        tessellation) joins the cache; linework = the TRIM boundary loops sampled to tubes (not the
        untrimmed domain rectangle); box from the cached mesh (the kernel's surface sampler is
        trim-blind); matrix-only + reconcile invalidation, one word each. THE REFACTOR: ObjRef +
-       all_objects() — lookup ∪ nurbscurves ∪ nurbssurfaces ∪ nurbssurfacetrimmeds — becomes the ONE
+       all_objects() — lookup ∪ nurbssurfacetrimmeds (curves/surfaces already ride lookup, gap #4) — the ONE
        registration point; order/build/boxes/pick all iterate it, and match-exhaustiveness makes the
        compiler find every map when a type is added. The archive's forgot-the-trimmed bug class is
        structurally extinct. Phase 10 complete: lines, curves, surfaces, solids, trims — all first-class.

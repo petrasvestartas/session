@@ -29,6 +29,33 @@ light model:  hemisphere ambient  +  key·max(dot(n,key),0)  +  fill·max(dot(n,
 out = base_color × lit
 ```
 
+<svg viewBox="0 0 680 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="the three light terms on a box: hemisphere ambient brighter toward up, a key light from the upper left, a fill light from the right; faces sum the terms by their normal direction" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <g transform="translate(110,30)">
+    <path d="M 0,70 L 70,100 L 150,70 L 80,42 Z" fill="#8fb7e0" stroke="#3a3a3a"/>
+    <path d="M 0,70 L 0,120 L 70,150 L 70,100 Z" fill="#3d5878" stroke="#3a3a3a"/>
+    <path d="M 70,100 L 70,150 L 150,120 L 150,70 Z" fill="#5d82ab" stroke="#3a3a3a"/>
+    <text x="80" y="66" fill="#0d0f12" font-size="10" text-anchor="middle">bright: faces the key + sky</text>
+    <text x="34" y="118" fill="#c9d4e0" font-size="9">dark: away from both</text>
+  </g>
+  <path d="M 60,20 L 130,72" stroke="#e0b040" stroke-width="1.6" marker-end="url(#ah21)"/>
+  <text x="46" y="16" fill="#e0b040">key (upper-left)</text>
+  <path d="M 340,80 L 272,120" stroke="#888" stroke-width="1.3" marker-end="url(#ah21g)"/>
+  <text x="346" y="78" fill="#888">fill (weaker, opposite)</text>
+  <g transform="translate(430,24)">
+    <path d="M 0,60 A 60,60 0 0 1 120,60" fill="none" stroke="#6fb3ff" stroke-width="1.4"/>
+    <line x1="0" y1="60" x2="120" y2="60" stroke="#3a3a3a"/>
+    <text x="60" y="20" fill="#6fb3ff" text-anchor="middle" font-size="10">sky: bright</text>
+    <text x="60" y="76" fill="#666" text-anchor="middle" font-size="10">ground: dim</text>
+    <text x="60" y="100" fill="#888" text-anchor="middle" font-size="10">hemisphere ambient:</text>
+    <text x="60" y="114" fill="#888" text-anchor="middle" font-size="10">mix by how much n points up</text>
+  </g>
+  <text x="340" y="172" fill="#666" text-anchor="middle" font-size="10">three cheap terms, summed per pixel — no shadows, no textures, yet the box reads as a solid</text>
+  <defs>
+    <marker id="ah21" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e0b040"/></marker>
+    <marker id="ah21g" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#888"/></marker>
+  </defs>
+</svg>
+
 **Two sign traps**, both from WebGPU's conventions:
 - Framebuffer **Y points down**, so `cross(dpdx, dpdy)` points *into* the surface and every dot
   product goes negative. Use `cross(dpdy, dpdx)` for an **outward** normal.

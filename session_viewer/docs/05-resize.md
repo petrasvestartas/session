@@ -19,6 +19,22 @@ A browser canvas has **two independent sizes**, plus a linking number:
 Stretch = **aspect-ratio mismatch**: the 300 × 150 (2:1) buffer stretches to fill a
 16:9 window — the triangle distorts along with everything else.
 
+<svg viewBox="0 0 680 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="the canvas CSS size fills the window while the drawing buffer defaults to 300 by 150 and gets stretched over it; the fix sets the buffer to css size times dpr" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="160" y="16" fill="#888" text-anchor="middle">before — the stretch</text>
+  <rect x="20" y="24" width="280" height="120" fill="none" stroke="#6fb3ff" stroke-width="1.4"/>
+  <text x="160" y="40" fill="#6fb3ff" text-anchor="middle" font-size="10">CSS size: 100vw × 100vh (page look)</text>
+  <rect x="80" y="60" width="120" height="60" fill="none" stroke="#e0b040" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <text x="140" y="86" fill="#e0b040" text-anchor="middle" font-size="10">buffer: 300 × 150</text>
+  <text x="140" y="100" fill="#888" text-anchor="middle" font-size="9">(the default — GPU pixels)</text>
+  <text x="160" y="160" fill="#666" text-anchor="middle" font-size="10">2:1 pixels stretched over a 16:9 window → squash</text>
+  <text x="510" y="16" fill="#888" text-anchor="middle">after — the fix</text>
+  <rect x="380" y="24" width="280" height="120" fill="none" stroke="#6fb3ff" stroke-width="1.4"/>
+  <rect x="384" y="28" width="272" height="112" fill="none" stroke="#4fae5c" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <text x="520" y="80" fill="#4fae5c" text-anchor="middle" font-size="10">buffer = CSS size × DPR</text>
+  <text x="520" y="96" fill="#888" text-anchor="middle" font-size="9">1 buffer pixel = 1 physical pixel</text>
+  <text x="510" y="160" fill="#666" text-anchor="middle" font-size="10">crisp at any window size and any OS zoom</text>
+</svg>
+
 ```
 drawing buffer  300 × 150  (2:1)          what the GPU renders
         │  stretched by the browser to…

@@ -3,7 +3,7 @@
     "group": "Edge",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.004,
     "line": 41,
     "code": "    // Constructor with v0/v1/attribute\n    Edge e(\"a\", \"b\", \"attr\");",
     "checks": [
@@ -34,7 +34,7 @@
     "group": "Edge",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 15.089,
+    "time_ms": 16.379,
     "line": 51,
     "code": "    Edge original(\"v0\", \"v1\", \"test_edge_attr\");\n\n    std::string fname = \"serialization/test_edge.json\";\n    file_encoders::file_json_dump(original, fname);\n    Edge loaded = file_encoders::file_json_load<Edge>(fname);",
     "checks": [
@@ -60,7 +60,7 @@
     "group": "Edge",
     "test_name": "Vertices",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.003,
     "line": 63,
     "code": "    Edge e(\"a\", \"b\");\n    auto [u, v] = e.vertices();",
     "checks": [
@@ -76,7 +76,7 @@
     "group": "Edge",
     "test_name": "Connects",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 70,
     "code": "    Edge e(\"a\", \"b\");",
     "checks": [
@@ -164,7 +164,7 @@
     "group": "Graph",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 15.894,
+    "time_ms": 16.267,
     "line": 107,
     "code": "    Graph original(\"test_graph\");\n    original.add_node(\"node1\", \"Node 1\");\n    original.add_node(\"node2\", \"Node 2\");\n    original.add_edge(\"node1\", \"node2\", \"edge1\");\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_graph.json\";\n    original.file_json_dump(fname);\n    Graph loaded = Graph::file_json_load(fname);\n\n    auto edge_key = std::make_tuple<std::string, std::string>(\"node1\", \"node2\");",
     "checks": [
@@ -190,7 +190,7 @@
     "group": "Graph",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 14.365,
+    "time_ms": 17.254,
     "line": 130,
     "code": "    Graph original(\"test_graph\");\n    original.add_node(\"node1\", \"Node 1\");\n    original.add_node(\"node2\", \"Node 2\");\n    original.add_edge(\"node1\", \"node2\", \"edge1\");\n\n    //   pb_dumps()      │ std::string  │ to protobuf binary string\n    //   pb_loads(data)  │ std::string  │ from protobuf binary string\n    //   pb_dump(path)   │ file         │ write to file\n    //   pb_load(path)   │ file         │ read from file\n\n    std::string filename = \"serialization/test_graph.bin\";\n    original.pb_dump(filename);\n    Graph loaded = Graph::pb_load(filename);\n\n    auto edge_key = std::make_tuple<std::string, std::string>(\"node1\", \"node2\");",
     "checks": [
@@ -216,7 +216,7 @@
     "group": "Graph",
     "test_name": "Has Node",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 151,
     "code": "    Graph g(\"g\");\n    g.add_node(\"a\");",
     "checks": [
@@ -237,7 +237,7 @@
     "group": "Graph",
     "test_name": "Has Edge",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.007,
     "line": 159,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n\n    auto ab = std::make_tuple<std::string, std::string>(\"a\", \"b\");\n    auto ac = std::make_tuple<std::string, std::string>(\"a\", \"c\");",
     "checks": [
@@ -258,7 +258,7 @@
     "group": "Graph",
     "test_name": "Add Node",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.018,
     "line": 169,
     "code": "    Graph g(\"g\");\n    auto key = g.add_node(\"a\");",
     "checks": [
@@ -284,7 +284,7 @@
     "group": "Graph",
     "test_name": "Add Edge",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.006,
     "line": 178,
     "code": "    Graph g(\"g\");\n    auto edge = g.add_edge(\"a\", \"b\");\n    auto [u, v] = edge;",
     "checks": [
@@ -305,7 +305,7 @@
     "group": "Graph",
     "test_name": "Remove Node",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.008,
     "line": 187,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.remove_node(\"a\");",
     "checks": [
@@ -326,7 +326,7 @@
     "group": "Graph",
     "test_name": "Remove Edge",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.021,
     "line": 196,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    auto edge_key = std::make_tuple<std::string, std::string>(\"a\", \"b\");\n    g.remove_edge(edge_key);",
     "checks": [
@@ -352,7 +352,7 @@
     "group": "Graph",
     "test_name": "Get Vertices",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.012,
     "line": 207,
     "code": "    Graph g(\"g\");\n    g.add_node(\"a\");\n    g.add_node(\"b\");\n\n    auto verts = g.get_vertices();",
     "checks": [
@@ -368,7 +368,7 @@
     "group": "Graph",
     "test_name": "Get Edges",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.012,
     "line": 217,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n\n    auto edges = g.get_edges();",
     "checks": [
@@ -384,7 +384,7 @@
     "group": "Graph",
     "test_name": "Neighbors",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.023,
     "line": 227,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"a\", \"c\");\n\n    auto neigh = g.neighbors(\"a\");",
     "checks": [
@@ -400,7 +400,7 @@
     "group": "Graph",
     "test_name": "Get Neighbors",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.008,
     "line": 237,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"a\", \"c\");\n\n    auto neigh = g.get_neighbors(\"a\");",
     "checks": [
@@ -416,7 +416,7 @@
     "group": "Graph",
     "test_name": "Number Of Vertices",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.003,
     "line": 247,
     "code": "    Graph g(\"g\");\n    g.add_node(\"a\");\n    g.add_node(\"b\");\n    g.add_node(\"c\");",
     "checks": [
@@ -432,7 +432,7 @@
     "group": "Graph",
     "test_name": "Number Of Edges",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.022,
     "line": 256,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");",
     "checks": [
@@ -448,7 +448,7 @@
     "group": "Graph",
     "test_name": "Clear",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.005,
     "line": 264,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.clear();",
     "checks": [
@@ -469,7 +469,7 @@
     "group": "Graph",
     "test_name": "Node Attribute",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.017,
     "line": 273,
     "code": "    Graph g(\"g\");\n    g.add_node(\"a\", \"initial\");\n    g.node_attribute(\"a\", \"updated\");",
     "checks": [
@@ -485,7 +485,7 @@
     "group": "Graph",
     "test_name": "Edge Attribute",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.007,
     "line": 281,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\", \"initial\");\n    g.edge_attribute(\"a\", \"b\", \"updated\");",
     "checks": [
@@ -501,7 +501,7 @@
     "group": "Graph",
     "test_name": "Bfs",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.039,
     "line": 289,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n    g.add_edge(\"c\", \"a\");\n    g.add_edge(\"b\", \"d\");\n    g.add_edge(\"e\", \"f\");\n    auto result = g.bfs(\"a\");",
     "checks": [
@@ -517,7 +517,7 @@
     "group": "Graph",
     "test_name": "Dfs",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.032,
     "line": 301,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n    g.add_edge(\"c\", \"a\");\n    g.add_edge(\"b\", \"d\");\n    g.add_edge(\"e\", \"f\");\n    auto result = g.dfs(\"a\");",
     "checks": [
@@ -533,7 +533,7 @@
     "group": "Graph",
     "test_name": "Connected Components",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.044,
     "line": 313,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n    g.add_edge(\"c\", \"a\");\n    g.add_edge(\"b\", \"d\");\n    g.add_edge(\"e\", \"f\");\n    auto comps = g.connected_components();",
     "checks": [
@@ -559,7 +559,7 @@
     "group": "Graph",
     "test_name": "Shortest Path",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.016,
     "line": 327,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n    g.add_edge(\"c\", \"a\");\n    g.add_edge(\"b\", \"d\");\n    g.add_edge(\"e\", \"f\");",
     "checks": [
@@ -590,7 +590,7 @@
     "group": "Graph",
     "test_name": "Has Cycle",
     "passed": true,
-    "time_ms": 0.007,
+    "time_ms": 0.023,
     "line": 341,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n    g.add_edge(\"c\", \"a\");\n\n    Graph g2(\"g2\");\n    g2.add_edge(\"x\", \"y\");\n    g2.add_edge(\"y\", \"z\");",
     "checks": [
@@ -611,7 +611,7 @@
     "group": "Graph",
     "test_name": "Cycle Basis",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.02,
     "line": 354,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n    g.add_edge(\"c\", \"a\");\n    auto cycles = g.cycle_basis();",
     "checks": [
@@ -663,7 +663,7 @@
     "group": "Vertex",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 15.163,
+    "time_ms": 14.511,
     "line": 26,
     "code": "    Vertex original(\"v0\", \"test_attribute\");\n\n    std::string fname = \"serialization/test_vertex.json\";\n    file_encoders::file_json_dump(original, fname);\n    Vertex loaded = file_encoders::file_json_load<Vertex>(fname);",
     "checks": [

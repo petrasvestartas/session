@@ -77,19 +77,22 @@ const PICK_EPS: f64 = 1e-9;
 /// `&mut Mesh` because `triangle_bvh_ray_cast` builds the triangle BVH lazily and caches it on the mesh.
 fn raycast_mesh(m: &mut Mesh, ray: &Ray, eps: f64) -> Option<(Point, f64)> {
     let inv = m.xform.inverse()?;                                  // world → local; None if degenerate
-    let to_local = |p: &Point| { let mut q = p.clone(); q.xform = inv.clone(); q.transformed() };
     let world_far = ray.origin + ray.dir * 1.0e7;                  // a point far down the world ray
-    let local_ray = Line::from_points(&to_local(&ray.origin), &to_local(&world_far));
+    let local_ray = Line::from_points(&inv.transform_point(&ray.origin), &inv.transform_point(&world_far));
 
     let local_hit = m.triangle_bvh_ray_cast(&local_ray, eps)?;     // nearest local hit, or None
-    let mut wp = local_hit.clone(); wp.xform = m.xform.clone();
-    let world_hit = wp.transformed();                              // local hit → world
+    let world_hit = m.xform.transform_point(&local_hit);           // local hit → world
 
     let d = world_hit.clone() - ray.origin.clone();                // Point − Point → Vector
     let t = d[0]*ray.dir[0] + d[1]*ray.dir[1] + d[2]*ray.dir[2];   // signed distance along the (unit) ray
     if t >= 0.0 { Some((world_hit, t)) } else { None }             // behind the eye → not a hit
 }
 ```
+
+> `transform_point` is the kernel API this course *added* (kernel-gap #5, now fixed) — earlier
+> drafts had to carry an xform on a cloned `Point` and call `transformed()`. The kernel's own
+> `Session::ray_cast` now does exactly this local-frame dance for meshes too (gap #3, fixed); we
+> keep the viewer-side cast because it reuses 61/63's cached tessellations for surfaces and BReps.
 
 > **Why transform the ray, not the mesh.** Inverse-transforming one ray (two points) is O(1); baking
 > `mesh.xform` into every vertex would be O(vertices) *and* would throw away the mesh's cached local

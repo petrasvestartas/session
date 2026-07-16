@@ -6,6 +6,22 @@
 > must never select the object behind it). Both are small, both have a real archive bug attached, and
 > both were fixed there so we inherit the fix.
 
+<svg viewBox="0 0 680 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="orbiting around a target offset from the gumball keeps the euclidean distance constant while the view space depth changes; scaling by view z keeps the widget a constant screen size" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <circle cx="330" cy="80" r="60" fill="none" stroke="#3a3a3a" stroke-dasharray="4 3"/>
+  <circle cx="330" cy="80" r="3" fill="#888"/><text x="330" y="70" fill="#888" text-anchor="middle" font-size="10">orbit target</text>
+  <circle cx="378" cy="112" r="5" fill="#e0b040"/><text x="392" y="128" fill="#e0b040" font-size="10">gumball (offset!)</text>
+  <circle cx="270" cy="80" r="5" fill="none" stroke="#d7dae0"/><text x="240" y="66" fill="#d7dae0" font-size="10">camera A</text>
+  <circle cx="330" cy="20" r="5" fill="none" stroke="#d7dae0"/><text x="352" y="16" fill="#d7dae0" font-size="10">camera B</text>
+  <line x1="275" y1="82" x2="373" y2="110" stroke="#e05555" stroke-width="1.1"/>
+  <line x1="332" y1="25" x2="377" y2="107" stroke="#e05555" stroke-width="1.1"/>
+  <text x="120" y="120" fill="#e05555" font-size="10">Euclidean distance: SAME from A and B…</text>
+  <text x="120" y="136" fill="#666" font-size="10">…but the widget's SCREEN DEPTH differs → it "breathes" while orbiting</text>
+  <text x="540" y="60" fill="#6fb3ff" font-size="10">fix: depth = (view · origin).z</text>
+  <text x="540" y="76" fill="#888" font-size="10">— distance along the LOOK</text>
+  <text x="540" y="90" fill="#888" font-size="10">direction, what projection</text>
+  <text x="540" y="104" fill="#888" font-size="10">actually divides by</text>
+</svg>
+
 ## Files we touch
 
 ```

@@ -3,7 +3,7 @@
     "group": "Vector",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.018,
+    "time_ms": 0.022,
     "line": 13,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Constructor\n    Vector v(1.0, 2.0, 3.0);\n    Point p0(1.0, 2.0, 3.0);\n    Point p1(2.0, 4.0, 6.0);\n    Vector v_2p = Vector::from_points(p0, p1);\n\n    // Setters\n    v[0] = 10.0;\n    v[1] = 20.0;\n    v[2] = 30.0;\n\n    // Getters\n    double x = v[0];\n    double y = v[1];\n    double z = v[2];\n\n    // Minimal and full string representation\n    std::string vstr = v.str();\n    std::string vrepr = v.repr();\n\n    // Copy (duplicate everything but guid())\n    Vector vcopy = v;\n    Vector vother(1.0, 2.0, 3.0);\n\n    // No-copy operators\n    Vector vmult = v;\n    vmult *= 2.0;\n    Vector vdiv = v;\n    vdiv /= 2.0;\n    Vector vadd = v;\n    vadd += Vector(1.0, 1.0, 1.0);\n    Vector vsub = v;\n    vsub -= Vector(1.0, 1.0, 1.0);\n\n    // Copy operators\n    Vector result_mul = v * 2.0;\n    Vector result_div = v / 2.0;\n    Vector result_add = v + Vector(1.0, 1.0, 1.0);\n    Vector result_dif = v - Vector(1.0, 1.0, 1.0);\n\n    // Static axis constructors\n    Vector vx = Vector::x_axis();\n    Vector vy = Vector::y_axis();\n    Vector vz = Vector::z_axis();\n    Vector vzero = Vector::zero();",
     "checks": [
@@ -119,7 +119,7 @@
     "group": "Vector",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 86,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"xform.h\"\n\n    Vector v(1.0, 2.0, 3.0);\n    v.xform = Xform::translation(10.0, 20.0, 30.0);\n    Vector v_transformed = v.transformed();\n    v.transform();\n\n\n    Vector v2(1.0, 0.0, 0.0);\n    v2.xform = Xform::rotation_z(Tolerance::PI / 2.0);\n    v2.transform();",
     "checks": [
@@ -239,7 +239,7 @@
     "group": "Vector",
     "test_name": "Cross Product",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.007,
     "line": 168,
     "code": "    // uncomment #include \"vector.h\"\n\n    // Get normal\n    Vector v1(1.0, 0.0, 0.0);\n    Vector v2(0.0, 1.0, 0.0);\n    Vector vn = v1.cross(v2);\n\n    // Perpendicular, area = 3*4=12\n    Vector a(3.0, 0.0, 0.0);\n    Vector b(0.0, 4.0, 0.0);\n    Vector cross = a.cross(b);\n    double area = std::sqrt(cross[0]*cross[0] + cross[1]*cross[1] + cross[2]*cross[2]);",
     "checks": [
@@ -260,7 +260,7 @@
     "group": "Vector",
     "test_name": "Angle",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.008,
     "line": 186,
     "code": "    // uncomment #include \"vector.h\"\n\n    // angle(): Angle between two vectors (degrees)\n    Vector v1(1.0, 0.0, 0.0);  // x-axis\n    Vector v2(0.0, 1.0, 0.0);  // y-axis\n    Vector v3(1.0, 1.0, 0.0);  // 45 deg from x-axis\n\n    double angle_90 = v1.angle(v2, false);  // v1 to v2: 90 deg\n    double angle_45 = v1.angle(v3, false);  // v1 to v3: 45 deg\n\n    // angle_between_vector_xy_components(): Angle of vector's XY projection from +X axis (atan2)\n    Vector v_30(std::sqrt(3.0), 1.0, 0.0);  // 30 deg from x-axis\n    Vector v_60(1.0, std::sqrt(3.0), 0.0);  // 60 deg from x-axis\n    Vector v_neg(-1.0, 1.0, 0.0);           // 135 deg from x-axis\n\n    double xy_angle_30 = Vector::angle_between_vector_xy_components(v_30);\n    double xy_angle_60 = Vector::angle_between_vector_xy_components(v_60);\n    double xy_angle_135 = Vector::angle_between_vector_xy_components(v_neg);\n\n    // coordinate_direction_3angles(): Angles (alpha, beta, gamma) to x, y, z axes\n    Vector v_dir(35.4, 35.4, 86.6);\n    auto abg = v_dir.coordinate_direction_3angles(true);\n\n    // coordinate_direction_2angles(): Spherical angles (theta azimuth, phi elevation)\n    Vector v_sph(1.0, 1.0, std::sqrt(2.0));\n    auto pt = v_sph.coordinate_direction_2angles(true);",
     "checks": [
@@ -425,7 +425,7 @@
     "group": "Vector",
     "test_name": "Cos Sin Laws",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 296,
     "code": "    // uncomment #include \"vector.h\"\n\n    // Given a 3-4-5 right triangle\n    double a = 3.0;  // side opposite to angle A\n    double b = 4.0;  // side opposite to angle B\n    double c = 5.0;  // hypotenuse, opposite to angle C (90 deg)\n\n    // angle_from_cosine_law(adj1, adj2, opposite) -> angle opposite to 'opposite' side\n    double angle_a = Vector::angle_from_cosine_law(b, c, a, true);\n    double angle_b = Vector::angle_from_cosine_law(a, c, b, true);\n    double angle_c = Vector::angle_from_cosine_law(a, b, c, true);\n\n    // given 2 angles + 1 side, find other side\n    double side_a = Vector::side_from_sine_law(angle_a, angle_b, b, true);\n    double side_b = Vector::side_from_sine_law(angle_b, angle_c, c, true);\n    double side_c = Vector::side_from_sine_law(angle_c, angle_a, a, true);\n\n    // given 2 sides + included angle, find 3rd side\n    double computed_c = Vector::cosine_law(a, b, angle_c, true);\n    double computed_a = Vector::cosine_law(b, c, angle_a, true);\n    double computed_b = Vector::cosine_law(a, c, angle_b, true);\n\n    // given 2 sides + 1 angle, find other angle\n    double computed_angle_b = Vector::sine_law_angle(a, angle_a, b, true);\n    double computed_angle_a = Vector::sine_law_angle(b, angle_b, a, true);\n\n    // given 1 side + 2 angles, find other side\n    double computed_side_b = Vector::sine_law_length(a, angle_a, angle_b, true);\n    double computed_side_a = Vector::sine_law_length(b, angle_b, angle_a, true);",
     "checks": [
@@ -506,7 +506,7 @@
     "group": "Vector",
     "test_name": "Sum Of Vectors",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 343,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Sum of multiple vectors\n    std::vector<Vector> vecs = {\n        Vector(1.0, 1.0, 1.0),\n        Vector(2.0, 2.0, 2.0),\n        Vector(3.0, 3.0, 3.0),\n    };\n    Vector sum_v = Vector::sum_of_vectors(vecs);\n\n\n    // Empty list returns zero vector\n    std::vector<Vector> empty;\n    Vector zero = Vector::sum_of_vectors(empty);",
     "checks": [
@@ -547,7 +547,7 @@
     "group": "Vector",
     "test_name": "Average",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.006,
     "line": 368,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Average of multiple vectors\n    std::vector<Vector> vecs = {\n        Vector(1.0, 2.0, 3.0),\n        Vector(3.0, 4.0, 5.0),\n        Vector(5.0, 6.0, 7.0),\n    };\n    Vector avg = Vector::average(vecs);",
     "checks": [
@@ -599,7 +599,7 @@
     "group": "Vector",
     "test_name": "Scale",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.005,
     "line": 397,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(2.0, 4.0, 6.0);\n    v.scale(0.5);\n    Vector v_up(1.0, 2.0, 3.0);\n    v_up.scale_up();\n    Vector v_rt(1.0, 2.0, 3.0);\n    v_rt.scale_up();\n    v_rt.scale_down();",
     "checks": [
@@ -661,7 +661,7 @@
     "group": "Vector",
     "test_name": "Average Normal",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.018,
     "line": 428,
     "code": "    // uncomment #include \"vector.h\"\n    // uncomment #include \"point.h\"\n\n    // Closed square in XY plane — normal should be z_axis\n    std::vector<Point> sq = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(0.0, 0.0, 0.0),\n    };\n    Vector n = Vector::average_normal(sq);",
     "checks": [
@@ -682,7 +682,7 @@
     "group": "Vector",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 14.209,
+    "time_ms": 16.762,
     "line": 446,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    // file_json_dump(filename) / file_json_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.json\";\n    v.file_json_dump(filename);\n    Vector loaded = Vector::file_json_load(filename);",
     "checks": [
@@ -713,7 +713,7 @@
     "group": "Vector",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 12.471,
+    "time_ms": 14.037,
     "line": 470,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // pb_dump(filename) / pb_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.bin\";\n    v.pb_dump(filename);\n    Vector loaded = Vector::pb_load(filename);",
     "checks": [

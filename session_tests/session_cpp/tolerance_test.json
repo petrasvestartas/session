@@ -19,7 +19,7 @@
     "group": "Tolerance",
     "test_name": "Is Close",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.016,
     "line": 19,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
     "checks": [
@@ -35,7 +35,7 @@
     "group": "Tolerance",
     "test_name": "Is Positive",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.007,
     "line": 26,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_positive(1.0);",
     "checks": [
@@ -99,7 +99,7 @@
     "group": "Tolerance",
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.01,
     "line": 54,
     "code": "        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
     "checks": [
@@ -218,7 +218,7 @@
     "group": "Tolerance",
     "test_name": "Unique From Two Int",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 112,
     "code": "        // uncomment #include \"tolerance.h\"\n        uint64_t r0 = unique_from_two_int(3, 7);\n        uint64_t r1 = unique_from_two_int(7, 3);",
     "checks": [
@@ -296,7 +296,7 @@
     "group": "Tolerance",
     "test_name": "Rad Deg Conversion",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 145,
     "code": "        // uncomment #include \"tolerance.h\"\n        double r0 = rad_to_deg(Tolerance::PI);\n        double r1 = deg_to_rad(180.0);\n        double r2 = deg_to_rad(rad_to_deg(1.234));",
     "checks": [
@@ -322,7 +322,7 @@
     "group": "Tolerance",
     "test_name": "Count Digits",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 156,
     "code": "        // uncomment #include \"tolerance.h\"\n        int r0 = count_digits(0.0);\n        int r1 = count_digits(1.0);\n        int r2 = count_digits(9.9);\n        int r3 = count_digits(10.0);\n        int r4 = count_digits(100.5);\n        int r5 = count_digits(-42.0);",
     "checks": [
@@ -363,7 +363,7 @@
     "group": "Tolerance",
     "test_name": "Is Angle Zero",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 173,
     "code": "        // uncomment #include \"tolerance.h\"\n        // Angular tolerance default is 1e-6\n        bool r0 = TOLERANCE.is_angle_zero(1e-8);\n        bool r1 = TOLERANCE.is_angle_zero(0.1);",
     "checks": [
@@ -426,7 +426,7 @@
     "group": "Tolerance",
     "test_name": "Is Allclose",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 202,
     "code": "        // uncomment #include \"tolerance.h\"\n        std::vector<double> a = {1.0, 2.0, 3.0};\n        std::vector<double> b = {1.0, 2.0, 3.0 + 1e-12};\n        std::vector<double> c = {1.0, 2.0, 4.0};",
     "checks": [
@@ -484,7 +484,7 @@
     "group": "Tolerance",
     "test_name": "Precision From Tolerance",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.017,
     "line": 228,
     "code": "        // uncomment #include \"tolerance.h\"\n        // Default absolute tolerance is 1e-9 → precision should be 9\n        int prec = TOLERANCE.precision_from_tolerance();",
     "checks": [

@@ -28,6 +28,31 @@ the camera needs next.
 > re-uploaded to change; a WGSL constant can't change at all. A uniform is cheaply
 > overwritten (`queue.write_buffer`) every frame — perfect for per-frame globals.
 
+<svg viewBox="0 0 680 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="rust writes a value into a uniform buffer via the queue; a bind group attaches that buffer to group slot 1; the shader declares group 1 binding 0 and reads the same value in every invocation" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="90" y="18" fill="#888" text-anchor="middle">CPU (Rust), every frame</text>
+  <rect x="14" y="26" width="160" height="34" fill="none" stroke="#6fb3ff" stroke-width="1.3"/>
+  <text x="94" y="47" fill="#d7dae0" text-anchor="middle">queue.write_buffer(time)</text>
+  <line x1="174" y1="43" x2="230" y2="43" stroke="#6fb3ff" stroke-width="1.3" marker-end="url(#ah07)"/>
+  <text x="340" y="18" fill="#888" text-anchor="middle">GPU memory</text>
+  <rect x="234" y="26" width="130" height="34" fill="none" stroke="#6fb3ff" stroke-width="1.3"/>
+  <text x="299" y="47" fill="#d7dae0" text-anchor="middle">uniform buffer (4 B)</text>
+  <rect x="234" y="80" width="130" height="30" fill="none" stroke="#888"/>
+  <text x="299" y="99" fill="#888" text-anchor="middle">bind group</text>
+  <path d="M 299,60 V 78" stroke="#888" stroke-width="1.1" marker-end="url(#ah07g)"/>
+  <text x="392" y="99" fill="#666" font-size="10">= "this buffer sits in slot @group(1)"</text>
+  <text x="560" y="18" fill="#888" text-anchor="middle">shader (WGSL)</text>
+  <rect x="470" y="26" width="200" height="60" fill="none" stroke="#6fb3ff" stroke-width="1.3"/>
+  <text x="480" y="46" fill="#d7dae0">@group(1) @binding(0)</text>
+  <text x="480" y="62" fill="#d7dae0">var&lt;uniform&gt; time: f32;</text>
+  <text x="480" y="78" fill="#666" font-size="10">every vertex + pixel reads the SAME value</text>
+  <line x1="364" y1="43" x2="468" y2="43" stroke="#6fb3ff" stroke-width="1.3" marker-end="url(#ah07)"/>
+  <text x="340" y="150" fill="#666" text-anchor="middle" font-size="10">three parts, one per frame-rate: buffer (written per frame) · bind group (built once) · layout declared in the pipeline (built once)</text>
+  <defs>
+    <marker id="ah07" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6fb3ff"/></marker>
+    <marker id="ah07g" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#888"/></marker>
+  </defs>
+</svg>
+
 
 ## Files we touch
 

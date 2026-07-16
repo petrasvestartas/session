@@ -17,6 +17,24 @@ smallest upload — the same machinery later chapters reuse for meshes, lines, p
 - **`bytemuck`** — reinterprets `&[Vertex]` as raw `&[u8]`, no copy; needs
   `#[repr(C)]` + `Pod`.
 
+<svg viewBox="0 0 680 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="one 24-byte vertex: bytes 0 to 11 are the position three floats feeding location 0, bytes 12 to 23 are the color three floats feeding location 1; the stride advances to the next vertex" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="10" y="18" fill="#888">one Vertex = 24 bytes, walked by the layout:</text>
+  <g fill="none" stroke="#6fb3ff" stroke-width="1.3">
+    <rect x="10" y="28" width="240" height="34"/><rect x="250" y="28" width="240" height="34"/>
+  </g>
+  <rect x="490" y="28" width="120" height="34" fill="none" stroke="#3a3a3a" stroke-dasharray="4 3"/>
+  <g fill="#d7dae0" text-anchor="middle">
+    <text x="130" y="45">position: [f32; 3]</text><text x="130" y="57" fill="#666" font-size="9">bytes 0..12 → @location(0)</text>
+    <text x="370" y="45">color: [f32; 3]</text><text x="370" y="57" fill="#666" font-size="9">bytes 12..24 → @location(1)</text>
+    <text x="550" y="45" fill="#888">next vertex…</text><text x="550" y="57" fill="#555" font-size="9">offset += stride</text>
+  </g>
+  <path d="M 10,72 H 490" stroke="#888" stroke-width="1"/>
+  <path d="M 10,68 V 76 M 490,68 V 76" stroke="#888" stroke-width="1"/>
+  <text x="250" y="88" fill="#888" text-anchor="middle">array_stride = 24</text>
+  <text x="340" y="118" fill="#666" text-anchor="middle" font-size="10">the attributes list is the map: (offset, format, shader_location) per field — reorder the struct → update the offsets</text>
+  <text x="340" y="136" fill="#555" text-anchor="middle" font-size="10">bytemuck sends the SAME bytes the Rust struct holds — #[repr(C)] is what pins their order</text>
+</svg>
+
 ## Files we touch
 
 ```

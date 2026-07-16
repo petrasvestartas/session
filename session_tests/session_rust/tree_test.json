@@ -18,7 +18,7 @@
     "line": 221,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 15.612
+    "time_ms": 15.036
   },
   {
     "checks": [
@@ -39,7 +39,7 @@
     "line": 425,
     "passed": true,
     "test_name": "Add Child By Guid",
-    "time_ms": 0.029
+    "time_ms": 0.043
   },
   {
     "checks": [
@@ -65,7 +65,7 @@
     "line": 293,
     "passed": true,
     "test_name": "Nodes",
-    "time_ms": 0.006
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -86,7 +86,7 @@
     "line": 246,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 14.527
+    "time_ms": 15.481
   },
   {
     "checks": [
@@ -107,7 +107,7 @@
     "line": 264,
     "passed": true,
     "test_name": "Root",
-    "time_ms": 0.011
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -133,7 +133,7 @@
     "line": 407,
     "passed": true,
     "test_name": "Find Node By Guid",
-    "time_ms": 0.014
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -149,7 +149,7 @@
     "line": 312,
     "passed": true,
     "test_name": "Remove",
-    "time_ms": 0.037
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -186,7 +186,7 @@
     "line": 349,
     "passed": true,
     "test_name": "Traverse",
-    "time_ms": 0.012
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -207,7 +207,7 @@
     "line": 370,
     "passed": true,
     "test_name": "Get Node By Name",
-    "time_ms": 0.008
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -249,7 +249,7 @@
     "line": 328,
     "passed": true,
     "test_name": "Leaves",
-    "time_ms": 0.006
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -275,7 +275,7 @@
     "line": 446,
     "passed": true,
     "test_name": "Get Children Guids",
-    "time_ms": 0.014
+    "time_ms": 0.041
   },
   {
     "checks": [
@@ -306,7 +306,7 @@
     "line": 201,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.01
+    "time_ms": 0.017
   },
   {
     "checks": [
@@ -332,7 +332,7 @@
     "line": 32,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 14.994
+    "time_ms": 15.377
   },
   {
     "checks": [
@@ -353,7 +353,7 @@
     "line": 50,
     "passed": true,
     "test_name": "Is Root",
-    "time_ms": 0.003
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -379,7 +379,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Descendants",
-    "time_ms": 0.007
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -446,7 +446,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.02
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -509,7 +509,7 @@
     "line": 76,
     "passed": true,
     "test_name": "Tree",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -561,7 +561,7 @@
     "line": 127,
     "passed": true,
     "test_name": "Ancestors",
-    "time_ms": 0.004
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -582,7 +582,7 @@
     "line": 63,
     "passed": true,
     "test_name": "Is Leaf",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -608,6 +608,6 @@
     "line": 163,
     "passed": true,
     "test_name": "Children",
-    "time_ms": 0.004
+    "time_ms": 0.011
   }
 ]

@@ -6,6 +6,20 @@ perspective↔ortho (Space) jumps in size — the ortho frustum is a fixed `h = 
 it. **Three:** `near`/`far` are fixed at `0.1`/`100`, so depth precision rots as you zoom, with no
 real unit. All three live in `view_proj`, fixed with arithmetic on numbers we already have.
 
+<svg viewBox="0 0 680 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a perspective frustum and an orthographic box seen from the side; matching the ortho half height to distance times tan of the half fov makes both show the same extent at the target plane" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="170" y="16" fill="#888" text-anchor="middle">perspective — a frustum</text>
+  <circle cx="30" cy="80" r="5" fill="none" stroke="#d7dae0"/>
+  <path d="M 35,77 L 300,20 M 35,83 L 300,140" fill="none" stroke="#6fb3ff" stroke-width="1.4"/>
+  <line x1="230" y1="35" x2="230" y2="125" stroke="#e0b040" stroke-width="1.6"/>
+  <text x="230" y="152" fill="#e0b040" text-anchor="middle" font-size="10">target plane: h = distance · tan 30°</text>
+  <text x="120" y="70" fill="#666" font-size="10">60° fov</text>
+  <text x="510" y="16" fill="#888" text-anchor="middle">ortho — a box</text>
+  <circle cx="390" cy="80" r="5" fill="none" stroke="#d7dae0"/>
+  <path d="M 395,35 H 660 M 395,125 H 660" fill="none" stroke="#6fb3ff" stroke-width="1.4"/>
+  <line x1="590" y1="35" x2="590" y2="125" stroke="#e0b040" stroke-width="1.6"/>
+  <text x="590" y="152" fill="#e0b040" text-anchor="middle" font-size="10">same h at the target → NO pop on toggle</text>
+</svg>
+
 ## Why
 
 - **Seamless switch.** A 60° perspective shows a half-height of `distance · tan 30°` at the target

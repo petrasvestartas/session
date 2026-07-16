@@ -63113,7 +63113,6 @@ window.API_INDEX = {
         "Session.__repr__",
         "Session.__str__",
         "Session._add_object",
-        "Session._compute_bounding_box",
         "Session.add",
         "Session.add_brep",
         "Session.add_component",
@@ -63503,7 +63502,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>>",
-          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n        let proto = crate::proto::Session::decode(data)?;\n\n        let mut session = Session::new(&proto.name);\n        session.set_guid(proto.guid.clone());\n\n        // Rebuild objects\n        if let Some(objects_proto) = &proto.objects {\n            session.objects.set_guid(objects_proto.guid.clone());\n            session.objects.name = objects_proto.name.clone();\n            for p in &objects_proto.points {\n                let pt = Point::pb_loads(&p.encode_to_vec())?;\n                session.objects.points.push(pt);\n            }\n            for l in &objects_proto.lines {\n                let ln = Line::pb_loads(&l.encode_to_vec())?;\n                session.objects.lines.push(ln);\n            }\n            for pl in &objects_proto.planes {\n                let pln = Plane::pb_loads(&pl.encode_to_vec())?;\n                session.objects.planes.push(pln);\n            }\n            for b in &objects_proto.bboxes {\n                let bb = OBB::pb_loads(&b.encode_to_vec())?;\n                session.objects.bboxes.push(bb);\n            }\n            for pl in &objects_proto.polylines {\n                let pll = Polyline::pb_loads(&pl.encode_to_vec())?;\n                session.objects.polylines.push(pll);\n            }\n            for pc in &objects_proto.pointclouds {\n                let pcl = PointCloud::pb_loads(&pc.encode_to_vec());\n                session.objects.pointclouds.push(pcl);\n            }\n            for m in &objects_proto.meshes {\n                let msh = Mesh::pb_loads(&m.encode_to_vec())?;\n                session.objects.meshes.push(msh);\n            }\n            for b in &objects_proto.breps {\n                let brp = BRep::pb_loads(&b.encode_to_vec())?;\n                session.objects.breps.push(brp);\n            }\n            for e in &objects_proto.elements {\n                let elem = Element::pb_loads(&e.encode_to_vec())?;\n                session.objects.elements.push(elem);\n            }\n        }\n\n        // Rebuild tree\n        if let Some(tree_proto) = &proto.tree {\n            session.tree = Tree::new(&tree_proto.name);\n            session.tree.set_guid(tree_proto.guid.clone());\n            if let Some(root_proto) = &tree_proto.root {\n                fn proto_to_treenode(proto: &crate::proto::TreeNode) -> Rc<RefCell<TreeNode>> {\n                    let node = TreeNode::new(&proto.name);\n                    for child_proto in &proto.children {\n                        let child = proto_to_treenode(child_proto);\n                        node.borrow_mut().add(&child);\n                    }\n                    node\n                }\n                let root = proto_to_treenode(root_proto);\n                session.tree.add(&root, None);\n            }\n        }\n\n        // Rebuild graph\n        if let Some(graph_proto) = &proto.graph {\n            session.graph = Graph::new(&graph_proto.name);\n            session.graph.set_guid(graph_proto.guid.clone());\n            for (name, v) in &graph_proto.vertices {\n                session.graph.add_node(name, &v.attribute);\n            }\n            for e in &graph_proto.edges {\n                session.graph.add_edge(&e.v0, &e.v1, &e.attribute);\n            }\n        }\n\n        // Rebuild lookup\n        for bbox in &session.objects.bboxes {\n            session.lookup.insert(bbox.guid().to_string(), Geometry::OBB(bbox.clone()));\n        }\n        for line in &session.objects.lines {\n            session.lookup.insert(line.guid().to_string(), Geometry::Line(line.clone()));\n        }\n        for mesh in &session.objects.meshes {\n            session.lookup.insert(mesh.guid().to_string(), Geometry::Mesh(mesh.clone()));\n        }\n        for plane in &session.objects.planes {\n            session.lookup.insert(plane.guid().to_string(), Geometry::Plane(plane.clone()));\n        }\n        for point in &session.objects.points {\n            session.lookup.insert(point.guid().to_string(), Geometry::Point(point.clone()));\n        }\n        for pointcloud in &session.objects.pointclouds {\n            session.lookup.insert(pointcloud.guid().to_string(), Geometry::PointCloud(pointcloud.clone()));\n        }\n        for polyline in &session.objects.polylines {\n            session.lookup.insert(polyline.guid().to_string(), Geometry::Polyline(polyline.clone()));\n        }\n        for brep in &session.objects.breps {\n            session.lookup.insert(brep.guid().to_string(), Geometry::BRep(brep.clone()));\n        }\n\n        Ok(session)\n    }",
+          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, Box<dyn std::error::Error>> {\n        use prost::Message;\n        let proto = crate::proto::Session::decode(data)?;\n\n        let mut session = Session::new(&proto.name);\n        session.set_guid(proto.guid.clone());\n\n        // Rebuild objects\n        if let Some(objects_proto) = &proto.objects {\n            session.objects.set_guid(objects_proto.guid.clone());\n            session.objects.name = objects_proto.name.clone();\n            for p in &objects_proto.points {\n                let pt = Point::pb_loads(&p.encode_to_vec())?;\n                session.objects.points.push(pt);\n            }\n            for l in &objects_proto.lines {\n                let ln = Line::pb_loads(&l.encode_to_vec())?;\n                session.objects.lines.push(ln);\n            }\n            for pl in &objects_proto.planes {\n                let pln = Plane::pb_loads(&pl.encode_to_vec())?;\n                session.objects.planes.push(pln);\n            }\n            for b in &objects_proto.bboxes {\n                let bb = OBB::pb_loads(&b.encode_to_vec())?;\n                session.objects.bboxes.push(bb);\n            }\n            for pl in &objects_proto.polylines {\n                let pll = Polyline::pb_loads(&pl.encode_to_vec())?;\n                session.objects.polylines.push(pll);\n            }\n            for pc in &objects_proto.pointclouds {\n                let pcl = PointCloud::pb_loads(&pc.encode_to_vec());\n                session.objects.pointclouds.push(pcl);\n            }\n            for m in &objects_proto.meshes {\n                let msh = Mesh::pb_loads(&m.encode_to_vec())?;\n                session.objects.meshes.push(msh);\n            }\n            for b in &objects_proto.breps {\n                let brp = BRep::pb_loads(&b.encode_to_vec())?;\n                session.objects.breps.push(brp);\n            }\n            for e in &objects_proto.elements {\n                let elem = Element::pb_loads(&e.encode_to_vec())?;\n                session.objects.elements.push(elem);\n            }\n        }\n\n        // Rebuild tree\n        if let Some(tree_proto) = &proto.tree {\n            session.tree = Tree::new(&tree_proto.name);\n            session.tree.set_guid(tree_proto.guid.clone());\n            if let Some(root_proto) = &tree_proto.root {\n                fn proto_to_treenode(proto: &crate::proto::TreeNode) -> Rc<RefCell<TreeNode>> {\n                    let node = TreeNode::new(&proto.name);\n                    for child_proto in &proto.children {\n                        let child = proto_to_treenode(child_proto);\n                        node.borrow_mut().add(&child);\n                    }\n                    node\n                }\n                let root = proto_to_treenode(root_proto);\n                session.tree.add(&root, None);\n            }\n        }\n\n        // Rebuild graph\n        if let Some(graph_proto) = &proto.graph {\n            session.graph = Graph::new(&graph_proto.name);\n            session.graph.set_guid(graph_proto.guid.clone());\n            for (name, v) in &graph_proto.vertices {\n                session.graph.add_node(name, &v.attribute);\n            }\n            for e in &graph_proto.edges {\n                session.graph.add_edge(&e.v0, &e.v1, &e.attribute);\n            }\n        }\n\n        // Rebuild lookup\n        for bbox in &session.objects.bboxes {\n            session.lookup.insert(bbox.guid().to_string(), Geometry::OBB(bbox.clone()));\n        }\n        for line in &session.objects.lines {\n            session.lookup.insert(line.guid().to_string(), Geometry::Line(line.clone()));\n        }\n        for mesh in &session.objects.meshes {\n            session.lookup.insert(mesh.guid().to_string(), Geometry::Mesh(mesh.clone()));\n        }\n        for plane in &session.objects.planes {\n            session.lookup.insert(plane.guid().to_string(), Geometry::Plane(plane.clone()));\n        }\n        for point in &session.objects.points {\n            session.lookup.insert(point.guid().to_string(), Geometry::Point(point.clone()));\n        }\n        for pointcloud in &session.objects.pointclouds {\n            session.lookup.insert(pointcloud.guid().to_string(), Geometry::PointCloud(pointcloud.clone()));\n        }\n        for polyline in &session.objects.polylines {\n            session.lookup.insert(polyline.guid().to_string(), Geometry::Polyline(polyline.clone()));\n        }\n        for nurbscurve in &session.objects.nurbscurves {\n            session.lookup.insert(nurbscurve.guid().to_string(), Geometry::NurbsCurve(nurbscurve.clone()));\n        }\n        for nurbssurface in &session.objects.nurbssurfaces {\n            session.lookup.insert(nurbssurface.guid().to_string(), Geometry::NurbsSurface(nurbssurface.clone()));\n        }\n        for brep in &session.objects.breps {\n            session.lookup.insert(brep.guid().to_string(), Geometry::BRep(brep.clone()));\n        }\n\n        Ok(session)\n    }",
           "file": "session.rs"
         }
       },
@@ -64050,6 +64049,11 @@ window.API_INDEX = {
           "sig": "std::shared_ptr<TreeNode> add_nurbscurve(std::shared_ptr<NurbsCurve> nurbscurve, std::shared_ptr<TreeNode> parent)",
           "code": "std::shared_ptr<TreeNode> Session::add_nurbscurve(std::shared_ptr<NurbsCurve> nurbscurve, std::shared_ptr<TreeNode> parent) {\n  objects.nurbscurves->push_back(nurbscurve);\n  lookup[nurbscurve->guid()] = nurbscurve;\n  graph.add_node(nurbscurve->guid(), \"nurbscurve_\" + nurbscurve->name);\n  cache_geometry_aabb(nurbscurve->guid(), nurbscurve);\n  auto node = std::make_shared<TreeNode>(nurbscurve->guid());\n  if (parent) add(node, parent);\n  return node;\n}",
           "file": "session.cpp"
+        },
+        "rust": {
+          "sig": "add_nurbscurve(nurbscurve: NurbsCurve, parent: Option<&Rc<RefCell<TreeNode>>>) -> Rc<RefCell<TreeNode>>",
+          "code": "pub fn add_nurbscurve(&mut self, nurbscurve: NurbsCurve, parent: Option<&Rc<RefCell<TreeNode>>>) -> Rc<RefCell<TreeNode>> {\n        let guid = nurbscurve.guid().to_string();\n        let name = nurbscurve.name.clone();\n        let geometry = Geometry::NurbsCurve(nurbscurve.clone());\n        self.objects.nurbscurves.push(nurbscurve);\n        self.lookup.insert(guid.clone(), geometry);\n        if let Some(Geometry::NurbsCurve(c)) = self.lookup.get(&guid) {\n            self.cache_geometry_aabb(&guid, &Geometry::NurbsCurve(c.clone()));\n        }\n        self.graph.add_node(&guid, &format!(\"nurbscurve_{name}\"));\n        let node = TreeNode::new(&guid);\n        if let Some(p) = parent { self.tree.add(&node, Some(p)); }\n        node\n    }",
+          "file": "session.rs"
         }
       },
       "related": [
@@ -64076,6 +64080,7 @@ window.API_INDEX = {
         "Session.guid",
         "Session.jsondump",
         "Session.jsonload",
+        "Session.new",
         "Session.pb_dump",
         "Session.pb_load",
         "Session.pb_loads",
@@ -64094,6 +64099,11 @@ window.API_INDEX = {
           "sig": "std::shared_ptr<TreeNode> add_nurbssurface(std::shared_ptr<NurbsSurface> nurbssurface, std::shared_ptr<TreeNode> parent)",
           "code": "std::shared_ptr<TreeNode> Session::add_nurbssurface(std::shared_ptr<NurbsSurface> nurbssurface, std::shared_ptr<TreeNode> parent) {\n  objects.nurbssurfaces->push_back(nurbssurface);\n  lookup[nurbssurface->guid()] = nurbssurface;\n  graph.add_node(nurbssurface->guid(), \"nurbssurface_\" + nurbssurface->name);\n  cache_geometry_aabb(nurbssurface->guid(), nurbssurface);\n  auto node = std::make_shared<TreeNode>(nurbssurface->guid());\n  if (parent) add(node, parent);\n  return node;\n}",
           "file": "session.cpp"
+        },
+        "rust": {
+          "sig": "add_nurbssurface(nurbssurface: NurbsSurface, parent: Option<&Rc<RefCell<TreeNode>>>) -> Rc<RefCell<TreeNode>>",
+          "code": "pub fn add_nurbssurface(&mut self, nurbssurface: NurbsSurface, parent: Option<&Rc<RefCell<TreeNode>>>) -> Rc<RefCell<TreeNode>> {\n        let guid = nurbssurface.guid().to_string();\n        let name = nurbssurface.name.clone();\n        let geometry = Geometry::NurbsSurface(nurbssurface.clone());\n        self.objects.nurbssurfaces.push(nurbssurface);\n        self.lookup.insert(guid.clone(), geometry);\n        if let Some(Geometry::NurbsSurface(s)) = self.lookup.get(&guid) {\n            self.cache_geometry_aabb(&guid, &Geometry::NurbsSurface(s.clone()));\n        }\n        self.graph.add_node(&guid, &format!(\"nurbssurface_{name}\"));\n        let node = TreeNode::new(&guid);\n        if let Some(p) = parent { self.tree.add(&node, Some(p)); }\n        node\n    }",
+          "file": "session.rs"
         }
       },
       "related": [
@@ -64120,6 +64130,7 @@ window.API_INDEX = {
         "Session.guid",
         "Session.jsondump",
         "Session.jsonload",
+        "Session.new",
         "Session.pb_dump",
         "Session.pb_load",
         "Session.pb_loads",
@@ -64409,7 +64420,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add(node: TreeNode, parent: TreeNode = None) -> None",
-          "code": "def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from points collection\n        if isinstance(geometry, Point):\n            self.objects.points.remove(geometry)\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - find node by guid first\n        node = self.tree.find_node_by_guid(guid)\n        if node is not None:\n            self.tree.remove(node)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True\n\n    ###########################################################################################",
+          "code": "def add(self, node: TreeNode, parent: TreeNode = None) -> None:\n\n        \"\"\"Add a TreeNode to the tree hierarchy.\n\n        Parameters\n        ----------\n        node : TreeNode\n            The TreeNode to add.\n        parent : TreeNode, optional\n            Parent TreeNode (defaults to root if not provided).\n        \"\"\"\n        if parent is None:\n            self.tree.add(node, self.tree.root)\n        else:\n            self.tree.add(node, parent)\n\n    def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from all object collections\n        self.objects.points = [p for p in self.objects.points if p.guid != guid]\n        self.objects.lines = [l for l in self.objects.lines if l.guid != guid]\n        self.objects.polylines = [p for p in self.objects.polylines if p.guid != guid]\n        self.objects.planes = [p for p in self.objects.planes if p.guid != guid]\n        self.objects.bboxes = [b for b in self.objects.bboxes if b.guid != guid]\n        self.objects.meshes = [m for m in self.objects.meshes if m.guid != guid]\n        self.objects.pointclouds = [p for p in self.objects.pointclouds if p.guid != guid]\n        self.objects.nurbscurves = [c for c in self.objects.nurbscurves if c.guid != guid]\n        self.objects.nurbssurfaces = [s for s in self.objects.nurbssurfaces if s.guid != guid]\n        self.objects.breps = [b for b in self.objects.breps if b.guid != guid]\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - find node by guid first\n        node = self.tree.find_node_by_guid(guid)\n        if node is not None:\n            self.tree.remove(node)",
           "file": "session.py"
         },
         "cpp": {
@@ -64426,7 +64437,6 @@ window.API_INDEX = {
       "related": [
         "Session.__init__",
         "Session._add_object",
-        "Session._compute_bounding_box",
         "Session.add_brep",
         "Session.add_component",
         "Session.add_curve",
@@ -64473,7 +64483,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "add_edge(guid1: str, guid2: str, attribute: str = \"\") -> None",
-          "code": "def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from points collection\n        if isinstance(geometry, Point):\n            self.objects.points.remove(geometry)\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - find node by guid first\n        node = self.tree.find_node_by_guid(guid)\n        if node is not None:\n            self.tree.remove(node)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True\n\n    ###########################################################################################\n    # SpatialBVH Collision Detection\n    ###########################################################################################\n\n    @staticmethod\n    def _compute_bounding_box(geometry) -> OBB:\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        OBB",
+          "code": "def add_edge(self, guid1: str, guid2: str, attribute: str = \"\") -> None:\n\n        \"\"\"Add an edge between two geometry objects in the graph.\n\n        Parameters\n        ----------\n        guid1 : str\n            GUID of the first geometry object.\n        guid2 : str\n            GUID of the second geometry object.\n        attribute : str, optional\n            Edge attribute description.\n        \"\"\"\n        self.graph.add_edge(guid1, guid2, attribute)\n\n    ###########################################################################################\n    # Details - Lookup\n    ###########################################################################################\n\n    def get_object(self, guid: str) -> Optional[Point]:\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from all object collections\n        self.objects.points = [p for p in self.objects.points if p.guid != guid]\n        self.objects.lines = [l for l in self.objects.lines if l.guid != guid]\n        self.objects.polylines = [p for p in self.objects.polylines if p.guid != guid]\n        self.objects.planes = [p for p in self.objects.planes if p.guid != guid]\n        self.objects.bboxes = [b for b in self.objects.bboxes if b.guid != guid]\n        self.objects.meshes = [m for m in self.objects.meshes if m.guid != guid]\n        self.objects.pointclouds = [p for p in self.objects.pointclouds if p.guid != guid]\n        self.objects.nurbscurves = [c for c in self.objects.nurbscurves if c.guid != guid]\n        self.objects.nurbssurfaces = [s for s in self.objects.nurbssurfaces if s.guid != guid]\n        self.objects.breps = [b for b in self.objects.breps if b.guid != guid]\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - find node by guid first\n        node = self.tree.find_node_by_guid(guid)\n        if node is not None:\n            self.tree.remove(node)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True\n\n    ###########################################################################################\n    # SpatialBVH Collision Detection\n    ###########################################################################################\n\n    @staticmethod\n    def _compute_bounding_box(geometry) -> OBB:\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.",
           "file": "session.py"
         },
         "cpp": {
@@ -64521,7 +64531,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "get_object(guid: str) -> Optional[Point]",
-          "code": "def get_object(self, guid: str) -> Optional[Point]:\n\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from points collection\n        if isinstance(geometry, Point):\n            self.objects.points.remove(geometry)\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - find node by guid first\n        node = self.tree.find_node_by_guid(guid)\n        if node is not None:\n            self.tree.remove(node)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True\n\n    ###########################################################################################\n    # SpatialBVH Collision Detection\n    ###########################################################################################\n\n    @staticmethod\n    def _compute_bounding_box(geometry) -> OBB:\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        OBB\n            Inflated bounding box for collision detection.\n        \"\"\"\n        inflate = Tolerance.APPROXIMATION\n\n        # Import geometry types\n        from .line import Line\n        from .polyline import Polyline\n        from .pointcloud import PointCloud\n        from .mesh import Mesh\n        from .plane import Plane\n\n        if isinstance(geometry, Point):\n            return OBB.from_point(geometry, inflate)\n        elif isinstance(geometry, Line):\n            points = [geometry.start(), geometry.end()]\n            return OBB.from_points(points, inflate)\n        elif isinstance(geometry, Polyline):\n            return OBB.from_points(geometry.points, inflate)",
+          "code": "def get_object(self, guid: str) -> Optional[Point]:\n\n        \"\"\"Get a geometry object by its GUID.\n\n        Parameters\n        ----------\n        guid : str\n            The string GUID of the geometry object to retrieve.\n\n        Returns\n        -------\n        :class:`Point` | None\n            The geometry object if found, None otherwise.\n        \"\"\"\n        return self.lookup.get(guid)\n\n    def remove_object(self, guid: str) -> bool:\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from all object collections\n        self.objects.points = [p for p in self.objects.points if p.guid != guid]\n        self.objects.lines = [l for l in self.objects.lines if l.guid != guid]\n        self.objects.polylines = [p for p in self.objects.polylines if p.guid != guid]\n        self.objects.planes = [p for p in self.objects.planes if p.guid != guid]\n        self.objects.bboxes = [b for b in self.objects.bboxes if b.guid != guid]\n        self.objects.meshes = [m for m in self.objects.meshes if m.guid != guid]\n        self.objects.pointclouds = [p for p in self.objects.pointclouds if p.guid != guid]\n        self.objects.nurbscurves = [c for c in self.objects.nurbscurves if c.guid != guid]\n        self.objects.nurbssurfaces = [s for s in self.objects.nurbssurfaces if s.guid != guid]\n        self.objects.breps = [b for b in self.objects.breps if b.guid != guid]\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - find node by guid first\n        node = self.tree.find_node_by_guid(guid)\n        if node is not None:\n            self.tree.remove(node)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True\n\n    ###########################################################################################\n    # SpatialBVH Collision Detection\n    ###########################################################################################\n\n    @staticmethod\n    def _compute_bounding_box(geometry) -> OBB:\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        OBB\n            Inflated bounding box for collision detection.\n        \"\"\"\n        inflate = Tolerance.APPROXIMATION\n\n        # Import geometry types\n        from .line import Line\n        from .polyline import Polyline\n        from .pointcloud import PointCloud\n        from .mesh import Mesh\n        from .plane import Plane",
           "file": "session.py"
         },
         "cpp": {
@@ -64552,7 +64562,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "remove_object(guid: str) -> bool",
-          "code": "def remove_object(self, guid: str) -> bool:\n\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from points collection\n        if isinstance(geometry, Point):\n            self.objects.points.remove(geometry)\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - find node by guid first\n        node = self.tree.find_node_by_guid(guid)\n        if node is not None:\n            self.tree.remove(node)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True\n\n    ###########################################################################################\n    # SpatialBVH Collision Detection\n    ###########################################################################################\n\n    @staticmethod\n    def _compute_bounding_box(geometry) -> OBB:\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        OBB\n            Inflated bounding box for collision detection.\n        \"\"\"\n        inflate = Tolerance.APPROXIMATION\n\n        # Import geometry types\n        from .line import Line\n        from .polyline import Polyline\n        from .pointcloud import PointCloud\n        from .mesh import Mesh\n        from .plane import Plane\n\n        if isinstance(geometry, Point):\n            return OBB.from_point(geometry, inflate)\n        elif isinstance(geometry, Line):\n            points = [geometry.start(), geometry.end()]\n            return OBB.from_points(points, inflate)\n        elif isinstance(geometry, Polyline):\n            return OBB.from_points(geometry.points, inflate)\n        elif isinstance(geometry, PointCloud):\n            return OBB.from_points(geometry.points, inflate)\n        elif isinstance(geometry, Mesh):\n            # Extract vertices from mesh\n            points = [v.position() for v in geometry.vertex.values()]\n            if not points:\n                return OBB.from_point(Point(0, 0, 0), inflate)\n            return OBB.from_points(points, inflate)\n        elif isinstance(geometry, OBB):\n            # Inflate existing bounding box\n            from .vector import Vector\n\n            inflated = OBB(\n                center=geometry.center,\n                x_axis=geometry.x_axis,",
+          "code": "def remove_object(self, guid: str) -> bool:\n\n        \"\"\"Remove a geometry object by its GUID.\n\n        Args:\n            guid: The UUID of the geometry object to remove.\n\n        Returns:\n            True if the object was removed, False if not found.\n        \"\"\"\n        geometry = self.lookup.get(guid)\n        if not geometry:\n            return False\n\n        # Remove from all object collections\n        self.objects.points = [p for p in self.objects.points if p.guid != guid]\n        self.objects.lines = [l for l in self.objects.lines if l.guid != guid]\n        self.objects.polylines = [p for p in self.objects.polylines if p.guid != guid]\n        self.objects.planes = [p for p in self.objects.planes if p.guid != guid]\n        self.objects.bboxes = [b for b in self.objects.bboxes if b.guid != guid]\n        self.objects.meshes = [m for m in self.objects.meshes if m.guid != guid]\n        self.objects.pointclouds = [p for p in self.objects.pointclouds if p.guid != guid]\n        self.objects.nurbscurves = [c for c in self.objects.nurbscurves if c.guid != guid]\n        self.objects.nurbssurfaces = [s for s in self.objects.nurbssurfaces if s.guid != guid]\n        self.objects.breps = [b for b in self.objects.breps if b.guid != guid]\n\n        # Remove from lookup table\n        del self.lookup[guid]\n\n        # Remove from tree - find node by guid first\n        node = self.tree.find_node_by_guid(guid)\n        if node is not None:\n            self.tree.remove(node)\n\n        # Remove from graph using string GUID\n        if self.graph.has_node(str(guid)):\n            self.graph.remove_node(str(guid))\n\n        return True\n\n    ###########################################################################################\n    # SpatialBVH Collision Detection\n    ###########################################################################################\n\n    @staticmethod\n    def _compute_bounding_box(geometry) -> OBB:\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        OBB\n            Inflated bounding box for collision detection.\n        \"\"\"\n        inflate = Tolerance.APPROXIMATION\n\n        # Import geometry types\n        from .line import Line\n        from .polyline import Polyline\n        from .pointcloud import PointCloud\n        from .mesh import Mesh\n        from .plane import Plane\n        from .brep import BRep\n        from .nurbscurve import NurbsCurve\n        from .nurbssurface import NurbsSurface\n\n        if isinstance(geometry, Point):\n            return OBB.from_point(geometry, inflate)\n        elif isinstance(geometry, Line):\n            points = [geometry.start(), geometry.end()]\n            return OBB.from_points(points, inflate)\n        elif isinstance(geometry, Polyline):\n            return OBB.from_points(geometry.points, inflate)\n        elif isinstance(geometry, PointCloud):\n            return OBB.from_points(geometry.points, inflate)\n        elif isinstance(geometry, Mesh):\n            # Extract vertices from mesh; xform is the placement, so bake it",
           "file": "session.py"
         },
         "cpp": {
@@ -64562,7 +64572,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "remove_object(guid: &str) -> bool",
-          "code": "pub fn remove_object(&mut self, guid: &str) -> bool {\n        // Check if object exists in lookup table\n        if !self.lookup.contains_key(guid) {\n            return false;\n        }\n\n        // Remove from all object collections\n        self.objects.points.retain(|p| p.guid() != guid);\n        self.objects.lines.retain(|l| l.guid() != guid);\n        self.objects.polylines.retain(|p| p.guid() != guid);\n        self.objects.planes.retain(|p| p.guid() != guid);\n        self.objects.bboxes.retain(|b| b.guid() != guid);\n        self.objects.meshes.retain(|m| m.guid() != guid);\n        self.objects.pointclouds.retain(|p| p.guid() != guid);\n        self.objects.breps.retain(|b| b.guid() != guid);\n\n        // Remove from lookup table\n        self.lookup.remove(guid);\n        self.invalidate_bvh_cache();\n\n        // Remove from tree - find node by GUID and remove it\n        if let Some(node) = self.tree.find_node_by_guid(&guid.to_string()) {\n            self.tree.remove(&node);\n        }\n\n        // Remove from graph using string GUID\n        if self.graph.has_node(guid) {\n            self.graph.remove_node(guid);\n        }\n\n        true\n    }",
+          "code": "pub fn remove_object(&mut self, guid: &str) -> bool {\n        // Check if object exists in lookup table\n        if !self.lookup.contains_key(guid) {\n            return false;\n        }\n\n        // Remove from all object collections\n        self.objects.points.retain(|p| p.guid() != guid);\n        self.objects.lines.retain(|l| l.guid() != guid);\n        self.objects.polylines.retain(|p| p.guid() != guid);\n        self.objects.planes.retain(|p| p.guid() != guid);\n        self.objects.bboxes.retain(|b| b.guid() != guid);\n        self.objects.meshes.retain(|m| m.guid() != guid);\n        self.objects.pointclouds.retain(|p| p.guid() != guid);\n        self.objects.nurbscurves.retain(|c| c.guid() != guid);\n        self.objects.nurbssurfaces.retain(|s| s.guid() != guid);\n        self.objects.breps.retain(|b| b.guid() != guid);\n\n        // Remove from lookup table\n        self.lookup.remove(guid);\n        self.invalidate_bvh_cache();\n\n        // Remove from tree - find node by GUID and remove it\n        if let Some(node) = self.tree.find_node_by_guid(&guid.to_string()) {\n            self.tree.remove(&node);\n        }\n\n        // Remove from graph using string GUID\n        if self.graph.has_node(guid) {\n            self.graph.remove_node(guid);\n        }\n\n        true\n    }",
           "file": "session.rs"
         }
       },
@@ -64583,20 +64593,17 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "_compute_bounding_box(geometry) -> OBB",
-          "code": "def _compute_bounding_box(geometry) -> OBB:\n\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        OBB\n            Inflated bounding box for collision detection.\n        \"\"\"\n        inflate = Tolerance.APPROXIMATION\n\n        # Import geometry types\n        from .line import Line\n        from .polyline import Polyline\n        from .pointcloud import PointCloud\n        from .mesh import Mesh\n        from .plane import Plane\n\n        if isinstance(geometry, Point):\n            return OBB.from_point(geometry, inflate)\n        elif isinstance(geometry, Line):\n            points = [geometry.start(), geometry.end()]\n            return OBB.from_points(points, inflate)\n        elif isinstance(geometry, Polyline):\n            return OBB.from_points(geometry.points, inflate)\n        elif isinstance(geometry, PointCloud):\n            return OBB.from_points(geometry.points, inflate)\n        elif isinstance(geometry, Mesh):\n            # Extract vertices from mesh\n            points = [v.position() for v in geometry.vertex.values()]\n            if not points:\n                return OBB.from_point(Point(0, 0, 0), inflate)\n            return OBB.from_points(points, inflate)\n        elif isinstance(geometry, OBB):\n            # Inflate existing bounding box\n            from .vector import Vector\n\n            inflated = OBB(\n                center=geometry.center,\n                x_axis=geometry.x_axis,\n                y_axis=geometry.y_axis,\n                z_axis=geometry.z_axis,\n                half_size=Vector(\n                    geometry.half_size[0] + inflate,\n                    geometry.half_size[1] + inflate,\n                    geometry.half_size[2] + inflate,\n                ),\n            )\n            return inflated\n        elif isinstance(geometry, Plane):\n            # Create bounded box around plane origin\n            return OBB.from_point(geometry.origin, inflate * 10.0)\n        else:\n            from .element import Element\n            if isinstance(geometry, Element):\n                return geometry.aabb\n            # Fallback\n            return OBB.from_point(Point(0, 0, 0), inflate)\n\n    def get_collisions(self) -> List[Tuple[str, str]]:\n        \"\"\"Get all collision pairs using SpatialBVH and add them as graph edges.\n\n        Automatically:\n        - Computes bounding boxes for all objects with tolerance inflation\n        - Builds/rebuilds the SpatialBVH with auto-computed world size\n        - Detects all collision pairs\n        - Adds collision edges to the graph\n\n        Returns\n        -------\n        list of tuple\n            List of (guid1, guid2) tuples representing colliding geometry pairs.\n        \"\"\"\n        # Collect all objects with their bounding boxes and GUIDs\n        boxes_with_guids = []",
+          "code": "def _compute_bounding_box(geometry) -> OBB:\n\n        \"\"\"Compute bounding box for a geometry object, inflated by tolerance.\n\n        Parameters\n        ----------\n        geometry : object\n            Any geometry object (Point, Line, Mesh, etc.)\n\n        Returns\n        -------\n        OBB\n            Inflated bounding box for collision detection.\n        \"\"\"\n        inflate = Tolerance.APPROXIMATION\n\n        # Import geometry types\n        from .line import Line\n        from .polyline import Polyline\n        from .pointcloud import PointCloud\n        from .mesh import Mesh\n        from .plane import Plane\n        from .brep import BRep\n        from .nurbscurve import NurbsCurve\n        from .nurbssurface import NurbsSurface\n\n        if isinstance(geometry, Point):\n            return OBB.from_point(geometry, inflate)\n        elif isinstance(geometry, Line):\n            points = [geometry.start(), geometry.end()]\n            return OBB.from_points(points, inflate)\n        elif isinstance(geometry, Polyline):\n            return OBB.from_points(geometry.points, inflate)\n        elif isinstance(geometry, PointCloud):\n            return OBB.from_points(geometry.points, inflate)\n        elif isinstance(geometry, Mesh):\n            # Extract vertices from mesh; xform is the placement, so bake it\n            points = [geometry.xform.transform_point(v.position()) for v in geometry.vertex.values()]\n            if not points:\n                return OBB.from_point(Point(0, 0, 0), inflate)\n            return OBB.from_points(points, inflate)\n        elif isinstance(geometry, OBB):\n            # Inflate existing bounding box\n            from .vector import Vector\n\n            inflated = OBB(\n                center=geometry.center,\n                x_axis=geometry.x_axis,\n                y_axis=geometry.y_axis,\n                z_axis=geometry.z_axis,\n                half_size=Vector(\n                    geometry.half_size[0] + inflate,\n                    geometry.half_size[1] + inflate,\n                    geometry.half_size[2] + inflate,\n                ),\n            )\n            return inflated\n        elif isinstance(geometry, Plane):\n            # Create bounded box around plane origin\n            return OBB.from_point(geometry.origin, inflate * 10.0)\n        elif isinstance(geometry, NurbsCurve):\n            points = []\n            for i in range(geometry.cv_count()):\n                p = geometry.get_cv(i)\n                if p is not None:\n                    points.append(p)\n            if not points:\n                return OBB.from_point(Point(0, 0, 0), inflate)\n            return OBB.from_points(points, inflate)\n        elif isinstance(geometry, NurbsSurface):\n            points = []\n            for i in range(geometry.cv_count_dir(0)):\n                for j in range(geometry.cv_count_dir(1)):\n                    p = geometry.get_cv(i, j)\n                    if p is not None:\n                        points.append(p)\n            if not points:\n                return OBB.from_point(Point(0, 0, 0), inflate)\n            return OBB.from_points(points, inflate)\n        elif isinstance(geometry, BRep):\n            points = [geometry.xform.transform_point(p) for p in geometry.m_vertices]",
           "file": "session.py"
         }
       },
       "related": [
-        "Session.add",
         "Session.add_edge",
         "Session.compute_bounding_box",
         "Session.get_collisions",
         "Session.get_object",
-        "Session.guid",
         "Session.ray_cast",
-        "Session.remove_object",
-        "Session.str"
+        "Session.remove_object"
       ]
     },
     {
@@ -64645,7 +64652,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "ray_cast(\n        ,\n        origin: &Point,\n        direction: &crate::Vector,\n        tolerance: f64,\n    ) -> Vec<RayHit>",
-          "code": "pub fn ray_cast(\n        &mut self,\n        origin: &Point,\n        direction: &crate::Vector,\n        tolerance: f64,\n    ) -> Vec<RayHit> {\n        let dir_len = direction.magnitude();\n        if dir_len <= 0.0 {\n            return Vec::new();\n        }\n        let dir_unit = crate::Vector::new(\n            direction[0] / dir_len,\n            direction[1] / dir_len,\n            direction[2] / dir_len,\n        );\n\n        let far = 1e6f64;\n        let ray_end = Point::new(\n            origin[0] + dir_unit[0] * far,\n            origin[1] + dir_unit[1] * far,\n            origin[2] + dir_unit[2] * far,\n        );\n        let ray_line = Line::from_points(origin, &ray_end);\n\n        // Use cached SpatialBVH for ray casting\n        if self.bvh_cache_dirty || self.cached_ray_bvh.is_none() {\n            self.rebuild_ray_bvh_cache();\n            self.bvh_cache_dirty = false;\n        }\n        let bvh = match &self.cached_ray_bvh {\n            Some(b) => b,\n            None => return Vec::new(),\n        };\n\n        let mut candidates: Vec<usize> = Vec::new();\n        bvh.ray_cast(origin, &dir_unit, &mut candidates, true);\n\n        // Thin geometry (Line/Polyline/Point/PointCloud) has near-degenerate BVH\n        // boxes (inflated by only 0.001mm) so the ray rarely hits them. Always add\n        // them as candidates so the line_line / point distance tests run.\n        for (idx, guid) in self.cached_guids.iter().enumerate() {\n            if let Some(geom) = self.lookup.get(guid) {\n                match geom {\n                    Geometry::Line(_) | Geometry::Polyline(_)\n                    | Geometry::Point(_) | Geometry::PointCloud(_) => {\n                        if !candidates.contains(&idx) {\n                            candidates.push(idx);\n                        }\n                    }\n                    _ => {}\n                }\n            }\n        }\n\n        let mut hits_all: Vec<RayHit> = Vec::new();\n\n        for idx in candidates {\n            if idx >= self.cached_guids.len() {\n                continue;\n            }\n            let guid = self.cached_guids[idx].clone();\n            let geom = match self.lookup.get_mut(&guid) {\n                Some(g) => g,\n                None => continue,\n            };\n\n            let mut hit_point: Option<Point> = None;\n\n            match geom {\n                Geometry::OBB(bb) => {\n                    if let Some(pts) = crate::intersection::ray_box(&ray_line, bb, 0.0, far) {\n                        if !pts.is_empty() {\n                            hit_point = Some(pts[0].clone());\n                        }\n                    }\n                }\n                Geometry::Plane(pl) => {\n                    if let Some(p) = crate::intersection::line_plane(&ray_line, pl, true) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Line(l) => {\n                    if let Some(p) =\n                        crate::intersection::line_line(&ray_line, l, tolerance)\n                    {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Polyline(pl) => {\n                    let mut best_t = f64::INFINITY;\n                    let mut best_p: Option<Point> = None;\n                    let pl_points = pl.get_points();\n                    if pl_points.len() >= 2 {\n                        for i in 0..(pl_points.len() - 1) {\n                            let seg = Line::from_points(&pl_points[i], &pl_points[i + 1]);\n                            if let Some(p) = crate::intersection::line_line(\n                                &ray_line,\n                                &seg,\n                                tolerance,\n                            ) {\n                                let dx = p[0] - origin[0];\n                                let dy = p[1] - origin[1];\n                                let dz = p[2] - origin[2];\n                                let t = dx * dir_unit[0] + dy * dir_unit[1] + dz * dir_unit[2];\n                                if t >= 0.0 && t < best_t {\n                                    best_t = t;\n                                    best_p = Some(p);\n                                }\n                            }\n                        }\n                    }\n                    if let Some(p) = best_p {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Mesh(m) => {\n                    if let Some(p) = m.ray_cast_bvh(&ray_line, 1e-6) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Point(p) => {\n                    let vx = p[0] - origin[0];\n                    let vy = p[1] - origin[1];\n                    let vz = p[2] - origin[2];\n                    let cross_x = vy * dir_unit[2] - vz * dir_unit[1];\n                    let cross_y = vz * dir_unit[0] - vx * dir_unit[2];\n                    let cross_z = vx * dir_unit[1] - vy * dir_unit[0];\n                    let dist = (cross_x * cross_x + cross_y * cross_y + cross_z * cross_z).sqrt();\n                    if dist <= tolerance {\n                        let t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2];\n                        if t >= 0.0 {\n                            let hp = Point::new(\n                                origin[0] + dir_unit[0] * t,\n                                origin[1] + dir_unit[1] * t,\n                                origin[2] + dir_unit[2] * t,\n                            );\n                            hit_point = Some(hp);\n                        }\n                    }\n                }\n                Geometry::PointCloud(pc) => {\n                    let pts = pc.get_points();\n                    let mut best_t = f64::INFINITY;\n                    let mut best_p: Option<Point> = None;\n                    for p in &pts {\n                        let vx = p[0] - origin[0];\n                        let vy = p[1] - origin[1];\n                        let vz = p[2] - origin[2];\n                        let cross_x = vy * dir_unit[2] - vz * dir_unit[1];\n                        let cross_y = vz * dir_unit[0] - vx * dir_unit[2];\n                        let cross_z = vx * dir_unit[1] - vy * dir_unit[0];\n                        let dist = (cross_x * cross_x + cross_y * cross_y + cross_z * cross_z).sqrt();\n                        if dist <= tolerance {\n                            let t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2];\n                            if t >= 0.0 && t < best_t {\n                                best_t = t;\n                                best_p = Some(Point::new(\n                                    origin[0] + dir_unit[0] * t,\n                                    origin[1] + dir_unit[1] * t,\n                                    origin[2] + dir_unit[2] * t,\n                                ));\n                            }\n                        }\n                    }\n                    if let Some(p) = best_p {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::BRep(_) => {\n                    // BRep tessellation is expensive (re-tessellates every call).\n                    // Viewers must use pre-cached tessellations with pre-built BVH.\n                    // hit_point stays None \u00e2\u20ac\u201d callers handle BReps separately.\n                }\n                Geometry::Element(_) => {}\n            }\n\n            if let Some(hp) = hit_point {\n                let dx = hp[0] - origin[0];\n                let dy = hp[1] - origin[1];\n                let dz = hp[2] - origin[2];\n                let forward = dx * dir_unit[0] + dy * dir_unit[1] + dz * dir_unit[2];\n                if forward >= 0.0 {\n                    let dist = (dx * dx + dy * dy + dz * dz).sqrt();\n                    let guid_lock = std::sync::OnceLock::new();\n                    let _ = guid_lock.set(guid.clone());\n                    h",
+          "code": "pub fn ray_cast(\n        &mut self,\n        origin: &Point,\n        direction: &crate::Vector,\n        tolerance: f64,\n    ) -> Vec<RayHit> {\n        let dir_len = direction.magnitude();\n        if dir_len <= 0.0 {\n            return Vec::new();\n        }\n        let dir_unit = crate::Vector::new(\n            direction[0] / dir_len,\n            direction[1] / dir_len,\n            direction[2] / dir_len,\n        );\n\n        let far = 1e6f64;\n        let ray_end = Point::new(\n            origin[0] + dir_unit[0] * far,\n            origin[1] + dir_unit[1] * far,\n            origin[2] + dir_unit[2] * far,\n        );\n        let ray_line = Line::from_points(origin, &ray_end);\n\n        // Use cached SpatialBVH for ray casting\n        if self.bvh_cache_dirty || self.cached_ray_bvh.is_none() {\n            self.rebuild_ray_bvh_cache();\n            self.bvh_cache_dirty = false;\n        }\n        let bvh = match &self.cached_ray_bvh {\n            Some(b) => b,\n            None => return Vec::new(),\n        };\n\n        let mut candidates: Vec<usize> = Vec::new();\n        bvh.ray_cast(origin, &dir_unit, &mut candidates, true);\n\n        // Thin geometry (Line/Polyline/Point/PointCloud) has near-degenerate BVH\n        // boxes (inflated by only 0.001mm) so the ray rarely hits them. Always add\n        // them as candidates so the line_line / point distance tests run.\n        for (idx, guid) in self.cached_guids.iter().enumerate() {\n            if let Some(geom) = self.lookup.get(guid) {\n                match geom {\n                    Geometry::Line(_) | Geometry::Polyline(_)\n                    | Geometry::Point(_) | Geometry::PointCloud(_) => {\n                        if !candidates.contains(&idx) {\n                            candidates.push(idx);\n                        }\n                    }\n                    _ => {}\n                }\n            }\n        }\n\n        let mut hits_all: Vec<RayHit> = Vec::new();\n\n        for idx in candidates {\n            if idx >= self.cached_guids.len() {\n                continue;\n            }\n            let guid = self.cached_guids[idx].clone();\n            let geom = match self.lookup.get_mut(&guid) {\n                Some(g) => g,\n                None => continue,\n            };\n\n            let mut hit_point: Option<Point> = None;\n\n            match geom {\n                Geometry::OBB(bb) => {\n                    if let Some(pts) = crate::intersection::ray_box(&ray_line, bb, 0.0, far) {\n                        if !pts.is_empty() {\n                            hit_point = Some(pts[0].clone());\n                        }\n                    }\n                }\n                Geometry::Plane(pl) => {\n                    if let Some(p) = crate::intersection::line_plane(&ray_line, pl, true) {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Line(l) => {\n                    if let Some(p) =\n                        crate::intersection::line_line(&ray_line, l, tolerance)\n                    {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Polyline(pl) => {\n                    let mut best_t = f64::INFINITY;\n                    let mut best_p: Option<Point> = None;\n                    let pl_points = pl.get_points();\n                    if pl_points.len() >= 2 {\n                        for i in 0..(pl_points.len() - 1) {\n                            let seg = Line::from_points(&pl_points[i], &pl_points[i + 1]);\n                            if let Some(p) = crate::intersection::line_line(\n                                &ray_line,\n                                &seg,\n                                tolerance,\n                            ) {\n                                let dx = p[0] - origin[0];\n                                let dy = p[1] - origin[1];\n                                let dz = p[2] - origin[2];\n                                let t = dx * dir_unit[0] + dy * dir_unit[1] + dz * dir_unit[2];\n                                if t >= 0.0 && t < best_t {\n                                    best_t = t;\n                                    best_p = Some(p);\n                                }\n                            }\n                        }\n                    }\n                    if let Some(p) = best_p {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::Mesh(m) => {\n                    // xform is the placement: cast in the mesh's LOCAL frame, return a WORLD hit\n                    if let Some(inv) = m.xform.inverse() {\n                        let local_ray = Line::from_points(\n                            &inv.transform_point(&ray_line.start()),\n                            &inv.transform_point(&ray_line.end()),\n                        );\n                        if let Some(p) = m.ray_cast_bvh(&local_ray, 1e-6) {\n                            hit_point = Some(m.xform.transform_point(&p));\n                        }\n                    }\n                }\n                Geometry::Point(p) => {\n                    let vx = p[0] - origin[0];\n                    let vy = p[1] - origin[1];\n                    let vz = p[2] - origin[2];\n                    let cross_x = vy * dir_unit[2] - vz * dir_unit[1];\n                    let cross_y = vz * dir_unit[0] - vx * dir_unit[2];\n                    let cross_z = vx * dir_unit[1] - vy * dir_unit[0];\n                    let dist = (cross_x * cross_x + cross_y * cross_y + cross_z * cross_z).sqrt();\n                    if dist <= tolerance {\n                        let t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2];\n                        if t >= 0.0 {\n                            let hp = Point::new(\n                                origin[0] + dir_unit[0] * t,\n                                origin[1] + dir_unit[1] * t,\n                                origin[2] + dir_unit[2] * t,\n                            );\n                            hit_point = Some(hp);\n                        }\n                    }\n                }\n                Geometry::PointCloud(pc) => {\n                    let pts = pc.get_points();\n                    let mut best_t = f64::INFINITY;\n                    let mut best_p: Option<Point> = None;\n                    for p in &pts {\n                        let vx = p[0] - origin[0];\n                        let vy = p[1] - origin[1];\n                        let vz = p[2] - origin[2];\n                        let cross_x = vy * dir_unit[2] - vz * dir_unit[1];\n                        let cross_y = vz * dir_unit[0] - vx * dir_unit[2];\n                        let cross_z = vx * dir_unit[1] - vy * dir_unit[0];\n                        let dist = (cross_x * cross_x + cross_y * cross_y + cross_z * cross_z).sqrt();\n                        if dist <= tolerance {\n                            let t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2];\n                            if t >= 0.0 && t < best_t {\n                                best_t = t;\n                                best_p = Some(Point::new(\n                                    origin[0] + dir_unit[0] * t,\n                                    origin[1] + dir_unit[1] * t,\n                                    origin[2] + dir_unit[2] * t,\n                                ));\n                            }\n                        }\n                    }\n                    if let Some(p) = best_p {\n                        hit_point = Some(p);\n                    }\n                }\n                Geometry::BRep(_) => {\n                    // BRep tessellation is expensive (re-tessellates every call).\n                    // Viewers must use pre-cached tessellations with pre-built BVH.\n                    // hit_point stays None \u00e2\u20ac\u201d callers handle BReps separately.\n                }\n                Geometry::NurbsCurve(_) => {\n                    // Exact ray-curve intersection is out of scope; viewers pic",
           "file": "session.rs"
         }
       },
@@ -64667,7 +64674,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "point_hit(p: Point) -> Tuple[bool, Point, float]",
-          "code": "def point_hit(p: Point) -> Tuple[bool, Point, float]:\n\n            vx = p[0] - origin[0]\n            vy = p[1] - origin[1]\n            vz = p[2] - origin[2]\n            cx = vy * dir_unit[2] - vz * dir_unit[1]\n            cy = vz * dir_unit[0] - vx * dir_unit[2]\n            cz = vx * dir_unit[1] - vy * dir_unit[0]\n            dist = (cx * cx + cy * cy + cz * cz) ** 0.5\n            if dist > tolerance:\n                return False, origin, 0.0\n            t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2]\n            if t < 0.0:\n                return False, origin, 0.0\n            hp = Point(\n                origin[0] + dir_unit[0] * t,\n                origin[1] + dir_unit[1] * t,\n                origin[2] + dir_unit[2] * t,\n            )\n            return True, hp, t\n\n        for idx in candidates:\n            if idx < 0 or idx >= len(self.bvh.object_guids):\n                continue\n            guid = self.bvh.object_guids[idx]\n            geom = self.lookup.get(guid)\n            if geom is None:\n                continue\n\n            hit_point: Optional[Point] = None\n\n            if isinstance(geom, OBB):\n                pts = ray_box(ray_line, geom, 0.0, FAR)\n                if pts:\n                    hit_point = pts[0]\n            elif isinstance(geom, Plane):\n                hp = line_plane(ray_line, geom, True)\n                if hp is not None:\n                    hit_point = hp\n            elif hasattr(geom, \"start\") and hasattr(geom, \"end\"):\n                hp = line_line(ray_line, geom, Tolerance.APPROXIMATION)\n                if hp is not None:\n                    hit_point = hp\n            elif isinstance(geom, Polyline):\n                best_t = float(\"inf\")\n                best_p: Optional[Point] = None\n                for i in range(len(geom.points) - 1):\n                    seg = Line.from_points(geom.points[i], geom.points[i + 1])\n                    hp = line_line(ray_line, seg, Tolerance.APPROXIMATION)\n                    if hp is None:\n                        continue\n                    t = (\n                        (hp[0] - origin[0]) * dir_unit[0]\n                        + (hp[1] - origin[1]) * dir_unit[1]\n                        + (hp[2] - origin[2]) * dir_unit[2]\n                    )\n                    if t >= 0.0 and t < best_t:\n                        best_t = t\n                        best_p = hp\n                if best_p is not None:\n                    hit_point = best_p\n            elif isinstance(geom, Mesh):\n                pts = ray_mesh_bvh(ray_line, geom, 1e-6, False)\n                if pts:\n                    hit_point = pts[0]\n            elif isinstance(geom, Point):\n                ok, hp, t = point_hit(geom)\n                if ok:\n                    hit_point = hp\n\n            if hit_point is None:\n                continue\n\n            d = (\n                (hit_point[0] - origin[0]) * dir_unit[0]\n                + (hit_point[1] - origin[1]) * dir_unit[1]\n                + (hit_point[2] - origin[2]) * dir_unit[2]\n            )\n            if d >= 0.0:\n                hits_all.append(RayHit(guid, hit_point, d))",
+          "code": "def point_hit(p: Point) -> Tuple[bool, Point, float]:\n\n            vx = p[0] - origin[0]\n            vy = p[1] - origin[1]\n            vz = p[2] - origin[2]\n            cx = vy * dir_unit[2] - vz * dir_unit[1]\n            cy = vz * dir_unit[0] - vx * dir_unit[2]\n            cz = vx * dir_unit[1] - vy * dir_unit[0]\n            dist = (cx * cx + cy * cy + cz * cz) ** 0.5\n            if dist > tolerance:\n                return False, origin, 0.0\n            t = vx * dir_unit[0] + vy * dir_unit[1] + vz * dir_unit[2]\n            if t < 0.0:\n                return False, origin, 0.0\n            hp = Point(\n                origin[0] + dir_unit[0] * t,\n                origin[1] + dir_unit[1] * t,\n                origin[2] + dir_unit[2] * t,\n            )\n            return True, hp, t\n\n        for idx in candidates:\n            if idx < 0 or idx >= len(self.bvh.object_guids):\n                continue\n            guid = self.bvh.object_guids[idx]\n            geom = self.lookup.get(guid)\n            if geom is None:\n                continue\n\n            hit_point: Optional[Point] = None\n\n            if isinstance(geom, OBB):\n                pts = ray_box(ray_line, geom, 0.0, FAR)\n                if pts:\n                    hit_point = pts[0]\n            elif isinstance(geom, Plane):\n                hp = line_plane(ray_line, geom, True)\n                if hp is not None:\n                    hit_point = hp\n            elif hasattr(geom, \"start\") and hasattr(geom, \"end\"):\n                hp = line_line(ray_line, geom, Tolerance.APPROXIMATION)\n                if hp is not None:\n                    hit_point = hp\n            elif isinstance(geom, Polyline):\n                best_t = float(\"inf\")\n                best_p: Optional[Point] = None\n                for i in range(len(geom.points) - 1):\n                    seg = Line.from_points(geom.points[i], geom.points[i + 1])\n                    hp = line_line(ray_line, seg, Tolerance.APPROXIMATION)\n                    if hp is None:\n                        continue\n                    t = (\n                        (hp[0] - origin[0]) * dir_unit[0]\n                        + (hp[1] - origin[1]) * dir_unit[1]\n                        + (hp[2] - origin[2]) * dir_unit[2]\n                    )\n                    if t >= 0.0 and t < best_t:\n                        best_t = t\n                        best_p = hp\n                if best_p is not None:\n                    hit_point = best_p\n            elif isinstance(geom, Mesh):\n                # xform is the placement: cast in the mesh's LOCAL frame, return a WORLD hit\n                inv = geom.xform.inverse()\n                if inv is not None:\n                    local_ray = Line.from_points(\n                        inv.transform_point(ray_line.start()),\n                        inv.transform_point(ray_line.end()),\n                    )\n                    pts = ray_mesh_bvh(local_ray, geom, 1e-6, False)\n                    if pts:\n                        hit_point = geom.xform.transform_point(pts[0])\n            elif isinstance(geom, Point):\n                ok, hp, t = point_hit(geom)\n                if ok:\n                    hit_point = hp\n\n            if hit_point is None:\n                continue\n\n            d = (",
           "file": "session.py"
         }
       },
@@ -64812,7 +64819,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "get_geometry() -> Objects",
-          "code": "pub fn get_geometry(&self) -> Objects {\n        use crate::Xform;\n\n        // Deep copy all objects\n        let mut transformed_objects = self.objects.clone();\n\n        // Rebuild lookup from copied objects\n        let mut transformed_lookup: HashMap<String, Geometry> = HashMap::new();\n\n        for point in &transformed_objects.points {\n            transformed_lookup.insert(point.guid().to_string(), Geometry::Point(point.clone()));\n        }\n        for line in &transformed_objects.lines {\n            transformed_lookup.insert(line.guid().to_string(), Geometry::Line(line.clone()));\n        }\n        for plane in &transformed_objects.planes {\n            transformed_lookup.insert(plane.guid().to_string(), Geometry::Plane(plane.clone()));\n        }\n        for bbox in &transformed_objects.bboxes {\n            transformed_lookup.insert(bbox.guid().to_string(), Geometry::OBB(bbox.clone()));\n        }\n        for polyline in &transformed_objects.polylines {\n            transformed_lookup.insert(polyline.guid().to_string(), Geometry::Polyline(polyline.clone()));\n        }\n        for pointcloud in &transformed_objects.pointclouds {\n            transformed_lookup.insert(\n                pointcloud.guid().to_string(),\n                Geometry::PointCloud(pointcloud.clone()),\n            );\n        }\n        for mesh in &transformed_objects.meshes {\n            transformed_lookup.insert(mesh.guid().to_string(), Geometry::Mesh(mesh.clone()));\n        }\n        for brep in &transformed_objects.breps {\n            transformed_lookup.insert(brep.guid().to_string(), Geometry::BRep(brep.clone()));\n        }\n\n        fn transform_node(\n            node: &Rc<RefCell<TreeNode>>,\n            parent_xform: &Xform,\n            transformed_lookup: &HashMap<String, Geometry>,\n            transformed_objects: &mut Objects,\n        ) {\n            let node_name = node.borrow().name.clone();\n            let geometry = transformed_lookup.get(&node_name);\n\n            let current_xform = if let Some(geom) = geometry {\n                // Get mutable reference and transform in-place\n                let combined_xform = parent_xform\n                    * match geom {\n                        Geometry::Point(g) => &g.xform,\n                        Geometry::Line(g) => &g.xform,\n                        Geometry::Plane(g) => &g.xform,\n                        Geometry::OBB(g) => &g.xform,\n                        Geometry::Polyline(g) => &g.xform,\n                        Geometry::PointCloud(g) => &g.xform,\n                        Geometry::Mesh(g) => &g.xform,\n                        Geometry::BRep(g) => &g.xform,\n                        Geometry::Element(g) => &g.session_transformation,\n                    };\n\n                // Find and update the geometry in the collections\n                match geom {\n                    Geometry::Point(_) => {\n                        if let Some(g) = transformed_objects\n                            .points\n                            .iter_mut()\n                            .find(|p| p.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Line(_) => {\n                        if let Some(g) = transformed_objects\n                            .lines\n                            .iter_mut()\n                            .find(|l| l.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Plane(_) => {\n                        if let Some(g) = transformed_objects\n                            .planes\n                            .iter_mut()\n                            .find(|p| p.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::OBB(_) => {\n                        if let Some(g) = transformed_objects\n                            .bboxes\n                            .iter_mut()\n                            .find(|b| b.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Polyline(_) => {\n                        if let Some(g) = transformed_objects\n                            .polylines\n                            .iter_mut()\n                            .find(|p| p.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::PointCloud(_) => {\n                        if let Some(g) = transformed_objects\n                            .pointclouds\n                            .iter_mut()\n                            .find(|p| p.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Mesh(_) => {\n                        if let Some(g) = transformed_objects\n                            .meshes\n                            .iter_mut()\n                            .find(|m| m.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::BRep(_) => {\n                        if let Some(g) = transformed_objects\n                            .breps\n                            .iter_mut()\n                            .find(|b| b.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Element(_) => {\n                        if let Some(g) = transformed_objects\n                            .elements\n                            .iter_mut()\n                            .find(|e| e.guid() == node_name)\n                        {\n                            g.session_transformation = combined_xform.clone();\n                        }\n                    }\n                }\n\n                combined_xform\n            } else {\n                parent_xform.clone()\n            };\n\n            for child in node.borrow().children() {\n                transform_node(\n                    &child,\n                    &current_xform,\n                    transformed_lookup,\n                    transformed_objects,\n                );\n            }\n        }\n\n        if let Some(root) = self.tree.root() {\n            transform_node(\n                &root,\n                &Xform::identity(),\n                &transformed_lookup,\n                &mut transformed_objects,\n            );\n        }\n\n        // Apply accumulated transformations to actual geometry coordinates\n        for point in &mut transformed_objects.points {\n            point.transform();\n        }\n        for line in &mut transformed_objects.lines {\n            line.transform();\n        }\n        for plane in &mut transformed_objects.planes {\n            plane.transform();\n        }\n        for bbox in &mut transformed_objects.bboxes {\n            bbox.transform();\n        }\n        for polyline in &mut transformed_objects.polylines {\n            polyline.transform();\n        }\n        for pointcloud in &mut transformed_objects.pointclouds {\n            pointcloud.transform();\n        }\n        for mesh in &mut transformed_objects.meshes {\n            mesh.transform(None);\n        }\n        for brep in &mut transformed_objects.breps {\n            brep.transform();\n        }\n\n        transformed_objects\n    }",
+          "code": "pub fn get_geometry(&self) -> Objects {\n        use crate::Xform;\n\n        // Deep copy all objects\n        let mut transformed_objects = self.objects.clone();\n\n        // Rebuild lookup from copied objects\n        let mut transformed_lookup: HashMap<String, Geometry> = HashMap::new();\n\n        for point in &transformed_objects.points {\n            transformed_lookup.insert(point.guid().to_string(), Geometry::Point(point.clone()));\n        }\n        for line in &transformed_objects.lines {\n            transformed_lookup.insert(line.guid().to_string(), Geometry::Line(line.clone()));\n        }\n        for plane in &transformed_objects.planes {\n            transformed_lookup.insert(plane.guid().to_string(), Geometry::Plane(plane.clone()));\n        }\n        for bbox in &transformed_objects.bboxes {\n            transformed_lookup.insert(bbox.guid().to_string(), Geometry::OBB(bbox.clone()));\n        }\n        for polyline in &transformed_objects.polylines {\n            transformed_lookup.insert(polyline.guid().to_string(), Geometry::Polyline(polyline.clone()));\n        }\n        for pointcloud in &transformed_objects.pointclouds {\n            transformed_lookup.insert(\n                pointcloud.guid().to_string(),\n                Geometry::PointCloud(pointcloud.clone()),\n            );\n        }\n        for mesh in &transformed_objects.meshes {\n            transformed_lookup.insert(mesh.guid().to_string(), Geometry::Mesh(mesh.clone()));\n        }\n        for nurbscurve in &transformed_objects.nurbscurves {\n            transformed_lookup.insert(nurbscurve.guid().to_string(), Geometry::NurbsCurve(nurbscurve.clone()));\n        }\n        for nurbssurface in &transformed_objects.nurbssurfaces {\n            transformed_lookup.insert(nurbssurface.guid().to_string(), Geometry::NurbsSurface(nurbssurface.clone()));\n        }\n        for brep in &transformed_objects.breps {\n            transformed_lookup.insert(brep.guid().to_string(), Geometry::BRep(brep.clone()));\n        }\n\n        fn transform_node(\n            node: &Rc<RefCell<TreeNode>>,\n            parent_xform: &Xform,\n            transformed_lookup: &HashMap<String, Geometry>,\n            transformed_objects: &mut Objects,\n        ) {\n            let node_name = node.borrow().name.clone();\n            let geometry = transformed_lookup.get(&node_name);\n\n            let current_xform = if let Some(geom) = geometry {\n                // Get mutable reference and transform in-place\n                let combined_xform = parent_xform\n                    * match geom {\n                        Geometry::Point(g) => &g.xform,\n                        Geometry::Line(g) => &g.xform,\n                        Geometry::Plane(g) => &g.xform,\n                        Geometry::OBB(g) => &g.xform,\n                        Geometry::Polyline(g) => &g.xform,\n                        Geometry::PointCloud(g) => &g.xform,\n                        Geometry::Mesh(g) => &g.xform,\n                        Geometry::NurbsCurve(g) => &g.xform,\n                        Geometry::NurbsSurface(g) => &g.xform,\n                        Geometry::BRep(g) => &g.xform,\n                        Geometry::Element(g) => &g.session_transformation,\n                    };\n\n                // Find and update the geometry in the collections\n                match geom {\n                    Geometry::Point(_) => {\n                        if let Some(g) = transformed_objects\n                            .points\n                            .iter_mut()\n                            .find(|p| p.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Line(_) => {\n                        if let Some(g) = transformed_objects\n                            .lines\n                            .iter_mut()\n                            .find(|l| l.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Plane(_) => {\n                        if let Some(g) = transformed_objects\n                            .planes\n                            .iter_mut()\n                            .find(|p| p.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::OBB(_) => {\n                        if let Some(g) = transformed_objects\n                            .bboxes\n                            .iter_mut()\n                            .find(|b| b.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::NurbsCurve(_) => {\n                        if let Some(g) = transformed_objects\n                            .nurbscurves\n                            .iter_mut()\n                            .find(|c| c.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::NurbsSurface(_) => {\n                        if let Some(g) = transformed_objects\n                            .nurbssurfaces\n                            .iter_mut()\n                            .find(|s| s.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Polyline(_) => {\n                        if let Some(g) = transformed_objects\n                            .polylines\n                            .iter_mut()\n                            .find(|p| p.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::PointCloud(_) => {\n                        if let Some(g) = transformed_objects\n                            .pointclouds\n                            .iter_mut()\n                            .find(|p| p.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Mesh(_) => {\n                        if let Some(g) = transformed_objects\n                            .meshes\n                            .iter_mut()\n                            .find(|m| m.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::BRep(_) => {\n                        if let Some(g) = transformed_objects\n                            .breps\n                            .iter_mut()\n                            .find(|b| b.guid() == node_name)\n                        {\n                            g.xform = combined_xform.clone();\n                        }\n                    }\n                    Geometry::Element(_) => {\n                        if let Some(g) = transformed_objects\n                            .elements\n                            .iter_mut()\n                            .find(|e| e.guid() == node_name)\n                        {\n                            g.session_transformation = combined_xform.clone();\n                        }\n                    }\n                }\n\n                combined_xform\n            } else {\n                parent_xform.clone()\n            };\n\n            for child in node.borrow().children() {\n                transform_node(\n                    &child,\n                    &current_xform,\n                    transformed_lookup,\n                    transformed_objects,\n                );\n            }\n        }\n\n        if let Some(root) = self.tree.root() {\n            transfo",
           "file": "session.rs"
         }
       },
@@ -73470,10 +73477,8 @@ window.API_INDEX = {
         "Xform.jsondump",
         "Xform.jsonload",
         "Xform.new",
-        "Xform.orthographic",
         "Xform.pb_dumps",
         "Xform.pb_loads",
-        "Xform.perspective",
         "Xform.project_to_plane",
         "Xform.project_to_plane_by_axis",
         "Xform.repr",
@@ -73484,6 +73489,8 @@ window.API_INDEX = {
         "Xform.set_guid",
         "Xform.str",
         "Xform.to_cols",
+        "Xform.transform_point",
+        "Xform.transform_vector",
         "Xform.translation",
         "Xform.x",
         "Xform.y",
@@ -73691,7 +73698,6 @@ window.API_INDEX = {
         "Xform.pb_loads",
         "Xform.plane_to_plane",
         "Xform.plane_to_xy",
-        "Xform.project_to_plane",
         "Xform.project_to_plane_by_axis",
         "Xform.rotation",
         "Xform.rotation_around_line",
@@ -73701,6 +73707,8 @@ window.API_INDEX = {
         "Xform.scale_xyz",
         "Xform.str",
         "Xform.to_frame",
+        "Xform.transform_point",
+        "Xform.transform_vector",
         "Xform.translation",
         "Xform.world_to_frame",
         "Xform.x",
@@ -74544,7 +74552,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "look_to_right_handed(eye, direction, up)",
-          "code": "def look_to_right_handed(eye, direction, up):\n\n        from .vector import Vector\n\n        f = direction.normalized()\n        s = f.cross(up.normalized()).normalized()\n        u = s.cross(f)\n        xform = Xform()\n        xform.m[0] = s[0]\n        xform.m[4] = s[1]\n        xform.m[8] = s[2]\n        xform.m[1] = u[0]\n        xform.m[5] = u[1]\n        xform.m[9] = u[2]\n        xform.m[2] = -f[0]\n        xform.m[6] = -f[1]\n        xform.m[10] = -f[2]\n        eye_vec = Vector(eye[0], eye[1], eye[2])\n        xform.m[12] = -s.dot(eye_vec)\n        xform.m[13] = -u.dot(eye_vec)\n        xform.m[14] = f.dot(eye_vec)\n        return xform\n\n    @staticmethod\n    def perspective(fov_y, aspect, near, far):\n        f = 1.0 / math.tan(fov_y / 2.0)\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = f / aspect\n        xform.m[5] = f\n        xform.m[10] = far / nf\n        xform.m[11] = -1.0\n        xform.m[14] = (near * far) / nf\n        return xform\n\n    @staticmethod\n    def orthographic(left, right, bottom, top, near, far):\n        rl = right - left\n        tb = top - bottom\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = 2.0 / rl\n        xform.m[5] = 2.0 / tb\n        xform.m[10] = 1.0 / nf\n        xform.m[12] = (left + right) / (left - right)\n        xform.m[13] = (bottom + top) / (bottom - top)\n        xform.m[14] = near / nf\n        xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane(plane):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - nx * nx;  xform.m[4]  = -nx * ny;        xform.m[8]  = -nx * nz;        xform.m[12] = nx * d\n        xform.m[1]  = -ny * nx;       xform.m[5]  = 1.0 - ny * ny;   xform.m[9]  = -ny * nz;        xform.m[13] = ny * d\n        xform.m[2]  = -nz * nx;       xform.m[6]  = -nz * ny;        xform.m[10] = 1.0 - nz * nz;   xform.m[14] = nz * d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane_by_axis(plane, direction):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Details",
+          "code": "def look_to_right_handed(eye, direction, up):\n\n        from .vector import Vector\n\n        f = direction.normalized()\n        s = f.cross(up.normalized()).normalized()\n        u = s.cross(f)\n        xform = Xform()\n        xform.m[0] = s[0]\n        xform.m[4] = s[1]\n        xform.m[8] = s[2]\n        xform.m[1] = u[0]\n        xform.m[5] = u[1]\n        xform.m[9] = u[2]\n        xform.m[2] = -f[0]\n        xform.m[6] = -f[1]\n        xform.m[10] = -f[2]\n        eye_vec = Vector(eye[0], eye[1], eye[2])\n        xform.m[12] = -s.dot(eye_vec)\n        xform.m[13] = -u.dot(eye_vec)\n        xform.m[14] = f.dot(eye_vec)\n        return xform\n\n    @staticmethod\n    def perspective(fov_y, aspect, near, far):\n        f = 1.0 / math.tan(fov_y / 2.0)\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = f / aspect\n        xform.m[5] = f\n        xform.m[10] = far / nf\n        xform.m[11] = -1.0\n        xform.m[14] = (near * far) / nf\n        return xform\n\n    @staticmethod\n    def orthographic(left, right, bottom, top, near, far):\n        rl = right - left\n        tb = top - bottom\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = 2.0 / rl\n        xform.m[5] = 2.0 / tb\n        xform.m[10] = 1.0 / nf\n        xform.m[12] = (left + right) / (left - right)\n        xform.m[13] = (bottom + top) / (bottom - top)\n        xform.m[14] = near / nf\n        xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane(plane):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - nx * nx;  xform.m[4]  = -nx * ny;        xform.m[8]  = -nx * nz;        xform.m[12] = nx * d\n        xform.m[1]  = -ny * nx;       xform.m[5]  = 1.0 - ny * ny;   xform.m[9]  = -ny * nz;        xform.m[13] = ny * d\n        xform.m[2]  = -nz * nx;       xform.m[6]  = -nz * ny;        xform.m[10] = 1.0 - nz * nz;   xform.m[14] = nz * d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane_by_axis(plane, direction):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Apply Transformations",
           "file": "xform.py"
         },
         "cpp": {
@@ -74580,7 +74588,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "perspective(fov_y, aspect, near, far)",
-          "code": "def perspective(fov_y, aspect, near, far):\n\n        f = 1.0 / math.tan(fov_y / 2.0)\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = f / aspect\n        xform.m[5] = f\n        xform.m[10] = far / nf\n        xform.m[11] = -1.0\n        xform.m[14] = (near * far) / nf\n        return xform\n\n    @staticmethod\n    def orthographic(left, right, bottom, top, near, far):\n        rl = right - left\n        tb = top - bottom\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = 2.0 / rl\n        xform.m[5] = 2.0 / tb\n        xform.m[10] = 1.0 / nf\n        xform.m[12] = (left + right) / (left - right)\n        xform.m[13] = (bottom + top) / (bottom - top)\n        xform.m[14] = near / nf\n        xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane(plane):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - nx * nx;  xform.m[4]  = -nx * ny;        xform.m[8]  = -nx * nz;        xform.m[12] = nx * d\n        xform.m[1]  = -ny * nx;       xform.m[5]  = 1.0 - ny * ny;   xform.m[9]  = -ny * nz;        xform.m[13] = ny * d\n        xform.m[2]  = -nz * nx;       xform.m[6]  = -nz * ny;        xform.m[10] = 1.0 - nz * nz;   xform.m[14] = nz * d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane_by_axis(plane, direction):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        s0 = self.m[0] * self.m[5] - self.m[1] * self.m[4]\n        s1 = self.m[0] * self.m[9] - self.m[1] * self.m[8]\n        s2 = self.m[0] * self.m[13] - self.m[1] * self.m[12]\n        s3 = self.m[4] * self.m[9] - self.m[5] * self.m[8]\n        s4 = self.m[4] * self.m[13] - self.m[5] * self.m[12]\n        s5 = self.m[8] * self.m[13] - self.m[9] * self.m[12]\n        c5 = self.m[10] * self.m[15] - self.m[11] * self.m[14]\n        c4 = self.m[6] * self.m[15] - self.m[7] * self.m[14]\n        c3 = self.m[6] * self.m[11] - self.m[7] * self.m[10]\n        c2 = self.m[2] * self.m[15] - self.m[3] * self.m[14]\n        c1 = self.m[2] * self.m[11] - self.m[3] * self.m[10]\n        c0 = self.m[2] * self.m[7] - self.m[3] * self.m[6]\n        det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = (self.m[5] * c5 - self.m[9] * c4 + self.m[13] * c3) * inv_det",
+          "code": "def perspective(fov_y, aspect, near, far):\n\n        f = 1.0 / math.tan(fov_y / 2.0)\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = f / aspect\n        xform.m[5] = f\n        xform.m[10] = far / nf\n        xform.m[11] = -1.0\n        xform.m[14] = (near * far) / nf\n        return xform\n\n    @staticmethod\n    def orthographic(left, right, bottom, top, near, far):\n        rl = right - left\n        tb = top - bottom\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = 2.0 / rl\n        xform.m[5] = 2.0 / tb\n        xform.m[10] = 1.0 / nf\n        xform.m[12] = (left + right) / (left - right)\n        xform.m[13] = (bottom + top) / (bottom - top)\n        xform.m[14] = near / nf\n        xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane(plane):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - nx * nx;  xform.m[4]  = -nx * ny;        xform.m[8]  = -nx * nz;        xform.m[12] = nx * d\n        xform.m[1]  = -ny * nx;       xform.m[5]  = 1.0 - ny * ny;   xform.m[9]  = -ny * nz;        xform.m[13] = ny * d\n        xform.m[2]  = -nz * nx;       xform.m[6]  = -nz * ny;        xform.m[10] = 1.0 - nz * nz;   xform.m[14] = nz * d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane_by_axis(plane, direction):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Apply Transformations\n    ###########################################################################################\n\n    def transform_point(self, p):\n        x = self.m[0] * p[0] + self.m[4] * p[1] + self.m[8] * p[2] + self.m[12]\n        y = self.m[1] * p[0] + self.m[5] * p[1] + self.m[9] * p[2] + self.m[13]\n        z = self.m[2] * p[0] + self.m[6] * p[1] + self.m[10] * p[2] + self.m[14]\n        w = self.m[3] * p[0] + self.m[7] * p[1] + self.m[11] * p[2] + self.m[15]\n        from .point import Point\n        if abs(w) < 1e-12:\n            return Point(x, y, z)\n        return Point(x / w, y / w, z / w)\n\n    def transform_vector(self, v):\n        x = self.m[0] * v[0] + self.m[4] * v[1] + self.m[8] * v[2]\n        y = self.m[1] * v[0] + self.m[5] * v[1] + self.m[9] * v[2]\n        z = self.m[2] * v[0] + self.m[6] * v[1] + self.m[10] * v[2]\n        return Vector(x, y, z)\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:",
           "file": "xform.py"
         },
         "cpp": {
@@ -74596,7 +74604,6 @@ window.API_INDEX = {
       },
       "related": [
         "Xform.axis_rotation",
-        "Xform.guid",
         "Xform.inverse",
         "Xform.look_at_right_handed",
         "Xform.look_to_right_handed",
@@ -74605,6 +74612,8 @@ window.API_INDEX = {
         "Xform.project_to_plane",
         "Xform.project_to_plane_by_axis",
         "Xform.scale_non_uniform",
+        "Xform.transform_point",
+        "Xform.transform_vector",
         "Xform.x",
         "Xform.y",
         "Xform.z"
@@ -74615,7 +74624,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "orthographic(left, right, bottom, top, near, far)",
-          "code": "def orthographic(left, right, bottom, top, near, far):\n\n        rl = right - left\n        tb = top - bottom\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = 2.0 / rl\n        xform.m[5] = 2.0 / tb\n        xform.m[10] = 1.0 / nf\n        xform.m[12] = (left + right) / (left - right)\n        xform.m[13] = (bottom + top) / (bottom - top)\n        xform.m[14] = near / nf\n        xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane(plane):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - nx * nx;  xform.m[4]  = -nx * ny;        xform.m[8]  = -nx * nz;        xform.m[12] = nx * d\n        xform.m[1]  = -ny * nx;       xform.m[5]  = 1.0 - ny * ny;   xform.m[9]  = -ny * nz;        xform.m[13] = ny * d\n        xform.m[2]  = -nz * nx;       xform.m[6]  = -nz * ny;        xform.m[10] = 1.0 - nz * nz;   xform.m[14] = nz * d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane_by_axis(plane, direction):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        s0 = self.m[0] * self.m[5] - self.m[1] * self.m[4]\n        s1 = self.m[0] * self.m[9] - self.m[1] * self.m[8]\n        s2 = self.m[0] * self.m[13] - self.m[1] * self.m[12]\n        s3 = self.m[4] * self.m[9] - self.m[5] * self.m[8]\n        s4 = self.m[4] * self.m[13] - self.m[5] * self.m[12]\n        s5 = self.m[8] * self.m[13] - self.m[9] * self.m[12]\n        c5 = self.m[10] * self.m[15] - self.m[11] * self.m[14]\n        c4 = self.m[6] * self.m[15] - self.m[7] * self.m[14]\n        c3 = self.m[6] * self.m[11] - self.m[7] * self.m[10]\n        c2 = self.m[2] * self.m[15] - self.m[3] * self.m[14]\n        c1 = self.m[2] * self.m[11] - self.m[3] * self.m[10]\n        c0 = self.m[2] * self.m[7] - self.m[3] * self.m[6]\n        det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = (self.m[5] * c5 - self.m[9] * c4 + self.m[13] * c3) * inv_det\n        res.m[4] = (-self.m[4] * c5 + self.m[8] * c4 - self.m[12] * c3) * inv_det\n        res.m[8] = (self.m[7] * s5 - self.m[11] * s4 + self.m[15] * s3) * inv_det\n        res.m[12] = (-self.m[6] * s5 + self.m[10] * s4 - self.m[14] * s3) * inv_det\n        res.m[1] = (-self.m[1] * c5 + self.m[9] * c2 - self.m[13] * c1) * inv_det\n        res.m[5] = (self.m[0] * c5 - self.m[8] * c2 + self.m[12] * c1) * inv_det\n        res.m[9] = (-self.m[3] * s5 + self.m[11] * s2 - self.m[15] * s1) * inv_det\n        res.m[13] = (self.m[2] * s5 - self.m[10] * s2 + self.m[14] * s1) * inv_det\n        res.m[2] = (self.m[1] * c4 - self.m[5] * c2 + self.m[13] * c0) * inv_det\n        res.m[6] = (-self.m[0] * c4 + self.m[4] * c2 - self.m[12] * c0) * inv_det\n        res.m[10] = (self.m[3] * s4 - self.m[7] * s2 + self.m[15] * s0) * inv_det\n        res.m[14] = (-self.m[2] * s4 + self.m[6] * s2 - self.m[14] * s0) * inv_det\n        res.m[3] = (-self.m[1] * c3 + self.m[5] * c1 - self.m[9] * c0) * inv_det",
+          "code": "def orthographic(left, right, bottom, top, near, far):\n\n        rl = right - left\n        tb = top - bottom\n        nf = near - far\n        xform = Xform([0.0] * 16)\n        xform.m[0] = 2.0 / rl\n        xform.m[5] = 2.0 / tb\n        xform.m[10] = 1.0 / nf\n        xform.m[12] = (left + right) / (left - right)\n        xform.m[13] = (bottom + top) / (bottom - top)\n        xform.m[14] = near / nf\n        xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane(plane):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - nx * nx;  xform.m[4]  = -nx * ny;        xform.m[8]  = -nx * nz;        xform.m[12] = nx * d\n        xform.m[1]  = -ny * nx;       xform.m[5]  = 1.0 - ny * ny;   xform.m[9]  = -ny * nz;        xform.m[13] = ny * d\n        xform.m[2]  = -nz * nx;       xform.m[6]  = -nz * ny;        xform.m[10] = 1.0 - nz * nz;   xform.m[14] = nz * d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane_by_axis(plane, direction):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Apply Transformations\n    ###########################################################################################\n\n    def transform_point(self, p):\n        x = self.m[0] * p[0] + self.m[4] * p[1] + self.m[8] * p[2] + self.m[12]\n        y = self.m[1] * p[0] + self.m[5] * p[1] + self.m[9] * p[2] + self.m[13]\n        z = self.m[2] * p[0] + self.m[6] * p[1] + self.m[10] * p[2] + self.m[14]\n        w = self.m[3] * p[0] + self.m[7] * p[1] + self.m[11] * p[2] + self.m[15]\n        from .point import Point\n        if abs(w) < 1e-12:\n            return Point(x, y, z)\n        return Point(x / w, y / w, z / w)\n\n    def transform_vector(self, v):\n        x = self.m[0] * v[0] + self.m[4] * v[1] + self.m[8] * v[2]\n        y = self.m[1] * v[0] + self.m[5] * v[1] + self.m[9] * v[2]\n        z = self.m[2] * v[0] + self.m[6] * v[1] + self.m[10] * v[2]\n        return Vector(x, y, z)\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        s0 = self.m[0] * self.m[5] - self.m[1] * self.m[4]\n        s1 = self.m[0] * self.m[9] - self.m[1] * self.m[8]\n        s2 = self.m[0] * self.m[13] - self.m[1] * self.m[12]\n        s3 = self.m[4] * self.m[9] - self.m[5] * self.m[8]\n        s4 = self.m[4] * self.m[13] - self.m[5] * self.m[12]\n        s5 = self.m[8] * self.m[13] - self.m[9] * self.m[12]\n        c5 = self.m[10] * self.m[15] - self.m[11] * self.m[14]\n        c4 = self.m[6] * self.m[15] - self.m[7] * self.m[14]\n        c3 = self.m[6] * self.m[11] - self.m[7] * self.m[10]\n        c2 = self.m[2] * self.m[15] - self.m[3] * self.m[14]\n        c1 = self.m[2] * self.m[11] - self.m[3] * self.m[10]\n        c0 = self.m[2] * self.m[7] - self.m[3] * self.m[6]",
           "file": "xform.py"
         },
         "cpp": {
@@ -74630,7 +74639,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Xform.guid",
         "Xform.inverse",
         "Xform.look_at_right_handed",
         "Xform.look_to_right_handed",
@@ -74638,6 +74646,8 @@ window.API_INDEX = {
         "Xform.perspective",
         "Xform.project_to_plane",
         "Xform.project_to_plane_by_axis",
+        "Xform.transform_point",
+        "Xform.transform_vector",
         "Xform.x",
         "Xform.y",
         "Xform.z"
@@ -74648,7 +74658,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "project_to_plane(plane)",
-          "code": "def project_to_plane(plane):\n\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - nx * nx;  xform.m[4]  = -nx * ny;        xform.m[8]  = -nx * nz;        xform.m[12] = nx * d\n        xform.m[1]  = -ny * nx;       xform.m[5]  = 1.0 - ny * ny;   xform.m[9]  = -ny * nz;        xform.m[13] = ny * d\n        xform.m[2]  = -nz * nx;       xform.m[6]  = -nz * ny;        xform.m[10] = 1.0 - nz * nz;   xform.m[14] = nz * d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane_by_axis(plane, direction):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        s0 = self.m[0] * self.m[5] - self.m[1] * self.m[4]\n        s1 = self.m[0] * self.m[9] - self.m[1] * self.m[8]\n        s2 = self.m[0] * self.m[13] - self.m[1] * self.m[12]\n        s3 = self.m[4] * self.m[9] - self.m[5] * self.m[8]\n        s4 = self.m[4] * self.m[13] - self.m[5] * self.m[12]\n        s5 = self.m[8] * self.m[13] - self.m[9] * self.m[12]\n        c5 = self.m[10] * self.m[15] - self.m[11] * self.m[14]\n        c4 = self.m[6] * self.m[15] - self.m[7] * self.m[14]\n        c3 = self.m[6] * self.m[11] - self.m[7] * self.m[10]\n        c2 = self.m[2] * self.m[15] - self.m[3] * self.m[14]\n        c1 = self.m[2] * self.m[11] - self.m[3] * self.m[10]\n        c0 = self.m[2] * self.m[7] - self.m[3] * self.m[6]\n        det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = (self.m[5] * c5 - self.m[9] * c4 + self.m[13] * c3) * inv_det\n        res.m[4] = (-self.m[4] * c5 + self.m[8] * c4 - self.m[12] * c3) * inv_det\n        res.m[8] = (self.m[7] * s5 - self.m[11] * s4 + self.m[15] * s3) * inv_det\n        res.m[12] = (-self.m[6] * s5 + self.m[10] * s4 - self.m[14] * s3) * inv_det\n        res.m[1] = (-self.m[1] * c5 + self.m[9] * c2 - self.m[13] * c1) * inv_det\n        res.m[5] = (self.m[0] * c5 - self.m[8] * c2 + self.m[12] * c1) * inv_det\n        res.m[9] = (-self.m[3] * s5 + self.m[11] * s2 - self.m[15] * s1) * inv_det\n        res.m[13] = (self.m[2] * s5 - self.m[10] * s2 + self.m[14] * s1) * inv_det\n        res.m[2] = (self.m[1] * c4 - self.m[5] * c2 + self.m[13] * c0) * inv_det\n        res.m[6] = (-self.m[0] * c4 + self.m[4] * c2 - self.m[12] * c0) * inv_det\n        res.m[10] = (self.m[3] * s4 - self.m[7] * s2 + self.m[15] * s0) * inv_det\n        res.m[14] = (-self.m[2] * s4 + self.m[6] * s2 - self.m[14] * s0) * inv_det\n        res.m[3] = (-self.m[1] * c3 + self.m[5] * c1 - self.m[9] * c0) * inv_det\n        res.m[7] = (self.m[0] * c3 - self.m[4] * c1 + self.m[8] * c0) * inv_det\n        res.m[11] = (-self.m[3] * s3 + self.m[7] * s1 - self.m[11] * s0) * inv_det\n        res.m[15] = (self.m[2] * s3 - self.m[6] * s1 + self.m[10] * s0) * inv_det\n        return res\n\n    def is_identity(self):\n        identity = Xform.identity()\n        for i in range(16):\n            if abs(self.m[i] - identity.m[i]) > 1e-10:\n                return False\n        return True\n\n    def to_cols(self):\n        return [\n            [self.m[0],  self.m[1],  self.m[2],  self.m[3] ],",
+          "code": "def project_to_plane(plane):\n\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - nx * nx;  xform.m[4]  = -nx * ny;        xform.m[8]  = -nx * nz;        xform.m[12] = nx * d\n        xform.m[1]  = -ny * nx;       xform.m[5]  = 1.0 - ny * ny;   xform.m[9]  = -ny * nz;        xform.m[13] = ny * d\n        xform.m[2]  = -nz * nx;       xform.m[6]  = -nz * ny;        xform.m[10] = 1.0 - nz * nz;   xform.m[14] = nz * d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    @staticmethod\n    def project_to_plane_by_axis(plane, direction):\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Apply Transformations\n    ###########################################################################################\n\n    def transform_point(self, p):\n        x = self.m[0] * p[0] + self.m[4] * p[1] + self.m[8] * p[2] + self.m[12]\n        y = self.m[1] * p[0] + self.m[5] * p[1] + self.m[9] * p[2] + self.m[13]\n        z = self.m[2] * p[0] + self.m[6] * p[1] + self.m[10] * p[2] + self.m[14]\n        w = self.m[3] * p[0] + self.m[7] * p[1] + self.m[11] * p[2] + self.m[15]\n        from .point import Point\n        if abs(w) < 1e-12:\n            return Point(x, y, z)\n        return Point(x / w, y / w, z / w)\n\n    def transform_vector(self, v):\n        x = self.m[0] * v[0] + self.m[4] * v[1] + self.m[8] * v[2]\n        y = self.m[1] * v[0] + self.m[5] * v[1] + self.m[9] * v[2]\n        z = self.m[2] * v[0] + self.m[6] * v[1] + self.m[10] * v[2]\n        return Vector(x, y, z)\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        s0 = self.m[0] * self.m[5] - self.m[1] * self.m[4]\n        s1 = self.m[0] * self.m[9] - self.m[1] * self.m[8]\n        s2 = self.m[0] * self.m[13] - self.m[1] * self.m[12]\n        s3 = self.m[4] * self.m[9] - self.m[5] * self.m[8]\n        s4 = self.m[4] * self.m[13] - self.m[5] * self.m[12]\n        s5 = self.m[8] * self.m[13] - self.m[9] * self.m[12]\n        c5 = self.m[10] * self.m[15] - self.m[11] * self.m[14]\n        c4 = self.m[6] * self.m[15] - self.m[7] * self.m[14]\n        c3 = self.m[6] * self.m[11] - self.m[7] * self.m[10]\n        c2 = self.m[2] * self.m[15] - self.m[3] * self.m[14]\n        c1 = self.m[2] * self.m[11] - self.m[3] * self.m[10]\n        c0 = self.m[2] * self.m[7] - self.m[3] * self.m[6]\n        det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = (self.m[5] * c5 - self.m[9] * c4 + self.m[13] * c3) * inv_det\n        res.m[4] = (-self.m[4] * c5 + self.m[8] * c4 - self.m[12] * c3) * inv_det\n        res.m[8] = (self.m[7] * s5 - self.m[11] * s4 + self.m[15] * s3) * inv_det\n        res.m[12] = (-self.m[6] * s5 + self.m[10] * s4 - self.m[14] * s3) * inv_det\n        res.m[1] = (-self.m[1] * c5 + self.m[9] * c2 - self.m[13] * c1) * inv_det\n        res.m[5] = (self.m[0] * c5 - self.m[8] * c2 + self.m[12] * c1) * inv_det\n        res.m[9] = (-self.m[3] * s5 + self.m[11] * s2 - self.m[15] * s1) * inv_det\n        res.m[13] = (self.m[2] * s5 - self.m[10] * s2 + self.m[14] * s1) * inv_det",
           "file": "xform.py"
         },
         "cpp": {
@@ -74664,16 +74674,15 @@ window.API_INDEX = {
       },
       "related": [
         "Xform.guid",
-        "Xform.identity",
         "Xform.inverse",
-        "Xform.is_identity",
         "Xform.look_at_right_handed",
         "Xform.look_to_right_handed",
         "Xform.new",
         "Xform.orthographic",
         "Xform.perspective",
         "Xform.project_to_plane_by_axis",
-        "Xform.to_cols",
+        "Xform.transform_point",
+        "Xform.transform_vector",
         "Xform.x",
         "Xform.y",
         "Xform.z"
@@ -74684,7 +74693,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "project_to_plane_by_axis(plane, direction)",
-          "code": "def project_to_plane_by_axis(plane, direction):\n\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        s0 = self.m[0] * self.m[5] - self.m[1] * self.m[4]\n        s1 = self.m[0] * self.m[9] - self.m[1] * self.m[8]\n        s2 = self.m[0] * self.m[13] - self.m[1] * self.m[12]\n        s3 = self.m[4] * self.m[9] - self.m[5] * self.m[8]\n        s4 = self.m[4] * self.m[13] - self.m[5] * self.m[12]\n        s5 = self.m[8] * self.m[13] - self.m[9] * self.m[12]\n        c5 = self.m[10] * self.m[15] - self.m[11] * self.m[14]\n        c4 = self.m[6] * self.m[15] - self.m[7] * self.m[14]\n        c3 = self.m[6] * self.m[11] - self.m[7] * self.m[10]\n        c2 = self.m[2] * self.m[15] - self.m[3] * self.m[14]\n        c1 = self.m[2] * self.m[11] - self.m[3] * self.m[10]\n        c0 = self.m[2] * self.m[7] - self.m[3] * self.m[6]\n        det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = (self.m[5] * c5 - self.m[9] * c4 + self.m[13] * c3) * inv_det\n        res.m[4] = (-self.m[4] * c5 + self.m[8] * c4 - self.m[12] * c3) * inv_det\n        res.m[8] = (self.m[7] * s5 - self.m[11] * s4 + self.m[15] * s3) * inv_det\n        res.m[12] = (-self.m[6] * s5 + self.m[10] * s4 - self.m[14] * s3) * inv_det\n        res.m[1] = (-self.m[1] * c5 + self.m[9] * c2 - self.m[13] * c1) * inv_det\n        res.m[5] = (self.m[0] * c5 - self.m[8] * c2 + self.m[12] * c1) * inv_det\n        res.m[9] = (-self.m[3] * s5 + self.m[11] * s2 - self.m[15] * s1) * inv_det\n        res.m[13] = (self.m[2] * s5 - self.m[10] * s2 + self.m[14] * s1) * inv_det\n        res.m[2] = (self.m[1] * c4 - self.m[5] * c2 + self.m[13] * c0) * inv_det\n        res.m[6] = (-self.m[0] * c4 + self.m[4] * c2 - self.m[12] * c0) * inv_det\n        res.m[10] = (self.m[3] * s4 - self.m[7] * s2 + self.m[15] * s0) * inv_det\n        res.m[14] = (-self.m[2] * s4 + self.m[6] * s2 - self.m[14] * s0) * inv_det\n        res.m[3] = (-self.m[1] * c3 + self.m[5] * c1 - self.m[9] * c0) * inv_det\n        res.m[7] = (self.m[0] * c3 - self.m[4] * c1 + self.m[8] * c0) * inv_det\n        res.m[11] = (-self.m[3] * s3 + self.m[7] * s1 - self.m[11] * s0) * inv_det\n        res.m[15] = (self.m[2] * s3 - self.m[6] * s1 + self.m[10] * s0) * inv_det\n        return res\n\n    def is_identity(self):\n        identity = Xform.identity()\n        for i in range(16):\n            if abs(self.m[i] - identity.m[i]) > 1e-10:\n                return False\n        return True\n\n    def to_cols(self):\n        return [\n            [self.m[0],  self.m[1],  self.m[2],  self.m[3] ],\n            [self.m[4],  self.m[5],  self.m[6],  self.m[7] ],\n            [self.m[8],  self.m[9],  self.m[10], self.m[11]],\n            [self.m[12], self.m[13], self.m[14], self.m[15]],\n        ]\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        result = Xform()\n        result.m = [0.0] * 16\n        for i in range(4):",
+          "code": "def project_to_plane_by_axis(plane, direction):\n\n        n = plane.z_axis\n        o = plane.origin\n        nx, ny, nz = n[0], n[1], n[2]\n        dx, dy, dz = direction[0], direction[1], direction[2]\n        dot_nd = nx * dx + ny * dy + nz * dz\n        s = 1.0 / dot_nd\n        d = o[0] * nx + o[1] * ny + o[2] * nz\n        xform = Xform()\n        xform.m[0]  = 1.0 - dx*s*nx;  xform.m[4]  = -dx*s*ny;        xform.m[8]  = -dx*s*nz;        xform.m[12] = dx*s*d\n        xform.m[1]  = -dy*s*nx;       xform.m[5]  = 1.0 - dy*s*ny;   xform.m[9]  = -dy*s*nz;        xform.m[13] = dy*s*d\n        xform.m[2]  = -dz*s*nx;       xform.m[6]  = -dz*s*ny;        xform.m[10] = 1.0 - dz*s*nz;   xform.m[14] = dz*s*d\n        xform.m[3]  = 0.0;            xform.m[7]  = 0.0;             xform.m[11] = 0.0;              xform.m[15] = 1.0\n        return xform\n\n    ###########################################################################################\n    # Apply Transformations\n    ###########################################################################################\n\n    def transform_point(self, p):\n        x = self.m[0] * p[0] + self.m[4] * p[1] + self.m[8] * p[2] + self.m[12]\n        y = self.m[1] * p[0] + self.m[5] * p[1] + self.m[9] * p[2] + self.m[13]\n        z = self.m[2] * p[0] + self.m[6] * p[1] + self.m[10] * p[2] + self.m[14]\n        w = self.m[3] * p[0] + self.m[7] * p[1] + self.m[11] * p[2] + self.m[15]\n        from .point import Point\n        if abs(w) < 1e-12:\n            return Point(x, y, z)\n        return Point(x / w, y / w, z / w)\n\n    def transform_vector(self, v):\n        x = self.m[0] * v[0] + self.m[4] * v[1] + self.m[8] * v[2]\n        y = self.m[1] * v[0] + self.m[5] * v[1] + self.m[9] * v[2]\n        z = self.m[2] * v[0] + self.m[6] * v[1] + self.m[10] * v[2]\n        return Vector(x, y, z)\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        s0 = self.m[0] * self.m[5] - self.m[1] * self.m[4]\n        s1 = self.m[0] * self.m[9] - self.m[1] * self.m[8]\n        s2 = self.m[0] * self.m[13] - self.m[1] * self.m[12]\n        s3 = self.m[4] * self.m[9] - self.m[5] * self.m[8]\n        s4 = self.m[4] * self.m[13] - self.m[5] * self.m[12]\n        s5 = self.m[8] * self.m[13] - self.m[9] * self.m[12]\n        c5 = self.m[10] * self.m[15] - self.m[11] * self.m[14]\n        c4 = self.m[6] * self.m[15] - self.m[7] * self.m[14]\n        c3 = self.m[6] * self.m[11] - self.m[7] * self.m[10]\n        c2 = self.m[2] * self.m[15] - self.m[3] * self.m[14]\n        c1 = self.m[2] * self.m[11] - self.m[3] * self.m[10]\n        c0 = self.m[2] * self.m[7] - self.m[3] * self.m[6]\n        det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = (self.m[5] * c5 - self.m[9] * c4 + self.m[13] * c3) * inv_det\n        res.m[4] = (-self.m[4] * c5 + self.m[8] * c4 - self.m[12] * c3) * inv_det\n        res.m[8] = (self.m[7] * s5 - self.m[11] * s4 + self.m[15] * s3) * inv_det\n        res.m[12] = (-self.m[6] * s5 + self.m[10] * s4 - self.m[14] * s3) * inv_det\n        res.m[1] = (-self.m[1] * c5 + self.m[9] * c2 - self.m[13] * c1) * inv_det\n        res.m[5] = (self.m[0] * c5 - self.m[8] * c2 + self.m[12] * c1) * inv_det\n        res.m[9] = (-self.m[3] * s5 + self.m[11] * s2 - self.m[15] * s1) * inv_det\n        res.m[13] = (self.m[2] * s5 - self.m[10] * s2 + self.m[14] * s1) * inv_det\n        res.m[2] = (self.m[1] * c4 - self.m[5] * c2 + self.m[13] * c0) * inv_det\n        res.m[6] = (-self.m[0] * c4 + self.m[4] * c2 - self.m[12] * c0) * inv_det\n        res.m[10] = (self.m[3] * s4 - self.m[7] * s2 + self.m[15] * s0) * inv_det\n        res.m[14] = (-self.m[2] * s4 + self.m[6] * s2 - self.m[14] * s0) * inv_det\n        res.m[3] = (-self.m[1] * c3 + self.m[5] * c1 - self.m[9] * c0) * inv_det\n        res.m[7] = (self.m[0] * c3 - self.m[4] * c1 + self.m[8] * c0) * inv_det\n        res.m[11] = (-self.m[3] * s3 + self.m[7] * s1 - self.m[11] * s0) * inv_det\n        res.m[15] = (self.m[2] * s3 - self.m[6] * s1 + self.m[10] * s0) * inv_det\n        return res\n\n    def is_identity(self):\n        identity = Xform.identity()\n        for i in range(16):",
           "file": "xform.py"
         },
         "cpp": {
@@ -74699,7 +74708,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Xform.__mul__",
         "Xform.guid",
         "Xform.identity",
         "Xform.inverse",
@@ -74709,7 +74717,83 @@ window.API_INDEX = {
         "Xform.orthographic",
         "Xform.perspective",
         "Xform.project_to_plane",
+        "Xform.transform_point",
+        "Xform.transform_vector",
+        "Xform.x",
+        "Xform.y",
+        "Xform.z"
+      ]
+    },
+    {
+      "name": "Xform.transform_point",
+      "implementations": {
+        "python": {
+          "sig": "transform_point(p)",
+          "code": "def transform_point(self, p):\n\n        x = self.m[0] * p[0] + self.m[4] * p[1] + self.m[8] * p[2] + self.m[12]\n        y = self.m[1] * p[0] + self.m[5] * p[1] + self.m[9] * p[2] + self.m[13]\n        z = self.m[2] * p[0] + self.m[6] * p[1] + self.m[10] * p[2] + self.m[14]\n        w = self.m[3] * p[0] + self.m[7] * p[1] + self.m[11] * p[2] + self.m[15]\n        from .point import Point\n        if abs(w) < 1e-12:\n            return Point(x, y, z)\n        return Point(x / w, y / w, z / w)\n\n    def transform_vector(self, v):\n        x = self.m[0] * v[0] + self.m[4] * v[1] + self.m[8] * v[2]\n        y = self.m[1] * v[0] + self.m[5] * v[1] + self.m[9] * v[2]\n        z = self.m[2] * v[0] + self.m[6] * v[1] + self.m[10] * v[2]\n        return Vector(x, y, z)\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        s0 = self.m[0] * self.m[5] - self.m[1] * self.m[4]\n        s1 = self.m[0] * self.m[9] - self.m[1] * self.m[8]\n        s2 = self.m[0] * self.m[13] - self.m[1] * self.m[12]\n        s3 = self.m[4] * self.m[9] - self.m[5] * self.m[8]\n        s4 = self.m[4] * self.m[13] - self.m[5] * self.m[12]\n        s5 = self.m[8] * self.m[13] - self.m[9] * self.m[12]\n        c5 = self.m[10] * self.m[15] - self.m[11] * self.m[14]\n        c4 = self.m[6] * self.m[15] - self.m[7] * self.m[14]\n        c3 = self.m[6] * self.m[11] - self.m[7] * self.m[10]\n        c2 = self.m[2] * self.m[15] - self.m[3] * self.m[14]\n        c1 = self.m[2] * self.m[11] - self.m[3] * self.m[10]\n        c0 = self.m[2] * self.m[7] - self.m[3] * self.m[6]\n        det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = (self.m[5] * c5 - self.m[9] * c4 + self.m[13] * c3) * inv_det\n        res.m[4] = (-self.m[4] * c5 + self.m[8] * c4 - self.m[12] * c3) * inv_det\n        res.m[8] = (self.m[7] * s5 - self.m[11] * s4 + self.m[15] * s3) * inv_det\n        res.m[12] = (-self.m[6] * s5 + self.m[10] * s4 - self.m[14] * s3) * inv_det\n        res.m[1] = (-self.m[1] * c5 + self.m[9] * c2 - self.m[13] * c1) * inv_det\n        res.m[5] = (self.m[0] * c5 - self.m[8] * c2 + self.m[12] * c1) * inv_det\n        res.m[9] = (-self.m[3] * s5 + self.m[11] * s2 - self.m[15] * s1) * inv_det\n        res.m[13] = (self.m[2] * s5 - self.m[10] * s2 + self.m[14] * s1) * inv_det\n        res.m[2] = (self.m[1] * c4 - self.m[5] * c2 + self.m[13] * c0) * inv_det\n        res.m[6] = (-self.m[0] * c4 + self.m[4] * c2 - self.m[12] * c0) * inv_det\n        res.m[10] = (self.m[3] * s4 - self.m[7] * s2 + self.m[15] * s0) * inv_det\n        res.m[14] = (-self.m[2] * s4 + self.m[6] * s2 - self.m[14] * s0) * inv_det\n        res.m[3] = (-self.m[1] * c3 + self.m[5] * c1 - self.m[9] * c0) * inv_det\n        res.m[7] = (self.m[0] * c3 - self.m[4] * c1 + self.m[8] * c0) * inv_det\n        res.m[11] = (-self.m[3] * s3 + self.m[7] * s1 - self.m[11] * s0) * inv_det\n        res.m[15] = (self.m[2] * s3 - self.m[6] * s1 + self.m[10] * s0) * inv_det\n        return res\n\n    def is_identity(self):\n        identity = Xform.identity()\n        for i in range(16):\n            if abs(self.m[i] - identity.m[i]) > 1e-10:\n                return False\n        return True\n\n    def to_cols(self):\n        return [\n            [self.m[0],  self.m[1],  self.m[2],  self.m[3] ],\n            [self.m[4],  self.m[5],  self.m[6],  self.m[7] ],\n            [self.m[8],  self.m[9],  self.m[10], self.m[11]],\n            [self.m[12], self.m[13], self.m[14], self.m[15]],\n        ]\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        result = Xform()\n        result.m = [0.0] * 16",
+          "file": "xform.py"
+        },
+        "cpp": {
+          "sig": "Point transform_point(const Point& p)",
+          "code": "Point Xform::transform_point(const Point& p) const {\n    double x = m[0] * p[0] + m[4] * p[1] + m[8] * p[2] + m[12];\n    double y = m[1] * p[0] + m[5] * p[1] + m[9] * p[2] + m[13];\n    double z = m[2] * p[0] + m[6] * p[1] + m[10] * p[2] + m[14];\n    double w = m[3] * p[0] + m[7] * p[1] + m[11] * p[2] + m[15];\n    if (std::abs(w) < 1e-12) {\n        return Point(x, y, z);\n    }",
+          "file": "xform.cpp"
+        },
+        "rust": {
+          "sig": "transform_point(p: &Point) -> Point",
+          "code": "pub fn transform_point(&self, p: &Point) -> Point {\n        let x = self.m[0] * p[0] + self.m[4] * p[1] + self.m[8] * p[2] + self.m[12];\n        let y = self.m[1] * p[0] + self.m[5] * p[1] + self.m[9] * p[2] + self.m[13];\n        let z = self.m[2] * p[0] + self.m[6] * p[1] + self.m[10] * p[2] + self.m[14];\n        let w = self.m[3] * p[0] + self.m[7] * p[1] + self.m[11] * p[2] + self.m[15];\n        if w.abs() < 1e-12 {\n            return Point::new(x, y, z);\n        }\n        Point::new(x / w, y / w, z / w)\n    }",
+          "file": "xform.rs"
+        }
+      },
+      "related": [
+        "Xform.__mul__",
+        "Xform.guid",
+        "Xform.identity",
+        "Xform.inverse",
+        "Xform.is_identity",
+        "Xform.new",
+        "Xform.orthographic",
+        "Xform.perspective",
+        "Xform.project_to_plane",
+        "Xform.project_to_plane_by_axis",
         "Xform.to_cols",
+        "Xform.transform_vector",
+        "Xform.x",
+        "Xform.y",
+        "Xform.z"
+      ]
+    },
+    {
+      "name": "Xform.transform_vector",
+      "implementations": {
+        "python": {
+          "sig": "transform_vector(v)",
+          "code": "def transform_vector(self, v):\n\n        x = self.m[0] * v[0] + self.m[4] * v[1] + self.m[8] * v[2]\n        y = self.m[1] * v[0] + self.m[5] * v[1] + self.m[9] * v[2]\n        z = self.m[2] * v[0] + self.m[6] * v[1] + self.m[10] * v[2]\n        return Vector(x, y, z)\n\n    ###########################################################################################\n    # Details\n    ###########################################################################################\n\n    def inverse(self) -> Optional[\"Xform\"]:\n        s0 = self.m[0] * self.m[5] - self.m[1] * self.m[4]\n        s1 = self.m[0] * self.m[9] - self.m[1] * self.m[8]\n        s2 = self.m[0] * self.m[13] - self.m[1] * self.m[12]\n        s3 = self.m[4] * self.m[9] - self.m[5] * self.m[8]\n        s4 = self.m[4] * self.m[13] - self.m[5] * self.m[12]\n        s5 = self.m[8] * self.m[13] - self.m[9] * self.m[12]\n        c5 = self.m[10] * self.m[15] - self.m[11] * self.m[14]\n        c4 = self.m[6] * self.m[15] - self.m[7] * self.m[14]\n        c3 = self.m[6] * self.m[11] - self.m[7] * self.m[10]\n        c2 = self.m[2] * self.m[15] - self.m[3] * self.m[14]\n        c1 = self.m[2] * self.m[11] - self.m[3] * self.m[10]\n        c0 = self.m[2] * self.m[7] - self.m[3] * self.m[6]\n        det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0\n        if abs(det) < 1e-12:\n            return None\n        inv_det = 1.0 / det\n        res = Xform()\n        res.guid = \"\"\n        res.name = \"\"\n        res.m[0] = (self.m[5] * c5 - self.m[9] * c4 + self.m[13] * c3) * inv_det\n        res.m[4] = (-self.m[4] * c5 + self.m[8] * c4 - self.m[12] * c3) * inv_det\n        res.m[8] = (self.m[7] * s5 - self.m[11] * s4 + self.m[15] * s3) * inv_det\n        res.m[12] = (-self.m[6] * s5 + self.m[10] * s4 - self.m[14] * s3) * inv_det\n        res.m[1] = (-self.m[1] * c5 + self.m[9] * c2 - self.m[13] * c1) * inv_det\n        res.m[5] = (self.m[0] * c5 - self.m[8] * c2 + self.m[12] * c1) * inv_det\n        res.m[9] = (-self.m[3] * s5 + self.m[11] * s2 - self.m[15] * s1) * inv_det\n        res.m[13] = (self.m[2] * s5 - self.m[10] * s2 + self.m[14] * s1) * inv_det\n        res.m[2] = (self.m[1] * c4 - self.m[5] * c2 + self.m[13] * c0) * inv_det\n        res.m[6] = (-self.m[0] * c4 + self.m[4] * c2 - self.m[12] * c0) * inv_det\n        res.m[10] = (self.m[3] * s4 - self.m[7] * s2 + self.m[15] * s0) * inv_det\n        res.m[14] = (-self.m[2] * s4 + self.m[6] * s2 - self.m[14] * s0) * inv_det\n        res.m[3] = (-self.m[1] * c3 + self.m[5] * c1 - self.m[9] * c0) * inv_det\n        res.m[7] = (self.m[0] * c3 - self.m[4] * c1 + self.m[8] * c0) * inv_det\n        res.m[11] = (-self.m[3] * s3 + self.m[7] * s1 - self.m[11] * s0) * inv_det\n        res.m[15] = (self.m[2] * s3 - self.m[6] * s1 + self.m[10] * s0) * inv_det\n        return res\n\n    def is_identity(self):\n        identity = Xform.identity()\n        for i in range(16):\n            if abs(self.m[i] - identity.m[i]) > 1e-10:\n                return False\n        return True\n\n    def to_cols(self):\n        return [\n            [self.m[0],  self.m[1],  self.m[2],  self.m[3] ],\n            [self.m[4],  self.m[5],  self.m[6],  self.m[7] ],\n            [self.m[8],  self.m[9],  self.m[10], self.m[11]],\n            [self.m[12], self.m[13], self.m[14], self.m[15]],\n        ]\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __mul__(self, other):\n        result = Xform()\n        result.m = [0.0] * 16\n        for i in range(4):\n            for j in range(4):\n                sum_val = 0.0\n                for k in range(4):\n                    sum_val += self.m[k * 4 + i] * other.m[j * 4 + k]\n                result.m[j * 4 + i] = sum_val\n        return result\n\n    def __imul__(self, other):\n        temp = self * other",
+          "file": "xform.py"
+        },
+        "cpp": {
+          "sig": "Vector transform_vector(const Vector& v)",
+          "code": "Vector Xform::transform_vector(const Vector& v) const {\n    double x = m[0] * v[0] + m[4] * v[1] + m[8] * v[2];\n    double y = m[1] * v[0] + m[5] * v[1] + m[9] * v[2];\n    double z = m[2] * v[0] + m[6] * v[1] + m[10] * v[2];\n    return Vector(x, y, z);\n}",
+          "file": "xform.cpp"
+        },
+        "rust": {
+          "sig": "transform_vector(v: &Vector) -> Vector",
+          "code": "pub fn transform_vector(&self, v: &Vector) -> Vector {\n        let x = self.m[0] * v[0] + self.m[4] * v[1] + self.m[8] * v[2];\n        let y = self.m[1] * v[0] + self.m[5] * v[1] + self.m[9] * v[2];\n        let z = self.m[2] * v[0] + self.m[6] * v[1] + self.m[10] * v[2];\n        Vector::new(x, y, z)\n    }",
+          "file": "xform.rs"
+        }
+      },
+      "related": [
+        "Xform.__imul__",
+        "Xform.__mul__",
+        "Xform.guid",
+        "Xform.identity",
+        "Xform.inverse",
+        "Xform.is_identity",
+        "Xform.new",
+        "Xform.orthographic",
+        "Xform.perspective",
+        "Xform.project_to_plane",
+        "Xform.project_to_plane_by_axis",
+        "Xform.to_cols",
+        "Xform.transform_point",
         "Xform.x",
         "Xform.y",
         "Xform.z"
@@ -74746,6 +74830,8 @@ window.API_INDEX = {
         "Xform.project_to_plane",
         "Xform.project_to_plane_by_axis",
         "Xform.to_cols",
+        "Xform.transform_point",
+        "Xform.transform_vector",
         "Xform.x",
         "Xform.y"
       ]
@@ -74781,9 +74867,10 @@ window.API_INDEX = {
         "Xform.inverse",
         "Xform.jsondump",
         "Xform.jsonload",
-        "Xform.project_to_plane",
         "Xform.project_to_plane_by_axis",
         "Xform.to_cols",
+        "Xform.transform_point",
+        "Xform.transform_vector",
         "Xform.x",
         "Xform.y",
         "Xform.z"
@@ -74820,9 +74907,9 @@ window.API_INDEX = {
         "Xform.is_identity",
         "Xform.jsondump",
         "Xform.jsonload",
-        "Xform.project_to_plane",
-        "Xform.project_to_plane_by_axis",
         "Xform.str",
+        "Xform.transform_point",
+        "Xform.transform_vector",
         "Xform.x",
         "Xform.y",
         "Xform.z"
@@ -74850,9 +74937,10 @@ window.API_INDEX = {
         "Xform.is_identity",
         "Xform.jsondump",
         "Xform.jsonload",
-        "Xform.project_to_plane_by_axis",
         "Xform.str",
         "Xform.to_cols",
+        "Xform.transform_point",
+        "Xform.transform_vector",
         "Xform.x",
         "Xform.y",
         "Xform.z"
@@ -74882,6 +74970,7 @@ window.API_INDEX = {
         "Xform.jsonload",
         "Xform.str",
         "Xform.to_cols",
+        "Xform.transform_vector",
         "Xform.x",
         "Xform.y",
         "Xform.z"
@@ -87304,7 +87393,6 @@ window.API_INDEX = {
         "Session.__repr__",
         "Session.__str__",
         "Session._add_object",
-        "Session._compute_bounding_box",
         "Session.add",
         "Session.add_brep",
         "Session.add_component",
@@ -87447,7 +87535,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>>",
-          "code": "pub fn jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {\n        let json_obj: serde_json::Value = serde_json::from_str(json_data)?;\n\n        // Deserialize components using their custom methods\n        let objects: Objects = serde_json::from_value(json_obj[\"objects\"].clone())?;\n        let tree: Tree = serde_json::from_value(json_obj[\"tree\"].clone())?;\n        // Convert graph JSON value to properly formatted string\n        let graph_json_str = serde_json::to_string(&json_obj[\"graph\"])?;\n        let graph: Graph = Graph::jsonload(&graph_json_str)?;\n\n        // Rebuild lookup table from all objects\n        let mut lookup = HashMap::new();\n        for bbox in &objects.bboxes {\n            lookup.insert(bbox.guid().to_string(), Geometry::OBB(bbox.clone()));\n        }\n        for line in &objects.lines {\n            lookup.insert(line.guid().to_string(), Geometry::Line(line.clone()));\n        }\n        for mesh in &objects.meshes {\n            lookup.insert(mesh.guid().to_string(), Geometry::Mesh(mesh.clone()));\n        }\n        for plane in &objects.planes {\n            lookup.insert(plane.guid().to_string(), Geometry::Plane(plane.clone()));\n        }\n        for point in &objects.points {\n            lookup.insert(point.guid().to_string(), Geometry::Point(point.clone()));\n        }\n        for pointcloud in &objects.pointclouds {\n            lookup.insert(\n                pointcloud.guid().to_string(),\n                Geometry::PointCloud(pointcloud.clone()),\n            );\n        }\n        for polyline in &objects.polylines {\n            lookup.insert(polyline.guid().to_string(), Geometry::Polyline(polyline.clone()));\n        }\n        for brep in &objects.breps {\n            lookup.insert(brep.guid().to_string(), Geometry::BRep(brep.clone()));\n        }\n        for elem in &objects.elements {\n            lookup.insert(elem.guid().to_string(), Geometry::Element(elem.clone()));\n        }\n\n        let session = Session {\n            guid: { let lock = std::sync::OnceLock::new(); let _ = lock.set(json_obj[\"guid\"].as_str().unwrap_or(\"\").to_string()); lock },\n            name: json_obj[\"name\"]\n                .as_str()\n                .unwrap_or(\"my_session\")\n                .to_string(),\n            objects,\n            lookup,\n            tree,\n            graph,\n            bvh: SpatialBVH::new(),\n            cached_ray_bvh: None,\n            cached_guids: Vec::new(),\n            cached_boxes: Vec::new(),\n            bvh_cache_dirty: true,\n        };\n\n        Ok(session)\n    }",
+          "code": "pub fn jsonload(json_data: &str) -> Result<Self, Box<dyn std::error::Error>> {\n        let json_obj: serde_json::Value = serde_json::from_str(json_data)?;\n\n        // Deserialize components using their custom methods\n        let objects: Objects = serde_json::from_value(json_obj[\"objects\"].clone())?;\n        let tree: Tree = serde_json::from_value(json_obj[\"tree\"].clone())?;\n        // Convert graph JSON value to properly formatted string\n        let graph_json_str = serde_json::to_string(&json_obj[\"graph\"])?;\n        let graph: Graph = Graph::jsonload(&graph_json_str)?;\n\n        // Rebuild lookup table from all objects\n        let mut lookup = HashMap::new();\n        for bbox in &objects.bboxes {\n            lookup.insert(bbox.guid().to_string(), Geometry::OBB(bbox.clone()));\n        }\n        for line in &objects.lines {\n            lookup.insert(line.guid().to_string(), Geometry::Line(line.clone()));\n        }\n        for mesh in &objects.meshes {\n            lookup.insert(mesh.guid().to_string(), Geometry::Mesh(mesh.clone()));\n        }\n        for plane in &objects.planes {\n            lookup.insert(plane.guid().to_string(), Geometry::Plane(plane.clone()));\n        }\n        for point in &objects.points {\n            lookup.insert(point.guid().to_string(), Geometry::Point(point.clone()));\n        }\n        for pointcloud in &objects.pointclouds {\n            lookup.insert(\n                pointcloud.guid().to_string(),\n                Geometry::PointCloud(pointcloud.clone()),\n            );\n        }\n        for polyline in &objects.polylines {\n            lookup.insert(polyline.guid().to_string(), Geometry::Polyline(polyline.clone()));\n        }\n        for nurbscurve in &objects.nurbscurves {\n            lookup.insert(nurbscurve.guid().to_string(), Geometry::NurbsCurve(nurbscurve.clone()));\n        }\n        for nurbssurface in &objects.nurbssurfaces {\n            lookup.insert(nurbssurface.guid().to_string(), Geometry::NurbsSurface(nurbssurface.clone()));\n        }\n        for brep in &objects.breps {\n            lookup.insert(brep.guid().to_string(), Geometry::BRep(brep.clone()));\n        }\n        for elem in &objects.elements {\n            lookup.insert(elem.guid().to_string(), Geometry::Element(elem.clone()));\n        }\n\n        let session = Session {\n            guid: { let lock = std::sync::OnceLock::new(); let _ = lock.set(json_obj[\"guid\"].as_str().unwrap_or(\"\").to_string()); lock },\n            name: json_obj[\"name\"]\n                .as_str()\n                .unwrap_or(\"my_session\")\n                .to_string(),\n            objects,\n            lookup,\n            tree,\n            graph,\n            bvh: SpatialBVH::new(),\n            cached_ray_bvh: None,\n            cached_guids: Vec::new(),\n            cached_boxes: Vec::new(),\n            bvh_cache_dirty: true,\n        };\n\n        Ok(session)\n    }",
           "file": "session.rs"
         }
       },
@@ -92677,7 +92765,7 @@ window.API_INDEX = {
       "implementations": {
         "rust": {
           "sig": "guid() -> &str",
-          "code": "pub fn guid(&self) -> &str {\n        match self {\n            Geometry::OBB(g) => g.guid(),\n            Geometry::BRep(g) => g.guid(),\n            Geometry::Element(g) => g.guid(),\n            Geometry::Line(g) => g.guid(),\n            Geometry::Mesh(g) => g.guid(),\n            Geometry::Plane(g) => g.guid(),\n            Geometry::Point(g) => g.guid(),\n            Geometry::PointCloud(g) => g.guid(),\n            Geometry::Polyline(g) => g.guid(),\n        }\n    }",
+          "code": "pub fn guid(&self) -> &str {\n        match self {\n            Geometry::OBB(g) => g.guid(),\n            Geometry::BRep(g) => g.guid(),\n            Geometry::Element(g) => g.guid(),\n            Geometry::Line(g) => g.guid(),\n            Geometry::Mesh(g) => g.guid(),\n            Geometry::NurbsCurve(g) => g.guid(),\n            Geometry::NurbsSurface(g) => g.guid(),\n            Geometry::Plane(g) => g.guid(),\n            Geometry::Point(g) => g.guid(),\n            Geometry::PointCloud(g) => g.guid(),\n            Geometry::Polyline(g) => g.guid(),\n        }\n    }",
           "file": "session.rs"
         }
       }
@@ -92724,6 +92812,8 @@ window.API_INDEX = {
         "Session.add_group",
         "Session.add_line",
         "Session.add_mesh",
+        "Session.add_nurbscurve",
+        "Session.add_nurbssurface",
         "Session.add_obb",
         "Session.add_plane",
         "Session.add_point",
@@ -93775,6 +93865,8 @@ window.API_INDEX = {
         "Xform.project_to_plane",
         "Xform.project_to_plane_by_axis",
         "Xform.str",
+        "Xform.transform_point",
+        "Xform.transform_vector",
         "Xform.x",
         "Xform.y",
         "Xform.z"
@@ -93878,6 +93970,8 @@ window.API_INDEX = {
         "Xform.scale_xyz",
         "Xform.to_cols",
         "Xform.to_frame",
+        "Xform.transform_point",
+        "Xform.transform_vector",
         "Xform.translation",
         "Xform.world_to_frame",
         "Xform.xy_to_plane"
@@ -93949,6 +94043,8 @@ window.API_INDEX = {
         "Xform.to_cols",
         "Xform.to_f32",
         "Xform.to_frame",
+        "Xform.transform_point",
+        "Xform.transform_vector",
         "Xform.translation",
         "Xform.world_to_frame",
         "Xform.xy_to_plane"
@@ -94015,6 +94111,8 @@ window.API_INDEX = {
         "Xform.scale_xyz",
         "Xform.to_cols",
         "Xform.to_frame",
+        "Xform.transform_point",
+        "Xform.transform_vector",
         "Xform.translation",
         "Xform.world_to_frame",
         "Xform.xy_to_plane"
@@ -105068,7 +105166,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Constructor\")",
-          "code": "MINI_TEST!(\"Session\", \"Constructor\", crate::session_test::run_session_constructor);\nREGISTER_MINI_TEST!(\"Session\", \"Add Point\", crate::session_test::run_session_add_point);\nREGISTER_MINI_TEST!(\"Session\", \"Add Line\", crate::session_test::run_session_add_line);\nREGISTER_MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
+          "code": "MINI_TEST!(\"Session\", \"Constructor\", crate::session_test::run_session_constructor);\nREGISTER_MINI_TEST!(\"Session\", \"Add Point\", crate::session_test::run_session_add_point);\nREGISTER_MINI_TEST!(\"Session\", \"Add Line\", crate::session_test::run_session_add_line);\nREGISTER_MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbscurve\", crate::session_test::run_session_add_nurbscurve);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbssurface\", crate::session_test::run_session_add_nurbssurface);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -105088,7 +105186,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Point\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Point\", crate::session_test::run_session_add_point);\nREGISTER_MINI_TEST!(\"Session\", \"Add Line\", crate::session_test::run_session_add_line);\nREGISTER_MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
+          "code": "MINI_TEST!(\"Session\", \"Add Point\", crate::session_test::run_session_add_point);\nREGISTER_MINI_TEST!(\"Session\", \"Add Line\", crate::session_test::run_session_add_line);\nREGISTER_MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbscurve\", crate::session_test::run_session_add_nurbscurve);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbssurface\", crate::session_test::run_session_add_nurbssurface);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -105108,7 +105206,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Line\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Line\", crate::session_test::run_session_add_line);\nREGISTER_MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
+          "code": "MINI_TEST!(\"Session\", \"Add Line\", crate::session_test::run_session_add_line);\nREGISTER_MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbscurve\", crate::session_test::run_session_add_nurbscurve);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbssurface\", crate::session_test::run_session_add_nurbssurface);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -105128,7 +105226,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Plane\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
+          "code": "MINI_TEST!(\"Session\", \"Add Plane\", crate::session_test::run_session_add_plane);\nREGISTER_MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbscurve\", crate::session_test::run_session_add_nurbscurve);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbssurface\", crate::session_test::run_session_add_nurbssurface);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -105148,7 +105246,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add OBB\")",
-          "code": "MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
+          "code": "MINI_TEST!(\"Session\", \"Add OBB\", crate::session_test::run_session_add_obb);\nREGISTER_MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbscurve\", crate::session_test::run_session_add_nurbscurve);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbssurface\", crate::session_test::run_session_add_nurbssurface);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -105168,7 +105266,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Polyline\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
+          "code": "MINI_TEST!(\"Session\", \"Add Polyline\", crate::session_test::run_session_add_polyline);\nREGISTER_MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbscurve\", crate::session_test::run_session_add_nurbscurve);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbssurface\", crate::session_test::run_session_add_nurbssurface);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -105188,7 +105286,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Pointcloud\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
+          "code": "MINI_TEST!(\"Session\", \"Add Pointcloud\", crate::session_test::run_session_add_pointcloud);\nREGISTER_MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbscurve\", crate::session_test::run_session_add_nurbscurve);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbssurface\", crate::session_test::run_session_add_nurbssurface);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -105208,7 +105306,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Session\", \"Add Mesh\")",
-          "code": "MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
+          "code": "MINI_TEST!(\"Session\", \"Add Mesh\", crate::session_test::run_session_add_mesh);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbscurve\", crate::session_test::run_session_add_nurbscurve);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbssurface\", crate::session_test::run_session_add_nurbssurface);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
           "file": "session_test.rs"
         }
       }
@@ -105225,6 +105323,11 @@ window.API_INDEX = {
           "sig": "@MINI_TEST(\"Session\", \"Add Nurbscurve\")",
           "code": "@MINI_TEST(\"Session\", \"Add Nurbscurve\")\ndef test_session_add_nurbscurve():\n    from session_py import Session\n    from session_py import NurbsCurve\n    from session_py import Point\n\n    session = Session()\n    pts = [Point(0,0,0), Point(1,1,0), Point(2,0,0), Point(3,1,0)]\n    nc = NurbsCurve.create(False, 2, pts)\n    session.add_nurbscurve(nc)\n\n    MINI_CHECK(len(session.objects.nurbscurves) == 1)\n    MINI_CHECK(nc.guid in session.lookup)",
           "file": "session_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Session\", \"Add Nurbscurve\")",
+          "code": "MINI_TEST!(\"Session\", \"Add Nurbscurve\", crate::session_test::run_session_add_nurbscurve);\nREGISTER_MINI_TEST!(\"Session\", \"Add Nurbssurface\", crate::session_test::run_session_add_nurbssurface);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
+          "file": "session_test.rs"
         }
       }
     },
@@ -105240,6 +105343,11 @@ window.API_INDEX = {
           "sig": "@MINI_TEST(\"Session\", \"Add Nurbssurface\")",
           "code": "@MINI_TEST(\"Session\", \"Add Nurbssurface\")\ndef test_session_add_nurbssurface():\n    from session_py import Session\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    session = Session()\n    pts = [\n        Point(0,0,0), Point(0,1,0), Point(0,2,0), Point(0,3,0),\n        Point(1,0,0), Point(1,1,0), Point(1,2,0), Point(1,3,0),\n        Point(2,0,0), Point(2,1,0), Point(2,2,0), Point(2,3,0),\n        Point(3,0,0), Point(3,1,0), Point(3,2,0), Point(3,3,0),\n    ]\n    ns = NurbsSurface.create(False, False, 3, 3, 4, 4, pts)\n    session.add_nurbssurface(ns)\n\n    MINI_CHECK(len(session.objects.nurbssurfaces) == 1)\n    MINI_CHECK(ns.guid in session.lookup)",
           "file": "session_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Session\", \"Add Nurbssurface\")",
+          "code": "MINI_TEST!(\"Session\", \"Add Nurbssurface\", crate::session_test::run_session_add_nurbssurface);\nREGISTER_MINI_TEST!(\"Session\", \"Add Brep\", crate::session_test::run_session_add_brep);\nREGISTER_MINI_TEST!(\"Session\", \"Add Element\", crate::session_test::run_session_add_element);\nREGISTER_MINI_TEST!(\"Session\", \"Add Group\", crate::session_test::run_session_add_group);\nREGISTER_MINI_TEST!(\"Session\", \"Add Edge\", crate::session_test::run_session_add_edge);\nREGISTER_MINI_TEST!(\"Session\", \"Add Hierarchy\", crate::session_test::run_session_add_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Get Children\", crate::session_test::run_session_get_children);\nREGISTER_MINI_TEST!(\"Session\", \"Add Relationship\", crate::session_test::run_session_add_relationship);\nREGISTER_MINI_TEST!(\"Session\", \"Get Neighbours\", crate::session_test::run_session_get_neighbours);\nREGISTER_MINI_TEST!(\"Session\", \"Get Collisions\", crate::session_test::run_session_get_collisions);\nREGISTER_MINI_TEST!(\"Session\", \"Ray Cast\", crate::session_test::run_session_ray_cast);\nREGISTER_MINI_TEST!(\"Session\", \"Get Object\", crate::session_test::run_session_get_object);\nREGISTER_MINI_TEST!(\"Session\", \"Remove Object\", crate::session_test::run_session_remove_object);\nREGISTER_MINI_TEST!(\"Session\", \"Get Geometry\", crate::session_test::run_session_get_geometry);\nREGISTER_MINI_TEST!(\"Session\", \"Compute Face To Face\", crate::session_test::run_session_compute_face_to_face);\nREGISTER_MINI_TEST!(\"Session\", \"Json Roundtrip\", crate::session_test::run_session_json_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Protobuf Roundtrip\", crate::session_test::run_session_protobuf_roundtrip);\nREGISTER_MINI_TEST!(\"Session\", \"Tree Transformation Hierarchy\", crate::session_test::run_session_tree_transformation_hierarchy);\nREGISTER_MINI_TEST!(\"Session\", \"Add Component\",              crate::session_test::run_session_add_component);\nREGISTER_MINI_TEST!(\"Session\", \"Component Json Roundtrip\",   crate::session_test::run_session_component_json_roundtrip);",
+          "file": "session_test.rs"
         }
       }
     },
@@ -105428,12 +105536,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Session\", \"Ray Cast\")",
-          "code": "MINI_TEST(\"Session\", \"Ray Cast\") {\n    // uncomment #include \"session.h\"\n    // uncomment #include \"mesh.h\"\n\n    Session session;\n    auto mesh = std::make_shared<Mesh>();\n    mesh->add_vertex(Point(-1.0, -1.0, 0.0), 0);\n    mesh->add_vertex(Point(1.0, -1.0, 0.0), 1);\n    mesh->add_vertex(Point(0.0, 1.0, 0.0), 2);\n    mesh->add_face(std::vector<size_t>{0, 1, 2});\n    session.add_mesh(mesh);\n    auto hits = session.ray_cast(Point(0.0, 0.0, 2.0), Vector(0.0, 0.0, -1.0));\n\n    MINI_CHECK(hits.size() >= 1);\n}",
+          "code": "MINI_TEST(\"Session\", \"Ray Cast\") {\n    // uncomment #include \"session.h\"\n    // uncomment #include \"mesh.h\"\n\n    Session session;\n    auto mesh = std::make_shared<Mesh>();\n    mesh->add_vertex(Point(-1.0, -1.0, 0.0), 0);\n    mesh->add_vertex(Point(1.0, -1.0, 0.0), 1);\n    mesh->add_vertex(Point(0.0, 1.0, 0.0), 2);\n    mesh->add_face(std::vector<size_t>{0, 1, 2});\n    session.add_mesh(mesh);\n    auto hits = session.ray_cast(Point(0.0, 0.0, 2.0), Vector(0.0, 0.0, -1.0));\n\n    MINI_CHECK(hits.size() >= 1);\n\n    auto placed = std::make_shared<Mesh>();\n    placed->add_vertex(Point(-1.0, -1.0, 0.0), 0);\n    placed->add_vertex(Point(1.0, -1.0, 0.0), 1);\n    placed->add_vertex(Point(0.0, 1.0, 0.0), 2);\n    placed->add_face(std::vector<size_t>{0, 1, 2});\n    placed->xform = Xform::translation(100.0, 0.0, 0.0);\n    session.add_mesh(placed);\n    auto hits2 = session.ray_cast(Point(100.0, 0.0, 2.0), Vector(0.0, 0.0, -1.0));\n\n    MINI_CHECK(hits2.size() >= 1);\n    MINI_CHECK(TOLERANCE.is_close(hits2[0].hit_point[0], 100.0));\n}",
           "file": "session_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Session\", \"Ray Cast\")",
-          "code": "@MINI_TEST(\"Session\", \"Ray Cast\")\ndef test_session_ray_cast():\n    from session_py import Session\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n\n    session = Session()\n    mesh = Mesh()\n    mesh.add_vertex(Point(-1.0, -1.0, 0.0), 0)\n    mesh.add_vertex(Point(1.0, -1.0, 0.0), 1)\n    mesh.add_vertex(Point(0.0, 1.0, 0.0), 2)\n    mesh.add_face([0, 1, 2])\n    session.add_mesh(mesh)\n    hits = session.ray_cast(Point(0.0, 0.0, 2.0), Vector(0.0, 0.0, -1.0))\n\n    MINI_CHECK(len(hits) >= 1)",
+          "code": "@MINI_TEST(\"Session\", \"Ray Cast\")\ndef test_session_ray_cast():\n    from session_py import Session\n    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n\n    session = Session()\n    mesh = Mesh()\n    mesh.add_vertex(Point(-1.0, -1.0, 0.0), 0)\n    mesh.add_vertex(Point(1.0, -1.0, 0.0), 1)\n    mesh.add_vertex(Point(0.0, 1.0, 0.0), 2)\n    mesh.add_face([0, 1, 2])\n    session.add_mesh(mesh)\n    hits = session.ray_cast(Point(0.0, 0.0, 2.0), Vector(0.0, 0.0, -1.0))\n\n    MINI_CHECK(len(hits) >= 1)\n\n    from session_py import Xform\n    placed = Mesh()\n    placed.add_vertex(Point(-1.0, -1.0, 0.0), 0)\n    placed.add_vertex(Point(1.0, -1.0, 0.0), 1)\n    placed.add_vertex(Point(0.0, 1.0, 0.0), 2)\n    placed.add_face([0, 1, 2])\n    placed.xform = Xform.translation(100.0, 0.0, 0.0)\n    session.add_mesh(placed)\n    hits2 = session.ray_cast(Point(100.0, 0.0, 2.0), Vector(0.0, 0.0, -1.0))\n\n    MINI_CHECK(len(hits2) >= 1)\n    MINI_CHECK(TOLERANCE.is_close(hits2[0].point[0], 100.0))",
           "file": "session_test.py"
         },
         "rust": {
@@ -107938,7 +108046,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Constructor\")",
-          "code": "MINI_TEST!(\"Xform\", \"Constructor\", crate::xform_test::run_xform_constructor);\nREGISTER_MINI_TEST!(\"Xform\", \"Translation\", crate::xform_test::run_xform_translation);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation X\", crate::xform_test::run_xform_rotation_x);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Y\", crate::xform_test::run_xform_rotation_y);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Z\", crate::xform_test::run_xform_rotation_z);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Axis\", crate::xform_test::run_xform_rotation_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Around Line\", crate::xform_test::run_xform_rotation_around_line);\nREGISTER_MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Constructor\", crate::xform_test::run_xform_constructor);\nREGISTER_MINI_TEST!(\"Xform\", \"Translation\", crate::xform_test::run_xform_translation);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation X\", crate::xform_test::run_xform_rotation_x);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Y\", crate::xform_test::run_xform_rotation_y);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Z\", crate::xform_test::run_xform_rotation_z);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Axis\", crate::xform_test::run_xform_rotation_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Around Line\", crate::xform_test::run_xform_rotation_around_line);\nREGISTER_MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -107958,7 +108066,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Translation\")",
-          "code": "MINI_TEST!(\"Xform\", \"Translation\", crate::xform_test::run_xform_translation);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation X\", crate::xform_test::run_xform_rotation_x);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Y\", crate::xform_test::run_xform_rotation_y);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Z\", crate::xform_test::run_xform_rotation_z);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Axis\", crate::xform_test::run_xform_rotation_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Around Line\", crate::xform_test::run_xform_rotation_around_line);\nREGISTER_MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Translation\", crate::xform_test::run_xform_translation);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation X\", crate::xform_test::run_xform_rotation_x);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Y\", crate::xform_test::run_xform_rotation_y);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Z\", crate::xform_test::run_xform_rotation_z);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Axis\", crate::xform_test::run_xform_rotation_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Around Line\", crate::xform_test::run_xform_rotation_around_line);\nREGISTER_MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -107978,7 +108086,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Rotation X\")",
-          "code": "MINI_TEST!(\"Xform\", \"Rotation X\", crate::xform_test::run_xform_rotation_x);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Y\", crate::xform_test::run_xform_rotation_y);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Z\", crate::xform_test::run_xform_rotation_z);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Axis\", crate::xform_test::run_xform_rotation_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Around Line\", crate::xform_test::run_xform_rotation_around_line);\nREGISTER_MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Rotation X\", crate::xform_test::run_xform_rotation_x);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Y\", crate::xform_test::run_xform_rotation_y);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Z\", crate::xform_test::run_xform_rotation_z);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Axis\", crate::xform_test::run_xform_rotation_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Around Line\", crate::xform_test::run_xform_rotation_around_line);\nREGISTER_MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -107998,7 +108106,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Rotation Y\")",
-          "code": "MINI_TEST!(\"Xform\", \"Rotation Y\", crate::xform_test::run_xform_rotation_y);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Z\", crate::xform_test::run_xform_rotation_z);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Axis\", crate::xform_test::run_xform_rotation_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Around Line\", crate::xform_test::run_xform_rotation_around_line);\nREGISTER_MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Rotation Y\", crate::xform_test::run_xform_rotation_y);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Z\", crate::xform_test::run_xform_rotation_z);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Axis\", crate::xform_test::run_xform_rotation_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Around Line\", crate::xform_test::run_xform_rotation_around_line);\nREGISTER_MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108018,7 +108126,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Rotation Z\")",
-          "code": "MINI_TEST!(\"Xform\", \"Rotation Z\", crate::xform_test::run_xform_rotation_z);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Axis\", crate::xform_test::run_xform_rotation_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Around Line\", crate::xform_test::run_xform_rotation_around_line);\nREGISTER_MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Rotation Z\", crate::xform_test::run_xform_rotation_z);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Axis\", crate::xform_test::run_xform_rotation_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Around Line\", crate::xform_test::run_xform_rotation_around_line);\nREGISTER_MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108038,7 +108146,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Rotation Axis\")",
-          "code": "MINI_TEST!(\"Xform\", \"Rotation Axis\", crate::xform_test::run_xform_rotation_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Around Line\", crate::xform_test::run_xform_rotation_around_line);\nREGISTER_MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Rotation Axis\", crate::xform_test::run_xform_rotation_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Rotation Around Line\", crate::xform_test::run_xform_rotation_around_line);\nREGISTER_MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108058,7 +108166,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Rotation Around Line\")",
-          "code": "MINI_TEST!(\"Xform\", \"Rotation Around Line\", crate::xform_test::run_xform_rotation_around_line);\nREGISTER_MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Rotation Around Line\", crate::xform_test::run_xform_rotation_around_line);\nREGISTER_MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108078,7 +108186,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Change Basis\")",
-          "code": "MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Change Basis\", crate::xform_test::run_xform_change_basis);\nREGISTER_MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108098,7 +108206,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Plane To Plane\")",
-          "code": "MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Plane To Plane\", crate::xform_test::run_xform_plane_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108118,7 +108226,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Scale XYZ\")",
-          "code": "MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Scale XYZ\", crate::xform_test::run_xform_scale_xyz);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108138,7 +108246,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Scale Uniform\")",
-          "code": "MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Scale Uniform\", crate::xform_test::run_xform_scale_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108158,7 +108266,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Scale Non Uniform\")",
-          "code": "MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Scale Non Uniform\", crate::xform_test::run_xform_scale_non_uniform);\nREGISTER_MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108178,7 +108286,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Look At Right Handed\")",
-          "code": "MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Look At Right Handed\", crate::xform_test::run_xform_look_at_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108198,7 +108306,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Look To Right Handed\")",
-          "code": "MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Look To Right Handed\", crate::xform_test::run_xform_look_to_right_handed);\nREGISTER_MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108218,7 +108326,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Perspective\")",
-          "code": "MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Perspective\", crate::xform_test::run_xform_perspective);\nREGISTER_MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108238,7 +108346,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Orthographic\")",
-          "code": "MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Orthographic\", crate::xform_test::run_xform_orthographic);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108258,7 +108366,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Project To Plane\")",
-          "code": "MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Project To Plane\", crate::xform_test::run_xform_project_to_plane);\nREGISTER_MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108278,7 +108386,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Project To Plane By Axis\")",
-          "code": "MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Project To Plane By Axis\", crate::xform_test::run_xform_project_to_plane_by_axis);\nREGISTER_MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108298,7 +108406,47 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "MINI_TEST!(\"Xform\", \"Inverse\")",
-          "code": "MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "code": "MINI_TEST!(\"Xform\", \"Inverse\", crate::xform_test::run_xform_inverse);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "file": "xform_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Xform.test_Transform Point",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Xform\", \"Transform Point\")",
+          "code": "MINI_TEST(\"Xform\", \"Transform Point\") {\n    // uncomment #include \"xform.h\"\n    Xform t = Xform::translation(10.0, 20.0, 30.0);\n    Xform s = Xform::scale_xyz(2.0, 3.0, 4.0);\n    Xform composite = t * s;\n    Point p = composite.transform_point(Point(1.0, 1.0, 1.0));\n    MINI_CHECK(TOLERANCE.is_point_close(p, Point(12.0, 23.0, 34.0)));\n\n    Xform pr = Xform::identity();\n    pr.m[0] = 1.2;\n    pr.m[5] = 0.8;\n    pr.m[10] = 1.1;\n    pr.m[14] = 0.5;\n    pr.m[11] = -1.0;\n    pr.m[15] = 0.0;\n    Point q = pr.transform_point(Point(1.0, 1.0, 2.0));\n    MINI_CHECK(TOLERANCE.is_point_close(q, Point(-0.6, -0.4, -1.35)));\n}",
+          "file": "xform_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Xform\", \"Transform Point\")",
+          "code": "@MINI_TEST(\"Xform\", \"Transform Point\")\ndef test_xform_transform_point():\n    from session_py import Xform\n    from session_py import Point\n\n    t = Xform.translation(10.0, 20.0, 30.0)\n    s = Xform.scale_xyz(2.0, 3.0, 4.0)\n    composite = t * s\n    p = composite.transform_point(Point(1.0, 1.0, 1.0))\n    MINI_CHECK(TOLERANCE.is_point_close(p, Point(12.0, 23.0, 34.0)))\n\n    pr = Xform.identity()\n    pr.m[0] = 1.2\n    pr.m[5] = 0.8\n    pr.m[10] = 1.1\n    pr.m[14] = 0.5\n    pr.m[11] = -1.0\n    pr.m[15] = 0.0\n    q = pr.transform_point(Point(1.0, 1.0, 2.0))\n    MINI_CHECK(TOLERANCE.is_point_close(q, Point(-0.6, -0.4, -1.35)))",
+          "file": "xform_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Xform\", \"Transform Point\")",
+          "code": "MINI_TEST!(\"Xform\", \"Transform Point\", crate::xform_test::run_xform_transform_point);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
+          "file": "xform_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Xform.test_Transform Vector",
+      "implementations": {
+        "cpp": {
+          "sig": "MINI_TEST(\"Xform\", \"Transform Vector\")",
+          "code": "MINI_TEST(\"Xform\", \"Transform Vector\") {\n    // uncomment #include \"xform.h\"\n    Xform t = Xform::translation(10.0, 20.0, 30.0);\n    Xform s = Xform::scale_xyz(2.0, 3.0, 4.0);\n    Xform composite = t * s;\n    Vector v = composite.transform_vector(Vector(1.0, 1.0, 1.0));\n    MINI_CHECK(TOLERANCE.is_vector_close(v, Vector(2.0, 3.0, 4.0)));\n\n    Xform r = Xform::rotation_z(90.0, true);\n    Vector u = r.transform_vector(Vector::x_axis());\n    MINI_CHECK(TOLERANCE.is_vector_close(u, Vector::y_axis()));\n}",
+          "file": "xform_test.cpp"
+        },
+        "python": {
+          "sig": "@MINI_TEST(\"Xform\", \"Transform Vector\")",
+          "code": "@MINI_TEST(\"Xform\", \"Transform Vector\")\ndef test_xform_transform_vector():\n    from session_py import Xform\n    from session_py import Vector\n\n    t = Xform.translation(10.0, 20.0, 30.0)\n    s = Xform.scale_xyz(2.0, 3.0, 4.0)\n    composite = t * s\n    v = composite.transform_vector(Vector(1.0, 1.0, 1.0))\n    MINI_CHECK(TOLERANCE.is_vector_close(v, Vector(2.0, 3.0, 4.0)))\n\n    r = Xform.rotation_z(90.0, True)\n    u = r.transform_vector(Vector.x_axis())\n    MINI_CHECK(TOLERANCE.is_vector_close(u, Vector.y_axis()))",
+          "file": "xform_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Xform\", \"Transform Vector\")",
+          "code": "MINI_TEST!(\"Xform\", \"Transform Vector\", crate::xform_test::run_xform_transform_vector);\nREGISTER_MINI_TEST!(\"Xform\", \"To Cols\", crate::xform_test::run_xform_to_cols);\nREGISTER_MINI_TEST!(\"Xform\", \"Transform Geometry\", crate::xform_test::run_xform_transform_geometry);\nREGISTER_MINI_TEST!(\"Xform\", \"Json Roundtrip\", crate::xform_test::run_xform_json_roundtrip);\nREGISTER_MINI_TEST!(\"Xform\", \"Protobuf Roundtrip\", crate::xform_test::run_xform_protobuf_roundtrip);\n\npub fn run_xform_from_change_of_basis() -> TestResult {\n    MINI_TEST!(\"From Change Of Basis\", {\n        use crate::{Point, Polyline, Xform};\n        let rect0 = Polyline::new(vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(2.0, 0.0, 0.0),\n            Point::new(2.0, 3.0, 0.0),\n            Point::new(0.0, 3.0, 0.0),\n        ]);\n        let rect1 = Polyline::new(vec![Point::new(0.0, 0.0, 4.0)]);\n        let xf = Xform::from_change_of_basis(&rect0, &rect1);\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[12], 1.0));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[13], 1.5));\n        MINI_CHECK!(TOLERANCE.is_close(xf.m[14], 2.0));\n    })\n}",
           "file": "xform_test.rs"
         }
       }
@@ -108468,11 +108616,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "points",
-        "circle",
         "into",
-        "subdivide",
+        "circle",
         "n",
+        "points",
+        "subdivide",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -108488,8 +108636,8 @@ window.API_INDEX = {
       "tags": [
         "ellipse",
         "by",
-        "subdivide",
         "length",
+        "subdivide",
         "arc",
         "divide_by_length",
         "nurbscurve",
@@ -108520,11 +108668,11 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "points",
-        "open",
-        "adaptive",
         "from",
         "curve",
+        "open",
+        "adaptive",
+        "points",
         "polyline",
         "to_polyline_adaptive",
         "create",
@@ -108540,10 +108688,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "evaluation",
-        "at",
-        "parameter",
         "curve",
+        "at",
+        "evaluation",
+        "parameter",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -108562,10 +108710,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
+        "curve",
         "length",
         "frames",
         "along",
-        "curve",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -108587,9 +108735,9 @@ window.API_INDEX = {
     {
       "title": "Ellipse + Perpendicular Frames",
       "tags": [
+        "frames",
         "ellipse",
         "perpendicular",
-        "frames",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -108610,9 +108758,9 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
+        "cylinder",
         "point",
         "evaluate",
-        "cylinder",
         "surface",
         "point_at",
         "cylinder_surface",
@@ -108628,10 +108776,10 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
-        "and",
         "faces",
-        "mesh",
         "from",
+        "mesh",
+        "and",
         "vertices",
         "add_vertex",
         "add_face",
@@ -108774,11 +108922,11 @@ window.API_INDEX = {
       "uses": [],
       "summary": "GlobalSessionConfig geometry class"
     },
-    "CurveNurbsKnotStyle": {
+    "GeometryFileDecoder": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
+      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
     },
     "NurbsSurfaceTrimmed": {
       "composition": [],
@@ -108799,11 +108947,11 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
     },
-    "GeometryFileDecoder": {
+    "CurveNurbsKnotStyle": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Custom JSON decoder that reconstructs geometry objects from the 'type' field."
+      "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
     },
     "TriangulateResult": {
       "composition": [],
@@ -108824,11 +108972,13 @@ window.API_INDEX = {
       ],
       "summary": "End-tangent (boundary) condition for cubic interpolation."
     },
-    "ElementSchoring": {
+    "SpatialAABBTree": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
+      "uses": [
+        "AABB"
+      ],
+      "summary": "SpatialAABBTree geometry class"
     },
     "BooleanPolyline": {
       "composition": [],
@@ -108848,13 +108998,31 @@ window.API_INDEX = {
       ],
       "summary": "GlobalTolerance geometry class"
     },
-    "SpatialAABBTree": {
+    "ElementSchoring": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
+    },
+    "ToleranceGuard": {
       "composition": [],
       "factories": [],
       "uses": [
-        "AABB"
+        "Tolerance"
       ],
-      "summary": "SpatialAABBTree geometry class"
+      "summary": "ToleranceGuard geometry class"
+    },
+    "VIntersectNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VIntersectNode geometry class"
+    },
+    "_PartitionVars": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_PartitionVars geometry class"
     },
     "SpatialBVHNode": {
       "composition": [],
@@ -108868,40 +109036,11 @@ window.API_INDEX = {
       ],
       "summary": "A node in the SpatialBVH tree."
     },
-    "VIntersectNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VIntersectNode geometry class"
-    },
-    "ToleranceGuard": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tolerance"
-      ],
-      "summary": "ToleranceGuard geometry class"
-    },
-    "_PartitionVars": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_PartitionVars geometry class"
-    },
     "SessionConfig": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "SessionConfig geometry class"
-    },
-    "SpatialKDTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point",
-        "_Node"
-      ],
-      "summary": "KD-tree for point-to-point nearest-neighbor queries."
     },
     "ElementColumn": {
       "composition": [],
@@ -108916,20 +109055,39 @@ window.API_INDEX = {
       ],
       "summary": "ElementColumn geometry class"
     },
-    "ElementPlate": {
+    "SpatialKDTree": {
       "composition": [],
       "factories": [],
       "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "Plane",
         "Point",
-        "Polyline",
-        "Vector",
-        "Xform"
+        "_Node"
       ],
-      "summary": "ElementPlate geometry class"
+      "summary": "KD-tree for point-to-point nearest-neighbor queries."
+    },
+    "VattiScratch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VattiScratch geometry class"
+    },
+    "Intersection": {
+      "composition": [
+        "Element",
+        "Line",
+        "Polyline",
+        "Tolerance",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point"
+      ],
+      "summary": "Intersection geometry class"
     },
     "NurbsSurface": {
       "composition": [
@@ -108954,24 +109112,50 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
-    "Intersection": {
-      "composition": [
-        "Element",
-        "Line",
-        "Polyline",
-        "Tolerance",
-        "Vector"
-      ],
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
+    },
+    "ScanlineHeap": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "ScanlineHeap geometry class"
+    },
+    "SpatialRTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SpatialRTree geometry class"
+    },
+    "LoftWallFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftWallFace geometry class"
+    },
+    "ElementPlate": {
+      "composition": [],
       "factories": [],
       "uses": [
+        "AABB",
+        "Line",
         "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
         "Plane",
-        "Point"
+        "Point",
+        "Polyline",
+        "Vector",
+        "Xform"
       ],
-      "summary": "Intersection geometry class"
+      "summary": "ElementPlate geometry class"
+    },
+    "BRepLoopType": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoopType geometry class"
     },
     "BRepTrimType": {
       "composition": [],
@@ -108990,41 +109174,20 @@ window.API_INDEX = {
       ],
       "summary": "BRepTrimType geometry class"
     },
-    "VattiScratch": {
+    "_Delaunay2D": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VattiScratch geometry class"
+      "summary": "_Delaunay2D geometry class"
     },
-    "SpatialRTree": {
+    "InstanceRef": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "SpatialRTree geometry class"
-    },
-    "LoftWallFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftWallFace geometry class"
-    },
-    "ScanlineHeap": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "ScanlineHeap geometry class"
-    },
-    "BRepLoopType": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoopType geometry class"
-    },
-    "VLocalMinima": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VLocalMinima geometry class"
+      "uses": [
+        "Xform",
+        "session_cpp"
+      ],
+      "summary": "A block reference: places a definition (by guid) at a transform."
     },
     "LoftAdjPair": {
       "composition": [],
@@ -109045,15 +109208,6 @@ window.API_INDEX = {
       ],
       "summary": "ElementBeam geometry class"
     },
-    "InstanceRef": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Xform",
-        "session_cpp"
-      ],
-      "summary": "A block reference: places a definition (by guid) at a transform."
-    },
     "session_cpp": {
       "composition": [],
       "factories": [],
@@ -109062,26 +109216,45 @@ window.API_INDEX = {
       ],
       "summary": "session_cpp geometry class"
     },
-    "_Delaunay2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay2D geometry class"
-    },
-    "PointCloud": {
+    "Primitives": {
       "composition": [
-        "Color",
+        "CurveInterpStyle",
+        "CurveNurbsKnotStyle",
+        "NurbsCurve",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsSurface",
+        "Point",
         "Xform"
       ],
+      "summary": "Static factory methods for creating NURBS curve primitives."
+    },
+    "MeshOffset": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Plane",
+        "Point"
+      ],
+      "summary": "MeshOffset geometry class"
+    },
+    "SpatialBVH": {
+      "composition": [],
       "factories": [
-        "AABB",
-        "OBB"
+        "SpatialBVHNode"
       ],
       "uses": [
+        "AABB",
+        "OBB",
         "Point",
         "Vector"
       ],
-      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
     },
     "VertexData": {
       "composition": [],
@@ -109091,14 +109264,27 @@ window.API_INDEX = {
       ],
       "summary": "Vertex data containing position and attributes."
     },
-    "ConvexHull": {
-      "composition": [],
+    "Quaternion": {
+      "composition": [
+        "Vector"
+      ],
       "factories": [],
       "uses": [
-        "Mesh",
-        "Point"
+        "Plane"
       ],
-      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+      "summary": "A quaternion for 3D rotations (scalar + vector)."
+    },
+    "BRepVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepVertex geometry class"
+    },
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
     },
     "NurbsCurve": {
       "composition": [
@@ -109122,90 +109308,41 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
-    "Quaternion": {
+    "PointCloud": {
       "composition": [
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Plane"
-      ],
-      "summary": "A quaternion for 3D rotations (scalar + vector)."
-    },
-    "Primitives": {
-      "composition": [
-        "CurveInterpStyle",
-        "CurveNurbsKnotStyle",
-        "NurbsCurve",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsSurface",
-        "Point",
+        "Color",
         "Xform"
       ],
-      "summary": "Static factory methods for creating NURBS curve primitives."
-    },
-    "BRepVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepVertex geometry class"
-    },
-    "SpatialBVH": {
-      "composition": [],
       "factories": [
-        "SpatialBVHNode"
+        "AABB",
+        "OBB"
       ],
       "uses": [
-        "AABB",
-        "OBB",
         "Point",
         "Vector"
       ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
+      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
     },
-    "MeshOffset": {
+    "ConvexHull": {
       "composition": [],
       "factories": [],
       "uses": [
         "Mesh",
-        "Plane",
         "Point"
       ],
-      "summary": "MeshOffset geometry class"
+      "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
     },
-    "Delaunay2D": {
+    "_Delaunay": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Delaunay2D geometry class"
+      "summary": "_Delaunay geometry class"
     },
-    "FlatMap64": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Delaunay2D",
-        "NurbsCurve",
-        "Point",
-        "Vector"
-      ],
-      "summary": "FlatMap64 geometry class"
-    },
-    "LoftPanel": {
+    "_Vertex2D": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "LoftPanel geometry class"
-    },
-    "VHorzJoin": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzJoin geometry class"
+      "summary": "_Vertex2D geometry class"
     },
     "RemeshCDT": {
       "composition": [],
@@ -109215,12 +109352,6 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "RemeshCDT geometry class"
-    },
-    "_Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay geometry class"
     },
     "ColorMode": {
       "composition": [],
@@ -109244,11 +109375,34 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Component geometry class"
     },
+    "VHorzJoin": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzJoin geometry class"
+    },
     "_Triangle": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Triangle geometry class"
+    },
+    "FlatMap64": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Delaunay2D",
+        "NurbsCurve",
+        "Point",
+        "Vector"
+      ],
+      "summary": "FlatMap64 geometry class"
+    },
+    "LoftPanel": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "LoftPanel geometry class"
     },
     "Tolerance": {
       "composition": [],
@@ -109260,47 +109414,11 @@ window.API_INDEX = {
       ],
       "summary": "Tolerance settings for geometric operations."
     },
-    "_Vertex2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Vertex2D geometry class"
-    },
-    "BRepFace": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepFace geometry class"
-    },
-    "BRepLoop": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepLoop geometry class"
-    },
-    "BRepTrim": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepTrim geometry class"
-    },
-    "BRepEdge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
-    },
     "VHorzSeg": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VHorzSeg geometry class"
-    },
-    "Geometry": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Geometry geometry class"
     },
     "TreeNode": {
       "composition": [],
@@ -109310,6 +109428,18 @@ window.API_INDEX = {
       ],
       "summary": "A node of a tree data structure."
     },
+    "BRepTrim": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepTrim geometry class"
+    },
+    "BRepFace": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepFace geometry class"
+    },
     "Delaunay": {
       "composition": [],
       "factories": [],
@@ -109318,6 +109448,18 @@ window.API_INDEX = {
         "TriangulateResult"
       ],
       "summary": "Delaunay geometry class"
+    },
+    "BRepEdge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepEdge geometry class"
+    },
+    "Geometry": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Geometry geometry class"
     },
     "Polyline": {
       "composition": [
@@ -109343,28 +109485,23 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "Default": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Element",
-        "Plane",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "Default geometry class"
-    },
-    "Dataset": {
+    "BRepLoop": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Dataset geometry class"
+      "summary": "BRepLoop geometry class"
     },
     "VOutRec": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "VOutRec geometry class"
+    },
+    "Dataset": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Dataset geometry class"
     },
     "Session": {
       "composition": [
@@ -109394,20 +109531,46 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "Closest": {
+    "VVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VVertex geometry class"
+    },
+    "Default": {
       "composition": [],
       "factories": [],
       "uses": [
-        "AABB",
+        "Element",
+        "Plane",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "Default geometry class"
+    },
+    "Element": {
+      "composition": [
         "Line",
         "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
+        "OBB",
+        "Plane",
         "Point",
-        "PointCloud",
-        "Polyline"
+        "Polyline",
+        "Vector"
       ],
-      "summary": "Static methods for finding closest points between geometry objects."
+      "factories": [],
+      "uses": [
+        "AABB",
+        "BRep",
+        "Xform"
+      ],
+      "summary": "Element geometry class"
+    },
+    "VActive": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VActive geometry class"
     },
     "Objects": {
       "composition": [
@@ -109430,53 +109593,32 @@ window.API_INDEX = {
       ],
       "summary": "A collection of all geometry objects."
     },
-    "VActive": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VActive geometry class"
-    },
     "_Branch": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Branch geometry class"
     },
-    "VVertex": {
+    "Closest": {
       "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VVertex geometry class"
-    },
-    "Element": {
-      "composition": [
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
       "factories": [],
       "uses": [
         "AABB",
-        "BRep",
-        "Xform"
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
       ],
-      "summary": "Element geometry class"
+      "summary": "Static methods for finding closest points between geometry objects."
     },
     "BIVec2": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BIVec2 geometry class"
-    },
-    "VOutPt": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutPt geometry class"
     },
     "Vertex": {
       "composition": [],
@@ -109487,11 +109629,11 @@ window.API_INDEX = {
       ],
       "summary": "A graph vertex with a unique identifier and attribute string."
     },
-    "RayHit": {
+    "Matrix": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "RayHit geometry class"
+      "summary": "Matrix geometry class"
     },
     "Vector": {
       "composition": [],
@@ -109507,47 +109649,23 @@ window.API_INDEX = {
       ],
       "summary": "A 3D vector with visual properties."
     },
-    "Matrix": {
+    "VOutPt": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Matrix geometry class"
+      "summary": "VOutPt geometry class"
     },
-    "_Node": {
+    "RayHit": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Node geometry class"
-    },
-    "_Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Edge geometry class"
+      "summary": "RayHit geometry class"
     },
     "_Rect": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Rect geometry class"
-    },
-    "Graph": {
-      "composition": [
-        "Edge"
-      ],
-      "factories": [],
-      "uses": [
-        "Vertex"
-      ],
-      "summary": "A graph data structure with string-only vertices and attributes."
-    },
-    "Color": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "An index-based 0.0-1.0 color with RGBA values."
     },
     "Point": {
       "composition": [],
@@ -109562,6 +109680,20 @@ window.API_INDEX = {
       ],
       "uses": [],
       "summary": "A 3D point with visual properties."
+    },
+    "Plane": {
+      "composition": [],
+      "factories": [
+        "OBB",
+        "Quaternion"
+      ],
+      "uses": [
+        "Point",
+        "Polyline",
+        "Vector",
+        "session_cpp"
+      ],
+      "summary": "A 3D plane defined by origin and coordinate axes."
     },
     "Xform": {
       "composition": [
@@ -109578,50 +109710,51 @@ window.API_INDEX = {
       ],
       "summary": "Xform geometry class"
     },
-    "Plane": {
+    "_Node": {
       "composition": [],
-      "factories": [
-        "OBB",
-        "Quaternion"
-      ],
+      "factories": [],
+      "uses": [],
+      "summary": "_Node geometry class"
+    },
+    "_Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Edge geometry class"
+    },
+    "Color": {
+      "composition": [],
+      "factories": [],
       "uses": [
-        "Point",
-        "Polyline",
-        "Vector",
         "session_cpp"
       ],
-      "summary": "A 3D plane defined by origin and coordinate axes."
+      "summary": "An index-based 0.0-1.0 color with RGBA values."
     },
-    "_Tri": {
+    "Graph": {
+      "composition": [
+        "Edge"
+      ],
+      "factories": [],
+      "uses": [
+        "Vertex"
+      ],
+      "summary": "A graph data structure with string-only vertices and attributes."
+    },
+    "AABB": {
       "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Tri geometry class"
-    },
-    "Tree": {
-      "composition": [
-        "Color",
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
-    },
-    "Line": {
-      "composition": [
-        "Point"
-      ],
       "factories": [
-        "AABB",
-        "ColorMode",
-        "Mesh",
         "OBB"
       ],
       "uses": [
-        "Vector",
-        "session_cpp"
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
       ],
-      "summary": "A 3D line segment with visual properties."
+      "summary": "Axis-aligned bounding box (center + half-size)."
     },
     "Mesh": {
       "composition": [
@@ -109656,6 +109789,43 @@ window.API_INDEX = {
       "uses": [],
       "summary": "_P64 geometry class"
     },
+    "Edge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
+    "Line": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Mesh",
+        "OBB"
+      ],
+      "uses": [
+        "Vector",
+        "session_cpp"
+      ],
+      "summary": "A 3D line segment with visual properties."
+    },
+    "Tree": {
+      "composition": [
+        "Color",
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A hierarchical data structure with parent-child relationships."
+    },
+    "_Tri": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Tri geometry class"
+    },
     "BRep": {
       "composition": [
         "BRepEdge",
@@ -109683,27 +109853,11 @@ window.API_INDEX = {
       ],
       "summary": "BRep geometry class"
     },
-    "Edge": {
+    "_V2": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
-    },
-    "AABB": {
-      "composition": [],
-      "factories": [
-        "OBB"
-      ],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Axis-aligned bounding box (center + half-size)."
+      "summary": "_V2 geometry class"
     },
     "OBB": {
       "composition": [
@@ -109726,12 +109880,6 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
-    },
-    "_V2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],
@@ -114743,6 +114891,12 @@ window.API_INDEX = {
     "project_to_plane_by_axis": [
       "Xform.project_to_plane_by_axis"
     ],
+    "transform_point": [
+      "Xform.transform_point"
+    ],
+    "transform_vector": [
+      "Xform.transform_vector"
+    ],
     "is_identity": [
       "Xform.is_identity"
     ],
@@ -116741,8 +116895,8 @@ window.API_INDEX = {
     "Session": {
       "cpp": 46,
       "python": 44,
-      "rust": 39,
-      "gaps": 25,
+      "rust": 41,
+      "gaps": 23,
       "present_in": [
         "cpp",
         "python",
@@ -116911,9 +117065,9 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "Xform": {
-      "cpp": 45,
-      "python": 53,
-      "rust": 51,
+      "cpp": 47,
+      "python": 55,
+      "rust": 53,
       "gaps": 27,
       "present_in": [
         "cpp",

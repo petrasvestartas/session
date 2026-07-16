@@ -3,7 +3,7 @@
     "group": "Plane",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.042,
+    "time_ms": 0.085,
     "line": 15,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include <vector>\n\n    // Default constructor - XY plane at origin\n    Plane pl;\n\n    // Origin and axes\n    Point origin = pl.origin();\n    Vector x_axis = pl.x_axis();\n    Vector y_axis = pl.y_axis();\n    Vector z_axis = pl.z_axis();\n\n    // Plane equation coefficients (ax + by + cz + d = 0)\n    double a = pl.a();\n    double b = pl.b();\n    double c = pl.c();\n    double d = pl.d();\n\n    // Index access for axes\n    Vector ax0 = pl[0];\n    Vector ax1 = pl[1];\n    Vector ax2 = pl[2];\n\n    // Minimal and Full String Representation\n    std::string plstr = pl.str();\n    std::string plrepr = pl.repr();\n\n    // Copy (duplicates everything except guid())\n    Plane plcopy = pl;\n\n    // From point and normal\n    Point p(0.0, 0.0, 5.0);\n    Vector n(0.0, 0.0, 1.0);\n    Plane pl_pn = Plane::from_point_normal(p, n);\n\n    // From three points\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n    };\n    Plane pl_pts = Plane::from_points(pts);\n\n    // From two points\n    Point p1(0.0, 0.0, 0.0);\n    Point p2(1.0, 0.0, 0.0);\n    Plane pl_2pts = Plane::from_two_points(p1, p2);\n\n    // Standard planes\n    Plane xy = Plane::xy_plane();\n    Plane yz = Plane::yz_plane();\n    Plane xz = Plane::xz_plane();\n\n    // Translation operators\n    Vector offset(1.0, 2.0, 3.0);\n    Plane pl_iadd = Plane::xy_plane();\n    pl_iadd += offset;\n    Plane pl_isub = Plane::xy_plane();\n    pl_isub -= offset;\n    Plane pl_base = Plane::xy_plane();\n    Plane pl_add = pl_base + offset;\n    Plane pl_sub = pl_base - offset;",
     "checks": [
@@ -94,7 +94,7 @@
     "group": "Plane",
     "test_name": "Is Valid",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.009,
     "line": 99,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    Plane invalid = Plane::invalid();",
     "checks": [
@@ -115,7 +115,7 @@
     "group": "Plane",
     "test_name": "Reverse",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.004,
     "line": 109,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.reverse();",
     "checks": [
@@ -151,7 +151,7 @@
     "group": "Plane",
     "test_name": "Rotate",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.005,
     "line": 122,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"tolerance.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.rotate(Tolerance::PI / 2.0);",
     "checks": [
@@ -167,7 +167,7 @@
     "group": "Plane",
     "test_name": "Is Right Hand",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.006,
     "line": 132,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane xy = Plane::xy_plane();\n    Plane yz = Plane::yz_plane();\n    Plane xz = Plane::xz_plane();",
     "checks": [
@@ -193,7 +193,7 @@
     "group": "Plane",
     "test_name": "Is Same Direction",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.006,
     "line": 144,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane p1 = Plane::xy_plane();\n    Plane p2 = Plane::xy_plane();\n    Plane p3 = Plane::xy_plane();\n    p3.reverse();",
     "checks": [
@@ -219,7 +219,7 @@
     "group": "Plane",
     "test_name": "Is Same Position",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.007,
     "line": 157,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"vector.h\"\n\n    Plane p1 = Plane::xy_plane();\n    Plane p2 = Plane::xy_plane();\n    p2 += Vector(0.0, 0.0, 1.0);",
     "checks": [
@@ -240,7 +240,7 @@
     "group": "Plane",
     "test_name": "Is Coplanar",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.019,
     "line": 169,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"vector.h\"\n\n    Plane p1 = Plane::xy_plane();\n    Plane p2 = Plane::xy_plane();\n    Plane p3 = Plane::xy_plane();\n    p3 += Vector(0.0, 0.0, 1.0);",
     "checks": [
@@ -261,7 +261,7 @@
     "group": "Plane",
     "test_name": "Translate By Normal",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 182,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    Plane moved = pl.translate_by_normal(5.0);",
     "checks": [
@@ -344,7 +344,7 @@
     "group": "Plane",
     "test_name": "Transformed",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.008,
     "line": 218,
     "code": "    // uncomment #include \"plane.h\"\n    // uncomment #include \"xform.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.xform = Xform::translation(1.0, 2.0, 3.0);\n    Plane pl2 = pl.transformed();",
     "checks": [
@@ -375,7 +375,7 @@
     "group": "Plane",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 15.042,
+    "time_ms": 15.696,
     "line": 232,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_plane.json\";\n    pl.file_json_dump(fname);\n    Plane loaded = Plane::file_json_load(fname);",
     "checks": [
@@ -396,7 +396,7 @@
     "group": "Plane",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 11.819,
+    "time_ms": 15.104,
     "line": 253,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    std::string fname = \"serialization/test_plane.bin\";\n    pl.pb_dump(fname);\n    Plane loaded = Plane::pb_load(fname);",
     "checks": [
@@ -417,7 +417,7 @@
     "group": "Plane",
     "test_name": "Has On Negative Side",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 267,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    Point above(0.0, 0.0, 1.0);\n    Point below(0.0, 0.0, -1.0);",
     "checks": [

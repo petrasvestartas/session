@@ -89,7 +89,7 @@ impl Scene {
             _ => return None,   // BRep sub-objects (trims/edges) are their own lesson
         };
         let world = |vk: usize| -> Option<Point> {
-            let mut p = m.vertex_point(vk)?; p.xform = m.xform.clone(); Some(p.transformed())   // local → world
+            Some(m.xform.transform_point(&m.vertex_point(vk)?))   // local → world (kernel gap #5's API)
         };
         let px = |vk: usize| world(vk).and_then(|p| engine::pick::project_to_screen(view_proj, origin, &p, viewport));
         let dist2 = |a: (f64, f64)| { let dx = a.0 - cursor.0; let dy = a.1 - cursor.1; dx*dx + dy*dy };
@@ -112,7 +112,7 @@ impl Scene {
 
         // 3) FACE the ray landed on (local point-in-polygon over the mesh faces)
         let inv = m.xform.inverse()?;
-        let mut lp = hit.point.clone(); lp.xform = inv; let local = lp.transformed();   // world hit → local
+        let local = inv.transform_point(&hit.point);              // world hit → local
         let fk = face_containing(m, &local)?;
         Some(SubHit { guid: hit.guid.clone(), kind: SubKind::Face(fk) })
     }

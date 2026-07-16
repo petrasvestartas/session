@@ -5,6 +5,25 @@ each duplicated 4-5×. An **index buffer** fixes this: store 8 corners **once**,
 saying "corner 3, 0, 7…"; GPU fetches and **caches** each vertex once — how every real mesh is drawn,
 and the shape `GpuMesh` hands us next.
 
+<svg viewBox="0 0 680 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="without indices a cube stores 36 vertices with each corner duplicated; with an index buffer 8 vertices are stored once and 36 small integers reference them" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="160" y="16" fill="#888" text-anchor="middle">draw(0..36) — vertices only</text>
+  <g fill="none" stroke="#e0b040" stroke-width="1.1">
+    <rect x="20" y="26" width="26" height="20"/><rect x="48" y="26" width="26" height="20"/><rect x="76" y="26" width="26" height="20"/><rect x="104" y="26" width="26" height="20"/><rect x="132" y="26" width="26" height="20"/><rect x="160" y="26" width="26" height="20"/><rect x="188" y="26" width="26" height="20"/><rect x="216" y="26" width="26" height="20"/><rect x="244" y="26" width="26" height="20"/><rect x="272" y="26" width="26" height="20"/>
+  </g>
+  <g fill="#e0b040" text-anchor="middle" font-size="9"><text x="33" y="40">v3</text><text x="61" y="40">v0</text><text x="89" y="40">v7</text><text x="117" y="40">v3</text><text x="145" y="40">v7</text><text x="173" y="40">v0</text><text x="201" y="40">v3</text><text x="229" y="40">v1</text><text x="257" y="40">v0</text><text x="285" y="40">…36</text></g>
+  <text x="160" y="66" fill="#666" text-anchor="middle" font-size="10">v3 appears 5× — 5 full 24-byte copies, shaded 5×</text>
+  <text x="500" y="16" fill="#888" text-anchor="middle">draw_indexed(0..36) — 8 vertices + 36 u16</text>
+  <g fill="none" stroke="#6fb3ff" stroke-width="1.2">
+    <rect x="380" y="26" width="30" height="20"/><rect x="412" y="26" width="30" height="20"/><rect x="444" y="26" width="30" height="20"/><rect x="476" y="26" width="30" height="20"/><rect x="508" y="26" width="30" height="20"/><rect x="540" y="26" width="30" height="20"/><rect x="572" y="26" width="30" height="20"/><rect x="604" y="26" width="30" height="20"/>
+  </g>
+  <g fill="#6fb3ff" text-anchor="middle" font-size="9"><text x="395" y="40">v0</text><text x="427" y="40">v1</text><text x="459" y="40">v2</text><text x="491" y="40">v3</text><text x="523" y="40">v4</text><text x="555" y="40">v5</text><text x="587" y="40">v6</text><text x="619" y="40">v7</text></g>
+  <text x="500" y="62" fill="#888" text-anchor="middle" font-size="10">indices: 3 0 7 · 3 7 0 · 3 1 0 · … (36 small ints)</text>
+  <g stroke="#6fb3ff" stroke-width="0.9" opacity="0.7"><path d="M 430,70 Q 470,88 491,48" fill="none" marker-end="url(#ah18)"/><path d="M 545,70 Q 520,90 495,48" fill="none" marker-end="url(#ah18)"/></g>
+  <text x="500" y="86" fill="#666" text-anchor="middle" font-size="10">each index POINTS at a vertex — stored once, cached once</text>
+  <text x="340" y="130" fill="#555" text-anchor="middle" font-size="10">cube: 864 B of vertices → 192 B + 72 B of indices; on real meshes the win compounds with the post-transform cache</text>
+  <defs><marker id="ah18" markerWidth="7" markerHeight="7" refX="5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="#6fb3ff"/></marker></defs>
+</svg>
+
 ## Why
 
 A draw call has two modes: `draw(0..n)` walks the vertex buffer straight through, wasteful once

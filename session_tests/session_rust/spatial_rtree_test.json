@@ -29,7 +29,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Insert",
-    "time_ms": 0.008
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 93,
     "passed": true,
     "test_name": "Remove All",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -1167,7 +1167,7 @@
     "line": 134,
     "passed": true,
     "test_name": "Search 100 Boxes",
-    "time_ms": 0.462
+    "time_ms": 0.459
   },
   {
     "checks": [
@@ -1183,6 +1183,6 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.003
+    "time_ms": 0.009
   }
 ]

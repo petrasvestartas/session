@@ -7,7 +7,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Read Bunny",
-    "time_ms": 0.04
+    "time_ms": 0.077
   },
   {
     "checks": [
@@ -43,6 +43,6 @@
     "line": 29,
     "passed": true,
     "test_name": "Write Read Roundtrip",
-    "time_ms": 15.512
+    "time_ms": 15.861
   }
 ]

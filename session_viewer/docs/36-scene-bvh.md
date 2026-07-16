@@ -32,11 +32,13 @@ Geometry::Mesh(m) => {
 }
 ```
 
-That's correct for the kernel, where a mesh's vertices *are* its world coordinates. But lessons 33–35
-established the opposite convention for the viewer: `Mesh::to_render()` ignores `mesh.xform`, so the
-viewer treats **`mesh.xform` as the placement** (the instance model matrix). (This inconsistency is
-kernel-gap #3 in `_KERNEL_GAPS.md` — if the kernel ever unifies placement semantics, `world_obb`
-below collapses to one call.) A box built from local
+That *was* the kernel's mesh-box code when this lesson was first written — and it disagreed with the
+viewer's convention from 33–35 (`Mesh::to_render()` ignores `mesh.xform`, so **`mesh.xform` is the
+placement**). Writing this lesson surfaced the inconsistency as kernel-gap #3, and **the kernel has
+since been fixed**: `compute_bounding_box` and `Session::ray_cast` now bake `mesh.xform` in all
+three languages. `Scene` still builds its own `world_obb` below — its BVH wants viewer-controlled
+padding and the tessellation-backed boxes for surfaces — but it now agrees with the kernel instead
+of correcting it. A box built from local
 vertices would sit at the origin, not where the mesh actually draws — every mesh in the tree would be
 in the wrong place. (`BRep` is fine — the kernel *does* transform `b.m_vertices` by `b.xform` there —
 but Mesh is the common case and it's wrong for us.) So the viewer computes each object's **world** box

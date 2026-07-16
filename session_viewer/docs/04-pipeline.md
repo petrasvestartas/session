@@ -1,11 +1,43 @@
 # 04 Pipeline
 
+> **Big picture.** Every drawing this viewer will ever make — meshes, line tubes, point sprites, the
+> ground, the UI — is one of these: a **pipeline** (the fixed recipe) fed by **buffers** (the data)
+> inside a **render pass** (the frame). The course builds ~10 pipelines; all of them are this
+> lesson's descriptor with different fields filled in. Learn what each part does *once*, here, and
+> every later `build_*_pipeline` reads as "same recipe, three fields changed".
+
 Draw a single triangle on the grey background.
 
 Chapter 3 only *cleared* the screen; now the GPU *draws*. The smallest thing a GPU
 can draw: one triangle whose 3 corners are written **inside the shader** — no
 vertex buffers yet (those come later). This chapter proves the drawing machinery
 works.
+
+<svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="the GPU pipeline stages from vertex input through vertex shader, primitive assembly, rasterizer, fragment shader, to the color target — each stage labeled with the descriptor field that configures it" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <g fill="none" stroke="#6fb3ff" stroke-width="1.3">
+    <rect x="8" y="40" width="96" height="44"/><rect x="128" y="40" width="96" height="44"/><rect x="248" y="40" width="110" height="44"/><rect x="382" y="40" width="96" height="44"/><rect x="502" y="40" width="96" height="44"/>
+  </g>
+  <g fill="#d7dae0" text-anchor="middle">
+    <text x="56" y="58">vertex input</text><text x="56" y="72" fill="#666" font-size="9">(none today)</text>
+    <text x="176" y="58">vertex shader</text><text x="176" y="72" fill="#666" font-size="9">where is corner i?</text>
+    <text x="303" y="58">assembly + raster</text><text x="303" y="72" fill="#666" font-size="9">3 verts → pixels inside</text>
+    <text x="430" y="58">fragment shader</text><text x="430" y="72" fill="#666" font-size="9">what colour is this px?</text>
+    <text x="550" y="58">color target</text><text x="550" y="72" fill="#666" font-size="9">the swapchain image</text>
+  </g>
+  <g stroke="#6fb3ff" stroke-width="1.3">
+    <line x1="104" y1="62" x2="126" y2="62" marker-end="url(#ah04)"/><line x1="224" y1="62" x2="246" y2="62" marker-end="url(#ah04)"/><line x1="358" y1="62" x2="380" y2="62" marker-end="url(#ah04)"/><line x1="478" y1="62" x2="500" y2="62" marker-end="url(#ah04)"/>
+  </g>
+  <g fill="#888" text-anchor="middle" font-size="10">
+    <text x="56" y="110">vertex:</text><text x="56" y="123">buffers</text>
+    <text x="176" y="110">vertex:</text><text x="176" y="123">module + entry_point</text>
+    <text x="303" y="110">primitive:</text><text x="303" y="123">topology · cull · face</text>
+    <text x="430" y="110">fragment:</text><text x="430" y="123">module + entry_point</text>
+    <text x="550" y="110">fragment.targets:</text><text x="550" y="123">format · blend · mask</text>
+  </g>
+  <text x="340" y="155" fill="#666" text-anchor="middle" font-size="10">grey row = the RenderPipelineDescriptor field that configures each stage</text>
+  <text x="340" y="180" fill="#555" text-anchor="middle" font-size="10">not shown: depth_stencil (12/26 — the depth test between raster and target) · multisample (24) · layout (07 — external data)</text>
+  <defs><marker id="ah04" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6fb3ff"/></marker></defs>
+</svg>
 
 
 ## Mental model (read this first)
@@ -153,9 +185,33 @@ pub fn build_triangle_pipeline(
 }
 ```
 
-Most fields stay `None`/`default` for chapters to come. Three matter: the **shader
-module** (step 1), the **entry points** (`vs_main`/`fs_main`), and the **format**
-(must match the surface).
+Three fields matter today: the **shader module** (step 1), the **entry points**
+(`vs_main`/`fs_main`), and the **format** (must match the surface). But every field in that
+descriptor configures a real stage of the GPU — and each one becomes load-bearing in a specific
+later lesson. This table is the reference the whole course leans on:
+
+## Anatomy — what each part of the recipe does
+
+| field | what it configures | today | becomes load-bearing in |
+|---|---|---|---|
+| `layout` | what **external data** the shader may read: the list of bind-group layouts (uniforms, storage buffers, textures) — the shader's function signature toward the CPU | empty — our shader reads nothing | **07** (first uniform), **29/31** (storage tables), **72** (texture) |
+| `vertex.module` + `entry_point` | which compiled WGSL function runs **per vertex** — it answers "where does corner *i* land in clip space?" | `vs_main` | every shader lesson |
+| `vertex.buffers` | the **memory layout** of per-vertex input: stride, and which bytes feed which `@location` — how the GPU walks your `Vec<Vertex>` | empty — corners are hard-coded in the shader | **06** (first vertex buffer), **30** (the per-vertex id, slot 1) |
+| `fragment.module` + `entry_point` | which function runs **per covered pixel** — "what colour is this pixel?" | `fs_main` | every shader lesson |
+| `fragment.targets[0].format` | the pixel format of the image being drawn into — must equal the surface's, or the draw is rejected | `config.format` | stays; offscreen targets (67) add their own |
+| `fragment.targets[0].blend` | how the fragment's colour **combines** with what's already in the target: replace, or alpha-mix | `None` = replace (opaque) | **32b** (translucent point sprites), **65** (ground fade) |
+| `fragment.targets[0].write_mask` | which colour channels the draw may touch | ALL | stays ALL |
+| `primitive.topology` | how the vertex stream groups into shapes: every 3 = a triangle (`TriangleList`), every 2 = a line (`LineList`), … | `TriangleList` | **20** (the grid is `LineList`) |
+| `primitive.front_face` + `cull_mode` | which winding order counts as "front", and whether back-facing triangles are **skipped** before rasterizing (an inside-a-box optimization) | `Ccw`, no culling | stays off — CAD views solids from inside too |
+| `primitive.polygon_mode` | fill triangles, or draw only their edges/vertices (debug looks) | `Fill` | stays `Fill` (real wireframes are 31's tubes) |
+| `depth_stencil` | the **depth test**: compare each fragment's z against the depth buffer, keep the winner — what makes near things hide far things | `None` — one triangle has nothing to hide | **12** (depth buffer), **26** (reverse-Z: compare `Greater`) |
+| `multisample` | how many coverage **samples per pixel** — the hardware anti-aliasing that smooths edges | default = 1 | **24** (4× MSAA), **69** (coverage-mask outline) |
+| `multiview_mask` / `cache` | multi-layer rendering / pipeline caching — niche | `None` | never, in this course |
+
+Read it top to bottom and it's the SVG above in words: *data in* (`layout`, `buffers`) → *vertex
+stage* → *assembly* (`primitive`) → *depth* (`depth_stencil`) → *fragment stage* → *output*
+(`targets`, `multisample`). Every one of the ~10 pipelines this course builds is exactly this
+descriptor with three or four rows changed — and each builder lesson names which rows.
 
 
 ## Step 3 — the `Pipelines` struct: `src/engine/pipelines/mod.rs`

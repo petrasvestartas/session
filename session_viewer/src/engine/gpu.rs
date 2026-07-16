@@ -10,7 +10,7 @@
 use crate::engine::pipelines::Pipelines;
 use crate::engine::pipelines::build::MSAA_SAMPLES;
 use crate::engine::performance::Performance;
-use session_rust::{Color, Mesh, BRep, Xform, RenderVertex};
+use session_rust::{Mesh, BRep, Xform, RenderVertex};
 
 pub struct Gpu {
     pub surface: wgpu::Surface<'static>,     // Screen to draw pixels on.
@@ -26,6 +26,14 @@ pub struct Gpu {
     pub arena_index_count: u32,
     instances: Vec<Instance>,
     pub instance_bind_group: wgpu::BindGroup,
+    pub cyl_template_vbo: wgpu::Buffer,
+    pub cyl_template_ibo: wgpu::Buffer,
+    pub cyl_index_count: u32,
+    pub segment_buffer: wgpu::Buffer,
+    pub segment_bind_group: wgpu::BindGroup,
+    pub segment_count: u32,
+    pub line_buffer: wgpu::Buffer,
+    pub line_bind_group: wgpu::BindGroup,
     pub time: f32,
     pub time_buffer: wgpu::Buffer,
     pub time_bind_group: wgpu::BindGroup,
@@ -174,13 +182,18 @@ impl Gpu {
             for &i in &rm.indices{
                 idx.push(base + i);
             }
-            // Edge - one cylinswe wXH;
-            // instance_id = this object's new (ri)
+            // Edges → one cylinder segment each; instance_id = this object's row (ri).
             // Point::to_f32() / Color::to_f32() are the kernel's GPU-edge casts
             for (a, b, col) in mesh.edges_with_colors(){
                 let pa = mesh.vertex_point(a).unwrap();
                 let pb = mesh.vertex_point(b).unwrap();
-                segments.push(CylinderSegment { p0: pa.to_f32(), radius: 0.0, p1: pb.to_f32(), instance_id: ri as u32, color: col.to_f32(), });
+                segments.push(CylinderSegment {
+                    p0: pa.to_f32(),
+                    radius: 0.0,                // screen-constant px
+                    p1: pb.to_f32(),
+                    instance_id: ri as u32,
+                    color: col.to_f32(),        // per-edge rgba (opaque by default)
+                });
             }
 
         }
@@ -229,9 +242,97 @@ impl Gpu {
             contents: bytemuck::cast_slice(&idx), usage: wgpu::BufferUsages::INDEX,
         });
 
+        // Unit-cylinder tempalte (positions only) - one mesh, instance per edge.
+        let (cyl_v, cyl_i) = unit_cylinder(CYL_SIDES);
+        let cyl_index_count = cyl_i.len() as u32;
+
+        let cyl_template_vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("cyl.template.vbo"),
+            contents: bytemuck::cast_slice(&cyl_v),
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+
+        let cyl_template_ibo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("cyl.template.ibo"),
+            contents: bytemuck::cast_slice(&cyl_i),
+            usage: wgpu::BufferUsages::INDEX,
+        });
+
+        // One storage row per edge (VERTEX-visible, read-only) - the segment table.
+        let segment_count = segments.len() as u32;
+        let segment_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor{
+            label: Some("segments.buffer"),
+            contents: bytemuck::cast_slice(&segments),
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+        });
+        
+        let segment_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
+            label: Some("segments.layout"),
+            entries: &[wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStages::VERTEX,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Storage { read_only: true },
+                    has_dynamic_offset: false, min_binding_size: None,
+                },
+                count: None,
+            }],
+        });
+
+        let segment_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("segments.bind_group"),
+            layout: &segment_layout,
+            entries: &[wgpu::BindGroupEntry{
+                binding: 0,
+                resource: segment_buffer.as_entire_binding() 
+            }]
+        });
+
+        // Line uniform - scree-constant thickness
+        let line_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("line.buffer"),
+            contents: bytemuck::bytes_of(&LineUniform {
+                thickness: 2.0,
+                proj_y: 1.0,
+                ortho_h: 0.0,
+                vp_h: config.height as f32
+            }),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let line_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{
+            label: Some("line.layout"),
+            entries: &[wgpu::BindGroupLayoutEntry{
+                binding: 0,
+                visibility: wgpu::ShaderStages::VERTEX,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false,
+                    min_binding_size: None
+                },
+                count:None
+            }],
+        });
+
+        let line_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("line.bind_group"), 
+            layout: &line_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: line_buffer.as_entire_binding()
+            }],
+        });
+
 
         // Pipelines
-        let pipelines = Pipelines::new(&device, config.format, &mvp_layout, &time_layout, &instance_layout);
+        let pipelines = Pipelines::new(
+            &device, 
+            config.format,
+            &mvp_layout, 
+            &time_layout, 
+            &instance_layout,
+            &line_layout,
+            &segment_layout);
 
 
         // Output
@@ -250,6 +351,14 @@ impl Gpu {
             arena_index_count,
             instances,
             instance_bind_group,
+            cyl_template_vbo,
+            cyl_template_ibo,
+            cyl_index_count,
+            segment_buffer,
+            segment_bind_group,
+            segment_count,
+            line_buffer,
+            line_bind_group,
             time: 0.0, 
             time_buffer, 
             time_bind_group,
@@ -277,6 +386,14 @@ impl Gpu {
         self.time += 1.0 / 60.0;
         self.queue.write_buffer(&self.time_buffer, 0, bytemuck::bytes_of(&self.time));
         self.queue.write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&view_proj.to_f32()));
+
+        let line = LineUniform{
+            thickness: 2.0, // later driven by the egui slider
+            proj_y: 1.0 / (30.0_f32).to_radians().tan() * 0.001, // cot(fovy/2) mm-m unit scale
+            ortho_h: 0.0, // perspective, set the ortho half-height when ortho
+            vp_h: self.config.height as f32,
+        };
+        self.queue.write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
 
         // wgpu 29: get_current_texture() returns an enum, not a Result.
         let output = match self.surface.get_current_texture() {
@@ -335,11 +452,27 @@ impl Gpu {
             pass.set_bind_group(1, &self.time_bind_group, &[]);
             pass.set_bind_group(2, &self.instance_bind_group, &[]);
 
+            // Arena draw
             pass.set_vertex_buffer(0, self.arena_vbo.slice(..)); // slot 0 - vertices
             pass.set_vertex_buffer(1, self.arena_vids.slice(..)); // slot 1 - per-vertex row ids
             pass.set_index_buffer(self.arena_ibo.slice(..), wgpu::IndexFormat::Uint32);
             pass.draw_indexed(0..self.arena_index_count, 0, 0..1); // whole scene, one call
             draws += 1;
+
+            //Edges - ONE draw fro the WHOLE scene linework:
+            // segment table + unit-cylinder templates
+            pass.set_pipeline(&self.pipelines.cylinder);
+            pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+            pass.set_bind_group(1, &self.line_bind_group, &[]);
+            pass.set_bind_group(2, &self.instance_bind_group, &[]);
+            pass.set_bind_group(3, &self.segment_bind_group, &[]);
+            pass.set_vertex_buffer(0, self.cyl_template_vbo.slice(..));
+            pass.set_index_buffer(self.cyl_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+            pass.draw_indexed(0..self.cyl_index_count, 0, 0..self.segment_count); // one template, N edges
+            draws += 1;
+
+
+
 
 
         }
@@ -391,6 +524,11 @@ struct Instance {
     _pad: [u32; 3], // 12 B - pad the row to 96 B (storage array stride)
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+/// Individual type memoery layouts
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Memory layout is 16 (12+4), 16 (12+4) and 16
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -401,3 +539,47 @@ struct CylinderSegment{
     instance_id: u32,  // 4 B - row in instances[]: object model + flags (hide/select later)
     color: [f32; 4],  // 16 B - per - edge (black crease, naked color, ...)
 }
+
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+struct LineUniform{
+    thickness: f32, // on-screwwn width, px
+    proj_y: f32, // vertical projection scale x unit scale 
+    ortho_h: f32, // ortho world half.heigh x unit scale
+    vp_h: f32, // framebuffer height, px
+} // 16 B - one vec4, no padding
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+/// Primitives
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+const CYL_SIDES: u32 = 12;
+
+// Unit cylinder along +Z (radius 1. z in [0,1]) with cap fans.
+// The shader rescale xy by the screen-constant radius and maps z along (p1-p0), so this template is registered ONCE.
+fn unit_cylinder(sides: u32) -> (Vec<[f32; 3]>, Vec<u32>){
+    let mut v: Vec<[f32; 3]> = Vec::new();
+    let mut idx: Vec<u32> = Vec::new();
+    for s in 0..sides{
+        let a = s as f32 / sides as f32 * std::f32::consts::TAU;
+        v.push([a.cos(), a.sin(), 0.0]);
+        v.push([a.cos(), a.sin(), 1.0]);
+    }
+    for s in 0..sides{
+        let b0 = 2 * s;
+        let b1 = 2 * ((s+1) % sides);
+        idx.extend_from_slice(&[b0, b1, b1 + 1, b0, b1+1, b0+1]); // Two triangles per side face
+    }
+    let cb = v.len() as u32;
+    v.push([0.0, 0.0, 0.0]);
+    let ct = v.len() as u32;
+    v.push([0.0, 0.0, 1.0]);
+    for s in 0..sides{
+        let b0 = 2 * s;
+        let b1 = 2 * ((s+1)%sides);
+        idx.extend_from_slice(&[cb, b1, b0, ct, b0 + 1, b1 + 1]); // bottom + top fan
+    }
+    (v, idx)
+}
+

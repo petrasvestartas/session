@@ -52,7 +52,7 @@ surface **is** a mesh, so 30–32's whole pipeline (arena, edge tubes, boundary 
 untouched:
 
 ```rust
-    // (1) ORDER — Scene::new: same loop as 60 over session.objects.nurbssurfaces.
+    // (1) ORDER — is_renderable admits Geometry::NurbsSurface (same one-word arm as 60).
     // (2) BUILD — the cached mesh flows through the EXISTING mesh path:
     for ns in &self.session.objects.nurbssurfaces {
         let guid = ns.guid().to_string();

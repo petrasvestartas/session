@@ -1,13 +1,15 @@
 # 60 NurbsCurve — evaluate, draw, create
 
 > **Big picture.** *Phase 10 — curved geometry (60–64).* Everything drawn so far is straight or
-> faceted; the kernel's NURBS types bring true curves and surfaces. One structural fact shapes the
-> whole phase: **nurbs objects don't live in `session.lookup`** — they sit in their own collections
-> (`session.objects.nurbscurves`, `.nurbssurfaces`, `.nurbssurfacetrimmeds`). Every map the viewer
-> keeps (draw order, world boxes, picking, visibility) must include them *explicitly* — the archive
-> forgot, repeatedly, and each forget was a bug ("surface draws but won't pick", "trimmed surface
-> vanishes from the tree"). This phase's discipline: **one collection, every map.** (The root cause is
-> kernel-gap #4 in `_KERNEL_GAPS.md` — nurbs types as `Geometry` variants would retire the bug class.)
+> faceted; the kernel's NURBS types bring true curves and surfaces. One structural fact shaped this
+> phase when it was first written: nurbs objects lived only in their own collections
+> (`session.objects.nurbscurves`, …), outside `session.lookup` — and every map the viewer keeps had
+> to remember both sources; the archive forgot repeatedly, each forget a bug. That audit became
+> kernel-gap #4, and **the kernel has since been fixed**: `NurbsCurve` and `NurbsSurface` are now
+> `Geometry` variants, registered in `lookup` on add and load, in all three languages. So curves ride
+> the *existing* lookup walk with two new `match` arms — only `NurbsSurfaceTrimmed` (64) still lives
+> collection-only. The discipline this phase teaches — **every map, checked** — still stands; the
+> kernel just does most of the remembering now.
 
 <svg viewBox="0 0 680 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a nurbs curve is sampled at parameters into a polyline whose segments feed the cylinder path; the sample count adapts to the span count" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <path d="M 30,100 C 110,20 190,120 270,50" fill="none" stroke="#6fb3ff" stroke-width="2"/>
@@ -47,40 +49,36 @@ fn sample_curve(nc: &NurbsCurve) -> Vec<Point> {
 }
 ```
 
-## Step 2 — one collection, every map: `src/app/scene.rs`
+## Step 2 — every map gains an arm: `src/app/scene.rs`
 
-Four small arms, one per map. This is the lesson's discipline made concrete — write all four **now**,
-not when each bug surfaces:
+Curves arrive in `lookup` as `Geometry::NurbsCurve` (the kernel fix from gap #4), so the maps built
+on the lookup walk — order, build, boxes — each gain a **match arm**, not a parallel loop. Only
+picking needs curve-specific code:
 
 ```rust
-    // (1) ORDER — Scene::new, after the lookup loop:
-    for nc in &session.objects.nurbscurves {
-        guid_to_row.insert(nc.guid().to_string(), order.len() as u32);
-        order.push(nc.guid().to_string());
+    // (1) ORDER — is_renderable (35) admits the new variant; Scene::new needs nothing else:
+    fn is_renderable(g: &Geometry) -> bool {
+        matches!(g, Geometry::Mesh(_) | Geometry::BRep(_) | Geometry::Line(_)
+                  | Geometry::Polyline(_) | Geometry::Point(_) | Geometry::NurbsCurve(_))   // ← ADD
     }
 
-    // (2) BUILD — Scene::build gains a pass over the collection (samples → segments, like a polyline):
-    for nc in &self.session.objects.nurbscurves {
-        let ri = self.guid_to_row[nc.guid()];
-        let flags = if self.hidden.contains(nc.guid()) { Instance::FLAG_HIDDEN } else { 0 };
-        objects_base_entry(ri, Xform::identity(), nc.linecolors_default(), flags);   // world coords, like lines
+    // (2) BUILD — one arm in Scene::build's existing match (samples → segments, like a polyline):
+    Geometry::NurbsCurve(nc) => {
+        objects_base.push((nc.xform.duplicate(), curve_color(nc), flags));   // world coords, like lines
         let pts = sample_curve(nc);
         for w in pts.windows(2) { segments.push(seg(w[0].to_f32(), w[1].to_f32(), ri)); }
-        for i in 0..nc.cv_count() {                                        // control points as handles
-            if let Some(p) = nc.cv_point(i) { glyphs.push(glyph(p.to_f32(), ri)); }
+        for i in 0..nc.cv_count() {                                          // control points as handles
+            if let Some(p) = nc.get_cv(i) { glyphs.push(glyph(p.to_f32(), ri)); }
         }
     }
 
-    // (3) WORLD BOX — a new arm where world_obb's match lives (36); the kernel has the exact ctor:
-    //     curves aren't Geometry variants, so key this on the guid set, not the enum:
-    if let Some(nc) = self.session.objects.nurbscurves.iter().find(|c| c.guid() == guid) {
-        return OBB::from_nurbscurve(nc, PAD, true);
-    }
+    // (3) WORLD BOX — one arm in world_obb's match (36); the kernel has the exact ctor:
+    Geometry::NurbsCurve(nc) => OBB::from_nurbscurve(nc, PAD, true),
 
-    // (4) PICK — pick_thin (44) can't see curves (Session::ray_cast walks lookup only). Test the
-    //     cached samples with the same screen-radius rule:
-    for nc in &self.session.objects.nurbscurves {
-        let pts = sample_curve(nc);                    // cache per guid in practice — see the note
+    // (4) PICK — Session::ray_cast's curve arm is a deliberate no-op (exact ray↔NURBS is out of
+    //     scope kernel-side), so pick_thin tests the CACHED samples with 44's screen-radius rule:
+    for nc in self.session.lookup.values().filter_map(as_nurbscurve) {
+        let pts = /* sample cache entry */;
         for w in pts.windows(2) { /* ray↔segment distance ≤ tol → candidate (44's formula) */ }
     }
 ```
@@ -102,7 +100,7 @@ it doesn't pass through), Enter builds a degree-3 curve:
     // finish (Enter), with self.points: Vec<Point> accumulated exactly like PolylineTool:
     if self.points.len() < 4 { return CmdStep::Cancel; }              // degree 3 needs ≥ 4 CVs
     let nc = NurbsCurve::create(false, 3, &self.points);              // open, cubic, from control points
-    state.commit_nurbscurve(nc);                                      // see below
+    state.commit(Box::new(AddGeometry::one(Geometry::NurbsCurve(nc)))); // 57's command, directly
     CmdStep::Done("curve added".into());
 ```
 
@@ -110,24 +108,19 @@ The ghost: sample a *temporary* `NurbsCurve::create` from the clicked points + c
 `on_move` — the preview shows the real smoothed curve, not the control polygon. (Cheap: a handful of
 CVs, ~64 samples.)
 
-One honest wrinkle: `AddGeometry` (57) wraps `Geometry`, and curves aren't a `Geometry` variant. Give
-them their own small Command — same absolute-snapshot pattern, the collection as the target:
+Since curves are `Geometry` variants now, no bespoke command is needed at all — 57's `AddGeometry`
+takes them directly, and 51's `restore_geometry` grows one arm:
 
 ```rust
-pub struct AddNurbsCurve { snapshot: NurbsCurve }
-impl Command for AddNurbsCurve {
-    fn apply(&mut self, scene: &mut Scene, gpu: &mut Gpu) {
-        scene.session.objects.nurbscurves.push(self.snapshot.clone());
-        scene.register_curve(&self.snapshot, gpu);                    // arms 1–2 for ONE curve
-    }
-    fn revert(&mut self, scene: &mut Scene, gpu: &mut Gpu) {
-        let guid = self.snapshot.guid().to_string();
-        scene.session.objects.nurbscurves.retain(|c| c.guid() != guid);
-        scene.unregister(&guid, gpu);                                 // gpu.remove_object + free_row
-    }
-    fn label(&self) -> String { "add curve".into() }
-}
+    // 51's restore_geometry, one new arm — the kernel's add_nurbscurve handles objects/lookup/graph/tree:
+    Geometry::NurbsCurve(c) => { self.session.add_nurbscurve(c, None); }
+
+    // the tool's finish (Step 3 above) is therefore just:
+    state.commit(Box::new(AddGeometry::one(Geometry::NurbsCurve(nc))));
 ```
+
+(`Session::remove_object` — which `AddGeometry`'s undo runs through — already retains the nurbs
+collections since the gap-#4 fix, so the round trip is complete with zero curve-specific plumbing.)
 
 Register `"curve"` (+ aliases `"crv"`, `"nurbscurve"`) in the verb tables.
 
@@ -152,19 +145,19 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 ```
 Ch 59: snapping — Phase 9 closed.
-Ch 60: NURBSCURVE. The structural fact of Phase 10: nurbs types live in session.objects.*, NOT
-       lookup — so they must be added to EVERY map explicitly (order/rows, build, world boxes, pick;
-       hide/selection ride the flags for free). Draw = sample point_at over the domain, spans×16
-       clamped 32..512, → 31's segments; CVs → 32a glyphs (73's future handles); cache samples per
-       guid. Box = OBB::from_nurbscurve (kernel-exact). Pick = ray↔segment over the cached samples
-       (Session::ray_cast can't see curves). Tool = polyline-shaped, clicks are CONTROL points,
-       ghost samples a temporary curve (real preview, not the control polygon), Enter →
-       NurbsCurve::create(false, 3, points), ≥4 CVs. AddNurbsCurve Command targets the collection —
-       same snapshot pattern, different container.
+Ch 60: NURBSCURVE. Curves are Geometry variants (kernel-gap #4, FIXED while writing this course) —
+       registered in lookup by add_nurbscurve and on load — so every lookup-walking map gains a match
+       ARM, not a parallel loop: is_renderable admits it, build samples it, world_obb boxes it
+       (OBB::from_nurbscurve, kernel-exact). Draw = sample point_at over the domain, spans×16 clamped
+       32..512, → 31's segments; CVs → 32a glyphs (73's future handles); cache samples per guid.
+       Pick = ray↔segment over the cached samples (the kernel's curve ray arm is a deliberate no-op).
+       Tool = polyline-shaped, clicks are CONTROL points, ghost samples a temporary curve, Enter →
+       NurbsCurve::create(false, 3, points), ≥4 CVs — committed via 57's AddGeometry directly; 51's
+       restore_geometry grows one arm. Only NurbsSurfaceTrimmed (64) still lives collection-only.
 ```
 
-Edited: `app/scene.rs` (four arms + `register_curve`/`unregister` + sample cache),
-`app/tools/curve.rs` (NEW), `app/history/add.rs` (`AddNurbsCurve`), `app/commands.rs` (`curve`).
+Edited: `app/scene.rs` (match arms in is_renderable/build/world_obb + sampled pick + sample cache),
+`app/tools/curve.rs` (NEW), `app/scene.rs`'s `restore_geometry` (one arm), `app/commands.rs` (`curve`).
 
 ## Next
 

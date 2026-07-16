@@ -225,7 +225,11 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) si: u32) -> Vs
     let axis  = w1 - w0;
     let len   = length(axis);
     let dir   = select(vec3<f32>(0.0, 0.0, 1.0), axis / len, len > 1e-9);
-    let ref0  = select(vec3<f32>(1.0, 0.0, 0.0), vec3<f32>(0.0, 1.0, 0.0), abs(dir.z) > 0.9);
+    // Reference axis for the frame: must NEVER be parallel to dir, or cross() returns zero and the
+    // tube collapses to NaN (invisible). Rule: use Z as the reference, and swap to X only when dir
+    // itself is near-Z. (Getting this backwards — X as the default — silently deletes every
+    // X-parallel edge: 4 edges of any box vanish. A real bug this course shipped and a reader caught.)
+    let ref0  = select(vec3<f32>(0.0, 0.0, 1.0), vec3<f32>(1.0, 0.0, 0.0), abs(dir.z) > 0.9);
     let right = normalize(cross(ref0, dir));
     let up    = cross(dir, right);
 

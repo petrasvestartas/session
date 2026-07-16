@@ -31,12 +31,12 @@ tests **lines** with `intersection::line_line(ray, line, tolerance)`, **polyline
 candidate list* because their BVH boxes are near-degenerate (the kernel documents this itself). It
 was the archive's entire pick path.
 
-Two of its arms we deliberately ignore: its **Mesh** arm casts against local vertices — placement-blind
-for our `mesh.xform` convention (the same trap as 36) — and its **BRep** arm is a no-op by design
-("viewers must use pre-cached tessellations"). 42's viewer-side mesh cast already handles both
-correctly. So: **kernel cast for thin, 42 for solid, merge with a priority rule.** (Kernel-gaps #3/#7
-in `_KERNEL_GAPS.md` — placement-aware casting plus a cached BRep mesh would let `Session::ray_cast`
-be the whole picker.)
+Two of its arms we still route around: its **Mesh** arm — which *used* to be placement-blind
+(kernel-gap #3, since **fixed**: it now casts in the mesh's local frame and returns world hits) —
+and its **BRep** arm, a no-op by design ("viewers must use pre-cached tessellations", gap #7, open).
+We keep 42's viewer-side cast for solids anyway: it serves meshes, BReps, *and* tessellated surfaces
+from one cached path, which the kernel can't until #7 lands. So: **kernel cast for thin, 42 for
+solid, merge with a priority rule** — now a performance choice rather than a correctness workaround.
 
 ## Files we touch
 
