@@ -142,10 +142,11 @@ the verified `OBB::aabb()` accessor (36's world OBB → its enclosing world AABB
 
 ```rust
     /// The object's world AABB extents, in f64 — what the frustum plane test consumes.
+    /// A CACHE READ, not a computation: 36's build_bvh stored every box's extents when it walked
+    /// the vertices. Recomputing here would put an O(total vertices) walk inside the PER-FRAME
+    /// cull — the classic hidden cost. The cache invalidates exactly when the BVH does (rebuild).
     pub fn world_aabb(&self, guid: &str) -> ([f64; 3], [f64; 3]) {
-        let a = world_obb(&self.session.lookup[guid]).aabb();   // OBB (36) → enclosing AABB
-        let (lo, hi) = (a.min_point(), a.max_point());
-        ([lo[0], lo[1], lo[2]], [hi[0], hi[1], hi[2]])
+        self.world_boxes[self.order_index(guid)]   // order_index: position in `order` (or a map)
     }
 ```
 

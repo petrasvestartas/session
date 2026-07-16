@@ -38,11 +38,8 @@ placement**). Writing this lesson surfaced the inconsistency as kernel-gap #3, a
 since been fixed**: `compute_bounding_box` and `Session::ray_cast` now bake `mesh.xform` in all
 three languages. `Scene` still builds its own `world_obb` below — its BVH wants viewer-controlled
 padding and the tessellation-backed boxes for surfaces — but it now agrees with the kernel instead
-of correcting it. A box built from local
-vertices would sit at the origin, not where the mesh actually draws — every mesh in the tree would be
-in the wrong place. (`BRep` is fine — the kernel *does* transform `b.m_vertices` by `b.xform` there —
-but Mesh is the common case and it's wrong for us.) So the viewer computes each object's **world** box
-from the same placement the instance row uses, then feeds those boxes to the kernel's tree.
+of correcting it. Either way the invariant stands: every box fed to the tree is a **world** box,
+computed from the same placement the instance row uses.
 
 <svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="per-object world OBBs are built by Scene and fed to the kernel SpatialBVH, whose query_aabb serves culling, picking and box-select" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <text x="10" y="18" fill="#888">Scene::build_bvh — world boxes (placement applied)</text>
@@ -133,6 +130,7 @@ pub struct Scene {
     pub guid_to_row: HashMap<String, u32>,
     pub hidden: HashSet<String>,
     bvh: SpatialBVH,   // ← ADD — broad-phase over world boxes, object_id == index into `order`
+    world_boxes: Vec<([f64; 3], [f64; 3])>,   // ← ADD — cached AABB extents, same order as `order`
 }
 ```
 
@@ -140,20 +138,28 @@ pub struct Scene {
 initializer:
 
 ```rust
-        let bvh = Self::build_bvh(&session, &order);
-        Self { session, order, guid_to_row, hidden: HashSet::new(), bvh }
+        let (bvh, world_boxes) = Self::build_bvh(&session, &order);
+        Self { session, order, guid_to_row, hidden: HashSet::new(), bvh, world_boxes }
     }
 
     /// Rebuild the whole tree from `order`. Called once at construction; a later lesson (38)
     /// refits incrementally on edit instead of rebuilding. Boxes go in `order` order →
     /// object_id == order index.
-    fn build_bvh(session: &Session, order: &[String]) -> SpatialBVH {
+    fn build_bvh(session: &Session, order: &[String]) -> (SpatialBVH, Vec<([f64; 3], [f64; 3])>) {
         let boxes: Vec<(OBB, String)> = order.iter()
             .map(|guid| (world_obb(&session.lookup[guid]), guid.clone()))
             .collect();
+        // Cache each box's AABB extents alongside the tree. Computing a world box walks the
+        // object's VERTICES — do it once per (re)build, never per query. Lesson 37's per-frame
+        // cull and 45's marquee read THIS cache; without it they'd re-walk every mesh every frame.
+        let extents = boxes.iter().map(|(o, _)| {
+            let a = o.aabb();
+            let (lo, hi) = (a.min_point(), a.max_point());
+            ([lo[0], lo[1], lo[2]], [hi[0], hi[1], hi[2]])
+        }).collect();
         let mut bvh = SpatialBVH::new();
         bvh.build_with_guids(&boxes);   // empty slice → empty tree; query returns [] (no panic)
-        bvh
+        (bvh, extents)
     }
 ```
 

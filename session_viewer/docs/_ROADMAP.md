@@ -489,6 +489,46 @@ start instead of being retrofitted at lesson 69 like the old plan.
   texture + sampler upload, group-2 material struct, albedo sample in `fs_main`. The CAD default
   look (shaded + edges + arctic GI) does not use textures.
 
+## Phase 14 — CAD completeness (post-capstone review, 2026-07-16; ranked by importance)
+Gaps found by reviewing the finished 77-lesson plan against "what does a real CAD viewer that
+people trust actually have". None block the capstone; 78–80 are the ones users notice first.
+- ⬜ 78 Section / clipping planes — THE missing CAD feature (AEC scenes demand cuts)
+  - steps: N world clip planes in a uniform; every geometry fs gains `if (dot(p, plane) < 0) {
+    discard; }` behind a plane-count uniform (0 = free); `section` command sets a plane by 3 points
+    or from the work plane (75), gumball-draggable along its normal; optional: darker "cut" tint on
+    back faces as a cheap cap illusion (true caps = kernel plane-splits, later)
+  - picking must respect the cut: 42's local-frame cast filters hits behind active planes
+  - verify: section a floor model wall — the inside reads; drag the plane through the building live
+- ⬜ 79 Import / export OBJ + STEP — the kernel codecs are ALREADY THERE (file_obj, file_step,
+  round-tripped by minitests); the viewer only speaks .pb/.json today
+  - steps: extend 34a's extension dispatch (`.obj`/`.step` → the kernel decoders) + `<input
+    type=file>` open (34a's noted alternative) + `export obj|step` verbs via 39's download path
+  - verify: drag a real .step in → tessellated BReps appear; export → reopens in FreeCAD/Rhino
+- ⬜ 80 Copy / duplicate / array — daily-use editing (trivially cheap on this architecture)
+  - steps: `copy` verb = clone selection, fresh guids, offset via Get-loop point pair →
+    AddGeometry (57) so undo is free; Alt+gumball-drag = drag a copy (54's skeleton, clone at
+    begin_drag); `array N dx dy dz` as the loop form
+  - verify: Alt-drag a beam → original stays, copy follows; Ctrl+Z removes the copy only
+- ⬜ 81 Layers via tree groups — CAD organization users expect (Session::add_group already exists)
+  - steps: group nodes get eye/color chips in the tree (70); branch visibility = 46's set ops;
+    `layer <name>` verb creates + assigns selection; new objects land on the active layer
+  - verify: hide "beams" layer → all beams gone from draw AND pick; saved file round-trips groups
+- ⬜ 82 Measure + status bar — `probe` (49) grows up: `distance`, `angle` (3 points), `radius`
+  (3 points on an arc), object info (`what`: type/verts/area from the kernel); a one-line status
+  bar showing live cursor world coords + active snap + selection count
+  - verify: measured beam length matches the kernel value to the digit
+- ⬜ 83 Developer toolbox — the workflow lesson (headless selftest + debugging)
+  - steps: `cargo run --example selftest` — headless kernel+scene checks without a browser (the
+    archive's proven pattern); wgpu error scopes surfaced to the CLI log instead of silent console;
+    a "black screen checklist" appendix (naga validate → error scope → perf HUD counts → 28's
+    draw-count sanity); CI: `trunk build` + selftest on push
+  - verify: an intentionally broken shader reports IN the viewer's CLI log, not just F12
+- ⬜ 84 Web polish — load-time & size (the 17.5 MB stress file over a real network)
+  - steps: streaming fetch with a progress bar in the CLI log line (Content-Length → %),
+    `wasm-opt -O2` + release profile (`opt-level = 'z'`, `lto = true`) — measure the wasm size
+    before/after in the lesson; optional: gzip/brotli note for static hosts
+  - verify: cold-load the stress file on throttled 3G devtools — progress visible, no frozen tab
+
 ## Capstone
 - ✅ 77 Load the floor model — the compas_tf demo as a first-class scene
   - steps: load the `.pb` (34/38), fit (15), run the full loop: pick → tree reveal → gumball →
