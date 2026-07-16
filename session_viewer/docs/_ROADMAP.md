@@ -409,12 +409,12 @@ start instead of being retrofitted at lesson 69 like the old plan.
 > crawled on an iGPU. The rebuild deletes the waste WITHOUT touching quality — **USER RULE:
 > quality must NOT decrease while rotating/interacting.** No motion-adaptive degradation; the
 > savings come from architecture: skip unchanged frames, AO at half-res, fewer-but-smarter taps.
-- ▶ 65 Analytic ground + infinite grid — white ground with distance fade
+- ✅ 65 Analytic ground + infinite grid — white ground with distance fade
   (project_arctic_ssao_viewer's analytic-plane technique: per-pixel ray∩plane in the fragment
   shader, exact `frag_depth`, horizon alpha fade; NEVER a giant world-space quad — it flickers);
   optionally upgrade the lesson-20 grid to the fragment-shader infinite grid (`fract`/`fwidth`)
   - verify: ground reaches the horizon, fades smoothly, never z-fights the grid
-- ⬜ 66 Render-on-demand — the single biggest perf win, and it never touches the image
+- ✅ 66 Render-on-demand — the single biggest perf win, and it never touches the image
   - steps: a `dirty` flag set by input/camera/scene/UI changes; dirty → draw the (always
     full-quality) frame; clean → SKIP rendering entirely (CAD apps do this; games don't);
     perf HUD (28) gains a "frames drawn/s" counter
@@ -423,7 +423,7 @@ start instead of being retrofitted at lesson 69 like the old plan.
     scenes for free
   - verify: static scene = 0 frames/s on the HUD; orbit = instant response, image identical
     frame-for-frame; GPU% visibly drops when idle
-- ⬜ 67 GTAO — half-res, CONSTANT quality (replaces the archive's 48-tap always-on SSAO)
+- ✅ 67 GTAO — half-res, CONSTANT quality (replaces the archive's 48-tap always-on SSAO)
   - steps: one fixed-quality GTAO, same result every frame — moving or still: AO at HALF
     resolution, R16Float (AO is low-frequency — 4× fewer shaded pixels) + depth-aware upsample
     in composite; 3 slices × 6 steps (~42 taps at ¼ pixels ≈ 10/px — 5× under the archive's
@@ -442,7 +442,7 @@ start instead of being retrofitted at lesson 69 like the old plan.
     66 makes idle cost ZERO
   - verify: orbit smooth on an iGPU with NO visible quality change vs standstill — screenshot a
     frame mid-orbit and at rest, diff them; no grazing-angle stripes on the ground (the gate)
-- ⬜ 68 Arctic + cheap global illumination — a better DEFAULT look for the same money
+- ✅ 68 Arctic + cheap global illumination — a better DEFAULT look for the same money
   - steps: arctic ambient (0.72..1.0 hemisphere) × AO upgraded to: sky visibility from the BENT
     normal (directional occlusion — creases darken toward the open sky, reads as real GI) +
     Jimenez multi-bounce approximation (one polynomial of AO and albedo — bounce light for free);
@@ -450,7 +450,7 @@ start instead of being retrofitted at lesson 69 like the old plan.
     the 8-bit swapchain; B toggle + settings checkbox (47)
   - verify: default look visibly improves (contact micro-shadow); arctic reads ≥ archive; zero
     extra texture fetches vs 67
-- ⬜ 69 Selection outline + AA polish — the archive look without the per-frame tax
+- ✅ 69 Selection outline + AA polish — the archive look without the per-frame tax
   - steps: coverage-mask outline (4× MSAA fractional coverage, sharp 1px ramp — archive
     technique; 24's MSAA pays off here) BUT mask passes render only when dirty (66), and the
     composite outline search becomes separable (two 1×N passes) instead of the 81-tap box;
@@ -458,7 +458,7 @@ start instead of being retrofitted at lesson 69 like the old plan.
   - verify: outline crisp at 3 px; static scene draws nothing; selection change redraws once
 
 ## Phase 12 — Scene management UI
-- ⬜ 70 Scene tree — the Session's tree in a panel (reference_viewer_tree_undo)
+- ▶ 70 Scene tree — the Session's tree in a panel (reference_viewer_tree_undo)
   - steps: egui collapsible rows over `session.tree`; **virtualized** (build only visible rows —
     scales to thousands); eye icon toggles the 46 visibility flag; row order right_to_left
     (vis first) per the archive lesson

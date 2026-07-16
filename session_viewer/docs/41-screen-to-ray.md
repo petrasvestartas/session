@@ -66,7 +66,7 @@ pub fn screen_to_world_ray(view_proj: &Xform, origin: &Point, cursor: (f64, f64)
     let ndc_x = ((cursor.0 - vx) / w) * 2.0 - 1.0;
     let ndc_y = 1.0 - ((cursor.1 - vy) / h) * 2.0;   // pixel-y is top-down; NDC-y is bottom-up
 
-    let inv = view_proj.inverse()?;                  // kernel f64 inverse; None if degenerate
+    let inv = mat4_inverse(&view_proj.to_cols())?;   // FULL 4×4 inverse — see the warning below
     let shift = Vector::new(origin[0], origin[1], origin[2]);   // camera-relative → world (Point + Vector)
     // Reverse-Z (26): the NEAR plane is ndc_z = 1.0, the far plane ndc_z = 0.0. Unproject near at 1.0
     // and a well-conditioned mid-depth at 0.5 (NOT the far plane — see Step 2).
@@ -78,19 +78,48 @@ pub fn screen_to_world_ray(view_proj: &Xform, origin: &Point, cursor: (f64, f64)
 }
 
 /// NDC (with a z) → a point, via the inverse view-projection and the perspective divide.
-fn unproject(inv: &Xform, x: f64, y: f64, z: f64) -> Option<Point> {
-    let m = inv.to_cols();                           // column-major: m[col][row]  (Xform has no vec-multiply)
+fn unproject(m: &[[f64; 4]; 4], x: f64, y: f64, z: f64) -> Option<Point> {
     let v = [x, y, z, 1.0];
     let row = |r: usize| m[0][r]*v[0] + m[1][r]*v[1] + m[2][r]*v[2] + m[3][r]*v[3];   // (M · v)[r]
     let w = row(3);                                  // homogeneous w
     if w.abs() < 1e-12 { return None; }              // w≈0 → point at infinity, unusable
     Some(Point::new(row(0)/w, row(1)/w, row(2)/w))   // perspective divide
 }
+
+/// FULL 4×4 inverse (cofactor expansion), column-major [[f64;4];4]. Explicit on purpose.
+fn mat4_inverse(m: &[[f64; 4]; 4]) -> Option<[[f64; 4]; 4]> {
+    // flatten column-major: a[c][r] — work in flat indices for the cofactor table
+    let a = m;
+    let s0 = a[0][0]*a[1][1] - a[1][0]*a[0][1];  let c5 = a[2][2]*a[3][3] - a[3][2]*a[2][3];
+    let s1 = a[0][0]*a[1][2] - a[1][0]*a[0][2];  let c4 = a[2][1]*a[3][3] - a[3][1]*a[2][3];
+    let s2 = a[0][0]*a[1][3] - a[1][0]*a[0][3];  let c3 = a[2][1]*a[3][2] - a[3][1]*a[2][2];
+    let s3 = a[0][1]*a[1][2] - a[1][1]*a[0][2];  let c2 = a[2][0]*a[3][3] - a[3][0]*a[2][3];
+    let s4 = a[0][1]*a[1][3] - a[1][1]*a[0][3];  let c1 = a[2][0]*a[3][2] - a[3][0]*a[2][2];
+    let s5 = a[0][2]*a[1][3] - a[1][2]*a[0][3];  let c0 = a[2][0]*a[3][1] - a[3][0]*a[2][1];
+    let det = s0*c5 - s1*c4 + s2*c3 + s3*c2 - s4*c1 + s5*c0;
+    if det.abs() < 1e-18 { return None; }
+    let id = 1.0 / det;
+    Some([
+        [( a[1][1]*c5 - a[1][2]*c4 + a[1][3]*c3)*id, (-a[0][1]*c5 + a[0][2]*c4 - a[0][3]*c3)*id,
+         ( a[3][1]*s5 - a[3][2]*s4 + a[3][3]*s3)*id, (-a[2][1]*s5 + a[2][2]*s4 - a[2][3]*s3)*id],
+        [(-a[1][0]*c5 + a[1][2]*c2 - a[1][3]*c1)*id, ( a[0][0]*c5 - a[0][2]*c2 + a[0][3]*c1)*id,
+         (-a[3][0]*s5 + a[3][2]*s2 - a[3][3]*s1)*id, ( a[2][0]*s5 - a[2][2]*s2 + a[2][3]*s1)*id],
+        [( a[1][0]*c4 - a[1][1]*c2 + a[1][3]*c0)*id, (-a[0][0]*c4 + a[0][1]*c2 - a[0][3]*c0)*id,
+         ( a[3][0]*s4 - a[3][1]*s2 + a[3][3]*s0)*id, (-a[2][0]*s4 + a[2][1]*s2 - a[2][3]*s0)*id],
+        [(-a[1][0]*c3 + a[1][1]*c1 - a[1][2]*c0)*id, ( a[0][0]*c3 - a[0][1]*c1 + a[0][2]*c0)*id,
+         (-a[3][0]*s3 + a[3][1]*s1 - a[3][2]*s0)*id, ( a[2][0]*s3 - a[2][1]*s1 + a[2][2]*s0)*id],
+    ])
+}
 ```
 
-(`Xform` multiplies only another `Xform`, so the matrix × homogeneous-vector is spelled out via
-`to_cols()` — four multiply-adds per row. `Point + Vector`, `Point − Point → Vector`, and
-`Vector::normalized()` are all verified kernel ops.)
+> ⚠️ **Why not the kernel's `Xform::inverse()`?** It is **affine-only** — it inverts the 3×3 block and
+> the translation column, silently assuming the bottom row is `[0,0,0,1]`. A *perspective* `view_proj`
+> has a projective bottom row, so its "inverse" from that function is simply wrong — rays land
+> nowhere near the cursor. This was the archive's root perspective-picking bug; its `pick.rs` ships
+> exactly this full `mat4_inverse` as the fix, and so do we. (Object placements — `mesh.xform` in
+> 42/43 — ARE affine, so the kernel inverse stays correct there.)
+>
+> `Point + Vector`, `Point − Point → Vector`, and `Vector::normalized()` are all verified kernel ops.
 
 ## Step 2 — why `ndc_z = 0.5`, not the far plane
 
