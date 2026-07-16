@@ -2,6 +2,7 @@ use session_rust::RenderVertex;
 
 pub const MSAA_SAMPLES: u32 = 4;
 const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![3 => Uint32];
+const CYL_TEMPLATE_ATTRIBS: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Float32x3];
 
 
 // This helps the GPU to read the second vertex buffer - the instance row id.
@@ -11,6 +12,14 @@ fn instance_id_layout() -> wgpu::VertexBufferLayout<'static>{
         array_stride: 4,
         step_mode: wgpu::VertexStepMode::Vertex, // one u32 per vertex
         attributes: &INSTANCE_ID_ATTRIBS // advances per-vertex, like position
+    }
+}
+
+fn cyl_template() -> wgpu::VertexBufferLayout<'static>{
+    wgpu::VertexBufferLayout {
+        array_stride: 12, // one vec3<f32> per templete vertex
+        step_mode: wgpu::VertexStepMode::Vertex,
+        attributes: &CYL_TEMPLATE_ATTRIBS,
     }
 }
 

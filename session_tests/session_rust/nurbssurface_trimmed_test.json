@@ -53,7 +53,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.256
+    "time_ms": 0.049
   },
   {
     "checks": [],
@@ -63,7 +63,7 @@
     "line": 49,
     "passed": true,
     "test_name": "Constructor Planar",
-    "time_ms": 161.245
+    "time_ms": 161.733
   },
   {
     "checks": [
@@ -89,7 +89,7 @@
     "line": 136,
     "passed": true,
     "test_name": "Constructor Hole",
-    "time_ms": 0.088
+    "time_ms": 0.091
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 269,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.036
+    "time_ms": 0.038
   },
   {
     "checks": [
@@ -244,7 +244,7 @@
     "line": 476,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 17.432
+    "time_ms": 17.693
   },
   {
     "checks": [
@@ -265,7 +265,7 @@
     "line": 523,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 14.579
+    "time_ms": 15.44
   },
   {
     "checks": [
@@ -1481,7 +1481,7 @@
     "line": 307,
     "passed": true,
     "test_name": "Mesh",
-    "time_ms": 211.596
+    "time_ms": 196.142
   },
   {
     "checks": [
@@ -1522,6 +1522,6 @@
     "line": 406,
     "passed": true,
     "test_name": "Split By UV Curves",
-    "time_ms": 2.273
+    "time_ms": 2.412
   }
 ]

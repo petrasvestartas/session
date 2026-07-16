@@ -253,12 +253,12 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     "AABB intersects but center outside" case). CPU cull now; GPU compute cull is 76
 
 ## Phase 6 — Document & file sync (the `.pb` file is the source, like a real CAD app)
-- ▶ 38 Document ↔ scene reconcile — never rebuild the whole scene
+- ✅ 38 Document ↔ scene reconcile — never rebuild the whole scene (incl. the free-list GpuArena)
   - files: `app/reconcile.rs`; extend `app/scene.rs`'s `guid → (hash, row/handle)` map
   - steps: on (re)load diff by `guid`: added → build+upload; removed → free arena range + row;
     changed (content-hash differs) → re-flatten that object only; unchanged → skip
   - verify: reload a file with 1 of N objects edited → log shows 1 changed / N−1 skipped
-- ⬜ 39 Save (viewer → file) — write only when something actually changed
+- ▶ 39 Save (viewer → file) — write only when something actually changed
   - files: `app/persistence.rs` (save half), dirty hooks where mutations happen
   - steps: mutation → dirty flag → debounce (~1 s) → recompute content-hash, skip if unchanged →
     `pb_dumps` → Blob download (or File System Access write); new objects get a `guid`

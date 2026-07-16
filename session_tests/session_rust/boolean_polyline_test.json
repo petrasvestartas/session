@@ -38,7 +38,7 @@
     "line": 187,
     "passed": true,
     "test_name": "Cross Shape",
-    "time_ms": 3.163
+    "time_ms": 0.18
   },
   {
     "checks": [
@@ -79,7 +79,7 @@
     "line": 60,
     "passed": true,
     "test_name": "Star Vs Circle",
-    "time_ms": 0.372
+    "time_ms": 0.363
   },
   {
     "checks": [
@@ -120,7 +120,7 @@
     "line": 137,
     "passed": true,
     "test_name": "Diamond Vs Triangle",
-    "time_ms": 0.106
+    "time_ms": 0.109
   },
   {
     "checks": [
@@ -161,7 +161,7 @@
     "line": 160,
     "passed": true,
     "test_name": "Star Vs Star",
-    "time_ms": 0.263
+    "time_ms": 0.25
   },
   {
     "checks": [
@@ -202,7 +202,7 @@
     "line": 210,
     "passed": true,
     "test_name": "Concave Arrow Vs Circle",
-    "time_ms": 0.587
+    "time_ms": 0.351
   },
   {
     "checks": [
@@ -243,7 +243,7 @@
     "line": 35,
     "passed": true,
     "test_name": "Circle Vs Rectangle",
-    "time_ms": 0.26
+    "time_ms": 0.261
   },
   {
     "checks": [
@@ -325,7 +325,7 @@
     "line": 235,
     "passed": true,
     "test_name": "Two Large Circles 1000",
-    "time_ms": 7.04
+    "time_ms": 5.968
   },
   {
     "checks": [
@@ -366,7 +366,7 @@
     "line": 262,
     "passed": true,
     "test_name": "Large Coords Auto Scale",
-    "time_ms": 0.101
+    "time_ms": 0.077
   },
   {
     "checks": [
@@ -407,7 +407,7 @@
     "line": 12,
     "passed": true,
     "test_name": "Overlapping Squares",
-    "time_ms": 0.071
+    "time_ms": 0.066
   },
   {
     "checks": [
@@ -448,7 +448,7 @@
     "line": 110,
     "passed": true,
     "test_name": "Two Large Circles",
-    "time_ms": 1.903
+    "time_ms": 1.839
   },
   {
     "checks": [
@@ -489,7 +489,7 @@
     "line": 287,
     "passed": true,
     "test_name": "Horizontal Line Vs Unit Square",
-    "time_ms": 0.477
+    "time_ms": 0.035
   },
   {
     "checks": [
@@ -510,7 +510,7 @@
     "line": 331,
     "passed": true,
     "test_name": "Interior Open Path Passes Through",
-    "time_ms": 0.035
+    "time_ms": 0.029
   },
   {
     "checks": [

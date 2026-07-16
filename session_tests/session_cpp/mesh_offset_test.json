@@ -3,7 +3,7 @@
     "group": "MeshOffset",
     "test_name": "from_mesh",
     "passed": true,
-    "time_ms": 0.109,
+    "time_ms": 0.107,
     "line": 10,
     "code": "        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        Mesh result = MeshOffset::from_mesh(mesh, 1.0);\n        Mesh copy = result;",
     "checks": [
@@ -39,7 +39,7 @@
     "group": "MeshOffset",
     "test_name": "from_mesh_grid",
     "passed": true,
-    "time_ms": 0.159,
+    "time_ms": 0.191,
     "line": 27,
     "code": "        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(2, 0, 0),\n            Point(0, 1, 0),\n            Point(1, 1, 0),\n            Point(2, 1, 0),\n            Point(0, 2, 0),\n            Point(1, 2, 0),\n            Point(2, 2, 0),\n        };\n        std::vector<std::vector<size_t>> faces = {\n            {0, 1, 4, 3},\n            {1, 2, 5, 4},\n            {3, 4, 7, 6},\n            {4, 5, 8, 7},\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, faces);\n        Mesh result = MeshOffset::from_mesh(mesh, 2.0);",
     "checks": [
@@ -65,7 +65,7 @@
     "group": "MeshOffset",
     "test_name": "from_mesh_layers",
     "passed": true,
-    "time_ms": 0.065,
+    "time_ms": 0.068,
     "line": 52,
     "code": "        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        auto layers = MeshOffset::from_mesh_layers(mesh, 1.0);",
     "checks": [
@@ -116,7 +116,7 @@
     "group": "MeshOffset",
     "test_name": "file_json_dump",
     "passed": true,
-    "time_ms": 19.352,
+    "time_ms": 16.854,
     "line": 71,
     "code": "        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        Mesh result = MeshOffset::from_mesh(mesh, 1.0);\n        std::string filename = \"serialization/test_mesh_offset.json\";\n        result.file_json_dump(filename);\n        Mesh loaded = Mesh::file_json_load(filename);",
     "checks": [
@@ -142,7 +142,7 @@
     "group": "MeshOffset",
     "test_name": "file_json_load",
     "passed": true,
-    "time_ms": 0.242,
+    "time_ms": 0.227,
     "line": 88,
     "code": "        std::string filename = \"serialization/test_mesh_offset.json\";\n        Mesh loaded = Mesh::file_json_load(filename);",
     "checks": [
@@ -168,7 +168,7 @@
     "group": "MeshOffset",
     "test_name": "to_proto",
     "passed": true,
-    "time_ms": 16.616,
+    "time_ms": 14.267,
     "line": 96,
     "code": "        std::vector<Point> pts = {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        };\n        Mesh mesh = Mesh::from_vertices_and_faces(pts, {{0, 1, 2, 3}});\n        Mesh result = MeshOffset::from_mesh(mesh, 1.0);\n        std::string filename = \"serialization/test_mesh_offset.bin\";\n        result.pb_dump(filename);\n        Mesh loaded = Mesh::pb_load(filename);",
     "checks": [
@@ -194,7 +194,7 @@
     "group": "MeshOffset",
     "test_name": "from_proto",
     "passed": true,
-    "time_ms": 0.151,
+    "time_ms": 0.313,
     "line": 113,
     "code": "        std::string filename = \"serialization/test_mesh_offset.bin\";\n        Mesh loaded = Mesh::pb_load(filename);",
     "checks": [

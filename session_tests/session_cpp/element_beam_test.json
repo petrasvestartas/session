@@ -3,7 +3,7 @@
     "group": "ElementBeam",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.14,
+    "time_ms": 0.123,
     "line": 13,
     "code": "    // uncomment #include \"element_beam.h\"\n    // uncomment #include \"mesh.h\"\n    ElementBeam b(0.1, 0.2, 3.0, \"beam1\");\n\n    auto& geo = b.geometry();\n    std::string name = b.name;\n    const std::string& guid = b.guid();\n    std::string bstr = b.str();\n    std::string brepr = b.repr();\n\n    ElementBeam bcopy = b.duplicate();\n    ElementBeam b2(0.1, 0.2, 3.0, \"beam1\");\n    ElementBeam b3(0.1, 0.2, 5.0, \"beam1\");",
     "checks": [
@@ -69,7 +69,7 @@
     "group": "ElementBeam",
     "test_name": "Setters",
     "passed": true,
-    "time_ms": 0.137,
+    "time_ms": 0.153,
     "line": 41,
     "code": "    // uncomment #include \"element_beam.h\"\n    ElementBeam b;\n    b.set_width(0.15);\n    b.set_depth(0.3);\n    b.set_length(5.0);",
     "checks": [
@@ -100,7 +100,7 @@
     "group": "ElementBeam",
     "test_name": "Center Line",
     "passed": true,
-    "time_ms": 0.029,
+    "time_ms": 0.026,
     "line": 54,
     "code": "    // uncomment #include \"element_beam.h\"\n    // uncomment #include \"line.h\"\n    ElementBeam b(0.1, 0.2, 5.0);\n    Line cl = b.center_line();",
     "checks": [
@@ -121,7 +121,7 @@
     "group": "ElementBeam",
     "test_name": "Extend",
     "passed": true,
-    "time_ms": 0.054,
+    "time_ms": 0.046,
     "line": 64,
     "code": "    // uncomment #include \"element_beam.h\"\n    ElementBeam b(0.1, 0.2, 3.0);\n    b.extend(0.5);",
     "checks": [
@@ -189,7 +189,7 @@
     "group": "ElementBeam",
     "test_name": "Session Geometry",
     "passed": true,
-    "time_ms": 0.058,
+    "time_ms": 0.06,
     "line": 94,
     "code": "    // uncomment #include \"element_beam.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"xform.h\"\n    ElementBeam b(0.1, 0.2, 3.0);\n    b.session_transformation = Xform::translation(10.0, 0.0, 0.0);\n    auto sg = b.session_geometry();\n\n    auto& mesh = std::get<Mesh>(sg);\n    double min_x = 1e9;\n    for (const auto& [k, v] : mesh.vertex) if (v.x < min_x) min_x = v.x;",
     "checks": [
@@ -210,7 +210,7 @@
     "group": "ElementBeam",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 17.848,
+    "time_ms": 17.866,
     "line": 109,
     "code": "    // uncomment #include \"element_beam.h\"\n    // uncomment #include \"xform.h\"\n    ElementBeam b(0.15, 0.3, 5.0, \"json_beam\");\n    b.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string fname = \"serialization/test_beam_element.json\";\n    b.file_json_dump(fname);\n    ElementBeam loaded = ElementBeam::file_json_load(fname);",
     "checks": [
@@ -241,7 +241,7 @@
     "group": "ElementBeam",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 15.7,
+    "time_ms": 16.155,
     "line": 125,
     "code": "    // uncomment #include \"element_beam.h\"\n    // uncomment #include \"xform.h\"\n    ElementBeam b(0.15, 0.3, 5.0, \"proto_beam\");\n    b.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string path = \"serialization/test_beam_element.bin\";\n    b.pb_dump(path);\n    ElementBeam loaded = ElementBeam::pb_load(path);",
     "checks": [
@@ -272,7 +272,7 @@
     "group": "ElementBeam",
     "test_name": "Polylines",
     "passed": true,
-    "time_ms": 0.089,
+    "time_ms": 0.06,
     "line": 145,
     "code": "    ElementBeam b(0.1, 0.2, 3.0);\n    auto pls = b.polylines();",
     "checks": [
@@ -318,7 +318,7 @@
     "group": "ElementBeam",
     "test_name": "Planes",
     "passed": true,
-    "time_ms": 0.072,
+    "time_ms": 0.056,
     "line": 152,
     "code": "    ElementBeam b(0.1, 0.2, 3.0);\n    auto pls = b.planes();",
     "checks": [
@@ -344,7 +344,7 @@
     "group": "ElementBeam",
     "test_name": "Edge Vectors",
     "passed": true,
-    "time_ms": 0.053,
+    "time_ms": 0.029,
     "line": 160,
     "code": "    ElementBeam b(0.1, 0.2, 3.0);\n    auto evs = b.edge_vectors();",
     "checks": [
@@ -360,7 +360,7 @@
     "group": "ElementBeam",
     "test_name": "Axis",
     "passed": true,
-    "time_ms": 0.047,
+    "time_ms": 0.025,
     "line": 166,
     "code": "    ElementBeam b(0.1, 0.2, 5.0);\n    auto ax = b.axis();",
     "checks": [

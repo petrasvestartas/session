@@ -13,7 +13,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Triangulate",
-    "time_ms": 0.323
+    "time_ms": 0.318
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 37,
     "passed": true,
     "test_name": "Triangle",
-    "time_ms": 0.204
+    "time_ms": 0.221
   },
   {
     "checks": [
@@ -45,7 +45,7 @@
     "line": 54,
     "passed": true,
     "test_name": "Rectangle",
-    "time_ms": 0.142
+    "time_ms": 0.139
   },
   {
     "checks": [
@@ -61,7 +61,7 @@
     "line": 72,
     "passed": true,
     "test_name": "L-shape",
-    "time_ms": 0.165
+    "time_ms": 0.166
   },
   {
     "checks": [
@@ -93,7 +93,7 @@
     "line": 114,
     "passed": true,
     "test_name": "Octagon",
-    "time_ms": 0.332
+    "time_ms": 0.214
   },
   {
     "checks": [
@@ -109,7 +109,7 @@
     "line": 128,
     "passed": true,
     "test_name": "Rectangle with rectangle hole",
-    "time_ms": 0.268
+    "time_ms": 0.239
   },
   {
     "checks": [
@@ -125,7 +125,7 @@
     "line": 152,
     "passed": true,
     "test_name": "Duplicate vertices",
-    "time_ms": 0.161
+    "time_ms": 0.147
   },
   {
     "checks": [
@@ -141,7 +141,7 @@
     "line": 172,
     "passed": true,
     "test_name": "Tilted rectangle with rectangle hole",
-    "time_ms": 0.236
+    "time_ms": 0.227
   },
   {
     "checks": [
@@ -157,7 +157,7 @@
     "line": 197,
     "passed": true,
     "test_name": "Irregular tilted polyline.",
-    "time_ms": 0.972
+    "time_ms": 0.97
   },
   {
     "checks": [
@@ -173,6 +173,6 @@
     "line": 259,
     "passed": true,
     "test_name": "Irregular tilted polyline with holes.",
-    "time_ms": 2.142
+    "time_ms": 2.013
   }
 ]
