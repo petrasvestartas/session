@@ -458,19 +458,19 @@ start instead of being retrofitted at lesson 69 like the old plan.
   - verify: outline crisp at 3 px; static scene draws nothing; selection change redraws once
 
 ## Phase 12 — Scene management UI
-- ▶ 70 Scene tree — the Session's tree in a panel (reference_viewer_tree_undo)
+- ✅ 70 Scene tree — the Session's tree in a panel (reference_viewer_tree_undo)
   - steps: egui collapsible rows over `session.tree`; **virtualized** (build only visible rows —
     scales to thousands); eye icon toggles the 46 visibility flag; row order right_to_left
     (vis first) per the archive lesson
   - verify: 1k objects scroll smoothly; eye toggles match viewport
-- ⬜ 71 Tree ↔ viewport — select in tree ⇄ highlight in viewport; auto-reveal-on-pick (expand +
+- ✅ 71 Tree ↔ viewport — select in tree ⇄ highlight in viewport; auto-reveal-on-pick (expand +
   scroll to the picked object — archive's tree_open + scroll_to_me)
   - verify: pick in viewport scrolls the tree; tree click sets FLAG_SELECTED
-- ⬜ 72 Text labels — billboarded glyph text (archive `text.rs`: glyph atlas + TextVertex quads)
+- ✅ 72 Text labels — billboarded glyph text (archive `text.rs`: glyph atlas + TextVertex quads)
   - verify: labels face the camera, readable at the four named views
 
 ## Phase 13 — Sub-object editing & polish
-- ⬜ 73 Control-point edit — F10 mode (reference_viewer_subobject_edit)
+- ▶ 73 Control-point edit — F10 mode (reference_viewer_subobject_edit)
   - steps: sub-pick (43) grabs verts/CVs; gumball moves them; **partial GPU update**
     (`queue.write_buffer` only the changed vertex range) instead of full re-flatten; kernel
     gotchas: `set_cv_4d` not `set_cv` (weights), mesh edits need `invalidate_triangle_bvh`
