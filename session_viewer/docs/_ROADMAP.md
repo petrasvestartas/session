@@ -270,7 +270,7 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
   - verify: edit the file externally → viewer updates just that object; own saves don't loop
 
 ## Phase 7 — Picking & selection
-- ⬜ 41 Screen → ray — unproject the mouse into a world ray
+- ▶ 41 Screen → ray — unproject the mouse into a world ray
   - files: `engine/pick.rs` (`screen_to_world_ray`), `app/pick.rs` dispatch
   - steps: cursor px → NDC → inverse view_proj (f64 kernel math) → near/far points → ray;
     **use ndc_z = 0.5 for p_far in perspective** — ndc_z = 1 divides by zero at huge far/near
