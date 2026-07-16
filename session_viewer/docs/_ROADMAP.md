@@ -270,36 +270,36 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
   - verify: edit the file externally → viewer updates just that object; own saves don't loop
 
 ## Phase 7 — Picking & selection
-- ▶ 41 Screen → ray — unproject the mouse into a world ray
+- ✅ 41 Screen → ray — unproject the mouse into a world ray
   - files: `engine/pick.rs` (`screen_to_world_ray`), `app/pick.rs` dispatch
   - steps: cursor px → NDC → inverse view_proj (f64 kernel math) → near/far points → ray;
     **use ndc_z = 0.5 for p_far in perspective** — ndc_z = 1 divides by zero at huge far/near
     ratios (project_picking_bug_fix, a real archive bug)
   - verify: click the grid → marker spawned at ray∩z=0 lands under the cursor from every angle
-- ⬜ 42 Ray-cast meshes — nearest hit wins
+- ✅ 42 Ray-cast meshes — nearest hit wins
   - steps: scene-BVH broad-phase (36) → per-mesh triangle test via the kernel's cached triangle
     BVH (`ensure_triangle_bvh`) in the mesh's LOCAL frame (inverse-transform the ray, f64) →
     smallest t. WebGPU has NO sync readback → CPU ray+BVH IS the interactive path
     (reference_viewer_picking_system)
   - verify: click each object → correct guid; an occluded object never wins; `#[cfg(test)]` on a
     known ray/triangle pair
-- ⬜ 43 Sub-object picking — vertex / edge / face
+- ✅ 43 Sub-object picking — vertex / edge / face
   - steps: from the hit triangle, resolve nearest vertex (screen-px radius), nearest edge
     (point-segment distance), else the face; return `SubHit { guid, kind, key }`
   - verify: hover highlights the intended vertex/edge at several zoom levels
-- ⬜ 44 Pick thin geometry — lines & points are 1D/0D, rays never hit them exactly
+- ✅ 44 Pick thin geometry — lines & points are 1D/0D, rays never hit them exactly
   - steps: ray↔segment / ray↔point distance with a `pick_radius` floor in screen px
     (reference_instanced_picking); **solid-vs-thin priority**: mesh wins at equal depth
     (reference_viewer_picking_system)
   - verify: a line lying ON a mesh face → mesh wins; line alone in space → pickable within radius
   - **STRESS GATE**: click-pick + marquee on the PDF drawing (34) — the intended entity wins on
     dense linework, no freeze (BVH broad-phase holds)
-- ⬜ 45 Selection highlight & marquee — see what you selected
+- ✅ 45 Selection highlight & marquee — see what you selected
   - steps: FLAG_SELECTED bit in the instance row → vs/fs tint; click = replace, Shift+click =
     toggle; drag rectangle → 4-plane sub-frustum → BVH query (async GPU id-buffer readback is the
     later upgrade, ~5–15 ms, hidden behind async UX)
   - verify: click/shift-click behave like Rhino; marquee selects exactly the visible set
-- ⬜ 46 Hidden-object filter — visibility is real state
+- ✅ 46 Hidden-object filter — visibility is real state
   - steps: per-object visible flag (35) respected by draw (row collapsed/culled), picking (skip),
     and marquee; `hide`/`show` groundwork for the CLI verbs (48)
   - verify: hidden object neither draws nor picks; show restores both
@@ -308,7 +308,7 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
 Commands-only is the locked interface (reference_webgpu_cad_caveats). The bus lands **before**
 gumball and tools, so every later mutation is born as a command — pattern (a)/(b) compose from the
 start instead of being retrofitted at lesson 69 like the old plan.
-- ⬜ 47 egui overlay + perf HUD + first settings
+- ▶ 47 egui overlay + perf HUD + first settings
   - files: `ui/mod.rs` (`build_ui`), `ui/settings.rs`, egui-wgpu/egui-winit wiring in
     `app/render.rs` + `lib.rs` (feed winit events to egui FIRST; it reports "consumed")
   - steps: egui render pass AFTER the 3D pass, same encoder; HUD window = fps / frame ms /
