@@ -341,18 +341,18 @@ start instead of being retrofitted at lesson 69 like the old plan.
   - verify: delete → undo restores identical guids/rows; redo repeats; HUD object count tracks
 
 ## Phase 9 — Transform & draw (every tool is a command)
-- ▶ 52 Gumball geometry — the 3-axis gizmo appears (reference_gumball_widget has the full recipe)
+- ✅ 52 Gumball geometry — the 3-axis gizmo appears (reference_gumball_widget has the full recipe)
   - files: `engine/gumball/mod.rs` (geometry + handle ids), `app/gumball_state.rs`
   - steps: 3 axis cylinders + cone tips + 3 rotate arcs + 3 scale boxes, built from kernel meshes
     into instance rows (31's templates); one stable id per handle; drawn last, depth-tested but
     depth-cleared (or compare Always) so it floats over geometry; appears at selection centroid
   - verify: select → gizmo at centroid, xyz = red/green/blue; deselect → gone
-- ⬜ 53 Gumball scale & hit-test — constant screen size + pickable handles
+- ✅ 53 Gumball scale & hit-test — constant screen size + pickable handles
   - steps: scale = distance-based formula so the gizmo is ~90 px at every zoom
     (reference_gumball_widget has the exact tuning constants); ray→handle test picks the nearest
     handle BEFORE scene picking; hovered handle brightens
   - verify: gizmo same pixel size zoomed in/out; each handle hit-tests exactly
-- ⬜ 54 Drag to translate — first real transform
+- ✅ 54 Drag to translate — first real transform
   - files: `engine/gumball/drag.rs` (math), `app/interaction/transform.rs`,
     `app/history/transform.rs`
   - steps: on press snapshot; drag = closest-point-on-axis delta (f64 ray math); LIVE = matrix-only
@@ -361,12 +361,12 @@ start instead of being retrofitted at lesson 69 like the old plan.
   - verify: motion locked to the axis; Ctrl+Z restores exactly; geometry untouched until commit
   - **STRESS GATE**: marquee a large region of the PDF drawing (34), gumball-move it — matrix-only
     update keeps the fps, undo restores exactly at that object count
-- ⬜ 55 Rotate + scale handles — arcs → angle about axis; boxes → (uniform) scale; same commit path
+- ✅ 55 Rotate + scale handles — arcs → angle about axis; boxes → (uniform) scale; same commit path
   - verify: rotation snaps visually to the arc plane; undo/redo across mixed drags works
-- ⬜ 56 Numeric entry — click a handle, type `500`, exact move (reuses the Get-loop input, 48;
+- ✅ 56 Numeric entry — click a handle, type `500`, exact move (reuses the Get-loop input, 48;
   archive gotchas: lmb_down gate, deferred drag, Escape guard — reference_gumball_widget)
   - verify: typed value applies once, Esc cancels cleanly mid-entry
-- ⬜ 57 Draw tools I — ARCHITECTURE pattern (b) lands: creating geometry
+- ▶ 57 Draw tools I — ARCHITECTURE pattern (b) lands: creating geometry
   - files: `app/tools/{mod,point,line}.rs`, `app/history/add.rs`
   - steps: `trait Tool { on_click / on_move / preview / finish → Box<dyn Command> }` + a ToolHost
     slot on State — NEVER a DrawTool enum; `PointTool` (1 click), `LineTool` (2 clicks), driven by
