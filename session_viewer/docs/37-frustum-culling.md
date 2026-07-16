@@ -1,5 +1,10 @@
 # 37 Frustum culling — draw only what's on screen
 
+> **Big picture.** *Phase 5.* The stress file pushes 51k segments through the GPU even when you're
+> zoomed into a corner where fifty are visible. Culling is the classic renderer fix: decide per
+> object whether it can possibly be on screen, and make the GPU skip the rest — changing neither
+> *what* is drawn (still one call) nor *how it looks*, only how much work each frame costs.
+
 Zoomed into one corner of the stress file, the GPU is still processing all 51,166 cylinder segments
 every frame — most of them behind you or off the sides. This lesson skips the ones the camera can't
 see: extract the view frustum's six planes, test each object's world box against them, and flag the
@@ -255,7 +260,7 @@ culled/hidden instances), `state.rs` (build frustum, rebase, cull, feed the HUD,
 
 ## Next
 
-`38-reconcile.md` — Phase 6 opens: the `.pb` file becomes a live source. Reloading a file today
+`38a-gpu-arena.md` — Phase 6 opens: the `.pb` file becomes a live source. Reloading a file today
 rebuilds the entire scene (35's `build()` from scratch). The next lesson diffs the incoming `Session`
 against the current one by `guid` — added / removed / content-changed / unchanged — and re-flattens
 **only** the objects that actually changed, refitting this lesson's BVH and 35's arena incrementally

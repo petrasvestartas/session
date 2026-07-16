@@ -115,7 +115,11 @@ light smoothly instead — proof the arena preserves each mesh's own attributes.
 free function + attribute array, one `Uint32` at `@location(3)`, stride 4, `step_mode: Vertex`:
 
 ```rust
-const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![3 => Uint32];
+const INSTANCE_ID_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
+    offset: 0,
+    shader_location: 3,
+    format: wgpu::VertexFormat::Uint32,
+}];
 
 fn instance_id_layout() -> wgpu::VertexBufferLayout<'static> {
     wgpu::VertexBufferLayout {

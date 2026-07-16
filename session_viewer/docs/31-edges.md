@@ -260,7 +260,11 @@ existing `INSTANCE_ID_ATTRIBS` / `instance_id_layout` block (the template carrie
 position at `@location(0)`, stride 12):
 
 ```rust
-const CYL_TEMPLATE_ATTRIBS: [wgpu::VertexAttribute; 1] = wgpu::vertex_attr_array![0 => Float32x3];
+const CYL_TEMPLATE_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute {
+    offset: 0,
+    shader_location: 0,
+    format: wgpu::VertexFormat::Float32x3,
+}];
 
 fn cyl_template_layout() -> wgpu::VertexBufferLayout<'static> {
     wgpu::VertexBufferLayout {
@@ -618,9 +622,8 @@ buffers, per-frame thickness, one cylinder `draw_indexed`).
 
 ## Next
 
-`32-points.md` — the endpoints and points parked here arrive as **sphere glyphs** (a unit-sphere
-template instanced for line/curve endpoints and edit handles) and, at cloud scale, **screen-space SDF
-billboards** — 2 triangles per point that draw as anti-aliased circles, ~70× cheaper than spheres.
-Same instance-table idea, one draw each; the 0-D counterpart to this lesson's 1-D tubes.
-</content>
-</invoke>
+`32a-point-spheres.md` — the endpoints and points parked here arrive in two parts: first **sphere
+glyphs** (a unit-sphere template instanced for line/curve endpoints and edit handles), then in 32b
+**screen-space SDF billboards** for point clouds — 2 triangles per point drawn as anti-aliased
+circles, ~70× cheaper than spheres. Same instance-table idea, one draw each; the 0-D counterpart to
+this lesson's 1-D tubes.

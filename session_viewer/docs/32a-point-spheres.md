@@ -1,49 +1,39 @@
-# 32 Points — sphere glyphs for handles, SDF billboards at scale
+# 32a Points I — sphere glyphs for handles and endpoints
 
-Points are 0-D: line/curve endpoints and edit handles want a round, pickable marker; a `PointCloud`
-wants millions. Both are lesson 31's instance-table trick again — one **template**, one **row per
-point**, **one draw** — with two templates. A **unit sphere** instanced per handle (the 0-D twin of
-31's cylinder-per-edge), and, at cloud scale, a **screen-space billboard**: 2 triangles that draw as
-an anti-aliased circle in the fragment shader, ~70× cheaper than a sphere.
+> **Big picture.** *Phase 4 — one scene, one draw call.* The goal of this phase: no matter how many
+> objects a file contains, the frame stays a handful of draw calls. 29 gave us instancing, 30 the mesh
+> arena, 31 every line as an instanced cylinder. Points are the last geometry kind without a path —
+> this lesson gives the *few-but-important* points (endpoints, edit handles) a real 3-D marker; 32b
+> handles the *millions* case. After the pair, everything the kernel can dump has a way onto the GPU.
 
-<svg viewBox="0 0 680 172" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="sphere glyph path for handles vs billboard path for clouds" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
-  <text x="170" y="18" fill="#888" text-anchor="middle">handles / endpoints — few</text>
+Endpoints and edit handles want a round, pickable marker that sits correctly in depth — a real sphere.
+It's lesson 31's trick again, one dimension down: one **unit-sphere template**, one **row per point**,
+**one draw** for every handle in the scene.
+
+<svg viewBox="0 0 380 172" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a unit sphere template is instanced once per handle point" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="170" y="18" fill="#888" text-anchor="middle">handles / endpoints — few, 3-D matters</text>
   <circle cx="80" cy="80" r="30" fill="none" stroke="#6fb3ff" stroke-width="1.5"/>
   <ellipse cx="80" cy="80" rx="30" ry="11" fill="none" stroke="#6fb3ff" stroke-width="0.8"/>
   <ellipse cx="80" cy="80" rx="11" ry="30" fill="none" stroke="#6fb3ff" stroke-width="0.8"/>
   <text x="80" y="128" fill="#d7dae0" text-anchor="middle">unit sphere</text>
   <text x="80" y="144" fill="#555" text-anchor="middle">74 v · 144 tris</text>
   <text x="200" y="76" fill="#6fb3ff" font-size="16">▶</text>
-  <text x="205" y="92" fill="#666" font-size="10">instance / glyph</text>
-  <text x="510" y="18" fill="#888" text-anchor="middle">PointCloud — millions</text>
-  <rect x="470" y="52" width="56" height="56" fill="none" stroke="#3a3a3a"/>
-  <line x1="470" y1="52" x2="526" y2="108" stroke="#3a3a3a"/>
-  <circle cx="498" cy="80" r="24" fill="none" stroke="#6fb3ff" stroke-width="1.5"/>
-  <text x="498" y="128" fill="#d7dae0" text-anchor="middle">6-vert quad</text>
-  <text x="498" y="144" fill="#555" text-anchor="middle">2 tris · SDF circle</text>
-  <text x="560" y="80" fill="#666" font-size="10">fs draws the circle</text>
+  <text x="210" y="92" fill="#666" font-size="10">one row per glyph</text>
+  <text x="300" y="70" fill="#d7dae0" text-anchor="middle">GlyphPoint[]</text>
+  <text x="300" y="86" fill="#666" text-anchor="middle" font-size="10">one draw, N spheres</text>
 </svg>
-
-## Why
-
-Endpoints and edit handles need round dots that sit correctly in depth and can be picked — a real
-sphere. A 100k-point cloud can't afford 144 triangles each, but it also doesn't need 3-D roundness:
-a flat circle that always faces you looks identical and costs 2 triangles. So: **spheres where the
-count is small and 3-D matters, billboards where the count is huge.** Same instance-table idea as 31,
-one draw call each.
 
 ## Files we touch
 
 ```
 src/shaders/sphere.wgsl        # NEW — unit sphere instanced per glyph; screen-constant radius
-src/shaders/point.wgsl         # NEW — 6-vert billboard; SDF circle in the fragment shader
-src/engine/pipelines/build.rs  # build_sphere_pipeline + build_point_pipeline
-src/engine/pipelines/mod.rs    # Pipelines gains `sphere` and `point`
-src/engine/gpu.rs              # GlyphPoint + CloudPoint rows, sphere template, glyph/cloud buffers, two draws
+src/engine/pipelines/build.rs  # build_sphere_pipeline
+src/engine/pipelines/mod.rs    # Pipelines gains `sphere`
+src/engine/gpu.rs              # GlyphPoint row, sphere template, glyph buffer, one draw
 ```
 
-The group-2 `instances` table and the group-1 `line` uniform are **unchanged from 31** — both new
-passes reuse them (the object transform, and the screen-constant sizing).
+The group-2 `instances` table and the group-1 `line` uniform are **unchanged from 31** — the sphere
+pass reuses both (the object transform, and the screen-constant sizing).
 
 ## Step 1 — the glyph row: `src/engine/gpu.rs`
 
@@ -353,143 +343,31 @@ glyphs:
             draws += 1;
 ```
 
-## Step 7 — PointCloud at scale: the billboard path
-
-144 triangles per point is fine for a handful of handles; a `PointCloud` needs a flat circle instead.
-The row is **32 B** (`CloudPoint`), there is **no template** — six vertices come straight from
-`@builtin(vertex_index)` (the lesson-25 buffer-less trick), and the fragment shader draws the circle
-with a signed-distance test so it stays crisp at any size.
-
-**7a. Add `CloudPoint` next to `GlyphPoint`:**
-
-```rust
-#[repr(C)]
-#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-struct CloudPoint {
-    position: [f32; 3],   // 12 B — mesh-local
-    instance_id: u32,     //  4 B — fills position's tail
-    color: [f32; 4],      // 16 B
-}                         // = 32 B total, two 16-byte rows, zero padding
-```
-
-> No per-point radius: cloud points all take the global `line.thickness` (px). A per-point size would
-> need a lone `f32` after `color` — a third 16-byte row (→ 48 B, like `GlyphPoint`). Skip it until a
-> cloud actually needs varying dot sizes; at millions of points the 16 B/row saved is real.
-
-**7b. Create `src/shaders/point.wgsl`** — six corners, expanded in NDC by the screen size, circle via
-SDF in the fragment:
-
-```wgsl
-@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
-@group(1) @binding(0) var<uniform> line: LineUniform;
-struct Instance { model: mat4x4<f32>, color: vec4<f32>, flags: u32, };
-@group(2) @binding(0) var<storage, read> instances: array<Instance>;
-struct CloudPoint { position: vec3<f32>, instance_id: u32, color: vec4<f32>, };
-@group(3) @binding(0) var<storage, read> points: array<CloudPoint>;
-struct LineUniform { thickness: f32, proj_y: f32, ortho_h: f32, vp_h: f32, };
-
-// One logical point = 6 verts (2 triangles); corner is vertex_index % 6.
-const CORNERS = array<vec2<f32>, 6>(
-    vec2<f32>(-1.0, -1.0), vec2<f32>( 1.0, -1.0), vec2<f32>( 1.0, 1.0),
-    vec2<f32>(-1.0, -1.0), vec2<f32>( 1.0,  1.0), vec2<f32>(-1.0, 1.0),
-);
-
-struct VsOut {
-    @builtin(position) pos: vec4<f32>,
-    @location(0) color: vec4<f32>,
-    @location(1) corner: vec2<f32>,   // -1..1 within the quad
-};
-
-@vertex
-fn vs_main(@builtin(vertex_index) vid: u32, @builtin(instance_index) pi: u32) -> VsOut {
-    let p      = points[pi];
-    let model  = instances[p.instance_id].model;
-    let world  = (model * vec4<f32>(p.position, 1.0)).xyz;
-    let clip   = mvp * vec4<f32>(world, 1.0);
-    let corner = CORNERS[vid % 6u];
-    let px     = line.thickness;
-    // Expand in NDC by px pixels; vp_h maps px→NDC, clip.w cancels the perspective divide.
-    let off    = corner * px * 2.0 / line.vp_h * clip.w;
-    var o: VsOut;
-    o.pos    = vec4<f32>(clip.xy + off, clip.zw);
-    o.color  = p.color;
-    o.corner = corner;
-    return o;
-}
-
-@fragment
-fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
-    let d = length(in.corner);            // SDF circle: soft, anti-aliased edge
-    let a = clamp((1.0 - d) * 8.0, 0.0, 1.0);
-    if (a < 0.01) { discard; }
-    return vec4<f32>(in.color.rgb, in.color.a * a);
-}
-```
-
-> Expanding by `vp_h` on both axes makes the circle slightly oval on a non-square viewport. The exact
-> fix is a `vp_w` field on the line uniform (`off = corner * px * 2 / vec2(vp_w, vp_h) * clip.w`); it's
-> deferred here to keep `LineUniform` a tight 16 B. Near-square windows won't notice.
-
-**7c. `build_point_pipeline`** is `build_sphere_pipeline` with three changes: no vertex buffer
-(`buffers: &[]` — corners come from `vertex_index`), **alpha blending on** (the SDF edge is
-translucent), and depth **write off** (billboards are transparent overlays):
-
-```rust
-        // in the fragment target:
-        blend: Some(wgpu::BlendState::ALPHA_BLENDING),
-        // in depth_stencil:
-        depth_write_enabled: Some(false),
-```
-
-**7d. Build a `points` buffer** exactly like the glyph buffer (from `pointcloud.get_points()` in the
-arena loop), and **draw** after the spheres — no index buffer, six verts per point:
-
-```rust
-            pass.set_pipeline(&self.pipelines.point);
-            pass.set_bind_group(0, &self.mvp_bind_group, &[]);
-            pass.set_bind_group(1, &self.line_bind_group, &[]);
-            pass.set_bind_group(2, &self.instance_bind_group, &[]);
-            pass.set_bind_group(3, &self.point_bind_group, &[]);
-            pass.draw(0..6 * self.point_count, 0..1);   // 6 verts per point, no template
-            draws += 1;
-```
-
-## Step 8 — run
+## Run
 
 ```bash
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-Line/polyline endpoints now wear dark spheres that hold their pixel size as you zoom; drop in a
-`PointCloud` and it draws as flat circles. Console (F12):
-
-```
-perf: 60.0 fps | 16.67 ms | 6 draws | 5 objects
-```
-
-**6 draws** — the four from 31 plus **one** sphere call (every handle) and **one** point call (the
-whole cloud). Load a 100k-point cloud and it stays 6: the tables grow, the call count doesn't.
+Line/polyline endpoints now wear dark spheres that hold their pixel size as you zoom. Console (F12)
+shows **5 draws** — 31's four plus one sphere call, however many handles there are.
 
 ## Recap
 
 ```
-Ch 31: EDGES as cylinders — 1-D tubes, one template + one row per edge, one draw, +Z aligned.
-Ch 32: POINTS, two ways. Handles/endpoints = a unit-SPHERE template instanced per GlyphPoint (48 B:
-       local center, radius sentinel, instance_id, color) — the 0-D twin of 31, but symmetric so no
-       frame, just center + tmpl·r. PointClouds = screen-space BILLBOARDS: a 32 B CloudPoint, NO
-       template (6 verts from @builtin(vertex_index)), a 2-triangle quad the fragment shader fills as
-       an SDF circle — ~70× cheaper than a sphere, identical on screen. One draw each; both reuse the
-       group-2 instances table and the group-1 line uniform. 6 draws / N objects, flat as the scene grows.
+Ch 31: EDGES as cylinders — one template + one row per edge, one draw, +Z aligned.
+Ch 32a: HANDLE POINTS as spheres — the 0-D twin. GlyphPoint (48 B: local center, radius sentinel,
+        instance_id, color — note the _pad; one vec3 leaves a 12-byte tail). unit_sphere() template
+        (12×6 UV, 144 tris), sphere.wgsl offsets template verts around the world centre — symmetric,
+        so no +Z frame math. Same four bind groups as 31 (glyphs at group 3). ONE draw for all handles.
 ```
 
-Edited: `shaders/sphere.wgsl` (NEW — instanced unit sphere, screen-constant radius), `shaders/point.wgsl`
-(NEW — 6-vert billboard, SDF circle), `engine/pipelines/build.rs` (`build_sphere_pipeline` +
-`build_point_pipeline`), `engine/pipelines/mod.rs` (`Pipelines.sphere` / `.point`), `engine/gpu.rs`
-(`GlyphPoint` + `CloudPoint` rows, sphere template, glyph/cloud buffers, two draws).
+Edited: `shaders/sphere.wgsl` (NEW), `engine/pipelines/build.rs` (`build_sphere_pipeline`),
+`engine/pipelines/mod.rs` (`Pipelines.sphere`), `engine/gpu.rs` (`GlyphPoint`, `unit_sphere()`,
+glyph buffer + bind group, one draw).
 
 ## Next
 
-`33-camera-relative.md` — f32 world positions jitter far from the origin even with the f64 kernel. The
-fix is **camera-relative rendering**: make the camera target the origin (f64), subtract it from every
-instance row's translation before the f32 cast, and keep vertices local. A demo at x = 10 km stops
-shimmering — the last precision piece before loading real scenes.
+`32b-point-clouds.md` — 144 triangles per point is fine for a dozen handles, fatal for a 100k-point
+`PointCloud`. The other half of points: a **screen-space billboard** — 2 triangles that the fragment
+shader fills as an anti-aliased circle — ~70× cheaper, visually identical at point sizes.

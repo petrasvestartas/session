@@ -1,5 +1,11 @@
 # 36 Scene BVH — one broad-phase, three consumers
 
+> **Big picture.** *Phase 5 — acceleration, built BEFORE the features that need it.* Picking (42) and
+> box-select (45) each ask "which objects are in this region?" against 42,000 objects, per click or
+> per drag. Every real CAD app answers that with a spatial index built once and queried everywhere.
+> Building it now, on the stable object list 35 just created, makes the later lessons *queries*
+> instead of rewrites.
+
 `Scene` (35) has a fixed, ordered object list. Two lessons ahead need the same question answered fast:
 **which objects fall inside this box?** — picking (42: box = a thin sliver around the ray) and
 box-select (45: box = the drag rectangle's sub-frustum). Both do a *per-object* test (ray↔triangle,

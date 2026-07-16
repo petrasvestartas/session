@@ -203,7 +203,7 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     `update_object_segments` for single-object edits
   - verify: polylines + box edges as thick tubes, ONE cylinder draw call on the perf HUD;
     thickness changes without re-upload
-- ✅ 32 Points: spheres where it matters, billboards at scale (archive's actual split)
+- ✅ 32 Points (split: 32a sphere glyphs, 32b billboard clouds) — spheres where it matters, billboards at scale
   - sphere glyphs (unit sphere 74 v/432 idx = 144 tris) for line/curve ENDPOINTS + edit handles
     only; mesh-vertex glyphs behind `FLAG_GLYPHS_HIDDEN`, hidden by default — 144 tris per vertex
     is the real iGPU cost
@@ -219,7 +219,7 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     `Xform` math; every instance row's translation −= origin at upload (f64 subtract, THEN cast);
     vertices stay local + per-object matrix
   - verify: demo scene at x = 1e7 mm — orbit jitters without, rock-solid with
-- ✅ 34 Load a Session — the kernel file format arrives
+- ✅ 34 Load a Session (split: 34a fetch the file, 34b walk it into the tables)
   - files: `app/persistence.rs` (load half), demo hook
   - steps: fetch bytes (or `<input type=file>`) → `Session` from `.pb`/`.json` (serde/prost) →
     iterate objects → meshes/lines/points into the arena + instance table via the 31/32 adapters
@@ -253,7 +253,7 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     "AABB intersects but center outside" case). CPU cull now; GPU compute cull is 76
 
 ## Phase 6 — Document & file sync (the `.pb` file is the source, like a real CAD app)
-- ✅ 38 Document ↔ scene reconcile — never rebuild the whole scene (incl. the free-list GpuArena)
+- ✅ 38 Reconcile (split: 38a per-object GpuArena, 38b diff by guid) — never rebuild the whole scene
   - files: `app/reconcile.rs`; extend `app/scene.rs`'s `guid → (hash, row/handle)` map
   - steps: on (re)load diff by `guid`: added → build+upload; removed → free arena range + row;
     changed (content-hash differs) → re-flatten that object only; unchanged → skip

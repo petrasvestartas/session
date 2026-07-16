@@ -1,5 +1,10 @@
 # 39 Save — write the file back, only when something changed
 
+> **Big picture.** *Phase 6 — the file is the source of truth.* 38 reads changes IN; this lesson
+> writes changes OUT — quietly. Real CAD apps never write on every edit: **dirty-flag → wait for
+> edits to settle → write only if something truly changed** is the standard pattern, and 38b's
+> content hash is exactly the "truly changed" test, reused.
+
 Lesson 34 read a `Session` in; this one writes it back out. But a CAD app doesn't save on every
 keystroke — it saves when edits *settle*, and it doesn't rewrite a file that didn't actually change.
 So save is three gates in front of one `pb_dumps`: a **dirty flag** (did anything get touched?), a

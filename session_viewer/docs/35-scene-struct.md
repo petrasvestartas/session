@@ -1,5 +1,11 @@
 # 35 Scene struct — the app layer takes shape
 
+> **Big picture.** *Phase 4 closes.* The viewer loads real files now, but 34b left the Session walk
+> inside `Gpu` — the engine knows what a `Mesh` is. That blocks everything ahead: reconcile (38)
+> diffs Sessions, picking (42) resolves guids, undo (51) snapshots objects — all *document* work that
+> must live above the GPU. This lesson draws the architectural line the rest of the course builds on:
+> **app owns the document, engine owns the device.**
+
 Since lesson 34, `Gpu::new` does two unrelated jobs: it stands up the wgpu device, and it walks a
 `Session` — matching every `Geometry` variant, calling `push_mesh`, running the line/point adapters.
 This lesson splits them. A new `Scene` in the app layer becomes the one place that knows about

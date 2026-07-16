@@ -50,8 +50,18 @@ pub struct Vertex {
 
 impl Vertex {
     // Which bytes map to which shader @location. Must match `VsIn` in triangle.wgsl.
-    const ATTRIBS: [wgpu::VertexAttribute; 2] =
-        wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3];
+    const ATTRIBS: [wgpu::VertexAttribute; 2] = [
+        wgpu::VertexAttribute {
+            offset: 0,                                  // position starts at byte 0
+            shader_location: 0,
+            format: wgpu::VertexFormat::Float32x3,
+        },
+        wgpu::VertexAttribute {
+            offset: 12,                                 // color starts after position (3 × 4 B)
+            shader_location: 1,
+            format: wgpu::VertexFormat::Float32x3,
+        },
+    ];
 
     /// The "how to read this buffer" descriptor handed to the pipeline.
     pub fn layout() -> wgpu::VertexBufferLayout<'static> {
@@ -64,8 +74,8 @@ impl Vertex {
 }
 ```
 
-> `vertex_attr_array![0 => Float32x3, 1 => Float32x3]` computes the byte offsets for
-> you (location 1 starts at offset 12) — reorder the struct fields, update this.
+> The `offset` is where each field's bytes begin inside one 24-byte vertex: `position` at 0,
+> `color` right after it at 12 (3 × 4-byte floats). Reorder the struct fields → update the offsets.
 
 
 ## Step 2 — give the layout to the pipeline (same file)

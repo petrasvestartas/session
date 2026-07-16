@@ -1,5 +1,11 @@
 # 33 Camera-Relative — subtract the origin before the f32 cast
 
+> **Big picture.** *Phase 4 — one scene, one draw call.* Before real files arrive (34), one precision
+> landmine has to go: the kernel is f64, the GPU is f32, and a real project can sit kilometres from
+> the world origin. This is the "floating origin" technique every large-world renderer uses — scenes
+> near the origin draw exactly as before, but far ones stop shimmering. Skip it and the first real
+> file at real coordinates would jitter on every orbit.
+
 Move the demo scene ten thousand kilometres from the world origin and every edge starts to crawl —
 not because the kernel is imprecise (it's f64 throughout), but because the GPU only ever sees f32,
 and f32 runs out of digits exactly where the camera is looking.
@@ -268,7 +274,7 @@ Edited: `camera.rs` (`Camera::origin()`, `view_proj()` rebased eye/target), `eng
 
 ## Next
 
-`34-load-session.md` — the demo's five hardcoded meshes give way to the real kernel file format:
+`34a-load-file.md` — the demo's five hardcoded meshes give way to the real kernel file format:
 fetch bytes (or `<input type=file>`) → `Session` from `.pb`/`.json` → iterate its objects into the
 arena and instance table via this chapter's and 31/32's adapters. Stress gate: a real PDF technical
 drawing converted to a `.pb` — the first scene this viewer didn't build by hand.

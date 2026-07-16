@@ -1,5 +1,11 @@
 # 40 Watch — external edits flow back in
 
+> **Big picture.** *Phase 6 closes.* Load (34), save (39) — the last direction is external edits
+> flowing in *while the viewer runs*: a script regenerates the `.pb`, a teammate exports, another
+> tool writes — and the viewer just updates. That's what makes the file a live document shared with
+> other tools instead of an import. The reaction is already built (38b's reconcile); what's new here
+> is the transport and one classic trap — not reacting to your *own* saves.
+
 Three sync directions close the loop: 34 reads a file in, 39 writes it out, and this lesson watches it
 — when *something else* edits the file (another tool, a script, a teammate's export), the viewer picks
 up the change and reconciles it, without a manual reload. It's the last piece that makes the `.pb` a
