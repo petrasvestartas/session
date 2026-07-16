@@ -46,7 +46,8 @@ Instancing (29) and batching (30) collapse draws in opposite ways:
 
 ```
 Instancing:  1 mesh's vertices in GPU, replayed N times   → cheap memory, geometry must be identical
-Batching:    N meshes' vertices concatenated in one arena → arbitrary geometry, vertices stored once each
+Batching:    N meshes' vertices concatenated in one arena → arbitrary geometry,
+             vertices stored once each
 ```
 
 A draw call is a CPU→driver round-trip (lesson 28), and switching the bound vertex/index buffer between
@@ -89,7 +90,8 @@ struct VsIn {
     @location(0) position: vec3<f32>,
     @location(1) normal: vec3<f32>, // unit when baked, zero when not
     @location(2) color: vec3<f32>,
-    @location(3) inst_id: u32,      // ← ADD THIS LINE — which instances[] row this vertex belongs to
+    // ← ADD THIS LINE — which instances[] row this vertex belongs to
+    @location(3) inst_id: u32,
 }
 ```
 
@@ -134,7 +136,8 @@ fn instance_id_layout() -> wgpu::VertexBufferLayout<'static> {
 `buffers: &[RenderVertex::layout()],` — and append the id layout as slot 1:
 
 ```rust
-                buffers: &[RenderVertex::layout(), instance_id_layout()],   // ← was: &[RenderVertex::layout()]
+                // ← was: &[RenderVertex::layout()]
+                buffers: &[RenderVertex::layout(), instance_id_layout()],
 ```
 
 Leave `build_grid_pipeline`, `build_edges_pipeline`, and `build_background_pipeline` alone — only the
@@ -175,13 +178,19 @@ use session_rust::{Mesh, Xform, RenderVertex, Brep};   // ← was: {Color, Mesh,
 ```
 
 ```rust
-// A scene of DIFFERENT meshes. Each gets one instance row (model + color); all share one arena + one draw.
+// A scene of DIFFERENT meshes. Each gets one instance row (model + color);
+// all share one arena + one draw.
 let objects: Vec<(Mesh, Xform, [f32; 4])> = vec![
-    (Mesh::create_box(600.0, 600.0, 600.0),      Xform::translation(-2400.0, 0.0, 0.0), [0.90, 0.30, 0.30, 1.0]),
-    (Mesh::create_dodecahedron(400.0),           Xform::translation(-1200.0, 0.0, 0.0), [0.90, 0.70, 0.20, 1.0]),
-    (Brep::create_sphere(380.0).mesh(),          Xform::translation(    0.0, 0.0, 0.0), [0.30, 0.80, 0.40, 1.0]),
-    (Brep::create_cylinder(320.0, 800.0).mesh(), Xform::translation( 1200.0, 0.0, 0.0), [0.30, 0.60, 0.90, 1.0]),
-    (Brep::create_torus(360.0, 140.0).mesh(),    Xform::translation( 2400.0, 0.0, 0.0), [0.70, 0.40, 0.90, 1.0]),
+    (Mesh::create_box(600.0, 600.0, 600.0),
+     Xform::translation(-2400.0, 0.0, 0.0), [0.90, 0.30, 0.30, 1.0]),
+    (Mesh::create_dodecahedron(400.0),
+     Xform::translation(-1200.0, 0.0, 0.0), [0.90, 0.70, 0.20, 1.0]),
+    (Brep::create_sphere(380.0).mesh(),
+     Xform::translation(    0.0, 0.0, 0.0), [0.30, 0.80, 0.40, 1.0]),
+    (Brep::create_cylinder(320.0, 800.0).mesh(),
+     Xform::translation( 1200.0, 0.0, 0.0), [0.30, 0.60, 0.90, 1.0]),
+    (Brep::create_torus(360.0, 140.0).mesh(),
+     Xform::translation( 2400.0, 0.0, 0.0), [0.70, 0.40, 0.90, 1.0]),
 ];
 
 let mut verts: Vec<RenderVertex> = Vec::new();   // slot 0 — every mesh's vertices, concatenated
@@ -192,9 +201,11 @@ let mut instances: Vec<Instance> = Vec::with_capacity(objects.len());
 for (ri, (mesh, model, color)) in objects.into_iter().enumerate() {
     instances.push(Instance { model: model.to_f32(), color, flags: 0, _pad: [0; 3] });
     let base = verts.len() as u32;               // where this mesh's vertices begin in the arena
-    let rm = mesh.to_render();                    // f64 → f32 flatten (no gpu_mesh cache needed here)
+    // f64 → f32 flatten (no gpu_mesh cache needed here)
+    let rm = mesh.to_render();
     for v in &rm.vertices { verts.push(*v); vids.push(ri as u32); }
-    for &i in &rm.indices { idx.push(base + i); } // bake base_vertex into the index — one draw can't offset per-mesh
+    // bake base_vertex into the index — one draw can't offset per-mesh
+    for &i in &rm.indices { idx.push(base + i); }
 }
 let arena_index_count = idx.len() as u32;
 ```
@@ -211,13 +222,16 @@ and, in the blank line right after its closing `});` (before `// Pipelines`), in
 
 ```rust
 let arena_vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-    label: Some("arena.vbo"), contents: bytemuck::cast_slice(&verts), usage: wgpu::BufferUsages::VERTEX,
+    label: Some("arena.vbo"), contents: bytemuck::cast_slice(&verts),
+    usage: wgpu::BufferUsages::VERTEX,
 });
 let arena_vids = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-    label: Some("arena.vids"), contents: bytemuck::cast_slice(&vids), usage: wgpu::BufferUsages::VERTEX,
+    label: Some("arena.vids"), contents: bytemuck::cast_slice(&vids),
+    usage: wgpu::BufferUsages::VERTEX,
 });
 let arena_ibo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-    label: Some("arena.ibo"), contents: bytemuck::cast_slice(&idx), usage: wgpu::BufferUsages::INDEX,
+    label: Some("arena.ibo"), contents: bytemuck::cast_slice(&idx),
+    usage: wgpu::BufferUsages::INDEX,
 });
 ```
 
@@ -300,7 +314,8 @@ it lives in the arena** and **which rows point at it**:
 struct Draw {
     index_range: std::ops::Range<u32>,   // this mesh's slice of the shared index buffer
     base_vertex: i32,                     // where its vertices start in the arena
-    rows: std::ops::Range<u32>,           // the instance rows that render it (1 = individual, N = instanced)
+    // the instance rows that render it (1 = individual, N = instanced)
+    rows: std::ops::Range<u32>,
 }
 ```
 
@@ -336,11 +351,12 @@ theory and ships.
 Ch 29: ONE mesh replayed N times — @builtin(instance_index) picks the row. Identical geometry only.
 Ch 30: N DIFFERENT meshes concatenated into one vertex+index ARENA, drawn in a single draw_indexed.
        The vertex→row link moves from @builtin(instance_index) to a per-vertex u32 id (2nd vertex
-       buffer, @location 3); indices are folded arena-global (base + i). Same group-2 instance table.
-       5 distinct solids → 3 draws / 5 objects, and it holds as the scene grows.
+       buffer, @location 3); indices are folded arena-global (base + i). Same group-2 instance
+       table. 5 distinct solids → 3 draws / 5 objects, and it holds as the scene grows.
 Both:  drop the baked base_vertex, keep a per-mesh {index_range, base_vertex, rows} descriptor, and
-       loop one instanced draw_indexed per DISTINCT mesh (rows=1 individual, rows=N instanced). Arena +
-       instancing share the group-2 table; a handful of draws, vertices stored once. This is 31's path.
+       loop one instanced draw_indexed per DISTINCT mesh (rows=1 individual, rows=N instanced).
+       Arena + instancing share the group-2 table; a handful of draws, vertices stored once.
+       This is 31's path.
 ```
 
 Edited: `shaders/triangle.wgsl` (`VsIn` +`@location(3) inst_id`, read `instances[inst_id]`, drop the

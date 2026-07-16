@@ -90,10 +90,12 @@ use crate::engine::pipelines::build::MSAA_SAMPLES;
 ```
 
 ```rust
-    fn create_depth_view(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> wgpu::TextureView {
+    fn create_depth_view(device: &wgpu::Device,
+                         config: &wgpu::SurfaceConfiguration) -> wgpu::TextureView {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             label: Some("depth"),
-            size: wgpu::Extent3d { width: config.width.max(1), height: config.height.max(1), depth_or_array_layers: 1 },
+            size: wgpu::Extent3d { width: config.width.max(1), height: config.height.max(1),
+                depth_or_array_layers: 1 },
             mip_level_count: 1,
             sample_count: MSAA_SAMPLES,          // ← was 1
             dimension: wgpu::TextureDimension::D2,
@@ -106,10 +108,12 @@ use crate::engine::pipelines::build::MSAA_SAMPLES;
 
     /// The 4× color texture we render into; it gets resolved down to the single-sample surface
     /// at the end of the pass. Same format as the surface, MSAA sample count.
-    fn create_msaa_view(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> wgpu::TextureView {
+    fn create_msaa_view(device: &wgpu::Device,
+                        config: &wgpu::SurfaceConfiguration) -> wgpu::TextureView {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             label: Some("msaa_color"),
-            size: wgpu::Extent3d { width: config.width.max(1), height: config.height.max(1), depth_or_array_layers: 1 },
+            size: wgpu::Extent3d { width: config.width.max(1), height: config.height.max(1),
+                depth_or_array_layers: 1 },
             mip_level_count: 1,
             sample_count: MSAA_SAMPLES,
             dimension: wgpu::TextureDimension::D2,

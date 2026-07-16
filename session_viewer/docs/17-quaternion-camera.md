@@ -236,11 +236,11 @@ reset(`C`) unchanged.
 
 ```
 Ch 14–16: orientation was (yaw, pitch) with a pitch clamp — a gimbal singularity at the poles.
-Ch 17: orientation is a quaternion that encodes the whole frame; update_position() reads right/up/fwd
-       straight off it (no pole, no last_right). State is lightweight f64 ([f64;3] + f64) — Point is a
-       heavy document object, so we wrap into it only at the look_at boundary; f32 cast once at the GPU
-       upload. Orbit composes yaw·pitch quaternions; named views single rotations, upright for free.
-       Z-up turntable. Only camera.rs changed.
+Ch 17: orientation is a quaternion that encodes the whole frame; update_position() reads
+       right/up/fwd straight off it (no pole, no last_right). State is lightweight f64
+       ([f64;3] + f64) — Point is a heavy document object, so we wrap into it only at the
+       look_at boundary; f32 cast once at the GPU upload. Orbit composes yaw·pitch quaternions;
+       named views single rotations, upright for free. Z-up turntable. Only camera.rs changed.
 ```
 
 Edited: `camera.rs` only (f64 `[f64;3]`/`f64` state + quaternion `orientation` + `world_up` replace

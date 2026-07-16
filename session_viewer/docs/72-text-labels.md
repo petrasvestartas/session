@@ -28,7 +28,8 @@
 ## Files we touch
 
 ```
-src/engine/text.rs             # NEW — font atlas build + TextVertex quad assembly (archive text.rs recipe)
+# NEW — font atlas build + TextVertex quad assembly (archive text.rs recipe)
+src/engine/text.rs
 src/shaders/text.wgsl          # NEW — billboard vs (32b's trick) + atlas-sampling fs
 src/engine/pipelines/build.rs  # build_text_pipeline (first pipeline with a texture bind group)
 src/engine/gpu/mod.rs          # label buffer + one draw, after the gumball, before egui
@@ -45,8 +46,10 @@ pub const CELL_W: u32 = 8;  pub const CELL_H: u32 = 14;  pub const COLS: u32 = 1
 
 /// One texture, glyphs on a fixed grid: glyph g at ((g−32)%COLS, (g−32)/COLS).
 /// UV rect = cell × cell size / texture size. Upload once; sampled forever.
-pub fn create_font_atlas(device: &wgpu::Device, queue: &wgpu::Queue) -> (wgpu::TextureView, wgpu::Sampler) {
-    /* fill a CPU byte grid from an embedded 8×14 bitmap font table, write_texture, linear sampler */
+pub fn create_font_atlas(device: &wgpu::Device,
+                         queue: &wgpu::Queue) -> (wgpu::TextureView, wgpu::Sampler) {
+    /* fill a CPU byte grid from an embedded 8×14 bitmap font table,
+       write_texture, linear sampler */
 }
 ```
 
@@ -66,7 +69,8 @@ pub struct TextVertex {
     pub px_off: [f32; 2],    //  8 B — this corner's offset from the anchor, in PIXELS
     pub uv: [f32; 2],        //  8 B — into the atlas
     pub color: [f32; 4],     // 16 B
-}                            // 44 B — a plain vertex buffer (not a storage table; text is rebuilt rarely)
+// 44 B — a plain vertex buffer (not a storage table; text is rebuilt rarely)
+}
 
 /// Label "name" at world `p`: chars → 6 verts each (two triangles), advancing CELL_W px per column.
 pub fn label_verts(text: &str, p: [f32; 3], color: [f32; 4], out: &mut Vec<TextVertex>) { /* … */ }
@@ -126,10 +130,10 @@ Ch 71: tree ↔ viewport — one selection, two views.
 Ch 72: LABELS. A glyph atlas (ASCII on a fixed CELL grid, R8Unorm, baked once — archive text.rs) +
        one quad per character: TextVertex { anchor (world, shared), px_off (per corner, PIXELS), uv,
        color }. The vs projects the anchor then adds px_off·2/viewport·clip.w in NDC — 32b's
-       billboard move → camera-facing, zoom-constant. fs samples coverage, alpha-discards. Depth test
-       on / write off; alpha blend; the course's first (and only) texture bind group. Labels rebuilt
-       on document change, never per frame; every label in ONE draw. Phase 12 complete: the document
-       is visible as a tree, in sync with the viewport, and named in the scene.
+       billboard move → camera-facing, zoom-constant. fs samples coverage, alpha-discards. Depth
+       test on / write off; alpha blend; the course's first (and only) texture bind group. Labels
+       rebuilt on document change, never per frame; every label in ONE draw. Phase 12 complete: the
+       document is visible as a tree, in sync with the viewport, and named in the scene.
 ```
 
 Edited: `engine/text.rs` (NEW — atlas + `label_verts`), `shaders/text.wgsl` (NEW),

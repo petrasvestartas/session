@@ -31,8 +31,10 @@
 ## Files we touch
 
 ```
-src/app/scene.rs          # content_hash; hashes: guid→u64; reconcile(new) → Diff; apply_object; row allocator
-src/engine/gpu/mod.rs     # GPU-typed verbs: add_mesh_data / add_segments / add_glyphs / remove_object / set_object_row
+# content_hash; hashes: guid→u64; reconcile(new) → Diff; apply_object; row allocator
+src/app/scene.rs
+# GPU-typed verbs: add_mesh_data / add_segments / add_glyphs / remove_object / set_object_row
+src/engine/gpu/mod.rs
 src/state.rs              # reload(url): fetch → diff → apply per bucket → commit
 ```
 
@@ -52,7 +54,8 @@ fingerprint it by its tessellation plus placement (kernel-gap #6 in `_KERNEL_GAP
 ```rust
 use std::hash::{Hash, Hasher};
 
-/// Deterministic content fingerprint — sorted JSON, so a HashMap-backed Mesh hashes the SAME every load.
+/// Deterministic content fingerprint — sorted JSON, so a HashMap-backed Mesh hashes the SAME
+/// every load.
 /// Same geometry → same u64; any field change → a different one. (A production app might hash proto
 /// bytes; the diff logic is identical either way.)
 fn content_hash(geom: &Geometry) -> u64 {
@@ -61,7 +64,8 @@ fn content_hash(geom: &Geometry) -> u64 {
         Geometry::Line(l)     => l.jsondump().unwrap_or_default(),
         Geometry::Polyline(p) => p.jsondump().unwrap_or_default(),
         Geometry::Point(p)    => p.jsondump().unwrap_or_default(),
-        Geometry::BRep(b)     => format!("{}|{:?}", b.mesh().jsondump().unwrap_or_default(), b.xform.to_cols()),
+        Geometry::BRep(b)     => format!("{}|{:?}",
+            b.mesh().jsondump().unwrap_or_default(), b.xform.to_cols()),
         _ => String::new(),
     };
     let mut h = std::collections::hash_map::DefaultHasher::new();
@@ -82,11 +86,13 @@ pub struct Diff {
     pub added:   Vec<String>,   // guid in new, not in old
     pub removed: Vec<String>,   // guid in old, not in new
     pub changed: Vec<String>,   // guid in both, hash differs
-}                               // unchanged (both, hash equal) is implicit — the whole point: it's skipped
+// unchanged (both, hash equal) is implicit — the whole point: it's skipped
+}
 
 impl Scene {
-    /// Diff `new_session` against what's loaded; returns which objects actually moved. Does NOT touch
-    /// the GPU — the caller applies the diff (Step 3), then swaps in the new session + hashes.
+    /// Diff `new_session` against what's loaded; returns which objects actually moved.
+    /// Does NOT touch the GPU — the caller applies the diff (Step 3), then swaps in the new
+    /// session + hashes.
     pub fn reconcile(&self, new: &Session) -> Diff {
         let (mut added, mut changed) = (Vec::new(), Vec::new());
         for (guid, geom) in &new.lookup {
@@ -117,24 +123,33 @@ verbs, and the `Geometry` match — converting an object to those GPU types via 
 **3a. Gpu verbs (GPU types only), in `src/engine/gpu/mod.rs`:**
 
 ```rust
-    /// A mesh object's already-flattened data → arena + edge/naked tables. Scene did the conversion.
-    /// Gpu owns its `device`/`queue`, so the verbs take neither — Scene needn't thread them through.
+    /// A mesh object's already-flattened data → arena + edge/naked tables. Scene did the
+    /// conversion. Gpu owns its `device`/`queue`, so the verbs take neither — Scene needn't
+    /// thread them through.
     pub fn add_mesh_data(&mut self, guid: &str, verts: &[RenderVertex], idx: &[u32],
                          edges: &[CylinderSegment], naked: &[GlyphPoint], row: u32) {
-        self.arena.allocate(guid, verts, row, idx, &self.device, &self.queue);   // disjoint field borrows
+        // disjoint field borrows
+        self.arena.allocate(guid, verts, row, idx, &self.device, &self.queue);
         if !edges.is_empty() { self.append_segments(guid, edges); }
         if !naked.is_empty() { self.append_glyphs(guid, naked); }
     }
-    pub fn add_segments(&mut self, guid: &str, s: &[CylinderSegment]) { self.append_segments(guid, s); }
-    pub fn add_glyphs(&mut self, guid: &str, g: &[GlyphPoint])        { self.append_glyphs(guid, g); }
+    pub fn add_segments(&mut self, guid: &str, s: &[CylinderSegment]) {
+        self.append_segments(guid, s);
+    }
+    pub fn add_glyphs(&mut self, guid: &str, g: &[GlyphPoint]) {
+        self.append_glyphs(guid, g);
+    }
 
-    /// Free an object's GPU data. Leaves its instance row alone (Scene owns rows) — hide it separately.
+    /// Free an object's GPU data. Leaves its instance row alone (Scene owns rows) — hide it
+    /// separately.
     pub fn remove_object(&mut self, guid: &str) {
         self.arena.free(guid, &self.queue);
         self.remove_segments(guid);
         self.remove_glyphs(guid);
     }
-    pub fn hide_row(&mut self, row: u32) { self.write_row(row, |i| i.flags |= Instance::FLAG_HIDDEN); }
+    pub fn hide_row(&mut self, row: u32) {
+        self.write_row(row, |i| i.flags |= Instance::FLAG_HIDDEN);
+    }
 
     /// (Re)point a row's instance + objects_base (33's rebase source). `row == len` extends both,
     /// growing the instance buffer 2x when it overflows — the same amortized growth as the arena.
@@ -142,10 +157,13 @@ verbs, and the `Geometry` match — converting an object to those GPU types via 
         if row as usize == self.objects_base.len() {
             self.objects_base.push((model.duplicate(), color, flags));
             self.instances.push(Instance { model: model.to_f32(), color, flags, _pad: [0;3] });
-            if (self.instances.len() as u64) * SZ > self.instance_buffer.size() { self.grow_instances(); }
+            if (self.instances.len() as u64) * SZ > self.instance_buffer.size() {
+                self.grow_instances();
+            }
         } else {
             self.objects_base[row as usize] = (model.duplicate(), color, flags);
-            self.instances[row as usize]    = Instance { model: model.to_f32(), color, flags, _pad: [0;3] };
+            self.instances[row as usize] =
+                Instance { model: model.to_f32(), color, flags, _pad: [0;3] };
         }
         self.write_row(row, |_| {});   // upload just this row (or the whole buffer after a grow)
     }
@@ -159,15 +177,35 @@ per-variant `build` logic for a *single* object; rows come from a small allocato
 rows:
 
 ```rust
-    /// Flatten one object into the GPU at `row`, converting via 35's helpers (which live here in app).
+    /// Flatten one object into the GPU at `row`, converting via 35's helpers (which live here
+    /// in app).
     pub fn apply_object(&self, gpu: &mut Gpu, guid: &str, geom: &Geometry, row: u32) {
-        gpu.remove_object(guid);   // idempotent: clears any prior data for this guid before (re)adding
+        // idempotent: clears any prior data for this guid before (re)adding
+        gpu.remove_object(guid);
         let (model, color) = match geom {
-            Geometry::Mesh(m) => { let (v,i,e,n) = flatten_mesh(m, row); gpu.add_mesh_data(guid,&v,&i,&e,&n,row); (m.xform.duplicate(), m.objectcolor().to_f32()) }
-            Geometry::BRep(b) => { let bm=b.mesh(); let (v,i,e,n)=flatten_mesh(&bm,row); gpu.add_mesh_data(guid,&v,&i,&e,&n,row); (bm.xform.duplicate(), b.surfacecolor.to_f32()) }
-            Geometry::Line(l)     => { gpu.add_segments(guid, &[line_to_segment(l,row)]);      (Xform::identity(), l.linecolor.to_f32()) }
-            Geometry::Polyline(p) => { gpu.add_segments(guid, &polyline_to_segments(p,row));   (Xform::identity(), p.linecolor.to_f32()) }
-            Geometry::Point(p)    => { gpu.add_glyphs(guid, &[point_to_glyph(p,row)]);          (Xform::identity(), p.pointcolor.to_f32()) }
+            Geometry::Mesh(m) => {
+                let (v,i,e,n) = flatten_mesh(m, row);
+                gpu.add_mesh_data(guid,&v,&i,&e,&n,row);
+                (m.xform.duplicate(), m.objectcolor().to_f32())
+            }
+            Geometry::BRep(b) => {
+                let bm=b.mesh();
+                let (v,i,e,n)=flatten_mesh(&bm,row);
+                gpu.add_mesh_data(guid,&v,&i,&e,&n,row);
+                (bm.xform.duplicate(), b.surfacecolor.to_f32())
+            }
+            Geometry::Line(l) => {
+                gpu.add_segments(guid, &[line_to_segment(l,row)]);
+                (Xform::identity(), l.linecolor.to_f32())
+            }
+            Geometry::Polyline(p) => {
+                gpu.add_segments(guid, &polyline_to_segments(p,row));
+                (Xform::identity(), p.linecolor.to_f32())
+            }
+            Geometry::Point(p) => {
+                gpu.add_glyphs(guid, &[point_to_glyph(p,row)]);
+                (Xform::identity(), p.pointcolor.to_f32())
+            }
             _ => return,
         };
         gpu.set_object_row(row, model, color, 0);
@@ -202,9 +240,11 @@ into shared buffers — same body, different sink. `free_rows: Vec<u32>` and `ne
             let row = self.scene.guid_to_row[g];
             self.gpu.remove_object(g);
             self.gpu.hide_row(row);
-            self.scene.free_row(g);                                   // guid_to_row.remove + free_rows.push
+            // guid_to_row.remove + free_rows.push
+            self.scene.free_row(g);
         }
-        for g in &diff.changed {                                     // same row, re-flattened in place
+        // same row, re-flattened in place
+        for g in &diff.changed {
             let row = self.scene.guid_to_row[g];
             self.scene.apply_object(&mut self.gpu, g, &new.lookup[g], row);
         }
@@ -212,7 +252,8 @@ into shared buffers — same body, different sink. `free_rows: Vec<u32>` and `ne
             let row = self.scene.assign_row(g);
             self.scene.apply_object(&mut self.gpu, g, &new.lookup[g], row);
         }
-        self.scene.commit(new);   // swap session; rebuild order/hashes/bvh — but KEEP guid_to_row (below)
+        // swap session; rebuild order/hashes/bvh — but KEEP guid_to_row (below)
+        self.scene.commit(new);
         Ok(())
     }
 ```

@@ -46,7 +46,8 @@ pub enum CmdOption {
 impl CmdOption {
     pub fn label(&self) -> String {
         match self {
-            CmdOption::Toggle { name, value } => format!("{name}={}", if *value { "On" } else { "Off" }),
+            CmdOption::Toggle { name, value } =>
+                format!("{name}={}", if *value { "On" } else { "Off" }),
             CmdOption::Number { name, value } => format!("{name}={value}"),
             CmdOption::List { name, choices, current } => format!("{name}={}", choices[*current]),
         }
@@ -92,12 +93,15 @@ before the text ever reaches the command:
                             *value = matches!(v, "on" | "true" | "1" | "yes"),
                         CmdOption::Number { name, value } if name.eq_ignore_ascii_case(k) =>
                             if let Ok(n) = v.parse() { *value = n },
-                        CmdOption::List { name, choices, current } if name.eq_ignore_ascii_case(k) =>
-                            if let Some(i) = choices.iter().position(|c| c.eq_ignore_ascii_case(v)) { *current = i },
+                        CmdOption::List { name, choices, current }
+                            if name.eq_ignore_ascii_case(k) =>
+                            if let Some(i) = choices.iter()
+                                .position(|c| c.eq_ignore_ascii_case(v)) { *current = i },
                         _ => {}
                     }
                 }
-                self.active = Some(cmd);          // option set; SAME prompt — the command didn't advance
+                // option set; SAME prompt — the command didn't advance
+                self.active = Some(cmd);
                 self.refresh_prompt();
                 return;
             }
@@ -128,7 +132,8 @@ pub struct ProbeCmd {
 impl ProbeCmd {
     pub fn start() -> (Box<dyn ActiveCommand>, GetState) {
         let cmd = ProbeCmd { a: None, opts: [CmdOption::Toggle { name: "Rounded", value: true }] };
-        (Box::new(cmd), GetState::WaitingPoint { prompt: "probe (Rounded=On): pick first point".into() })
+        (Box::new(cmd), GetState::WaitingPoint {
+            prompt: "probe (Rounded=On): pick first point".into() })
     }
     fn ask(&self) -> CmdStep {
         let what = if self.a.is_none() { "pick first point" } else { "pick second point" };
@@ -143,9 +148,11 @@ impl ActiveCommand for ProbeCmd {
         match self.a.take() {
             None => { self.a = Some(p); self.ask() }                       // A stored → ask for B
             Some(a) => {
-                let d = a.distance(&p, None);   // kernel signature: distance(&Point, Option<f64> min-clamp)
+                // kernel signature: distance(&Point, Option<f64> min-clamp)
+                let d = a.distance(&p, None);
                 let rounded = matches!(self.opts[0], CmdOption::Toggle { value: true, .. });
-                CmdStep::Done(if rounded { format!("dist = {d:.1}") } else { format!("dist = {d}") })
+                CmdStep::Done(
+                    if rounded { format!("dist = {d:.1}") } else { format!("dist = {d}") })
             }
         }
     }
@@ -162,7 +169,8 @@ impl ActiveCommand for ProbeCmd {
     }
     fn options(&mut self) -> &mut [CmdOption] { &mut self.opts }
     fn back(&mut self) -> CmdStep {
-        self.a = None;                                                    // forget A → back to prompt 1
+        // forget A → back to prompt 1
+        self.a = None;
         self.ask()
     }
 }

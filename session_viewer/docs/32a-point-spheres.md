@@ -72,8 +72,9 @@ no normals). `LONS`/`LATS` are the perf knob (12×6 → 74 verts / 432 indices =
 const SPH_LONS: usize = 12;
 const SPH_LATS: usize = 6;
 
-// Unit sphere on the origin, radius 1. The shader offsets each template vertex by the screen-constant
-// radius around the glyph's world centre — no frame needed (a sphere is symmetric), unlike 31's tube.
+// Unit sphere on the origin, radius 1. The shader offsets each template vertex by the
+// screen-constant radius around the glyph's world centre — no frame needed (a sphere is
+// symmetric), unlike 31's tube.
 fn unit_sphere() -> (Vec<[f32; 3]>, Vec<u32>) {
     let pi = std::f32::consts::PI;
     let mut v: Vec<[f32; 3]> = Vec::new();
@@ -158,7 +159,8 @@ struct VsOut {
 fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) gi: u32) -> VsOut {
     let g      = glyphs[gi];
     let model  = instances[g.instance_id].model;
-    let centre = (model * vec4<f32>(g.center, 1.0)).xyz;   // centre only — radius is scale-invariant
+    // centre only — radius is scale-invariant
+    let centre = (model * vec4<f32>(g.center, 1.0)).xyz;
     let clip_c = mvp * vec4<f32>(centre, 1.0);
 
     // Handles read a touch larger than lines (×3); a world-mm radius (> 0) overrides.
@@ -201,7 +203,8 @@ pub fn build_sphere_pipeline(
 
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("sphere.layout"),
-        bind_group_layouts: &[Some(mvp_layout), Some(line_layout), Some(instance_layout), Some(glyph_layout)],
+        bind_group_layouts: &[Some(mvp_layout), Some(line_layout),
+                              Some(instance_layout), Some(glyph_layout)],
         immediate_size: 0,
     });
 
@@ -240,7 +243,8 @@ pub fn build_sphere_pipeline(
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
         }),
-        multisample: wgpu::MultisampleState { count: MSAA_SAMPLES, mask: !0, alpha_to_coverage_enabled: false },
+        multisample: wgpu::MultisampleState {
+            count: MSAA_SAMPLES, mask: !0, alpha_to_coverage_enabled: false },
         multiview_mask: None,
         cache: None,
     })
@@ -252,7 +256,8 @@ pub fn build_sphere_pipeline(
 parameter to `new()`, and:
 
 ```rust
-            sphere: build_sphere_pipeline(device, color_format, aspect_layout, line_layout, instance_layout, glyph_layout),
+            sphere: build_sphere_pipeline(device, color_format, aspect_layout,
+                                          line_layout, instance_layout, glyph_layout),
 ```
 
 ## Step 5 — build the glyphs and upload: `src/engine/gpu.rs`
@@ -291,10 +296,12 @@ layout, and bind group:
         let (sph_v, sph_i) = unit_sphere();
         let sph_index_count = sph_i.len() as u32;
         let sph_template_vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("sph.template.vbo"), contents: bytemuck::cast_slice(&sph_v), usage: wgpu::BufferUsages::VERTEX,
+            label: Some("sph.template.vbo"), contents: bytemuck::cast_slice(&sph_v),
+            usage: wgpu::BufferUsages::VERTEX,
         });
         let sph_template_ibo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("sph.template.ibo"), contents: bytemuck::cast_slice(&sph_i), usage: wgpu::BufferUsages::INDEX,
+            label: Some("sph.template.ibo"), contents: bytemuck::cast_slice(&sph_i),
+            usage: wgpu::BufferUsages::INDEX,
         });
 
         let glyph_count = glyphs.len() as u32;
@@ -316,7 +323,8 @@ layout, and bind group:
         });
         let glyph_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("glyphs.bind_group"), layout: &glyph_layout,
-            entries: &[wgpu::BindGroupEntry { binding: 0, resource: glyph_buffer.as_entire_binding() }],
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0, resource: glyph_buffer.as_entire_binding() }],
         });
 ```
 
@@ -339,7 +347,8 @@ glyphs:
             pass.set_bind_group(3, &self.glyph_bind_group, &[]);
             pass.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
             pass.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
-            pass.draw_indexed(0..self.sph_index_count, 0, 0..self.glyph_count);   // one template, N glyphs
+            // one template, N glyphs
+            pass.draw_indexed(0..self.sph_index_count, 0, 0..self.glyph_count);
             draws += 1;
 ```
 
@@ -359,7 +368,8 @@ Ch 31: EDGES as cylinders — one template + one row per edge, one draw, +Z alig
 Ch 32a: HANDLE POINTS as spheres — the 0-D twin. GlyphPoint (48 B: local center, radius sentinel,
         instance_id, color — note the _pad; one vec3 leaves a 12-byte tail). unit_sphere() template
         (12×6 UV, 144 tris), sphere.wgsl offsets template verts around the world centre — symmetric,
-        so no +Z frame math. Same four bind groups as 31 (glyphs at group 3). ONE draw for all handles.
+        so no +Z frame math. Same four bind groups as 31 (glyphs at group 3). ONE draw for all
+        handles.
 ```
 
 Edited: `shaders/sphere.wgsl` (NEW), `engine/pipelines/build.rs` (`build_sphere_pipeline`),

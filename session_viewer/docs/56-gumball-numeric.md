@@ -37,9 +37,12 @@ impl HandleKind {
     pub fn label(self) -> &'static str {
         use HandleKind::*;
         match self {
-            TranslateX => "Move X (mm)",   TranslateY => "Move Y (mm)",   TranslateZ => "Move Z (mm)",
-            RotateX    => "Rotate X (deg)", RotateY   => "Rotate Y (deg)", RotateZ   => "Rotate Z (deg)",
-            ScaleX     => "Scale X (factor)", ScaleY  => "Scale Y (factor)", ScaleZ  => "Scale Z (factor)",
+            TranslateX => "Move X (mm)",   TranslateY => "Move Y (mm)",
+            TranslateZ => "Move Z (mm)",
+            RotateX    => "Rotate X (deg)", RotateY   => "Rotate Y (deg)",
+            RotateZ   => "Rotate Z (deg)",
+            ScaleX     => "Scale X (factor)", ScaleY  => "Scale Y (factor)",
+            ScaleZ  => "Scale Z (factor)",
             ScaleUniform => "Scale (factor)",
         }
     }
@@ -80,9 +83,11 @@ A borderless one-field window pinned at the click position. Add to `UiState`:
             .show(ctx, |ui| {
                 let r = ui.add(egui::TextEdit::singleline(buffer).desired_width(90.0));
                 r.request_focus();                                   // typing starts immediately
-                if r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) { submit = true; }
+                if r.lost_focus() &&
+                    ui.input(|i| i.key_pressed(egui::Key::Enter)) { submit = true; }
             });
-        if submit { ui_state.gb_submit = true; }                     // State applies after the closure (47's rule)
+        // State applies after the closure (47's rule)
+        if submit { ui_state.gb_submit = true; }
     }
 ```
 
@@ -92,8 +97,10 @@ A borderless one-field window pinned at the click position. Add to `UiState`:
 
 ```rust
         if let Some((handle, press_at)) = self.gb_pressed.take() {
-            if self.gb_drag.is_none() {                              // never crossed the 4 px threshold
-                self.ui.gb_input = Some((handle, String::new(), (self.cursor.0 as f32, self.cursor.1 as f32)));
+            // never crossed the 4 px threshold
+            if self.gb_drag.is_none() {
+                self.ui.gb_input = Some((handle, String::new(),
+                                         (self.cursor.0 as f32, self.cursor.1 as f32)));
             }
         }
 ```
@@ -105,10 +112,12 @@ A borderless one-field window pinned at the click position. Add to `UiState`:
             self.ui.gb_submit = false;
             if let Some((handle, buffer, _)) = self.ui.gb_input.take() {
                 if let Ok(v) = buffer.trim().parse::<f64>() {
-                    let o = self.scene.selection_centroid().map(|c| Point::new(c[0] as f64, c[1] as f64, c[2] as f64)).unwrap();
+                    let o = self.scene.selection_centroid()
+                        .map(|c| Point::new(c[0] as f64, c[1] as f64, c[2] as f64)).unwrap();
                     let delta = crate::engine::gumball::manual_delta(handle, v, &o);
                     self.apply_transform_command(&delta);            // 54's commit path, factored:
-                }                                                    // snapshots → apply_delta → execute
+                    // snapshots → apply_delta → execute
+                }
             }
         }
 ```
@@ -148,7 +157,7 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 ```
 Ch 55: rotate + scale — the drag family complete.
-Ch 56: NUMERIC ENTRY. Release under 54's 4 px threshold = a CLICK → egui popup at the cursor titled by
+Ch 56: NUMERIC ENTRY. Release under 54's 4 px threshold = CLICK → egui popup at the cursor titled by
        HandleKind::label() ("Move X (mm)" / "Rotate Z (deg)" / "Scale (factor)"). manual_delta maps
        the typed value to a RELATIVE delta about the centroid (degrees→radians via the kernel's PI;
        scale floored 0.01 like drags) and commits through 54's exact path — undoable for free. The

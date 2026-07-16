@@ -53,10 +53,13 @@ and delete nothing.
 ## Files we touch
 
 ```
-src/shaders/cylinder.wgsl      # NEW — instanced unit-cylinder; align +Z to (p1−p0); screen-constant radius
-src/engine/pipelines/build.rs  # build_cylinder_pipeline + the template's position-only vertex layout
+# NEW — instanced unit-cylinder; align +Z to (p1−p0); screen-constant radius
+src/shaders/cylinder.wgsl
+# build_cylinder_pipeline + the template's position-only vertex layout
+src/engine/pipelines/build.rs
 src/engine/pipelines/mod.rs    # Pipelines gains `cylinder`, threaded through new()
-src/engine/gpu.rs              # CylinderSegment row + segment/template/line buffers; one cylinder draw
+# CylinderSegment row + segment/template/line buffers; one cylinder draw
+src/engine/gpu.rs
 session_rust/src/mesh.rs       # kernel: edges_with_colors() — edges walked in linecolor order
 ```
 
@@ -228,7 +231,7 @@ fn vs_main(@location(0) tmpl: vec3<f32>, @builtin(instance_index) si: u32) -> Vs
     // Reference axis for the frame: must NEVER be parallel to dir, or cross() returns zero and the
     // tube collapses to NaN (invisible). Rule: use Z as the reference, and swap to X only when dir
     // itself is near-Z. (Getting this backwards — X as the default — silently deletes every
-    // X-parallel edge: 4 edges of any box vanish. A real bug this course shipped and a reader caught.)
+    // X-parallel edge: 4 edges of any box vanish. A real bug we shipped and a reader caught.)
     let ref0  = select(vec3<f32>(0.0, 0.0, 1.0), vec3<f32>(1.0, 0.0, 0.0), abs(dir.z) > 0.9);
     let right = normalize(cross(ref0, dir));
     let up    = cross(dir, right);
@@ -299,7 +302,8 @@ pub fn build_cylinder_pipeline(
 
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("cylinder.layout"),
-        bind_group_layouts: &[Some(mvp_layout), Some(line_layout), Some(instance_layout), Some(segment_layout)],
+        bind_group_layouts: &[Some(mvp_layout), Some(line_layout),
+                              Some(instance_layout), Some(segment_layout)],
         immediate_size: 0,
     });
 
@@ -338,7 +342,8 @@ pub fn build_cylinder_pipeline(
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
         }),
-        multisample: wgpu::MultisampleState { count: MSAA_SAMPLES, mask: !0, alpha_to_coverage_enabled: false },
+        multisample: wgpu::MultisampleState {
+            count: MSAA_SAMPLES, mask: !0, alpha_to_coverage_enabled: false },
         multiview_mask: None,
         cache: None,
     })
@@ -368,10 +373,12 @@ pipeline (import it alongside the others at the top: `use build::build_cylinder_
         segment_layout: &wgpu::BindGroupLayout,     // ← new
     ) -> Self {
         Self {
-            triangle: build_triangle_pipeline(device, color_format, aspect_layout, time_layout, instance_layout),
+            triangle: build_triangle_pipeline(device, color_format, aspect_layout,
+                                              time_layout, instance_layout),
             grid: build_grid_pipeline(device, color_format, aspect_layout),
             edges: build_edges_pipeline(device, color_format, aspect_layout),
-            cylinder: build_cylinder_pipeline(device, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
+            cylinder: build_cylinder_pipeline(device, color_format, aspect_layout,
+                                              line_layout, instance_layout, segment_layout),
             background: build_background_pipeline(device, color_format),
         }
     }
@@ -394,7 +401,7 @@ edges (endpoints stay local — the shader applies `model` via `instances[ri]`):
 
 ```rust
             // Edges → one cylinder segment each; instance_id = this object's row (ri).
-            // Point::to_f32() / Color::to_f32() are the kernel's GPU-edge casts (like Xform::to_f32).
+            // Point::to_f32() / Color::to_f32() are the kernel's GPU-edge casts (as Xform::to_f32).
             for (a, b, col) in mesh.edges_with_colors() {
                 let pa = mesh.vertex_point(a).unwrap();
                 let pb = mesh.vertex_point(b).unwrap();
@@ -403,7 +410,8 @@ edges (endpoints stay local — the shader applies `model` via `instances[ri]`):
                     radius: 0.0,                                    // screen-constant px
                     p1: pb.to_f32(),
                     instance_id: ri as u32,
-                    color: col.to_f32(),                            // per-edge rgba (opaque by default)
+                    // per-edge rgba (opaque by default)
+                    color: col.to_f32(),
                 });
             }
 ```
@@ -452,10 +460,12 @@ the blank line before `// Pipelines`, insert:
         let (cyl_v, cyl_i) = unit_cylinder(CYL_SIDES);
         let cyl_index_count = cyl_i.len() as u32;
         let cyl_template_vbo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("cyl.template.vbo"), contents: bytemuck::cast_slice(&cyl_v), usage: wgpu::BufferUsages::VERTEX,
+            label: Some("cyl.template.vbo"), contents: bytemuck::cast_slice(&cyl_v),
+            usage: wgpu::BufferUsages::VERTEX,
         });
         let cyl_template_ibo = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("cyl.template.ibo"), contents: bytemuck::cast_slice(&cyl_i), usage: wgpu::BufferUsages::INDEX,
+            label: Some("cyl.template.ibo"), contents: bytemuck::cast_slice(&cyl_i),
+            usage: wgpu::BufferUsages::INDEX,
         });
 
         // One storage row per edge (VERTEX-visible, read-only) — the segment table.
@@ -478,13 +488,15 @@ the blank line before `// Pipelines`, insert:
         });
         let segment_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("segments.bind_group"), layout: &segment_layout,
-            entries: &[wgpu::BindGroupEntry { binding: 0, resource: segment_buffer.as_entire_binding() }],
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0, resource: segment_buffer.as_entire_binding() }],
         });
 
         // Line uniform — screen-constant thickness; rewritten each frame from the camera.
         let line_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("line.buffer"),
-            contents: bytemuck::bytes_of(&LineUniform { thickness: 2.0, proj_y: 1.0, ortho_h: 0.0, vp_h: config.height as f32 }),
+            contents: bytemuck::bytes_of(&LineUniform {
+                thickness: 2.0, proj_y: 1.0, ortho_h: 0.0, vp_h: config.height as f32 }),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
         let line_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -492,13 +504,16 @@ the blank line before `// Pipelines`, insert:
             entries: &[wgpu::BindGroupLayoutEntry {
                 binding: 0,
                 visibility: wgpu::ShaderStages::VERTEX,
-                ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform, has_dynamic_offset: false, min_binding_size: None },
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false, min_binding_size: None },
                 count: None,
             }],
         });
         let line_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("line.bind_group"), layout: &line_layout,
-            entries: &[wgpu::BindGroupEntry { binding: 0, resource: line_buffer.as_entire_binding() }],
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0, resource: line_buffer.as_entire_binding() }],
         });
 ```
 
@@ -520,7 +535,8 @@ struct LineUniform {
 ~line 224) and append them:
 
 ```rust
-        let pipelines = Pipelines::new(&device, config.format, &mvp_layout, &time_layout, &instance_layout, &line_layout, &segment_layout);
+        let pipelines = Pipelines::new(&device, config.format, &mvp_layout, &time_layout,
+                                       &instance_layout, &line_layout, &segment_layout);
 ```
 
 **5e. Store the new fields.** In `pub struct Gpu { … }`, after `pub instance_bind_group: …`, add:
@@ -556,7 +572,7 @@ and name them all in the `Ok(Self { … })` initializer at the end of `new` (ord
 segments:
 
 ```rust
-            // Edges — ONE draw for the WHOLE scene's linework (segment table + unit-cylinder template)
+            // Edges — ONE draw for the WHOLE scene's linework (segments + unit-cylinder template)
             pass.set_pipeline(&self.pipelines.cylinder);
             pass.set_bind_group(0, &self.mvp_bind_group, &[]);
             pass.set_bind_group(1, &self.line_bind_group, &[]);
@@ -564,7 +580,8 @@ segments:
             pass.set_bind_group(3, &self.segment_bind_group, &[]);
             pass.set_vertex_buffer(0, self.cyl_template_vbo.slice(..));
             pass.set_index_buffer(self.cyl_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
-            pass.draw_indexed(0..self.cyl_index_count, 0, 0..self.segment_count);   // one template, N edges
+            // one template, N edges
+            pass.draw_indexed(0..self.cyl_index_count, 0, 0..self.segment_count);
             draws += 1;
 ```
 
@@ -572,19 +589,46 @@ segments:
 camera's projection, so rewrite the line uniform each frame. Find the two `write_buffer` calls at the
 top of `clear()` (the `time_buffer` and `mvp_buffer` writes) and add a third beside them:
 
+`clear()` can't see the camera, so thread the two numbers through from `state.rs` — the camera owns
+them (they're lesson-16's projection values). In `state.rs`, before calling `clear`:
+
+```rust
+        // The SAME numbers the projection was built from (16). S = the mm→m scale in view_proj.
+        let (proj_y, ortho_h) = if self.camera.perspective {
+            ((1.0 / f64::to_radians(30.0).tan() * 0.001) as f32, 0.0f32)     // cot(fovy/2) · S
+        } else {
+            // 16's ortho half-height
+            let h = self.camera.distance * f64::to_radians(30.0).tan();
+            // h ÷ S — see the unit note
+            (1.0f32, (h / 0.001) as f32)
+        };
+```
+
+pass them into `clear(…, proj_y, ortho_h)`, and fill the uniform there:
+
 ```rust
         let line = LineUniform {
-            thickness: 2.0,                        // px — later driven by the egui slider (lesson 47)
-            proj_y: 1.0 / (30.0_f32).to_radians().tan() * 0.001,   // cot(fovy/2) · mm→m unit scale
-            ortho_h: 0.0,                          // perspective; set the ortho half-height when ortho
+            // px — later driven by the egui slider (lesson 47)
+            thickness: 2.0,
+            proj_y,
+            // 0.0 selects the perspective branch in the shader
+            ortho_h,
             vp_h: self.config.height as f32,
         };
         self.queue.write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
 ```
 
+> **The unit note (why × S on one side and ÷ S on the other).** The shader computes a radius in
+> *world* units (mm). In perspective, `clip_w` already carries the view_proj's mm→m scale `S`, so
+> `proj_y` must carry one `S` too — they cancel. In ortho there is no `clip_w` in the formula, so the
+> scale must ride `ortho_h` instead, inverted: `h / S`. **Leaving `ortho_h` at 0.0 in ortho mode is
+> the classic miss** (this lesson originally did — a reader caught it): the shader silently runs the
+> *perspective* branch with ortho's constant `clip_w = 1`, and thickness stops matching perspective
+> AND stops tracking zoom. Sanity check both modes: a `thickness: 8.0` line ≈ 8 px at any zoom, and
+> toggling `Space` must not change any line's width by a pixel.
+
 > `proj_y` / `ortho_h` come from your lesson-16 projection × the `mm→m` scale; constants above are the
-> perspective default (fovy 60°, scale `0.001`). Sanity check: a `thickness: 8.0` line ≈ 8 px at any
-> zoom. For ortho (`Space`), pass the ortho half-height as `ortho_h`. Cleanest is to compute both in
+> perspective default (fovy 60°, scale `0.001`). Cleanest is to compute both in
 > `state.rs::render` from the `Camera`.
 
 ## Step 7 — run
@@ -613,8 +657,8 @@ Ch 31: EDGES as cylinders. One unit-cylinder template + one CylinderSegment row 
        flat storage table. ONE draw_indexed(0..template_idx, 0, 0..segments) for the WHOLE scene's
        linework. The vertex shader aligns +Z to (p1−p0) per instance — no per-segment matrix — and
        expands the radius to a SCREEN-CONSTANT pixel width via the `line` camera uniform. Per-edge
-       colors come from the kernel's new edges_with_colors() (edges walked in linecolor order, unlike
-       the sorted edges()). The 23 LineList pipeline survives for overlays only. 4 draws / 5 objects,
+       colors come from the kernel's edges_with_colors() (edges walked in linecolor order, unlike
+       the sorted edges()). The 23 LineList pipeline survives for overlays. 4 draws / 5 objects,
        flat as the scene grows; thickness changes are a single uniform write.
 ```
 

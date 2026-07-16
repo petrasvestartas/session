@@ -64,7 +64,8 @@ pub fn build_triangle_pipeline(/* …unchanged… */) -> wgpu::RenderPipeline {
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: Some("vs_main"),
-                buffers: &[RenderVertex::layout()],   // ← was Vertex::layout(); pos@0, normal@1, color@2
+                // ← was Vertex::layout(); pos@0, normal@1, color@2
+                buffers: &[RenderVertex::layout()],
                 compilation_options: Default::default(),
             },
     // …
@@ -157,7 +158,8 @@ normals/lighting arrive lesson 21, already in the buffer at location 1.)
 Ch 18: a cube from a hand-typed vertex buffer + index buffer.
 Ch 19: the buffers come from the kernel — mesh.gpu_mesh(&device) flattens the f64 Mesh to f32 ONCE,
        caches GpuMesh { vbo, ibo, index_count }, and we draw_indexed it (Uint32). The pipeline uses
-       RenderVertex::layout(); no cast_slice / offsets / as-f32 in the viewer. f64 compute, f32 draw.
+       RenderVertex::layout(); no cast_slice / offsets / as-f32 in the viewer. f64 compute,
+       f32 draw.
 ```
 
 Edited: `pipelines/build.rs` (`RenderVertex::layout()`, drop local `Vertex`), `shaders/triangle.wgsl`

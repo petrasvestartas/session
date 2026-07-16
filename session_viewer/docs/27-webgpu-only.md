@@ -94,7 +94,7 @@ goes in the existing `<style>` block in the head:
   <script>
     if (!navigator.gpu) {
       document.body.insertAdjacentHTML("beforeend",
-        '<div id="no-webgpu">WebGPU required — use a recent Chrome, Edge, Firefox, or Safari 18+.</div>');
+  '<div id="no-webgpu">WebGPU required — use a recent Chrome, Edge, Firefox, or Safari 18+.</div>');
     }
   </script>
 ```

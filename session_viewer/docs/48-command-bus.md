@@ -116,12 +116,14 @@ rule — `State` runs it after the closure:
 
 ```rust
 /// Returns Some(line) when the user pressed Enter. `log` is the last response to show.
-pub fn cli_panel(ctx: &egui::Context, input: &mut String, log: &str, prompt: &str) -> Option<String> {
+pub fn cli_panel(ctx: &egui::Context, input: &mut String, log: &str,
+                 prompt: &str) -> Option<String> {
     let mut submitted = None;
     egui::TopBottomPanel::bottom("cli").show(ctx, |ui| {
         if !log.is_empty() { ui.label(log); }
         ui.horizontal(|ui| {
-            ui.label(if prompt.is_empty() { ">" } else { prompt });   // Get-loop prompt replaces '>'
+            // Get-loop prompt replaces '>'
+            ui.label(if prompt.is_empty() { ">" } else { prompt });
             let r = ui.add(egui::TextEdit::singleline(input).desired_width(f32::INFINITY));
             if r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
                 submitted = Some(std::mem::take(input));
@@ -149,7 +151,8 @@ drains `pending_command` into `run_command`.
         use crate::app::{commands::Dispatch, getloop::GetState};
         // If a command is running, typed text FEEDS it instead of dispatching a new verb:
         if let Some(mut cmd) = self.active.take() {
-            let r = cmd.feed_text(self, line);   // two statements — feed borrows self, then step does
+            // two statements — feed borrows self, then step does
+            let r = cmd.feed_text(self, line);
             self.step(r, cmd);
             return;
         }
@@ -160,12 +163,15 @@ drains `pending_command` into `run_command`.
     }
 
     /// One place decides what a CmdStep means. set_prompt writes GetState + the CLI prompt text.
-    fn step(&mut self, s: crate::app::getloop::CmdStep, cmd: Box<dyn crate::app::getloop::ActiveCommand>) {
+    fn step(&mut self, s: crate::app::getloop::CmdStep,
+            cmd: Box<dyn crate::app::getloop::ActiveCommand>) {
         use crate::app::getloop::{CmdStep, GetState};
         match s {
             CmdStep::Prompt(get) => { self.active = Some(cmd); self.set_prompt(get); }
             CmdStep::Done(msg)   => { self.ui.log = msg; self.set_prompt(GetState::Idle); }
-            CmdStep::Cancel      => { self.ui.log = "cancelled".into(); self.set_prompt(GetState::Idle); }
+            CmdStep::Cancel      => {
+                self.ui.log = "cancelled".into(); self.set_prompt(GetState::Idle);
+            }
         }
     }
 ```
@@ -181,7 +187,8 @@ And the two input reroutes — this is the Get-loop actually looping:
                 self.step(r, cmd);
             }
         }
-        return;                                                    // never falls through to selection
+        // never falls through to selection
+        return;
     }
 
     // in the key handler:
@@ -217,9 +224,10 @@ Ch 48: THE BUS. commands::dispatch(state, line) — a match IS the registry, ali
        instant verbs act and log (hide/show/zoom — 46's Scene verbs, now bus-born); multi-step verbs
        return an ActiveCommand + a GetState prompt. getloop::GetState { Idle / WaitingPoint /
        WaitingOption } is what the interface is waiting for; CmdStep { Prompt / Done / Cancel } is
-       what a command says back. INPUT RULES: typed text feeds the active command before dispatching;
-       a click while WaitingPoint feeds the command (never selection); empty-space clicks intersect
-       z=0 so the grid is clickable; Esc cancels. ui/cli.rs = bottom panel, collect-then-apply.
+       what a command says back. INPUT RULES: typed text feeds the active command before
+       dispatching; a click while WaitingPoint feeds the command (never selection); empty-space
+       clicks intersect z=0 so the grid is clickable; Esc cancels. ui/cli.rs = bottom panel,
+       collect-then-apply.
        From here on, EVERY mutation is born as a command — undo (51) rides this for free.
 ```
 

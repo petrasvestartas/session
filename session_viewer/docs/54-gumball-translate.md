@@ -44,7 +44,8 @@ pub fn closest_param_on_axis(ray: &crate::engine::pick::Ray, a: &Point, u: &Vect
     let b = ray.dir.dot(u);                                    // cos between ray and axis
     let denom = 1.0 - b * b;
     if denom < 1e-9 { return None; }                           // axis ∥ view ray — no stable answer
-    Some((b * w.dot(&ray.dir) - w.dot(u)) / denom)
+    // sign matters: swap these and drags INVERT
+    Some((w.dot(u) - b * w.dot(&ray.dir)) / denom)
 }
 ```
 
@@ -64,14 +65,16 @@ use crate::{app::scene::Scene, engine::gpu::Gpu};
 
 pub struct TransformObjects {
     pub before: Vec<Geometry>,   // cloned at PRESS
-    pub after: Vec<Geometry>,    // cloned at RELEASE (kernel objects already carry the new placement)
+    // cloned at RELEASE (kernel objects already carry the new placement)
+    pub after: Vec<Geometry>,
 }
 
 impl TransformObjects {
     fn restore(set: &[Geometry], scene: &mut Scene, gpu: &mut Gpu) {
         for geom in set {
             let guid = geom.guid().to_string();
-            scene.session.lookup.insert(guid.clone(), geom.clone());   // overwrite in place — same guid
+            // overwrite in place — same guid
+            scene.session.lookup.insert(guid.clone(), geom.clone());
             scene.hashes.insert(guid.clone(), Scene::hash_of(geom));   // keep 38b/39's gates honest
             let row = scene.guid_to_row[&guid];
             scene.apply_object(gpu, &guid, geom, row);
@@ -80,8 +83,12 @@ impl TransformObjects {
 }
 
 impl Command for TransformObjects {
-    fn apply(&mut self, scene: &mut Scene, gpu: &mut Gpu)  { Self::restore(&self.after, scene, gpu); }
-    fn revert(&mut self, scene: &mut Scene, gpu: &mut Gpu) { Self::restore(&self.before, scene, gpu); }
+    fn apply(&mut self, scene: &mut Scene, gpu: &mut Gpu) {
+        Self::restore(&self.after, scene, gpu);
+    }
+    fn revert(&mut self, scene: &mut Scene, gpu: &mut Gpu) {
+        Self::restore(&self.before, scene, gpu);
+    }
     fn label(&self) -> String { format!("move {} object(s)", self.before.len()) }
 }
 ```
@@ -113,17 +120,22 @@ Four small handlers around the fields 53 already added:
 ```rust
         if let Some((handle, press_at)) = self.gb_pressed {
             let d2 = (self.cursor.0 - press_at.0).powi(2) + (self.cursor.1 - press_at.1).powi(2);
-            if self.gb_drag.is_none() && d2 >= 16.0 && self.lmb_down {   // 4 px — the deferred-drag gate
-                self.begin_drag(handle);                                  // fills DragCtx: snapshots + t0
+            // 4 px — the deferred-drag gate
+            if self.gb_drag.is_none() && d2 >= 16.0 && self.lmb_down {
+                // fills DragCtx: snapshots + t0
+                self.begin_drag(handle);
             }
         }
         if let Some(ctx) = &self.gb_drag {
-            let ray = self.cursor_ray();                                  // 41's screen_to_world_ray, factored
-            if let Some(t) = crate::engine::gumball::closest_param_on_axis(&ray, &ctx.origin, &ctx.axis) {
+            // 41's screen_to_world_ray, factored
+            let ray = self.cursor_ray();
+            if let Some(t) = crate::engine::gumball::closest_param_on_axis(
+                &ray, &ctx.origin, &ctx.axis) {
                 let dt = t - ctx.t0;
                 let delta = Xform::translation(ctx.axis[0]*dt, ctx.axis[1]*dt, ctx.axis[2]*dt);
                 for (_, row, base) in &ctx.base_models {
-                    self.gpu.set_live_model(*row, &(&delta * base));      // matrix-only — see the note
+                    // matrix-only — see the note
+                    self.gpu.set_live_model(*row, &(&delta * base));
                 }
                 self.refresh_gumball_at(&delta);                          // the widget rides along
             }
@@ -137,12 +149,15 @@ Four small handlers around the fields 53 already added:
             let delta = /* final delta from the last move, stashed on ctx */;
             for (guid, _, _) in &ctx.base_models {
                 if let Some(geom) = self.scene.session.lookup.get_mut(guid) {
-                    apply_delta(geom, &delta);                            // compose xform / bake coords
+                    // compose xform / bake coords
+                    apply_delta(geom, &delta);
                 }
             }
-            let after = ctx.before.iter().map(|g| self.scene.session.lookup[g.guid()].clone()).collect();
+            let after = ctx.before.iter()
+                .map(|g| self.scene.session.lookup[g.guid()].clone()).collect();
             let cmd = Box::new(TransformObjects { before: ctx.before, after });
-            self.history.execute(cmd, &mut self.scene, &mut self.gpu);    // applies `after` — idempotent
+            // applies `after` — idempotent
+            self.history.execute(cmd, &mut self.scene, &mut self.gpu);
             self.scene.rebuild_bvh();                                     // boxes moved (36)
         }
         self.gb_pressed = None;
@@ -196,7 +211,7 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 ```
 Ch 53: constant size + hit-test — the widget is grabbable.
-Ch 54: TRANSLATE. Deferred drag: press → 4 px travel + lmb gate → begin (a clean click stays free for
+Ch 54: TRANSLATE. Deferred drag: press → 4px travel + lmb gate → begin (a clean click stays free for
        56's numeric entry). Delta = closest_param_on_axis(ray, origin, axis) minus its press value —
        two-line closest approach, None when axis ∥ view. LIVE = set_live_model: objects_base + row
        only (33's rebase carries it; arena/Session/hashes untouched — Esc leaves no trace). COMMIT =

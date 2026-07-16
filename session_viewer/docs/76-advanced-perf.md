@@ -103,9 +103,9 @@ Ch 76: HEADROOM, mapped. (1) LOD: decimated levels pre-allocated as extra arena 
        index-range choice. (2) Occlusion: depth pyramid, test boxes at the ~2 px mip, one-frame
        latency, feeds 37's FLAG_CULLED path — only when profiling shows hidden-geometry cost.
        (3) GPU cull + indirect: a compute pass tests frustum+pyramid per object and atomically packs
-       an INDIRECT buffer; draw_indexed_indirect renders what the GPU chose; CPU per-object work → 0.
-       This is what 27's WebGPU-only decision bought. Above all: name the bottleneck, pull ONE lever,
-       re-measure — the discipline that built every fast lesson in this course.
+       an INDIRECT buffer; draw_indexed_indirect renders what the GPU chose; CPU per-object
+       work → 0. This is what 27's WebGPU-only decision bought. Above all: name the bottleneck,
+       pull ONE lever, re-measure — the discipline that built every fast lesson in this course.
 ```
 
 ## Next

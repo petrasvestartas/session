@@ -36,9 +36,11 @@ the far plane — a real precision fix, not a shortcut.
 ## Files we touch
 
 ```
-src/engine/pick.rs   # NEW — Ray { origin, dir }; screen_to_world_ray(view_proj, origin, cursor, viewport)
+# NEW — Ray { origin, dir }; screen_to_world_ray(view_proj, origin, cursor, viewport)
+src/engine/pick.rs
 src/engine/mod.rs    # pub mod pick;
-src/state.rs         # track the cursor; on click build a ray, intersect z=0, drop a marker (the verify)
+# track the cursor; on click build a ray, intersect z=0, drop a marker (the verify)
+src/state.rs
 ```
 
 `engine/pick.rs` names only `Point`/`Vector`/`Xform` — geometry primitives, never `Session`/`Mesh` — so
@@ -66,10 +68,12 @@ pub fn screen_to_world_ray(view_proj: &Xform, origin: &Point, cursor: (f64, f64)
     let ndc_x = ((cursor.0 - vx) / w) * 2.0 - 1.0;
     let ndc_y = 1.0 - ((cursor.1 - vy) / h) * 2.0;   // pixel-y is top-down; NDC-y is bottom-up
 
-    let inv = view_proj.inverse()?.to_cols();        // full 4×4 kernel inverse — see the history below
-    let shift = Vector::new(origin[0], origin[1], origin[2]);   // camera-relative → world (Point + Vector)
-    // Reverse-Z (26): the NEAR plane is ndc_z = 1.0, the far plane ndc_z = 0.0. Unproject near at 1.0
-    // and a well-conditioned mid-depth at 0.5 (NOT the far plane — see Step 2).
+    // full 4×4 kernel inverse — see the history below
+    let inv = view_proj.inverse()?.to_cols();
+    // camera-relative → world (Point + Vector)
+    let shift = Vector::new(origin[0], origin[1], origin[2]);
+    // Reverse-Z (26): the NEAR plane is ndc_z = 1.0, the far plane ndc_z = 0.0. Unproject near
+    // at 1.0 and a well-conditioned mid-depth at 0.5 (NOT the far plane — see Step 2).
     let near = unproject(&inv, ndc_x, ndc_y, 1.0)? + shift;
     let far  = unproject(&inv, ndc_x, ndc_y, 0.5)? + shift;
 
@@ -164,13 +168,14 @@ missing or the `ndc_z` convention is wrong for your depth setup.
 ```
 Ch 40: watch — external file edits reconcile back in.
 Ch 41: SCREEN → RAY. A cursor pixel → NDC (x,y ∈ [-1,1], y flipped for top-down pixels) → unproject
-       through inverse(view_proj) at TWO depths → camera-relative points → + origin → WORLD (the ray).
-       view_proj is camera-relative (33), so the unproject lands cam-relative and the origin shift is
-       mandatory — miss it and the ray drifts with distance from world (0,0,0). The far point uses
-       ndc_z = 0.5, NOT the far plane: at the far plane the perspective inverse's w-denominator collapses
-       (far/near ~ 1e5) and the point explodes — a real archive bug. ray = { origin: world-near,
-       dir: normalize(world-far − world-near) }. Reverse-Z (26) puts near at ndc_z=1.0; ortho flips the
-       two z's. Lives in engine/pick.rs (names only Point/Vector/Xform — engine-side of 35's litmus).
+       through inverse(view_proj) at TWO depths → camera-relative points → + origin → WORLD
+       (the ray). view_proj is camera-relative (33), so the unproject lands cam-relative and the
+       origin shift is mandatory — miss it and the ray drifts with distance from world (0,0,0).
+       The far point uses ndc_z = 0.5, NOT the far plane: at the far plane the perspective
+       inverse's w-denominator collapses (far/near ~ 1e5) and the point explodes — a real archive
+       bug. ray = { origin: world-near, dir: normalize(world-far − world-near) }. Reverse-Z (26)
+       puts near at ndc_z=1.0; ortho flips the two z's. Lives in engine/pick.rs (names only
+       Point/Vector/Xform — engine-side of 35's litmus).
 ```
 
 Edited: `engine/pick.rs` (NEW — `Ray`, `screen_to_world_ray`, `unproject`), `engine/mod.rs`

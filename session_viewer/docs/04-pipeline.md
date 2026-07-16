@@ -284,7 +284,8 @@ then add it to the returned struct:
 
     let pipelines = Pipelines::new(&device, config.format);   // <- ADD THIS
 
-    log::info!("viewer init OK — surface {}x{}, format {:?}", config.width, config.height, config.format);
+    log::info!("viewer init OK — surface {}x{}, format {:?}",
+        config.width, config.height, config.format);
     Ok(Self { surface, device, queue, config, pipelines })    // <- add `pipelines`
 }
 ```

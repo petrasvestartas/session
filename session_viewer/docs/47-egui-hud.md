@@ -44,8 +44,9 @@ events), and the **wgpu renderer** (draws egui's triangles). Plus `UiState` — 
 widgets bind to:
 
 ```rust
-//! The egui overlay. Rule: widgets bind to the plain `UiState` struct inside the closure; `State`
-//! APPLIES those values after the closure returns — never mutate State mid-layout (can't borrow it).
+//! The egui overlay. Rule: widgets bind to the plain `UiState` struct inside the closure;
+//! `State` APPLIES those values after the closure returns — never mutate State mid-layout
+//! (can't borrow it).
 
 pub struct Shell {
     pub ctx: egui::Context,
@@ -67,27 +68,32 @@ pub struct UiState {
 }
 
 impl Shell {
-    pub fn new(window: &winit::window::Window, device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
+    pub fn new(window: &winit::window::Window, device: &wgpu::Device,
+               format: wgpu::TextureFormat) -> Self {
         let ctx = egui::Context::default();
         let mut vis = egui::Visuals::light();
         vis.selection.bg_fill = egui::Color32::BLACK;              // selected row: black bg…
         vis.selection.stroke  = egui::Stroke::new(1.0, egui::Color32::WHITE);
         vis.override_text_color = Some(egui::Color32::BLACK);      // …never white-on-white
         ctx.set_visuals(vis);
-        let renderer = egui_wgpu::Renderer::new(device, format, egui_wgpu::RendererOptions::default());
-        let state = egui_winit::State::new(ctx.clone(), egui::ViewportId::ROOT, window, None, None, None);
+        let renderer = egui_wgpu::Renderer::new(device, format,
+            egui_wgpu::RendererOptions::default());
+        let state = egui_winit::State::new(ctx.clone(), egui::ViewportId::ROOT,
+            window, None, None, None);
         Self { ctx, state, renderer }
     }
 }
 
 /// Lay out the whole overlay for this frame. Widgets mutate `ui_state` (a plain struct — fine);
 /// anything that must touch State/Gpu is applied by the CALLER from ui_state afterwards.
-pub fn build_ui(shell: &mut Shell, window: &winit::window::Window, ui_state: &mut UiState) -> egui::FullOutput {
+pub fn build_ui(shell: &mut Shell, window: &winit::window::Window,
+                ui_state: &mut UiState) -> egui::FullOutput {
     let raw_input = shell.state.take_egui_input(window);
     shell.ctx.run(raw_input, |ctx| {
         egui::Window::new("perf").default_pos([8.0, 8.0]).resizable(false).show(ctx, |ui| {
             ui.label(format!("{:>5.1} fps   {:>5.2} ms", ui_state.fps, ui_state.frame_ms));
-            ui.label(format!("{} draws   {} / {} drawn", ui_state.draws, ui_state.drawn, ui_state.total));
+            ui.label(format!("{} draws   {} / {} drawn",
+                ui_state.draws, ui_state.drawn, ui_state.total));
         });
         egui::Window::new("settings").default_pos([8.0, 96.0]).resizable(false).show(ctx, |ui| {
             ui.checkbox(&mut ui_state.show_grid, "grid");
@@ -150,7 +156,8 @@ then, after the last 3-D pass ends but **before** `queue.submit` / `present`:
             for (id, delta) in &f.textures_delta.set {
                 f.renderer.update_texture(&self.device, &self.queue, *id, delta);
             }
-            extra_cmds = f.renderer.update_buffers(&self.device, &self.queue, &mut encoder, &f.tris, &screen);
+            extra_cmds = f.renderer.update_buffers(&self.device, &self.queue,
+                &mut encoder, &f.tris, &screen);
             {
                 let epass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     label: Some("egui"),
@@ -158,7 +165,9 @@ then, after the last 3-D pass ends but **before** `queue.submit` / `present`:
                         view: &view,
                         resolve_target: None,
                         depth_slice: None,
-                        ops: wgpu::Operations { load: wgpu::LoadOp::Load, store: wgpu::StoreOp::Store },   // LOAD — draw over the scene
+                        // LOAD — draw over the scene
+                        ops: wgpu::Operations { load: wgpu::LoadOp::Load,
+                            store: wgpu::StoreOp::Store },
                     })],
                     depth_stencil_attachment: None,                      // UI ignores scene depth
                     occlusion_query_set: None, timestamp_writes: None, multiview_mask: None,
@@ -173,7 +182,8 @@ then, after the last 3-D pass ends but **before** `queue.submit` / `present`:
 with the carrier type in `src/ui/mod.rs`:
 
 ```rust
-/// Everything Gpu needs to draw one frame of UI — tessellated by the caller (the Context stays in Shell).
+/// Everything Gpu needs to draw one frame of UI — tessellated by the caller (the Context stays
+/// in Shell).
 pub struct UiFrame<'a> {
     pub renderer: &'a mut egui_wgpu::Renderer,
     pub tris: Vec<egui::ClippedPrimitive>,
@@ -189,7 +199,8 @@ pub struct UiFrame<'a> {
 ```rust
         // 1. feed the HUD (numbers 28/37 already compute)
         self.ui.fps = self.perf_fps; self.ui.frame_ms = self.perf_ms;
-        self.ui.draws = self.perf_draws; self.ui.drawn = self.perf_drawn; self.ui.total = self.perf_total;
+        self.ui.draws = self.perf_draws; self.ui.drawn = self.perf_drawn;
+        self.ui.total = self.perf_total;
 
         // 2. lay out; widgets mutate self.ui only
         let full_out = crate::ui::build_ui(&mut self.shell, &self.window, &mut self.ui);
@@ -232,14 +243,15 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 ```
 Ch 46: visibility — Phase 7 closed; the scene is fully interactive but mute.
-Ch 47: EGUI OVERLAY. Shell { ctx, winit-state, wgpu-renderer } (archive wiring: Renderer::new(device,
-       format, RendererOptions::default()), State::new(ctx, ViewportId::ROOT, window, …)). INPUT
-       CONTRACT: every winit event → egui first; consumed → the 3-D layer never sees it. FRAME: State
-       copies HUD numbers into UiState → build_ui (widgets bind to the plain struct — NEVER mutate
-       State inside the closure) → apply intent after → ctx.tessellate → Gpu draws a second pass on
-       the SAME encoder, LoadOp::Load, no depth (UiFrame carries renderer+tris+textures_delta;
-       tessellation stays with the Context in Shell). First rent: perf HUD panel; grid/edges/ortho
-       checkboxes; thickness slider straight into 31's uniform.
+Ch 47: EGUI OVERLAY. Shell { ctx, winit-state, wgpu-renderer } (archive wiring:
+       Renderer::new(device, format, RendererOptions::default()), State::new(ctx,
+       ViewportId::ROOT, window, …)). INPUT
+       CONTRACT: every winit event → egui first; consumed → the 3-D layer never sees it.
+       FRAME: State copies HUD numbers into UiState → build_ui (widgets bind to the plain
+       struct — NEVER mutate State inside the closure) → apply intent after → ctx.tessellate →
+       Gpu draws a second pass on the SAME encoder, LoadOp::Load, no depth (UiFrame carries
+       renderer+tris+textures_delta; tessellation stays with the Context in Shell). First rent:
+       perf HUD panel; grid/edges/ortho checkboxes; thickness slider straight into 31's uniform.
 ```
 
 Edited: `ui/mod.rs` (NEW — `Shell`, `UiState`, `UiFrame`, `build_ui`), `lib.rs` (`mod ui;` +

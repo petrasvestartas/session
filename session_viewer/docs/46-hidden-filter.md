@@ -40,7 +40,8 @@ it — this is the moment the pattern earns a name:
 
 ```rust
     /// Set `flag` on exactly `rows`, clear it everywhere else; upload only rows that flipped.
-    /// One function serves SELECTED (45) and HIDDEN (here) — CULLED (37) keeps its own per-frame path.
+    /// One function serves SELECTED (45) and HIDDEN (here) — CULLED (37) keeps its own per-frame
+    /// path.
     pub fn set_flag_rows(&mut self, flag: u32, rows: &std::collections::HashSet<u32>) {
         for i in 0..self.instances.len() as u32 {
             let want = rows.contains(&i);
@@ -115,8 +116,10 @@ is exactly what Phase 7 exists to prevent.
 In the keyboard handler (next to `F`):
 
 ```rust
-                        Key::Character("h" | "H") if !ctrl => { state.scene.hide_selected(&mut state.gpu); }
-                        Key::Character("h" | "H") if ctrl  => { state.scene.show_all(&mut state.gpu); }
+                        Key::Character("h" | "H") if !ctrl =>
+                            { state.scene.hide_selected(&mut state.gpu); }
+                        Key::Character("h" | "H") if ctrl  =>
+                            { state.scene.show_all(&mut state.gpu); }
 ```
 
 (48 rebinds these to real `hide` / `show` commands on the bus; the `Scene` verbs don't change.)
@@ -138,12 +141,13 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 ```
 Ch 45: selection state + marquee.
-Ch 46: VISIBILITY. Scene.hidden (parked since 35) becomes runtime state with three consumers that must
-       agree: draw (FLAG_HIDDEN → w=0 collapse, wired in 37 — zero new shader work), pick (42/44 skip
-       hidden guids), marquee (45 skips). set_flag_rows(flag, rows) generalizes 45's flip-tracked
-       upload — selection and visibility are the same mechanism, different bit. hide_selected drains
-       the selection into hidden (can't act on what you can't see); show_all clears. H / Ctrl+H until
-       the CLI takes over (48). Phase 7 complete: ray → hit → sub-object → thin → selection → visibility.
+Ch 46: VISIBILITY. Scene.hidden (parked since 35) becomes runtime state with three consumers that
+       must agree: draw (FLAG_HIDDEN → w=0 collapse, wired in 37 — zero new shader work), pick
+       (42/44 skip hidden guids), marquee (45 skips). set_flag_rows(flag, rows) generalizes 45's
+       flip-tracked upload — selection and visibility are the same mechanism, different bit.
+       hide_selected drains the selection into hidden (can't act on what you can't see); show_all
+       clears. H / Ctrl+H until the CLI takes over (48). Phase 7 complete: ray → hit →
+       sub-object → thin → selection → visibility.
 ```
 
 Edited: `engine/gpu/mod.rs` (`set_flag_rows`, `set_selected_rows` → wrapper), `app/scene.rs`

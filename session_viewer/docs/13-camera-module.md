@@ -89,7 +89,8 @@ impl Camera {
             self.target[1] as f64 + (self.distance * sp)      as f64,
             self.target[2] as f64 + (self.distance * cp * cy) as f64,
         );
-        let target = Point::new(self.target[0] as f64, self.target[1] as f64, self.target[2] as f64);
+        let target = Point::new(self.target[0] as f64, self.target[1] as f64,
+                                self.target[2] as f64);
         let up = Vector::new(0.0, 1.0, 0.0);
         let view = Xform::look_at_right_handed(&eye, &target, &up);
         projection * view

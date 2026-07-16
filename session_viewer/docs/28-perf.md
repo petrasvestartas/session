@@ -78,7 +78,8 @@ impl Perf {
 
         if t - self.last_log >= 1000.0 {
             let fps = if self.frame_ms > 0.0 { 1000.0 / self.frame_ms } else { 0.0 };
-            log::info!("perf: {:.1} fps | {:.2} ms | {} draws | {} objects", fps, self.frame_ms, draws, objects);
+            log::info!("perf: {:.1} fps | {:.2} ms | {} draws | {} objects",
+                fps, self.frame_ms, draws, objects);
             self.last_log = t;
         }
     }

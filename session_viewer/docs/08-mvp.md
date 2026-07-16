@@ -102,14 +102,17 @@ layout + bind group. Keep `use wgpu::util::DeviceExt;`. Start at identity;
             entries: &[wgpu::BindGroupLayoutEntry{
                 binding: 0,
                 visibility: wgpu::ShaderStages::VERTEX,
-                ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform, has_dynamic_offset: false, min_binding_size: None },
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false, min_binding_size: None },
                 count: None,
             }],
         });
         let mvp_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor{
             label: Some("mvp.bind_group"),
             layout: &mvp_layout,
-            entries: &[wgpu::BindGroupEntry{ binding: 0, resource: mvp_buffer.as_entire_binding() }],
+            entries: &[wgpu::BindGroupEntry{
+                binding: 0, resource: mvp_buffer.as_entire_binding() }],
         });
 ```
 
@@ -124,7 +127,8 @@ reconfigure.
 ```rust
         let aspect = self.config.width as f64 / self.config.height as f64;
         let projection = Xform::perspective(60f64.to_radians(), aspect, 0.1, 100.0);
-        let view  = Xform::look_at_right_handed(&Point::new(0.0,0.0,2.0), &Point::new(0.0,0.0,0.0), &Vector::new(0.0,1.0,0.0));
+        let view  = Xform::look_at_right_handed(&Point::new(0.0,0.0,2.0), &Point::new(0.0,0.0,0.0),
+                                                &Vector::new(0.0,1.0,0.0));
         let model = Xform::rotation_y(self.time as f64, false);   // radians
         let mvp   = projection * view * model;
         self.queue.write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&mvp.to_f32()));

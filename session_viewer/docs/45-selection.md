@@ -88,7 +88,8 @@ view-projection whose frustum is the marquee volume — feed it straight to 37's
 
 ```rust
     /// The 6 world-space planes of the sub-frustum under a screen rectangle (NDC coords).
-    /// crop · view_proj remaps the rect to the full clip cube, so Gribb–Hartmann (37) needs no change.
+    /// crop · view_proj remaps the rect to the full clip cube, so Gribb–Hartmann (37) needs
+    /// no change.
     pub fn marquee_frustum(view_proj: &Xform, origin: &Point,
                            x0: f64, y0: f64, x1: f64, y1: f64) -> Frustum {
         let (sx, sy) = (2.0 / (x1 - x0), 2.0 / (y1 - y0));
@@ -114,7 +115,8 @@ drag endpoints, and ignore drags under ~3 px — those are clicks.)
         gpu.set_selected_rows(&rows);
     }
 
-    /// Marquee: everything whose world box the sub-frustum accepts. Crossing style — touching counts.
+    /// Marquee: everything whose world box the sub-frustum accepts. Crossing style —
+    /// touching counts.
     pub fn select_marquee(&mut self, f: &Frustum, additive: bool) {
         if !additive { self.selected.clear(); }
         for guid in &self.order {
@@ -132,8 +134,15 @@ In `state.rs`, the mouse gestures — press remembers the spot; release decides 
 ```rust
         // release at ~press position → CLICK: replace (or Shift → toggle)
         match self.scene.pick_ray(&ray, tol) {
-            Some(hit) if shift => { if !self.scene.selected.remove(&hit.guid) { self.scene.selected.insert(hit.guid); } }
-            Some(hit)          => { self.scene.selected.clear(); self.scene.selected.insert(hit.guid); }
+            Some(hit) if shift => {
+                if !self.scene.selected.remove(&hit.guid) {
+                    self.scene.selected.insert(hit.guid);
+                }
+            }
+            Some(hit)          => {
+                self.scene.selected.clear();
+                self.scene.selected.insert(hit.guid);
+            }
             None if !shift     => { self.scene.selected.clear(); }
             None               => {}
         }
@@ -169,10 +178,11 @@ Ch 44: thin picking — radius + mesh-wins-ties.
 Ch 45: SELECTION. State = Scene.selected: HashSet<guid> — the set every later tool acts on. Visible
        via FLAG_SELECTED (bit 0, reserved since 35): one bit read by all four instance pipelines →
        the whole object tints as a unit; set_selected_rows uploads only flipped rows (37's pattern).
-       Click = replace, Shift+click = toggle, empty click = clear. MARQUEE: the drag rect is remapped
-       to the full clip cube by a crop matrix (translation · scale_xyz), so crop·view_proj fed to
-       37's Frustum::from_view_proj yields the sub-frustum's 6 world planes with zero new plane math;
-       select_marquee = aabb_visible over world boxes (linear, per release), crossing style.
+       Click = replace, Shift+click = toggle, empty click = clear. MARQUEE: the drag rect is
+       remapped to the full clip cube by a crop matrix (translation · scale_xyz), so crop·view_proj
+       fed to 37's Frustum::from_view_proj yields the sub-frustum's 6 world planes with zero new
+       plane math; select_marquee = aabb_visible over world boxes (linear, per release), crossing
+       style.
 ```
 
 Edited: `engine/gpu/mod.rs` (`FLAG_SELECTED`, `set_selected_rows`), `shaders/*.wgsl` (selection tint),

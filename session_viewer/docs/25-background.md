@@ -132,7 +132,8 @@ pub fn build_background_pipeline(
         depth_stencil: Some(wgpu::DepthStencilState {
             format: wgpu::TextureFormat::Depth32Float,
             depth_write_enabled: Some(false),                    // never blocks later fragments
-            depth_compare: Some(wgpu::CompareFunction::Always),  // always draws (z is at the far plane)
+            // always draws (z is at the far plane)
+            depth_compare: Some(wgpu::CompareFunction::Always),
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
         }),

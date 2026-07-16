@@ -58,9 +58,11 @@ motion, no axis lock. (Axis-locked CV drags: select the CV, then use the gumball
     pub fn move_cv(&mut self, guid: &str, ij: (usize, usize), new_p: &Point) {
         if let Some(ns) = self.session.objects.nurbssurfaces.iter_mut().find(|s| s.guid() == guid) {
             if let Some((_, _, _, w)) = ns.get_cv_4d(ij.0, ij.1) {
-                ns.set_cv_4d(ij.0, ij.1, new_p[0] * w, new_p[1] * w, new_p[2] * w, w);   // homogeneous!
+                // homogeneous!
+                ns.set_cv_4d(ij.0, ij.1, new_p[0] * w, new_p[1] * w, new_p[2] * w, w);
             }
-        } else if let Some(nc) = self.session.objects.nurbscurves.iter_mut().find(|c| c.guid() == guid) {
+        } else if let Some(nc) = self.session.objects.nurbscurves.iter_mut()
+            .find(|c| c.guid() == guid) {
             if let Some((_, _, _, w)) = nc.get_cv_4d(ij.0) {
                 nc.set_cv_4d(ij.0, new_p[0] * w, new_p[1] * w, new_p[2] * w, w);
             }

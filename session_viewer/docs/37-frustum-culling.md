@@ -60,10 +60,14 @@ done once per frame in f64 — then planes and boxes share the world frame and t
 ## Files we touch
 
 ```
-src/camera.rs         # Frustum: from_view_proj (Gribb–Hartmann, f64) + rebase-to-world + aabb_visible
-src/app/scene.rs      # world_aabb(guid) → the object's world AABB extents (via 36's world_obb + OBB::aabb)
-src/engine/gpu/mod.rs # apply_frustum_cull(): plane-test each world AABB → FLAG_CULLED on flipped rows; culled_now set
-src/shaders/*.wgsl     # every vs that reads an instance row collapses a culled one to a clipped vertex
+# Frustum: from_view_proj (Gribb–Hartmann, f64) + rebase-to-world + aabb_visible
+src/camera.rs
+# world_aabb(guid) → the object's world AABB extents (via 36's world_obb + OBB::aabb)
+src/app/scene.rs
+# apply_frustum_cull(): plane-test each world AABB → FLAG_CULLED on flipped rows; culled_now set
+src/engine/gpu/mod.rs
+# every vs that reads an instance row collapses a culled one to a clipped vertex
+src/shaders/*.wgsl
 src/state.rs          # render() builds the frustum, calls apply_frustum_cull before clear()
 ```
 
@@ -91,7 +95,8 @@ impl Frustum {
         let mut planes = [add(r3,r0), sub(r3,r0), add(r3,r1), sub(r3,r1), r2, sub(r3,r2)];
         for p in &mut planes {
             let n = (p[0]*p[0] + p[1]*p[1] + p[2]*p[2]).sqrt();
-            if n > 1e-20 { for c in p.iter_mut() { *c /= n; } }   // normalize → plane·point is a signed distance
+            // normalize → plane·point is a signed distance
+            if n > 1e-20 { for c in p.iter_mut() { *c /= n; } }
         }
         Self { planes }
     }
@@ -105,7 +110,7 @@ impl Frustum {
     }
 
     /// Positive-vertex (n-vertex) test: pick each box corner on the plane's positive side; if even
-    /// that corner is behind a plane, the whole box is outside. Conservative — never culls a visible box.
+    /// that corner is behind a plane, the box is outside. Conservative — never culls a visible box.
     pub fn aabb_visible(&self, min: [f64; 3], max: [f64; 3]) -> bool {
         for p in &self.planes {
             let px = if p[0] >= 0.0 { max[0] } else { min[0] };
@@ -151,7 +156,8 @@ N. Then the per-frame cull (right after `new`, near 33's `rebuild_instances`):
 ```rust
     /// Plane-test every object's world AABB, set/clear FLAG_CULLED. Returns (drawn, culled) for the
     /// HUD. The scan is O(N), but only rows whose state CHANGED since last frame hit the GPU.
-    pub fn apply_frustum_cull(&mut self, scene: &crate::app::scene::Scene, frustum: &Frustum) -> (u32, u32) {
+    pub fn apply_frustum_cull(&mut self, scene: &crate::app::scene::Scene,
+                              frustum: &Frustum) -> (u32, u32) {
         let (mut drawn, mut culled) = (0u32, 0u32);
         for (guid, &row) in &scene.guid_to_row {
             let (lo, hi) = scene.world_aabb(guid);
@@ -211,7 +217,8 @@ what's drawn:
         let view_proj = self.camera.view_proj(aspect);
         let origin = self.camera.origin();
         let frustum = Frustum::from_view_proj(&view_proj.to_cols())   // f64 matrix, camera-relative
-            .rebased_to_world(&origin);                               // world frame — matches 36's boxes
+            // world frame — matches 36's boxes
+            .rebased_to_world(&origin);
         let (drawn, culled) = self.gpu.apply_frustum_cull(&self.scene, &frustum);
         // Feed (drawn, drawn + culled) to whatever accessor 28's perf counter exposed for the HUD.
         self.gpu.perf_set_drawn(drawn, drawn + culled);
@@ -245,10 +252,10 @@ Load the stress file (34), press `F`, then zoom into one corner:
 Ch 36: Scene.bvh + world_aabb(guid) — world boxes per object (mesh.xform baked in).
 Ch 37: FRUSTUM CULL. Per frame: 6 planes out of the f64 camera-relative view_proj (Gribb–Hartmann),
        rebased to WORLD (d −= n·origin) so they match 36's world boxes — the one subtlety camera-
-       relative rendering forces. Positive-vertex plane test on every object's world AABB (linear, like
-       the archive; cheap here). Set/clear FLAG_CULLED (bit 7) — its own bit, so 35's HIDDEN (bit 1) is
-       untouched — and re-upload ONLY the rows whose state flipped (culled_now set): that flip-tracking,
-       not a fancier structure, is what keeps it cheap. Every instance-reading vertex shader collapses a
+       relative rendering forces. Positive-vertex test on every object's world AABB (linear, like
+       the archive; cheap here). Set/clear FLAG_CULLED (bit 7) — own bit, so 35's HIDDEN (bit 1) is
+       untouched — and re-upload ONLY the rows whose state flipped (culled_now set): flip-tracking,
+       not a fancier structure, keeps it cheap. Every instance-reading vertex shader collapses a
        culled/hidden row to a w=0 vertex, so the arena still draws in ONE call: culling changes the
        BUFFER, not the DRAW COUNT. HUD drawn/total finally moves; nothing pops at the screen edge.
 ```

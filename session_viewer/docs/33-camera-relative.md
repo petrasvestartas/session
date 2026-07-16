@@ -44,7 +44,8 @@ everything — the view matrix's eye/target, and every instance's world position
 
 ```
 src/camera.rs     # origin() — the rebase point; view_proj() builds eye/target relative to it
-src/engine/gpu.rs # objects_base (TRUE absolute transforms) + rebuild_instances() (f64 rebase, f32 cast last)
+# objects_base (TRUE absolute transforms) + rebuild_instances() (f64 rebase, f32 cast last)
+src/engine/gpu.rs
 src/state.rs      # render() threads camera.origin() into gpu.clear() alongside view_proj
 ```
 
@@ -81,8 +82,10 @@ with:
 
 ```rust
         let origin = self.origin();
-        let eye    = Point::new(self.position[0] - origin[0], self.position[1] - origin[1], self.position[2] - origin[2]);
-        let target = Point::new(self.target[0]   - origin[0], self.target[1]   - origin[1], self.target[2]   - origin[2]);
+        let eye    = Point::new(self.position[0] - origin[0], self.position[1] - origin[1],
+                                self.position[2] - origin[2]);
+        let target = Point::new(self.target[0]   - origin[0], self.target[1]   - origin[1],
+                                self.target[2]   - origin[2]);
         let up     = Vector::new(self.up[0], self.up[1], self.up[2]);
         let view   = Xform::look_at_right_handed(&eye, &target, &up);
 ```
@@ -111,7 +114,8 @@ it:
 
 ```rust
     instances: Vec<Instance>,
-    objects_base: Vec<(Xform, [f32; 4])>,   // ← ADD — TRUE world model+color; instances[] is rebased FROM this
+    // ← ADD — TRUE world model+color; instances[] is rebased FROM this
+    objects_base: Vec<(Xform, [f32; 4])>,
 ```
 
 **2c. Keep a copy while building the arena.** Find the loop in `Gpu::new`
@@ -176,12 +180,14 @@ poking, no external maths crate.
 and change them to:
 
 ```rust
-    pub fn clear(&mut self, color: wgpu::Color, view_proj: &Xform, origin: &Point) -> anyhow::Result<()> {
+    pub fn clear(&mut self, color: wgpu::Color, view_proj: &Xform,
+                 origin: &Point) -> anyhow::Result<()> {
 
         // Time for triangle wgsl buffer.
         self.time += 1.0 / 60.0;
         self.queue.write_buffer(&self.time_buffer, 0, bytemuck::bytes_of(&self.time));
-        self.rebuild_instances(origin);                                     // ← ADD — same origin as view_proj below
+        // ← ADD — same origin as view_proj below
+        self.rebuild_instances(origin);
         self.queue.write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&view_proj.to_f32()));
 ```
 

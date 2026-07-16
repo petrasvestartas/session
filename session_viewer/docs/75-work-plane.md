@@ -65,7 +65,8 @@ A three-way verb, all Get-loop (49's grammar):
 
 ```rust
     "cplane" => match parts.next() {
-        Some("world") => { state.work_plane = Plane::default(); state.on_cplane_changed(); Dispatch::Instant("cplane: world XY".into()) }
+        Some("world") => { state.work_plane = Plane::default(); state.on_cplane_changed();
+                           Dispatch::Instant("cplane: world XY".into()) }
         Some("face") => { /* WaitingPoint; on click: pick_ray → hit mesh face (43) → Plane from the
                             face's plane (kernel face normal + hit point as origin) */ }
         _ => { /* 3-point ActiveCommand: origin → x-direction point → y-side point;
@@ -107,7 +108,7 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 ```
 Ch 74: edit points — modeling on the curve.
-Ch 75: CPLANE. work_plane: Plane (kernel type — origin + axes IS a construction plane), default world
+Ch 75: CPLANE. work_plane: Plane (kernel type: origin + axes IS a construction plane), default world
        XY. The ONE empty-click resolver (48/59's cursor_world_point) swaps z=0 for ray∩plane — every
        tool becomes plane-aware with zero tool edits (the single-resolver design's third payoff).
        `cplane` verb: 3 points (Get-loop) / face (pick → face plane) / world (reset). Grid + ground

@@ -39,7 +39,8 @@ test, and the hit transformed back. Nearest `t` along the ray wins; an occluded 
 
 ```
 src/app/pick.rs      # NEW — PickHit { guid, point, t }
-src/app/scene.rs     # objects_along_ray (BVH broad-phase); raycast_mesh (local-frame cast); pick_ray (nearest)
+# objects_along_ray (BVH broad-phase); raycast_mesh (local-frame cast); pick_ray (nearest)
+src/app/scene.rs
 src/state.rs         # on left-click: build ray (41) → scene.pick_ray → log/highlight the hit guid
 ```
 
@@ -52,8 +53,9 @@ src/state.rs         # on left-click: build ray (41) → scene.pick_ray → log/
 pierces and returns their leaf object_ids. Map those back to guids exactly like 36's `objects_in`:
 
 ```rust
-    /// Guids whose world box the ray pierces — the broad-phase candidate set (usually a handful, even
-    /// in the 42k-object stress file). object_id → guid via `order`, same mapping as `objects_in` (36).
+    /// Guids whose world box the ray pierces — the broad-phase candidate set (usually a handful,
+    /// even in the 42k-object stress file). object_id → guid via `order`, same mapping as
+    /// `objects_in` (36).
     pub fn objects_along_ray(&self, origin: &Point, dir: &Vector) -> Vec<String> {
         let mut ids: Vec<usize> = Vec::new();
         self.bvh.ray_cast(origin, dir, &mut ids, true);
@@ -74,17 +76,21 @@ use session_rust::{Line, Mesh};
 const PICK_EPS: f64 = 1e-9;
 
 /// Cast the world ray at one mesh IN ITS LOCAL FRAME. Returns (world hit point, t along the ray).
-/// `&mut Mesh` because `triangle_bvh_ray_cast` builds the triangle BVH lazily and caches it on the mesh.
+/// `&mut Mesh` because `triangle_bvh_ray_cast` builds the triangle BVH lazily and caches it
+/// on the mesh.
 fn raycast_mesh(m: &mut Mesh, ray: &Ray, eps: f64) -> Option<(Point, f64)> {
-    let inv = m.xform.inverse()?;                                  // world → local; None if degenerate
+    // world → local; None if degenerate
+    let inv = m.xform.inverse()?;
     let world_far = ray.origin + ray.dir * 1.0e7;                  // a point far down the world ray
-    let local_ray = Line::from_points(&inv.transform_point(&ray.origin), &inv.transform_point(&world_far));
+    let local_ray = Line::from_points(&inv.transform_point(&ray.origin),
+                                      &inv.transform_point(&world_far));
 
     let local_hit = m.triangle_bvh_ray_cast(&local_ray, eps)?;     // nearest local hit, or None
     let world_hit = m.xform.transform_point(&local_hit);           // local hit → world
 
     let d = world_hit.clone() - ray.origin.clone();                // Point − Point → Vector
-    let t = d[0]*ray.dir[0] + d[1]*ray.dir[1] + d[2]*ray.dir[2];   // signed distance along the (unit) ray
+    // signed distance along the (unit) ray
+    let t = d[0]*ray.dir[0] + d[1]*ray.dir[1] + d[2]*ray.dir[2];
     if t >= 0.0 { Some((world_hit, t)) } else { None }             // behind the eye → not a hit
 }
 ```
@@ -107,13 +113,17 @@ Broad-phase to candidates, cast each, keep the smallest `t`. `Mesh` and `BRep` b
 ```rust
 impl Scene {
     pub fn pick_ray(&mut self, ray: &Ray) -> Option<crate::app::pick::PickHit> {
-        // Owned guids so the broad-phase borrow of self.bvh/self.order is released before we mutate meshes.
+        // Owned guids so the broad-phase borrow of self.bvh/self.order is released before we
+        // mutate meshes.
         let cands: Vec<String> = self.objects_along_ray(&ray.origin, &ray.dir);
         let mut best: Option<crate::app::pick::PickHit> = None;
         for guid in cands {
             let hit = match self.session.lookup.get_mut(&guid) {
                 Some(session_rust::Geometry::Mesh(m)) => raycast_mesh(m, ray, PICK_EPS),
-                Some(session_rust::Geometry::BRep(b)) => { let mut bm = b.mesh(); raycast_mesh(&mut bm, ray, PICK_EPS) }
+                Some(session_rust::Geometry::BRep(b)) => {
+                    let mut bm = b.mesh();
+                    raycast_mesh(&mut bm, ray, PICK_EPS)
+                }
                 _ => None,   // Line/Polyline/Point → lesson 44 (thin geometry needs a pick radius)
             };
             if let Some((point, t)) = hit {
@@ -152,7 +162,8 @@ pub struct PickHit {
     // on left-button press (extends 41's ray build):
     if let Some(ray) = engine::pick::screen_to_world_ray(&vp, &origin, self.cursor, viewport) {
         match self.scene.pick_ray(&ray) {
-            Some(hit) => log::info!("picked {} at ({:.1},{:.1},{:.1}), t={:.1}", hit.guid, hit.point[0], hit.point[1], hit.point[2], hit.t),
+            Some(hit) => log::info!("picked {} at ({:.1},{:.1},{:.1}), t={:.1}",
+                hit.guid, hit.point[0], hit.point[1], hit.point[2], hit.t),
             None      => log::info!("picked nothing"),
         }
     }
@@ -182,13 +193,14 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ```
 Ch 41: screen → world ray.
 Ch 42: RAY-CAST MESHES. Broad-phase: 36's SpatialBVH::ray_cast walks only pierced nodes → candidate
-       guids (objects_along_ray, object_id→order→guid). Narrow-phase per candidate, in the mesh's LOCAL
-       frame: inverse-transform the world ray by mesh.xform (transform the RAY, not the mesh — O(1), keeps
-       the cached local triangle BVH), call the kernel's Mesh::triangle_bvh_ray_cast (lazy triangle BVH,
-       nearest local hit), transform the hit back to world, compute t along the ray. pick_ray keeps the
-       smallest t → PickHit{guid, point, t}; occluded objects lose on t, always. BRep resolves via
-       b.mesh() (re-tessellates per pick — cache noted). No WebGPU depth readback exists, so this CPU
-       ray+BVH IS the interactive pick. Thin geometry (Line/Polyline/Point) has no area to hit — that's 44.
+       guids (objects_along_ray, object_id→order→guid). Narrow-phase per candidate, in the mesh's
+       LOCAL frame: inverse-transform the world ray by mesh.xform (transform the RAY, not the mesh
+       — O(1), keeps the cached local triangle BVH), call the kernel's Mesh::triangle_bvh_ray_cast
+       (lazy triangle BVH, nearest local hit), transform the hit back to world, compute t along the
+       ray. pick_ray keeps the smallest t → PickHit{guid, point, t}; occluded objects lose on t,
+       always. BRep resolves via b.mesh() (re-tessellates per pick — cache noted). No WebGPU depth
+       readback exists, so this CPU ray+BVH IS the interactive pick. Thin geometry
+       (Line/Polyline/Point) has no area to hit — that's 44.
 ```
 
 Edited: `app/pick.rs` (NEW — `PickHit`), `app/scene.rs` (`objects_along_ray` BVH broad-phase,

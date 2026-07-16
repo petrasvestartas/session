@@ -54,10 +54,12 @@ src/engine/gpu.rs               # a depth texture; attach it and clear to 1.0; a
 **(b)** A helper that builds (and rebuilds) it at the surface size — add it inside `impl Gpu`:
 
 ```rust
-    fn create_depth_view(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration) -> wgpu::TextureView {
+    fn create_depth_view(device: &wgpu::Device,
+                         config: &wgpu::SurfaceConfiguration) -> wgpu::TextureView {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             label: Some("depth"),
-            size: wgpu::Extent3d { width: config.width.max(1), height: config.height.max(1), depth_or_array_layers: 1 },
+            size: wgpu::Extent3d { width: config.width.max(1), height: config.height.max(1),
+                                   depth_or_array_layers: 1 },
             mip_level_count: 1,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
@@ -96,7 +98,8 @@ Replace the pipeline's `depth_stencil: None,` with a real depth state:
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: wgpu::TextureFormat::Depth32Float,
                 depth_write_enabled: Some(true),
-                depth_compare: Some(wgpu::CompareFunction::Less),   // standard depth: keep the nearer (smaller) depth
+                // standard depth: keep the nearer (smaller) depth
+                depth_compare: Some(wgpu::CompareFunction::Less),
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState::default(),
             }),
@@ -114,7 +117,8 @@ after `color_attachments: &[ … ]`) and replace `None` with:
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: &self.depth_view,
                     depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(1.0),    // 1.0 = far; every pixel starts maximally distant
+                        // 1.0 = far; every pixel starts maximally distant
+                        load: wgpu::LoadOp::Clear(1.0),
                         store: wgpu::StoreOp::Store,
                     }),
                     stencil_ops: None,

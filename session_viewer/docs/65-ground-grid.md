@@ -97,7 +97,8 @@ fn fs_main(in: VsOut) -> FsOut {
     // exact depth so real geometry occludes correctly (project the hit, take clip z/w)
     let clip = mvp * vec4<f32>(hit, 1.0);
     var o: FsOut;
-    o.color = vec4<f32>(0.985, 0.985, 0.99, alpha);            // arctic white, premultiplied by blend
+    // arctic white, premultiplied by blend
+    o.color = vec4<f32>(0.985, 0.985, 0.99, alpha);
     o.depth = clip.z / clip.w;
     return o;
 }

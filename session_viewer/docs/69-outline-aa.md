@@ -98,7 +98,8 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ```
 Ch 68: arctic GI — the look, cheap.
 Ch 69: OUTLINE, structural fixes only. Mask = selected instances rendered white (FLAG_SELECTED
-       inverted-collapse), 4× MSAA RESOLVED — fractional coverage IS the anti-aliasing (24's payoff).
+       inverted-collapse), 4× MSAA RESOLVED — fractional coverage IS the anti-aliasing (24's
+       payoff).
        Distance = separable: 1×N then N×1 (exact euclidean via row-distance + k²), 18 taps for what
        the archive's box search did in 81. Ramp = smoothstep at WIDTH in composite, ring outside
        only. Gated: no selection → no passes; unchanged frame → nothing at all (66). FXAA retired —

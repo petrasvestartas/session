@@ -112,7 +112,8 @@ edge is translucent), and depth **write off** (billboards are transparent overla
 
 ```rust
         // in vertex state:
-        buffers: &[],                                    // no template — vertex_index builds the quad
+        // no template — vertex_index builds the quad
+        buffers: &[],
         // in the fragment target:
         blend: Some(wgpu::BlendState::ALPHA_BLENDING),
         // in depth_stencil:
@@ -161,11 +162,12 @@ cloud and it stays 6: the tables grow, the call count doesn't.
 ```
 Ch 32a: handle points = instanced unit spheres, one draw.
 Ch 32b: CLOUD points = screen-space BILLBOARDS. CloudPoint (32 B: local position, instance_id in the
-        vec3 tail, color — zero padding, half a GlyphPoint; bytes/row is the budget at 1M points). NO
-        template: 6 verts from @builtin(vertex_index) make a quad, expanded in NDC by line.thickness;
-        the fragment shader cuts it to an anti-aliased circle (alpha = 1 − length(corner)). Pipeline =
-        sphere's with buffers:&[], alpha blend ON, depth write OFF. One draw for the whole cloud.
-        Points done both ways: spheres where 3-D matters, billboards where count does.
+        vec3 tail, color — zero padding, half a GlyphPoint; bytes/row is the budget at 1M
+        points). NO template: 6 verts from @builtin(vertex_index) make a quad, expanded in NDC
+        by line.thickness; the fragment shader cuts it to an anti-aliased circle (alpha = 1 −
+        length(corner)). Pipeline = sphere's with buffers:&[], alpha blend ON, depth write OFF.
+        One draw for the whole cloud. Points done both ways: spheres where 3-D matters,
+        billboards where count does.
 ```
 
 Edited: `shaders/point.wgsl` (NEW), `engine/pipelines/build.rs` (`build_point_pipeline`),

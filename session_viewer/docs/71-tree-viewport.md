@@ -70,7 +70,8 @@ call `remove_object` uses, verified. If a picked object has no tree node — a t
     let scroll_target = out.scroll_to.take().and_then(|g| rows.iter().position(|r| r.guid == g));
     let mut area = egui::ScrollArea::vertical();
     if let Some(ix) = scroll_target {
-        area = area.vertical_scroll_offset((ix as f32 * row_h - 60.0).max(0.0));   // ~3 rows of context above
+        // ~3 rows of context above
+        area = area.vertical_scroll_offset((ix as f32 * row_h - 60.0).max(0.0));
     }
     area.show_rows(ui, row_h, rows.len(), |ui, range| { … });
 ```
@@ -85,7 +86,8 @@ The reverse convenience: finding an object in the tree, then hunting it in a big
 problem mirrored. Double-click a row → frame it:
 
 ```rust
-    // in the row: if ui.selectable_label(selected, &row.name).double_clicked() { out.zoom_to = Some(row.guid.clone()); }
+    // in the row: if ui.selectable_label(selected, &row.name).double_clicked()
+    //     { out.zoom_to = Some(row.guid.clone()); }
 
     // in the drain: zoom = the object's world box through 15's fit —
     if let Some(g) = intent.zoom_to {
@@ -122,8 +124,8 @@ Ch 71: THE LOOP CLOSED. Viewport pick → reveal_in_tree: walk the TreeNode pare
        tree_scroll_to, poke. The panel resolves it AFTER flatten (same-frame ordering via 47's data
        flow): row index × row_h → vertical_scroll_offset, ~3 rows of context. Uniform row height is
        what makes scroll-to-index trivial — a reason to keep rows uniform beyond aesthetics.
-       Double-click a row → world_aabb → 15's camera.fit (the mirror convenience). One selection set,
-       two views, no drift — the property everything in Phase 12 hangs on.
+       Double-click a row → world_aabb → 15's camera.fit (the mirror convenience). One selection
+       set, two views, no drift — the property everything in Phase 12 hangs on.
 ```
 
 Edited: `ui/tree.rs` (`scroll_to` handling, double-click intent), `state.rs` (`reveal_in_tree`,

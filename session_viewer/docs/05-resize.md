@@ -284,7 +284,8 @@ In `new()`, **before** `Pipelines::new(...)`, build the uniform (one `f32`, 4 by
 Pass the layout to the pipelines and store the new fields:
 
 ```rust
-    let pipelines = Pipelines::new(&device, config.format, &aspect_layout);   // was (&device, config.format)
+    // was (&device, config.format)
+    let pipelines = Pipelines::new(&device, config.format, &aspect_layout);
     // …
     Ok(Self { surface, device, queue, config, pipelines, aspect_buffer, aspect_bind_group })
 ```

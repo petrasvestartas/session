@@ -110,8 +110,9 @@ Ch 74: EDIT POINTS — handles ON the curve at the Greville abscissae (kernel: g
        point_at). Drag = a linear refit: E = R·P with R[i][j] = basis_j(greville_i); solve
        P' = R⁻¹·E' (three RHS, one cached factorization; R depends on knots only, so drags reuse it;
        numeric column-building matches analytic to 1e-14). Weights preserved via 73's homogeneous
-       set_cv_4d write-back. Ends degenerate to end-CV drags (unit rows) — built-in sanity. Same drag
-       skeleton, live partial upload, and release Command as 73 — the effect is just "CVs moved".
+       set_cv_4d write-back. Ends degenerate to end-CV drags (unit rows) — built-in sanity.
+       Same drag skeleton, live partial upload, and release Command as 73 — the effect is just
+       "CVs moved".
 ```
 
 Edited: `app/scene.rs` (`greville_points`, `refit_through`, greville cache), `state.rs` (mode cycle,

@@ -44,8 +44,10 @@ compare adding a type before (edit four functions, forget one, ship a bug) and a
 ```rust
 /// Every renderable object in the document, whatever container it lives in.
 pub enum ObjRef<'a> {
-    Geom(&'a Geometry),                                  // lookup — incl. NurbsCurve/NurbsSurface (gap #4, fixed)
-    Trimmed(&'a NurbsSurfaceTrimmed),                    // objects.nurbssurfacetrimmeds — the ONE type still outside
+    // lookup — incl. NurbsCurve/NurbsSurface (gap #4, fixed)
+    Geom(&'a Geometry),
+    // objects.nurbssurfacetrimmeds — the ONE type still outside
+    Trimmed(&'a NurbsSurfaceTrimmed),
 }
 
 impl ObjRef<'_> {
@@ -58,7 +60,8 @@ impl ObjRef<'_> {
 }
 
 impl Scene {
-    /// THE registration point. Every map iterates this; a new geometry source is one new chain link.
+    /// THE registration point. Every map iterates this; a new geometry source is one
+    /// new chain link.
     pub fn all_objects(&self) -> impl Iterator<Item = ObjRef<'_>> {
         self.session.lookup.values().filter(|g| is_renderable(g)).map(ObjRef::Geom)
             .chain(self.session.objects.nurbssurfacetrimmeds.iter().map(ObjRef::Trimmed))
@@ -90,9 +93,11 @@ the untrimmed domain rectangle:
 
 ```rust
     // render_mesh (63) gains the source arm:
-    } else if let Some(ts) = self.session.objects.nurbssurfacetrimmeds.iter().find(|t| t.guid() == guid) {
+    } else if let Some(ts) = self.session.objects.nurbssurfacetrimmeds.iter()
+        .find(|t| t.guid() == guid) {
         let ri = self.guid_to_row[guid];
-        Some((ts.mesh(), trimmed_linework(ts, ri)))     // boundary loops via 60's sampler over the trim curves
+        // boundary loops via 60's sampler over the trim curves
+        Some((ts.mesh(), trimmed_linework(ts, ri)))
     }
 ```
 
@@ -130,10 +135,11 @@ Ch 64: TRIMMED + STRUCTURE. NurbsSurfaceTrimmed::mesh() (= mesh_q(20°, 0.005), 
        tessellation) joins the cache; linework = the TRIM boundary loops sampled to tubes (not the
        untrimmed domain rectangle); box from the cached mesh (the kernel's surface sampler is
        trim-blind); matrix-only + reconcile invalidation, one word each. THE REFACTOR: ObjRef +
-       all_objects() — lookup ∪ nurbssurfacetrimmeds (curves/surfaces already ride lookup, gap #4) — the ONE
-       registration point; order/build/boxes/pick all iterate it, and match-exhaustiveness makes the
-       compiler find every map when a type is added. The archive's forgot-the-trimmed bug class is
-       structurally extinct. Phase 10 complete: lines, curves, surfaces, solids, trims — all first-class.
+       all_objects() — lookup ∪ nurbssurfacetrimmeds (curves/surfaces already ride lookup,
+       gap #4) — the ONE registration point; order/build/boxes/pick all iterate it, and
+       match-exhaustiveness makes the compiler find every map when a type is added. The
+       archive's forgot-the-trimmed bug class is structurally extinct. Phase 10 complete:
+       lines, curves, surfaces, solids, trims — all first-class.
 ```
 
 Edited: `app/scene.rs` (`ObjRef`, `all_objects`, four-map refactor, trimmed cache/linework/box/pick

@@ -55,14 +55,16 @@ fn surface_linework(ns: &NurbsSurface, ri: u32) -> Vec<CylinderSegment> {
             };
             if let Some(p) = ns.point_at(u, v) {
                 if let Some(q) = &prev {
-                    segs.push(CylinderSegment { p0: q.to_f32(), radius: 0.0, p1: p.to_f32(), instance_id: ri, color });
+                    segs.push(CylinderSegment { p0: q.to_f32(), radius: 0.0, p1: p.to_f32(),
+                                                instance_id: ri, color });
                 }
                 prev = Some(p);
             }
         }
     };
     let edge = [0.10, 0.10, 0.10, 1.0];            // boundary: near-black, like mesh edges (31)
-    let iso  = [0.35, 0.35, 0.38, 1.0];            // interior: lighter, reads as structure not silhouette
+    // interior: lighter, reads as structure not silhouette
+    let iso  = [0.35, 0.35, 0.38, 1.0];
     line(Some(u0), None, edge); line(Some(u1), None, edge);
     line(None, Some(v0), edge); line(None, Some(v1), edge);
     for f in ISO_FRACS {
@@ -117,8 +119,8 @@ Ch 62: LINEWORK. surface_linework: boundary (domain edges, near-black) + interio
        per direction, lighter) sampled point_at along one fixed parameter — 48 samples/line → 31's
        tubes, LOCAL space on the surface's own row (transforms carry them free). Cached WITH the
        tessellation (one invalidation story). Surfaces suppress push_mesh's triangle-edge tubes —
-       iso lines are what makes a surface read as a surface, not a mesh. Tubes protrude → no z-fight,
-       no bias. Short lesson, old infrastructure — that's the compounding paying out.
+       iso lines are what makes a surface read as a surface, not a mesh. Tubes protrude → no
+       z-fight, no bias. Short lesson, old infrastructure — that's the compounding paying out.
 ```
 
 Edited: `app/scene.rs` (`surface_linework`, widened `tess_cache`, faces-only mesh push for surfaces).

@@ -75,7 +75,8 @@ has the **larger** depth, so "keep nearer" means `Greater`:
 ```rust
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: wgpu::TextureFormat::Depth32Float,
-                depth_write_enabled: Some(true),                       // (false for grid/edges — unchanged)
+                // (false for grid/edges — unchanged)
+                depth_write_enabled: Some(true),
                 depth_compare: Some(wgpu::CompareFunction::Greater),   // ← was Less
                 stencil: wgpu::StencilState::default(),
                 bias: wgpu::DepthBiasState::default(),

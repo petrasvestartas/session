@@ -147,7 +147,7 @@ without softening a cube's corners.
 
 ```
 Ch 20: the box sat flat on the grid — one colour, no shape.
-Ch 21: shade it. Pass world_pos from the vertex shader; in the fragment, build a per-face normal with
+Ch 21: shade it. Pass world_pos from the vertex shader; in the fragment build a per-face normal with
        n = normalize(cross(dpdy, dpdx)) (that order for an OUTWARD normal under WebGPU's Y-down
        framebuffer), flip it for back faces, and light it with hemisphere ambient + a key and fill
        directional term. base_color × lit. One file changed; no vertex normals needed.

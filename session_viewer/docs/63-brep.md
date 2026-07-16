@@ -44,7 +44,8 @@ keyed by guid, filled on first touch:
             let entry = if let Some(Geometry::BRep(b)) = self.session.lookup.get(guid) {
                 let ri = self.guid_to_row[guid];
                 Some((b.mesh(), brep_linework(b, ri)))                 // Step 2
-            } else if let Some(ns) = self.session.objects.nurbssurfaces.iter().find(|s| s.guid() == guid) {
+            } else if let Some(ns) = self.session.objects.nurbssurfaces.iter()
+                .find(|s| s.guid() == guid) {
                 let ri = self.guid_to_row[guid];
                 Some((ns.mesh(), surface_linework(ns, ri)))            // 61/62, unchanged
             } else { None };
@@ -74,7 +75,8 @@ fn brep_linework(b: &BRep, ri: u32) -> Vec<CylinderSegment> {
         let pts = sample_curve(c);                     // 60's adaptive sampler, reused as-is
         for w in pts.windows(2) {
             if w[0].distance(&w[1], None) > 1e-9 {     // zero-length filter — degenerate curve
-                segs.push(CylinderSegment { p0: w[0].to_f32(), radius: 0.0, p1: w[1].to_f32(), instance_id: ri, color: edge });
+                segs.push(CylinderSegment { p0: w[0].to_f32(), radius: 0.0,
+                    p1: w[1].to_f32(), instance_id: ri, color: edge });
             }
         }
     }
@@ -127,7 +129,8 @@ Load a BRep-heavy file (any boolean-result fixture):
 ```
 Ch 62: iso lines — surfaces read as surfaces.
 Ch 63: BREP, debts paid. (1) tess_cache absorbs BReps — render_mesh(guid) unifies the surface/BRep
-       sources; the three direct b.mesh() sites (build, PICK-per-click, world box) now hit the cache.
+       sources; the three direct b.mesh() sites (build, PICK-per-click, world box) now hit the
+       cache.
        (2) Real edges: m_curves sampled with 60's adaptive sampler → 31 tubes, zero-length filter
        (degenerate seams emit NaN tubes — archive fix), triangle-edge tubes suppressed; a cylinder
        shows rims + seam, not wireframe. (3) Matrix-only transforms confirmed (54/61's split);

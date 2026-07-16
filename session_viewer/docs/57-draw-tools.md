@@ -49,8 +49,10 @@ impl AddGeometry {
 }
 
 impl Command for AddGeometry {
-    fn apply(&mut self, scene: &mut Scene, gpu: &mut Gpu)  { self.inner.revert(scene, gpu); }  // revert-of-remove = insert
-    fn revert(&mut self, scene: &mut Scene, gpu: &mut Gpu) { self.inner.apply(scene, gpu); }   // apply-of-remove = delete
+    // revert-of-remove = insert
+    fn apply(&mut self, scene: &mut Scene, gpu: &mut Gpu)  { self.inner.revert(scene, gpu); }
+    // apply-of-remove = delete
+    fn revert(&mut self, scene: &mut Scene, gpu: &mut Gpu) { self.inner.apply(scene, gpu); }
     fn label(&self) -> String { format!("add {} object(s)", self.inner.len()) }
 }
 ```
@@ -120,7 +122,8 @@ impl LineTool {
          GetState::WaitingPoint { prompt: "line: pick FROM point".into() })
     }
     fn ask(&self) -> CmdStep {
-        let what = if self.from.is_none() { "line: pick FROM point" } else { "line: pick TO point" };
+        let what = if self.from.is_none() { "line: pick FROM point" }
+                   else { "line: pick TO point" };
         CmdStep::Prompt(GetState::WaitingPoint { prompt: what.into() })
     }
 }
@@ -131,7 +134,8 @@ impl ActiveCommand for LineTool {
             None => { self.from = Some(p); self.ask() }
             Some(a) => {
                 let l = Line::from_points(&a, &p);
-                state.commit(Box::new(crate::app::history::add::AddGeometry::one(Geometry::Line(l))));
+                state.commit(Box::new(
+                    crate::app::history::add::AddGeometry::one(Geometry::Line(l))));
                 CmdStep::Done("line added".into())
             }
         }
@@ -148,8 +152,10 @@ impl ActiveCommand for LineTool {
 ## Step 4 — register the verbs: `src/app/commands.rs`
 
 ```rust
-        "point" => { let (cmd, get) = crate::app::tools::point::PointTool::start(); Dispatch::Start(cmd, get) }
-        "line"  => { let (cmd, get) = crate::app::tools::line::LineTool::start();  Dispatch::Start(cmd, get) }
+        "point" => { let (cmd, get) = crate::app::tools::point::PointTool::start();
+                     Dispatch::Start(cmd, get) }
+        "line"  => { let (cmd, get) = crate::app::tools::line::LineTool::start();
+                     Dispatch::Start(cmd, get) }
 ```
 
 plus `VERBS`: add `"point"`, `"line"`; `ALIASES`: `("pt","point")`, `("l","line")`, `("ln","line")`.
@@ -181,10 +187,10 @@ Ch 57: CREATION = pattern (b), and it's small on purpose: a drawing tool IS an A
        machinery: prompts, click-or-type convergence, back, Esc) whose finish COMMITS an AddGeometry
        (51's machinery: undo). AddGeometry = RemoveObjects mirrored — apply calls revert and vice
        versa; one tested insert/delete body, two directions. No DrawTool enum (same dead-end as
-       UndoAction — every new tool would grow a central match); State.active from 48 IS the ToolHost.
-       PointTool = 1 fed point; LineTool = from/to with back support. state.commit(cmd) bridges tools
-       to history with the borrow-safe destructure. Drawn objects are Session-first-class: they save
-       (39), diff (38b), pick (42), and undo like everything else.
+       UndoAction — every new tool would grow a central match); State.active from 48 IS the
+       ToolHost. PointTool = 1 fed point; LineTool = from/to with back support. state.commit(cmd)
+       bridges tools to history with the borrow-safe destructure. Drawn objects are
+       Session-first-class: they save (39), diff (38b), pick (42), and undo like everything else.
 ```
 
 Edited: `app/history/add.rs` (NEW — `AddGeometry` wrapper; `RemoveObjects` gains

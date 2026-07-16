@@ -125,8 +125,10 @@ Trunk only ships what `index.html` tells it to. **Add two `copy-file` links** ne
 
 ```html
   <link data-trunk rel="rust" data-target-name="session_viewer" data-wasm-opt="0"/>
-  <link data-trunk rel="copy-file" href="../session_data/floor_model.pb" data-target-path="session_data"/>
-  <link data-trunk rel="copy-file" href="../session_data/30700_querschnitt_gg.pb" data-target-path="session_data"/>
+  <link data-trunk rel="copy-file" href="../session_data/floor_model.pb"
+        data-target-path="session_data"/>
+  <link data-trunk rel="copy-file" href="../session_data/30700_querschnitt_gg.pb"
+        data-target-path="session_data"/>
   <canvas id="canvas"></canvas>
 ```
 
@@ -157,7 +159,8 @@ impl State {
     pub async fn new(window: Arc<Window>) -> anyhow::Result<Self> {
         let bytes = persistence::fetch_bytes(DEMO_SESSION_URL).await.unwrap_or_default();
         let session = persistence::session_from_bytes(DEMO_SESSION_URL, &bytes);
-        log::info!("loaded '{}': {} objects, {} bytes", session.name, session.lookup.len(), bytes.len());
+        log::info!("loaded '{}': {} objects, {} bytes",
+            session.name, session.lookup.len(), bytes.len());
         let gpu = Gpu::new(window.clone()).await?;   // unchanged — 34b threads `session` through
         Ok(Self { window, gpu, camera: Camera::new() })
     }
@@ -193,11 +196,12 @@ Swap `DEMO_SESSION_URL` to `"session_data/30700_querschnitt_gg.pb"` → `42232 o
 ```
 Ch 33: camera-relative — precision groundwork done; the viewer is ready for real coordinates.
 Ch 34a: FETCH THE FILE. app/persistence.rs: fetch_bytes (web-sys Request/Response — wasm has no
-        std::fs) + session_from_bytes (pb_loads for .pb, file_json_loads for .json — the browser-safe
-        `_loads` half of the API every minitest already round-trips; failures degrade to
+        std::fs) + session_from_bytes (pb_loads for .pb, file_json_loads for .json — the
+        browser-safe `_loads` half of the API every minitest already round-trips; failures
+        degrade to
         Session::default(), never panic). index.html copy-file ships the fixtures next to the wasm.
-        State::new fetches, parses, and LOGS the object count — 491 for floor_model.pb. The GPU still
-        draws the hand-made demo; feeding it is 34b.
+        State::new fetches, parses, and LOGS the object count — 491 for floor_model.pb. The GPU
+        still draws the hand-made demo; feeding it is 34b.
 ```
 
 Edited: `Cargo.toml` (fetch-API web-sys features), `index.html` (Trunk `copy-file` fixtures),

@@ -56,7 +56,8 @@ src/lib.rs          # track Ctrl; Ctrl+right-drag → pan, plain right-drag → 
 `let eye …` block from chapter 10):
 
 ```rust
-        let target = Point::new(self.target[0] as f64, self.target[1] as f64, self.target[2] as f64);
+        let target = Point::new(self.target[0] as f64, self.target[1] as f64,
+                                self.target[2] as f64);
         let (cp, sp) = (self.pitch.cos(), self.pitch.sin());
         let (cy, sy) = (self.yaw.cos(), self.yaw.sin());
         let eye = Point::new(

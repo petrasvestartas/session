@@ -44,11 +44,14 @@ for this lesson: afterward, `grep -rn "Session\|Mesh\|BRep" src/engine/` is **em
 ## Files we touch
 
 ```
-src/engine/gpu/mod.rs        # Instance/CylinderSegment/GlyphPoint go pub; ArenaUpload; Gpu::new stops walking the Session
+# Instance/CylinderSegment/GlyphPoint go pub; ArenaUpload; Gpu::new stops walking the Session
+src/engine/gpu/mod.rs
 src/engine/gpu/adapters.rs   # DELETED — the geometry→row converters move up to the app layer
-src/app/scene.rs             # NEW — Scene { session, order, guid_to_row, hidden } + Scene::build → ArenaUpload
+# NEW — Scene { session, order, guid_to_row, hidden } + Scene::build → ArenaUpload
+src/app/scene.rs
 src/app/mod.rs               # `pub mod scene;` beside 34's `pub mod persistence;`
-src/state.rs                 # State gains `scene: Scene`; builds the ArenaUpload, passes it into Gpu::new
+# State gains `scene: Scene`; builds the ArenaUpload, passes it into Gpu::new
+src/state.rs
 ```
 
 (`gpu/mod.rs` keeps the directory 34 introduced — 35 only empties it of `adapters.rs`, it doesn't
@@ -154,8 +157,13 @@ let segment_count = segments.len() as u32;   // BEFORE padding — the real draw
 let glyph_count = glyphs.len() as u32;
 let (mut verts, mut vids, mut idx) = (verts, vids, idx);
 let (mut segments, mut glyphs) = (segments, glyphs);
-if instances.is_empty() { instances.push(Instance { model: Xform::identity().to_f32(), color: [0.5, 0.5, 0.5, 1.0], flags: 0, _pad: [0; 3] }); }
-if verts.is_empty()     { verts.push(RenderVertex::zeroed()); vids.push(0); idx.extend_from_slice(&[0, 0, 0]); }
+if instances.is_empty() {
+    instances.push(Instance { model: Xform::identity().to_f32(),
+                              color: [0.5, 0.5, 0.5, 1.0], flags: 0, _pad: [0; 3] });
+}
+if verts.is_empty() {
+    verts.push(RenderVertex::zeroed()); vids.push(0); idx.extend_from_slice(&[0, 0, 0]);
+}
 if segments.is_empty()  { segments.push(CylinderSegment::zeroed()); }
 if glyphs.is_empty()    { glyphs.push(GlyphPoint::zeroed()); }
 let arena_index_count = idx.len() as u32;
@@ -168,7 +176,8 @@ untouched; the buffers just fill from the upload instead of a locally-built `Vec
 **2d. Change the signature** — take the upload, not a `Session`:
 
 ```rust
-pub async fn new(window: std::sync::Arc<winit::window::Window>, upload: ArenaUpload) -> anyhow::Result<Self> {
+pub async fn new(window: std::sync::Arc<winit::window::Window>,
+                 upload: ArenaUpload) -> anyhow::Result<Self> {
 ```
 
 ## Step 3 — `Scene` owns the document: `src/app/scene.rs` (NEW)
@@ -194,7 +203,8 @@ impl Scene {
         let mut order = Vec::new();
         let mut guid_to_row = HashMap::new();
         for (guid, geom) in &session.lookup {
-            if matches!(geom, Geometry::Mesh(_) | Geometry::BRep(_) | Geometry::Line(_) | Geometry::Polyline(_) | Geometry::Point(_)) {
+            if matches!(geom, Geometry::Mesh(_) | Geometry::BRep(_) | Geometry::Line(_) |
+                              Geometry::Polyline(_) | Geometry::Point(_)) {
                 guid_to_row.insert(guid.clone(), order.len() as u32);
                 order.push(guid.clone());
             }
@@ -282,7 +292,8 @@ impl State {
     pub async fn new(window: Arc<Window>) -> anyhow::Result<Self> {
         let camera = Camera::new();
         // 34's loader, unchanged — only its destination moves (into Scene, not straight to Gpu).
-        let bytes = crate::app::persistence::fetch_bytes(DEMO_SESSION_URL).await.unwrap_or_default();
+        let bytes = crate::app::persistence::fetch_bytes(DEMO_SESSION_URL)
+            .await.unwrap_or_default();
         let session = crate::app::persistence::session_from_bytes(DEMO_SESSION_URL, &bytes);
         let scene = Scene::new(session);
         let upload = scene.build();
@@ -318,11 +329,11 @@ Ch 34: Load a Session — Gpu::new walks a real .pb/.json into the arena/segment
 Ch 35: SPLIT. The ENTIRE 34 walk (all Geometry variants, push_mesh + line/point adapters) moves out
        of Gpu into app/scene.rs::Scene, which owns Session + guid_to_row + hidden and emits one flat
        ArenaUpload (verts, vids, idx, objects_base, segments, glyphs). objects_base carries the TRUE
-       transform/color/hidden-bit; Gpu builds the Instance rows from it, KEEPS 33's per-frame rebase,
-       applies the empty-buffer guards + scene bounds, and otherwise returns to pure device/surface/
-       pipelines/buffers — like 13's camera extraction. The three GPU-row structs go pub (wire
-       formats stay in engine); the geometry converters go up to app (they name Mesh/Line). Litmus:
-       engine/ names no Session, Mesh, or BRep.
+       transform/color/hidden-bit; Gpu builds the Instance rows from it, KEEPS 33's per-frame
+       rebase, applies the empty-buffer guards + scene bounds, and otherwise returns to pure
+       device/surface/pipelines/buffers — like 13's camera extraction. The three GPU-row structs
+       go pub (wire formats stay in engine); the geometry converters go up to app (they name
+       Mesh/Line). Litmus: engine/ names no Session, Mesh, or BRep.
 ```
 
 Edited: `engine/gpu/mod.rs` (`Instance`/`CylinderSegment`/`GlyphPoint` → `pub` + `FLAG_HIDDEN`, new

@@ -47,13 +47,15 @@ pixels. Returns `None` when the point is behind the camera (`w ≤ 0`), so off-s
 pub fn project_to_screen(view_proj: &Xform, origin: &Point, p: &Point,
                          viewport: (f64, f64, f64, f64)) -> Option<(f64, f64)> {
     let m = view_proj.to_cols();                                  // column-major m[col][row]
-    let v = [p[0] - origin[0], p[1] - origin[1], p[2] - origin[2], 1.0];   // world → camera-relative
+    // world → camera-relative
+    let v = [p[0] - origin[0], p[1] - origin[1], p[2] - origin[2], 1.0];
     let row = |r: usize| m[0][r]*v[0] + m[1][r]*v[1] + m[2][r]*v[2] + m[3][r]*v[3];
     let w = row(3);
     if w <= 0.0 { return None; }                                 // behind the eye
     let (ndc_x, ndc_y) = (row(0)/w, row(1)/w);
     let (vx, vy, vw, vh) = viewport;
-    Some((vx + (ndc_x * 0.5 + 0.5) * vw, vy + (0.5 - ndc_y * 0.5) * vh))   // NDC → px (y flips back)
+    // NDC → px (y flips back)
+    Some((vx + (ndc_x * 0.5 + 0.5) * vw, vy + (0.5 - ndc_y * 0.5) * vh))
 }
 ```
 
@@ -89,26 +91,36 @@ impl Scene {
             _ => return None,   // BRep sub-objects (trims/edges) are their own lesson
         };
         let world = |vk: usize| -> Option<Point> {
-            Some(m.xform.transform_point(&m.vertex_point(vk)?))   // local → world (kernel gap #5's API)
+            // local → world (kernel gap #5's API)
+            Some(m.xform.transform_point(&m.vertex_point(vk)?))
         };
-        let px = |vk: usize| world(vk).and_then(|p| engine::pick::project_to_screen(view_proj, origin, &p, viewport));
-        let dist2 = |a: (f64, f64)| { let dx = a.0 - cursor.0; let dy = a.1 - cursor.1; dx*dx + dy*dy };
+        let px = |vk: usize| world(vk)
+            .and_then(|p| engine::pick::project_to_screen(view_proj, origin, &p, viewport));
+        let dist2 = |a: (f64, f64)| {
+            let dx = a.0 - cursor.0;
+            let dy = a.1 - cursor.1;
+            dx*dx + dy*dy
+        };
 
         // 1) nearest VERTEX within R_PX
         let mut best_v: Option<(usize, f64)> = None;
         for &vk in m.vertex.keys() {
             if let Some(s) = px(vk) { let d = dist2(s);
-                if d <= R_PX*R_PX && best_v.map_or(true, |(_, bd)| d < bd) { best_v = Some((vk, d)); } }
+                if d <= R_PX*R_PX && best_v.map_or(true, |(_, bd)| d < bd) {
+                    best_v = Some((vk, d)); } }
         }
-        if let Some((vk, _)) = best_v { return Some(SubHit { guid: hit.guid.clone(), kind: SubKind::Vertex(vk) }); }
+        if let Some((vk, _)) = best_v {
+            return Some(SubHit { guid: hit.guid.clone(), kind: SubKind::Vertex(vk) }); }
 
         // 2) nearest EDGE within R_PX (point-to-segment in screen space)
         let mut best_e: Option<((usize, usize), f64)> = None;
         for (a, b) in m.edges() {
             if let (Some(pa), Some(pb)) = (px(a), px(b)) { let d = seg_dist2(cursor, pa, pb);
-                if d <= R_PX*R_PX && best_e.map_or(true, |(_, bd)| d < bd) { best_e = Some(((a, b), d)); } }
+                if d <= R_PX*R_PX && best_e.map_or(true, |(_, bd)| d < bd) {
+                    best_e = Some(((a, b), d)); } }
         }
-        if let Some(((a, b), _)) = best_e { return Some(SubHit { guid: hit.guid.clone(), kind: SubKind::Edge(a, b) }); }
+        if let Some(((a, b), _)) = best_e {
+            return Some(SubHit { guid: hit.guid.clone(), kind: SubKind::Edge(a, b) }); }
 
         // 3) FACE the ray landed on (local point-in-polygon over the mesh faces)
         let inv = m.xform.inverse()?;
@@ -122,7 +134,9 @@ impl Scene {
 fn seg_dist2(p: (f64, f64), a: (f64, f64), b: (f64, f64)) -> f64 {
     let (abx, aby) = (b.0 - a.0, b.1 - a.1);
     let len2 = abx*abx + aby*aby;
-    let t = if len2 > 0.0 { (((p.0 - a.0)*abx + (p.1 - a.1)*aby) / len2).clamp(0.0, 1.0) } else { 0.0 };
+    let t = if len2 > 0.0 {
+        (((p.0 - a.0)*abx + (p.1 - a.1)*aby) / len2).clamp(0.0, 1.0)
+    } else { 0.0 };
     let (cx, cy) = (a.0 + t*abx, a.1 + t*aby);
     let (dx, dy) = (p.0 - cx, p.1 - cy);
     dx*dx + dy*dy
@@ -169,14 +183,15 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 ```
 Ch 42: ray-cast meshes → which mesh + world hit point.
-Ch 43: SUB-OBJECT. Resolve the hit to vertex / edge / face, SCREEN-SPACE, most-specific-first. project_
-       to_screen (the forward of 41: world −origin → view_proj → NDC → px, None if behind). Priority:
-       (1) nearest projected VERTEX within R_PX (~8) → Vertex(key); (2) else nearest projected EDGE by
-       screen point-to-segment → Edge(a,b); (3) else the FACE the ray hit, recovered by transforming the
-       world hit to local and point-in-polygon over m.faces() — because the kernel ray-cast returns the
-       point, not the face. Returns SubHit{guid, kind, key}. Pixel radius (not world) so the test is
-       zoom-independent — the unit the user aims in. Vertex/edge screen-proximity is the same trick 44
-       uses to pick 1D/0D geometry that a ray can't hit exactly.
+Ch 43: SUB-OBJECT. Resolve the hit to vertex / edge / face, SCREEN-SPACE, most-specific-first.
+       project_to_screen (the forward of 41: world −origin → view_proj → NDC → px, None if
+       behind). Priority: (1) nearest projected VERTEX within R_PX (~8) → Vertex(key); (2) else
+       nearest projected EDGE by screen point-to-segment → Edge(a,b); (3) else the FACE the ray
+       hit, recovered by transforming the world hit to local and point-in-polygon over
+       m.faces() — because the kernel ray-cast returns the point, not the face. Returns
+       SubHit{guid, kind, key}. Pixel radius (not world) so the test is zoom-independent — the
+       unit the user aims in. Vertex/edge screen-proximity is the same trick 44 uses to pick
+       1D/0D geometry that a ray can't hit exactly.
 ```
 
 Edited: `engine/pick.rs` (`project_to_screen` — forward projection), `app/pick.rs` (`SubKind`, `SubHit`),

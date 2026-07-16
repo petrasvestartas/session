@@ -123,10 +123,10 @@ Ch 66: RENDER-ON-DEMAND. Games render time; CAD renders STATE. One dirty flag; p
        request_redraw at every site that changes what a frame shows (camera, selection, Commands,
        live drags, ghosts, reconcile, settings, egui's own repaint_delay==0 — the caret!). render()
        returns before touching the GPU when clean; no unconditional request_redraw treadmill. The
-       drawn frame is ALWAYS the full-quality frame — this lesson has no second rendering path, which
-       is how the no-quality-drop rule survives by construction. HUD: drawn/s beside fps — 0 idle,
-       display-rate while interacting. Static scenes now cost zero GPU; 67's AO rides on this: its
-       cost is per DRAWN frame, and idle frames are free.
+       drawn frame is ALWAYS the full-quality frame — this lesson has no second rendering path,
+       which is how the no-quality-drop rule survives by construction. HUD: drawn/s beside fps —
+       0 idle, display-rate while interacting. Static scenes now cost zero GPU; 67's AO rides on
+       this: its cost is per DRAWN frame, and idle frames are free.
 ```
 
 Edited: `state.rs` (`dirty`, `poke`, gated `render`, drawn/s counter), `lib.rs` (input pokes; no

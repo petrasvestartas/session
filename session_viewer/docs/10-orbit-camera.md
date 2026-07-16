@@ -63,7 +63,8 @@ src/lib.rs          # right-drag + scroll → orbit()/zoom()
 ```rust
     pub fn orbit(&mut self, dx: f32, dy: f32) {
         self.yaw  -= dx * 0.005;                                  // mouse-x → yaw
-        self.pitch = (self.pitch - dy * 0.005).clamp(-1.5, 1.5);  // mouse-y → pitch (clamp = no flip at the poles)
+        // mouse-y → pitch (clamp = no flip at the poles)
+        self.pitch = (self.pitch - dy * 0.005).clamp(-1.5, 1.5);
     }
     pub fn zoom(&mut self, amount: f32) {
         self.distance = (self.distance * (1.0 - amount * 0.1)).clamp(0.2, 100.0);
@@ -85,7 +86,8 @@ becomes identity):
         );
         let up = Vector::new(0.0, 1.0, 0.0);
         let view = Xform::look_at_right_handed(&eye, &target, &up);
-        let mvp = projection * view;        // model is identity now — the camera moves, not the object
+        // model is identity now — the camera moves, not the object
+        let mvp = projection * view;
         self.queue.write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&mvp.to_f32()));
 ```
 

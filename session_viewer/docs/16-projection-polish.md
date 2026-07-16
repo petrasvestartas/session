@@ -127,7 +127,8 @@ ends and the final unit scale are new:
             self.target[1] as f64 + (self.distance * sp) as f64,
             self.target[2] as f64 + (self.distance * cp * cy) as f64,
         );
-        let target = Point::new(self.target[0] as f64, self.target[1] as f64, self.target[2] as f64);
+        let target = Point::new(self.target[0] as f64, self.target[1] as f64,
+                                self.target[2] as f64);
         let up = Vector::new(0.0, 1.0, 0.0);
         let view = Xform::look_at_right_handed(&eye, &target, &up);
 
@@ -209,7 +210,8 @@ viewed by a metre camera; for metres-authored geometry, set `Unit::Meters` in `n
 Ch 15: fit framed the scene, but the projection had three rough edges.
 Ch 16: view_proj fixes all three — adaptive near/far (constant depth ratio), ortho half-height from
        distance (seamless + zoomable), and a Unit enum (mm / m) whose scale-to-metres it bakes in.
-       The unit is fixed in code (new() default / set_unit), fit honours it. Steady depth, real units.
+       The unit is fixed in code (new() default / set_unit), fit honours it. Steady depth,
+       real units.
 ```
 
 Edited: `camera.rs` (`Unit` enum + `unit` field + `set_unit`, `view_proj`, `fit`), `gpu.rs`

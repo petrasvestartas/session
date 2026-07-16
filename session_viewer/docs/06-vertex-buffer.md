@@ -217,8 +217,10 @@ and add both fields to the returned struct:
         });
         let num_vertices = TRIANGLE.len() as u32;
 
-        log::info!("viewer init OK — surface {}x{}, format {:?}", config.width, config.height, config.format);
-        Ok(Self { surface, device, queue, config, pipelines, aspect_buffer, aspect_bind_group, vertex_buffer, num_vertices })
+        log::info!("viewer init OK — surface {}x{}, format {:?}",
+                   config.width, config.height, config.format);
+        Ok(Self { surface, device, queue, config, pipelines,
+                  aspect_buffer, aspect_bind_group, vertex_buffer, num_vertices })
 ```
 
 

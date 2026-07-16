@@ -79,7 +79,8 @@ pub struct GumballGeom {
     pub glyphs: Vec<(GlyphPoint, HandleKind)>,
 }
 
-/// Build the widget at `o`, scaled by `s` (53 computes s for constant screen size; use 1.0 for now).
+/// Build the widget at `o`, scaled by `s` (53 computes s for constant screen size;
+/// use 1.0 for now).
 /// `row` is a reserved instance row with an identity model — the gumball is world-anchored.
 pub fn build(o: [f32; 3], s: f32, row: u32) -> GumballGeom {
     let axes = [[1.0f32, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
@@ -91,10 +92,14 @@ pub fn build(o: [f32; 3], s: f32, row: u32) -> GumballGeom {
     for i in 0..3 {
         let (a, c) = (axes[i], AXIS_COLORS[i]);
         let tip   = [o[0] + a[0]*ARROW_LEN*s, o[1] + a[1]*ARROW_LEN*s, o[2] + a[2]*ARROW_LEN*s];
-        let neck  = [o[0] + a[0]*(ARROW_LEN-ARROW_CAP)*s, o[1] + a[1]*(ARROW_LEN-ARROW_CAP)*s, o[2] + a[2]*(ARROW_LEN-ARROW_CAP)*s];
+        let neck  = [o[0] + a[0]*(ARROW_LEN-ARROW_CAP)*s,
+                     o[1] + a[1]*(ARROW_LEN-ARROW_CAP)*s,
+                     o[2] + a[2]*(ARROW_LEN-ARROW_CAP)*s];
         // shaft (the cone tip is a fattened final segment — see the note below)
-        g.segments.push((CylinderSegment { p0: o, radius: SHAFT_R*s, p1: neck, instance_id: row, color: c }, t_kinds[i]));
-        g.segments.push((CylinderSegment { p0: neck, radius: SHAFT_R*s*2.5, p1: tip, instance_id: row, color: c }, t_kinds[i]));
+        g.segments.push((CylinderSegment { p0: o, radius: SHAFT_R*s, p1: neck,
+            instance_id: row, color: c }, t_kinds[i]));
+        g.segments.push((CylinderSegment { p0: neck, radius: SHAFT_R*s*2.5, p1: tip,
+            instance_id: row, color: c }, t_kinds[i]));
 
         // rotate arc: a quarter circle in the plane PERPENDICULAR to axis i, on the NEGATIVE side
         // (opposite the arrow, so arcs and arrows never overlap visually or in the hit-test).
@@ -109,17 +114,22 @@ pub fn build(o: [f32; 3], s: f32, row: u32) -> GumballGeom {
                 o[2] + (u[2]*t.cos() + v[2]*t.sin()) * ARC_RADIUS * s,
             ];
             if let Some(q) = prev {
-                g.segments.push((CylinderSegment { p0: q, radius: SHAFT_R*s, p1: p, instance_id: row, color: c }, r_kinds[i]));
+                g.segments.push((CylinderSegment { p0: q, radius: SHAFT_R*s, p1: p,
+                    instance_id: row, color: c }, r_kinds[i]));
             }
             prev = Some(p);
         }
 
         // axis-scale sphere: on the negative axis at half the arc radius (archive placement)
-        let sp = [o[0] - a[0]*ARC_RADIUS*0.5*s, o[1] - a[1]*ARC_RADIUS*0.5*s, o[2] - a[2]*ARC_RADIUS*0.5*s];
-        g.glyphs.push((GlyphPoint { center: sp, radius: SPHERE_R*s, color: c, instance_id: row, _pad: [0; 3] }, s_kinds[i]));
+        let sp = [o[0] - a[0]*ARC_RADIUS*0.5*s,
+                  o[1] - a[1]*ARC_RADIUS*0.5*s,
+                  o[2] - a[2]*ARC_RADIUS*0.5*s];
+        g.glyphs.push((GlyphPoint { center: sp, radius: SPHERE_R*s, color: c,
+            instance_id: row, _pad: [0; 3] }, s_kinds[i]));
     }
     // uniform-scale sphere: white, at the origin
-    g.glyphs.push((GlyphPoint { center: o, radius: SPHERE_R*s, color: [0.86, 0.86, 0.86, 1.0], instance_id: row, _pad: [0; 3] }, HandleKind::ScaleUniform));
+    g.glyphs.push((GlyphPoint { center: o, radius: SPHERE_R*s, color: [0.86, 0.86, 0.86, 1.0],
+        instance_id: row, _pad: [0; 3] }, HandleKind::ScaleUniform));
     g
 }
 ```
@@ -143,7 +153,8 @@ draw it **last, in a pass that clears only the depth buffer** — color loads, d
     // gumball tables — small, rebuilt whole whenever selection/camera changes (they're ~400 rows)
     pub gb_segments: Vec<CylinderSegment>,
     pub gb_glyphs: Vec<GlyphPoint>,
-    // + gb_segment_buffer / gb_glyph_buffer / bind groups — same pattern as 31/32's, small fixed capacity
+    // + gb_segment_buffer / gb_glyph_buffer / bind groups — same pattern as 31/32's,
+    //   small fixed capacity
 ```
 
 ```rust
@@ -157,12 +168,15 @@ draw it **last, in a pass that clears only the depth buffer** — color loads, d
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: &self.depth_view,
-                    depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(0.0), store: wgpu::StoreOp::Store }),   // ← CLEARED (reverse-Z far)
+                    // ← CLEARED (reverse-Z far)
+                    depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(0.0),
+                        store: wgpu::StoreOp::Store }),
                     stencil_ops: None,
                 }),
                 occlusion_query_set: None, timestamp_writes: None, multiview_mask: None,
             });
-            // same cylinder + sphere pipelines, bind groups 0-2 as the main pass, group 3 = gumball buffers
+            // same cylinder + sphere pipelines, bind groups 0-2 as the main pass,
+            // group 3 = gumball buffers
             gp.set_pipeline(&self.pipelines.cylinder);
             /* …bind groups, template buffers, draw_indexed over gb_segment_count… */
             gp.set_pipeline(&self.pipelines.sphere);
@@ -198,7 +212,11 @@ In `state.rs`, whenever the selection changes (the three gesture sites in 45 + h
 ```rust
     fn refresh_gumball(&mut self) {
         match self.scene.selection_centroid() {
-            Some(o) => { let g = crate::engine::gumball::build(o, 1.0, GB_ROW); self.gb = Some(g); self.gpu.upload_gumball(self.gb.as_ref().unwrap()); }
+            Some(o) => {
+                let g = crate::engine::gumball::build(o, 1.0, GB_ROW);
+                self.gb = Some(g);
+                self.gpu.upload_gumball(self.gb.as_ref().unwrap());
+            }
             None => { self.gb = None; self.gpu.clear_gumball(); }
         }
     }

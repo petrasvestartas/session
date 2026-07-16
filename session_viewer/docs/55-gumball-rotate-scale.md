@@ -123,8 +123,10 @@ every group ends at the same two lines — `set_live_model` per object, `Transfo
     let delta = match ctx.handle {
         TranslateX | TranslateY | TranslateZ => /* 54 */,
         RotateX | RotateY | RotateZ          => /* Step 1: angle → rotation about origin+axis */,
-        ScaleX | ScaleY | ScaleZ             => /* Step 2: axis ratio → scale_non_uniform, one axis */,
-        ScaleUniform                          => /* Step 2: plane ratio → scale_non_uniform, all axes */,
+        ScaleX | ScaleY | ScaleZ             =>
+            /* Step 2: axis ratio → scale_non_uniform, one axis */,
+        ScaleUniform                          =>
+            /* Step 2: plane ratio → scale_non_uniform, all axes */,
     };
 ```
 
@@ -155,12 +157,13 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ```
 Ch 54: translate — the drag skeleton (defer, live matrix, Command commit).
 Ch 55: ROTATE + SCALE = two delta functions on that skeleton. Rotate: ray ∩ arc plane (denom guard
-       when edge-on) → atan2(v·B, v·A) in the (i+1,i+2) basis 52 drew the arc in → rotation about the
-       gumball origin. Scale: distance ratios with the TWO archive fixes — clamp_signed (spheres sit
-       on the NEGATIVE axis; an unsigned clamp makes the first frame's ratio ~10⁴) and damped
-       response (√ axis, ⁴√ uniform — the center sphere's press distance is near zero) + a 0.01 floor
-       so a drag can never zero or mirror. scale_non_uniform(origin,…) scales about the anchor in one
-       kernel call. Commit path byte-identical to 54 — absolute snapshots don't care what moved.
+       when edge-on) → atan2(v·B, v·A) in the (i+1,i+2) basis 52 drew the arc in → rotation
+       about the gumball origin. Scale: distance ratios with the TWO archive fixes —
+       clamp_signed (spheres sit on the NEGATIVE axis; an unsigned clamp makes the first
+       frame's ratio ~10⁴) and damped response (√ axis, ⁴√ uniform — the center sphere's press
+       distance is near zero) + a 0.01 floor so a drag can never zero or mirror.
+       scale_non_uniform(origin,…) scales about the anchor in one kernel call. Commit path
+       byte-identical to 54 — absolute snapshots don't care what moved.
 ```
 
 Edited: `engine/gumball.rs` (`angle_on_arc_plane`, `clamp_signed`, `axis_scale_ratio`,

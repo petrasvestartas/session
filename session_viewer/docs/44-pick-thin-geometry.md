@@ -41,8 +41,10 @@ solid, merge with a priority rule** — now a performance choice rather than a c
 ## Files we touch
 
 ```
-src/camera.rs      # world_per_pixel(depth) — R_PX → world units (the shader's screen_radius, on the CPU)
-src/app/scene.rs   # pick_thin (kernel ray_cast, filtered to thin guids); pick_ray merges solid + thin
+# world_per_pixel(depth) — R_PX → world units (the shader's screen_radius, on the CPU)
+src/camera.rs
+# pick_thin (kernel ray_cast, filtered to thin guids); pick_ray merges solid + thin
+src/app/scene.rs
 src/state.rs       # unchanged call site — pick_ray now returns line/point hits too
 ```
 
@@ -69,15 +71,17 @@ values. `depth` = `self.distance`, the orbit camera's target distance from lesso
 use session_rust::Geometry;
 
 impl Scene {
-    /// Nearest thin hit (Line / Polyline / Point) within `tol` world units of the ray, as a PickHit.
-    /// `&mut self`: Session::ray_cast rebuilds its cached BVH lazily.
+    /// Nearest thin hit (Line / Polyline / Point) within `tol` world units of the ray,
+    /// as a PickHit. `&mut self`: Session::ray_cast rebuilds its cached BVH lazily.
     pub fn pick_thin(&mut self, ray: &Ray, tol: f64) -> Option<PickHit> {
         let hits = self.session.ray_cast(&ray.origin, &ray.dir, tol);   // sorted by distance
         for h in hits {
             match self.session.lookup.get(h.guid()) {
                 // Kernel mesh/BRep arms are placement-blind / no-op — 42's pick_mesh owns solids.
-                Some(Geometry::Line(_)) | Some(Geometry::Polyline(_)) | Some(Geometry::Point(_)) => {
-                    return Some(PickHit { guid: h.guid().to_string(), point: h.point.clone(), t: h.distance });
+                Some(Geometry::Line(_)) | Some(Geometry::Polyline(_)) |
+                Some(Geometry::Point(_)) => {
+                    return Some(PickHit {
+                        guid: h.guid().to_string(), point: h.point.clone(), t: h.distance });
                 }
                 _ => continue,
             }
@@ -121,7 +125,8 @@ Rename 42's `pick_ray` to `pick_mesh` and make `pick_ray` the umbrella:
 The click site (42's Step 4) just adds the tolerance:
 
 ```rust
-        let tol = self.camera.world_per_pixel(self.camera.distance, proj_y, ortho_h, vp_h) * 8.0;   // R_PX = 8
+        // R_PX = 8
+        let tol = self.camera.world_per_pixel(self.camera.distance, proj_y, ortho_h, vp_h) * 8.0;
         match self.scene.pick_ray(&ray, tol) { … }
 ```
 
@@ -146,12 +151,13 @@ cd session_viewer && trunk serve   # http://localhost:8770
 Ch 43: sub-object — vertex/edge/face by screen-pixel proximity.
 Ch 44: THIN GEOMETRY. A ray never exactly hits a 1-D/0-D object, so the pick gets a RADIUS: R_PX (8)
        converted to world units by the SAME formula cylinder.wgsl uses for screen-constant tubes,
-       evaluated at target depth. The kernel's Session::ray_cast(origin, dir, tol) already implements
-       the thin narrow-phase (line_line with tolerance, per-segment polylines, perpendicular distance
-       for points — thin candidates force-added past the degenerate boxes); we filter its results to
-       thin guids (its mesh arm is placement-blind, its BRep arm a deliberate no-op — 42 owns solids)
-       and merge: thin wins only if MORE than tol nearer, ties → MESH, so a line on a face never
-       steals the face's click. Stress gate: intended line picked from 42k instantly.
+       evaluated at target depth. The kernel's Session::ray_cast(origin, dir, tol) already
+       implements the thin narrow-phase (line_line with tolerance, per-segment polylines,
+       perpendicular distance for points — thin candidates force-added past the degenerate
+       boxes); we filter its results to thin guids (its mesh arm is placement-blind, its BRep
+       arm a deliberate no-op — 42 owns solids) and merge: thin wins only if MORE than tol
+       nearer, ties → MESH, so a line on a face never steals the face's click. Stress gate:
+       intended line picked from 42k instantly.
 ```
 
 Edited: `camera.rs` (`world_per_pixel`), `app/scene.rs` (`pick_thin` via kernel `ray_cast`,

@@ -61,7 +61,8 @@ use super::{CylinderSegment, GlyphPoint};
 use session_rust::{Line, Point, Polyline};
 
 pub fn line_to_segment(l: &Line, instance_id: u32) -> CylinderSegment {
-    CylinderSegment { p0: l.start().to_f32(), radius: 0.0, p1: l.end().to_f32(), instance_id, color: l.linecolor.to_f32() }
+    CylinderSegment { p0: l.start().to_f32(), radius: 0.0, p1: l.end().to_f32(),
+        instance_id, color: l.linecolor.to_f32() }
 }
 
 pub fn polyline_to_segments(pl: &Polyline, instance_id: u32) -> Vec<CylinderSegment> {
@@ -73,7 +74,8 @@ pub fn polyline_to_segments(pl: &Polyline, instance_id: u32) -> Vec<CylinderSegm
 }
 
 pub fn point_to_glyph(p: &Point, instance_id: u32) -> GlyphPoint {
-    GlyphPoint { center: p.to_f32(), radius: 0.0, color: p.pointcolor.to_f32(), instance_id, _pad: [0; 3] }
+    GlyphPoint { center: p.to_f32(), radius: 0.0, color: p.pointcolor.to_f32(),
+        instance_id, _pad: [0; 3] }
 }
 ```
 
@@ -91,7 +93,8 @@ pub fn point_to_glyph(p: &Point, instance_id: u32) -> GlyphPoint {
 thread the `Session` through (34a's `State::new` already has it in hand):
 
 ```rust
-    pub async fn new(window: std::sync::Arc<winit::window::Window>, session: &session_rust::Session) -> anyhow::Result<Self> {
+    pub async fn new(window: std::sync::Arc<winit::window::Window>,
+                     session: &session_rust::Session) -> anyhow::Result<Self> {
 ```
 
 and in `state.rs`, change the call to match:
@@ -122,10 +125,11 @@ Then the new loop:
         let mut glyphs: Vec<GlyphPoint> = Vec::new();
         let mut objects_base: Vec<(Xform, [f32; 4])> = Vec::with_capacity(session.lookup.len());
 
-        // Each object's PLACEMENT lives in its xform — `to_render()` reads the stored vertices and
-        // ignores the xform, so the xform IS the instance model (identity for standalone lines/points,
-        // whose segment/glyph coordinates are already world). objects_base keeps the TRUE placement;
-        // lesson 33's rebuild_instances rebases model+color against the camera origin every frame.
+        // Each object's PLACEMENT lives in its xform — `to_render()` reads the stored vertices
+        // and ignores the xform, so the xform IS the instance model (identity for standalone
+        // lines/points, whose segment/glyph coordinates are already world). objects_base keeps
+        // the TRUE placement; lesson 33's rebuild_instances rebases model+color against the camera
+        // origin every frame.
         // `ri` is the row in objects_base, NOT the lookup index — so skipped variants (Plane/OBB/…)
         // leave no hole for the shader's instances[instance_id] to read wrong.
         for geom in session.lookup.values() {
@@ -152,11 +156,14 @@ Then the new loop:
                     objects_base.push((Xform::identity(), p.pointcolor.to_f32()));
                     glyphs.push(point_to_glyph(p, ri));
                 }
-                Geometry::Plane(_) | Geometry::OBB(_) | Geometry::PointCloud(_) | Geometry::Element(_) => {}  // later lessons
+                // later lessons
+                Geometry::Plane(_) | Geometry::OBB(_) |
+                Geometry::PointCloud(_) | Geometry::Element(_) => {}
             }
         }
 
-        // Initial instance rows from the true placements; 33's rebuild_instances rebases each frame.
+        // Initial instance rows from the true placements;
+        // 33's rebuild_instances rebases each frame.
         let mut instances: Vec<Instance> = objects_base.iter()
             .map(|(m, c)| Instance { model: m.to_f32(), color: *c, flags: 0, _pad: [0; 3] })
             .collect();
@@ -168,8 +175,10 @@ Then the new loop:
         // a pure mesh file has zero segments. wgpu buffers can't be zero-sized, so pad the CPU
         // side with one placeholder — *_count above already captured the true number, so an empty
         // category still draws NOTHING, it just doesn't crash the buffer upload.
-        if instances.is_empty() { instances.push(Instance { model: Xform::identity().to_f32(), color: [0.5, 0.5, 0.5, 1.0], flags: 0, _pad: [0; 3] }); }
-        if verts.is_empty()     { verts.push(RenderVertex::zeroed()); vids.push(0); idx.extend_from_slice(&[0, 0, 0]); }
+        if instances.is_empty() { instances.push(Instance { model: Xform::identity().to_f32(),
+            color: [0.5, 0.5, 0.5, 1.0], flags: 0, _pad: [0; 3] }); }
+        if verts.is_empty()     { verts.push(RenderVertex::zeroed()); vids.push(0);
+            idx.extend_from_slice(&[0, 0, 0]); }
         if segments.is_empty()  { segments.push(CylinderSegment::zeroed()); }
         if glyphs.is_empty()    { glyphs.push(GlyphPoint::zeroed()); }
 
@@ -192,8 +201,9 @@ is untouched.
 per-object loop bodies, factored so `Mesh` and `BRep` (which becomes a `Mesh` via `.mesh()`) share it:
 
 ```rust
-fn push_mesh(m: &Mesh, ri: u32, verts: &mut Vec<RenderVertex>, vids: &mut Vec<u32>, idx: &mut Vec<u32>,
-             segments: &mut Vec<CylinderSegment>, glyphs: &mut Vec<GlyphPoint>) {
+fn push_mesh(m: &Mesh, ri: u32, verts: &mut Vec<RenderVertex>, vids: &mut Vec<u32>,
+             idx: &mut Vec<u32>, segments: &mut Vec<CylinderSegment>,
+             glyphs: &mut Vec<GlyphPoint>) {
     let base = verts.len() as u32;
     let rm = m.to_render();
     for v in &rm.vertices { verts.push(*v); vids.push(ri); }
@@ -202,11 +212,13 @@ fn push_mesh(m: &Mesh, ri: u32, verts: &mut Vec<RenderVertex>, vids: &mut Vec<u3
     for (a, b, col) in m.edges_with_colors() {
         let pa = m.vertex_point(a).unwrap();
         let pb = m.vertex_point(b).unwrap();
-        segments.push(CylinderSegment { p0: pa.to_f32(), radius: 0.0, p1: pb.to_f32(), instance_id: ri, color: col.to_f32() });
+        segments.push(CylinderSegment { p0: pa.to_f32(), radius: 0.0, p1: pb.to_f32(),
+            instance_id: ri, color: col.to_f32() });
     }
     for vk in m.naked_vertices(true) {
         let p = m.vertex_point(vk).unwrap();
-        glyphs.push(GlyphPoint { center: p.to_f32(), radius: 0.0, color: [0.1, 0.1, 0.1, 1.0], instance_id: ri, _pad: [0; 3] });
+        glyphs.push(GlyphPoint { center: p.to_f32(), radius: 0.0, color: [0.1, 0.1, 0.1, 1.0],
+            instance_id: ri, _pad: [0; 3] });
     }
 }
 ```
@@ -223,9 +235,18 @@ camera target):
 ```rust
         let mut scene_min = [f32::INFINITY; 3];
         let mut scene_max = [f32::NEG_INFINITY; 3];
-        for v in &verts { for k in 0..3 { scene_min[k] = scene_min[k].min(v.position[k]); scene_max[k] = scene_max[k].max(v.position[k]); } }
-        for s in &segments { for p in [s.p0, s.p1] { for k in 0..3 { scene_min[k] = scene_min[k].min(p[k]); scene_max[k] = scene_max[k].max(p[k]); } } }
-        for g in &glyphs { for k in 0..3 { scene_min[k] = scene_min[k].min(g.center[k]); scene_max[k] = scene_max[k].max(g.center[k]); } }
+        for v in &verts { for k in 0..3 {
+            scene_min[k] = scene_min[k].min(v.position[k]);
+            scene_max[k] = scene_max[k].max(v.position[k]);
+        } }
+        for s in &segments { for p in [s.p0, s.p1] { for k in 0..3 {
+            scene_min[k] = scene_min[k].min(p[k]);
+            scene_max[k] = scene_max[k].max(p[k]);
+        } } }
+        for g in &glyphs { for k in 0..3 {
+            scene_min[k] = scene_min[k].min(g.center[k]);
+            scene_max[k] = scene_max[k].max(g.center[k]);
+        } }
 ```
 
 Store them on `Gpu` — add `pub scene_min: [f32; 3], pub scene_max: [f32; 3],` to the struct (next to
@@ -236,7 +257,8 @@ and **point the `F` handler at the real bounds**:
 
 ```rust
                         Key::Character("f" | "F") => {
-                            let aspect = state.gpu.config.width as f64 / state.gpu.config.height as f64;
+                            let aspect = state.gpu.config.width as f64 /
+                                state.gpu.config.height as f64;
                             state.camera.fit(state.gpu.scene_min, state.gpu.scene_max, aspect);
                         }
 ```
@@ -284,10 +306,10 @@ Ch 34b: SESSION → TABLES. gpu.rs becomes gpu/mod.rs + gpu/adapters.rs (Line/Po
         CylinderSegment/GlyphPoint). The lesson-30 loop becomes a match over Geometry's 9 variants:
         Mesh/BRep share push_mesh (arena verts + edge segments + naked-vertex glyphs); placement =
         mesh.xform (to_render ignores it), identity for standalone lines/points; ri = objects_base
-        row, not lookup index, so skipped variants leave no hole. Empty-buffer guards pad what a real
-        file legitimately lacks; *_count captured before padding keeps empty categories drawing
-        nothing. F fits real scene bounds. Verified: floor_model.pb (491 objects, both adapter paths)
-        and the STRESS GATE (42,232 objects, 51,166 segments, ONE draw_indexed).
+        row, not lookup index, so skipped variants leave no hole. Empty-buffer guards pad what a
+        real file legitimately lacks; *_count captured before padding keeps empty categories
+        drawing nothing. F fits real scene bounds. Verified: floor_model.pb (491 objects, both
+        adapter paths) and the STRESS GATE (42,232 objects, 51,166 segments, ONE draw_indexed).
 ```
 
 Edited: `src/engine/gpu.rs` → `gpu/mod.rs` (session-driven build loop, `push_mesh`, guards, scene

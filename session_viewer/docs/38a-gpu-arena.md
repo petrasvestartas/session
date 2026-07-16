@@ -29,7 +29,8 @@
 
 ```
 src/engine/gpu/arena.rs   # NEW — GpuArena: free-list allocator over vbo+vids+ibo, guid → slot
-src/engine/gpu/mod.rs     # Gpu owns a GpuArena + guid→segment/glyph range maps; append/remove helpers
+# Gpu owns a GpuArena + guid→segment/glyph range maps; append/remove helpers
+src/engine/gpu/mod.rs
 ```
 
 ## Step 1 — the allocator type: `src/engine/gpu/arena.rs` (NEW)
@@ -42,7 +43,8 @@ so any object can be found, freed, or overwritten later. It carries our per-vert
 ```rust
 //! Free-list allocator over a wgpu vertex buffer (+ its parallel vids buffer + an index buffer).
 //! Bump-allocate until full, then best-fit from freed ranges; grow 2x (copy old → new) when neither
-//! fits. `slots` maps each guid to its ranges so reconcile (38b) can free/replace one object in place.
+//! fits. `slots` maps each guid to its ranges so reconcile (38b) can free/replace one object in
+//! place.
 
 use std::collections::HashMap;
 use std::ops::Range;
@@ -71,13 +73,18 @@ impl GpuArena {
     pub fn new(device: &wgpu::Device, cap_v: u32, cap_i: u32) -> Self {
         let vbo = device.create_buffer(&wgpu::BufferDescriptor { label: Some("arena.vbo"),
             size: cap_v as u64 * std::mem::size_of::<RenderVertex>() as u64,
-            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST |
+                wgpu::BufferUsages::COPY_SRC,
             mapped_at_creation: false });
         let vids = device.create_buffer(&wgpu::BufferDescriptor { label: Some("arena.vids"),
-            size: cap_v as u64 * 4, usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC,
+            size: cap_v as u64 * 4,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST |
+                wgpu::BufferUsages::COPY_SRC,
             mapped_at_creation: false });
         let ibo = device.create_buffer(&wgpu::BufferDescriptor { label: Some("arena.ibo"),
-            size: cap_i as u64 * 4, usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC,
+            size: cap_i as u64 * 4,
+            usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST |
+                wgpu::BufferUsages::COPY_SRC,
             mapped_at_creation: false });
         Self { vbo, vids, ibo, cap_v, cap_i, cursor_v: 0, cursor_i: 0,
                 free_v: Vec::new(), free_i: Vec::new(), slots: HashMap::new() }
@@ -90,30 +97,38 @@ impl GpuArena {
 Add to `impl GpuArena`:
 
 ```rust
-    /// Place one object's mesh data; records and returns its slot. `local_idx` are 0-based into this
-    /// object's own vertices — rebased onto the arena vertex start here, so the ibo is arena-global.
+    /// Place one object's mesh data; records and returns its slot. `local_idx` are 0-based into
+    /// this object's own vertices — rebased onto the arena vertex start here, so the ibo is
+    /// arena-global.
     pub fn allocate(&mut self, guid: &str, verts: &[RenderVertex], row: u32, local_idx: &[u32],
                     device: &wgpu::Device, queue: &wgpu::Queue) -> ArenaSlot {
         let v = self.alloc_v(verts.len() as u32, device, queue);
         let i = self.alloc_i(local_idx.len() as u32, device, queue);
-        queue.write_buffer(&self.vbo, v.start as u64 * std::mem::size_of::<RenderVertex>() as u64, bytemuck::cast_slice(verts));
-        let vids: Vec<u32> = vec![row; verts.len()];                      // every vertex tags its instance row (30)
+        queue.write_buffer(&self.vbo,
+            v.start as u64 * std::mem::size_of::<RenderVertex>() as u64,
+            bytemuck::cast_slice(verts));
+        // every vertex tags its instance row (30)
+        let vids: Vec<u32> = vec![row; verts.len()];
         queue.write_buffer(&self.vids, v.start as u64 * 4, bytemuck::cast_slice(&vids));
-        let global: Vec<u32> = local_idx.iter().map(|ix| ix + v.start).collect();   // 0-based → arena-global
+        // 0-based → arena-global
+        let global: Vec<u32> = local_idx.iter().map(|ix| ix + v.start).collect();
         queue.write_buffer(&self.ibo, i.start as u64 * 4, bytemuck::cast_slice(&global));
         let slot = ArenaSlot { vertex_range: v, index_range: i };
         self.slots.insert(guid.to_string(), slot.clone());
         slot
     }
 
-    /// Reclaim an object's ranges for reuse. The buffers keep the stale bytes, but nothing draws them:
-    /// the freed index range is overwritten with a degenerate triangle so it renders zero area.
+    /// Reclaim an object's ranges for reuse. The buffers keep the stale bytes, but nothing draws
+    /// them: the freed index range is overwritten with a degenerate triangle so it renders zero
+    /// area.
     pub fn free(&mut self, guid: &str, queue: &wgpu::Queue) -> Option<ArenaSlot> {
         let slot = self.slots.remove(guid)?;
-        // Repeat a VALID vertex index (this object's own first vertex) — three identical indices → zero
-        // area. NOT index_range.start: that's an ibo offset and could point past the vbo's vertex count.
+        // Repeat a VALID vertex index (this object's own first vertex) — three identical indices
+        // → zero area. NOT index_range.start: that's an ibo offset and could point past the vbo's
+        // vertex count.
         let dead = vec![slot.vertex_range.start; slot.index_range.len()];
-        queue.write_buffer(&self.ibo, slot.index_range.start as u64 * 4, bytemuck::cast_slice(&dead));
+        queue.write_buffer(&self.ibo, slot.index_range.start as u64 * 4,
+            bytemuck::cast_slice(&dead));
         self.free_v.push(slot.vertex_range.clone());
         self.free_i.push(slot.index_range.clone());
         Some(slot)
@@ -130,7 +145,8 @@ Add to `impl GpuArena`:
 
 ```rust
     fn alloc_v(&mut self, n: u32, device: &wgpu::Device, queue: &wgpu::Queue) -> Range<u32> {
-        if let Some(k) = self.free_v.iter().position(|r| r.len() as u32 >= n) {   // first free range that fits
+        // first free range that fits
+        if let Some(k) = self.free_v.iter().position(|r| r.len() as u32 >= n) {
             let r = self.free_v.remove(k);
             if (r.len() as u32) > n { self.free_v.push((r.start + n)..r.end); }
             return r.start..(r.start + n);
@@ -144,17 +160,23 @@ Add to `impl GpuArena`:
         let mut cap = self.cap_v.max(1) * 2;
         while cap < needed { cap *= 2; }
         let grow = |old: &wgpu::Buffer, elem: u64, used: u32, usage, label| -> wgpu::Buffer {
-            let nb = device.create_buffer(&wgpu::BufferDescriptor { label: Some(label), size: cap as u64 * elem, usage, mapped_at_creation: false });
+            let nb = device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some(label), size: cap as u64 * elem, usage,
+                mapped_at_creation: false });
             let mut enc = device.create_command_encoder(&Default::default());
             enc.copy_buffer_to_buffer(old, 0, &nb, 0, used as u64 * elem);
             queue.submit([enc.finish()]);
             nb
         };
-        let vu = wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::COPY_SRC;
-        self.vbo  = grow(&self.vbo,  std::mem::size_of::<RenderVertex>() as u64, self.cursor_v, vu, "arena.vbo");
+        let vu = wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST |
+            wgpu::BufferUsages::COPY_SRC;
+        self.vbo  = grow(&self.vbo,  std::mem::size_of::<RenderVertex>() as u64,
+            self.cursor_v, vu, "arena.vbo");
         self.vids = grow(&self.vids, 4, self.cursor_v, vu, "arena.vids");
-        self.cap_v = cap;   // the draw sets its vertex buffers from self.arena.vbo/.vids each frame
-    }                       // (they're not in a bind group), so it picks up the grown buffer automatically
+        // the draw sets its vertex buffers from self.arena.vbo/.vids each frame
+        // (they're not in a bind group), so it picks up the grown buffer automatically
+        self.cap_v = cap;
+    }
     // grow_i mirrors grow_v for the single ibo (INDEX|COPY_DST|COPY_SRC).
 ```
 
@@ -165,7 +187,7 @@ the CPU-side vec, plus **drain-and-shift** on delete, is simpler and is what the
 `Gpu`:
 
 ```rust
-    arena: GpuArena,                                                   // ← replaces 30's arena_vbo/vids/ibo
+    arena: GpuArena,                  // ← replaces 30's arena_vbo/vids/ibo
     guid_to_seg: std::collections::HashMap<String, std::ops::Range<usize>>,
     guid_to_glyph: std::collections::HashMap<String, std::ops::Range<usize>>,
     segments: Vec<CylinderSegment>,   // keep the CPU mirror (was upload-only) so we can splice it
@@ -195,7 +217,8 @@ range down. Both re-upload the (dense) segment buffer once:
             self.segment_count = self.segments.len() as u32;
         }
     }
-    // append_glyphs / remove_glyphs are identical over guid_to_glyph / glyphs / glyph_buffer / glyph_count.
+    // append_glyphs / remove_glyphs are identical over guid_to_glyph / glyphs / glyph_buffer /
+    // glyph_count.
 ```
 
 > **One growth pattern, four buffers.** The arena's `grow_v`/`grow_i` — allocate a 2x buffer,
@@ -237,7 +260,8 @@ Ch 37: frustum cull — per-object FLAG_CULLED, one draw preserved.
 Ch 38a: PER-OBJECT ARENA. GpuArena (engine/gpu/arena.rs) replaces 30's flat arena: guid →
         ArenaSlot{vertex_range, index_range}; bump-fill, first-fit reuse of freed ranges, grow 2x
         (copy old → new, swap handle). free() stamps the index range with a degenerate triangle
-        (repeat the object's OWN first vertex index — an ibo offset would read past the vbo) so holes
+        (repeat the object's OWN first vertex index — an ibo offset would read past the vbo)
+        so holes
         draw nothing and neighbours are never re-uploaded. Segments/glyphs: guid→Range + drain-shift
         (small dense tables; archive's split). Gpu::new fills per object instead of wholesale.
         Zero visual change — addressability is the product.

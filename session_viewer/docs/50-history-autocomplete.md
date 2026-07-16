@@ -60,7 +60,8 @@ before the walk began:
 ///   stash: String                — the fresh line saved when ↑ starts, restored past the end
 
 pub fn cli_panel(ctx: &egui::Context, input: &mut String, hist_cursor: &mut Option<usize>,
-                 stash: &mut String, history: &[String], log: &str, prompt: &str) -> Option<String> {
+                 stash: &mut String, history: &[String], log: &str,
+                 prompt: &str) -> Option<String> {
     let mut submitted = None;
     egui::TopBottomPanel::bottom("cli").show(ctx, |ui| {
         if !log.is_empty() { ui.label(log); }
@@ -81,8 +82,12 @@ pub fn cli_panel(ctx: &egui::Context, input: &mut String, hist_cursor: &mut Opti
         }
         if down {
             match *hist_cursor {
-                Some(i) if i + 1 < history.len() => { *hist_cursor = Some(i + 1); *input = history[i + 1].clone(); }
-                Some(_) => { *hist_cursor = None; *input = std::mem::take(stash); }   // past the end → fresh line
+                Some(i) if i + 1 < history.len() => {
+                    *hist_cursor = Some(i + 1);
+                    *input = history[i + 1].clone();
+                }
+                // past the end → fresh line
+                Some(_) => { *hist_cursor = None; *input = std::mem::take(stash); }
                 None => {}
             }
         }
@@ -92,7 +97,9 @@ pub fn cli_panel(ctx: &egui::Context, input: &mut String, hist_cursor: &mut Opti
                 .filter(|v| v.starts_with(input.as_str())).collect();
             match hits.len() {
                 1 => { *input = hits[0].to_string(); input.push(' '); }
-                n if n > 1 => { /* show candidates in the log line via return channel, or ui.label */ }
+                n if n > 1 => {
+                    /* show candidates in the log line via return channel, or ui.label */
+                }
                 _ => {}
             }
         }

@@ -34,8 +34,9 @@ The kernel does the hard part — `NurbsSurface::mesh()` returns a `Mesh` with *
 ```rust
     pub tess_cache: std::collections::HashMap<String, Mesh>,   // ← ADD to Scene (init empty)
 
-    /// The cached render mesh for a surface — tessellated on FIRST use, then reused for every
-    /// rebuild, pick, and box until the SHAPE changes (edit lessons invalidate; transforms must not).
+    /// The cached render mesh for a surface — tessellated on FIRST use, then reused
+    /// for every rebuild, pick, and box until the SHAPE changes (edit lessons
+    /// invalidate; transforms must not).
     fn surface_mesh(&mut self, guid: &str) -> Option<&Mesh> {
         if !self.tess_cache.contains_key(guid) {
             let ns = self.session.objects.nurbssurfaces.iter().find(|s| s.guid() == guid)?;

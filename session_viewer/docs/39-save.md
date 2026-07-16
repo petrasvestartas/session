@@ -44,9 +44,12 @@ already built for reconcile, now run in reverse.
 ## Files we touch
 
 ```
-Cargo.toml               # web-sys: Blob, BlobPropertyBag, Url, HtmlAnchorElement (the download path)
-src/app/persistence.rs   # save half: session_to_bytes (pb_dumps) + download_bytes (Blob → <a download>)
-src/app/scene.rs         # dirty: HashSet<guid>; mark_dirty; save_if_changed → Option<Vec<u8>> (hash gate)
+# web-sys: Blob, BlobPropertyBag, Url, HtmlAnchorElement (the download path)
+Cargo.toml
+# save half: session_to_bytes (pb_dumps) + download_bytes (Blob → <a download>)
+src/app/persistence.rs
+# dirty: HashSet<guid>; mark_dirty; save_if_changed → Option<Vec<u8>> (hash gate)
+src/app/scene.rs
 src/state.rs             # frame-count debounce + Ctrl+S; fire the download when edits settle
 ```
 
@@ -58,9 +61,9 @@ round-trips — just the dump side. Add next to the load functions:
 ```rust
 use session_rust::Session;
 
-/// `.pb` → prost bytes, `.json` → serde string-as-bytes; dispatched on the target filename's extension.
-/// Both dumpers already exist on `Session` (every minitest round-trips them); here we feed the bytes to
-/// a browser download instead of `std::fs`.
+/// `.pb` → prost bytes, `.json` → serde string-as-bytes; dispatched on the target
+/// filename's extension. Both dumpers already exist on `Session` (every minitest
+/// round-trips them); here we feed the bytes to a browser download instead of `std::fs`.
 pub fn session_to_bytes(filename: &str, session: &Session) -> Vec<u8> {
     if filename.ends_with(".json") {
         session.file_json_dumps().into_bytes()
@@ -121,20 +124,24 @@ only *really* changed if its current hash differs from the stored one. Add a dir
 
 ```rust
     // add to Scene:
-    pub dirty: std::collections::HashSet<String>,   // guids touched since the last save (editing lessons fill this)
+    // guids touched since the last save (editing lessons fill this)
+    pub dirty: std::collections::HashSet<String>,
 
     pub fn mark_dirty(&mut self, guid: &str) { self.dirty.insert(guid.to_string()); }
 
-    /// Bytes to write, or None if nothing actually changed. Re-hashes each dirty object against its
-    /// stored fingerprint: a nudge that got reverted hashes back to the same value → not a real change.
-    /// On a real change, refreshes `hashes` so the NEXT save's gate starts clean, and clears `dirty`.
+    /// Bytes to write, or None if nothing actually changed. Re-hashes each dirty
+    /// object against its stored fingerprint: a nudge that got reverted hashes back
+    /// to the same value → not a real change. On a real change, refreshes `hashes`
+    /// so the NEXT save's gate starts clean, and clears `dirty`.
     pub fn save_if_changed(&mut self, filename: &str) -> Option<Vec<u8>> {
         let real: Vec<String> = self.dirty.iter()
             .filter(|g| self.session.lookup.get(*g)
-                .map_or(true, |geom| self.hashes.get(*g) != Some(&content_hash(geom))))  // removed or hash≠
+                // removed or hash≠
+                .map_or(true, |geom| self.hashes.get(*g) != Some(&content_hash(geom))))
             .cloned().collect();
         self.dirty.clear();
-        if real.is_empty() { return None; }                       // debounce fired, but nothing truly moved
+        // debounce fired, but nothing truly moved
+        if real.is_empty() { return None; }
 
         for g in &real {
             match self.session.lookup.get(g) {
@@ -157,7 +164,8 @@ then runs the gate:
     const SAVE_DEBOUNCE_FRAMES: u64 = 60;   // ~1 s at 60 fps
     const SAVE_FILENAME: &str = "session.pb";
 
-    /// Editing code calls this on every mutation (gumball drag, delete, …). Cheap: just stamps a frame.
+    /// Editing code calls this on every mutation (gumball drag, delete, …).
+    /// Cheap: just stamps a frame.
     pub fn touch(&mut self, guid: &str) {
         self.scene.mark_dirty(guid);
         self.dirty_since = Some(self.frame);
@@ -214,15 +222,16 @@ returns `None` again (the first refreshed `hashes`).
 
 ```
 Ch 38: reconcile — read a file in, diff by guid, touch only what changed.
-Ch 39: SAVE — write a file out, THREE gates before one pb_dumps. (1) dirty: a HashSet<guid> editing code
-       fills via touch(); (2) debounce: a frame counter (edit stamps dirty_since; save fires only after
-       SAVE_DEBOUNCE_FRAMES of quiet — coalesces a burst into one save, no JS timer); (3) hash gate:
-       save_if_changed re-hashes each dirty object against 38's stored fingerprint and drops the ones that
-       reverted to their old value — nothing truly changed → Option::None → ZERO writes. Past all three,
-       session_to_bytes (pb_dumps / file_json_dumps, the dump side of 34) → download_bytes wraps the Vec<u8>
-       in a Blob and clicks a synthetic <a download> (wasm has no fs; new ground vs web-sys, like 34's
-       fetch). hashes refreshes on a real save so the next gate starts clean. New objects already carry a
-       lazily-minted guid, so pb_dumps just works.
+Ch 39: SAVE — write a file out, THREE gates before one pb_dumps. (1) dirty: a HashSet<guid>
+       editing code fills via touch(); (2) debounce: a frame counter (edit stamps dirty_since;
+       save fires only after SAVE_DEBOUNCE_FRAMES of quiet — coalesces a burst into one save,
+       no JS timer); (3) hash gate: save_if_changed re-hashes each dirty object against 38's
+       stored fingerprint and drops the ones that reverted to their old value — nothing truly
+       changed → Option::None → ZERO writes. Past all three, session_to_bytes (pb_dumps /
+       file_json_dumps, the dump side of 34) → download_bytes wraps the Vec<u8> in a Blob and
+       clicks a synthetic <a download> (wasm has no fs; new ground vs web-sys, like 34's
+       fetch). hashes refreshes on a real save so the next gate starts clean. New objects
+       already carry a lazily-minted guid, so pb_dumps just works.
 ```
 
 Edited: `Cargo.toml` (web-sys `Blob`/`Url`/`HtmlAnchorElement`), `app/persistence.rs` (`session_to_bytes`,

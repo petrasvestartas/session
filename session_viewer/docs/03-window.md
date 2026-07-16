@@ -44,8 +44,10 @@ Minimal code to open a browser window and clear it grey.
 ```rust
 pub struct Gpu {
     pub surface: wgpu::Surface<'static>,     // Screen to draw pixels on.
-    pub device: wgpu::Device,                // Handle to the GPU, used to create resources (textures, buffers, pipelines).
-    pub queue: wgpu::Queue,                  // Used to submit work to the GPU (draw calls, resource updates).
+    // Handle to the GPU, used to create resources (textures, buffers, pipelines).
+    pub device: wgpu::Device,
+    // Used to submit work to the GPU (draw calls, resource updates).
+    pub queue: wgpu::Queue,
     pub config: wgpu::SurfaceConfiguration,  // Settings for Surface: size, pixel format
 }
 ```
@@ -113,7 +115,8 @@ surface.configure(&device, &config);
 
 Log the result and construct the struct:
 ```rust
-log::info!("viewer init OK — surface {}x{}, format {:?}", config.width, config.height, config.format);
+log::info!("viewer init OK — surface {}x{}, format {:?}",
+           config.width, config.height, config.format);
 Ok(Self { surface, device, queue, config })
 ```
 
@@ -290,7 +293,8 @@ Three callbacks:
 impl ApplicationHandler<State> for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {...}
     fn user_event(&mut self, _event_loop: &ActiveEventLoop, mut state: State) {...}
-    fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {...}
+    fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId,
+                    event: WindowEvent) {...}
 }
 ```
 

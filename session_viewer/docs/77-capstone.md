@@ -84,11 +84,13 @@ Phase 4    (29–35): ONE DRAW per class — instancing, arena, cylinder lines, 
                     relative f64→f32; real files; Scene owns the document, Gpu owns the device.
 Phase 5    (36–37): BVH + frustum cull — flags, not draw calls.
 Phase 6    (38–40): the file is ALIVE — per-object arena, diff by content hash, save gates, watch.
-Phase 7    (41–46): pick everything — ray, meshes, sub-objects, thin geometry, selection, visibility.
+Phase 7    (41–46): pick everything — ray, meshes, sub-objects, thin geometry, selection,
+                    visibility.
 Phase 8    (47–51): the interface — egui, THE command bus, options, history, trait-Command undo.
 Phase 9    (52–59): transform & draw — gumball (defer/live/commit), tools as commands, ghosts, snap.
 Phase 10   (60–64): curves & surfaces — sample, tessellate-once, real edges, trims; all_objects().
-Phase 11   (65–69): the arctic look, engineered — analytic ground, render-on-demand, GTAO+GI, outline.
+Phase 11   (65–69): the arctic look, engineered — analytic ground, render-on-demand, GTAO+GI,
+                    outline.
 Phase 12   (70–72): the document visible — virtualized tree, two-way sync, labels.
 Phase 13   (73–76): editing the insides — CVs (4-d!), Greville refit, work plane, perf headroom.
 Capstone   (77):    the loop, twice, green.

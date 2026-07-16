@@ -114,7 +114,8 @@ pub fn build_triangle_pipeline(
 ```rust
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{
         label: Some("triangle.layout"),
-        bind_group_layouts: &[Some(aspect_layout), Some(time_layout)],  // was &[Some(aspect_layout)]
+        // was &[Some(aspect_layout)]
+        bind_group_layouts: &[Some(aspect_layout), Some(time_layout)],
         immediate_size: 0,
     });
 ```
@@ -176,21 +177,25 @@ layout this time (where `time` is read), and a bind group:
             entries: &[wgpu::BindGroupLayoutEntry{
                 binding: 0,
                 visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform, has_dynamic_offset: false, min_binding_size: None },
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false, min_binding_size: None },
                 count: None,
             }],
         });
         let time_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor{
             label: Some("time.bind_group"),
             layout: &time_layout,
-            entries: &[wgpu::BindGroupEntry{ binding: 0, resource: time_buffer.as_entire_binding() }],
+            entries: &[wgpu::BindGroupEntry{
+                binding: 0, resource: time_buffer.as_entire_binding() }],
         });
 ```
 
 Pass the new layout to the pipelines, and add the three fields to the returned struct:
 
 ```rust
-        let pipelines = Pipelines::new(&device, config.format, &aspect_layout, &time_layout);  // + &time_layout
+        // + &time_layout
+        let pipelines = Pipelines::new(&device, config.format, &aspect_layout, &time_layout);
         // …TRIANGLE / vertex_buffer / num_vertices unchanged…
         Ok(Self { surface, device, queue, config, pipelines,
                   aspect_buffer, aspect_bind_group, vertex_buffer, num_vertices,

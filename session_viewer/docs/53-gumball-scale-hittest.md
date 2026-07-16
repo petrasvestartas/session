@@ -26,7 +26,8 @@
 
 ```
 src/engine/gumball.rs   # SCREEN_PX + hit_test(ray, geom) → nearest HandleKind
-src/state.rs            # per-frame scale from VIEW-SPACE Z; gumball hit BEFORE pick; hover highlight
+# per-frame scale from VIEW-SPACE Z; gumball hit BEFORE pick; hover highlight
+src/state.rs
 ```
 
 ## Step 1 — the scale factor, from view-space Z: `src/state.rs`
@@ -50,7 +51,8 @@ pub const SCREEN_PX: f32 = 140.0;   // add to gumball.rs — desired on-screen s
         let world_per_px = if self.camera.is_ortho() {
             (self.camera.ortho_h() as f32) / vp_h
         } else {
-            depth / (self.camera.proj_y() as f32 * vp_h)           // same formula as 44 / cylinder.wgsl
+            // same formula as 44 / cylinder.wgsl
+            depth / (self.camera.proj_y() as f32 * vp_h)
         };
         SCREEN_PX * world_per_px / crate::engine::gumball::ARC_RADIUS
     }
@@ -75,10 +77,12 @@ segments — nearest within tolerance wins, with a priority order for the overla
 /// Distance-based handle pick. `tol` in world units (44's world_per_pixel × ~20 px — handles are
 /// small, be generous). Priority on near-ties: ScaleUniform > axis scales > arrows > arcs
 /// (the center sphere overlaps everything; a tie must not steal it).
-pub fn hit_test(geom: &GumballGeom, ray: &crate::engine::pick::Ray, tol: f64) -> Option<HandleKind> {
+pub fn hit_test(geom: &GumballGeom, ray: &crate::engine::pick::Ray,
+                tol: f64) -> Option<HandleKind> {
     let mut best: Option<(HandleKind, f64)> = None;
     let mut consider = |kind: HandleKind, d: f64| {
-        if d <= tol && best.map_or(true, |(bk, bd)| d < bd - 1e-9 || (d < bd + 1e-9 && rank(kind) < rank(bk))) {
+        if d <= tol && best.map_or(true,
+            |(bk, bd)| d < bd - 1e-9 || (d < bd + 1e-9 && rank(kind) < rank(bk))) {
             best = Some((kind, d));
         }
     };
@@ -155,7 +159,8 @@ Ch 53: USABLE. Scale = SCREEN_PX(140) · world_per_px(depth) / ARC_RADIUS with d
        archive's documented bug; recompute after selection changes AND on camera motion (wrong-size
        first frame otherwise). hit_test: ray↔segment / ray↔point distance over the tagged rows,
        tol ≈ 20 px in world units, near-ties broken by rank (ScaleUniform > axis scales > arrows >
-       arcs — the center overlaps everything). Input order is now: egui → Get-loop → GUMBALL → scene;
+       arcs — the center overlaps everything). Input order is now: egui → Get-loop → GUMBALL →
+       scene;
        a grabbed handle never leaks a click to selection. Hover = same test, tint the hot handle.
 ```
 

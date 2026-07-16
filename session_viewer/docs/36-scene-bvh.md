@@ -67,7 +67,8 @@ from the same placement the instance row uses, then feeds those boxes to the ker
 ## Files we touch
 
 ```
-src/app/scene.rs   # Scene gains `bvh: SpatialBVH`; world_obb() per object; objects_in(query) → guids; #[cfg(test)] parity
+src/app/scene.rs   # Scene gains `bvh: SpatialBVH`; world_obb() per object;
+                   # objects_in(query) → guids; #[cfg(test)] parity
 ```
 
 Just `scene.rs` — the BVH is document state, so it lives beside `session`/`order`/`guid_to_row`, and
@@ -85,16 +86,19 @@ Add a free function next to 35's converters — the kernel's own transform idiom
 `xform`, then `transformed()` bakes it), so the mesh box lands where the instance row draws it:
 
 ```rust
-/// The object's WORLD box. Mesh/BRep verts are LOCAL (to_render ignores xform, 33-35), so build the
-/// local box and BAKE the placement — exactly the transform the instance model applies. Line, Polyline
-/// and Point already hold world coordinates (identity model in objects_base), so their box is direct.
+/// The object's WORLD box. Mesh/BRep verts are LOCAL (to_render ignores xform, 33-35), so build
+/// the local box and BAKE the placement — exactly the transform the instance model applies.
+/// Line, Polyline and Point already hold world coordinates (identity model in objects_base), so
+/// their box is direct.
 fn world_obb(geom: &Geometry) -> OBB {
-    const PAD: f64 = 1e-6;   // planar meshes give a zero-thickness box; a hair of pad keeps intersects robust
+    // planar meshes give a zero-thickness box; a hair of pad keeps intersects robust
+    const PAD: f64 = 1e-6;
     match geom {
         Geometry::Mesh(m) => {
             let mut o = OBB::from_aabb(AABB::from_mesh(m, PAD));
             o.xform = m.xform.duplicate();     // the placement 33's rebuild_instances also uses
-            o.transformed()                    // bake xform → world (may tilt the box; query collapses to its AABB)
+            // bake xform → world (may tilt the box; query collapses to its AABB)
+            o.transformed()
         }
         Geometry::BRep(b) => {
             let bm = b.mesh();
@@ -105,7 +109,8 @@ fn world_obb(geom: &Geometry) -> OBB {
         Geometry::Line(l) => OBB::from_line(l, PAD),
         Geometry::Polyline(pl) => OBB::from_polyline(pl, PAD),
         Geometry::Point(p) => OBB::from_point(p.clone(), PAD),
-        _ => OBB::from_point(Point::new(0.0, 0.0, 0.0), PAD),   // unreachable: `order` is pre-filtered to the 5 above
+        // unreachable: `order` is pre-filtered to the 5 above
+        _ => OBB::from_point(Point::new(0.0, 0.0, 0.0), PAD),
     }
 }
 ```
@@ -139,8 +144,9 @@ initializer:
         Self { session, order, guid_to_row, hidden: HashSet::new(), bvh }
     }
 
-    /// Rebuild the whole tree from `order`. Called once at construction; a later lesson (38) refits
-    /// incrementally on edit instead of rebuilding. Boxes go in `order` order → object_id == order index.
+    /// Rebuild the whole tree from `order`. Called once at construction; a later lesson (38)
+    /// refits incrementally on edit instead of rebuilding. Boxes go in `order` order →
+    /// object_id == order index.
     fn build_bvh(session: &Session, order: &[String]) -> SpatialBVH {
         let boxes: Vec<(OBB, String)> = order.iter()
             .map(|guid| (world_obb(&session.lookup[guid]), guid.clone()))
@@ -162,7 +168,8 @@ pass:
     pub fn objects_in(&self, query: &OBB) -> Vec<&str> {
         self.bvh.query_aabb(query)
             .into_iter()
-            .map(|id| self.order[id].as_str())   // object_id → guid, via the slice we built in Step 2
+            // object_id → guid, via the slice we built in Step 2
+            .map(|id| self.order[id].as_str())
             .collect()
     }
 ```
@@ -179,8 +186,8 @@ mod tests {
 
     #[test]
     fn bvh_matches_brute_force() {
-        // A few objects at known, separated positions — build with whatever Session test helper your
-        // kernel bindings expose (insert a couple of Lines + a Mesh at distinct places).
+        // A few objects at known, separated positions — build with whatever Session test helper
+        // your kernel bindings expose (insert a couple of Lines + a Mesh at distinct places).
         let scene = Scene::new(demo_session());
         let query = OBB::from_aabb(AABB::new(0.0, 0.0, 0.0, 500.0, 500.0, 500.0));
 
@@ -203,7 +210,8 @@ agree on every object, at any scene size. Once green, every downstream query tru
 ## Run
 
 ```bash
-cd session_viewer && trunk serve   # http://localhost:8770 — visuals UNCHANGED (nothing draws the BVH yet)
+# http://localhost:8770 — visuals UNCHANGED (nothing draws the BVH yet)
+cd session_viewer && trunk serve
 cargo test -p session_viewer bvh   # the parity test above
 ```
 
@@ -221,8 +229,8 @@ Ch 36: Scene gains ONE broad-phase — the kernel's SpatialBVH (reused, not rewr
        world. build_bvh feeds those boxes to build_with_guids in `order` order, so a query's
        object_id maps straight back to order[id] → guid. objects_in(OBB) → guids is the one call
        picking (42, ray sliver) and box-select (45, marquee) narrow from; 37's frustum cull stays a
-       linear scan and doesn't need it. A #[cfg(test)] proves the tree's set equals brute force. Zero
-       visual change — infrastructure for the lessons that query it.
+       linear scan and doesn't need it. A #[cfg(test)] proves the tree's set equals brute force.
+       Zero visual change — infrastructure for the lessons that query it.
 ```
 
 Edited: `app/scene.rs` (`world_obb()` world-box-per-object, `bvh: SpatialBVH` field,

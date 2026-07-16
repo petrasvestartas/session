@@ -25,7 +25,8 @@
 ## Files we touch
 
 ```
-src/engine/gpu/mod.rs      # preview table: set_preview(segments) / clear_preview — gumball's pattern
+# preview table: set_preview(segments) / clear_preview — gumball's pattern
+src/engine/gpu/mod.rs
 src/app/getloop.rs         # ActiveCommand gains on_move (default no-op)
 src/state.rs               # cursor moves feed on_move while a command runs; Enter routes as ""
 src/app/tools/polyline.rs  # NEW — N clicks, Enter finishes
@@ -41,7 +42,8 @@ needed, ghosts draw in the main cylinder pass, just from their own small buffer:
 ```rust
     // fields (mirror gb_segments): preview_segments buffer + count, fixed small capacity
     /// Replace the ghost. Called every mouse-move while a tool previews — a few hundred bytes.
-    pub fn set_preview(&mut self, segs: &[CylinderSegment]) { /* write buffer + count, grow like 38a */ }
+    pub fn set_preview(&mut self, segs: &[CylinderSegment]) {
+        /* write buffer + count, grow like 38a */ }
     pub fn clear_preview(&mut self) { self.preview_count = 0; }
 ```
 
@@ -65,7 +67,8 @@ compute the world point exactly like a Get-loop click (pick-or-z=0, 48) and forw
 
 ```rust
         if self.active.is_some() {
-            if let Some(p) = self.cursor_world_point() {           // the 48 click resolver, factored
+            // the 48 click resolver, factored
+            if let Some(p) = self.cursor_world_point() {
                 if let Some(mut cmd) = self.active.take() {
                     cmd.on_move(self, p);
                     self.active = Some(cmd);
@@ -114,14 +117,16 @@ impl ActiveCommand for PolylineTool {
         self.ask()
     }
     fn on_move(&mut self, state: &mut crate::state::State, p: Point) {
-        if !self.points.is_empty() { self.ghost(state, Some(&p)); }   // committed points + rubber tail
+        // committed points + rubber tail
+        if !self.points.is_empty() { self.ghost(state, Some(&p)); }
     }
     fn feed_text(&mut self, state: &mut crate::state::State, s: &str) -> CmdStep {
         if s.trim().is_empty() {                                      // Enter = finish
             state.gpu.clear_preview();
             if self.points.len() < 2 { return CmdStep::Cancel; }
             let pl = Polyline::new(std::mem::take(&mut self.points));
-            state.commit(Box::new(crate::app::history::add::AddGeometry::one(Geometry::Polyline(pl))));
+            state.commit(Box::new(
+                crate::app::history::add::AddGeometry::one(Geometry::Polyline(pl))));
             return CmdStep::Done("polyline added".into());
         }
         let n: Vec<f64> = s.split(',').filter_map(|t| t.trim().parse().ok()).collect();
@@ -155,7 +160,8 @@ prompt for the height — typed or clicked — and emits a placed `Mesh::create_
 
     // box finish (same corners + height h from prompt 3):
     let mut m = Mesh::create_box(x1 - x0, y1 - y0, h);
-    m.xform = Xform::translation((x0 + x1) * 0.5, (y0 + y1) * 0.5, h * 0.5);   // create_box is centered
+    // create_box is centered
+    m.xform = Xform::translation((x0 + x1) * 0.5, (y0 + y1) * 0.5, h * 0.5);
     // → AddGeometry::one(Geometry::Mesh(m))
 ```
 

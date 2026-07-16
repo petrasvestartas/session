@@ -53,7 +53,8 @@ pub struct Row {
 /// Walk session.tree depth-first, descending only into expanded branches. 42k objects with
 /// everything collapsed = a handful of rows; fully expanded = a big Vec, but show_rows still
 /// renders ~40 of them. Names: node name if set, else a short type tag + guid prefix.
-pub fn flatten(scene: &Scene, expanded: &HashSet<String>) -> Vec<Row> { /* DFS over session.tree */ }
+pub fn flatten(scene: &Scene,
+               expanded: &HashSet<String>) -> Vec<Row> { /* DFS over session.tree */ }
 ```
 
 (`session.tree` is the kernel's `Tree`/`TreeNode` (Rc<RefCell<…>>) — the same structure
@@ -78,7 +79,9 @@ pub fn tree_panel(ui: &mut egui::Ui, rows: &[Row], scene_sel: &HashSet<String>,
                 }
                 if row.is_branch {
                     let arrow = if row.expanded { "▾" } else { "▸" };
-                    if ui.selectable_label(false, arrow).clicked() { out.expand_toggled.push(row.guid.clone()); }
+                    if ui.selectable_label(false, arrow).clicked() {
+                        out.expand_toggled.push(row.guid.clone());
+                    }
                 }
                 let selected = scene_sel.contains(&row.guid);
                 if ui.selectable_label(selected, &row.name).clicked() {
@@ -104,13 +107,17 @@ drains it after, through the **existing** verbs — no second authority:
         for g in intent.toggled {
             if !self.scene.hidden.remove(&g) { self.scene.hidden.insert(g); }
         }
-        if !intent.toggled_is_empty { self.scene.apply_visibility(&mut self.gpu); self.poke(); }   // 46
+        // 46
+        if !intent.toggled_is_empty { self.scene.apply_visibility(&mut self.gpu); self.poke(); }
 
         for (g, shift) in intent.clicked {
-            if shift { /* toggle in scene.selected */ } else { self.scene.selected.clear(); self.scene.selected.insert(g); }
+            if shift { /* toggle in scene.selected */ }
+            else { self.scene.selected.clear(); self.scene.selected.insert(g); }
         }
-        self.scene.apply_selection(&mut self.gpu);                                                 // 45
-        self.refresh_gumball();                                                                    // 52
+        // 45
+        self.scene.apply_selection(&mut self.gpu);
+        // 52
+        self.refresh_gumball();
         for g in intent.expand_toggled { /* toggle in self.ui.tree_expanded */ }
 ```
 
@@ -142,9 +149,9 @@ Ch 70: THE TREE. Flatten session.tree depth-first through an `expanded` set → 
        ScrollArea::show_rows instantiates ONLY the on-screen slice (immediate-mode virtualization —
        nested CollapsingHeaders would rebuild 42k rows/frame). Rows: eye BEFORE name (truncation
        order), ▸/▾ for branches, white-bg/black-text selection (the archive's unreadable-row
-       regression, pre-fixed). The panel COLLECTS TreeIntent; State drains it through 46's visibility
+       regression, pre-fixed). Panel COLLECTS TreeIntent; State drains it through 46's visibility
        and 45's selection verbs — one authority, no drift; branch-eye resolves descendants as a set.
-       Nurbs collections join as top-level rows (every-map, UI edition). Deletes/undo just work — the
+       Nurbs collections join as top-level rows (every-map, UI edition). Deletes/undo work — the
        panel renders the tree the Commands already maintain.
 ```
 

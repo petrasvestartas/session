@@ -43,7 +43,8 @@ the directional cue that reads as real GI:
 ```wgsl
     let bent = decode_bent(ao_tex_sample.gba);                 // 67's encoding
     let sky = clamp(dot(bent, vec3<f32>(0.0, 0.0, 1.0)) * 0.5 + 0.5, 0.0, 1.0);
-    let sky_vis = mix(0.72, 1.0, sky * ao);                    // arctic hemisphere floor 0.72 (archive value)
+    // arctic hemisphere floor 0.72 (archive value)
+    let sky_vis = mix(0.72, 1.0, sky * ao);
     var ambient = base_ambient * sky_vis;
 ```
 
@@ -72,7 +73,8 @@ AO is ambient occlusion, but a pinch of it on the **key light** fakes the contac
 would cast — the single cheapest "grounded" cue there is:
 
 ```wgsl
-    let micro = clamp(ao * 1.3 - 0.3, 0.0, 1.0);   // lifted so only strong occlusion shadows the key
+    // lifted so only strong occlusion shadows the key
+    let micro = clamp(ao * 1.3 - 0.3, 0.0, 1.0);
     let key = key_light_term * micro;
 ```
 

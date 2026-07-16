@@ -51,7 +51,8 @@ not built here:
 ## Files we touch
 
 ```
-src/app/persistence.rs   # file_hash(bytes) — one fingerprint for the WHOLE file (change + self-write guard)
+src/app/persistence.rs   # file_hash(bytes) — one fingerprint for the WHOLE file
+                         # (change + self-write guard)
 src/state.rs             # poll every N frames; self-write guard; apply_reload factored out of 39/38
 ```
 
@@ -68,9 +69,18 @@ split it:
         let unchanged = self.scene.order.len() - diff.changed.len() - diff.removed.len();
         log::info!("sync: {} added, {} changed, {} removed, {} unchanged",
             diff.added.len(), diff.changed.len(), diff.removed.len(), unchanged);
-        for g in &diff.removed { let row = self.scene.guid_to_row[g]; self.gpu.remove_object(g); self.gpu.hide_row(row); self.scene.free_row(g); }
-        for g in &diff.changed { let row = self.scene.guid_to_row[g]; self.scene.apply_object(&mut self.gpu, g, &new.lookup[g], row); }
-        for g in &diff.added   { let row = self.scene.assign_row(g);   self.scene.apply_object(&mut self.gpu, g, &new.lookup[g], row); }
+        for g in &diff.removed {
+            let row = self.scene.guid_to_row[g];
+            self.gpu.remove_object(g); self.gpu.hide_row(row); self.scene.free_row(g);
+        }
+        for g in &diff.changed {
+            let row = self.scene.guid_to_row[g];
+            self.scene.apply_object(&mut self.gpu, g, &new.lookup[g], row);
+        }
+        for g in &diff.added {
+            let row = self.scene.assign_row(g);
+            self.scene.apply_object(&mut self.gpu, g, &new.lookup[g], row);
+        }
         self.scene.commit(new);
     }
 ```
@@ -106,18 +116,22 @@ compare. `last_file_hash` remembers what we last *saw*; `self_write_hash` rememb
         if self.frame % WATCH_POLL_FRAMES != 0 { return; }
         let bytes = match crate::app::persistence::fetch_bytes(&self.watch_url).await {
             Ok(b) if !b.is_empty() => b,
-            _ => return,                                   // fetch failed / empty — leave the scene as-is
+            // fetch failed / empty — leave the scene as-is
+            _ => return,
         };
         let h = crate::app::persistence::file_hash(&bytes);
-        if h == self.last_file_hash { return; }            // file byte-identical to last poll → nothing to do
+        // file byte-identical to last poll → nothing to do
+        if h == self.last_file_hash { return; }
         self.last_file_hash = h;
-        if Some(h) == self.self_write_hash {               // ← self-write guard: this is our OWN 39 save
+        // ← self-write guard: this is our OWN 39 save
+        if Some(h) == self.self_write_hash {
             log::info!("watch: ignoring our own write");
             return;
         }
         log::info!("watch: external change detected");
         let new = crate::app::persistence::session_from_bytes(&self.watch_url, &bytes);
-        self.apply_session(new);                           // 38's incremental diff — only what moved
+        // 38's incremental diff — only what moved
+        self.apply_session(new);
     }
 ```
 
@@ -144,9 +158,10 @@ next poll recognizes them as ours:
     // inside render(), once per frame — non-blocking:
     if self.frame % WATCH_POLL_FRAMES == 0 {
         let url = self.watch_url.clone();
-        // In practice route the fetched bytes back through a channel/queue the next frame drains, so the
-        // borrow of `self` stays on the main loop. Sketch: spawn the fetch, push (hash, bytes) to a
-        // Rc<RefCell<Option<..>>>, and let the next render() apply it via apply_session.
+        // In practice route the fetched bytes back through a channel/queue the next frame
+        // drains, so the borrow of `self` stays on the main loop. Sketch: spawn the fetch,
+        // push (hash, bytes) to a Rc<RefCell<Option<..>>>, and let the next render() apply
+        // it via apply_session.
         wasm_bindgen_futures::spawn_local(async move { /* fetch(url) → queue */ let _ = url; });
     }
 ```
@@ -181,16 +196,17 @@ cd session_viewer && trunk serve   # http://localhost:8770 — serving session_d
 
 ```
 Ch 39: save — write the file out, gated by dirty + debounce + hash.
-Ch 40: WATCH — external edits flow back IN, closing the 3-way sync. Browser can't watch a filesystem, so
-       POLL the same URL (34's fetch) every ~1 s and hash the bytes (file_hash over the whole Vec<u8>).
-       Unchanged hash → skip. Changed → session_from_bytes → 38's reconcile → apply_session (the apply
-       half of 38's reload, factored so manual reload and the watcher share it) → only what moved hits
-       the GPU. The SELF-WRITE GUARD (self_write_hash, stamped by 39's save) drops any change whose bytes
-       equal our own last write — that's what stops save→watch→reload→save from looping; keying on the
-       hash (not a bool flag) means a concurrent external edit in the same window still reconciles.
-       Transport upgrades noted, not built: File System Access handle (lastModified, unstable web-sys) and
-       a watcher→WebSocket push; both reuse the same reconcile. Async fetch is kept off the &mut self
-       borrow via a next-frame queue.
+Ch 40: WATCH — external edits flow back IN, closing the 3-way sync. Browser can't watch a
+       filesystem, so POLL the same URL (34's fetch) every ~1 s and hash the bytes (file_hash
+       over the whole Vec<u8>). Unchanged hash → skip. Changed → session_from_bytes → 38's
+       reconcile → apply_session (the apply half of 38's reload, factored so manual reload and
+       the watcher share it) → only what moved hits the GPU. The SELF-WRITE GUARD
+       (self_write_hash, stamped by 39's save) drops any change whose bytes equal our own last
+       write — that's what stops save→watch→reload→save from looping; keying on the hash (not
+       a bool flag) means a concurrent external edit in the same window still reconciles.
+       Transport upgrades noted, not built: File System Access handle (lastModified, unstable
+       web-sys) and a watcher→WebSocket push; both reuse the same reconcile. Async fetch is
+       kept off the &mut self borrow via a next-frame queue.
 ```
 
 Edited: `app/persistence.rs` (`file_hash` — whole-file fingerprint), `state.rs` (`apply_session` factored

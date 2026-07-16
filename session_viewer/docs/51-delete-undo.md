@@ -49,8 +49,9 @@ src/app/scene.rs            # restore_geometry — Geometry → the right Sessio
 ## Step 1 — the pattern: `src/app/history/mod.rs` (NEW)
 
 ```rust
-//! Undo = objects, not variants. Every mutation implements Command; History stores boxes and never
-//! learns what they do. (The archive's UndoAction enum is the documented anti-pattern this replaces.)
+//! Undo = objects, not variants. Every mutation implements Command; History stores boxes and
+//! never learns what they do. (The archive's UndoAction enum is the documented anti-pattern
+//! this replaces.)
 
 use crate::{app::scene::Scene, engine::gpu::Gpu};
 
@@ -123,7 +124,8 @@ impl Command for RemoveObjects {
     fn apply(&mut self, scene: &mut Scene, gpu: &mut Gpu) {
         for geom in &self.snapshots {
             let guid = geom.guid().to_string();
-            scene.session.remove_object(&guid);            // kernel: lookup + collections + tree + graph
+            // kernel: lookup + collections + tree + graph
+            scene.session.remove_object(&guid);
             if let Some(&row) = scene.guid_to_row.get(&guid) {
                 gpu.remove_object(&guid);                  // 38a: arena free + segment/glyph drain
                 gpu.hide_row(row);
@@ -137,8 +139,10 @@ impl Command for RemoveObjects {
         for geom in &self.snapshots {
             let guid = geom.guid().to_string();
             scene.restore_geometry(geom.clone());          // Session::add_* by variant (Step 3)
-            let row = scene.assign_row(&guid);             // recycled or fresh — guid_to_row rebinds
-            scene.apply_object(gpu, &guid, geom, row);     // 38b: re-flatten into arena + instance row
+            // recycled or fresh — guid_to_row rebinds
+            let row = scene.assign_row(&guid);
+            // 38b: re-flatten into arena + instance row
+            scene.apply_object(gpu, &guid, geom, row);
         }
     }
     fn label(&self) -> String { format!("delete {} object(s)", self.snapshots.len()) }
@@ -152,7 +156,8 @@ closes the gap (kernel-gap #8 in `_KERNEL_GAPS.md`: a kernel `add_geometry(Geome
 this function):
 
 ```rust
-    /// Re-insert a snapshot into the Session (lookup + collections + tree). Guid is inside the object.
+    /// Re-insert a snapshot into the Session (lookup + collections + tree).
+    /// Guid is inside the object.
     pub fn restore_geometry(&mut self, geom: Geometry) {
         match geom {
             Geometry::Mesh(m)     => { self.session.add_mesh(m, None); }
@@ -175,8 +180,11 @@ Three new arms (and add `"delete"`, `"undo"`, `"redo"` to `VERBS`; alias `("rm",
 
 ```rust
         "delete" => {
-            if state.scene.selected.is_empty() { return Dispatch::Instant("nothing selected".into()); }
-            let cmd = Box::new(crate::app::history::remove::RemoveObjects::of_selection(&state.scene));
+            if state.scene.selected.is_empty() {
+                return Dispatch::Instant("nothing selected".into());
+            }
+            let cmd = Box::new(
+                crate::app::history::remove::RemoveObjects::of_selection(&state.scene));
             let label = cmd.label();
             state.history.execute(cmd, &mut state.scene, &mut state.gpu);
             Dispatch::Instant(label)
@@ -223,9 +231,9 @@ cd session_viewer && trunk serve   # http://localhost:8770
 Ch 50: history/autocomplete — CLI ergonomics.
 Ch 51: UNDO. trait Command { apply / revert / label } + History { done, undone } — the archive's
        UndoAction enum is the documented dead-end (every feature = new variant + new central match);
-       the trait inverts it so History never changes again. execute → done.push + undone.clear (a new
-       action kills the redo branch). RemoveObjects = ABSOLUTE Geometry snapshots taken at
-       construction; apply = Session::remove_object + 38a arena free + row free; revert =
+       the trait inverts it so History never changes again. execute → done.push + undone.clear
+       (a new action kills the redo branch). RemoveObjects = ABSOLUTE Geometry snapshots taken
+       at construction; apply = Session::remove_object + 38a arena free + row free; revert =
        restore_geometry (per-variant add_*) + assign_row + apply_object — byte-identical restore,
        guid preserved (it lives in the clone). delete/undo/redo verbs; Del / Ctrl+Z / Ctrl+Y just
        type them. Phase 8 complete: every future mutation is born a Command and undoable for free.

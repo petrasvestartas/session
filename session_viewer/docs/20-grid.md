@@ -29,8 +29,10 @@ the grid, lines visible where the box isn't. No z-fighting, no bleed-through.
 ## Files we touch
 
 ```
-src/shaders/grid.wgsl              # NEW — vertexless lines shader (builds the grid from vertex_index)
-src/engine/pipelines/build.rs      # build_grid_pipeline (LineList, depth_write off, no vertex buffer)
+# NEW — vertexless lines shader (builds the grid from vertex_index)
+src/shaders/grid.wgsl
+# build_grid_pipeline (LineList, depth_write off, no vertex buffer)
+src/engine/pipelines/build.rs
 src/engine/pipelines/mod.rs        # add `grid` to Pipelines + build it
 src/engine/gpu.rs                  # draw the grid first in clear() — no buffer, just draw(0..50)
 ```
@@ -240,7 +242,8 @@ with **no vertex buffer**:
             // Vertexless: the shader builds all 50 line endpoints from @builtin(vertex_index).
             pass.set_pipeline(&self.pipelines.grid);
             pass.set_bind_group(0, &self.mvp_bind_group, &[]);
-            pass.draw(0..50, 0..1);   // 44 floor (11 lines × 2 dirs × 2 ends) + 6 for the X/Y/Z axes
+            // 44 floor (11 lines × 2 dirs × 2 ends) + 6 for the X/Y/Z axes
+            pass.draw(0..50, 0..1);
 
             // …then the existing mesh draw (set_pipeline(triangle) … draw_indexed) stays as-is
 ```

@@ -25,7 +25,8 @@
 ## Files we touch
 
 ```
-src/app/snap.rs    # NEW — SnapKind + snap(scene, raw_point, cursor, view…) → (Point, Option<SnapKind>)
+# NEW — SnapKind + snap(scene, raw_point, cursor, view…) → (Point, Option<SnapKind>)
+src/app/snap.rs
 src/state.rs       # cursor_world_point() consults snap; marker glyph; `snap` CLI toggle
 ```
 
@@ -47,7 +48,8 @@ impl SnapKind {
         match self { SnapKind::Endpoint | SnapKind::Vertex => 0, SnapKind::Grid => 6 }
     }
     pub fn label(self) -> &'static str {
-        match self { SnapKind::Endpoint => "End", SnapKind::Vertex => "Vertex", SnapKind::Grid => "Grid" }
+        match self { SnapKind::Endpoint => "End", SnapKind::Vertex => "Vertex",
+                     SnapKind::Grid => "Grid" }
     }
 }
 
@@ -71,15 +73,23 @@ pub fn snap(scene: &Scene, raw: &Point, cursor: (f64, f64), view_proj: &Xform, o
         }
     };
 
-    // geometry candidates — only from objects NEAR the cursor (36's BVH keeps this O(few), not O(N))
+    // geometry candidates — only from objects NEAR the cursor
+    // (36's BVH keeps this O(few), not O(N))
     for guid in scene.objects_in(&query_box_around(raw, scene)) {
         match &scene.session.lookup[guid] {
-            Geometry::Line(l) => { consider(l.start(), SnapKind::Endpoint); consider(l.end(), SnapKind::Endpoint); }
+            Geometry::Line(l) => {
+                consider(l.start(), SnapKind::Endpoint);
+                consider(l.end(), SnapKind::Endpoint);
+            }
             Geometry::Polyline(pl) => for p in pl.get_points() { consider(p, SnapKind::Endpoint); },
             Geometry::Point(p) => consider(p.clone(), SnapKind::Vertex),
             Geometry::Mesh(m) => {
-                for vk in m.naked_vertices(true) {                     // boundary verts — the handles (32a)
-                    if let Some(mut p) = m.vertex_point(vk) { p.xform = m.xform.clone(); consider(p.transformed(), SnapKind::Vertex); }
+                // boundary verts — the handles (32a)
+                for vk in m.naked_vertices(true) {
+                    if let Some(mut p) = m.vertex_point(vk) {
+                        p.xform = m.xform.clone();
+                        consider(p.transformed(), SnapKind::Vertex);
+                    }
                 }
             }
             _ => {}
@@ -87,7 +97,8 @@ pub fn snap(scene: &Scene, raw: &Point, cursor: (f64, f64), view_proj: &Xform, o
     }
     // grid candidate — the crossing nearest the raw point, only when raw is on the ground plane
     if raw[2].abs() < 1e-6 {
-        let g = Point::new((raw[0]/GRID_STEP).round()*GRID_STEP, (raw[1]/GRID_STEP).round()*GRID_STEP, 0.0);
+        let g = Point::new((raw[0]/GRID_STEP).round()*GRID_STEP,
+                           (raw[1]/GRID_STEP).round()*GRID_STEP, 0.0);
         consider(g, SnapKind::Grid);
     }
 
@@ -112,7 +123,8 @@ lines, and every tool inherits snapping:
     fn cursor_world_point(&mut self) -> Option<Point> {
         let raw = /* pick_ray hit point, else ray ∩ z=0 — unchanged (48) */;
         if !self.snap_enabled { self.snap_marker = None; return Some(raw); }
-        let (p, kind) = crate::app::snap::snap(&self.scene, &raw, self.cursor, &vp, &origin, viewport);
+        let (p, kind) = crate::app::snap::snap(&self.scene, &raw, self.cursor,
+                                               &vp, &origin, viewport);
         self.snap_marker = kind.map(|k| (p.clone(), k));           // the live marker (Step 3)
         Some(p)
     }
@@ -149,10 +161,11 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 ```
 Ch 58: ghosts — tools show a future; finish makes it real.
-Ch 59: PRECISION. app/snap.rs: SnapKind { Endpoint/Vertex(0) > Grid(6) } — RANK first, pixel distance
-       second, radius ~10 px screen-space (zoom-independent). Candidates: line/polyline endpoints,
-       Point objects, mesh boundary verts (transformed by mesh.xform — world frame or you snap to
-       nowhere), gathered via 36's BVH around the raw point; grid = nearest crossing when on z=0.
+Ch 59: PRECISION. app/snap.rs: SnapKind { Endpoint/Vertex(0) > Grid(6) } — RANK first, pixel
+       distance second, radius ~10 px screen-space (zoom-independent). Candidates: line/polyline
+       endpoints, Point objects, mesh boundary verts (transformed by mesh.xform — world frame or
+       you snap to nowhere), gathered via 36's BVH around the raw point; grid = nearest crossing
+       when on z=0.
        ONE call site — cursor_world_point(), which 48's clicks and 58's on_move already share — so
        every existing and future tool became snap-aware with zero tool edits. Live feedback: white
        marker glyph on the preview row + `[End]` suffix in the prompt. `snap` verb toggles. Phase 9

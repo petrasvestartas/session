@@ -64,10 +64,12 @@ picking needs curve-specific code:
 
     // (2) BUILD — one arm in Scene::build's existing match (samples → segments, like a polyline):
     Geometry::NurbsCurve(nc) => {
-        objects_base.push((nc.xform.duplicate(), curve_color(nc), flags));   // world coords, like lines
+        // world coords, like lines
+        objects_base.push((nc.xform.duplicate(), curve_color(nc), flags));
         let pts = sample_curve(nc);
         for w in pts.windows(2) { segments.push(seg(w[0].to_f32(), w[1].to_f32(), ri)); }
-        for i in 0..nc.cv_count() {                                          // control points as handles
+        // control points as handles
+        for i in 0..nc.cv_count() {
             if let Some(p) = nc.get_cv(i) { glyphs.push(glyph(p.to_f32(), ri)); }
         }
     }
@@ -99,7 +101,8 @@ it doesn't pass through), Enter builds a degree-3 curve:
 ```rust
     // finish (Enter), with self.points: Vec<Point> accumulated exactly like PolylineTool:
     if self.points.len() < 4 { return CmdStep::Cancel; }              // degree 3 needs ≥ 4 CVs
-    let nc = NurbsCurve::create(false, 3, &self.points);              // open, cubic, from control points
+    // open, cubic, from control points
+    let nc = NurbsCurve::create(false, 3, &self.points);
     state.commit(Box::new(AddGeometry::one(Geometry::NurbsCurve(nc)))); // 57's command, directly
     CmdStep::Done("curve added".into());
 ```
@@ -112,7 +115,8 @@ Since curves are `Geometry` variants now, no bespoke command is needed at all �
 takes them directly, and 51's `restore_geometry` grows one arm:
 
 ```rust
-    // 51's restore_geometry, one new arm — the kernel's add_nurbscurve handles objects/lookup/graph/tree:
+    // 51's restore_geometry, one new arm — the kernel's add_nurbscurve handles
+    // objects/lookup/graph/tree:
     Geometry::NurbsCurve(c) => { self.session.add_nurbscurve(c, None); }
 
     // the tool's finish (Step 3 above) is therefore just:
@@ -146,14 +150,15 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ```
 Ch 59: snapping — Phase 9 closed.
 Ch 60: NURBSCURVE. Curves are Geometry variants (kernel-gap #4, FIXED while writing this course) —
-       registered in lookup by add_nurbscurve and on load — so every lookup-walking map gains a match
-       ARM, not a parallel loop: is_renderable admits it, build samples it, world_obb boxes it
-       (OBB::from_nurbscurve, kernel-exact). Draw = sample point_at over the domain, spans×16 clamped
-       32..512, → 31's segments; CVs → 32a glyphs (73's future handles); cache samples per guid.
-       Pick = ray↔segment over the cached samples (the kernel's curve ray arm is a deliberate no-op).
-       Tool = polyline-shaped, clicks are CONTROL points, ghost samples a temporary curve, Enter →
-       NurbsCurve::create(false, 3, points), ≥4 CVs — committed via 57's AddGeometry directly; 51's
-       restore_geometry grows one arm. Only NurbsSurfaceTrimmed (64) still lives collection-only.
+       registered in lookup by add_nurbscurve and on load — so every lookup-walking map gains a
+       match ARM, not a parallel loop: is_renderable admits it, build samples it, world_obb boxes
+       it (OBB::from_nurbscurve, kernel-exact). Draw = sample point_at over the domain, spans×16
+       clamped 32..512, → 31's segments; CVs → 32a glyphs (73's future handles); cache samples per
+       guid. Pick = ray↔segment over the cached samples (the kernel's curve ray arm is a deliberate
+       no-op). Tool = polyline-shaped, clicks are CONTROL points, ghost samples a temporary curve,
+       Enter → NurbsCurve::create(false, 3, points), ≥4 CVs — committed via 57's AddGeometry
+       directly; 51's restore_geometry grows one arm. Only NurbsSurfaceTrimmed (64) still lives
+       collection-only.
 ```
 
 Edited: `app/scene.rs` (match arms in is_renderable/build/world_obb + sampled pick + sample cache),

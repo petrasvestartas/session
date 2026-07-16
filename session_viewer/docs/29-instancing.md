@@ -141,7 +141,8 @@ pub fn build_triangle_pipeline(
     // …
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("triangle.layout"),
-        bind_group_layouts: &[Some(aspect_layout), Some(time_layout), Some(instance_layout)], // ← +group 2
+        // ← +group 2
+        bind_group_layouts: &[Some(aspect_layout), Some(time_layout), Some(instance_layout)],
         immediate_size: 0,
     });
     // …unchanged…
@@ -159,7 +160,8 @@ Thread it through `Pipelines::new` (only the triangle pipeline needs it):
         instance_layout: &wgpu::BindGroupLayout,   // ← new
     ) -> Self {
         Self {
-            triangle: build_triangle_pipeline(device, color_format, aspect_layout, time_layout, instance_layout),
+            triangle: build_triangle_pipeline(device, color_format, aspect_layout,
+                                              time_layout, instance_layout),
             grid: build_grid_pipeline(device, color_format, aspect_layout),
             edges: build_edges_pipeline(device, color_format, aspect_layout),
             background: build_background_pipeline(device, color_format),

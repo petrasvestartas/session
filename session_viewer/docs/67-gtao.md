@@ -49,7 +49,8 @@ correct CPU inverse wastes precision. For a standard perspective matrix the inve
 ```wgsl
 // proj_info = (2/P[0][0], 2/P[1][1], near-plane terms) uploaded once; reverse-Z depth d:
 fn view_pos(ndc: vec2<f32>, d: f32) -> vec3<f32> {
-    let z = view_z_from_depth(d);                   // reverse-Z: z = -near / d (infinite far) — 3 ops
+    // reverse-Z: z = -near / d (infinite far) — 3 ops
+    let z = view_z_from_depth(d);
     return vec3<f32>(ndc.x * proj_info.x * -z, ndc.y * proj_info.y * -z, z);
 }
 ```
@@ -128,13 +129,14 @@ cd session_viewer && trunk serve   # http://localhost:8770
 Ch 66: render-on-demand — idle is free.
 Ch 67: GTAO, CONSTANT QUALITY. Scene → offscreen color; AO at HALF res in R16Float (banding), 3
        slices × 6 steps, horizons integrated closed-form; ONE 5-tap depth-aware blur; composite does
-       depth-aware upsample × scene. Budget ≈ 12 reads/px/drawn-frame vs the archive's ~112. The five
-       ported traps: (1) view-pos via ANALYTIC inv-projection — cheaper and exact (and the historic
-       affine-only Xform::inverse bug, fixed in 41, lived here); (2) IGN noise, STATIC — per-frame jitter shimmers
-       during rotation and violates the quality rule; (3) the tangent-plane gate dot(Δ,N) > len·0.07
-       + bias — mandatory or grazing floors stripe; (4) radius = %-of-bbox-diag, clamped; (5) MSAA
-       depth via textureLoad sample 0. Bent normal written beside AO — free from the horizon search,
-       68's input. No temporal, no adaptive, no idle refinement: one image, every frame.
+       depth-aware upsample × scene. Budget ≈ 12 reads/px/drawn-frame vs the archive's ~112.
+       The five ported traps: (1) view-pos via ANALYTIC inv-projection — cheaper and exact
+       (and the historic affine-only Xform::inverse bug, fixed in 41, lived here); (2) IGN
+       noise, STATIC — per-frame jitter shimmers during rotation and violates the quality rule;
+       (3) the tangent-plane gate dot(Δ,N) > len·0.07 + bias — mandatory or grazing floors
+       stripe; (4) radius = %-of-bbox-diag, clamped; (5) MSAA depth via textureLoad sample 0.
+       Bent normal written beside AO — free from the horizon search, 68's input. No temporal,
+       no adaptive, no idle refinement: one image, every frame.
 ```
 
 Edited: `shaders/gtao.wgsl` + `shaders/blur5.wgsl` (NEW), `engine/gpu/targets.rs` (NEW — half-res
