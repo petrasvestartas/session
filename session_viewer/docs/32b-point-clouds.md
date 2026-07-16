@@ -142,6 +142,34 @@ from `pointcloud.get_points()`, `instance_id: ri` — and build `point_buffer` /
             draws += 1;
 ```
 
+## Organization checkpoint — the third field-cluster is the signal
+
+Look at what `Gpu` now carries: the cylinder set (template vbo/ibo, index count, segment buffer,
+bind group, count), the sphere set (same six), and the billboard set (four of the six). **The same
+cluster of fields, three times** — plus a `new()` block and a `clear()` block each. That repetition,
+not file length, is the signal to group:
+
+```rust
+/// One instanced drawable: a template + a storage table of rows + one draw.
+/// Edges (31), handle spheres (32a), and later the gumball (52) and ghosts (58) are all this shape.
+pub struct InstancedSet {
+    pub template_vbo: wgpu::Buffer,
+    pub template_ibo: wgpu::Buffer,
+    pub index_count: u32,
+    pub row_buffer: wgpu::Buffer,     // the group-3 storage table
+    pub bind_group: wgpu::BindGroup,
+    pub count: u32,                   // rows actually drawn (captured before any padding)
+}
+```
+
+`Gpu` then holds `edges: InstancedSet`, `handles: InstancedSet`, … and each draw block collapses to
+`self.edges.draw(&mut pass, &self.pipelines.cylinder)`. Doing this now is **optional** — the loose
+fields work, and the course's text keeps naming them individually so either layout follows along —
+but know the rule it demonstrates: *fields that always travel together are a struct; a struct with
+behavior earns its own file; a **file** splits only when it gains a second kind of responsibility*
+(which is exactly why `gpu.rs` becomes `gpu/mod.rs + adapters.rs` in 34b, gains `arena.rs` in 38a,
+and `targets.rs` in 67 — each a new responsibility, never just new length).
+
 ## Run
 
 ```bash
