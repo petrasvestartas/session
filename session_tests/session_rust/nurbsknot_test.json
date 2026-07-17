@@ -13,7 +13,7 @@
     "line": 8,
     "passed": true,
     "test_name": "Make Clamped Uniform",
-    "time_ms": 0.005
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -29,7 +29,7 @@
     "line": 20,
     "passed": true,
     "test_name": "Make Periodic Uniform",
-    "time_ms": 0.002
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -66,7 +66,7 @@
     "line": 48,
     "passed": true,
     "test_name": "Reverse",
-    "time_ms": 0.006
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -82,7 +82,7 @@
     "line": 68,
     "passed": true,
     "test_name": "Find Span",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 101,
     "passed": true,
     "test_name": "Compute Parameters",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -146,7 +146,7 @@
     "line": 127,
     "passed": true,
     "test_name": "Evaluation Basis",
-    "time_ms": 0.002
+    "time_ms": 0.005
   },
   {
     "checks": [

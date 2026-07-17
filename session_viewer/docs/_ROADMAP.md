@@ -484,10 +484,14 @@ start instead of being retrofitted at lesson 69 like the old plan.
 - ✅ 76 Advanced perf — LOD/decimation, occlusion culling, GPU compute cull + indirect draw
   (culling + batching already landed in 30/37; 27 unlocked compute)
   - verify: perf HUD before/after on the capstone scene
-- (optional appendix, unnumbered) Materials & textures — old Phase 3 compressed, only if a
-  rendering mode ever needs it: `uv:[f32;2]` in `RenderVertex` (stride 40→48, `@location(3)`),
-  texture + sampler upload, group-2 material struct, albedo sample in `fs_main`. The CAD default
-  look (shaded + edges + arctic GI) does not use textures.
+- ✅ 85 (optional appendix) Materials & textures — `docs/85-textures.md`. Written against the real
+  post-instancing pipeline: material = **`@group(3)`**, optional per-vertex UV = **`@location(4)`**
+  (group 2 / loc 3 are taken by instances / inst_id since lesson 29 — the old note below was stale).
+  Generated RGBA8 checker → `write_texture` (`TexelCopyTextureInfo`/`TexelCopyBufferLayout`), group-3
+  {texture, sampler} bind group threaded through `Pipelines::new`/`build_triangle_pipeline`, triplanar
+  world-pos sample in `fs_main` (no UV attribute needed); variant adds `uv:[f32;2]` to `RenderVertex`
+  (stride 40→48, `@location(4)`). Verified: naga-validated WGSL + wgpu-29 API cargo-check.
+  The CAD default look (shaded + edges + arctic GI) does not use textures.
 
 ## Phase 14 — CAD completeness (post-capstone review, 2026-07-16; ranked by importance)
 Gaps found by reviewing the finished 77-lesson plan against "what does a real CAD viewer that

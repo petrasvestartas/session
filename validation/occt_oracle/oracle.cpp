@@ -25,8 +25,15 @@
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepBuilderAPI_Transform.hxx>
 #include <BRepAlgoAPI_Section.hxx>
-#include <STEPControl_Writer.hxx>
-#include <STEPControl_Reader.hxx>
+// STEP read/write needs a DataExchange-enabled OCCT build; this oracle's build has
+// ModelingAlgorithms only (step traffic goes through validation/step_probe instead).
+#if defined(__has_include)
+#  if __has_include(<STEPControl_Writer.hxx>)
+#    define ORACLE_HAS_STEP 1
+#    include <STEPControl_Writer.hxx>
+#    include <STEPControl_Reader.hxx>
+#  endif
+#endif
 #include <BRep_Tool.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_Edge.hxx>
@@ -724,8 +731,10 @@ int main(int argc, char** argv) {
             else if (kind == "torus") { p.resize(2); in >> p[0] >> p[1]; }
             if (kind == "step") {
                 std::string path; in >> path;
+#ifdef ORACLE_HAS_STEP
                 STEPControl_Reader rd;
                 if (rd.ReadFile(path.c_str()) == IFSelect_RetDone) { rd.TransferRoots(); shp = rd.OneShape(); }
+#endif
             } else {
                 shp = (kind == "nurbs") ? build_nurbs_solid(in) : build_solid(kind, p);
             }
@@ -750,10 +759,31 @@ int main(int argc, char** argv) {
         write_boundary_samples(out, r, 0.1);  // boundary samples for Hausdorff comparison
         std::string skw, spath;
         if (in >> skw >> spath && skw == "STEP") {
+#ifdef ORACLE_HAS_STEP
             STEPControl_Writer sw;
             sw.Transfer(r, STEPControl_AsIs);
             sw.Write(spath.c_str());
+#endif
         }
+    }
+    else if (op == "boolean_chain") {
+        // OP boolean_chain / NOPS k / MODES m1..mk / SHAPE x(k+1).  Left-fold booleans:
+        // r = s0; r = m_i(r, s_{i+1}). Oracle for boolean-of-boolean battery cells
+        // (OCCT test-suite ports: three-tori fuse, Steinmetz tricylinder, sphere grids).
+        std::string kw; int k = 0; in >> kw >> k;   // NOPS k
+        in >> kw;                                   // MODES
+        std::vector<std::string> modes(k);
+        for (int i = 0; i < k; ++i) in >> modes[i];
+        TopoDS_Shape r = read_solid_shape(in);
+        try {
+            for (int i = 0; i < k; ++i) {
+                TopoDS_Shape s = read_solid_shape(in);
+                if (r.IsNull() || s.IsNull()) { out << "ERROR bad chain operand\n"; return 0; }
+                r = run_boolean(modes[i], r, s);
+            }
+        } catch (...) { out << "ERROR boolean exception\n"; return 0; }
+        out << "OK\n";
+        solid_props(out, r);
     }
     else {
         out << "ERROR unknown op " << op << "\n";

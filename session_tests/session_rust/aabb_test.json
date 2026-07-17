@@ -113,7 +113,7 @@
     "line": 9,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.044
+    "time_ms": 0.059
   },
   {
     "checks": [
@@ -204,6 +204,6 @@
     "line": 42,
     "passed": true,
     "test_name": "From Geometry",
-    "time_ms": 1.543
+    "time_ms": 2.004
   }
 ]

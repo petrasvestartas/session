@@ -18,7 +18,7 @@
     "line": 87,
     "passed": true,
     "test_name": "Scale",
-    "time_ms": 0.029
+    "time_ms": 0.032
   },
   {
     "checks": [
@@ -44,7 +44,7 @@
     "line": 73,
     "passed": true,
     "test_name": "Subtract",
-    "time_ms": 0.023
+    "time_ms": 0.022
   },
   {
     "checks": [
@@ -80,7 +80,7 @@
     "line": 165,
     "passed": true,
     "test_name": "Solve",
-    "time_ms": 0.03
+    "time_ms": 0.023
   },
   {
     "checks": [
@@ -106,7 +106,7 @@
     "line": 59,
     "passed": true,
     "test_name": "Add",
-    "time_ms": 0.016
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -132,7 +132,7 @@
     "line": 284,
     "passed": true,
     "test_name": "Rank",
-    "time_ms": 0.007
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -163,7 +163,7 @@
     "line": 242,
     "passed": true,
     "test_name": "Eigenvalues",
-    "time_ms": 0.034
+    "time_ms": 0.023
   },
   {
     "checks": [
@@ -224,7 +224,7 @@
     "line": 142,
     "passed": true,
     "test_name": "Inverse",
-    "time_ms": 0.036
+    "time_ms": 0.034
   },
   {
     "checks": [
@@ -260,7 +260,7 @@
     "line": 99,
     "passed": true,
     "test_name": "Multiply",
-    "time_ms": 0.011
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -306,7 +306,7 @@
     "line": 185,
     "passed": true,
     "test_name": "Lu Decompose",
-    "time_ms": 0.023
+    "time_ms": 0.019
   },
   {
     "checks": [
@@ -332,7 +332,7 @@
     "line": 270,
     "passed": true,
     "test_name": "Norms",
-    "time_ms": 0.008
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -358,7 +358,7 @@
     "line": 115,
     "passed": true,
     "test_name": "Transpose",
-    "time_ms": 0.006
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -389,7 +389,7 @@
     "line": 297,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 16.429
+    "time_ms": 14.902
   },
   {
     "checks": [
@@ -420,7 +420,7 @@
     "line": 127,
     "passed": true,
     "test_name": "Determinant",
-    "time_ms": 0.018
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -456,7 +456,7 @@
     "line": 38,
     "passed": true,
     "test_name": "Properties",
-    "time_ms": 0.01
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -522,7 +522,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.065
+    "time_ms": 0.049
   },
   {
     "checks": [
@@ -553,7 +553,7 @@
     "line": 313,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 15.046
+    "time_ms": 14.118
   },
   {
     "checks": [
@@ -589,7 +589,7 @@
     "line": 222,
     "passed": true,
     "test_name": "Cholesky",
-    "time_ms": 0.015
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -635,7 +635,7 @@
     "line": 203,
     "passed": true,
     "test_name": "Qr Decompose",
-    "time_ms": 0.031
+    "time_ms": 0.026
   },
   {
     "checks": [
@@ -666,6 +666,6 @@
     "line": 256,
     "passed": true,
     "test_name": "Svd",
-    "time_ms": 0.035
+    "time_ms": 0.032
   }
 ]

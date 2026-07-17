@@ -88,7 +88,7 @@
     "line": 8,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.088
+    "time_ms": 0.09
   },
   {
     "checks": [
@@ -124,7 +124,7 @@
     "line": 105,
     "passed": true,
     "test_name": "Reverse",
-    "time_ms": 0.007
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -140,7 +140,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Rotate",
-    "time_ms": 0.01
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 131,
     "passed": true,
     "test_name": "Is Right Hand",
-    "time_ms": 0.012
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -213,7 +213,7 @@
     "line": 216,
     "passed": true,
     "test_name": "Transform",
-    "time_ms": 0.01
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -234,7 +234,7 @@
     "line": 247,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 15.976
+    "time_ms": 15.081
   },
   {
     "checks": [
@@ -255,7 +255,7 @@
     "line": 268,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 15.56
+    "time_ms": 13.379
   },
   {
     "checks": [
@@ -281,7 +281,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Is Same Direction",
-    "time_ms": 0.019
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -312,7 +312,7 @@
     "line": 231,
     "passed": true,
     "test_name": "Transformed",
-    "time_ms": 0.019
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -348,7 +348,7 @@
     "line": 201,
     "passed": true,
     "test_name": "Base1 Base2",
-    "time_ms": 0.013
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -369,7 +369,7 @@
     "line": 93,
     "passed": true,
     "test_name": "Is Valid",
-    "time_ms": 0.014
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -390,7 +390,7 @@
     "line": 160,
     "passed": true,
     "test_name": "Is Same Position",
-    "time_ms": 0.009
+    "time_ms": 0.008
   },
   {
     "checks": [

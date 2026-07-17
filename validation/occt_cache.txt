@@ -44,6 +44,9 @@ cone x tor |fuse	42.021348085934328	3
 cone x tor3|common	3.0410255479676391	2
 cone x tor3|cut	13.714135271177909	4
 cone x tor3|fuse	38.980322537966657	5
+coneRx cyl |common	4.4477475240709952	2
+coneRx cyl |cut	12.30741331613601	3
+coneRx cyl |fuse	54.718914131241277	5
 contain    |common	8.0000000000000018	6
 contain    |cut	56	12
 contain    |fuse	64.000000000000014	6
@@ -95,6 +98,28 @@ face full  |fuse	128	10
 face part  |common	0	0
 face part  |cut	64.000000000000014	7
 face part  |fuse	71.999999999999986	11
+o annulus    	3.7011016504085079	2
+o box coneT |common	0	0
+o box coneT |cut	64	7
+o box coneT |fuse	66.094395102393193	7
+o cyl4 tor41|common	35.289627399571103	2
+o cyl4 tor41|cut	366.83423225992237	5
+o cyl4 tor41|fuse	445.79106746863732	6
+o cylX45    |common	50.296115882895343	4
+o cylX45    |cut	92.057301232781072	5
+o cylX45    |fuse	234.4107183485221	6
+o sph boxG  |common	3.7999314611171622	2
+o sph boxG  |cut	61.64991548938238	2
+o sph boxG  |fuse	3186.6499154889279	7
+o sph cylW  |common	5.8213531397173082	4
+o sph cylW  |cut	59.628493757632057	3
+o sph cylW  |fuse	77.299952412781764	5
+o sph8 fuse  	83.170257448666135	8
+o tor3x fuse 	16.89602360609776	12
+o torTwin   |common	0.098711847019723103	12
+o torTwin   |cut	1.4804248571643079	9
+o torTwin   |fuse	3.0595615612681559	6
+o tricyl com 	15.816233798528071	12
 sph  x cone|common	15.9175408098997	3
 sph  x cone|cut	49.532306139887623	4
 sph  x cone|fuse	66.287466959033239	4
