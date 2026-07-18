@@ -3,7 +3,7 @@
     "group": "NurbsKnot",
     "test_name": "Make Clamped Uniform",
     "passed": true,
-    "time_ms": 0.02,
+    "time_ms": 0.035,
     "line": 15,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // 0 0 0 1 2 2 2\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots = nurbsknot::make_clamped_uniform(order, cv_count);",
     "checks": [
@@ -19,7 +19,7 @@
     "group": "NurbsKnot",
     "test_name": "Make Periodic Uniform",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.021,
     "line": 25,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // 0 1 2 3 4 5 6\n    int order = 4;\n    int cv_count = 5;\n    std::vector<double> nurbsknots = nurbsknot::make_periodic_uniform(order, cv_count);",
     "checks": [
@@ -168,7 +168,7 @@
     "group": "NurbsKnot",
     "test_name": "Build Fitted NurbsKnots Periodic Adaptive",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.004,
     "line": 147,
     "code": "    // uncomment #include \"nurbsknot.h\"\n\n    // Periodic version for closed curves -- nurbsknots wrap around\n    // For a regular square (equal turns, equal chords), nurbsknots are uniformly spaced\n    double pts[] = {0,0,0, 1,0,0, 1,1,0, 0,1,0};\n    std::vector<double> params = {0.0, 1.0, 2.0, 3.0, 4.0};\n    std::vector<double> nurbsknots = nurbsknot::build_fitted_nurbsknots_periodic_adaptive(params, pts, 4, 3, 4, 3);",
     "checks": [

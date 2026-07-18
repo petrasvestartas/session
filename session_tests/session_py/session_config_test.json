@@ -3,7 +3,7 @@
     "group": "SessionConfig",
     "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.034,
+    "time_ms": 0.012,
     "line": 7,
     "code": "    # SessionConfig holds global rendering/export flags.\n    # explode_mesh_faces: when true, each mesh face is a separate mesh (for coloring)\n    # scale_factor: unit conversion multiplier applied during export (1.0 = meters)\n    # Modify config at runtime, then reset() restores all defaults.\n\n    SESSION_CONFIG.explode_mesh_faces = True\n    SESSION_CONFIG.scale_factor = 0.001\n    SESSION_CONFIG.reset()",
     "checks": [

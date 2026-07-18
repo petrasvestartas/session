@@ -3,7 +3,7 @@
     "group": "OBB",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.041,
+    "time_ms": 0.045,
     "line": 22,
     "code": "    // uncomment #include \"obb.h\"\n    // uncomment #include \"aabb.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // from_point\n    OBB bb1 = OBB::from_point(Point(5.0, 5.0, 5.0), 2.0);\n\n\n    // from_points (AABB)\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 3.0, 4.0),\n    };\n    OBB bb2 = OBB::from_points(pts);\n    Point mn = bb2.min_point();\n    Point mx = bb2.max_point();\n\n\n    // OBB constructor\n    OBB box(\n        Point(0.0, 0.0, 0.0),\n        Vector(1.0, 0.0, 0.0),\n        Vector(0.0, 1.0, 0.0),\n        Vector(0.0, 0.0, 1.0),\n        Vector(1.0, 2.0, 3.0)\n    );\n\n\n    // aabb\n    AABB bb_aabb = bb2.aabb();\n\n\n    // corners\n    std::array<Point, 8> corners = bb2.corners();\n\n\n    // point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n    Point p_center = bb2.point_at(0.0, 0.0, 0.0);\n    double hx = bb2.half_size[0], hy = bb2.half_size[1], hz = bb2.half_size[2];\n    Point p_max_pt = bb2.point_at(hx, hy, hz);\n\n\n    // inflate\n    OBB bb3 = OBB::from_points({\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 2.0, 2.0),\n    });\n    bb3.inflate(1.0);\n\n\n    // guid() and name\n    bb1.name = \"test_bbox\";",
     "checks": [
@@ -94,7 +94,7 @@
     "group": "OBB",
     "test_name": "Collision",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.027,
     "line": 93,
     "code": "    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    OBB bb1 = OBB::from_point(Point(0.0, 0.0, 0.0), 1.0);\n    OBB bb2 = OBB::from_point(Point(1.5, 0.0, 0.0), 1.0);\n    OBB bb3 = OBB::from_point(Point(5.0, 5.0, 5.0), 0.5);",
     "checks": [
@@ -145,7 +145,7 @@
     "group": "OBB",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.01,
+    "time_ms": 0.012,
     "line": 110,
     "code": "    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n    };\n    OBB bb = OBB::from_points(pts);\n    bb.xform = Xform::translation(0.0, 0.0, 5.0);\n\n    OBB bbt = bb.transformed();\n\n\n    bb.transform();",
     "checks": [
@@ -171,7 +171,7 @@
     "group": "OBB",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 21.101,
+    "time_ms": 30.424,
     "line": 131,
     "code": "    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    OBB bb = OBB::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox\";\n\n    // JSON object\n    nlohmann::ordered_json j = bb.jsondump();\n    OBB loaded_j = OBB::jsonload(j);\n\n\n    // String\n    std::string s = bb.file_json_dumps();\n    OBB loaded_s = OBB::file_json_loads(s);\n\n\n    // File\n    std::string fname = \"serialization/test_obb.json\";\n    bb.file_json_dump(fname);\n    OBB loaded = OBB::file_json_load(fname);",
     "checks": [
@@ -217,7 +217,7 @@
     "group": "OBB",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 19.344,
+    "time_ms": 14.79,
     "line": 161,
     "code": "    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    OBB bb = OBB::from_point(Point(1.0, 2.0, 3.0), 5.0);\n    bb.name = \"test_bbox_proto\";\n\n    // String\n    std::string s = bb.pb_dumps();\n    OBB loaded_s = OBB::pb_loads(s);\n\n\n    // File\n    std::string fname = \"serialization/test_obb.bin\";\n    bb.pb_dump(fname);\n    OBB loaded = OBB::pb_load(fname);",
     "checks": [
@@ -263,7 +263,7 @@
     "group": "OBB",
     "test_name": "Accessors",
     "passed": true,
-    "time_ms": 0.044,
+    "time_ms": 0.046,
     "line": 186,
     "code": "    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    // axis-aligned OBB: center=(1,2,3), half_size=(1,2,3), dims 2×4×6\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n        Point(0.0, 0.0, 6.0),\n        Point(2.0, 4.0, 6.0),\n    };\n    OBB b = OBB::from_points(pts);\n\n\n\n\n    OBB c = OBB::from_point(Point(5.0, 2.0, 3.0), 1.0);\n    b.union_with(c);",
     "checks": [
@@ -339,7 +339,7 @@
     "group": "OBB",
     "test_name": "From Geometry",
     "passed": true,
-    "time_ms": 0.453,
+    "time_ms": 0.362,
     "line": 221,
     "code": "    // uncomment #include \"line.h\"\n    // uncomment #include \"polyline.h\"\n    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"nurbscurve.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    OBB bb_line = OBB::from_line(Line(0.0, 0.0, 0.0, 4.0, 0.0, 0.0), 0.1);\n\n\n    OBB bb_pl = OBB::from_polyline(Polyline({\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 4.0, 4.0),\n    }), 0.0);\n\n\n    OBB bb_mesh = OBB::from_mesh(Primitives::cube(2.0), 0.0);\n\n\n    OBB bb_pc = OBB::from_pointcloud(PointCloud(\n        {\n            Point(0.0, 0.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(0.0, 2.0, 0.0),\n            Point(0.0, 0.0, 2.0),\n        },\n        {\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        },\n        {\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n            Color(0, 0, 255, 255),\n            Color(255, 255, 0, 255),\n        }\n    ), 0.0);\n\n\n    OBB bb_nc = OBB::from_nurbscurve(NurbsCurve::create(false, 2, {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    }), 0.5, false);\n\n\n    OBB bb_ns = OBB::from_nurbssurface(NurbsSurface::create(false, false, 1, 1, 2, 2, {\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n        Point(2.0, 2.0, 2.0),\n    }), 0.0);",
     "checks": [
