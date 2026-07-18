@@ -18,7 +18,7 @@
     "line": 61,
     "passed": true,
     "test_name": "Hull 3d",
-    "time_ms": 0.172
+    "time_ms": 0.192
   },
   {
     "checks": [
@@ -34,7 +34,7 @@
     "line": 25,
     "passed": true,
     "test_name": "Hull 2d Collinear",
-    "time_ms": 0.036
+    "time_ms": 0.038
   },
   {
     "checks": [
@@ -55,7 +55,7 @@
     "line": 80,
     "passed": true,
     "test_name": "Hull 3d Cube",
-    "time_ms": 0.289
+    "time_ms": 0.302
   },
   {
     "checks": [
@@ -71,7 +71,7 @@
     "line": 43,
     "passed": true,
     "test_name": "Hull 2d Circle",
-    "time_ms": 0.047
+    "time_ms": 0.042
   },
   {
     "checks": [
@@ -87,6 +87,6 @@
     "line": 6,
     "passed": true,
     "test_name": "Hull 2d",
-    "time_ms": 0.015
+    "time_ms": 0.016
   }
 ]

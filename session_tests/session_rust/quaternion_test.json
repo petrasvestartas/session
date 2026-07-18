@@ -23,7 +23,7 @@
     "line": 425,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 20.672
+    "time_ms": 18.922
   },
   {
     "checks": [
@@ -44,7 +44,7 @@
     "line": 177,
     "passed": true,
     "test_name": "From Euler",
-    "time_ms": 0.019
+    "time_ms": 0.022
   },
   {
     "checks": [
@@ -130,7 +130,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.048
+    "time_ms": 0.045
   },
   {
     "checks": [
@@ -167,7 +167,7 @@
     "line": 127,
     "passed": true,
     "test_name": "From Axis Angle",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -193,7 +193,7 @@
     "line": 376,
     "passed": true,
     "test_name": "Slerp",
-    "time_ms": 0.024
+    "time_ms": 0.026
   },
   {
     "checks": [
@@ -219,7 +219,7 @@
     "line": 455,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 16.167
+    "time_ms": 7.487
   },
   {
     "checks": [
@@ -235,7 +235,7 @@
     "line": 268,
     "passed": true,
     "test_name": "Magnitude",
-    "time_ms": 0.006
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -327,7 +327,7 @@
     "line": 403,
     "passed": true,
     "test_name": "Nlerp",
-    "time_ms": 0.018
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -353,7 +353,7 @@
     "line": 319,
     "passed": true,
     "test_name": "Conjugate",
-    "time_ms": 0.01
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -395,7 +395,7 @@
     "line": 197,
     "passed": true,
     "test_name": "From Rotation",
-    "time_ms": 0.019
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -431,7 +431,7 @@
     "line": 147,
     "passed": true,
     "test_name": "From Arc",
-    "time_ms": 0.018
+    "time_ms": 0.022
   },
   {
     "checks": [
@@ -540,7 +540,7 @@
     "line": 339,
     "passed": true,
     "test_name": "Invert",
-    "time_ms": 0.009
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -566,6 +566,6 @@
     "line": 223,
     "passed": true,
     "test_name": "Rotate Vector",
-    "time_ms": 0.006
+    "time_ms": 0.007
   }
 ]
