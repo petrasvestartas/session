@@ -3,7 +3,7 @@
     "group": "Tolerance",
     "test_name": "Is Zero",
     "passed": true,
-    "time_ms": 0.014,
+    "time_ms": 0.017,
     "line": 12,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_zero(1e-10);",
     "checks": [
@@ -19,7 +19,7 @@
     "group": "Tolerance",
     "test_name": "Is Close",
     "passed": true,
-    "time_ms": 0.021,
+    "time_ms": 0.011,
     "line": 19,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_close(1.0, 1.0 + 1e-7);",
     "checks": [
@@ -35,7 +35,7 @@
     "group": "Tolerance",
     "test_name": "Is Positive",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.01,
     "line": 26,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_positive(1.0);",
     "checks": [
@@ -51,7 +51,7 @@
     "group": "Tolerance",
     "test_name": "Is Negative",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.01,
     "line": 33,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_negative(-1.0);",
     "checks": [
@@ -67,7 +67,7 @@
     "group": "Tolerance",
     "test_name": "Is Between",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 40,
     "code": "        // uncomment #include \"tolerance.h\"\n        bool result = TOLERANCE.is_between(0.5, 0.0, 1.0);",
     "checks": [
@@ -83,7 +83,7 @@
     "group": "Tolerance",
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.009,
     "line": 47,
     "code": "        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.format_number(3.14159, 2);",
     "checks": [
@@ -99,7 +99,7 @@
     "group": "Tolerance",
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.006,
     "line": 54,
     "code": "        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
     "checks": [
@@ -167,7 +167,7 @@
     "group": "Tolerance",
     "test_name": "Runtime Modification",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 83,
     "code": "        // uncomment #include \"tolerance.h\"\n        // Get current default values\n        double original_absolute = TOLERANCE.absolute();\n        double original_relative = TOLERANCE.relative();\n\n\n        // Modify tolerance values at runtime\n        TOLERANCE.set_absolute(1e-12);\n        TOLERANCE.set_relative(1e-12);\n\n        // Test with new tolerance - 1e-11 difference now fails is_close\n        bool close_with_tight = TOLERANCE.is_close(1.0, 1.0 + 1e-11);\n\n        // Reset to defaults\n        TOLERANCE.reset();\n\n        // Same test now passes with default tolerance\n        bool close_with_default = TOLERANCE.is_close(1.0, 1.0 + 1e-11);",
     "checks": [
@@ -218,7 +218,7 @@
     "group": "Tolerance",
     "test_name": "Unique From Two Int",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 112,
     "code": "        // uncomment #include \"tolerance.h\"\n        uint64_t r0 = unique_from_two_int(3, 7);\n        uint64_t r1 = unique_from_two_int(7, 3);",
     "checks": [
@@ -296,7 +296,7 @@
     "group": "Tolerance",
     "test_name": "Rad Deg Conversion",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 145,
     "code": "        // uncomment #include \"tolerance.h\"\n        double r0 = rad_to_deg(Tolerance::PI);\n        double r1 = deg_to_rad(180.0);\n        double r2 = deg_to_rad(rad_to_deg(1.234));",
     "checks": [
@@ -322,7 +322,7 @@
     "group": "Tolerance",
     "test_name": "Count Digits",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 156,
     "code": "        // uncomment #include \"tolerance.h\"\n        int r0 = count_digits(0.0);\n        int r1 = count_digits(1.0);\n        int r2 = count_digits(9.9);\n        int r3 = count_digits(10.0);\n        int r4 = count_digits(100.5);\n        int r5 = count_digits(-42.0);",
     "checks": [
@@ -363,7 +363,7 @@
     "group": "Tolerance",
     "test_name": "Is Angle Zero",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 173,
     "code": "        // uncomment #include \"tolerance.h\"\n        // Angular tolerance default is 1e-6\n        bool r0 = TOLERANCE.is_angle_zero(1e-8);\n        bool r1 = TOLERANCE.is_angle_zero(0.1);",
     "checks": [
@@ -405,7 +405,7 @@
     "group": "Tolerance",
     "test_name": "Is Point Close",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.001,
     "line": 192,
     "code": "        // uncomment #include \"tolerance.h\"\n        Point a(1.0, 2.0, 3.0);\n        Point b(1.0, 2.0, 3.0 + 1e-12);\n        Point c(1.0, 2.0, 4.0);",
     "checks": [
@@ -447,7 +447,7 @@
     "group": "Tolerance",
     "test_name": "Key Xy",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.002,
     "line": 212,
     "code": "        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.key_xy(1.0, 2.0);",
     "checks": [
@@ -484,7 +484,7 @@
     "group": "Tolerance",
     "test_name": "Precision From Tolerance",
     "passed": true,
-    "time_ms": 0.025,
+    "time_ms": 0.018,
     "line": 228,
     "code": "        // uncomment #include \"tolerance.h\"\n        // Default absolute tolerance is 1e-9 → precision should be 9\n        int prec = TOLERANCE.precision_from_tolerance();",
     "checks": [
@@ -558,7 +558,7 @@
     "group": "Tolerance",
     "test_name": "Is Vector Close",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 262,
     "code": "        // uncomment #include \"tolerance.h\"\n        Vector a(1.0, 2.0, 3.0);\n        Vector b(1.0, 2.0, 3.0 + 1e-12);\n        Vector c(1.0, 2.0, 4.0);",
     "checks": [

@@ -13,7 +13,7 @@
     "line": 16,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 16.383
+    "time_ms": 20.321
   },
   {
     "checks": [
@@ -44,7 +44,7 @@
     "line": 100,
     "passed": true,
     "test_name": "Component Protobuf Roundtrip",
-    "time_ms": 22.548
+    "time_ms": 31.112
   },
   {
     "checks": [
@@ -60,7 +60,7 @@
     "line": 29,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 23.157
+    "time_ms": 24.074
   },
   {
     "checks": [
@@ -86,7 +86,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.004
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -122,7 +122,7 @@
     "line": 65,
     "passed": true,
     "test_name": "Component Json Roundtrip",
-    "time_ms": 14.912
+    "time_ms": 21.591
   },
   {
     "checks": [
@@ -153,6 +153,6 @@
     "line": 41,
     "passed": true,
     "test_name": "Component Constructor",
-    "time_ms": 0.015
+    "time_ms": 0.012
   }
 ]

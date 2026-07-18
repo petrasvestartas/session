@@ -33,7 +33,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Expand Bits",
-    "time_ms": 0.007
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -70,7 +70,7 @@
     "line": 55,
     "passed": true,
     "test_name": "Morton Code Corners",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -201,7 +201,7 @@
     "line": 124,
     "passed": true,
     "test_name": "Build Single",
-    "time_ms": 0.043
+    "time_ms": 0.047
   },
   {
     "checks": [
@@ -243,7 +243,7 @@
     "line": 164,
     "passed": true,
     "test_name": "Aabb Intersect",
-    "time_ms": 0.012
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -274,7 +274,7 @@
     "line": 183,
     "passed": true,
     "test_name": "Check All Collisions",
-    "time_ms": 0.039
+    "time_ms": 0.038
   },
   {
     "checks": [
@@ -516,7 +516,7 @@
     "line": 224,
     "passed": true,
     "test_name": "Fixed 100 Boxes",
-    "time_ms": 0.571
+    "time_ms": 0.524
   },
   {
     "checks": [
@@ -552,7 +552,7 @@
     "line": 386,
     "passed": true,
     "test_name": "Query Aabb",
-    "time_ms": 0.05
+    "time_ms": 0.048
   },
   {
     "checks": [
@@ -573,7 +573,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.043
+    "time_ms": 0.042
   },
   {
     "checks": [
@@ -604,6 +604,6 @@
     "line": 358,
     "passed": true,
     "test_name": "Nearest Neighbors",
-    "time_ms": 0.045
+    "time_ms": 0.047
   }
 ]
