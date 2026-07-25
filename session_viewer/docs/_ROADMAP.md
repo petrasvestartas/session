@@ -228,6 +228,34 @@ Bind-group convention going forward: **0 = camera**, **1 = globals/time**, **2 =
     technical drawing (`30700 Querschnitt G-G.pdf`) converted by `session_data/pdf_to_session.py`
     (lines/polylines/béziers→curves). Record perf-HUD fps + segment count; whole drawing visible
     after `F`; interactive orbit/pan at that density
+- ✅ 34c Floating anchor — rebuild_instances only past REANCHOR_DIST (100m); translation-column
+  rebase (no f64 matmul); view_proj_anchored; 42k objects 300ms/frame → GPU-bound
+- ✅ 34d Proper CAD reader — line.proto +width/+linecolor (ONLY class missing them; gen_proto ×3
+  languages, polyline is the pattern); converter reads PDF stroke color/width, page arg, --nojson;
+  querschnitt = dark-red, five pen weights; Point default black ×3; floor_model linecolors patched
+- ✅ 34e Many files, one wall — SceneTables + walk_session (stream: fetch→parse→walk→DROP);
+  Gpu::new(&[SceneTables]); grid cells cycle files (STRESS_GRID² floor, bounds include offsets —
+  fixes F); wasm max-memory 4GB (OOM "unreachable"); dev.package opt-level 3 (debug parse 5×);
+  503,516 objects / 598k segments / 4 draws from 9 real drawings
+- ✅ 34f Flat linework at scale — pay per pixel: CYL_SIDES 6 (free 2×), capsule ribbons (2 tris,
+  ROUND caps via SDF), glyph dots (1 tri), LINEWORK_SOLID switch (cylinders/spheres kept),
+  LineUniform +vp_w; paper-space lineweights for planar sheets (world lane + 1px floor) vs
+  screen-constant 3D; measured 149→28ms headless / ~100→18ms real GPU on the 503k wall
+- ✅ 34g Camera UX — cursor-centered zoom (target pulled by 1−k), NO zoom clamps (old 0.2–100mm
+  clamp culled fitted scenes), MMB pan; anchor keeps it all rebuild-free
+- 34h Colors & widths — honor what the user set (one resolution rule, CPU-side)
+  - why: triangle.wgsl discards to_render's baked vertex color (pointcolors dead); FACECOLORS
+    meshes render white (kernel pipe primitive ships that way — live bug); no width field ever read
+  - files: `session_rust/src/render_mesh.rs` (FACECOLORS branch — Rust-only bridge, no py/cpp
+    port), `gpu/adapters.rs`, `gpu/mod.rs`, all four shaders
+  - steps: row color = user color (color_mode gates FACECOLORS/POINTCOLORS — auto-seeded vecs mean
+    nothing); Instance.color = WHITE TINT multiplied everywhere (45 selection's channel); width =
+    multiplier in the radius sign lane (0 default / neg px-mult / pos world); BRep surfacecolor
+    baked via set_objectcolor on the built mesh; dots honor POINTCOLORS
+  - verify: fixtures pixel-identical (defaults encode to today's bits); colors_widths.pb positive
+    fixture — facecolors box, pointcolors gradient + colored dots, width-5 polyline, fat point
+  - consumers: 45 selection (tint), 47 thickness slider (scales all multiplier widths), PointCloud
+    lesson (point_size via Instance._pad[0]), 63 BRep per-face colors (3-language kernel change)
 - ✅ 35 Scene struct — the app layer takes shape (ARCHITECTURE §2)
   - files: `app/scene.rs` (`Scene { session, order, guid→row map, hidden }`), `engine/gpu/mod.rs`
     (`ArenaUpload`, pub row structs), `state.rs` wiring

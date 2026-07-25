@@ -36,11 +36,15 @@
 
 ```
 src/engine/gpu/mod.rs   # SectionUniform (4 planes max) + per-frame rebase + upload
-src/shaders/*.wgsl      # mesh/cylinder/sphere/point/ground fs: the discard line
+src/shaders/*.wgsl      # triangle/cylinder/sphere/ground fs: the discard line (points live in sphere.wgsl)
 src/app/scene.rs        # pick filter: reject hits behind active sections
 src/app/commands.rs     # `section` verb: 3 points / wp / off / flip / drag
 src/state.rs            # sections: Vec<Plane> (kernel type) — viewer state, like the camera
 ```
+
+> **New `State` field first.** `sections: Vec<Plane>` is viewer state like the camera — add it to
+> `struct State` **and** initialize `sections: Vec::new()` in `State::new` (a struct literal, so a missing
+> field is an **E0063** build error — same as 75's `work_plane`). Step 4's `state.sections…` code needs it.
 
 ## Step 1 — the uniform, camera-relative like everything else: `src/engine/gpu/mod.rs`
 
@@ -74,15 +78,32 @@ struct SectionUniform {
     }
 ```
 
-(The buffer + bind group are 07's uniform pattern; bind it in every geometry pipeline at the next
-free group slot, or — cheaper — fold the four vec4s + count into the existing line uniform's buffer
-as a second struct member, since every geometry shader already binds group 1.)
+(The buffer + bind group are 07's uniform pattern: `SectionUniform` is its **own** uniform, bound in
+every geometry pipeline at that shader's next free group slot. Don't fold it into the line uniform to
+save a bind group — sectioning has nothing to do with line width; sharing a group-1 *layout* of the same
+shape is fine, but its **data** stays separate, like 32b's `CloudUniform`.)
 
 ## Step 2 — one line per shader: `src/shaders/*.wgsl`
 
-Each geometry fs (mesh, cylinder, sphere, point billboards, ground) gains the loop — first thing in
-`fs_main`, before any lighting. The shaders that don't yet pass `world_pos` to the fragment stage
-(cylinder/sphere) add it to `VsOut` — the vs already computes it:
+Each geometry fs (`triangle.wgsl` = meshes, `cylinder.wgsl`, `sphere.wgsl` = spheres *and* point
+billboards, and the ground in `grid.wgsl`/`background.wgsl`) gains the loop — first thing in
+`fs_main`, before any lighting. `triangle.wgsl` already carries `world_pos` in `VsOut`
+(`@location(1)`); the shaders that don't yet pass it to the fragment stage (cylinder/sphere) add it
+to `VsOut` — the vs already computes the world position.
+
+First declare the uniform once per shader, at the next free group slot (in `triangle.wgsl` groups
+0/1/2 are taken, so use group 3 — pick each shader's own next-free slot). Add at the top, beside the
+other `@group` declarations:
+
+```wgsl
+struct SectionUniform {
+    planes: array<vec4<f32>, 4>,   // (n.xyz, d_rebased)
+    count: u32,
+};
+@group(3) @binding(0) var<uniform> sec: SectionUniform;
+```
+
+Then, as the first statement in each `fs_main`:
 
 ```wgsl
     for (var i = 0u; i < sec.count; i = i + 1u) {
@@ -130,7 +151,9 @@ drag:
         "section" => match parts.next() {
             Some("off")  => { state.sections.clear(); state.poke();
                               Dispatch::Instant("sections off".into()) }
-            Some("flip") => { for pl in &mut state.sections { pl.flip(); }   // or rebuild with -n
+            Some("flip") => { for pl in &mut state.sections {          // kernel Plane has no flip():
+                                  *pl = Plane::from_point_normal(pl.origin(), -pl.z_axis());
+                              }
                               state.poke(); Dispatch::Instant("sections flipped".into()) }
             Some("wp")   => { state.sections.push(state.work_plane.clone()); state.poke();
                               Dispatch::Instant("section from work plane".into()) }

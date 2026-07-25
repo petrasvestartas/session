@@ -21,7 +21,8 @@ parentage; visibility is the branch-eye behaviour 70 already built (toggle a bra
 descendant set). What's genuinely new is three small verbs:
 
 ```rust
-    pub active_layer: Option<String>,        // group-node guid new objects parent under
+    pub active_layer: Option<String>,        // ← ADD to `struct Scene` — AND init `active_layer: None`
+                                             //   in Scene::new's struct literal (35), else E0063
 
     /// Find-or-create the named layer (a top-level tree group). Kernel API, one call.
     pub fn layer_node(&mut self, name: &str) -> Rc<RefCell<TreeNode>> {
@@ -42,6 +43,29 @@ descendant set). What's genuinely new is three small verbs:
             }
         }
     }
+
+    /// Top-level layer group by name, or None. (The kernel ships `Session::find_group`, but it
+    /// *panics* when the name is missing — we want an Option so `layer_node` can fall through.)
+    fn find_group_by_name(&self, name: &str) -> Option<Rc<RefCell<TreeNode>>> {
+        let root = self.session.tree.root()?;
+        let node = root.borrow().children().into_iter().find(|c| c.borrow().name == name);
+        node
+    }
+
+    /// The active layer as a `parent` argument for `add_*` (None until `layer active` ran).
+    pub fn active_layer_node(&self) -> Option<Rc<RefCell<TreeNode>>> {
+        let guid = self.active_layer.clone()?;
+        self.session.tree.find_node_by_guid(&guid)
+    }
+
+    /// Every object guid under the named layer (its descendants) — fed to 46's hidden set.
+    pub fn layer_members(&self, name: &str) -> Vec<String> {
+        match self.find_group_by_name(name) {
+            Some(layer) => layer.borrow().descendants().iter()
+                .map(|n| n.borrow().guid().to_string()).collect(),
+            None => Vec::new(),
+        }
+    }
 ```
 
 (`find_group_by_name` walks the root's children comparing names — a 5-line helper. Check your
@@ -50,8 +74,9 @@ parent link instead. The key property: **a tree move changes no guid and no row*
 selection, and the arena are all untouched — layers cost nothing.)
 
 New objects land on the active layer with a one-line change in 57's tools: `AddGeometry`'s
-insert passes `state.scene.active_layer_node()` as the `parent` argument that `add_mesh`/
-`add_line`/… always accepted (it was `None` since 57 — the parameter was waiting).
+insert passes `state.scene.active_layer_node().as_ref()` as the `parent` argument that `add_mesh`/
+`add_line`/… always accepted (`.as_ref()` because `active_layer_node` returns an owned `Option`
+while `add_*` want `Option<&Rc<…>>`). It was `None` since 57 — the parameter was waiting.
 
 ## Step 2 — the verbs: `src/app/commands.rs`
 
@@ -62,9 +87,9 @@ insert passes `state.scene.active_layer_node()` as the `parent` argument that `a
                 state.scene.active_layer = Some(node.borrow().guid().to_string());
                 Dispatch::Instant(format!("active layer: {name}"))
             }
-            (Some("off"), Some(name)) | (Some("on"), Some(name)) => {
+            (Some(dir @ ("off" | "on")), Some(name)) => {
                 // resolve the group's descendant guids and hand them to 46's set ops
-                let hide = /* first token == "off" */;
+                let hide = dir == "off";                          // bind the token, then read it
                 let members = state.scene.layer_members(name);
                 for g in members {
                     if hide { state.scene.hidden.insert(g); } else { state.scene.hidden.remove(&g); }
@@ -73,6 +98,7 @@ insert passes `state.scene.active_layer_node()` as the `parent` argument that `a
                 state.poke();
                 Dispatch::Instant(format!("layer {name}: {}", if hide { "off" } else { "on" }))
             }
+            (Some("active"), None) => Dispatch::Instant("layer active <name>".into()),
             (Some(name), None) => {
                 let n = state.scene.selected.len();
                 state.scene.assign_to_layer(name);

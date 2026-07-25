@@ -106,8 +106,18 @@ pub fn build_ui(shell: &mut Shell, window: &winit::window::Window,
 ```
 
 Add `mod ui;` in `lib.rs`, and to `State`: `pub shell: Shell, pub ui: UiState` (build the `Shell` in
-`State::new` right after `Gpu::new` — it needs the device and surface format; seed `UiState` from the
-current camera/thickness values).
+`State::new` right after `Gpu::new` — it needs the device and surface format). Seed `UiState` from the
+current camera/thickness values — note the `ortho` flag is the inverse of the camera's `perspective`:
+
+```rust
+        // in State::new, after gpu + shell are built:
+        let ui = crate::ui::UiState {
+            show_grid: gpu.show_grid, show_edges: gpu.show_edges,
+            ortho: !camera.perspective,          // camera stores `perspective`; UI shows its inverse
+            thickness: gpu.thickness,
+            fps: 0.0, frame_ms: 0.0, draws: 0, drawn: 0, total: 0,
+        };
+```
 
 ## Step 2 — events go to egui first: `src/lib.rs`
 
@@ -219,9 +229,21 @@ pub struct UiFrame<'a> {
         self.gpu.clear(bg, &view_proj, &origin, Some(ui_frame))
 ```
 
-(`show_grid`/`show_edges` are two new `bool` fields on `Gpu`, checked around the grid draw and the
-cylinder draw in `clear()` — `if self.show_grid { …grid pass… }`. `thickness` already drives 31's
-line uniform every frame; the slider just changes the number it uploads.)
+Camera only has `toggle_projection` (from 16) — add the data-driven setter next to it in
+`src/camera.rs`; the field is `perspective`, the inverse of `ortho`:
+
+```rust
+    pub fn set_ortho(&mut self, on: bool) {   // add beside toggle_projection
+        self.perspective = !on;
+    }
+```
+
+(`show_grid`/`show_edges` are two new `bool` fields on `Gpu`, gated in `clear()`: wrap the
+`pass.set_pipeline(&self.pipelines.grid)` block in `if self.show_grid { … }` and the
+`pass.set_pipeline(&self.pipelines.cylinder)` block in `if self.show_edges { … }`. Add both to
+`struct Gpu` **and** initialize them in `Gpu::new`'s `Self { … }` (`show_grid: true, show_edges: true`) —
+a struct literal, so a missing field is an **E0063** build error. `thickness` already drives 31's line
+uniform every frame; the slider just changes the number it uploads.)
 
 ## Step 5 — verify
 

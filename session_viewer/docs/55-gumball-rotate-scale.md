@@ -58,8 +58,16 @@ builder used, so the measured angle and the drawn arc agree. The live delta is a
 axis line through the gumball origin** — the kernel has that in one call:
 
 ```rust
+    // body of the RotateX | RotateY | RotateZ arm (Step 3). n / a_dir / b_dir follow the
+    // (i+1)%3 / (i+2)%3 pairing 52's arc builder used, so the measured angle matches the arc:
+    let (n, a_dir, b_dir) = match ctx.handle {
+        RotateX => (Vector::x_axis(), Vector::y_axis(), Vector::z_axis()),
+        RotateY => (Vector::y_axis(), Vector::z_axis(), Vector::x_axis()),
+        _       => (Vector::z_axis(), Vector::x_axis(), Vector::y_axis()),
+    };
+    let now = angle_on_arc_plane(ray, &ctx.origin, &n, &a_dir, &b_dir)?;   // press handler stashed ctx.a0
     let ang = now - ctx.a0;                                    // radians since press
-    let axis_line = Line::from_points(&ctx.origin, &(ctx.origin.clone() + ctx.axis.clone()));
+    let axis_line = Line::from_points(&ctx.origin, &(ctx.origin.clone() + n.clone()));
     let delta = Xform::rotation_around_line(&axis_line, ang, false);   // false = radians
 ```
 
@@ -115,7 +123,9 @@ point in one call, no translate-sandwich needed.)
 ## Step 3 — dispatch by handle group: `src/state.rs`
 
 `begin_drag` and the mouse-move arm switch on the handle's group; each group stashes its own press
-reference (`t0` for translate/axis-scale, `a0` for rotate, `d0` for uniform scale) in `DragCtx`, and
+reference (`t0` for translate/axis-scale, `a0` for rotate, `d0` for uniform scale) in `DragCtx` — so
+**add `a0: f64` and `d0: f64` to 54's `DragCtx` struct** and set them in `begin_drag` (else E0609 at
+`ctx.a0`/`ctx.d0` in the shown deltas), and
 every group ends at the same two lines — `set_live_model` per object, `TransformObjects` on release:
 
 ```rust

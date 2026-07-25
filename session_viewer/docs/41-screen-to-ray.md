@@ -116,7 +116,7 @@ cleanly. The ray it yields is identical in direction (any two distinct points on
 ray) but numerically solid. **Never unproject at the exact far plane for a pick ray.**
 
 > **Ortho.** An orthographic projection has no perspective divide (`w` is constant), so the far plane is
-> fine there — but a symmetric ortho frustum (near = −N, far = +N) puts the *camera plane* at `ndc_z`
+> fine there — but a symmetric ortho frustum (near = +N, far = −N, per `camera.rs`'s `orthographic(…, r, -r)`) puts the *camera plane* at `ndc_z`
 > mid-range, so unproject near at `0.5` and far at `1.0`. If you carry a `ProjMode` (16), branch the two
 > `ndc_z` values on it; the rest of the function is identical.
 
@@ -125,12 +125,31 @@ ray) but numerically solid. **Never unproject at the exact far plane for a pick 
 Track the cursor, and on a left-click build the ray and intersect it with the ground plane `z = 0` —
 if the ray is right, the hit lands exactly under the cursor from every camera angle.
 
-```rust
-    // State already handles CursorMoved for orbit/pan; stash the latest position:
-    // self.cursor = (position.x, position.y);   // physical pixels
+First give `State` a field for the latest cursor position — **add it to `struct State` and initialize
+it in `State::new`**:
 
-    // on left-button press:
-    let vp = self.camera.view_proj(self.aspect());
+```rust
+// in `struct State`:
+    cursor: (f64, f64),      // latest cursor position, physical pixels
+// in `State::new`, next to the other field inits:
+    cursor: (0.0, 0.0),
+```
+
+State already handles `CursorMoved` for orbit/pan — **in that existing arm**, also stash the position:
+
+```rust
+            WindowEvent::CursorMoved { position, .. } => {
+                self.cursor = (position.x, position.y);   // physical pixels
+                // ...existing orbit/pan handling stays below...
+            }
+```
+
+Then, **in the left-button `MouseInput` press branch** (`ElementState::Pressed`,
+`MouseButton::Left`), build the ray and drop the marker:
+
+```rust
+    let aspect = self.gpu.config.width as f64 / self.gpu.config.height as f64;
+    let vp = self.camera.view_proj(aspect);
     let origin = self.camera.origin();
     let viewport = (0.0, 0.0, self.gpu.config.width as f64, self.gpu.config.height as f64);
     if let Some(ray) = engine::pick::screen_to_world_ray(&vp, &origin, self.cursor, viewport) {

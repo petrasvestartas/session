@@ -35,12 +35,19 @@ src/ui/mod.rs  # HUD gains "frames drawn/s" beside fps — the number that prove
 One boolean, one setter, and an audit of *everything that changes what a frame would show*:
 
 ```rust
-    pub dirty: bool,                       // ← ADD, init true (the first frame must draw)
+    // find `struct State { … }` → add three fields:
+    pub dirty: bool,                       // init true (the first frame must draw)
+    pub frames_drawn: u32,                 // ticked once per drawn frame (Step 3)
+    pub frames_drawn_last_sec: u32,        // snapshotted for the HUD (Step 3)
+
+    // in `State::new`, seed them in the returned `Ok(Self { … })`:
+    //   dirty: true, frames_drawn: 0, frames_drawn_last_sec: 0,
 
     pub fn mark_dirty(&mut self) { self.dirty = true; }
 ```
 
-The setter call sites — this list *is* the lesson; each is one line at code that already exists:
+The setter call sites — this list *is* the lesson; each gets one call to the `poke()` helper we
+build in Step 2 (`mark_dirty` + a redraw request), at code that already exists:
 
 | source | where |
 |---|---|
@@ -59,8 +66,9 @@ respect it or the text caret freezes.
 
 ## Step 2 — the gate: `src/state.rs` + `src/lib.rs`
 
-The current loop ends `render()` with `self.window.request_redraw()` — the unconditional 60 fps
-treadmill. Invert it: `RedrawRequested` draws only if dirty, and only *input* (or egui) re-arms it:
+The current loop *opens* `render()` with `self.window.request_redraw()` (schedule-the-next-frame,
+then draw) — the unconditional 60 fps treadmill. Delete that first line and invert the logic:
+`RedrawRequested` draws only if dirty, and only *input* (or egui) re-arms it:
 
 ```rust
     pub fn render(&mut self) -> anyhow::Result<()> {
@@ -80,7 +88,7 @@ and in `lib.rs`, every input handler that calls `state.mark_dirty()` follows wit
 
 ```rust
     // helper on State, used by all the call sites in the table:
-    pub fn poke(&mut self) { self.dirty = true; self.window.request_redraw(); }
+    pub fn poke(&mut self) { self.mark_dirty(); self.window.request_redraw(); }
 ```
 
 (Sweep the table's rows to call `poke()`. The watch poll (40) and 39's debounce still need ticks
@@ -96,7 +104,8 @@ fps says how fast frames *can* draw; the new number says how many *did*:
     ui.label(format!("{:>5.1} fps   {:>4} drawn/s", ui_state.fps, ui_state.frames_drawn_last_sec));
 ```
 
-(`State` accumulates `frames_drawn` and snapshots it once a second, same rhythm as 28's fps counter.)
+(`State` accumulates `frames_drawn` (the field from Step 1) and snapshots it into
+`frames_drawn_last_sec` once a second, same rhythm as 28's fps counter.)
 
 ## Step 4 — verify
 

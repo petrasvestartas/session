@@ -105,15 +105,54 @@ fn rank(k: HandleKind) -> u8 {
 }
 ```
 
-The two distance helpers are the classic closest-approach formulas (f64, via kernel `Point`/`Vector`
-ops — `Line::from_points(p0, p1).closest_point(&ray_point, true)` iterated, or write the 6-line
-parametric version directly; either is fine, there are ~460 primitives and this runs per mouse
-event, not per frame).
+The two distance helpers are the classic closest-approach formulas (f64, index access as elsewhere).
+They assume 42's `Ray { origin: Point, dir: Vector }` and `Point` endpoints (what `Line::from_points`
+takes); if your `GumballGeom` stores `[f32;3]`, read those components the same way. ~460 primitives, run
+per mouse event, not per frame — the direct parametric version is plenty:
+
+```rust
+/// Shortest distance from point `c` to the ray (origin + t·dir, t ≥ 0).
+fn ray_point_distance(ray: &Ray, c: Point) -> f64 {
+    let d = [ray.dir[0], ray.dir[1], ray.dir[2]];
+    let w = [c[0]-ray.origin[0], c[1]-ray.origin[1], c[2]-ray.origin[2]];
+    let dd = d[0]*d[0] + d[1]*d[1] + d[2]*d[2];
+    let t = ((w[0]*d[0] + w[1]*d[1] + w[2]*d[2]) / dd).max(0.0);        // clamp behind the origin
+    let cp = [ray.origin[0]+t*d[0], ray.origin[1]+t*d[1], ray.origin[2]+t*d[2]];
+    let e = [c[0]-cp[0], c[1]-cp[1], c[2]-cp[2]];
+    (e[0]*e[0] + e[1]*e[1] + e[2]*e[2]).sqrt()
+}
+
+/// Shortest distance between the ray (t ≥ 0) and segment p0→p1 (s ∈ [0,1]): solve the two infinite
+/// lines' closest approach, clamp the segment param, re-solve the ray param, clamp it ≥ 0.
+fn ray_segment_distance(ray: &Ray, p0: Point, p1: Point) -> f64 {
+    let dot = |u: [f64;3], v: [f64;3]| u[0]*v[0] + u[1]*v[1] + u[2]*v[2];
+    let o = [ray.origin[0], ray.origin[1], ray.origin[2]];
+    let d = [ray.dir[0], ray.dir[1], ray.dir[2]];
+    let a = [p0[0], p0[1], p0[2]];
+    let e = [p1[0]-a[0], p1[1]-a[1], p1[2]-a[2]];
+    let r = [o[0]-a[0], o[1]-a[1], o[2]-a[2]];
+    let (aa, bb, cc) = (dot(d,d), dot(d,e), dot(e,e));
+    let (dr, er) = (dot(d,r), dot(e,r));
+    let den = aa*cc - bb*bb;
+    let mut t = if den > 1e-12 { (bb*er - cc*dr) / den } else { 0.0 };  // ray param on the two lines
+    if t < 0.0 { t = 0.0; }
+    let s = ((bb*t + er) / cc.max(1e-12)).clamp(0.0, 1.0);              // seg param for this t, clamped
+    t = ((bb*s - dr) / aa.max(1e-12)).max(0.0);                        // re-solve ray param, t ≥ 0
+    let cr = [o[0]+t*d[0], o[1]+t*d[1], o[2]+t*d[2]];
+    let cs = [a[0]+s*e[0], a[1]+s*e[1], a[2]+s*e[2]];
+    let g = [cr[0]-cs[0], cr[1]-cs[1], cr[2]-cs[2]];
+    (g[0]*g[0] + g[1]*g[1] + g[2]*g[2]).sqrt()
+}
+```
 
 ## Step 3 — gumball first, scene second: `src/state.rs`
 
 The input pecking order grows one level. From top: egui (47) → Get-loop (48) → **gumball** → scene
-picking (42–45):
+picking (42–45). `ray` here is 42's `engine::pick::screen_to_world_ray(&vp, &origin, self.cursor,
+viewport)?` result (built early, so it's in scope). `proj_y`/`ortho_h`/`vp_h` are 44's three pick-site
+locals (the same numbers 31 packs into the line uniform), but 44 declares them *after* selection
+picking — at this earlier gumball point they don't exist yet, so compute the same three just above
+this block (exactly as the cursor-move handler below does):
 
 ```rust
     // in the left-press handler, AFTER the Get-loop check, BEFORE selection picking:
@@ -130,11 +169,20 @@ And hover — same test on mouse-move, brighten the hot handle (rebuild with the
 lightened, or simplest: stash `hovered: Option<HandleKind>` and let `build` take it, tinting matching
 rows toward white):
 
+This is the cursor-move handler, **not** the press handler — 44's `proj_y`/`ortho_h`/`vp_h` locals
+and `ray` are out of scope, so rebuild them first: `screen_to_world_ray(...)?` for `ray` and the same
+`world_per_pixel(...) * 20.0` for `tol`.
+
 ```rust
-    // on cursor move, when not dragging:
+    // on cursor move, when not dragging (ray + tol rebuilt here as above):
     let hov = self.gb.as_ref().and_then(|g| crate::engine::gumball::hit_test(g, &ray, tol));
     if hov != self.gb_hovered { self.gb_hovered = hov; self.refresh_gumball(); }
 ```
+
+Both handles are new `State` fields — add `gb_pressed: Option<(HandleKind, (f64, f64))>` (the cursor is
+41's `(f64, f64)`) and `gb_hovered: Option<HandleKind>` to `struct State`, and initialize **both to
+`None`** in `State::new`. For the tint, `build` (52) gains a `hovered: Option<HandleKind>` parameter and
+`refresh_gumball` passes `self.gb_hovered`, so matching rows render lightened toward white.
 
 ## Step 4 — verify
 

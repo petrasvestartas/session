@@ -3,7 +3,7 @@
     "group": "BRep",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.044,
+    "time_ms": 0.052,
     "line": 27,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"point.h\"\n\n        BRep b;\n\n        // String representations\n        std::string sstr = b.str();\n        std::string srepr = b.repr();\n\n        // Copy (new guid())\n        BRep bcopy = b;",
     "checks": [
@@ -59,7 +59,7 @@
     "group": "BRep",
     "test_name": "Create Box",
     "passed": true,
-    "time_ms": 0.236,
+    "time_ms": 0.32,
     "line": 51,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"point.h\"\n\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);",
     "checks": [
@@ -100,7 +100,7 @@
     "group": "BRep",
     "test_name": "Accessors",
     "passed": true,
-    "time_ms": 0.228,
+    "time_ms": 0.164,
     "line": 65,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"nurbssurface.h\"\n\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);\n\n        int fc = box.face_count();\n        int ec = box.edge_count();\n        int vc = box.vertex_count();",
     "checks": [
@@ -141,7 +141,7 @@
     "group": "BRep",
     "test_name": "Add Face",
     "passed": true,
-    "time_ms": 0.019,
+    "time_ms": 0.015,
     "line": 84,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        BRep b;\n        NurbsSurface srf;\n        srf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n        srf.set_cv(0, 0, Point(0, 0, 0)); srf.set_cv(1, 0, Point(1, 0, 0));\n        srf.set_cv(0, 1, Point(0, 1, 0)); srf.set_cv(1, 1, Point(1, 1, 0));\n\n        int si = b.add_surface(srf);\n        int fi = b.add_face(si, false);\n        int li = b.add_loop(fi, BRepLoopType::Outer);\n\n        NurbsCurve trim = NurbsCurve::create(false, 1, {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n        });\n        int ci = b.add_curve_2d(trim);\n        b.add_trim(ci, -1, li, false, BRepTrimType::Boundary);",
     "checks": [
@@ -172,7 +172,7 @@
     "group": "BRep",
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 0.834,
+    "time_ms": 0.62,
     "line": 113,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"mesh.h\"\n\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);\n        Mesh m = box.mesh();",
     "checks": [
@@ -198,7 +198,7 @@
     "group": "BRep",
     "test_name": "Point At",
     "passed": true,
-    "time_ms": 0.215,
+    "time_ms": 0.167,
     "line": 125,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"tolerance.h\"\n\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);\n        Point pt = box.point_at(0, 0.5, 0.5);\n\n                   std::abs(pt[1] + 1.5) < 0.01 || std::abs(pt[1] - 1.5) < 0.01 ||\n                   std::abs(pt[0] + 1.0) < 0.01 || std::abs(pt[0] - 1.0) < 0.01);",
     "checks": [
@@ -214,7 +214,7 @@
     "group": "BRep",
     "test_name": "Is Solid",
     "passed": true,
-    "time_ms": 0.212,
+    "time_ms": 0.183,
     "line": 138,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"nurbssurface.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"point.h\"\n\n        // Box is solid\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);\n\n        // Single face is not solid\n        BRep single;\n        NurbsSurface srf;\n        srf.create_raw(3, false, 2, 2, 2, 2, false, false, 1.0, 1.0);\n        srf.set_cv(0, 0, Point(0, 0, 0)); srf.set_cv(1, 0, Point(1, 0, 0));\n        srf.set_cv(0, 1, Point(0, 1, 0)); srf.set_cv(1, 1, Point(1, 1, 0));\n        int si = single.add_surface(srf);\n        single.add_face(si, false);\n        single.add_vertex(Point(0, 0, 0));",
     "checks": [
@@ -235,7 +235,7 @@
     "group": "BRep",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.227,
+    "time_ms": 0.223,
     "line": 161,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"xform.h\"\n        // uncomment #include \"tolerance.h\"\n\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);\n        box.xform = Xform::translation(10.0, 20.0, 30.0);\n        BRep moved = box.transformed();\n\n        Point pt = moved.point_at(0, 0.0, 0.0);\n        Point pt_orig = box.point_at(0, 0.0, 0.0);",
     "checks": [
@@ -261,7 +261,7 @@
     "group": "BRep",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 29.549,
+    "time_ms": 32.279,
     "line": 179,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"color.h\"\n        // uncomment #include <filesystem>\n\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);\n        box.name = \"test_brep\";\n        box.width = 2.0;\n        box.surfacecolor = Color(255, 128, 64, 255);\n\n        // JSON object\n        nlohmann::ordered_json json = box.jsondump();\n        BRep loaded_json = BRep::jsonload(json);\n\n        // String\n        std::string json_string = box.file_json_dumps();\n        BRep loaded_json_string = BRep::file_json_loads(json_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_brep.json\").string();\n        box.file_json_dump(filename);\n        BRep loaded_from_file = BRep::file_json_load(filename);",
     "checks": [
@@ -287,7 +287,7 @@
     "group": "BRep",
     "test_name": "Create Cylinder",
     "passed": true,
-    "time_ms": 3.089,
+    "time_ms": 2.917,
     "line": 207,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"mesh.h\"\n\n        BRep cyl = BRep::create_cylinder(1.0, 2.0);\n        Mesh m = cyl.mesh();",
     "checks": [
@@ -328,7 +328,7 @@
     "group": "BRep",
     "test_name": "Create Sphere",
     "passed": true,
-    "time_ms": 12.589,
+    "time_ms": 11.372,
     "line": 222,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"mesh.h\"\n\n        BRep sph = BRep::create_sphere(2.0);\n        Mesh m = sph.mesh();",
     "checks": [
@@ -369,7 +369,7 @@
     "group": "BRep",
     "test_name": "Create Cone",
     "passed": true,
-    "time_ms": 1.641,
+    "time_ms": 1.781,
     "line": 237,
     "code": "        const double PI = 3.14159265358979323846;\n        BRep cone = BRep::create_cone(1.0, 2.0);   // base r=1 at z=0, apex z=2\n        Mesh m = cone.mesh();\n        // V = (1/3) pi r^2 h",
     "checks": [
@@ -410,7 +410,7 @@
     "group": "BRep",
     "test_name": "Create Torus",
     "passed": true,
-    "time_ms": 36.833,
+    "time_ms": 33.879,
     "line": 250,
     "code": "        const double PI = 3.14159265358979323846;\n        BRep tor = BRep::create_torus(2.0, 0.5);   // major R=2, minor r=0.5\n        Mesh m = tor.mesh();\n        // V = 2 pi^2 R r^2",
     "checks": [
@@ -451,7 +451,7 @@
     "group": "BRep",
     "test_name": "From Polylines",
     "passed": true,
-    "time_ms": 1.503,
+    "time_ms": 1.305,
     "line": 263,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"polyline.h\"\n        // uncomment #include \"mesh.h\"\n\n        double hx = 1.0, hy = 1.5, hz = 2.0;\n        Point c[8] = {\n            Point(-hx, -hy, -hz),\n            Point( hx, -hy, -hz),\n            Point( hx,  hy, -hz),\n            Point(-hx,  hy, -hz),\n            Point(-hx, -hy,  hz),\n            Point( hx, -hy,  hz),\n            Point( hx,  hy,  hz),\n            Point(-hx,  hy,  hz),\n        };\n\n        Polyline bottom(std::vector<Point>{\n            c[0],\n            c[3],\n            c[2],\n            c[1],\n            c[0],\n        });\n        Polyline top(std::vector<Point>{\n            c[4],\n            c[5],\n            c[6],\n            c[7],\n            c[4],\n        });\n        Polyline front(std::vector<Point>{\n            c[0],\n            c[1],\n            c[5],\n            c[4],\n            c[0],\n        });\n        Polyline right(std::vector<Point>{\n            c[1],\n            c[2],\n            c[6],\n            c[5],\n            c[1],\n        });\n        Polyline back(std::vector<Point>{\n            c[2],\n            c[3],\n            c[7],\n            c[6],\n            c[2],\n        });\n        Polyline left(std::vector<Point>{\n            c[3],\n            c[0],\n            c[4],\n            c[7],\n            c[3],\n        });\n\n        BRep b = BRep::from_polylines({bottom, top, front, right, back, left});\n        Mesh m = b.mesh();",
     "checks": [
@@ -497,7 +497,7 @@
     "group": "BRep",
     "test_name": "From Nurbscurves",
     "passed": true,
-    "time_ms": 1.093,
+    "time_ms": 1.302,
     "line": 335,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"mesh.h\"\n\n        double hx = 1.0, hy = 1.5, hz = 2.0;\n        Point c[8] = {\n            Point(-hx, -hy, -hz),\n            Point( hx, -hy, -hz),\n            Point( hx,  hy, -hz),\n            Point(-hx,  hy, -hz),\n            Point(-hx, -hy,  hz),\n            Point( hx, -hy,  hz),\n            Point( hx,  hy,  hz),\n            Point(-hx,  hy,  hz),\n        };\n\n        auto bottom = NurbsCurve::create(false, 1, {\n            c[0],\n            c[3],\n            c[2],\n            c[1],\n            c[0],\n        });\n        auto top = NurbsCurve::create(false, 1, {\n            c[4],\n            c[5],\n            c[6],\n            c[7],\n            c[4],\n        });\n        auto front = NurbsCurve::create(false, 1, {\n            c[0],\n            c[1],\n            c[5],\n            c[4],\n            c[0],\n        });\n        auto right = NurbsCurve::create(false, 1, {\n            c[1],\n            c[2],\n            c[6],\n            c[5],\n            c[1],\n        });\n        auto back = NurbsCurve::create(false, 1, {\n            c[2],\n            c[3],\n            c[7],\n            c[6],\n            c[2],\n        });\n        auto left = NurbsCurve::create(false, 1, {\n            c[3],\n            c[0],\n            c[4],\n            c[7],\n            c[3],\n        });\n\n        BRep b = BRep::from_nurbscurves({bottom, top, front, right, back, left});\n        Mesh m = b.mesh();",
     "checks": [
@@ -528,7 +528,7 @@
     "group": "BRep",
     "test_name": "From Nurbscurves Holes",
     "passed": true,
-    "time_ms": 23.045,
+    "time_ms": 19.846,
     "line": 404,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"nurbscurve.h\"\n        // uncomment #include \"mesh.h\"\n        // uncomment #include \"primitives.h\"\n\n        auto outer = NurbsCurve::create(false, 1, {\n            Point(-5, -5, 0),\n            Point(5, -5, 0),\n            Point(5, 5, 0),\n            Point(-5, 5, 0),\n            Point(-5, -5, 0),\n        });\n        auto hole = Primitives::circle(0.0, 0.0, 0.0, 2.0);\n\n        BRep b = BRep::from_nurbscurves({outer}, {{hole}});\n        Mesh m = b.mesh();",
     "checks": [
@@ -574,7 +574,7 @@
     "group": "BRep",
     "test_name": "Create Block With Hole",
     "passed": true,
-    "time_ms": 4.473,
+    "time_ms": 3.444,
     "line": 431,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"mesh.h\"\n\n        BRep bh = BRep::create_block_with_hole(8.0, 6.0, 4.0, 1.5);\n        Mesh m = bh.mesh();\n\n        // Analytic volume: the annular top/bottom faces' interior sample must land on the\n        // MATERIAL (not in the hole) for the outward-sign probe. OCCT: sx*sy*sz - pi*r^2*sz.\n        {\n            const double PI = 3.14159265358979323846;\n            double ref = 8.0*6.0*4.0 - PI*1.5*1.5*4.0;",
     "checks": [
@@ -625,7 +625,7 @@
     "group": "BRep",
     "test_name": "Mesh Orientation",
     "passed": true,
-    "time_ms": 4.232,
+    "time_ms": 3.376,
     "line": 454,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"mesh.h\"\n\n        // Reversed faces must flip winding; the bug inflated volume() past the solid box.\n        BRep bh = BRep::create_block_with_hole(8.0, 6.0, 4.0, 1.5);\n        double vol = bh.mesh().volume();",
     "checks": [
@@ -646,7 +646,7 @@
     "group": "BRep",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 23.636,
+    "time_ms": 18.873,
     "line": 466,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"color.h\"\n        // uncomment #include <filesystem>\n\n        BRep box = BRep::create_box(2.0, 3.0, 4.0);\n        box.name = \"test_brep\";\n        box.width = 2.0;\n        box.surfacecolor = Color(255, 128, 64, 255);\n\n        // String\n        std::string proto_string = box.pb_dumps();\n        BRep loaded_proto_string = BRep::pb_loads(proto_string);\n\n        // File\n        std::string filename = (std::filesystem::path(__FILE__).parent_path().parent_path() / \"serialization\" / \"test_brep.bin\").string();\n        box.pb_dump(filename);\n        BRep loaded = BRep::pb_load(filename);",
     "checks": [
@@ -667,7 +667,7 @@
     "group": "BRep",
     "test_name": "Split By Plane",
     "passed": true,
-    "time_ms": 218.724,
+    "time_ms": 159.077,
     "line": 489,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"plane.h\"\n        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n\n        BRep box = BRep::create_box(2.0, 2.0, 2.0);\n        Point origin(0.0, 0.0, 0.0);\n        Vector normal(0.0, 0.0, 1.0);\n        Plane plane = Plane::from_point_normal(origin, normal);\n        BRep split = box.split_by_plane(plane);\n        double box_area = box.mesh().area();\n        double split_area = split.mesh().area();\n        int inner = 0;\n        for (const auto& face : split.m_faces)\n            for (int li : face.loop_indices)\n                if (split.m_loops[li].type == BRepLoopType::Inner)\n                    inner += 1;\n\n\n        BRep cylinder = BRep::create_cylinder(1.0, 4.0);\n        Point mid_origin(0.0, 0.0, 1.0);\n        Vector mid_normal(0.0, 0.0, 1.0);\n        Plane mid = Plane::from_point_normal(mid_origin, mid_normal);\n        BRep cut = cylinder.split_by_plane(mid);",
     "checks": [
@@ -708,7 +708,7 @@
     "group": "BRep",
     "test_name": "Split By Plane Pieces",
     "passed": true,
-    "time_ms": 255.929,
+    "time_ms": 154.3,
     "line": 523,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"plane.h\"\n\n        BRep box = BRep::create_box(2.0, 2.0, 2.0);\n        Point origin(0.0, 0.0, 0.0);\n        Vector normal(0.0, 0.0, 1.0);\n        Plane plane = Plane::from_point_normal(origin, normal);\n        std::vector<BRep> pieces = box.split_by_plane_pieces(plane);\n        double total = 0.0;\n        for (const auto& piece : pieces) total += piece.mesh().area();\n\n\n        Point far_o(0.0, 0.0, 5.0);\n        Vector far_n(0.0, 0.0, 1.0);\n        Plane far = Plane::from_point_normal(far_o, far_n);\n        std::vector<BRep> whole = box.split_by_plane_pieces(far);",
     "checks": [
@@ -749,7 +749,7 @@
     "group": "BRep",
     "test_name": "Split By Line",
     "passed": true,
-    "time_ms": 67.797,
+    "time_ms": 41.335,
     "line": 549,
     "code": "        // uncomment #include \"brep.h\"\n        // uncomment #include \"line.h\"\n        // uncomment #include \"point.h\"\n\n        BRep box = BRep::create_box(2.0, 2.0, 2.0);\n        Line line = Line::from_points(Point(0.0, -2.0, 1.0), Point(0.0, 2.0, 1.0));\n        BRep split = box.split_by_line(line);\n        double box_area = box.mesh().area();\n        double split_area = split.mesh().area();",
     "checks": [
@@ -775,7 +775,7 @@
     "group": "BRep",
     "test_name": "Split By Brep",
     "passed": true,
-    "time_ms": 10.483,
+    "time_ms": 7.287,
     "line": 565,
     "code": "        // uncomment #include \"brep.h\"\n\n        BRep target = BRep::create_box(4.0, 4.0, 2.0);\n        BRep cutter = BRep::create_box(2.0, 2.0, 6.0);\n        BRep split = target.split_by_brep(cutter);\n        double target_area = target.mesh().area();\n        double split_area = split.mesh().area();",
     "checks": [
@@ -801,7 +801,7 @@
     "group": "BRep",
     "test_name": "Boolean",
     "passed": true,
-    "time_ms": 8851.346,
+    "time_ms": 2924.206,
     "line": 579,
     "code": "        const double PI = 3.14159265358979323846;\n        // Box 4x4x4 centered (z in [-2,2]) with a cylinder r=1 running through it (z in [-3,3]).\n        BRep box = BRep::create_box(4, 4, 4);\n        BRep cyl = BRep::create_cylinder(1.0, 6.0);\n        cyl.xform = Xform::translation(0, 0, -3);\n        cyl = cyl.transformed();\n\n        // imprint -> classify -> select -> sew. Validated vs OCCT BRepAlgoAPI_* (oracle):\n        // face counts match exactly (cut=7, common=3, fuse=10) and -- with the exact rational\n        // intersection circles preserved through the imprint and sewn watertight -- the volumes\n        // match OCCT to machine precision and each result is a closed solid.\n        BRep cut = box.boolean_difference(cyl);   // 64 - 4pi = 51.4336, 7 faces\n        BRep com = box.boolean_intersection(cyl); // 4pi = 12.566, 3 faces\n        BRep fus = box.boolean_union(cyl);         // 64 + 2pi = 70.283, 10 faces\n\n        // Watertight closed solids (every edge carries exactly two trims).\n        // Volumes exact to OCCT (tolerance 1e-6 relative; the analytic circles are exact).\n\n        // Box(4) - Sphere(2.5): sphere pokes through every box face. The exact rational\n        // intersection circles ARE preserved, but full exactness/watertightness for sphere\n        // pieces still needs (a) volume integration over circular (non-rectangular) trims and\n        // (b) pole/seam-aware sewing -- a follow-up iteration. Kept here as a timing case only.\n        // OCCT reference (oracle): cut V=9.545724580842144 7f, common V=54.45427562996632 7f,\n        // fuse V=74.99557383546609 13f.\n        BRep sph2 = BRep::create_sphere(2.5);\n        auto bench = [](const char* tag, const BRep& A, const BRep& B, double occt_us) {\n            A.boolean_difference(B);  // warm up\n            const int NB = 20;\n            auto t0 = std::chrono::high_resolution_clock::now();\n            for (int i = 0; i < NB; i++) { auto r = A.boolean_difference(B); (void)r.face_count(); }\n            auto t1 = std::chrono::high_resolution_clock::now();\n            double us = std::chrono::duration<double, std::micro>(t1 - t0).count() / NB;\n            std::cout << \"[bool-time] \" << tag << \" session=\" << us << \" us  OCCT=\" << occt_us\n                      << \" us  (\" << us / occt_us << \"x)\\n\";\n        };\n        // OCCT BRepAlgoAPI_Cut reference times, re-measured via the oracle's boolean_bench\n        // (validation/occt_oracle, N=100): box-cyl ~3795us, box-sphere ~20652us. (The old 4000us\n        // box-sphere figure was a stale placeholder -- OCCT's sphere boolean is ~5x costlier than\n        // that, so our kernel is far closer to OCCT on the sphere than it appeared.)\n        bench(\"box-cyl  \", box, cyl, 3795.0);\n        bench(\"box-sphere\", box, sph2, 20652.0);",
     "checks": [
@@ -857,7 +857,7 @@
     "group": "BRep",
     "test_name": "Boolean Sphere Split",
     "passed": true,
-    "time_ms": 700.941,
+    "time_ms": 275.145,
     "line": 632,
     "code": "        // The sphere (u-periodic seam + v-poles) is correctly arranged by split_by_brep into the\n        // 7 expected regions (1 central band + 2 polar caps + 4 side caps) -- the gateway to\n        // curved-periodic booleans. Full box-sphere watertight boolean still needs seam-aware\n        // inner-loop closing for the seam-straddling cap (volume + sew); tracked separately.\n        BRep sph = BRep::create_sphere(2.5);\n        BRep box = BRep::create_box(4, 4, 4);\n        BRep B2 = sph.split_by_brep(box);\n        // The +x cap straddles the periodic u-seam. The analytic sphere pull-back (replicating\n        // OCCT ProjLib_Sphere's per-point inverse U=atan2 -> EXACT seam crossings) now cuts it on\n        // BOTH sides, so it splits into two half-caps -> 8 sphere regions (OCCT keeps the cap as a\n        // single seam-spanning face = 7; joining the halves needs full seam identification, tracked).\n        // Box-sphere boolean matches OCCT face counts (cut 7, common 7) and volumes to <0.3% (cut\n        // 9.5457 / common 54.4543), vs ~40% before. Two fixes got here: (1) analytic_sphere_pullback\n        // now maps longitude->u through the TRUE rational-NURBS parametrization (was a linear approx\n        // that distorted the cut circle ~2% in flux); (2) volume() integrates sphere cap-cut faces by\n        // the analytic boundary integral flux = C.A - R^2*closed_integral(h dtheta) instead of a\n        // masked Gauss. Not yet watertight (the box disc's full circle must be co-split at the 2\n        // seam-crossings to sew 1:1 to the 2 arcs); B2==8 (cap as 2 half-faces) vs OCCT's seam-span 7.\n        BRep bcut = box.boolean_difference(sph), bcom = box.boolean_intersection(sph);",
     "checks": [
@@ -908,7 +908,7 @@
     "group": "BRep",
     "test_name": "Boolean Contained Sphere",
     "passed": true,
-    "time_ms": 136.03,
+    "time_ms": 17.406,
     "line": 662,
     "code": "        // Sphere (r=1.5) fully inside box(4) -- no surface intersection, so no seam-straddling\n        // arrangement; exercises the robust volume() over a full periodic sphere + the\n        // degenerate-pole-edge handling in is_solid(). OCCT: cut 64-(4/3)pi r^3 / 7, common\n        // (4/3)pi r^3 / 1, fuse 64 / 6, all watertight.\n        const double PI = 3.14159265358979323846;\n        const double sv = (4.0/3.0) * PI * 1.5 * 1.5 * 1.5;\n        BRep box = BRep::create_box(4, 4, 4);\n        BRep sph = BRep::create_sphere(1.5);\n        BRep cut = box.boolean_difference(sph);\n        BRep com = box.boolean_intersection(sph);\n        BRep fus = box.boolean_union(sph);",
     "checks": [
@@ -964,7 +964,7 @@
     "group": "BRep",
     "test_name": "Boolean Example brep_booleans",
     "passed": true,
-    "time_ms": 270.083,
+    "time_ms": 55.477,
     "line": 685,
     "code": "        // Reproduces docs/examples/breps/brep_booleans.py: Box(2) + Cylinder(r=0.7, h=3, centred).\n        // OCCT (oracle): fuse 9.539380400258997/10, cut 4.921239199482002/7, common 3.078760800517997/3.\n        BRep box = BRep::create_box(2, 2, 2);\n        BRep cyl = BRep::create_cylinder(0.7, 3.0); cyl.xform = Xform::translation(0, 0, -1.5); cyl = cyl.transformed();\n        BRep fus = box.boolean_union(cyl);\n        BRep cut = box.boolean_difference(cyl);\n        BRep com = box.boolean_intersection(cyl);",
     "checks": [
@@ -1020,7 +1020,7 @@
     "group": "BRep",
     "test_name": "Boolean Off-Center Cyl",
     "passed": true,
-    "time_ms": 239.461,
+    "time_ms": 51.226,
     "line": 704,
     "code": "        // Cylinder hole through the box, shifted off-centre by 0.5 in x. Topology unchanged from\n        // the centred case. OCCT (oracle): cut V=51.43362938564082 7f, common V=12.566 3f,\n        // fuse V=70.283 10f.\n        const double PI = 3.14159265358979323846;\n        BRep box = BRep::create_box(4, 4, 4);\n        BRep cyl = BRep::create_cylinder(1.0, 6.0); cyl.xform = Xform::translation(0.5, 0, -3); cyl = cyl.transformed();\n        BRep cut = box.boolean_difference(cyl);\n        BRep com = box.boolean_intersection(cyl);\n        BRep fus = box.boolean_union(cyl);",
     "checks": [
@@ -1076,7 +1076,7 @@
     "group": "BRep",
     "test_name": "Boolean Contained Box",
     "passed": true,
-    "time_ms": 251.881,
+    "time_ms": 14.918,
     "line": 725,
     "code": "        // B (vol 8) fully inside A (vol 64). cut = A with a cubic void (12 faces, watertight),\n        // common = B (6 faces), fuse = A (6 faces). OCCT (oracle): 56/12, 8/6, 64/6.\n        BRep ba = BRep::create_box(4, 4, 4);\n        BRep bb = BRep::create_box(2, 2, 2);\n        BRep cut = ba.boolean_difference(bb);\n        BRep com = ba.boolean_intersection(bb);\n        BRep fus = ba.boolean_union(bb);",
     "checks": [
@@ -1132,7 +1132,7 @@
     "group": "BRep",
     "test_name": "Boolean Box-Box",
     "passed": true,
-    "time_ms": 404.772,
+    "time_ms": 70.672,
     "line": 744,
     "code": "        // Pure-planar booleans. A=[-2,2]^3 (vol 64); B=[-1,1]^3 translated (2,0,0) =\n        // [1,3]x[-1,1]x[-1,1] (vol 8); overlap [1,2]x[-1,1]^2 = 4.  Exact analytic plane-plane\n        // intersection + edge-imprint (T-junction split) + sew -> watertight solids matching\n        // OCCT BRepAlgoAPI (oracle): cut V=60 11f, common V=4 6f, fuse V=68 11f.\n        BRep ba = BRep::create_box(4, 4, 4);\n        BRep bb = BRep::create_box(2, 2, 2); bb.xform = Xform::translation(2, 0, 0); bb = bb.transformed();\n        BRep bcut = ba.boolean_difference(bb);\n        BRep bcom = ba.boolean_intersection(bb);\n        BRep bfus = ba.boolean_union(bb);",
     "checks": [
@@ -1188,7 +1188,7 @@
     "group": "BRep",
     "test_name": "ZZ NxN Boolean Matrix",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.009,
     "line": 765,
     "code": "        // Diagnostic scorecard: every primitive pair x {cut,common,fuse} over\n        // {box,sphere,cone,cylinder,torus}. Prints faces/volume/is_solid -> the boolean frontier.\n        // Gated behind SESSION_MATRIX (45 boolean ops, slow) so normal runs stay fast.\n        auto cell = [](const char* a, const char* b, BRep A, BRep B) {\n            const char* ops[3] = {\"cut\", \"com\", \"fus\"};\n            std::fprintf(stderr, \"%-7s x %-7s |\", a, b);\n            for (int o = 0; o < 3; ++o) {\n                try {\n                    BRep r = (o==0) ? A.boolean_difference(B) : (o==1) ? A.boolean_intersection(B)\n                                                                       : A.boolean_union(B);\n                    int nf = r.face_count(); double v = r.volume(); int s = (int)r.is_solid();\n                    std::fprintf(stderr, \" %s f=%-2d v=%8.3f s=%d |\", ops[o], nf, v, s);\n                } catch (...) { std::fprintf(stderr, \" %s  ---THREW---       |\", ops[o]); }\n            }\n            std::fprintf(stderr, \"\\n\");\n        };\n        auto box  = []{ return BRep::create_box(4,4,4); };\n        auto sph  = []{ return BRep::create_sphere(2.5); };\n        auto cyl  = []{ BRep c=BRep::create_cylinder(1.5,6); c.xform=Xform::translation(0,0,-3); return c.transformed(); };\n        auto cone = []{ BRep c=BRep::create_cone(2.0,4.0);   c.xform=Xform::translation(0,0,-2); return c.transformed(); };\n        auto tor  = []{ return BRep::create_torus(2.0,0.8); };\n        auto box2 = []{ BRep c=BRep::create_box(2,2,2);      c.xform=Xform::translation(2,0,0); return c.transformed(); };\n        auto sph2 = []{ BRep c=BRep::create_sphere(2.0);     c.xform=Xform::translation(2,0,0); return c.transformed(); };\n        auto cyl2 = []{ BRep c=BRep::create_cylinder(1.5,6); c.xform=Xform::translation(-3,0,0)*Xform::rotation_y(90,true); return c.transformed(); };\n        auto cone2= []{ BRep c=BRep::create_cone(2.0,4.0);   c.xform=Xform::translation(0,0,2)*Xform::rotation_x(180,true); return c.transformed(); };\n        auto tor2 = []{ BRep c=BRep::create_torus(2.0,0.8);  c.xform=Xform::translation(2,0,0); return c.transformed(); };\n        std::fprintf(stderr, \"\\n=== NxN BOOLEAN MATRIX (session, overlapping configs) ===\\n\");\n        cell(\"box\",\"box\",    box(), box2());\n        cell(\"box\",\"sphere\", box(), sph());\n        cell(\"box\",\"cone\",   box(), cone());\n        cell(\"box\",\"cyl\",    box(), cyl());\n        cell(\"box\",\"torus\",  box(), tor());\n        cell(\"sphere\",\"sphere\", sph(), sph2());\n        cell(\"sphere\",\"cone\",   sph(), cone());\n        cell(\"sphere\",\"cyl\",    sph(), cyl());\n        cell(\"sphere\",\"torus\",  sph(), tor());\n        cell(\"cone\",\"cone\",   cone(), cone2());\n        cell(\"cone\",\"cyl\",    cone(), cyl());\n        cell(\"cone\",\"torus\",  cone(), tor());\n        cell(\"cyl\",\"cyl\",     cyl(),  cyl2());\n        cell(\"cyl\",\"torus\",   cyl(),  tor());\n        cell(\"torus\",\"torus\", tor(),  tor2());\n        std::fprintf(stderr, \"=== end matrix ===\\n\");",
     "checks": [
@@ -1204,7 +1204,7 @@
     "group": "BRep",
     "test_name": "Contains Point",
     "passed": true,
-    "time_ms": 12.622,
+    "time_ms": 5.849,
     "line": 813,
     "code": "        // Ray-cast parity classification; IN/OUT validated vs OCCT\n        // BRepClass3d_SolidClassifier (validation/compare_classify.py).\n        BRep box = BRep::create_box(2, 3, 4);   // [-1,1]x[-1.5,1.5]x[-2,2]\n\n        BRep cyl = BRep::create_cylinder(1.0, 4.0);  // r=1, z in [0,4]\n\n        BRep sph = BRep::create_sphere(2.0);",
     "checks": [
@@ -1270,7 +1270,7 @@
     "group": "BRep",
     "test_name": "Volume",
     "passed": true,
-    "time_ms": 401.448,
+    "time_ms": 188.358,
     "line": 834,
     "code": "        // Compare BRep::volume() to the analytic value (= OCCT BRepGProp::VolumeProperties).\n        const double PI = 3.14159265358979323846;\n        BRep box = BRep::create_box(2, 3, 4);          // 2x3x4 -> 24\n        BRep cyl = BRep::create_cylinder(1.0, 4.0);    // pi r^2 h = 4 pi\n        BRep sph = BRep::create_sphere(2.0);           // 4/3 pi r^3\n        double vbox = box.volume(), vcyl = cyl.volume(), vsph = sph.volume();\n        // Exact divergence-theorem volume: matches OCCT BRepGProp to machine precision.\n        // Face counts match OCCT (box=6, cylinder=3, sphere=1).",
     "checks": [

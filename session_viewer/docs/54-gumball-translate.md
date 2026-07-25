@@ -104,7 +104,7 @@ Four small handlers around the fields 53 already added:
 
 ```rust
     // fields: gb_pressed: Option<(HandleKind, (f64, f64))>   (53)
-    //         gb_drag: Option<DragCtx>,  with
+    //         gb_drag: Option<DragCtx>  ← ADD to struct State + init `gb_drag: None` in State::new (like 53). DragCtx:
     struct DragCtx {
         handle: HandleKind,
         origin: Point,                       // gumball anchor at press
@@ -112,6 +112,7 @@ Four small handlers around the fields 53 already added:
         t0: f64,                             // axis param at press
         before: Vec<Geometry>,               // absolute snapshots (guid inside)
         base_models: Vec<(String, u32, Xform)>,  // (guid, row, model-at-press) for the live path
+        last_delta: Xform,                   // begin_drag seeds it identity; each move overwrites it; release bakes it
     }
 ```
 
@@ -126,6 +127,7 @@ Four small handlers around the fields 53 already added:
                 self.begin_drag(handle);
             }
         }
+        let mut live_delta = None;
         if let Some(ctx) = &self.gb_drag {
             // 41's screen_to_world_ray, factored
             let ray = self.cursor_ray();
@@ -138,7 +140,13 @@ Four small handlers around the fields 53 already added:
                     self.gpu.set_live_model(*row, &(&delta * base));
                 }
                 self.refresh_gumball_at(&delta);                          // the widget rides along
+                live_delta = Some(delta);
             }
+        }
+        // stash the final delta on the ctx so release can bake it (can't touch
+        // ctx above — it's borrowed immutably to read origin/axis/base_models)
+        if let (Some(delta), Some(ctx)) = (live_delta, self.gb_drag.as_mut()) {
+            ctx.last_delta = delta;
         }
 ```
 
@@ -146,7 +154,7 @@ Four small handlers around the fields 53 already added:
 
 ```rust
         if let Some(ctx) = self.gb_drag.take() {
-            let delta = /* final delta from the last move, stashed on ctx */;
+            let delta = ctx.last_delta.duplicate();   // stashed by the last mouse move
             for (guid, _, _) in &ctx.base_models {
                 if let Some(geom) = self.scene.session.lookup.get_mut(guid) {
                     // compose xform / bake coords

@@ -3,7 +3,7 @@
     "group": "SpatialKDTree",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.022,
+    "time_ms": 0.012,
     "line": 13,
     "code": "    // uncomment #include \"spatial_kdtree.h\"\n    // uncomment #include \"point.h\"\n    // SpatialKDTree: O(n log n) build, O(log n) nearest — static point set closest search\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n    };\n    SpatialKDTree tree(pts);\n    auto [idx, dist] = tree.nearest(Point(2.0, 0.0, 0.0));",
     "checks": [
@@ -24,7 +24,7 @@
     "group": "SpatialKDTree",
     "test_name": "Nearest",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.008,
     "line": 29,
     "code": "    // uncomment #include \"spatial_kdtree.h\"\n    // uncomment #include \"point.h\"\n    // 5 known points on a line: 0, 1, 2, 3, 4\n    // Query at 1.1 — nearest should be index 1 (point at x=1), distance 0.1\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    };\n    SpatialKDTree tree(pts);\n    Point query(1.1, 0.0, 0.0);\n    auto [idx, dist] = tree.nearest(query);",
     "checks": [
@@ -45,7 +45,7 @@
     "group": "SpatialKDTree",
     "test_name": "Nearest K",
     "passed": true,
-    "time_ms": 0.006,
+    "time_ms": 0.005,
     "line": 49,
     "code": "    // uncomment #include \"spatial_kdtree.h\"\n    // uncomment #include \"point.h\"\n    // 5 points on X axis: 0, 1, 2, 3, 4\n    // Query at 1.5 — 3 nearest are: x=1 (d=0.5), x=2 (d=0.5), x=3 (d=1.5)\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n    };\n    SpatialKDTree tree(pts);\n    Point query(1.5, 0.0, 0.0);\n    auto result = tree.nearest_k(query, 3);",
     "checks": [
@@ -76,7 +76,7 @@
     "group": "SpatialKDTree",
     "test_name": "Radius Search",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 71,
     "code": "    // uncomment #include \"spatial_kdtree.h\"\n    // uncomment #include \"point.h\"\n    // 4 points: 0, 1, 2, 5 on X axis\n    // Query at 0.5, radius 1.1 — finds x=0 (d=0.5) and x=1 (d=0.5)\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(5.0, 0.0, 0.0),\n    };\n    SpatialKDTree tree(pts);\n    Point query(0.5, 0.0, 0.0);\n    auto result = tree.radius_search(query, 1.1);",
     "checks": [

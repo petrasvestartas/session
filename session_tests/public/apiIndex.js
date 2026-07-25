@@ -5164,6 +5164,7 @@ window.API_INDEX = {
         "BRep.loop_vector_area",
         "BRep.make_shared_section_edges",
         "BRep.normal_at",
+        "BRep.normalize_section_blocks",
         "BRep.point_at",
         "BRep.sphere_flux",
         "BRep.subset_of",
@@ -5282,6 +5283,7 @@ window.API_INDEX = {
         }
       },
       "related": [
+        "BRep.boolean",
         "BRep.ev",
         "BRep.face_interior",
         "BRep.in_material",
@@ -5371,6 +5373,7 @@ window.API_INDEX = {
         "BRep.add_vertex",
         "BRep.classify",
         "BRep.contains_point",
+        "BRep.contains_point_exact",
         "BRep.cross",
         "BRep.ev",
         "BRep.in_poly",
@@ -5409,6 +5412,7 @@ window.API_INDEX = {
         "BRep.add_vertex",
         "BRep.boolean",
         "BRep.classify",
+        "BRep.contains_point_exact",
         "BRep.contains_point_with",
         "BRep.d2",
         "BRep.ev",
@@ -6567,10 +6571,10 @@ window.API_INDEX = {
         "BRep.find_or_add",
         "BRep.find_or_add_vertex",
         "BRep.is_valid",
+        "BRep.normalize_section_blocks",
         "BRep.point_at",
         "BRep.rec",
         "BRep.split_by_plane_pieces",
-        "BRep.split_with",
         "BRep.str",
         "BRep.volume"
       ]
@@ -6646,6 +6650,7 @@ window.API_INDEX = {
         "BRep.map_vertex",
         "BRep.mesh",
         "BRep.normal_at",
+        "BRep.normalize_section_blocks",
         "BRep.p2pl",
         "BRep.pb_dumps",
         "BRep.pb_loads",
@@ -6720,6 +6725,7 @@ window.API_INDEX = {
         "BRep.mesh",
         "BRep.p2pl",
         "BRep.pt_to_polyline",
+        "BRep.recover_section_spans",
         "BRep.sew_coincident_edges",
         "BRep.split_by_brep",
         "BRep.split_multi",
@@ -7138,8 +7144,8 @@ window.API_INDEX = {
           "file": "brep.py"
         },
         "cpp": {
-          "sig": "BRep split_by_brep(const BRep& cutter, double tolerance, bool imported_freeform,\n                         const std::vector<std::vector<NurbsCurve>>* pre_cuts,\n                         const SectionScaffold* scaf, bool scaf_is_A,\n                         std::map<int, std::array<int, 3>>* sec_edges_out,\n                         std::vector<int>* face_src_out,\n                         const std::vector<std::vector<NurbsCurve>>* extra_cuts)",
-          "code": "BRep BRep::split_by_brep(const BRep& cutter, double tolerance, bool imported_freeform,\n                         const std::vector<std::vector<NurbsCurve>>* pre_cuts,\n                         const SectionScaffold* scaf, bool scaf_is_A,\n                         std::map<int, std::array<int, 3>>* sec_edges_out,\n                         std::vector<int>* face_src_out,\n                         const std::vector<std::vector<NurbsCurve>>* extra_cuts) const {\n    std::vector<std::pair<std::array<double, 3>, std::array<double, 3>>> cutter_bbs;\n    for (const auto& cs : cutter.m_surfaces) cutter_bbs.push_back(aabb_from_surface(cs));\n\n    // Trim-aware cutting (gated): intersect against the cutter's TRIMMED faces and clip each\n    // target section to the face's trim loops, so a section that leaves one cutter patch's\n    // parametric rectangle stops at the true trim boundary (where it continues onto the adjacent\n    // cutter face) instead of ending in the target's interior. Legacy path (gate off) loops raw\n    // cutter SURFACES and is byte-identical.\n    static const bool s_trimcut = (std::getenv(\"SESSION_TRIM_CUT\") != nullptr\n                                   || std::getenv(\"SESSION_BOOL_SHARED_EDGES\") != nullptr);\n    struct FaceTrim {\n        int surf_index = -1;\n        std::vector<std::vector<std::array<double, 2>>> outer, inner;\n    }",
+          "sig": "BRep split_by_brep(const BRep& cutter, double tolerance, bool imported_freeform,\n                         const std::vector<std::vector<NurbsCurve>>* pre_cuts,\n                         const SectionScaffold* scaf, bool scaf_is_A,\n                         std::map<int, std::array<int, 3>>* sec_edges_out,\n                         std::vector<int>* face_src_out,\n                         const std::vector<std::vector<NurbsCurve>>* extra_cuts,\n                         std::map<int, std::array<double, 3>>* sec_spans_out,\n                       const SharedEdgePool* pool)",
+          "code": "BRep BRep::split_by_brep(const BRep& cutter, double tolerance, bool imported_freeform,\n                         const std::vector<std::vector<NurbsCurve>>* pre_cuts,\n                         const SectionScaffold* scaf, bool scaf_is_A,\n                         std::map<int, std::array<int, 3>>* sec_edges_out,\n                         std::vector<int>* face_src_out,\n                         const std::vector<std::vector<NurbsCurve>>* extra_cuts,\n                         std::map<int, std::array<double, 3>>* sec_spans_out,\n                       const SharedEdgePool* pool) const {\n    std::vector<std::pair<std::array<double, 3>, std::array<double, 3>>> cutter_bbs;\n    for (const auto& cs : cutter.m_surfaces) cutter_bbs.push_back(aabb_from_surface(cs));\n\n    // Trim-aware cutting (gated): intersect against the cutter's TRIMMED faces and clip each\n    // target section to the face's trim loops, so a section that leaves one cutter patch's\n    // parametric rectangle stops at the true trim boundary (where it continues onto the adjacent\n    // cutter face) instead of ending in the target's interior. Legacy path (gate off) loops raw\n    // cutter SURFACES and is byte-identical.\n    static const bool s_trimcut = (std::getenv(\"SESSION_TRIM_CUT\") != nullptr\n                                   || std::getenv(\"SESSION_BOOL_SHARED_EDGES\") != nullptr);\n    struct FaceTrim {\n        int surf_index = -1;\n        std::vector<std::vector<std::array<double, 2>>> outer, inner;\n    }",
           "file": "brep.cpp"
         },
         "rust": {
@@ -7304,8 +7310,8 @@ window.API_INDEX = {
           "file": "brep.py"
         },
         "cpp": {
-          "sig": "void imprint_edges(double tol)",
-          "code": "void BRep::imprint_edges(double tol) {\n    double diag;\n    {\n        double xmn=1e300,ymn=1e300,zmn=1e300,xmx=-1e300,ymx=-1e300,zmx=-1e300;\n        for (const auto& p : m_vertices) {\n            xmn=std::min(xmn,p[0]); ymn=std::min(ymn,p[1]); zmn=std::min(zmn,p[2]);\n            xmx=std::max(xmx,p[0]); ymx=std::max(ymx,p[1]); zmx=std::max(zmx,p[2]);\n        }",
+          "sig": "void imprint_edges(double tol, bool mated_too)",
+          "code": "void BRep::imprint_edges(double tol, bool mated_too) {\n    double diag;\n    {\n        double xmn=1e300,ymn=1e300,zmn=1e300,xmx=-1e300,ymx=-1e300,zmx=-1e300;\n        for (const auto& p : m_vertices) {\n            xmn=std::min(xmn,p[0]); ymn=std::min(ymn,p[1]); zmn=std::min(zmn,p[2]);\n            xmx=std::max(xmx,p[0]); ymx=std::max(ymx,p[1]); zmx=std::max(zmx,p[2]);\n        }",
           "file": "brep.cpp"
         },
         "rust": {
@@ -7438,6 +7444,7 @@ window.API_INDEX = {
       "related": [
         "BRep._split",
         "BRep.bbox_far",
+        "BRep.boolean",
         "BRep.co_refine_coincident_edges",
         "BRep.ev",
         "BRep.is_valid",
@@ -7591,7 +7598,7 @@ window.API_INDEX = {
         },
         "cpp": {
           "sig": "BRep boolean(const BRep& other, BooleanOp op, double tolerance)",
-          "code": "BRep BRep::boolean(const BRep& other, BooleanOp op, double tolerance) const {\n    // Optional phase profiling (set SESSION_BOOL_PROFILE=1). Prints per-phase microseconds.\n    static const bool s_prof = (std::getenv(\"SESSION_BOOL_PROFILE\") != nullptr);\n    auto t_now = []{ return std::chrono::high_resolution_clock::now(); }",
+          "code": "BRep BRep::boolean(const BRep& other, BooleanOp op, double tolerance) const {\n    // AUTO VARIANT SELECTION (SESSION_AUTO; ACIS retry-loop / OCCT escalation doctrine).\n    // The junction-repair mechanisms (bridge weld, EF-march) are decisively positive on\n    // some knot geometries and negative on others, and no LOCAL acceptance test decides\n    // the GLOBAL outcome (measured: z30 12 ungated vs 41 gated; z45 the reverse). So:\n    // run the default pipeline; if the result has naked edges, rerun with the repair\n    // set enabled and keep whichever result is closer to watertight. Deterministic,\n    // Pareto-clean by construction; watertight-on-first-pass inputs never rerun.\n    static bool s_in_auto = false;\n    if (!s_in_auto && std::getenv(\"SESSION_AUTO\")) {\n        // selection metric: naked count; a CLOSED candidate must also pass a volume\n        // sanity gate (finite, positive, and no larger than vol(A)+vol(B) at scale)\n        // so an inverted/degenerate shell can never win the ladder on naked=0 alone.\n        double volAB = 0.0;\n        {\n            BRep ca = *this, cb = other;\n            double va = std::abs(ca.volume()), vb = std::abs(cb.volume());\n            if (std::isfinite(va) && std::isfinite(vb)) volAB = va + vb;\n        }",
           "file": "brep.cpp"
         },
         "rust": {
@@ -7608,6 +7615,7 @@ window.API_INDEX = {
         "BRep.boolean_difference",
         "BRep.boolean_intersection",
         "BRep.boolean_union",
+        "BRep.cand",
         "BRep.classify",
         "BRep.coincident_within",
         "BRep.contains_point",
@@ -7622,11 +7630,11 @@ window.API_INDEX = {
         "BRep.make_shared_section_edges",
         "BRep.mesh",
         "BRep.new",
+        "BRep.pip",
         "BRep.point_at",
         "BRep.pt_to_polyline",
         "BRep.rec",
         "BRep.split_by_brep",
-        "BRep.split_with",
         "BRep.str",
         "BRep.subset",
         "BRep.vertex_count",
@@ -7974,6 +7982,7 @@ window.API_INDEX = {
         "BRep.cand",
         "BRep.check_trim_orientation",
         "BRep.co_refine_coincident_edges",
+        "BRep.contains_point_exact",
         "BRep.create_box",
         "BRep.create_cone",
         "BRep.create_cylinder",
@@ -19679,6 +19688,7 @@ window.API_INDEX = {
         "Line.overlap",
         "Line.overlap_average",
         "Line.pb_dump",
+        "Line.pb_dumps",
         "Line.pb_load",
         "Line.pb_loads",
         "Line.refresh_guid",
@@ -21087,7 +21097,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__jsonload__(cls, data, guid=None, name=None)",
-          "code": "def __jsonload__(cls, data, guid=None, name=None):\n\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing line data.\n        guid : str, optional\n            GUID for the line.\n        name : str, optional\n            Name for the line.\n\n        Returns\n        -------\n        :class:`Line`\n            Reconstructed line instance.\n\n        \"\"\"\n        from .file_encoders import file_decode_node\n\n        line = cls(\n            data[\"x0\"], data[\"y0\"], data[\"z0\"], data[\"x1\"], data[\"y1\"], data[\"z1\"]\n        )\n        line.guid = guid if guid is not None else data.get(\"guid\", line.guid)\n        line.name = name if name is not None else data.get(\"name\", line.name)\n\n        if \"width\" in data:\n            line.width = data[\"width\"]\n        if \"linecolor\" in data:\n            line.linecolor = file_decode_node(data[\"linecolor\"])\n\n        if \"xform\" in data:\n            line.xform = file_decode_node(data[\"xform\"])\n\n        return line\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import line_pb2\n        from .proto import point_pb2\n\n        proto = line_pb2.Line()\n        proto.guid = self.guid\n        proto.name = self.name\n\n        # Set start point\n        proto.start.x = self._x0\n        proto.start.y = self._y0\n        proto.start.z = self._z0\n        proto.start.guid = \"\"\n        proto.start.name = \"\"\n        proto.start.width = 1.0\n\n        # Set end point\n        proto.end.x = self._x1\n        proto.end.y = self._y1\n        proto.end.z = self._z1\n        proto.end.guid = \"\"\n        proto.end.name = \"\"\n        proto.end.width = 1.0\n\n        # Set xform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):",
+          "code": "def __jsonload__(cls, data, guid=None, name=None):\n\n        \"\"\"Deserialize from polymorphic JSON format.\n\n        Parameters\n        ----------\n        data : dict\n            Dictionary containing line data.\n        guid : str, optional\n            GUID for the line.\n        name : str, optional\n            Name for the line.\n\n        Returns\n        -------\n        :class:`Line`\n            Reconstructed line instance.\n\n        \"\"\"\n        from .file_encoders import file_decode_node\n\n        line = cls(\n            data[\"x0\"], data[\"y0\"], data[\"z0\"], data[\"x1\"], data[\"y1\"], data[\"z1\"]\n        )\n        line.guid = guid if guid is not None else data.get(\"guid\", line.guid)\n        line.name = name if name is not None else data.get(\"name\", line.name)\n\n        if \"width\" in data:\n            line.width = data[\"width\"]\n        if \"linecolor\" in data:\n            line.linecolor = file_decode_node(data[\"linecolor\"])\n\n        if \"xform\" in data:\n            line.xform = file_decode_node(data[\"xform\"])\n\n        return line\n\n    ###########################################################################################\n    # Protobuf Serialization\n    ###########################################################################################\n\n    def pb_dumps(self):\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import line_pb2\n        from .proto import point_pb2\n\n        proto = line_pb2.Line()\n        proto.guid = self.guid\n        proto.name = self.name\n\n        # Set start point\n        proto.start.x = self._x0\n        proto.start.y = self._y0\n        proto.start.z = self._z0\n        proto.start.guid = \"\"\n        proto.start.name = \"\"\n        proto.start.width = 1.0\n\n        # Set end point\n        proto.end.x = self._x1\n        proto.end.y = self._y1\n        proto.end.z = self._z1\n        proto.end.guid = \"\"\n        proto.end.name = \"\"\n        proto.end.width = 1.0\n\n        # Set xform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        # Set width and linecolor\n        proto.width = self.width\n        proto.linecolor.guid = self.linecolor.guid\n        proto.linecolor.name = self.linecolor.name",
           "file": "line.py"
         }
       },
@@ -21105,8 +21115,6 @@ window.API_INDEX = {
         "Line.linecolor",
         "Line.pb_dump",
         "Line.pb_dumps",
-        "Line.pb_load",
-        "Line.pb_loads",
         "Line.start",
         "Line.str",
         "Line.xform"
@@ -21117,7 +21125,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_dumps()",
-          "code": "def pb_dumps(self):\n\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import line_pb2\n        from .proto import point_pb2\n\n        proto = line_pb2.Line()\n        proto.guid = self.guid\n        proto.name = self.name\n\n        # Set start point\n        proto.start.x = self._x0\n        proto.start.y = self._y0\n        proto.start.z = self._z0\n        proto.start.guid = \"\"\n        proto.start.name = \"\"\n        proto.start.width = 1.0\n\n        # Set end point\n        proto.end.x = self._x1\n        proto.end.y = self._y1\n        proto.end.z = self._z1\n        proto.end.guid = \"\"\n        proto.end.name = \"\"\n        proto.end.width = 1.0\n\n        # Set xform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create Line from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded line data.\n\n        Returns\n        -------\n        :class:`Line`\n            The deserialized Line.\n\n        \"\"\"\n        from .proto import line_pb2\n\n        proto = line_pb2.Line()\n        proto.ParseFromString(data)\n\n        line = cls(\n            proto.start.x, proto.start.y, proto.start.z,\n            proto.end.x, proto.end.y, proto.end.z\n        )\n        line.guid = proto.guid\n        line.name = proto.name\n\n        # Load xform if present\n        if proto.HasField('xform'):\n            line.xform = Xform()\n            line.xform.name = proto.xform.name\n            line.xform.m = list(proto.xform.matrix)\n\n        return line\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.",
+          "code": "def pb_dumps(self):\n\n        \"\"\"Convert to protobuf binary format.\n\n        Returns\n        -------\n        bytes\n            Serialized protobuf data.\n\n        \"\"\"\n        from .proto import line_pb2\n        from .proto import point_pb2\n\n        proto = line_pb2.Line()\n        proto.guid = self.guid\n        proto.name = self.name\n\n        # Set start point\n        proto.start.x = self._x0\n        proto.start.y = self._y0\n        proto.start.z = self._z0\n        proto.start.guid = \"\"\n        proto.start.name = \"\"\n        proto.start.width = 1.0\n\n        # Set end point\n        proto.end.x = self._x1\n        proto.end.y = self._y1\n        proto.end.z = self._z1\n        proto.end.guid = \"\"\n        proto.end.name = \"\"\n        proto.end.width = 1.0\n\n        # Set xform\n        proto.xform.name = self.xform.name\n        proto.xform.matrix.extend(self.xform.m)\n\n        # Set width and linecolor\n        proto.width = self.width\n        proto.linecolor.guid = self.linecolor.guid\n        proto.linecolor.name = self.linecolor.name\n        proto.linecolor.r = self.linecolor.r\n        proto.linecolor.g = self.linecolor.g\n        proto.linecolor.b = self.linecolor.b\n        proto.linecolor.a = self.linecolor.a\n\n        return proto.SerializeToString()\n\n    @classmethod\n    def pb_loads(cls, data):\n        \"\"\"Create Line from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded line data.\n\n        Returns\n        -------\n        :class:`Line`\n            The deserialized Line.\n\n        \"\"\"\n        from .proto import line_pb2\n\n        proto = line_pb2.Line()\n        proto.ParseFromString(data)\n\n        line = cls(\n            proto.start.x, proto.start.y, proto.start.z,\n            proto.end.x, proto.end.y, proto.end.z\n        )\n        line.guid = proto.guid\n        line.name = proto.name\n\n        # Load xform if present\n        if proto.HasField('xform'):\n            line.xform = Xform()\n            line.xform.name = proto.xform.name\n            line.xform.m = list(proto.xform.matrix)",
           "file": "line.py"
         },
         "cpp": {
@@ -21127,7 +21135,7 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "pb_dumps() -> Vec<u8>",
-          "code": "pub fn pb_dumps(&self) -> Vec<u8> {\n        use prost::Message;\n        let proto = crate::proto::Line {\n            start: Some(crate::proto::Point {\n                x: self._x0 as f64,\n                y: self._y0 as f64,\n                z: self._z0 as f64,\n                guid: String::new(),\n                name: String::new(),\n                width: 1.0,\n                pointcolor: None,\n                xform: None,\n            }),\n            end: Some(crate::proto::Point {\n                x: self._x1 as f64,\n                y: self._y1 as f64,\n                z: self._z1 as f64,\n                guid: String::new(),\n                name: String::new(),\n                width: 1.0,\n                pointcolor: None,\n                xform: None,\n            }),\n            guid: self.guid().to_string(),\n            name: self.name.clone(),\n            xform: None,\n        };\n        proto.encode_to_vec()\n    }",
+          "code": "pub fn pb_dumps(&self) -> Vec<u8> {\n        use prost::Message;\n        let proto = crate::proto::Line {\n            start: Some(crate::proto::Point {\n                x: self._x0 as f64,\n                y: self._y0 as f64,\n                z: self._z0 as f64,\n                guid: String::new(),\n                name: String::new(),\n                width: 1.0,\n                pointcolor: None,\n                xform: None,\n            }),\n            end: Some(crate::proto::Point {\n                x: self._x1 as f64,\n                y: self._y1 as f64,\n                z: self._z1 as f64,\n                guid: String::new(),\n                name: String::new(),\n                width: 1.0,\n                pointcolor: None,\n                xform: None,\n            }),\n            guid: self.guid().to_string(),\n            name: self.name.clone(),\n            xform: None,\n            width: self.width,\n            linecolor: Some(crate::proto::Color {\n                guid: self.linecolor.guid().to_string(),\n                name: self.linecolor.name.clone(),\n                r: self.linecolor.r,\n                g: self.linecolor.g,\n                b: self.linecolor.b,\n                a: self.linecolor.a,\n            }),\n        };\n        proto.encode_to_vec()\n    }",
           "file": "line.rs"
         }
       },
@@ -21140,6 +21148,7 @@ window.API_INDEX = {
         "Line.file_json_loads",
         "Line.format",
         "Line.guid",
+        "Line.linecolor",
         "Line.new",
         "Line.pb_dump",
         "Line.pb_load",
@@ -21155,7 +21164,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "pb_loads(cls, data)",
-          "code": "def pb_loads(cls, data):\n\n        \"\"\"Create Line from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded line data.\n\n        Returns\n        -------\n        :class:`Line`\n            The deserialized Line.\n\n        \"\"\"\n        from .proto import line_pb2\n\n        proto = line_pb2.Line()\n        proto.ParseFromString(data)\n\n        line = cls(\n            proto.start.x, proto.start.y, proto.start.z,\n            proto.end.x, proto.end.y, proto.end.z\n        )\n        line.guid = proto.guid\n        line.name = proto.name\n\n        # Load xform if present\n        if proto.HasField('xform'):\n            line.xform = Xform()\n            line.xform.name = proto.xform.name\n            line.xform.m = list(proto.xform.matrix)\n\n        return line\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the protobuf file.\n\n        Returns\n        -------\n        :class:`Line`\n            The deserialized Line.\n\n        \"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n    def __str__(self):\n        \"\"\"String representation.\"\"\"\n        return f\"Line({self._x0}, {self._y0}, {self._z0}, {self._x1}, {self._y1}, {self._z1})\"\n\n    def __repr__(self):\n        \"\"\"Detailed representation.\"\"\"\n        return f\"Line({self.name}, {self._x0}, {self._y0}, {self._z0}, {self._x1}, {self._y1}, {self._z1}, {repr(self.linecolor)}, {self.width})\"",
+          "code": "def pb_loads(cls, data):\n\n        \"\"\"Create Line from protobuf binary data.\n\n        Parameters\n        ----------\n        data : bytes\n            Protobuf-encoded line data.\n\n        Returns\n        -------\n        :class:`Line`\n            The deserialized Line.\n\n        \"\"\"\n        from .proto import line_pb2\n\n        proto = line_pb2.Line()\n        proto.ParseFromString(data)\n\n        line = cls(\n            proto.start.x, proto.start.y, proto.start.z,\n            proto.end.x, proto.end.y, proto.end.z\n        )\n        line.guid = proto.guid\n        line.name = proto.name\n\n        # Load xform if present\n        if proto.HasField('xform'):\n            line.xform = Xform()\n            line.xform.name = proto.xform.name\n            line.xform.m = list(proto.xform.matrix)\n\n        # Load width and linecolor\n        if proto.width > 0.0:\n            line.width = proto.width\n        if proto.HasField('linecolor'):\n            line.linecolor = Color(\n                proto.linecolor.r,\n                proto.linecolor.g,\n                proto.linecolor.b,\n                proto.linecolor.a,\n                proto.linecolor.name,\n            )\n\n        return line\n\n    def pb_dump(self, filepath):\n        \"\"\"Write protobuf to file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the output file.\n\n        \"\"\"\n        data = self.pb_dumps()\n        with open(filepath, 'wb') as f:\n            f.write(data)\n\n    @classmethod\n    def pb_load(cls, filepath):\n        \"\"\"Read protobuf from file.\n\n        Parameters\n        ----------\n        filepath : str or Path\n            Path to the protobuf file.\n\n        Returns\n        -------\n        :class:`Line`\n            The deserialized Line.\n\n        \"\"\"\n        with open(filepath, 'rb') as f:\n            data = f.read()\n        return cls.pb_loads(data)\n\n    def __str__(self):\n        \"\"\"String representation.\"\"\"",
           "file": "line.py"
         },
         "cpp": {
@@ -21165,13 +21174,11 @@ window.API_INDEX = {
         },
         "rust": {
           "sig": "pb_loads(data: &[u8]) -> Result<Self, prost::DecodeError>",
-          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, prost::DecodeError> {\n        use prost::Message;\n        let proto = crate::proto::Line::decode(data)?;\n        let start = proto.start.unwrap_or_default();\n        let end = proto.end.unwrap_or_default();\n        let mut line = Self::new(start.x as f64, start.y as f64, start.z as f64, end.x as f64, end.y as f64, end.z as f64);\n        line.set_guid(proto.guid);\n        line.name = proto.name;\n        Ok(line)\n    }",
+          "code": "pub fn pb_loads(data: &[u8]) -> Result<Self, prost::DecodeError> {\n        use prost::Message;\n        let proto = crate::proto::Line::decode(data)?;\n        let start = proto.start.unwrap_or_default();\n        let end = proto.end.unwrap_or_default();\n        let mut line = Self::new(start.x as f64, start.y as f64, start.z as f64, end.x as f64, end.y as f64, end.z as f64);\n        line.set_guid(proto.guid);\n        line.name = proto.name;\n        if proto.width > 0.0 { line.width = proto.width; }\n        if let Some(color) = proto.linecolor {\n            line.linecolor.set_guid(color.guid.clone());\n            line.linecolor.name = color.name;\n            line.linecolor.r = color.r;\n            line.linecolor.g = color.g;\n            line.linecolor.b = color.b;\n            line.linecolor.a = color.a;\n        }\n        Ok(line)\n    }",
           "file": "line.rs"
         }
       },
       "related": [
-        "Line.__jsonload__",
-        "Line.__repr__",
         "Line.__str__",
         "Line.end",
         "Line.guid",
@@ -21241,7 +21248,6 @@ window.API_INDEX = {
         }
       },
       "related": [
-        "Line.__jsonload__",
         "Line.__repr__",
         "Line.__str__",
         "Line.linecolor",
@@ -21286,7 +21292,6 @@ window.API_INDEX = {
         "Line.linecolor",
         "Line.pb_dump",
         "Line.pb_load",
-        "Line.pb_loads",
         "Line.repr"
       ]
     },
@@ -49968,7 +49973,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "__init__(x=0.0, y=0.0, z=0.0, name=\"my_point\")",
-          "code": "def __init__(self, x=0.0, y=0.0, z=0.0, name=\"my_point\"):\n\n        self._guid = None\n        self.name = name\n        self._x = x\n        self._y = y\n        self._z = z\n        self.width = 1.0\n        self._pointcolor = None\n        self._xform = None\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def pointcolor(self):\n        if self._pointcolor is None:\n            self._pointcolor = Color.blue()\n        return self._pointcolor\n\n    @pointcolor.setter\n    def pointcolor(self, value):\n        self._pointcolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = copy.deepcopy(self.name, memo)\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result.width = self.width\n        result.pointcolor = copy.deepcopy(self.pointcolor, memo)\n        result.xform = copy.deepcopy(self.xform, memo)\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this point with a new GUID.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with identical values but a different GUID.\n\n        \"\"\"\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result",
+          "code": "def __init__(self, x=0.0, y=0.0, z=0.0, name=\"my_point\"):\n\n        self._guid = None\n        self.name = name\n        self._x = x\n        self._y = y\n        self._z = z\n        self.width = 1.0\n        self._pointcolor = None\n        self._xform = None\n\n    @property\n    def guid(self) -> str:\n        if getattr(self, '_guid', None) is None:\n            self._guid = str(uuid.uuid4())\n        return self._guid\n\n    @guid.setter\n    def guid(self, value: str):\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def pointcolor(self):\n        if self._pointcolor is None:\n            self._pointcolor = Color.black()\n        return self._pointcolor\n\n    @pointcolor.setter\n    def pointcolor(self, value):\n        self._pointcolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = copy.deepcopy(self.name, memo)\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result.width = self.width\n        result.pointcolor = copy.deepcopy(self.pointcolor, memo)\n        result.xform = copy.deepcopy(self.xform, memo)\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this point with a new GUID.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with identical values but a different GUID.\n\n        \"\"\"\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result",
           "file": "point.py"
         }
       },
@@ -49991,7 +49996,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "guid(value: str)",
-          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def pointcolor(self):\n        if self._pointcolor is None:\n            self._pointcolor = Color.blue()\n        return self._pointcolor\n\n    @pointcolor.setter\n    def pointcolor(self, value):\n        self._pointcolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = copy.deepcopy(self.name, memo)\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result.width = self.width\n        result.pointcolor = copy.deepcopy(self.pointcolor, memo)\n        result.xform = copy.deepcopy(self.xform, memo)\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this point with a new GUID.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with identical values but a different GUID.\n\n        \"\"\"\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    @staticmethod\n    def sum(p0, p1):\n        \"\"\"Returns a new point that is the sum of two points.\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            First point.\n        p1 : :class:`Point`\n            Second point.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with coordinates (p0.x + p1.x, p0.y + p1.y, p0.z + p1.z).\n\n        \"\"\"",
+          "code": "def guid(self, value: str):\n\n        self._guid = value\n\n    def refresh_guid(self):\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def pointcolor(self):\n        if self._pointcolor is None:\n            self._pointcolor = Color.black()\n        return self._pointcolor\n\n    @pointcolor.setter\n    def pointcolor(self, value):\n        self._pointcolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = copy.deepcopy(self.name, memo)\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result.width = self.width\n        result.pointcolor = copy.deepcopy(self.pointcolor, memo)\n        result.xform = copy.deepcopy(self.xform, memo)\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this point with a new GUID.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with identical values but a different GUID.\n\n        \"\"\"\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    @staticmethod\n    def sum(p0, p1):\n        \"\"\"Returns a new point that is the sum of two points.\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            First point.\n        p1 : :class:`Point`\n            Second point.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with coordinates (p0.x + p1.x, p0.y + p1.y, p0.z + p1.z).\n\n        \"\"\"",
           "file": "point.py"
         },
         "cpp": {
@@ -50037,7 +50042,7 @@ window.API_INDEX = {
       "implementations": {
         "python": {
           "sig": "refresh_guid()",
-          "code": "def refresh_guid(self):\n\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def pointcolor(self):\n        if self._pointcolor is None:\n            self._pointcolor = Color.blue()\n        return self._pointcolor\n\n    @pointcolor.setter\n    def pointcolor(self, value):\n        self._pointcolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = copy.deepcopy(self.name, memo)\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result.width = self.width\n        result.pointcolor = copy.deepcopy(self.pointcolor, memo)\n        result.xform = copy.deepcopy(self.xform, memo)\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this point with a new GUID.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with identical values but a different GUID.\n\n        \"\"\"\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    @staticmethod\n    def sum(p0, p1):\n        \"\"\"Returns a new point that is the sum of two points.\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            First point.\n        p1 : :class:`Point`\n            Second point.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with coordinates (p0.x + p1.x, p0.y + p1.y, p0.z + p1.z).\n\n        \"\"\"\n        return Point(p0[0] + p1[0], p0[1] + p1[1], p0[2] + p1[2])\n\n    @staticmethod",
+          "code": "def refresh_guid(self):\n\n        \"\"\"Clear the guid so a FRESH one mints lazily on next read \u00e2\u20ac\u201d the duplicate/copy enabler.\"\"\"\n        self._guid = None\n\n    @property\n    def pointcolor(self):\n        if self._pointcolor is None:\n            self._pointcolor = Color.black()\n        return self._pointcolor\n\n    @pointcolor.setter\n    def pointcolor(self, value):\n        self._pointcolor = value\n\n    @property\n    def xform(self):\n        if getattr(self, '_xform', None) is None:\n            self._xform = Xform.identity()\n        return self._xform\n\n    @xform.setter\n    def xform(self, value):\n        self._xform = value\n\n    ###########################################################################################\n    # Operators\n    ###########################################################################################\n\n    def __deepcopy__(self, memo):\n\n        cls = self.__class__\n        result = cls.__new__(cls)\n        memo[id(self)] = result\n\n        # New guid\n        result.guid = str(uuid.uuid4())\n\n        # Copy remaining fields\n        result.name = copy.deepcopy(self.name, memo)\n        result._x = self._x\n        result._y = self._y\n        result._z = self._z\n        result.width = self.width\n        result.pointcolor = copy.deepcopy(self.pointcolor, memo)\n        result.xform = copy.deepcopy(self.xform, memo)\n        return result\n\n    def duplicate(self):\n        \"\"\"Create a deep copy of this point with a new GUID.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with identical values but a different GUID.\n\n        \"\"\"\n        result = copy.deepcopy(self)\n        result.guid = str(uuid.uuid4())\n        return result\n\n    @staticmethod\n    def sum(p0, p1):\n        \"\"\"Returns a new point that is the sum of two points.\n\n        Parameters\n        ----------\n        p0 : :class:`Point`\n            First point.\n        p1 : :class:`Point`\n            Second point.\n\n        Returns\n        -------\n        :class:`Point`\n            A new Point with coordinates (p0.x + p1.x, p0.y + p1.y, p0.z + p1.z).\n\n        \"\"\"\n        return Point(p0[0] + p1[0], p0[1] + p1[1], p0[2] + p1[2])\n\n    @staticmethod",
           "file": "point.py"
         },
         "cpp": {
@@ -75914,6 +75919,19 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "BRepTrimType.topology_report",
+      "implementations": {
+        "cpp": {
+          "sig": "std::string topology_report(bool* valid_manifold = nullptr)",
+          "code": "std::string topology_report(bool* valid_manifold = nullptr) const;",
+          "file": "brep.h"
+        }
+      },
+      "related": [
+        "BRepTrimType.str"
+      ]
+    },
+    {
       "name": "BRepTrimType.check_trim_orientation",
       "implementations": {
         "cpp": {
@@ -75941,7 +75959,23 @@ window.API_INDEX = {
           "code": "bool contains_point(const Point& p) const;",
           "file": "brep.h"
         }
-      }
+      },
+      "related": [
+        "BRepTrimType.contains_point_exact"
+      ]
+    },
+    {
+      "name": "BRepTrimType.contains_point_exact",
+      "implementations": {
+        "cpp": {
+          "sig": "bool contains_point_exact(const Point& p, const std::vector<double>& osign)",
+          "code": "bool contains_point_exact(const Point& p, const std::vector<double>& osign) const;",
+          "file": "brep.h"
+        }
+      },
+      "related": [
+        "BRepTrimType.contains_point"
+      ]
     },
     {
       "name": "BRepTrimType.add_surface",
@@ -76070,8 +76104,34 @@ window.API_INDEX = {
       "name": "BRepTrimType.split_by_brep",
       "implementations": {
         "cpp": {
-          "sig": "BRep split_by_brep(const BRep& cutter, double tolerance = 0.0, bool imported_freeform = false,\n                       const std::vector<std::vector<NurbsCurve>>* pre_cuts = nullptr,\n                       const struct SectionScaffold* scaf = nullptr, bool scaf_is_A = true,\n                       std::map<int, std::array<int, 3>>* sec_edges_out = nullptr,\n                       std::vector<int>* face_src_out = nullptr,\n                       const std::vector<std::vector<NurbsCurve>>* extra_cuts = nullptr)",
-          "code": "BRep split_by_brep(const BRep& cutter, double tolerance = 0.0, bool imported_freeform = false,\n                       const std::vector<std::vector<NurbsCurve>>* pre_cuts = nullptr,\n                       const struct SectionScaffold* scaf = nullptr, bool scaf_is_A = true,\n                       std::map<int, std::array<int, 3>>* sec_edges_out = nullptr,\n                       std::vector<int>* face_src_out = nullptr,\n                       const std::vector<std::vector<NurbsCurve>>* extra_cuts = nullptr) const;",
+          "sig": "BRep split_by_brep(const BRep& cutter, double tolerance = 0.0, bool imported_freeform = false,\n                       const std::vector<std::vector<NurbsCurve>>* pre_cuts = nullptr,\n                       const struct SectionScaffold* scaf = nullptr, bool scaf_is_A = true,\n                       std::map<int, std::array<int, 3>>* sec_edges_out = nullptr,\n                       std::vector<int>* face_src_out = nullptr,\n                       const std::vector<std::vector<NurbsCurve>>* extra_cuts = nullptr,\n                       std::map<int, std::array<double, 3>>* sec_spans_out = nullptr,\n                       const struct SharedEdgePool* pool = nullptr)",
+          "code": "BRep split_by_brep(const BRep& cutter, double tolerance = 0.0, bool imported_freeform = false,\n                       const std::vector<std::vector<NurbsCurve>>* pre_cuts = nullptr,\n                       const struct SectionScaffold* scaf = nullptr, bool scaf_is_A = true,\n                       std::map<int, std::array<int, 3>>* sec_edges_out = nullptr,\n                       std::vector<int>* face_src_out = nullptr,\n                       const std::vector<std::vector<NurbsCurve>>* extra_cuts = nullptr,\n                       std::map<int, std::array<double, 3>>* sec_spans_out = nullptr,\n                       const struct SharedEdgePool* pool = nullptr) const;",
+          "file": "brep.h"
+        }
+      },
+      "related": [
+        "BRepTrimType.str"
+      ]
+    },
+    {
+      "name": "BRepTrimType.normalize_section_blocks",
+      "implementations": {
+        "cpp": {
+          "sig": "int normalize_section_blocks(const struct SectionScaffold& scaf,\n                                 std::map<int, std::array<double, 3>>& spans,\n                                 std::map<int, std::array<int, 3>>* sec_edges,\n                                 const char* tag,\n                                 const std::map<int, std::vector<double>>* shared_centers = nullptr)",
+          "code": "int normalize_section_blocks(const struct SectionScaffold& scaf,\n                                 std::map<int, std::array<double, 3>>& spans,\n                                 std::map<int, std::array<int, 3>>* sec_edges,\n                                 const char* tag,\n                                 const std::map<int, std::vector<double>>* shared_centers = nullptr);",
+          "file": "brep.h"
+        }
+      },
+      "related": [
+        "BRepTrimType.str"
+      ]
+    },
+    {
+      "name": "BRepTrimType.recover_section_spans",
+      "implementations": {
+        "cpp": {
+          "sig": "int recover_section_spans(const struct SectionScaffold& scaf,\n                              std::map<int, std::array<double, 3>>& spans)",
+          "code": "int recover_section_spans(const struct SectionScaffold& scaf,\n                              std::map<int, std::array<double, 3>>& spans);",
           "file": "brep.h"
         }
       },
@@ -76136,8 +76196,8 @@ window.API_INDEX = {
       "name": "BRepTrimType.imprint_edges",
       "implementations": {
         "cpp": {
-          "sig": "void imprint_edges(double tol = 0.0)",
-          "code": "void imprint_edges(double tol = 0.0);",
+          "sig": "void imprint_edges(double tol = 0.0, bool mated_too = false)",
+          "code": "void imprint_edges(double tol = 0.0, bool mated_too = false);",
           "file": "brep.h"
         }
       }
@@ -76531,13 +76591,16 @@ window.API_INDEX = {
         "BRepTrimType.file_json_loads",
         "BRepTrimType.from_str",
         "BRepTrimType.guid",
+        "BRepTrimType.normalize_section_blocks",
         "BRepTrimType.pb_dump",
         "BRepTrimType.pb_dumps",
         "BRepTrimType.pb_load",
         "BRepTrimType.pb_loads",
+        "BRepTrimType.recover_section_spans",
         "BRepTrimType.repr",
         "BRepTrimType.split_by_brep",
-        "BRepTrimType.to_str"
+        "BRepTrimType.to_str",
+        "BRepTrimType.topology_report"
       ]
     },
     {
@@ -76594,6 +76657,47 @@ window.API_INDEX = {
         "BRep.guid",
         "BRep.surfacecolor",
         "BRep.xform"
+      ]
+    },
+    {
+      "name": "BRep.topology_report",
+      "implementations": {
+        "cpp": {
+          "sig": "std::string topology_report(bool* valid_manifold)",
+          "code": "std::string BRep::topology_report(bool* valid_manifold) const {\n    int nf = (int)m_faces.size();\n    int ne = (int)m_topology_edges.size();\n    double xmn=1e300,ymn=1e300,zmn=1e300,xmx=-1e300,ymx=-1e300,zmx=-1e300;\n    for (const auto& p : m_vertices) {\n        xmn=std::min(xmn,p[0]); ymn=std::min(ymn,p[1]); zmn=std::min(zmn,p[2]);\n        xmx=std::max(xmx,p[0]); ymx=std::max(ymx,p[1]); zmx=std::max(zmx,p[2]);\n    }",
+          "file": "brep.cpp"
+        }
+      },
+      "related": [
+        "BRep.str"
+      ]
+    },
+    {
+      "name": "std.string",
+      "implementations": {
+        "cpp": {
+          "sig": "return string(head)",
+          "code": "return std::string(head) + euler;\n}",
+          "file": "brep.cpp"
+        }
+      },
+      "related": [
+        "std.out_of_range"
+      ]
+    },
+    {
+      "name": "BRep.contains_point_exact",
+      "implementations": {
+        "cpp": {
+          "sig": "bool contains_point_exact(const Point& p, const std::vector<double>& osign_in)",
+          "code": "bool BRep::contains_point_exact(const Point& p, const std::vector<double>& osign_in) const {\n    // Point-in-poly on a face's trim loops sampled as UV polygons (outer minus holes).\n    auto uv_in_trims = [&](int fi, double u, double v) -> bool {\n        const auto& face = m_faces[fi];\n        bool in_outer = false, have_outer = false;\n        for (int li : face.loop_indices) {\n            if (li < 0 || li >= (int)m_loops.size()) continue;\n            const auto& loop = m_loops[li];\n            std::vector<std::array<double,2>> poly;\n            for (int ti : loop.trim_indices) {\n                if (ti < 0 || ti >= (int)m_trims.size()) continue;\n                int c2 = m_trims[ti].curve_2d_index;\n                if (c2 < 0 || c2 >= (int)m_curves_2d.size()) continue;\n                const NurbsCurve& pc = m_curves_2d[c2];\n                auto dc = pc.domain();\n                int ns = std::min(std::max(pc.cv_count() * 2, 16), 128);\n                for (int k = 0; k < ns; ++k) {\n                    Point q = pc.point_at(dc.first + (dc.second - dc.first) * k / ns);\n                    poly.push_back({q[0], q[1]}",
+          "file": "brep.cpp"
+        }
+      },
+      "related": [
+        "BRep.contains_point",
+        "BRep.in_trim",
+        "BRep.point_at"
       ]
     },
     {
@@ -76669,26 +76773,26 @@ window.API_INDEX = {
           "code": "return std::sqrt(a * a + b * b - 2.0 * a * b * std::cos(ang_between * to_rad));\n}",
           "file": "vector.cpp"
         }
-      }
+      },
+      "related": [
+        "std.fprintf"
+      ]
     },
     {
       "name": "BRep.split_with",
       "implementations": {
         "cpp": {
           "sig": "BRep split_with(double tolerance, const std::function<std::vector<NurbsCurve>(const NurbsSurface&)",
-          "code": "BRep BRep::split_with(double tolerance, const std::function<std::vector<NurbsCurve>(const NurbsSurface&)>& cut_for, bool imported_freeform,\n                      const SectionScaffold* scaf, bool scaf_is_A,\n                      std::map<int, std::array<int, 3>>* sec_edges_out,\n                      std::vector<int>* face_src_out,\n                      const std::vector<std::vector<NurbsCurve>>* extra_cuts) const {\n    BRep result;\n    result.name = name;\n    std::map<std::tuple<long long, long long, long long>, int> vmap;\n    std::map<std::tuple<int, int, long long, long long, long long>, int> emap;\n    // OCCT-adoption S2: section edges are keyed by scaffold identity (seg_id) so the two\n    // fragments flanking a section within one operand share ONE edge by construction, and\n    // sec_edges_out lets BRep::boolean merge the operands' copies at combine.\n    std::map<int, int> sec_emap;   // seg_id -> result topology-edge index\n    static const bool s_prof = (std::getenv(\"SESSION_BOOL_PROFILE\") != nullptr);\n    double prof_ssi = 0, prof_arr = 0, prof_lift = 0;\n    auto pf_now = []{ return std::chrono::high_resolution_clock::now(); }",
+          "code": "BRep BRep::split_with(double tolerance, const std::function<std::vector<NurbsCurve>(const NurbsSurface&)>& cut_for, bool imported_freeform,\n                      const SectionScaffold* scaf, bool scaf_is_A,\n                      std::map<int, std::array<int, 3>>* sec_edges_out,\n                      std::vector<int>* face_src_out,\n                      const std::vector<std::vector<NurbsCurve>>* extra_cuts,\n                      std::map<int, std::array<double, 3>>* sec_spans_out,\n                      const SharedEdgePool* pool) const {\n    BRep result;\n    result.name = name;\n    // BOP2 Phase 4: pre-seed the result with the SHARED arena so section runs REFERENCE\n    // pool edges (identical indices in BOTH operands' results; combine unifies by index).\n    int bop2_nverts = 0, bop2_nedges = 0;\n    if (pool) {\n        result.m_vertices = pool->arena.m_vertices;\n        result.m_topology_vertices = pool->arena.m_topology_vertices;\n        result.m_curves_3d = pool->arena.m_curves_3d;\n        result.m_topology_edges = pool->arena.m_topology_edges;\n        for (auto& e : result.m_topology_edges) e.trim_indices.clear();\n        bop2_nverts = (int)result.m_topology_vertices.size();\n        bop2_nedges = (int)result.m_topology_edges.size();\n    }",
           "file": "brep.cpp"
         }
       },
       "related": [
-        "BRep.boolean",
         "BRep.cut_for",
-        "BRep.lift",
         "BRep.split_by_brep",
         "BRep.split_by_curves",
         "BRep.split_by_plane",
-        "BRep.split_by_surface",
-        "BRep.str"
+        "BRep.split_by_surface"
       ]
     },
     {
@@ -76705,6 +76809,20 @@ window.API_INDEX = {
       ]
     },
     {
+      "name": "std.fprintf",
+      "implementations": {
+        "cpp": {
+          "sig": "else fprintf(stderr, \"[BEMAP] miss oe=%d lo=%d hi=%d cand=%zu bestd=%.3e\\n\",\n                                              oe, lo, hi, lst.size()",
+          "code": "else std::fprintf(stderr, \"[BEMAP] miss oe=%d lo=%d hi=%d cand=%zu bestd=%.3e\\n\",\n                                              oe, lo, hi, lst.size(), best_miss < 1e300 ? std::sqrt(best_miss) : -1.0);\n                        }",
+          "file": "brep.cpp"
+        }
+      },
+      "related": [
+        "std.printf",
+        "std.sqrt"
+      ]
+    },
+    {
       "name": "std.max",
       "implementations": {
         "cpp": {
@@ -76715,6 +76833,34 @@ window.API_INDEX = {
       },
       "related": [
         "std.min"
+      ]
+    },
+    {
+      "name": "BRep.recover_section_spans",
+      "implementations": {
+        "cpp": {
+          "sig": "int recover_section_spans(const SectionScaffold& scaf,\n                                std::map<int, std::array<double, 3>>& spans)",
+          "code": "int BRep::recover_section_spans(const SectionScaffold& scaf,\n                                std::map<int, std::array<double, 3>>& spans) {\n    if (scaf.segments.empty() || m_topology_edges.empty()) return 0;\n    double diag;\n    {\n        double mn[3] = {1e300,1e300,1e300}",
+          "file": "brep.cpp"
+        }
+      },
+      "related": [
+        "BRep.rec"
+      ]
+    },
+    {
+      "name": "BRep.normalize_section_blocks",
+      "implementations": {
+        "cpp": {
+          "sig": "int normalize_section_blocks(const SectionScaffold& scaf,\n                                   std::map<int, std::array<double, 3>>& spans,\n                                   std::map<int, std::array<int, 3>>* sec_edges,\n                                   const char* tag,\n                                   const std::map<int, std::vector<double>>* shared_centers)",
+          "code": "int BRep::normalize_section_blocks(const SectionScaffold& scaf,\n                                   std::map<int, std::array<double, 3>>& spans,\n                                   std::map<int, std::array<int, 3>>* sec_edges,\n                                   const char* tag,\n                                   const std::map<int, std::vector<double>>* shared_centers) {\n    // OCCT BOPDS pave/common-block analog on the scaffold's shared chains. Each chain-lifted\n    // section edge covers a fractional index range [fa,fb] of its segment; flanks and\n    // operands clip at different arrangement params, so copies stagger and Hausdorff sew\n    // cannot pair them. Per segment, the union of all range ends clusters into PAVES; every\n    // edge is split at the paves interior to its range (3D re-extracted from the shared\n    // chain, so pieces are bit-identical across copies; pcurves split at the projected pave\n    // UV) and same-block copies merge into one edge (capped at 2 trims).\n    if (spans.empty()) return 0;\n    const double eps_f = 0.03;             // pave weld radius, fractional chain-index units\n    bool dbg = std::getenv(\"SESSION_NT_DBG\") != nullptr;\n\n    std::map<int, std::vector<int>> by_seg;\n    for (auto it = spans.begin(); it != spans.end(); ) {\n        int ei = it->first, sid = (int)it->second[0];\n        bool ok = ei >= 0 && ei < (int)m_topology_edges.size()\n               && sid >= 0 && sid < (int)scaf.segments.size()\n               && !m_topology_edges[ei].trim_indices.empty()\n               && m_topology_edges[ei].curve_3d_index >= 0\n               && m_topology_edges[ei].curve_3d_index < (int)m_curves_3d.size();\n        if (!ok) { it = spans.erase(it); continue; }",
+          "file": "brep.cpp"
+        }
+      },
+      "related": [
+        "BRep.cross",
+        "BRep.ev",
+        "BRep.lift"
       ]
     },
     {
@@ -76773,6 +76919,19 @@ window.API_INDEX = {
           "file": "brep.cpp"
         }
       }
+    },
+    {
+      "name": "std.printf",
+      "implementations": {
+        "cpp": {
+          "sig": "else printf(\" f%d(?)",
+          "code": "else\n                        std::printf(\" f%d(?)\", f2);\n                }",
+          "file": "brep.cpp"
+        }
+      },
+      "related": [
+        "std.fprintf"
+      ]
     },
     {
       "name": "BRep.jsondump",
@@ -76888,9 +77047,9 @@ window.API_INDEX = {
         "BRep.repr",
         "BRep.split_by_brep",
         "BRep.split_multi",
-        "BRep.split_with",
         "BRep.subset_of",
         "BRep.surfacecolor",
+        "BRep.topology_report",
         "BRep.transform",
         "BRep.transformed",
         "BRep.vertex_count",
@@ -77216,7 +77375,10 @@ window.API_INDEX = {
           "code": "throw std::out_of_range(\"Index out of bounds: (\" + std::to_string(row) + \", \" + std::to_string(col) + \")\");\n    }",
           "file": "xform.cpp"
         }
-      }
+      },
+      "related": [
+        "std.string"
+      ]
     },
     {
       "name": "ConvexHull.cross_2d",
@@ -102304,12 +102466,12 @@ window.API_INDEX = {
       "implementations": {
         "cpp": {
           "sig": "MINI_TEST(\"Point\", \"Constructor\")",
-          "code": "MINI_TEST(\"Point\", \"Constructor\") {\n        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n        // uncomment #include \"color.h\"\n\n        // Constructor\n        Point p(1.0, 2.0, 3.0);\n\n        // Setters\n        p[0] = 10.0;\n        p[1] = 20.0;\n        p[2] = 30.0;\n\n        // Getters\n        double x = p[0];\n        double y = p[1];\n        double z = p[2];\n\n        // Minimal and Full String Representation\n        std::string pstr = p.str();\n        std::string prepr = p.repr();\n\n        // Copy (duplicate everything but guid())\n        Point pcopy = p;\n        Point pother(1.0, 2.0, 3.0);\n\n        // No-copy operators\n        Point pmult = p;\n        pmult *= 2.0;\n        Point pdiv = p;\n        pdiv /= 2.0;\n        Point padd = p;\n        padd += Vector(1.0, 1.0, 1.0);\n        Point psub = p;\n        psub -= Vector(1.0, 1.0, 1.0);\n\n        // Copy operators\n        Point result_mul = p * 2.0;\n        Point result_div = p / 2.0;\n        Point result_add = p + Vector(1.0, 1.0, 1.0);\n        Point diff_point = p - Vector(1.0, 1.0, 1.0);\n\n        // Static sum and sub methods\n        Point p1(1.0, 2.0, 3.0);\n        Point p2(4.0, 5.0, 6.0);\n        Point psum = Point::sum(p1, p2);\n        Point pdif = Point::sub(p2, p1);\n\n        MINI_CHECK(p.name == \"my_point\");\n        MINI_CHECK(p[0] == 10.0);\n        MINI_CHECK(p[1] == 20.0);\n        MINI_CHECK(p[2] == 30.0);\n        MINI_CHECK(p.width == 1.0);\n        MINI_CHECK(p.pointcolor == Color::blue());\n        MINI_CHECK(!p.guid().empty());\n        MINI_CHECK(x == 10.0 && y == 20.0 && z == 30.0);\n        MINI_CHECK(pstr == \"10.000000, 20.000000, 30.000000\");\n        MINI_CHECK(prepr == \"Point(my_point, 10.000000, 20.000000, 30.000000, Color(0, 0, 1, 1), 1.000000)\");\n        MINI_CHECK(pcopy == p && pcopy.guid() != p.guid());\n        MINI_CHECK(pother != p);\n        MINI_CHECK(pmult[0] == 20.0 && pmult[1] == 40.0 && pmult[2] == 60.0);\n        MINI_CHECK(pdiv[0] == 5.0 && pdiv[1] == 10.0 && pdiv[2] == 15.0);\n        MINI_CHECK(padd[0] == 11.0 && padd[1] == 21.0 && padd[2] == 31.0);\n        MINI_CHECK(psub[0] == 9.0 && psub[1] == 19.0 && psub[2] == 29.0);\n        MINI_CHECK(result_mul[0] == 20.0 && result_mul[1] == 40.0 && result_mul[2] == 60.0);\n        MINI_CHECK(result_div[0] == 5.0 && result_div[1] == 10.0 && result_div[2] == 15.0);\n        MINI_CHECK(result_add[0] == 11.0 && result_add[1] == 21.0 && result_add[2] == 31.0);\n        MINI_CHECK(diff_point[0] == 9.0 && diff_point[1] == 19.0 && diff_point[2] == 29.0);\n        MINI_CHECK(psum[0] == 5.0 && psum[1] == 7.0 && psum[2] == 9.0);\n        MINI_CHECK(pdif[0] == 3.0 && pdif[1] == 3.0 && pdif[2] == 3.0);\n    }",
+          "code": "MINI_TEST(\"Point\", \"Constructor\") {\n        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n        // uncomment #include \"color.h\"\n\n        // Constructor\n        Point p(1.0, 2.0, 3.0);\n\n        // Setters\n        p[0] = 10.0;\n        p[1] = 20.0;\n        p[2] = 30.0;\n\n        // Getters\n        double x = p[0];\n        double y = p[1];\n        double z = p[2];\n\n        // Minimal and Full String Representation\n        std::string pstr = p.str();\n        std::string prepr = p.repr();\n\n        // Copy (duplicate everything but guid())\n        Point pcopy = p;\n        Point pother(1.0, 2.0, 3.0);\n\n        // No-copy operators\n        Point pmult = p;\n        pmult *= 2.0;\n        Point pdiv = p;\n        pdiv /= 2.0;\n        Point padd = p;\n        padd += Vector(1.0, 1.0, 1.0);\n        Point psub = p;\n        psub -= Vector(1.0, 1.0, 1.0);\n\n        // Copy operators\n        Point result_mul = p * 2.0;\n        Point result_div = p / 2.0;\n        Point result_add = p + Vector(1.0, 1.0, 1.0);\n        Point diff_point = p - Vector(1.0, 1.0, 1.0);\n\n        // Static sum and sub methods\n        Point p1(1.0, 2.0, 3.0);\n        Point p2(4.0, 5.0, 6.0);\n        Point psum = Point::sum(p1, p2);\n        Point pdif = Point::sub(p2, p1);\n\n        MINI_CHECK(p.name == \"my_point\");\n        MINI_CHECK(p[0] == 10.0);\n        MINI_CHECK(p[1] == 20.0);\n        MINI_CHECK(p[2] == 30.0);\n        MINI_CHECK(p.width == 1.0);\n        MINI_CHECK(p.pointcolor == Color::black());\n        MINI_CHECK(!p.guid().empty());\n        MINI_CHECK(x == 10.0 && y == 20.0 && z == 30.0);\n        MINI_CHECK(pstr == \"10.000000, 20.000000, 30.000000\");\n        MINI_CHECK(prepr == \"Point(my_point, 10.000000, 20.000000, 30.000000, Color(0, 0, 0, 1), 1.000000)\");\n        MINI_CHECK(pcopy == p && pcopy.guid() != p.guid());\n        MINI_CHECK(pother != p);\n        MINI_CHECK(pmult[0] == 20.0 && pmult[1] == 40.0 && pmult[2] == 60.0);\n        MINI_CHECK(pdiv[0] == 5.0 && pdiv[1] == 10.0 && pdiv[2] == 15.0);\n        MINI_CHECK(padd[0] == 11.0 && padd[1] == 21.0 && padd[2] == 31.0);\n        MINI_CHECK(psub[0] == 9.0 && psub[1] == 19.0 && psub[2] == 29.0);\n        MINI_CHECK(result_mul[0] == 20.0 && result_mul[1] == 40.0 && result_mul[2] == 60.0);\n        MINI_CHECK(result_div[0] == 5.0 && result_div[1] == 10.0 && result_div[2] == 15.0);\n        MINI_CHECK(result_add[0] == 11.0 && result_add[1] == 21.0 && result_add[2] == 31.0);\n        MINI_CHECK(diff_point[0] == 9.0 && diff_point[1] == 19.0 && diff_point[2] == 29.0);\n        MINI_CHECK(psum[0] == 5.0 && psum[1] == 7.0 && psum[2] == 9.0);\n        MINI_CHECK(pdif[0] == 3.0 && pdif[1] == 3.0 && pdif[2] == 3.0);\n    }",
           "file": "point_test.cpp"
         },
         "python": {
           "sig": "@MINI_TEST(\"Point\", \"Constructor\")",
-          "code": "@MINI_TEST(\"Point\", \"Constructor\")\ndef test_point_constructor():\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor\n    p = Point(1.0, 2.0, 3.0)\n\n    # Setters\n    p[0] = 10.0\n    p[1] = 20.0\n    p[2] = 30.0\n\n    # Getters\n    x = p[0]\n    y = p[1]\n    z = p[2]\n\n    # Minimal and Full String Representation\n    pstr = str(p)\n    prepr = repr(p) \n\n    # Copy (duplicates everything except guid)\n    pcopy = p.duplicate()\n    pother = Point(1.0, 2.0, 3.0)\n\n    # No-copy operators\n    pmult = p.duplicate()\n    pmult *= 2.0\n    pdiv = p.duplicate()\n    pdiv /= 2.0\n    padd = p.duplicate()\n    padd += Vector(1.0, 1.0, 1.0)\n    psub = p.duplicate()\n    psub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    result_mul = p * 2.0\n    result_div = p / 2.0\n    result_add = p + Vector(1.0, 1.0, 1.0)\n    diff_point = p - Vector(1.0, 1.0, 1.0)\n\n    # Static sum and sub methods\n    p1 = Point(1.0, 2.0, 3.0)\n    p2 = Point(4.0, 5.0, 6.0)\n    psum = Point.sum(p1, p2)\n    pdif = Point.sub(p2, p1)\n\n    MINI_CHECK(p.name == \"my_point\")\n    MINI_CHECK(p[0] == 10.0)\n    MINI_CHECK(p[1] == 20.0)\n    MINI_CHECK(p[2] == 30.0)\n    MINI_CHECK(p.width == 1.0)\n    MINI_CHECK(p.pointcolor == Color.blue())\n    MINI_CHECK(p.guid)\n    MINI_CHECK(x == 10.0 and y == 20.0 and z == 30.0)\n    MINI_CHECK(pstr == \"10.0, 20.0, 30.0\")\n    MINI_CHECK(prepr == \"Point(my_point, 10.0, 20.0, 30.0, Color(blue, 0.0, 0.0, 1.0, 1.0), 1.0)\")\n    MINI_CHECK(pcopy == p and pcopy.guid != p.guid)\n    MINI_CHECK(pother != p)\n    MINI_CHECK(pmult[0] == 20.0 and pmult[1] == 40.0 and pmult[2] == 60.0)\n    MINI_CHECK(pdiv[0] == 5.0 and pdiv[1] == 10.0 and pdiv[2] == 15.0)\n    MINI_CHECK(padd[0] == 11.0 and padd[1] == 21.0 and padd[2] == 31.0)\n    MINI_CHECK(psub[0] == 9.0 and psub[1] == 19.0 and psub[2] == 29.0)\n    MINI_CHECK(result_mul[0] == 20.0 and result_mul[1] == 40.0 and result_mul[2] == 60.0)\n    MINI_CHECK(result_div[0] == 5.0 and result_div[1] == 10.0 and result_div[2] == 15.0)\n    MINI_CHECK(result_add[0] == 11.0 and result_add[1] == 21.0 and result_add[2] == 31.0)\n    MINI_CHECK(diff_point[0] == 9.0 and diff_point[1] == 19.0 and diff_point[2] == 29.0)\n    MINI_CHECK(psum[0] == 5.0 and psum[1] == 7.0 and psum[2] == 9.0)\n    MINI_CHECK(pdif[0] == 3.0 and pdif[1] == 3.0 and pdif[2] == 3.0)",
+          "code": "@MINI_TEST(\"Point\", \"Constructor\")\ndef test_point_constructor():\n    from session_py import Point\n    from session_py import Vector\n    from session_py import Color\n\n    # Constructor\n    p = Point(1.0, 2.0, 3.0)\n\n    # Setters\n    p[0] = 10.0\n    p[1] = 20.0\n    p[2] = 30.0\n\n    # Getters\n    x = p[0]\n    y = p[1]\n    z = p[2]\n\n    # Minimal and Full String Representation\n    pstr = str(p)\n    prepr = repr(p) \n\n    # Copy (duplicates everything except guid)\n    pcopy = p.duplicate()\n    pother = Point(1.0, 2.0, 3.0)\n\n    # No-copy operators\n    pmult = p.duplicate()\n    pmult *= 2.0\n    pdiv = p.duplicate()\n    pdiv /= 2.0\n    padd = p.duplicate()\n    padd += Vector(1.0, 1.0, 1.0)\n    psub = p.duplicate()\n    psub -= Vector(1.0, 1.0, 1.0)\n\n    # Copy operators\n    result_mul = p * 2.0\n    result_div = p / 2.0\n    result_add = p + Vector(1.0, 1.0, 1.0)\n    diff_point = p - Vector(1.0, 1.0, 1.0)\n\n    # Static sum and sub methods\n    p1 = Point(1.0, 2.0, 3.0)\n    p2 = Point(4.0, 5.0, 6.0)\n    psum = Point.sum(p1, p2)\n    pdif = Point.sub(p2, p1)\n\n    MINI_CHECK(p.name == \"my_point\")\n    MINI_CHECK(p[0] == 10.0)\n    MINI_CHECK(p[1] == 20.0)\n    MINI_CHECK(p[2] == 30.0)\n    MINI_CHECK(p.width == 1.0)\n    MINI_CHECK(p.pointcolor == Color.black())\n    MINI_CHECK(p.guid)\n    MINI_CHECK(x == 10.0 and y == 20.0 and z == 30.0)\n    MINI_CHECK(pstr == \"10.0, 20.0, 30.0\")\n    MINI_CHECK(prepr == \"Point(my_point, 10.0, 20.0, 30.0, Color(black, 0.0, 0.0, 0.0, 1.0), 1.0)\")\n    MINI_CHECK(pcopy == p and pcopy.guid != p.guid)\n    MINI_CHECK(pother != p)\n    MINI_CHECK(pmult[0] == 20.0 and pmult[1] == 40.0 and pmult[2] == 60.0)\n    MINI_CHECK(pdiv[0] == 5.0 and pdiv[1] == 10.0 and pdiv[2] == 15.0)\n    MINI_CHECK(padd[0] == 11.0 and padd[1] == 21.0 and padd[2] == 31.0)\n    MINI_CHECK(psub[0] == 9.0 and psub[1] == 19.0 and psub[2] == 29.0)\n    MINI_CHECK(result_mul[0] == 20.0 and result_mul[1] == 40.0 and result_mul[2] == 60.0)\n    MINI_CHECK(result_div[0] == 5.0 and result_div[1] == 10.0 and result_div[2] == 15.0)\n    MINI_CHECK(result_add[0] == 11.0 and result_add[1] == 21.0 and result_add[2] == 31.0)\n    MINI_CHECK(diff_point[0] == 9.0 and diff_point[1] == 19.0 and diff_point[2] == 29.0)\n    MINI_CHECK(psum[0] == 5.0 and psum[1] == 7.0 and psum[2] == 9.0)\n    MINI_CHECK(pdif[0] == 3.0 and pdif[1] == 3.0 and pdif[2] == 3.0)",
           "file": "point_test.py"
         },
         "rust": {
@@ -109030,6 +109192,51 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Io.test_Read Bunny",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Io\", \"Read Bunny\")",
+          "code": "@MINI_TEST(\"Io\", \"Read Bunny\")\ndef test_read_bunny():\n    # load Stanford Bunny (real-world XYZ point cloud: 397 points)\n    bunny_path = Path(__file__).resolve().parents[3] / \"session_data\" / \"bunny.xyz\"\n    if not bunny_path.exists():\n        return\n    from session_py.io import read_xyz\n    cloud = read_xyz(str(bunny_path))\n\n    MINI_CHECK(cloud.point_count() == 397)\n    points = cloud.get_points()\n    MINI_CHECK(len(points) == 397)\n    has_non_zero = any(p[0] != 0.0 or p[1] != 0.0 or p[2] != 0.0 for p in points)\n    MINI_CHECK(has_non_zero)",
+          "file": "io_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Io\", \"Read Bunny\")",
+          "code": "MINI_TEST!(\"Io\", \"Read Bunny\", crate::io_test::run_io_read_bunny);\nREGISTER_MINI_TEST!(\"Io\", \"String Roundtrip\", crate::io_test::run_io_string_roundtrip);\nREGISTER_MINI_TEST!(\"Io\", \"Write Read Roundtrip\", crate::io_test::run_io_write_read_roundtrip);\nREGISTER_MINI_TEST!(\"Io\", \"Read Colors\", crate::io_test::run_io_read_colors);",
+          "file": "io_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Io.test_Write Read Roundtrip",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Io\", \"Write Read Roundtrip\")",
+          "code": "@MINI_TEST(\"Io\", \"Write Read Roundtrip\")\ndef test_write_read_roundtrip():\n    # build a small cloud (4 points), write to XYZ, read back, compare counts\n    from session_py import Point, PointCloud\n    from session_py.io import read_xyz, write_xyz\n    original = PointCloud()\n    original.add_point(Point(0.0, 0.0, 0.0))\n    original.add_point(Point(1.0, 0.0, 0.0))\n    original.add_point(Point(0.0, 1.0, 0.0))\n    original.add_point(Point(0.0, 0.0, 1.0))\n\n    MINI_CHECK(original.point_count() == 4)\n    temp_file = str(Path(__file__).resolve().parents[2] / \"serialization\" / \"test_temp_roundtrip.xyz\")\n    write_xyz(original, temp_file)\n    MINI_CHECK(os.path.exists(temp_file))\n    loaded = read_xyz(temp_file)\n    MINI_CHECK(loaded.point_count() == original.point_count())\n    os.remove(temp_file)",
+          "file": "io_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Io\", \"Write Read Roundtrip\")",
+          "code": "MINI_TEST!(\"Io\", \"Write Read Roundtrip\", crate::io_test::run_io_write_read_roundtrip);\nREGISTER_MINI_TEST!(\"Io\", \"Read Colors\", crate::io_test::run_io_read_colors);",
+          "file": "io_test.rs"
+        }
+      }
+    },
+    {
+      "name": "Io.test_String Roundtrip",
+      "implementations": {
+        "python": {
+          "sig": "@MINI_TEST(\"Io\", \"String Roundtrip\")",
+          "code": "@MINI_TEST(\"Io\", \"String Roundtrip\")\ndef test_string_roundtrip():\n    from session_py import Point, PointCloud\n    from session_py.io import read_xyz_from_str, write_xyz_to_string\n    from session_py.tolerance import TOLERANCE\n    original = PointCloud()\n    original.add_point(Point(0.0, 0.0, 0.0))\n    original.add_point(Point(1.0, 0.0, 0.0))\n    original.add_point(Point(0.0, 1.0, 0.0))\n    original.add_point(Point(0.0, 0.0, 1.0))\n    s = write_xyz_to_string(original)\n    loaded = read_xyz_from_str(s)\n\n    MINI_CHECK(loaded.point_count() == original.point_count())\n    MINI_CHECK(TOLERANCE.is_close(loaded.get_points()[1][0], 1.0))\n\n\nif __name__ == \"__main__\":\n    run_all(\"python\")",
+          "file": "io_test.py"
+        },
+        "rust": {
+          "sig": "MINI_TEST!(\"Io\", \"String Roundtrip\")",
+          "code": "MINI_TEST!(\"Io\", \"String Roundtrip\", crate::io_test::run_io_string_roundtrip);\nREGISTER_MINI_TEST!(\"Io\", \"Write Read Roundtrip\", crate::io_test::run_io_write_read_roundtrip);\nREGISTER_MINI_TEST!(\"Io\", \"Read Colors\", crate::io_test::run_io_read_colors);",
+          "file": "io_test.rs"
+        }
+      }
+    },
+    {
       "name": "Mesh.test_Loft plate_failing 15-vert outer + 3 holes",
       "implementations": {
         "python": {
@@ -109080,6 +109287,16 @@ window.API_INDEX = {
       }
     },
     {
+      "name": "Io.test_Read Colors",
+      "implementations": {
+        "rust": {
+          "sig": "MINI_TEST!(\"Io\", \"Read Colors\")",
+          "code": "MINI_TEST!(\"Io\", \"Read Colors\", crate::io_test::run_io_read_colors);",
+          "file": "io_test.rs"
+        }
+      }
+    },
+    {
       "name": "Objects.test_Component Protobuf Roundtrip",
       "implementations": {
         "rust": {
@@ -109094,11 +109311,11 @@ window.API_INDEX = {
     {
       "title": "Circle + Subdivide into N Points",
       "tags": [
-        "into",
-        "subdivide",
-        "n",
-        "circle",
         "points",
+        "subdivide",
+        "circle",
+        "into",
+        "n",
         "divide_by_count",
         "nurbscurve",
         "primitives"
@@ -109113,10 +109330,10 @@ window.API_INDEX = {
       "title": "Ellipse + Subdivide by Arc Length",
       "tags": [
         "length",
-        "subdivide",
-        "by",
         "arc",
+        "subdivide",
         "ellipse",
+        "by",
         "divide_by_length",
         "nurbscurve",
         "primitives"
@@ -109130,9 +109347,9 @@ window.API_INDEX = {
     {
       "title": "Arc Through 3 Points",
       "tags": [
-        "through",
         "points",
         "arc",
+        "through",
         "nurbscurve",
         "primitives",
         "point"
@@ -109146,11 +109363,11 @@ window.API_INDEX = {
     {
       "title": "Open Curve from Points + Adaptive Polyline",
       "tags": [
-        "curve",
-        "open",
-        "polyline",
-        "points",
         "from",
+        "curve",
+        "points",
+        "polyline",
+        "open",
         "adaptive",
         "to_polyline_adaptive",
         "create",
@@ -109166,10 +109383,10 @@ window.API_INDEX = {
     {
       "title": "Curve Evaluation at Parameter",
       "tags": [
-        "evaluation",
-        "curve",
         "parameter",
+        "curve",
         "at",
+        "evaluation",
         "set_domain",
         "point_at",
         "tangent_at",
@@ -109188,10 +109405,10 @@ window.API_INDEX = {
     {
       "title": "Curve Frames Along Length",
       "tags": [
-        "length",
         "curve",
-        "along",
+        "length",
         "frames",
+        "along",
         "divide_by_count",
         "frame_at",
         "push_back",
@@ -109236,10 +109453,10 @@ window.API_INDEX = {
     {
       "title": "Cylinder Surface + Evaluate Point",
       "tags": [
-        "point",
-        "surface",
         "cylinder",
         "evaluate",
+        "point",
+        "surface",
         "point_at",
         "cylinder_surface",
         "nurbssurface",
@@ -109254,10 +109471,10 @@ window.API_INDEX = {
     {
       "title": "Mesh from Vertices and Faces",
       "tags": [
+        "from",
+        "vertices",
         "faces",
         "and",
-        "vertices",
-        "from",
         "mesh",
         "add_vertex",
         "add_face",
@@ -109407,6 +109624,18 @@ window.API_INDEX = {
       ],
       "summary": "NurbsSurfaceTrimmed geometry class"
     },
+    "GeometryFileEncoder": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
+    },
+    "GlobalSessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "GlobalSessionConfig geometry class"
+    },
     "GeometryFileDecoder": {
       "composition": [],
       "factories": [],
@@ -109418,18 +109647,6 @@ window.API_INDEX = {
       "factories": [],
       "uses": [],
       "summary": "NurbsKnot spacing style for interpolated curves (matches Rhino's CurveNurbsKnotStyle)."
-    },
-    "GlobalSessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "GlobalSessionConfig geometry class"
-    },
-    "GeometryFileEncoder": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Custom JSON encoder that handles geometry objects with __jsondump__ method."
     },
     "TriangulateResult": {
       "composition": [],
@@ -109450,14 +109667,6 @@ window.API_INDEX = {
       ],
       "summary": "End-tangent (boundary) condition for cubic interpolation."
     },
-    "BooleanPolyline": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Polyline"
-      ],
-      "summary": "BooleanPolyline geometry class"
-    },
     "GlobalTolerance": {
       "composition": [],
       "factories": [],
@@ -109468,6 +109677,20 @@ window.API_INDEX = {
       ],
       "summary": "GlobalTolerance geometry class"
     },
+    "ElementSchoring": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
+    },
+    "BooleanPolyline": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Polyline"
+      ],
+      "summary": "BooleanPolyline geometry class"
+    },
     "SpatialAABBTree": {
       "composition": [],
       "factories": [],
@@ -109475,32 +109698,6 @@ window.API_INDEX = {
         "AABB"
       ],
       "summary": "SpatialAABBTree geometry class"
-    },
-    "ElementSchoring": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Scaffolding prop element (foot / body_start / body_end / head) loaded from a dataset."
-    },
-    "_PartitionVars": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_PartitionVars geometry class"
-    },
-    "VIntersectNode": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VIntersectNode geometry class"
-    },
-    "ToleranceGuard": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Tolerance"
-      ],
-      "summary": "ToleranceGuard geometry class"
     },
     "SpatialBVHNode": {
       "composition": [],
@@ -109514,6 +109711,32 @@ window.API_INDEX = {
       ],
       "summary": "A node in the SpatialBVH tree."
     },
+    "ToleranceGuard": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Tolerance"
+      ],
+      "summary": "ToleranceGuard geometry class"
+    },
+    "_PartitionVars": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_PartitionVars geometry class"
+    },
+    "VIntersectNode": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VIntersectNode geometry class"
+    },
+    "SessionConfig": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SessionConfig geometry class"
+    },
     "SpatialKDTree": {
       "composition": [],
       "factories": [],
@@ -109522,12 +109745,6 @@ window.API_INDEX = {
         "_Node"
       ],
       "summary": "KD-tree for point-to-point nearest-neighbor queries."
-    },
-    "SessionConfig": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SessionConfig geometry class"
     },
     "ElementColumn": {
       "composition": [],
@@ -109548,11 +109765,23 @@ window.API_INDEX = {
       "uses": [],
       "summary": "LoftWallFace geometry class"
     },
+    "VattiScratch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VattiScratch geometry class"
+    },
     "BRepLoopType": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BRepLoopType geometry class"
+    },
+    "SpatialRTree": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "SpatialRTree geometry class"
     },
     "Intersection": {
       "composition": [
@@ -109573,6 +109802,12 @@ window.API_INDEX = {
       ],
       "summary": "Intersection geometry class"
     },
+    "VLocalMinima": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VLocalMinima geometry class"
+    },
     "ElementPlate": {
       "composition": [],
       "factories": [],
@@ -109587,6 +109822,23 @@ window.API_INDEX = {
         "Xform"
       ],
       "summary": "ElementPlate geometry class"
+    },
+    "BRepTrimType": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "BRep",
+        "BRepLoopType",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "summary": "BRepTrimType geometry class"
     },
     "NurbsSurface": {
       "composition": [
@@ -109611,66 +109863,26 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) surface."
     },
-    "BRepTrimType": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "BRep",
-        "BRepLoopType",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "summary": "BRepTrimType geometry class"
-    },
-    "SpatialRTree": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "SpatialRTree geometry class"
-    },
     "ScanlineHeap": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "ScanlineHeap geometry class"
     },
-    "VattiScratch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VattiScratch geometry class"
-    },
-    "VLocalMinima": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VLocalMinima geometry class"
-    },
-    "session_cpp": {
+    "InstanceRef": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Point"
+        "Xform",
+        "session_cpp"
       ],
-      "summary": "session_cpp geometry class"
+      "summary": "A block reference: places a definition (by guid) at a transform."
     },
     "_Delaunay2D": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "_Delaunay2D geometry class"
-    },
-    "LoftAdjPair": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "LoftAdjPair geometry class"
     },
     "ElementBeam": {
       "composition": [],
@@ -109685,38 +109897,32 @@ window.API_INDEX = {
       ],
       "summary": "ElementBeam geometry class"
     },
-    "InstanceRef": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Xform",
-        "session_cpp"
-      ],
-      "summary": "A block reference: places a definition (by guid) at a transform."
-    },
-    "VertexData": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "Point"
-      ],
-      "summary": "Vertex data containing position and attributes."
-    },
-    "Delaunay2D": {
+    "LoftAdjPair": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Delaunay2D geometry class"
+      "summary": "LoftAdjPair geometry class"
     },
-    "MeshOffset": {
+    "session_cpp": {
       "composition": [],
       "factories": [],
       "uses": [
-        "Mesh",
-        "Plane",
         "Point"
       ],
-      "summary": "MeshOffset geometry class"
+      "summary": "session_cpp geometry class"
+    },
+    "SpatialBVH": {
+      "composition": [],
+      "factories": [
+        "SpatialBVHNode"
+      ],
+      "uses": [
+        "AABB",
+        "OBB",
+        "Point",
+        "Vector"
+      ],
+      "summary": "Boundary Volume Hierarchy for spatial acceleration."
     },
     "Quaternion": {
       "composition": [
@@ -109728,6 +109934,29 @@ window.API_INDEX = {
       ],
       "summary": "A quaternion for 3D rotations (scalar + vector)."
     },
+    "VertexData": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Point"
+      ],
+      "summary": "Vertex data containing position and attributes."
+    },
+    "PointCloud": {
+      "composition": [
+        "Color",
+        "Xform"
+      ],
+      "factories": [
+        "AABB",
+        "OBB"
+      ],
+      "uses": [
+        "Point",
+        "Vector"
+      ],
+      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
+    },
     "ConvexHull": {
       "composition": [],
       "factories": [],
@@ -109736,6 +109965,45 @@ window.API_INDEX = {
         "Point"
       ],
       "summary": "Convex hull computation: Graham scan (2D) and Quickhull (3D)."
+    },
+    "Primitives": {
+      "composition": [
+        "CurveInterpStyle",
+        "CurveNurbsKnotStyle",
+        "NurbsCurve",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "Line",
+        "Mesh",
+        "NurbsSurface",
+        "Point",
+        "Xform"
+      ],
+      "summary": "Static factory methods for creating NURBS curve primitives."
+    },
+    "MeshOffset": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "Mesh",
+        "Plane",
+        "Point"
+      ],
+      "summary": "MeshOffset geometry class"
+    },
+    "Delaunay2D": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Delaunay2D geometry class"
+    },
+    "BRepVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepVertex geometry class"
     },
     "NurbsCurve": {
       "composition": [
@@ -109759,68 +110027,23 @@ window.API_INDEX = {
       ],
       "summary": "A Non-Uniform Rational B-Spline (NURBS) curve."
     },
-    "BRepVertex": {
+    "_Delaunay": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepVertex geometry class"
+      "summary": "_Delaunay geometry class"
     },
-    "SpatialBVH": {
-      "composition": [],
-      "factories": [
-        "SpatialBVHNode"
-      ],
-      "uses": [
-        "AABB",
-        "OBB",
-        "Point",
-        "Vector"
-      ],
-      "summary": "Boundary Volume Hierarchy for spatial acceleration."
-    },
-    "PointCloud": {
-      "composition": [
-        "Color",
-        "Xform"
-      ],
-      "factories": [
-        "AABB",
-        "OBB"
-      ],
-      "uses": [
-        "Point",
-        "Vector"
-      ],
-      "summary": "A point cloud with coordinates, normals, and colors stored as flat arrays."
-    },
-    "Primitives": {
-      "composition": [
-        "CurveInterpStyle",
-        "CurveNurbsKnotStyle",
-        "NurbsCurve",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "Line",
-        "Mesh",
-        "NurbsSurface",
-        "Point",
-        "Xform"
-      ],
-      "summary": "Static factory methods for creating NURBS curve primitives."
-    },
-    "VHorzJoin": {
+    "_Triangle": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "VHorzJoin geometry class"
+      "summary": "_Triangle geometry class"
     },
-    "Component": {
+    "_Vertex2D": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "Component geometry class"
+      "summary": "_Vertex2D geometry class"
     },
     "RemeshCDT": {
       "composition": [],
@@ -109831,11 +110054,11 @@ window.API_INDEX = {
       ],
       "summary": "RemeshCDT geometry class"
     },
-    "_Triangle": {
+    "VHorzJoin": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Triangle geometry class"
+      "summary": "VHorzJoin geometry class"
     },
     "Tolerance": {
       "composition": [],
@@ -109858,18 +110081,6 @@ window.API_INDEX = {
       ],
       "summary": "FlatMap64 geometry class"
     },
-    "_Vertex2D": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Vertex2D geometry class"
-    },
-    "_Delaunay": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Delaunay geometry class"
-    },
     "ColorMode": {
       "composition": [],
       "factories": [],
@@ -109886,11 +110097,29 @@ window.API_INDEX = {
       ],
       "summary": "ColorMode geometry class"
     },
+    "Component": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "Component geometry class"
+    },
     "LoftPanel": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "LoftPanel geometry class"
+    },
+    "BRepEdge": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepEdge geometry class"
+    },
+    "BRepTrim": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepTrim geometry class"
     },
     "Polyline": {
       "composition": [
@@ -109916,11 +110145,11 @@ window.API_INDEX = {
       ],
       "summary": "A polyline defined by a collection of coordinates with an associated plane."
     },
-    "BRepFace": {
+    "Geometry": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepFace geometry class"
+      "summary": "Geometry geometry class"
     },
     "TreeNode": {
       "composition": [],
@@ -109930,35 +110159,11 @@ window.API_INDEX = {
       ],
       "summary": "A node of a tree data structure."
     },
-    "BRepLoop": {
+    "BRepFace": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "BRepLoop geometry class"
-    },
-    "Geometry": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "Geometry geometry class"
-    },
-    "BRepEdge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepEdge geometry class"
-    },
-    "VHorzSeg": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VHorzSeg geometry class"
-    },
-    "BRepTrim": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "BRepTrim geometry class"
+      "summary": "BRepFace geometry class"
     },
     "Delaunay": {
       "composition": [],
@@ -109969,11 +110174,95 @@ window.API_INDEX = {
       ],
       "summary": "Delaunay geometry class"
     },
+    "VHorzSeg": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VHorzSeg geometry class"
+    },
+    "BRepLoop": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "BRepLoop geometry class"
+    },
+    "_Branch": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Branch geometry class"
+    },
+    "Objects": {
+      "composition": [
+        "BRep",
+        "Component",
+        "Element",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "OBB",
+        "Plane",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "factories": [],
+      "uses": [
+        "session_cpp"
+      ],
+      "summary": "A collection of all geometry objects."
+    },
     "Dataset": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "Dataset geometry class"
+    },
+    "Element": {
+      "composition": [
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Point",
+        "Polyline",
+        "Vector"
+      ],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "BRep",
+        "Xform"
+      ],
+      "summary": "Element geometry class"
+    },
+    "VActive": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VActive geometry class"
+    },
+    "Closest": {
+      "composition": [],
+      "factories": [],
+      "uses": [
+        "AABB",
+        "Line",
+        "Mesh",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "PointCloud",
+        "Polyline"
+      ],
+      "summary": "Static methods for finding closest points between geometry objects."
+    },
+    "VOutRec": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VOutRec geometry class"
     },
     "Session": {
       "composition": [
@@ -110003,84 +110292,6 @@ window.API_INDEX = {
       ],
       "summary": "A Session containing geometry objects with hierarchical and graph structures."
     },
-    "_Branch": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_Branch geometry class"
-    },
-    "Element": {
-      "composition": [
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Point",
-        "Polyline",
-        "Vector"
-      ],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "BRep",
-        "Xform"
-      ],
-      "summary": "Element geometry class"
-    },
-    "VVertex": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VVertex geometry class"
-    },
-    "VActive": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VActive geometry class"
-    },
-    "Objects": {
-      "composition": [
-        "BRep",
-        "Component",
-        "Element",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "OBB",
-        "Plane",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "A collection of all geometry objects."
-    },
-    "VOutRec": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "VOutRec geometry class"
-    },
-    "Closest": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "AABB",
-        "Line",
-        "Mesh",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "PointCloud",
-        "Polyline"
-      ],
-      "summary": "Static methods for finding closest points between geometry objects."
-    },
     "Default": {
       "composition": [],
       "factories": [],
@@ -110092,11 +110303,31 @@ window.API_INDEX = {
       ],
       "summary": "Default geometry class"
     },
+    "VVertex": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "VVertex geometry class"
+    },
     "BIVec2": {
       "composition": [],
       "factories": [],
       "uses": [],
       "summary": "BIVec2 geometry class"
+    },
+    "Vector": {
+      "composition": [],
+      "factories": [
+        "Line",
+        "Plane",
+        "Quaternion",
+        "Xform"
+      ],
+      "uses": [
+        "Point",
+        "session_cpp"
+      ],
+      "summary": "A 3D vector with visual properties."
     },
     "Vertex": {
       "composition": [],
@@ -110113,20 +110344,6 @@ window.API_INDEX = {
       "uses": [],
       "summary": "RayHit geometry class"
     },
-    "Vector": {
-      "composition": [],
-      "factories": [
-        "Line",
-        "Plane",
-        "Quaternion",
-        "Xform"
-      ],
-      "uses": [
-        "Point",
-        "session_cpp"
-      ],
-      "summary": "A 3D vector with visual properties."
-    },
     "VOutPt": {
       "composition": [],
       "factories": [],
@@ -110139,19 +110356,21 @@ window.API_INDEX = {
       "uses": [],
       "summary": "Matrix geometry class"
     },
-    "Point": {
-      "composition": [],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Line",
-        "Mesh",
-        "OBB",
-        "Plane",
-        "Vector"
+    "Graph": {
+      "composition": [
+        "Edge"
       ],
+      "factories": [],
+      "uses": [
+        "Vertex"
+      ],
+      "summary": "A graph data structure with string-only vertices and attributes."
+    },
+    "_Node": {
+      "composition": [],
+      "factories": [],
       "uses": [],
-      "summary": "A 3D point with visual properties."
+      "summary": "_Node geometry class"
     },
     "_Rect": {
       "composition": [],
@@ -110174,17 +110393,27 @@ window.API_INDEX = {
       ],
       "summary": "Xform geometry class"
     },
-    "_Edge": {
+    "Point": {
       "composition": [],
-      "factories": [],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Line",
+        "Mesh",
+        "OBB",
+        "Plane",
+        "Vector"
+      ],
       "uses": [],
-      "summary": "_Edge geometry class"
+      "summary": "A 3D point with visual properties."
     },
-    "_Node": {
+    "Color": {
       "composition": [],
       "factories": [],
-      "uses": [],
-      "summary": "_Node geometry class"
+      "uses": [
+        "session_cpp"
+      ],
+      "summary": "An index-based 0.0-1.0 color with RGBA values."
     },
     "Plane": {
       "composition": [],
@@ -110200,87 +110429,11 @@ window.API_INDEX = {
       ],
       "summary": "A 3D plane defined by origin and coordinate axes."
     },
-    "Color": {
-      "composition": [],
-      "factories": [],
-      "uses": [
-        "session_cpp"
-      ],
-      "summary": "An index-based 0.0-1.0 color with RGBA values."
-    },
-    "Graph": {
-      "composition": [
-        "Edge"
-      ],
-      "factories": [],
-      "uses": [
-        "Vertex"
-      ],
-      "summary": "A graph data structure with string-only vertices and attributes."
-    },
-    "_P64": {
+    "_Edge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_P64 geometry class"
-    },
-    "Edge": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "A graph edge connecting two vertices with an attribute string."
-    },
-    "Tree": {
-      "composition": [
-        "Color",
-        "TreeNode"
-      ],
-      "factories": [],
-      "uses": [],
-      "summary": "A hierarchical data structure with parent-child relationships."
-    },
-    "Line": {
-      "composition": [
-        "Point"
-      ],
-      "factories": [
-        "AABB",
-        "ColorMode",
-        "Mesh",
-        "OBB"
-      ],
-      "uses": [
-        "Vector",
-        "session_cpp"
-      ],
-      "summary": "A 3D line segment with visual properties."
-    },
-    "BRep": {
-      "composition": [
-        "BRepEdge",
-        "BRepFace",
-        "BRepLoop",
-        "BRepLoopType",
-        "BRepTrim",
-        "BRepTrimType",
-        "BRepVertex",
-        "Intersection",
-        "NurbsCurve",
-        "NurbsSurface",
-        "Point",
-        "Vector"
-      ],
-      "factories": [
-        "BRepTrimType",
-        "Element"
-      ],
-      "uses": [
-        "Line",
-        "Mesh",
-        "Plane",
-        "Polyline"
-      ],
-      "summary": "BRep geometry class"
+      "summary": "_Edge geometry class"
     },
     "Mesh": {
       "composition": [
@@ -110309,6 +110462,61 @@ window.API_INDEX = {
       ],
       "summary": "A halfedge mesh data structure for representing polygonal surfaces."
     },
+    "_Tri": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_Tri geometry class"
+    },
+    "_P64": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_P64 geometry class"
+    },
+    "BRep": {
+      "composition": [
+        "BRepEdge",
+        "BRepFace",
+        "BRepLoop",
+        "BRepLoopType",
+        "BRepTrim",
+        "BRepTrimType",
+        "BRepVertex",
+        "Intersection",
+        "NurbsCurve",
+        "NurbsSurface",
+        "Point",
+        "Vector"
+      ],
+      "factories": [
+        "BRepTrimType",
+        "Element"
+      ],
+      "uses": [
+        "Line",
+        "Mesh",
+        "Plane",
+        "Polyline"
+      ],
+      "summary": "BRep geometry class"
+    },
+    "Line": {
+      "composition": [
+        "Point"
+      ],
+      "factories": [
+        "AABB",
+        "ColorMode",
+        "Mesh",
+        "OBB"
+      ],
+      "uses": [
+        "Vector",
+        "session_cpp"
+      ],
+      "summary": "A 3D line segment with visual properties."
+    },
     "AABB": {
       "composition": [],
       "factories": [
@@ -110325,11 +110533,26 @@ window.API_INDEX = {
       ],
       "summary": "Axis-aligned bounding box (center + half-size)."
     },
-    "_Tri": {
+    "Tree": {
+      "composition": [
+        "Color",
+        "TreeNode"
+      ],
+      "factories": [],
+      "uses": [],
+      "summary": "A hierarchical data structure with parent-child relationships."
+    },
+    "Edge": {
       "composition": [],
       "factories": [],
       "uses": [],
-      "summary": "_Tri geometry class"
+      "summary": "A graph edge connecting two vertices with an attribute string."
+    },
+    "_V2": {
+      "composition": [],
+      "factories": [],
+      "uses": [],
+      "summary": "_V2 geometry class"
     },
     "OBB": {
       "composition": [
@@ -110352,12 +110575,6 @@ window.API_INDEX = {
         "Polyline"
       ],
       "summary": "OBB geometry class"
-    },
-    "_V2": {
-      "composition": [],
-      "factories": [],
-      "uses": [],
-      "summary": "_V2 geometry class"
     },
     "Sc": {
       "composition": [],
@@ -115395,9 +115612,25 @@ window.API_INDEX = {
     "abs": [
       "std.abs"
     ],
+    "topology_report": [
+      "BRepTrimType.topology_report",
+      "BRep.topology_report"
+    ],
     "check_trim_orientation": [
       "BRepTrimType.check_trim_orientation",
       "BRep.check_trim_orientation"
+    ],
+    "contains_point_exact": [
+      "BRepTrimType.contains_point_exact",
+      "BRep.contains_point_exact"
+    ],
+    "normalize_section_blocks": [
+      "BRepTrimType.normalize_section_blocks",
+      "BRep.normalize_section_blocks"
+    ],
+    "recover_section_spans": [
+      "BRepTrimType.recover_section_spans",
+      "BRep.recover_section_spans"
     ],
     "append_brep": [
       "BRepTrimType.append_brep",
@@ -115475,6 +115708,9 @@ window.API_INDEX = {
       "Vector.constructor",
       "Xform.constructor"
     ],
+    "string": [
+      "std.string"
+    ],
     "atan2": [
       "std.atan2"
     ],
@@ -115487,11 +115723,17 @@ window.API_INDEX = {
     "min": [
       "std.min"
     ],
+    "fprintf": [
+      "std.fprintf"
+    ],
     "max": [
       "std.max"
     ],
     "hypot": [
       "std.hypot"
+    ],
+    "printf": [
+      "std.printf"
     ],
     "format": [
       "fmt.format",
@@ -116793,10 +117035,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "BRepTrimType": {
-      "cpp": 69,
+      "cpp": 73,
       "python": 2,
       "rust": 0,
-      "gaps": 71,
+      "gaps": 75,
       "present_in": [
         "cpp",
         "python"
@@ -116864,10 +117106,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "BRep": {
-      "cpp": 64,
+      "cpp": 68,
       "python": 109,
       "rust": 61,
-      "gaps": 79,
+      "gaps": 83,
       "present_in": [
         "cpp",
         "python",
@@ -117576,10 +117818,10 @@ window.API_INDEX = {
       "status": "TODO"
     },
     "std": {
-      "cpp": 21,
+      "cpp": 24,
       "python": 0,
       "rust": 0,
-      "gaps": 21,
+      "gaps": 24,
       "present_in": [
         "cpp"
       ],

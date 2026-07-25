@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Session Viewer — Build Log</title>
 
-  <!-- Markdown + code highlighting from CDN. No build step; just open via serve.py. -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/styles/github-dark.min.css"/>
-  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/highlight.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release/build/languages/rust.min.js"></script>
+  <!-- Markdown + code highlighting, vendored locally (vendor/) so the docs work offline. -->
+  <script src="vendor/marked.min.js"></script>
+  <link rel="stylesheet" href="vendor/github-dark.min.css"/>
+  <script src="vendor/highlight.min.js"></script>
+  <script src="vendor/highlight.rust.min.js"></script>
 
   <style>
     :root {
@@ -22,8 +22,20 @@
     body { display:flex; font-family:var(--font); background:var(--bg); color:var(--fg); }
 
     nav { width:260px; flex:0 0 260px; background:var(--panel); height:100vh; overflow-y:auto;
-          border-right:1px solid var(--line); padding:18px 0; }
+          border-right:1px solid var(--line); padding:18px 0; transition:width .18s ease, flex-basis .18s ease; }
     nav h1 { font-size:13px; font-weight:600; color:#fff; padding:0 18px 12px; letter-spacing:.04em; }
+
+    /* Collapse toggle — always visible so the sidebar can be reopened. */
+    #navToggle { position:fixed; top:12px; left:222px; z-index:10; width:26px; height:26px;
+                 display:flex; align-items:center; justify-content:center; cursor:pointer;
+                 background:#161a20; color:var(--muted); border:1px solid var(--line); border-radius:5px;
+                 font-family:var(--font); font-size:14px; line-height:1; user-select:none;
+                 transition:left .18s ease, color .12s ease; }
+    #navToggle:hover { color:#fff; border-color:#2e3a46; }
+
+    body.nav-collapsed nav { width:0; flex-basis:0; min-width:0; padding-top:18px; padding-bottom:18px;
+                             overflow:hidden; border-right:none; }
+    body.nav-collapsed #navToggle { left:12px; }
     nav a { display:block; padding:5px 18px; color:var(--muted); text-decoration:none; font-size:13px;
             font-weight:300; border-left:2px solid transparent; }
     nav a:hover { color:#fff; }
@@ -53,6 +65,7 @@
   </style>
 </head>
 <body>
+  <button id="navToggle" title="Toggle sidebar (\)" aria-label="Toggle sidebar">«</button>
   <nav id="nav"><h1>Session Viewer — Build Log</h1></nav>
   <main><article id="content"><p class="loading">Loading…</p></article></main>
   <script src="app.js"></script>

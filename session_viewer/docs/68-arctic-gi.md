@@ -40,12 +40,22 @@ free — says *which way* the opening faces. Weight the ambient hemisphere by ho
 the bent normal sees, and creases darken toward the ground while upward-facing surfaces stay bright —
 the directional cue that reads as real GI:
 
+67 stored the bent normal as `bent*0.5+0.5` in the AO target's `gba` channels (68's `RGBA16Float`: `r`=ao,
+`gba`=bent), so decoding is one line — add it beside `multi_bounce` at the top of `composite.wgsl`:
+
 ```wgsl
-    let bent = decode_bent(ao_tex_sample.gba);                 // 67's encoding
+// decode 67's bent normal (stored bent*0.5+0.5 in gba)
+fn decode_bent(v: vec3<f32>) -> vec3<f32> { return normalize(v * 2.0 - 1.0); }
+```
+
+Then, in the composite's fragment body where 67 did the flat `scene_rgb * ao`, replace that with:
+
+```wgsl
+    let bent = decode_bent(ao_tex_sample.gba);                 // ao_tex_sample = 67's upsampled texel (r=ao)
     let sky = clamp(dot(bent, vec3<f32>(0.0, 0.0, 1.0)) * 0.5 + 0.5, 0.0, 1.0);
     // arctic hemisphere floor 0.72 (archive value)
     let sky_vis = mix(0.72, 1.0, sky * ao);
-    var ambient = base_ambient * sky_vis;
+    var ambient = scene_rgb * sky_vis;                          // scene_rgb = 67's lit color; there is no separate ambient term
 ```
 
 ## Step 2 — multi-bounce: light doesn't die in one hit
@@ -72,10 +82,14 @@ with *color memory*.
 AO is ambient occlusion, but a pinch of it on the **key light** fakes the contact shadows a real sun
 would cast — the single cheapest "grounded" cue there is:
 
+67 outputs a single already-lit `scene_rgb` (the key is baked in at shade time in `triangle.wgsl`), so
+the composite has no isolated key term to dim — restate the micro-shadow as a grounding multiply on the
+lit color:
+
 ```wgsl
-    // lifted so only strong occlusion shadows the key
+    // lifted so only strong occlusion darkens the contact
     let micro = clamp(ao * 1.3 - 0.3, 0.0, 1.0);
-    let key = key_light_term * micro;
+    ambient *= micro;                                          // contact shadow on the lit scene (no G-buffer to split the key out)
 ```
 
 This applies in the **default** look too, not just arctic — the everyday view gets contact shadows

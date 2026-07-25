@@ -70,7 +70,7 @@ staring at a black canvas doesn't think to open. Two hooks route them into the v
 
 ```rust
     // once, in Gpu::new — the catch-all for anything not scoped below:
-    device.on_uncaptured_error(Box::new(|e| {
+    device.on_uncaptured_error(std::sync::Arc::new(|e| {
         // route into a static queue that State drains into the CLI log each frame
         crate::engine::gpu::push_gpu_error(format!("wgpu: {e}"));
     }));

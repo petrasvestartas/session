@@ -100,7 +100,7 @@ fn world_obb(geom: &Geometry) -> OBB {
         Geometry::BRep(b) => {
             let bm = b.mesh();
             let mut o = OBB::from_aabb(AABB::from_mesh(&bm, PAD));
-            o.xform = bm.xform.duplicate();
+            o.xform = b.xform.duplicate();
             o.transformed()
         }
         Geometry::Line(l) => OBB::from_line(l, PAD),
@@ -189,12 +189,23 @@ this at the bottom of `scene.rs`; it needs no GPU, so `cargo test -p session_vie
 #[cfg(test)]
 mod tests {
     use super::*;
+    use session_rust::Line;   // Point comes in via `use super::*` (35's imports)
+
+    /// A tiny Session at known, separated positions. `add_line`/`add_mesh` return a tree node we
+    /// ignore; `None` = no parent. Add a mesh the same way if you want a non-degenerate world box.
+    fn demo_session() -> Session {
+        let mut s = Session::new("bvh_test");
+        s.add_line(Line::from_points(&Point::new(0.0, 0.0, 0.0), &Point::new(100.0, 0.0, 0.0)), None);
+        s.add_line(Line::from_points(&Point::new(300.0, 300.0, 0.0), &Point::new(400.0, 300.0, 0.0)), None);
+        s.add_line(Line::from_points(&Point::new(9000.0, 9000.0, 0.0), &Point::new(9100.0, 9000.0, 0.0)), None);
+        s
+    }
 
     #[test]
     fn bvh_matches_brute_force() {
-        // A few objects at known, separated positions — build with whatever Session test helper
-        // your kernel bindings expose (insert a couple of Lines + a Mesh at distinct places).
         let scene = Scene::new(demo_session());
+        // AABB::new is CENTER + HALF-EXTENTS (not min/max): this box spans -500..500 on each axis,
+        // so it catches the two near-origin lines and excludes the one out at 9000.
         let query = OBB::from_aabb(AABB::new(0.0, 0.0, 0.0, 500.0, 500.0, 500.0));
 
         let mut got: Vec<&str> = scene.objects_in(&query);

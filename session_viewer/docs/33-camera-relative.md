@@ -103,19 +103,24 @@ once, in `new()`, and never touches it again. Camera-relative rendering needs th
 transform to survive (the camera's `origin` moves every time you pan), so it can be re-rebased and
 re-cast every frame.
 
-**2a. Add `Point` to the kernel import** at the top of the file:
+**2a. Add `Point` to the kernel import** at the top of the file — only `Point` is new here
+(`rebuild_instances` takes an `&Point`); the rest of the line is untouched:
 
 ```rust
-use session_rust::{Color, Mesh, BRep, Xform, RenderVertex, Point};
+use session_rust::{Mesh, BRep, Xform, RenderVertex, Point};
 ```
 
-**2b. Store the absolute transforms.** Find the `instances` field on `struct Gpu` and add one after
+**2b. Store the absolute transforms.** Find the `instances` field on `struct Gpu` and add two after
 it:
 
 ```rust
     instances: Vec<Instance>,
     // ← ADD — TRUE world model+color; instances[] is rebased FROM this
     objects_base: Vec<(Xform, [f32; 4])>,
+    // ← ADD — new() builds this storage buffer as a LOCAL and drops it (only the bind
+    //         group survives); rebuild_instances() reuploads into it every frame, so the
+    //         buffer handle itself must live on Gpu, not vanish at the end of new()
+    instance_buffer: wgpu::Buffer,
 ```
 
 **2c. Keep a copy while building the arena.** Find the loop in `Gpu::new`
@@ -135,12 +140,14 @@ transform needs to live on past its original owner.) At startup `Camera::new()`'
 `[0,0,0]`, so `origin` is zero and this first, absolute upload is already correct for frame 0 —
 `clear()` (Step 3) takes over from frame 1.
 
-**2d. Store the field.** Find the `Ok(Self { … })` initializer at the end of `new` and add
-`objects_base,` beside `instances,`:
+**2d. Store the fields.** Find the `Ok(Self { … })` initializer at the end of `new` and add both
+new fields beside `instances,`:
 
 ```rust
             instances,
-            objects_base,   // ← ADD
+            objects_base,    // ← ADD
+            instance_buffer, // ← ADD — was a dropped local in new(); now moved onto Gpu so
+                             //         rebuild_instances() can write into it every frame
 ```
 
 **2e. Add the rebase.** Right after `new` (before `pub fn resize`), add:
@@ -195,6 +202,34 @@ and change them to:
 otherwise `world = mvp · model · vertex` recombines two different rebasings and the scene tears
 apart instead of jittering. Step 4 is what guarantees the same call supplies both.
 
+<svg viewBox="0 0 560 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="the clip-space transform chain: view and model each subtract the same origin, so a vertex's clip position is built entirely from small numbers" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="10" y="20" fill="#888">clip = projection · view · model · vertex — the two −origin subtractions must agree</text>
+  <text x="10" y="63" fill="#d7dae0">clip =</text>
+
+  <rect x="60" y="44" width="92" height="30" fill="none" stroke="#3a3a3a"/>
+  <text x="106" y="63" fill="#d7dae0" text-anchor="middle">projection</text>
+  <text x="158" y="63" fill="#666" text-anchor="middle">·</text>
+
+  <rect x="170" y="44" width="118" height="30" fill="none" stroke="#6fb3ff"/>
+  <text x="229" y="63" fill="#6fb3ff" text-anchor="middle">view(−origin)</text>
+  <text x="294" y="63" fill="#666" text-anchor="middle">·</text>
+
+  <rect x="306" y="44" width="122" height="30" fill="none" stroke="#6fb3ff"/>
+  <text x="367" y="63" fill="#6fb3ff" text-anchor="middle">model(−origin)</text>
+  <text x="434" y="63" fill="#666" text-anchor="middle">·</text>
+
+  <rect x="446" y="44" width="80" height="30" fill="none" stroke="#5bbf87"/>
+  <text x="486" y="63" fill="#5bbf87" text-anchor="middle">vertex</text>
+
+  <line x1="170" y1="88" x2="428" y2="88" stroke="#6fb3ff"/>
+  <line x1="170" y1="88" x2="170" y2="82" stroke="#6fb3ff"/>
+  <line x1="428" y1="88" x2="428" y2="82" stroke="#6fb3ff"/>
+  <text x="299" y="104" fill="#6fb3ff" text-anchor="middle">both rebased by the SAME origin() (Step 4)</text>
+  <text x="486" y="90" fill="#5bbf87" text-anchor="middle">already local</text>
+
+  <text x="10" y="138" fill="#888">mismatched origins → the chain recombines two rebasings → scene tears, not jitters</text>
+</svg>
+
 > **Later:** orbiting and zooming never touch `target`, so most frames' `origin` is identical to the
 > last one and this rewrite is wasted work — cache the last `origin`, skip `rebuild_instances` (and
 > its `write_buffer`) when it hasn't moved. Free at 5 objects; worth doing once 34+ loads a real
@@ -213,15 +248,16 @@ Find `render`:
     }
 ```
 
-and add the origin call:
+and make **two** changes: a new `origin` line, **and** pass it as `clear`'s new third argument. Miss the
+second and `clear` still gets 2 args → *"this method takes 3 arguments but 2 were supplied"*:
 
 ```rust
     pub fn render(&mut self) -> anyhow::Result<()> {
         self.window.request_redraw();
         let aspect = self.gpu.config.width as f64 / self.gpu.config.height as f64;
         let view_proj = self.camera.view_proj(aspect);
-        let origin = self.camera.origin();
-        self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj, &origin)
+        let origin = self.camera.origin();                                                    // ← ADD (1/2)
+        self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj, &origin)    // ← ADD &origin (2/2)
     }
 ```
 
@@ -236,8 +272,9 @@ let w0 = (model * vec4<f32>(seg.p0, 1.0)).xyz;
 ```
 
 Once that `model` row is origin-relative (Step 2e), `w0`/`w1` — and 32's `GlyphPoint` centres — land
-near zero automatically. Zero shader changes in `cylinder.wgsl` or `sphere.wgsl`; the fix lives
-entirely in the one place both pipelines already share.
+near zero automatically. Zero shader changes in `cylinder.wgsl`, `sphere.wgsl`, or 32b's
+`point.wgsl` (its billboard clouds read the same `instances[p.instance_id].model`); the fix lives
+entirely in the one place all three pipelines already share.
 
 ## Step 5 — verify
 

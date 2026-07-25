@@ -7,7 +7,7 @@
 
 42 answers *which mesh*. Editing needs *which part*: drag a **vertex**, bevel an **edge**, extrude a
 **face**. From the same click, this lesson resolves the hit down to one sub-object and returns a
-`SubHit { guid, kind, key }` the gumball and edit tools act on.
+`SubHit { guid, kind }` the gumball and edit tools act on (the sub-object key rides *inside* `kind`).
 
 The resolution is **screen-space, with a priority order**. A vertex is a point and an edge is a line —
 in 3D a ray almost never hits either exactly, so "did I click the vertex?" is really "is the vertex
@@ -87,7 +87,7 @@ impl Scene {
     pub fn resolve_subobject(&self, hit: &PickHit, cursor: (f64, f64), view_proj: &Xform,
                              origin: &Point, viewport: (f64, f64, f64, f64)) -> Option<SubHit> {
         let m = match self.session.lookup.get(&hit.guid) {
-            Some(Geometry::Mesh(m)) => m,
+            Some(session_rust::Geometry::Mesh(m)) => m,   // same qualified lookup as 42's pick_ray
             _ => return None,   // BRep sub-objects (trims/edges) are their own lesson
         };
         let world = |vk: usize| -> Option<Point> {
@@ -145,10 +145,38 @@ fn seg_dist2(p: (f64, f64), a: (f64, f64), b: (f64, f64)) -> f64 {
 
 `face_containing(m, local_point)` is a small helper: for each `m.faces()`, fan-triangulate its
 `face_vertices` (via `m.vertex_point`) and test the point against each triangle in the face's plane —
-the first face that contains it wins. (The kernel already triangulates faces for rendering; if you expose
-that cache, reuse it instead of re-fanning.) It's the one piece 42's ray-cast couldn't hand us — the
-kernel's `triangle_bvh_ray_cast` returns the hit *point*, not the hit *face* — so we recover the face
-from the point here.
+the first face that contains it wins. It's the one piece 42's ray-cast couldn't hand us — the kernel's
+`triangle_bvh_ray_cast` returns the hit *point*, not the hit *face* — so we recover the face here:
+
+```rust
+/// The mesh face whose polygon contains `p` (mesh-LOCAL). Fan-triangulates each face and does a
+/// same-side point-in-triangle test in 3D — `p` came from the ray hit, so it lies on the face plane.
+/// (The kernel already triangulates faces for rendering; expose that cache and reuse it to skip the fan.)
+fn face_containing(m: &Mesh, p: &Point) -> Option<usize> {
+    for fk in m.faces() {
+        let vs = match m.face_vertices(fk) { Some(v) if v.len() >= 3 => v, _ => continue };
+        let pts: Vec<Point> = vs.iter().filter_map(|&vk| m.vertex_point(vk)).collect();
+        if pts.len() < 3 { continue; }
+        for i in 1..pts.len() - 1 {                       // fan: (pts[0], pts[i], pts[i+1])
+            if point_in_tri(p, &pts[0], &pts[i], &pts[i + 1]) { return Some(fk); }
+        }
+    }
+    None
+}
+
+/// p inside triangle abc if it's on the inner side of all three edges, measured against the triangle's
+/// OWN normal — so a small off-plane error from the ray hit is ignored (only the in-plane sign matters).
+fn point_in_tri(p: &Point, a: &Point, b: &Point, c: &Point) -> bool {
+    let sub = |u: &Point, v: &Point| [u[0]-v[0], u[1]-v[1], u[2]-v[2]];
+    let cross = |u: [f64;3], v: [f64;3]| [u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]];
+    let dot = |u: [f64;3], v: [f64;3]| u[0]*v[0] + u[1]*v[1] + u[2]*v[2];
+    let n = cross(sub(b, a), sub(c, a));                  // triangle normal
+    let e0 = dot(n, cross(sub(b, a), sub(p, a)));
+    let e1 = dot(n, cross(sub(c, b), sub(p, b)));
+    let e2 = dot(n, cross(sub(a, c), sub(p, c)));
+    (e0 >= 0.0 && e1 >= 0.0 && e2 >= 0.0) || (e0 <= 0.0 && e1 <= 0.0 && e2 <= 0.0)
+}
+```
 
 > **Why screen space, not world.** In world units, "within 8 px" would be a distance that shrinks as you
 > zoom in and balloons as you zoom out — a vertex you can't hit up close and a whole face you snap to from
@@ -189,7 +217,7 @@ Ch 43: SUB-OBJECT. Resolve the hit to vertex / edge / face, SCREEN-SPACE, most-s
        nearest projected EDGE by screen point-to-segment → Edge(a,b); (3) else the FACE the ray
        hit, recovered by transforming the world hit to local and point-in-polygon over
        m.faces() — because the kernel ray-cast returns the point, not the face. Returns
-       SubHit{guid, kind, key}. Pixel radius (not world) so the test is zoom-independent — the
+       SubHit{guid, kind} (the key lives inside kind). Pixel radius (not world) so the test is zoom-independent — the
        unit the user aims in. Vertex/edge screen-proximity is the same trick 44 uses to pick
        1D/0D geometry that a ray can't hit exactly.
 ```

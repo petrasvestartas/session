@@ -30,8 +30,8 @@
 
 ```
 src/engine/gpu/mod.rs   # FLAG_SELECTED; set_selected_rows (flip-tracking like 37's cull)
-src/shaders/*.wgsl      # every instance-reading vs tints selected rows
-src/camera.rs           # Frustum::cropped(view_proj, rect_ndc) — the marquee sub-frustum
+src/shaders/*.wgsl      # every instance-reading vs tints selected rows (triangle/cylinder/sphere)
+src/camera.rs           # Camera::marquee_frustum(view_proj, rect_ndc) — the marquee sub-frustum
 src/app/scene.rs        # selected: HashSet<guid>; click/shift-click/marquee mutate it
 src/state.rs            # mouse: click = replace, Shift+click = toggle, drag = marquee
 ```
@@ -64,20 +64,45 @@ Selection changes a few rows out of 42k, so upload like 37's cull did — only r
 ## Step 2 — the tint: every instance-reading shader
 
 Selected objects tint toward highlight-yellow in **every** pipeline the object owns — faces, edge
-tubes, sphere glyphs, billboards — because they all read the same `instances[]` row. In each vs
-(`mesh.wgsl`, `cylinder.wgsl`, `sphere.wgsl`, `point.wgsl`), right after the flags/hidden check from
-37 Step 3:
+tubes, sphere glyphs — because they all read the same `instances[]` row. The three instance-reading
+shaders are `triangle.wgsl`, `cylinder.wgsl`, `sphere.wgsl` (there is no `mesh.wgsl`/`point.wgsl`),
+and they differ in two ways that matter here: `triangle.wgsl` already has an `inst` local and its
+`VsOut.color` is a **`vec3`**; `cylinder.wgsl`/`sphere.wgsl` only pull `.model` out of `instances[…]`
+and their `VsOut.color` is a **`vec4`**. So the tint takes two forms.
+
+In **`triangle.wgsl`**, find `o.color = inst.color.rgb;` and add right after it (vec3, no alpha —
+`inst` is already in scope):
 
 ```wgsl
 const FLAG_SELECTED: u32 = 1u;
+if ((inst.flags & FLAG_SELECTED) != 0u) {
+    o.color = mix(o.color, vec3<f32>(1.0, 0.85, 0.2), 0.6);
+}
+```
 
-// after computing the output color:
+In **`cylinder.wgsl`**, find `o.color = seg.color;` — there is no `inst` local, so bind one first
+(the row is `seg.instance_id`); `o.color` is a `vec4`, so the mix keeps the alpha:
+
+```wgsl
+const FLAG_SELECTED: u32 = 1u;
+let inst = instances[seg.instance_id];
 if ((inst.flags & FLAG_SELECTED) != 0u) {
     o.color = mix(o.color, vec4<f32>(1.0, 0.85, 0.2, o.color.a), 0.6);
 }
 ```
 
-One bit, four pipelines, and the whole object lights up as a unit — the payoff of routing everything
+In **`sphere.wgsl`**, the same, but the glyph row is `g.instance_id`. Find `o.color = g.color;` and
+add after it:
+
+```wgsl
+const FLAG_SELECTED: u32 = 1u;
+let inst = instances[g.instance_id];
+if ((inst.flags & FLAG_SELECTED) != 0u) {
+    o.color = mix(o.color, vec4<f32>(1.0, 0.85, 0.2, o.color.a), 0.6);
+}
+```
+
+One bit, three pipelines, and the whole object lights up as a unit — the payoff of routing everything
 through the instance table since 29.
 
 ## Step 3 — the marquee frustum: `src/camera.rs`
@@ -129,28 +154,76 @@ drag endpoints, and ignore drags under ~3 px — those are clicks.)
 (`world_aabb` is 37's helper; the scan is linear like 37's cull — per *release*, not per frame, so
 even cheaper. The BVH broad-phase (36) is the at-scale upgrade if release-lag ever shows.)
 
-In `state.rs`, the mouse gestures — press remembers the spot; release decides click vs drag:
+In `state.rs`, the mouse gestures — press remembers the spot; release decides click vs drag. The
+two are **mutually exclusive**: a plain click is a zero-area rectangle, and `2.0 / (x1 - x0)` on a
+zero-width window is a NaN frustum — worse, running the marquee afterward would *clear* the selection
+the click just made. So the release branches on drag distance and runs exactly one of them:
+
+<svg viewBox="0 0 560 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="on mouse release, distance from the press point decides: under 3 px is a click (replace or toggle), 3 px or more is a marquee; the two branches are mutually exclusive" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="70" y="30" fill="#888" text-anchor="middle">press ●</text>
+  <circle cx="70" cy="50" r="4" fill="#6fb3ff"/>
+  <text x="70" y="90" fill="#d7dae0" text-anchor="middle">release ●</text>
+  <circle cx="70" cy="105" r="4" fill="#d7dae0"/>
+  <line x1="70" y1="50" x2="70" y2="105" stroke="#555" stroke-dasharray="3 3"/>
+  <text x="88" y="82" fill="#666">drag = |release − press|</text>
+  <text x="270" y="58" fill="#888">drag &lt; 3 px</text>
+  <line x1="150" y1="52" x2="255" y2="52" stroke="#6fb3ff"/>
+  <rect x="345" y="36" width="200" height="34" fill="none" stroke="#5bbf87"/>
+  <text x="445" y="52" fill="#5bbf87" text-anchor="middle">CLICK</text>
+  <text x="445" y="65" fill="#666" text-anchor="middle" font-size="10">pick_ray → replace / toggle</text>
+  <text x="265" y="128" fill="#888">drag ≥ 3 px</text>
+  <line x1="150" y1="122" x2="255" y2="122" stroke="#6fb3ff"/>
+  <rect x="345" y="106" width="200" height="34" fill="none" stroke="#5bbf87"/>
+  <text x="445" y="122" fill="#5bbf87" text-anchor="middle">MARQUEE</text>
+  <text x="445" y="135" fill="#666" text-anchor="middle" font-size="10">crop·view_proj → select_marquee</text>
+  <text x="280" y="168" fill="#e06c6c" text-anchor="middle">never both — a click has x0==x1 → 2/(x1−x0) = NaN</text>
+</svg>
+
+This needs **two new `State` fields** first (same pattern as `self.ctrl`, 39/40): add each to
+`struct State` **and** initialize it in `State::new`, or it won't compile —
+
+- `drag_start: (f64, f64)` — init `(0.0, 0.0)`; set in the **press** handler: `self.drag_start = (mx, my);`
+- `shift: bool` — init `false`; set in the **`ModifiersChanged`** handler beside `ctrl`:
+  `self.shift = mods.state().shift_key();`
+
+Then, in the release handler, replace the whole selection block with:
 
 ```rust
-        // release at ~press position → CLICK: replace (or Shift → toggle)
-        match self.scene.pick_ray(&ray, tol) {
-            Some(hit) if shift => {
-                if !self.scene.selected.remove(&hit.guid) {
+        // release: `self.cursor` is where we let go (41's px field); press stashed self.drag_start.
+        let (px, py) = self.drag_start;                 // mouse-down, px
+        let (mx, my) = self.cursor;                     // release, px
+        let shift = self.shift;                         // Shift held? (tracked in ModifiersChanged, like ctrl)
+        let drag = (mx - px).hypot(my - py);
+
+        if drag < 3.0 {
+            // CLICK: replace (or Shift → toggle). `ray`/`tol` as built at 42/44's pick site.
+            match self.scene.pick_ray(&ray, tol) {
+                Some(hit) if shift => {
+                    if !self.scene.selected.remove(&hit.guid) {
+                        self.scene.selected.insert(hit.guid);
+                    }
+                }
+                Some(hit)          => {
+                    self.scene.selected.clear();
                     self.scene.selected.insert(hit.guid);
                 }
+                None if !shift     => { self.scene.selected.clear(); }
+                None               => {}
             }
-            Some(hit)          => {
-                self.scene.selected.clear();
-                self.scene.selected.insert(hit.guid);
-            }
-            None if !shift     => { self.scene.selected.clear(); }
-            None               => {}
+        } else {
+            // MARQUEE (Shift → additive). px → NDC (41's two formulas), then sort so x0<x1, y0<y1.
+            let (w, h) = (self.gpu.config.width as f64, self.gpu.config.height as f64);
+            let ndc = |x: f64, y: f64| (2.0 * x / w - 1.0, 1.0 - 2.0 * y / h);
+            let (mut x0, mut y0) = ndc(px, py);
+            let (mut x1, mut y1) = ndc(mx, my);
+            if x0 > x1 { std::mem::swap(&mut x0, &mut x1); }
+            if y0 > y1 { std::mem::swap(&mut y0, &mut y1); }
+            let vp = self.camera.view_proj(w / h);
+            let origin = Point::new(self.camera.position[0], self.camera.position[1], self.camera.position[2]);
+            let f = Camera::marquee_frustum(&vp, &origin, x0, y0, x1, y1);
+            self.scene.select_marquee(&f, shift);
         }
-        // release far from press → MARQUEE (Shift → additive)
-        let f = Camera::marquee_frustum(&vp, &origin, x0, y0, x1, y1);
-        self.scene.select_marquee(&f, shift);
-        // either way:
-        self.scene.apply_selection(&mut self.gpu);
+        self.scene.apply_selection(&mut self.gpu);       // push either result to the GPU flags
 ```
 
 (Drawing the rubber-band rectangle itself is two triangles in an overlay pass — or simply defer the
@@ -176,9 +249,11 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ```
 Ch 44: thin picking — radius + mesh-wins-ties.
 Ch 45: SELECTION. State = Scene.selected: HashSet<guid> — the set every later tool acts on. Visible
-       via FLAG_SELECTED (bit 0, reserved since 35): one bit read by all four instance pipelines →
-       the whole object tints as a unit; set_selected_rows uploads only flipped rows (37's pattern).
-       Click = replace, Shift+click = toggle, empty click = clear. MARQUEE: the drag rect is
+       via FLAG_SELECTED (bit 0, reserved since 35): one bit read by all three instance pipelines
+       (triangle/cylinder/sphere) → the whole object tints as a unit; set_selected_rows uploads only
+       flipped rows (37's pattern). Release branches on drag distance: <3 px CLICK = replace,
+       Shift+click = toggle, empty click = clear; >=3 px MARQUEE (never both — a zero-area rect is a
+       NaN frustum). MARQUEE: the drag rect is
        remapped to the full clip cube by a crop matrix (translation · scale_xyz), so crop·view_proj
        fed to 37's Frustum::from_view_proj yields the sub-frustum's 6 world planes with zero new
        plane math; select_marquee = aabb_visible over world boxes (linear, per release), crossing

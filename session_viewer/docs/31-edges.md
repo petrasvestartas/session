@@ -585,6 +585,103 @@ segments:
             draws += 1;
 ```
 
+### The wiring — how `set_bind_group` reaches `@group` (the four groups, explained once)
+
+This is the first draw with **four** bind groups, and the same shape recurs in every later pipeline
+(spheres 32a, clouds 32b, gumball 52…). Learn it here and it never confuses you again.
+
+**The number is the only wire.** `set_bind_group(N, X)` says *"put bind group `X` into slot **N**."* The
+shader's `@group(N)` says *"read slot **N**."* Nothing else connects the Rust to the WGSL — not the
+names, not the order. Match the numbers and the shader sees your data; swap two and it silently reads the
+wrong buffer.
+
+| slot | Rust draw — `set_bind_group(N, …)` | shader — `@group(N) @binding(0)` | the data |
+|:--:|---|---|---|
+| **0** | `mvp_bind_group` | `var<uniform> mvp` | camera matrix |
+| **1** | `line_bind_group` | `var<uniform> line` | thickness + projection |
+| **2** | `instance_bind_group` | `var<storage> instances` | per-object model + color |
+| **3** | `segment_bind_group` | `var<storage> segments` | every edge in the scene |
+
+<svg viewBox="0 0 690 232" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="each set_bind_group(N) plugs a bind group into slot N and the shader reads it as @group(N); the number is the only connection" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="345" y="16" fill="#d7dae0" text-anchor="middle">set_bind_group(N, …)  ⟷  @group(N) — the NUMBER is the only wire</text>
+  <text x="130" y="38" fill="#888" text-anchor="middle">Rust — clear() draw</text>
+  <text x="430" y="38" fill="#888" text-anchor="middle">cylinder.wgsl — reads slot N</text>
+  <rect x="14" y="52" width="232" height="28" fill="none" stroke="#6fb3ff"/>
+  <text x="22" y="70" fill="#d7dae0" font-size="10">set_bind_group(0, mvp_bind_group)</text>
+  <line x1="246" y1="66" x2="259" y2="66" stroke="#6fb3ff"/>
+  <circle cx="271" cy="66" r="12" fill="#11161c" stroke="#6fb3ff"/><text x="271" y="70" fill="#6fb3ff" text-anchor="middle">0</text>
+  <line x1="283" y1="66" x2="296" y2="66" stroke="#6fb3ff"/>
+  <rect x="296" y="52" width="252" height="28" fill="none" stroke="#3a3a3a"/>
+  <text x="304" y="70" fill="#d7dae0" font-size="10">@group(0) @binding(0) mvp</text>
+  <text x="556" y="70" fill="#666" font-size="10">camera matrix</text>
+  <rect x="14" y="94" width="232" height="28" fill="none" stroke="#6fb3ff"/>
+  <text x="22" y="112" fill="#d7dae0" font-size="10">set_bind_group(1, line_bind_group)</text>
+  <line x1="246" y1="108" x2="259" y2="108" stroke="#6fb3ff"/>
+  <circle cx="271" cy="108" r="12" fill="#11161c" stroke="#6fb3ff"/><text x="271" y="112" fill="#6fb3ff" text-anchor="middle">1</text>
+  <line x1="283" y1="108" x2="296" y2="108" stroke="#6fb3ff"/>
+  <rect x="296" y="94" width="252" height="28" fill="none" stroke="#3a3a3a"/>
+  <text x="304" y="112" fill="#d7dae0" font-size="10">@group(1) @binding(0) line</text>
+  <text x="556" y="112" fill="#666" font-size="10">thickness</text>
+  <rect x="14" y="136" width="232" height="28" fill="none" stroke="#6fb3ff"/>
+  <text x="22" y="154" fill="#d7dae0" font-size="10">set_bind_group(2, instance_bind_group)</text>
+  <line x1="246" y1="150" x2="259" y2="150" stroke="#6fb3ff"/>
+  <circle cx="271" cy="150" r="12" fill="#11161c" stroke="#6fb3ff"/><text x="271" y="154" fill="#6fb3ff" text-anchor="middle">2</text>
+  <line x1="283" y1="150" x2="296" y2="150" stroke="#6fb3ff"/>
+  <rect x="296" y="136" width="252" height="28" fill="none" stroke="#3a3a3a"/>
+  <text x="304" y="154" fill="#d7dae0" font-size="10">@group(2) @binding(0) instances</text>
+  <text x="556" y="154" fill="#666" font-size="10">per-object model</text>
+  <rect x="14" y="178" width="232" height="28" fill="none" stroke="#5bbf87"/>
+  <text x="22" y="196" fill="#d7dae0" font-size="10">set_bind_group(3, segment_bind_group)</text>
+  <line x1="246" y1="192" x2="259" y2="192" stroke="#5bbf87"/>
+  <circle cx="271" cy="192" r="12" fill="#11161c" stroke="#5bbf87"/><text x="271" y="196" fill="#5bbf87" text-anchor="middle">3</text>
+  <line x1="283" y1="192" x2="296" y2="192" stroke="#5bbf87"/>
+  <rect x="296" y="178" width="252" height="28" fill="none" stroke="#5bbf87"/>
+  <text x="304" y="196" fill="#d7dae0" font-size="10">@group(3) @binding(0) segments</text>
+  <text x="556" y="196" fill="#666" font-size="10">every edge</text>
+  <text x="345" y="224" fill="#e06c6c" text-anchor="middle" font-size="10">swap any two numbers → the shader reads the wrong buffer. that's the entire contract.</text>
+</svg>
+
+`@binding(M)` is the *sub-slot inside* a group. Here every group holds one resource, so it's always
+`@binding(0)`, and the bind group's `entries: &[BindGroupEntry { binding: 0, … }]` matches it.
+
+**Why each resource is THREE objects** (the buffer + layout + bind-group boilerplate). Picture a **wall
+socket**: the **layout** is the socket's *shape* ("a storage buffer at binding 0, vertex-visible") —
+defines what fits, holds no data; the **buffer** is the *appliance* — the actual bytes
+(`segment_buffer`); the **bind group** wires that one buffer to a matching plug. Then
+`set_bind_group(3, &segment_bind_group)` plugs it into **outlet #3**, and `@group(3)` reads outlet #3.
+
+<svg viewBox="0 0 690 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a buffer holding the bytes and a layout describing the shape combine into a bind group, which set_bind_group plugs into the slot the shader reads" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <defs><marker id="a2b31" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6fb3ff"/></marker><marker id="a2g31" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#5bbf87"/></marker></defs>
+  <text x="345" y="16" fill="#d7dae0" text-anchor="middle">one resource = THREE gpu objects (the "segments" example)</text>
+  <rect x="12" y="40" width="150" height="40" fill="none" stroke="#3a3a3a"/>
+  <text x="87" y="58" fill="#d7dae0" text-anchor="middle" font-size="10">segments: Vec&lt;…&gt;</text>
+  <text x="87" y="72" fill="#666" text-anchor="middle" font-size="9">your data — CPU</text>
+  <text x="188" y="52" fill="#6fb3ff" text-anchor="middle" font-size="9">storage_buffer()</text>
+  <line x1="162" y1="60" x2="212" y2="60" stroke="#6fb3ff" marker-end="url(#a2b31)"/>
+  <rect x="214" y="40" width="150" height="40" fill="none" stroke="#6fb3ff"/>
+  <text x="289" y="58" fill="#d7dae0" text-anchor="middle" font-size="10">segment_buffer</text>
+  <text x="289" y="72" fill="#666" text-anchor="middle" font-size="9">the BYTES, on GPU</text>
+  <rect x="60" y="126" width="180" height="40" fill="none" stroke="#5bbf87"/>
+  <text x="150" y="144" fill="#d7dae0" text-anchor="middle" font-size="10">segment_layout</text>
+  <text x="150" y="158" fill="#666" text-anchor="middle" font-size="9">the SHAPE — storage@0, vertex</text>
+  <rect x="410" y="80" width="160" height="50" fill="none" stroke="#6fb3ff" stroke-width="1.3"/>
+  <text x="490" y="100" fill="#d7dae0" text-anchor="middle" font-size="10">segment_bind_group</text>
+  <text x="490" y="114" fill="#666" text-anchor="middle" font-size="9">the PLUG: this buffer,</text>
+  <text x="490" y="125" fill="#666" text-anchor="middle" font-size="9">in that shape</text>
+  <line x1="364" y1="66" x2="408" y2="92" stroke="#6fb3ff" marker-end="url(#a2b31)"/>
+  <line x1="240" y1="150" x2="408" y2="116" stroke="#5bbf87" marker-end="url(#a2g31)"/>
+  <text x="600" y="72" fill="#6fb3ff" text-anchor="middle" font-size="9">set_bind_group(3)</text>
+  <line x1="570" y1="105" x2="610" y2="105" stroke="#6fb3ff" marker-end="url(#a2b31)"/>
+  <rect x="612" y="86" width="72" height="40" fill="none" stroke="#5bbf87"/>
+  <text x="648" y="103" fill="#5bbf87" text-anchor="middle" font-size="10">slot 3</text>
+  <text x="648" y="117" fill="#666" text-anchor="middle" font-size="9">@group(3)</text>
+  <text x="345" y="196" fill="#888" text-anchor="middle" font-size="10">layout = socket shape · buffer = the appliance · bind group = appliance on a matching plug</text>
+</svg>
+
+Every later pipeline repeats this exact recipe — one buffer + one bind group per resource, plugged into
+the slot its `@group(N)` reads. The code *looks* repetitive because it **is** one recipe per resource;
+32b walks the same four slots for the point cloud.
+
 **6b. Refresh the screen-constant thickness.** The tube radius depends on the viewport height and the
 camera's projection, so rewrite the line uniform each frame. Find the two `write_buffer` calls at the
 top of `clear()` (the `time_buffer` and `mvp_buffer` writes) and add a third beside them:

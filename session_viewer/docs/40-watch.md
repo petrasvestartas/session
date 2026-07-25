@@ -108,7 +108,10 @@ compare. `last_file_hash` remembers what we last *saw*; `self_write_hash` rememb
 (set by 39's save). A change is real only if it differs from both.
 
 ```rust
-    // add to State: last_file_hash: u64, self_write_hash: Option<u64>, watch_url: String
+    // add to State: last_file_hash: u64, self_write_hash: Option<u64>, watch_url: String,
+    //               watch_inbox: Rc<RefCell<Option<(u64, Vec<u8>)>>>   (used by Step 4's queue)
+    // and at the top of state.rs: use std::rc::Rc; use std::cell::RefCell;
+    // initialize all four in State::new (watch_inbox: Rc::new(RefCell::new(None))).
     const WATCH_POLL_FRAMES: u64 = 60;   // ~1 s
 
     /// Called once per frame from render(). Cheap when nothing changed: one fetch + one hash.
@@ -151,20 +154,46 @@ next poll recognizes them as ours:
 
 ## Step 4 — drive the poll: `src/state.rs`
 
-`poll_watch` is `async` (it fetches). If your `render` isn't async, spawn it fire-and-forget with
-`wasm_bindgen_futures::spawn_local` so a slow fetch never blocks a frame:
+`poll_watch` above is the guard logic in one place, but it can't be called directly: its `.await`
+would hold `&mut self` across the fetch, and `render` is synchronous. Split it the way the note below
+describes — a tiny async task owns only the URL and drops `(hash, bytes)` into `watch_inbox`; the
+**synchronous** top of the next `render` drains the inbox and runs the same guard + `apply_session`.
+Both halves go inside `render()`:
 
 ```rust
-    // inside render(), once per frame — non-blocking:
+    // TOP of render(), synchronous — drain last frame's fetch, then guard + apply.
+    // take() empties the RefCell and drops the borrow on this line, so `self` is free below.
+    let inbox_msg = self.watch_inbox.borrow_mut().take();   // Option<(u64, Vec<u8>)>
+    if let Some((h, bytes)) = inbox_msg {
+        if h != self.last_file_hash {
+            self.last_file_hash = h;
+            if Some(h) == self.self_write_hash {
+                log::info!("watch: ignoring our own write");     // ← self-write guard
+            } else {
+                log::info!("watch: external change detected");
+                let new = crate::app::persistence::session_from_bytes(&self.watch_url, &bytes);
+                self.apply_session(new);                          // 38's incremental diff
+            }
+        }
+    }
+
+    // later in render(), once per WATCH_POLL_FRAMES — spawn the fetch; it never touches `self`:
     if self.frame % WATCH_POLL_FRAMES == 0 {
         let url = self.watch_url.clone();
-        // In practice route the fetched bytes back through a channel/queue the next frame
-        // drains, so the borrow of `self` stays on the main loop. Sketch: spawn the fetch,
-        // push (hash, bytes) to a Rc<RefCell<Option<..>>>, and let the next render() apply
-        // it via apply_session.
-        wasm_bindgen_futures::spawn_local(async move { /* fetch(url) → queue */ let _ = url; });
+        let inbox = self.watch_inbox.clone();                     // clone the Rc, not the data
+        wasm_bindgen_futures::spawn_local(async move {
+            if let Ok(b) = crate::app::persistence::fetch_bytes(&url).await {
+                if !b.is_empty() {
+                    let h = crate::app::persistence::file_hash(&b);
+                    *inbox.borrow_mut() = Some((h, b));
+                }
+            }
+        });
     }
 ```
+
+The drain repeats `poll_watch`'s guard because that logic now lives on the sync side; keep `poll_watch`
+as the readable one-place reference (the Recap points back to it) — it just isn't the thing wired to run.
 
 > **Borrow reality.** `apply_session` needs `&mut self`, but a spawned future can't hold that across an
 > `await`. The clean shape is the classic split: the async task only *fetches* (owns just the URL), drops

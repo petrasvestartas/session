@@ -53,8 +53,38 @@ pub struct Row {
 /// Walk session.tree depth-first, descending only into expanded branches. 42k objects with
 /// everything collapsed = a handful of rows; fully expanded = a big Vec, but show_rows still
 /// renders ~40 of them. Names: node name if set, else a short type tag + guid prefix.
-pub fn flatten(scene: &Scene,
-               expanded: &HashSet<String>) -> Vec<Row> { /* DFS over session.tree */ }
+pub fn flatten(scene: &Scene, expanded: &HashSet<String>) -> Vec<Row> {
+    fn walk(node: &Rc<RefCell<TreeNode>>, depth: usize, scene: &Scene,
+            expanded: &HashSet<String>, out: &mut Vec<Row>) {
+        let n = node.borrow();
+        let guid = n.guid().to_string();
+        let children = n.children();
+        let is_branch = !children.is_empty();
+        let is_expanded = expanded.contains(&guid);
+        out.push(Row { name: row_name(scene, &guid), depth, is_branch, expanded: is_expanded, guid });
+        if is_branch && is_expanded {
+            for c in &children { walk(c, depth + 1, scene, expanded, out); }
+        }
+    }
+    let mut rows = Vec::new();
+    // the kernel root is synthetic — start from its children
+    if let Some(root) = scene.session.tree.root() {
+        for c in &root.borrow().children() { walk(c, 0, scene, expanded, &mut rows); }
+    }
+    // objects the tree doesn't parent (64's nurbs collections) → top-level rows
+    for guid in scene.untreed_guids() {
+        rows.push(Row { name: row_name(scene, &guid), guid, depth: 0,
+                        is_branch: false, expanded: false });
+    }
+    rows
+}
+
+/// Display name: the object's own name if it set one, else a short guid. `object_name` /
+/// `untreed_guids` are two thin `Scene` adapters — the name source, and `all_objects()` minus what
+/// the tree already parents (the top-level append the prose above describes).
+fn row_name(scene: &Scene, guid: &str) -> String {
+    scene.object_name(guid).unwrap_or_else(|| format!("{}…", &guid[..guid.len().min(8)]))
+}
 ```
 
 (`session.tree` is the kernel's `Tree`/`TreeNode` (Rc<RefCell<…>>) — the same structure
@@ -63,6 +93,18 @@ doesn't parent — 64's nurbs collections — get appended as top-level rows fro
 every-map rule applies to UI too.)
 
 ## Step 2 — the rows, virtualized: `src/ui/tree.rs`
+
+`TreeIntent` is the collect-then-apply buffer (47's rule) the panel fills and `State` drains — add it
+to `src/ui/tree.rs` above `tree_panel`:
+
+```rust
+#[derive(Default)]
+pub struct TreeIntent {
+    pub toggled: Vec<String>,           // eye clicks → visibility
+    pub expand_toggled: Vec<String>,    // ▸/▾ clicks → expansion
+    pub clicked: Vec<(String, bool)>,   // name clicks → (guid, shift held)
+}
+```
 
 ```rust
 pub fn tree_panel(ui: &mut egui::Ui, rows: &[Row], scene_sel: &HashSet<String>,
@@ -101,14 +143,17 @@ archive shipped that once; selected rows became unreadable).
 ## Step 3 — intents apply after: `src/state.rs`
 
 `TreeIntent { toggled, expand_toggled, clicked }` collects inside the closure (47's rule); `State`
-drains it after, through the **existing** verbs — no second authority:
+drains it after, through the **existing** verbs — no second authority. Add this drain at the bottom
+of the per-frame UI method, right **after** the egui closure that ran `tree_panel` returns (the
+`intent` it filled is now owned here):
 
 ```rust
+        let any_toggle = !intent.toggled.is_empty();   // read BEFORE the loop moves the Vec
         for g in intent.toggled {
             if !self.scene.hidden.remove(&g) { self.scene.hidden.insert(g); }
         }
         // 46
-        if !intent.toggled_is_empty { self.scene.apply_visibility(&mut self.gpu); self.poke(); }
+        if any_toggle { self.scene.apply_visibility(&mut self.gpu); self.poke(); }
 
         for (g, shift) in intent.clicked {
             if shift { /* toggle in scene.selected */ }

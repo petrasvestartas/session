@@ -55,6 +55,10 @@ def list_sections():
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
+    # Drop idle sockets. Firefox opens speculative preconnect sockets that never send a
+    # request; without a timeout the handler blocks forever reading the request line.
+    timeout = 15
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
 
@@ -62,13 +66,18 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         ext = os.path.splitext(str(path))[1].lower()
         return EXT.get(ext, "application/octet-stream")
 
+    def end_headers(self):
+        # Dev server: never cache. Otherwise the browser heuristically reuses a stale
+        # app.js/index.html after an edit (e.g. the sidebar toggle stops working on refresh).
+        self.send_header("Cache-Control", "no-store")
+        super().end_headers()
+
     def do_GET(self):
         if self.path.split("?")[0] == "/sections.json":
             body = json.dumps(list_sections()).encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
-            self.send_header("Cache-Control", "no-store")
             self.end_headers()
             self.wfile.write(body)
             return
@@ -78,8 +87,15 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         pass  # quiet
 
 
+class Server(socketserver.ThreadingTCPServer):
+    # Threaded: each connection gets its own thread, so one stalled/idle socket
+    # (e.g. a browser preconnect) can't block the whole server. This is what makes
+    # the site load in Firefox as well as Chrome.
+    allow_reuse_address = True
+    daemon_threads = True
+
+
 if __name__ == "__main__":
-    socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+    with Server(("", PORT), Handler) as httpd:
         print(f"viewer docs -> http://localhost:{PORT}")
         httpd.serve_forever()

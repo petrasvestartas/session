@@ -79,6 +79,9 @@ picking needs curve-specific code:
 
     // (4) PICK — Session::ray_cast's curve arm is a deliberate no-op (exact ray↔NURBS is out of
     //     scope kernel-side), so pick_thin tests the CACHED samples with 44's screen-radius rule:
+    fn as_nurbscurve(g: &Geometry) -> Option<&NurbsCurve> {
+        if let Geometry::NurbsCurve(nc) = g { Some(nc) } else { None }
+    }
     for nc in self.session.lookup.values().filter_map(as_nurbscurve) {
         let pts = /* sample cache entry */;
         for w in pts.windows(2) { /* ray↔segment distance ≤ tol → candidate (44's formula) */ }
@@ -138,7 +141,7 @@ cd session_viewer && trunk serve   # http://localhost:8770
   interpolation — the ghost already showed exactly this while you clicked). Its control points wear
   32a spheres.
 - Zoom close → still smooth (the 16-per-span sampling holds up); a curve drawn from 5 points costs
-  ~64 segments, not 512 (adaptive).
+  ~32 segments, not 512 (adaptive — a 5-CV cubic has 2 spans, `(2*16).clamp(32,512)` = the 32 floor).
 - The **every-map audit** — do all four, deliberately: it *draws* (map 2), it *picks* with a click on
   the curve body (map 4), **F** includes it in the fit and marquee catches it (map 3), `hide` hides
   it (map 1's row + flags). Any one failing means an arm was skipped — the phase's core bug class,

@@ -12,12 +12,12 @@
     <path d="M 0,60 L 60,80 L 130,55 L 70,38 Z" fill="none" stroke="#6fb3ff" stroke-width="2"/>
     <path d="M 0,60 L 0,22 L 70,2 L 70,38" fill="none" stroke="#6fb3ff" stroke-width="2"/>
     <path d="M 70,2 L 138,18 L 130,55" fill="none" stroke="#6fb3ff" stroke-width="2"/>
-    <text x="70" y="105" fill="#888" text-anchor="middle">faces share EDGE CURVES</text>
+    <text x="70" y="100" fill="#888" text-anchor="middle">faces share EDGE CURVES</text>
   </g>
   <g transform="translate(300,20)">
     <text x="0" y="14" fill="#d7dae0">one guid · one row · one pick target</text>
     <text x="0" y="38" fill="#666" font-size="10">tess_cache[guid] — b.mesh() runs ONCE</text>
-    <text x="0" y="54" fill="#666" font-size="10">edges = m_curves sampled → 31 tubes (62's recipe)</text>
+    <text x="0" y="54" fill="#666" font-size="10">edges = m_curves_3d sampled → 31's tubes (62's recipe)</text>
     <text x="0" y="70" fill="#666" font-size="10">transform = compose b.xform, set_object_row (61's rule)</text>
     <text x="0" y="94" fill="#888" font-size="10">click any face → the whole solid selects (object-level, 42)</text>
   </g>
@@ -58,12 +58,14 @@ keyed by guid, filled on first touch:
 Now sweep the three call sites that still call `b.mesh()` directly and point them here: the build arm
 (35/38b's `apply_object`), the pick arm (42's `pick_mesh` — this one was re-tessellating **per
 click**), and 36's `world_obb` BRep arm. The pick fix alone is the difference between instant and
-sluggish clicks in a BRep-heavy file.
+sluggish clicks in a BRep-heavy file. Also **rename every earlier `surface_mesh` call** (61's priming
+pass, 62's build/warm sites) to `render_mesh` and **drop the now-internal `ri` argument**.
 
 ## Step 2 — real edges: `src/app/scene.rs`
 
-A BRep carries its actual edge curve network (`m_curves` — the trim/edge curves the kernel maintains
-for booleans and STEP). Sample them with 60's curve recipe instead of showing tessellation wireframe:
+A BRep carries its actual edge curve network (`m_curves_3d` — the 3-D edge curves the kernel maintains
+for booleans and STEP; `m_curves_2d` is the parametric trim pcurves, not what we draw). Sample them
+with 60's curve recipe instead of showing tessellation wireframe:
 
 ```rust
 /// The BRep's edge curves as tubes — its real topology, not its tessellation. LOCAL space (the
@@ -71,7 +73,7 @@ for booleans and STEP). Sample them with 60's curve recipe instead of showing te
 fn brep_linework(b: &BRep, ri: u32) -> Vec<CylinderSegment> {
     let mut segs = Vec::new();
     let edge = [0.10, 0.10, 0.10, 1.0];
-    for c in &b.m_curves {
+    for c in &b.m_curves_3d {
         let pts = sample_curve(c);                     // 60's adaptive sampler, reused as-is
         for w in pts.windows(2) {
             if w[0].distance(&w[1], None) > 1e-9 {     // zero-length filter — degenerate curve
@@ -84,7 +86,7 @@ fn brep_linework(b: &BRep, ri: u32) -> Vec<CylinderSegment> {
 }
 ```
 
-(Check the exact curves field against your kernel — `m_curves` holds the 3-D edge curves in the BRep
+(Check the exact curves field against your kernel — `m_curves_3d` holds the 3-D edge curves in the BRep
 struct; if a BRep in your data has empty curves, fall back to the mesh's `edges_with_colors` so
 nothing draws edgeless. The zero-length filter is a real archive fix: degenerate seam curves
 otherwise emit NaN-direction tubes that flicker.)
@@ -131,7 +133,7 @@ Ch 62: iso lines — surfaces read as surfaces.
 Ch 63: BREP, debts paid. (1) tess_cache absorbs BReps — render_mesh(guid) unifies the surface/BRep
        sources; the three direct b.mesh() sites (build, PICK-per-click, world box) now hit the
        cache.
-       (2) Real edges: m_curves sampled with 60's adaptive sampler → 31 tubes, zero-length filter
+       (2) Real edges: m_curves_3d sampled with 60's adaptive sampler → 31's tubes, zero-length filter
        (degenerate seams emit NaN tubes — archive fix), triangle-edge tubes suppressed; a cylinder
        shows rims + seam, not wireframe. (3) Matrix-only transforms confirmed (54/61's split);
        reconcile's changed bucket is the ONLY other cache invalidation. One guid, one row, one pick

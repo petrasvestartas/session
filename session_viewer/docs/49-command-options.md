@@ -69,13 +69,23 @@ pub trait ActiveCommand {
     fn feed_text(&mut self, state: &mut crate::state::State, s: &str) -> CmdStep;
     fn options(&mut self) -> &mut [CmdOption] { &mut [] }      // ← ADD
     fn back(&mut self) -> CmdStep;                             // ← ADD — one prompt backwards
+    fn prompt(&self) -> GetState;                             // ← ADD — the current prompt, so
+                                                              //   state.rs can re-render after an
+                                                              //   option flip without advancing
 }
 ```
 
 ## Step 2 — universal text handling: `src/state.rs`
 
 `name=value` and `back` are *grammar*, not per-command logic — intercept them in `run_command`
-before the text ever reaches the command:
+before the text ever reaches the command. First widen 48's `use` line so `CmdOption` is in scope:
+
+```rust
+        use crate::app::{commands::Dispatch, getloop::{GetState, CmdOption}};   // ← add CmdOption
+```
+
+Then **find the `if let Some(mut cmd) = self.active.take()` block you wrote in 48** (the two-line
+`feed_text` + `step` version) and replace its body with the grammar-aware one:
 
 ```rust
         if let Some(mut cmd) = self.active.take() {
@@ -111,8 +121,21 @@ before the text ever reaches the command:
         }
 ```
 
-(`refresh_prompt` re-renders `prompt_line` from the command's current options — the prompt is always
-a pure function of the command's state.)
+`refresh_prompt` re-renders `prompt_line` from the command's current options — the prompt is always
+a pure function of the command's state. It can't build the prompt itself (the verb and the "which
+point" text live in `ProbeCmd`'s private `ask()`), so it asks the command via the new `prompt()`
+trait method. Add it to `impl State` next to `set_prompt`:
+
+```rust
+    fn refresh_prompt(&mut self) {
+        // borrow ends after prompt(); then set_prompt takes &mut self freely
+        let get = match &self.active {
+            Some(cmd) => cmd.prompt(),
+            None => return,
+        };
+        self.set_prompt(get);
+    }
+```
 
 ## Step 3 — the dummy command: `src/app/commands.rs`
 
@@ -135,12 +158,7 @@ impl ProbeCmd {
         (Box::new(cmd), GetState::WaitingPoint {
             prompt: "probe (Rounded=On): pick first point".into() })
     }
-    fn ask(&self) -> CmdStep {
-        let what = if self.a.is_none() { "pick first point" } else { "pick second point" };
-        CmdStep::Prompt(GetState::WaitingPoint {
-            prompt: CmdOption::prompt_line("probe", &self.opts, what),
-        })
-    }
+    fn ask(&self) -> CmdStep { CmdStep::Prompt(self.prompt()) }
 }
 
 impl ActiveCommand for ProbeCmd {
@@ -168,6 +186,10 @@ impl ActiveCommand for ProbeCmd {
         self.ask()
     }
     fn options(&mut self) -> &mut [CmdOption] { &mut self.opts }
+    fn prompt(&self) -> GetState {
+        let what = if self.a.is_none() { "pick first point" } else { "pick second point" };
+        GetState::WaitingPoint { prompt: CmdOption::prompt_line("probe", &self.opts, what) }
+    }
     fn back(&mut self) -> CmdStep {
         // forget A → back to prompt 1
         self.a = None;
@@ -182,7 +204,8 @@ Register it — one new arm in `dispatch`:
         "probe" => { let (cmd, get) = ProbeCmd::start(); Dispatch::Start(cmd, get) }
 ```
 
-(`Point::distance(&other)` is a kernel method; typed `x,y,z` points and clicked points converge on the
+(`Point::distance(&other, None)` is a kernel method — the second arg is an optional min-clamp, same as
+Step 3's call; typed `x,y,z` points and clicked points converge on the
 same `feed_point` — that equivalence *is* the Get-loop's promise.)
 
 ## Step 4 — verify
@@ -214,7 +237,7 @@ Ch 49: THE CONVERSATION. CmdOption { Toggle / Number / List } renders into the R
        purpose — 57's real tools copy the shape and only swap what Done does.
 ```
 
-Edited: `app/getloop.rs` (`CmdOption`, `prompt_line`, trait gains `options()`/`back()`),
+Edited: `app/getloop.rs` (`CmdOption`, `prompt_line`, trait gains `options()`/`back()`/`prompt()`),
 `app/commands.rs` (`ProbeCmd` + registry arm), `state.rs` (grammar layer: `back`, `name=value`,
 `refresh_prompt`).
 

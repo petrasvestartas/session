@@ -43,6 +43,13 @@ The kernel's `Plane` (origin + x/y/z axes) is exactly a CPlane. Store one; defau
     pub work_plane: Plane,     // ← ADD; Plane::default() is world XY at the origin
 ```
 
+A new field means a new initializer — add it to `State::new`'s struct literal (else the build
+fails with "missing field `work_plane`"):
+
+```rust
+    work_plane: Plane::default(),   // ← ADD in State::new — world XY at the origin
+```
+
 `cursor_world_point` (48/59) swaps its hardcoded `z = 0` intersection for the plane:
 
 ```rust
@@ -75,6 +82,10 @@ A three-way verb, all Get-loop (49's grammar):
     }
 ```
 
+(`on_cplane_changed()` is **defined in Step 3** — it rebuilds the grid uniform and calls `poke()`.
+It's called here before you write it; add the verb now, add the method in Step 3, and the build is
+green only once both exist.)
+
 (`rect`/`box` (58) build their geometry in plane **uv**: corner clicks convert to plane coordinates
 (`plane.x_axis()`/`y_axis()` dot products), the rectangle spans u/v, and the result transforms back —
 a `to_plane`/`from_plane` helper pair on `State`. `box` extrudes along `z_axis()`.)
@@ -102,7 +113,10 @@ cd session_viewer && trunk serve   # http://localhost:8770
   grid's crossings.
 - `cplane world` → everything back to the floor; the scene renders exactly as before the lesson
   (default-plane regression check).
-- The audit that matters: no tool file changed. `grep -l "work_plane" src/app/tools/` → empty.
+- The audit that matters: the empty-click tools (`line`/`polyline`/`point`) didn't change — they
+  inherit the plane through `cursor_world_point`. `rect`/`box` read the plane only via `State`'s
+  `to_plane`/`from_plane` helpers, never the field directly, so `grep -l "work_plane" src/app/tools/`
+  → still empty.
 
 ## Recap
 

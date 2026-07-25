@@ -28,6 +28,7 @@
 # NEW — SnapKind + snap(scene, raw_point, cursor, view…) → (Point, Option<SnapKind>)
 src/app/snap.rs
 src/state.rs       # cursor_world_point() consults snap; marker glyph; `snap` CLI toggle
+src/app/commands.rs # `snap` on|off verb registration (Step 2)
 ```
 
 ## Step 1 — kinds and candidates: `src/app/snap.rs` (NEW)
@@ -37,7 +38,8 @@ inside the radius, the endpoint must win even if the grid point is a pixel close
 distance second:
 
 ```rust
-use session_rust::{Geometry, Point};
+use session_rust::{Geometry, Point, Xform};
+use crate::app::scene::Scene;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum SnapKind { Endpoint, Vertex, Grid }
@@ -54,7 +56,7 @@ impl SnapKind {
 }
 
 const SNAP_PX: f64 = 10.0;
-const GRID_STEP: f64 = 100.0;   // must match the lesson-20 grid spacing
+const GRID_STEP: f64 = 1000.0;   // must match the lesson-20 grid spacing
 
 /// Snap `raw` (the pick-or-z=0 point under the cursor). Candidates are compared in SCREEN pixels —
 /// project each candidate (43's project_to_screen) and measure against the cursor. Returns the
@@ -123,12 +125,20 @@ lines, and every tool inherits snapping:
     fn cursor_world_point(&mut self) -> Option<Point> {
         let raw = /* pick_ray hit point, else ray ∩ z=0 — unchanged (48) */;
         if !self.snap_enabled { self.snap_marker = None; return Some(raw); }
+        let vp = self.camera.view_proj(self.aspect());              // same trio as 41/42
+        let origin = self.camera.origin();
+        let viewport = (0.0, 0.0, self.gpu.config.width as f64, self.gpu.config.height as f64);
         let (p, kind) = crate::app::snap::snap(&self.scene, &raw, self.cursor,
                                                &vp, &origin, viewport);
         self.snap_marker = kind.map(|k| (p.clone(), k));           // the live marker (Step 3)
         Some(p)
     }
 ```
+
+Both fields are new: add `snap_enabled: bool` and `snap_marker: Option<(Point, SnapKind)>` to
+`struct State`, and initialize them in `State::new` (`snap_enabled: true`, `snap_marker: None`) —
+otherwise the `self.snap_enabled` / `self.snap_marker` above don't exist. `state.rs` also needs
+`use crate::app::snap::SnapKind;` for the field's type.
 
 Plus a `snap` verb in the registry — `"snap"` toggles `snap_enabled` and logs the state (`VERBS` too).
 This is the CLI-option pattern from 48; a per-kind toggle UI can wait for the settings panel.

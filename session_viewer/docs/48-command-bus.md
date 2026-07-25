@@ -135,9 +135,37 @@ pub fn cli_panel(ctx: &egui::Context, input: &mut String, log: &str,
 }
 ```
 
-Call it inside 47's `build_ui` closure (add `input: String`, `log: String`, `prompt: String` to
-`UiState`, and a `pending_command: Option<String>` the panel fills); after the closure, `State`
-drains `pending_command` into `run_command`.
+Wire it in three mechanical edits:
+
+1. In `src/ui/mod.rs`, add `mod cli;` at the top and give `UiState` (47's struct) four new fields:
+
+```rust
+    // ← ADD to UiState — the CLI's own state (all init to defaults in State::new)
+    pub input: String,               // the text field's current contents
+    pub log: String,                 // last response line (written by run_command)
+    pub prompt: String,              // Get-loop prompt, "" = show '>' (written by set_prompt)
+    pub pending_command: Option<String>,   // a submitted line, drained by State after build_ui
+```
+
+2. Inside 47's `build_ui` closure — after the `settings` window — call the panel and stash its
+   return in `pending_command` (the panel only *collects*; the closure must not touch `State`):
+
+```rust
+        // ← ADD at the end of the `shell.ctx.run(...)` closure body in build_ui
+        if let Some(line) = crate::ui::cli::cli_panel(
+            ctx, &mut ui_state.input, &ui_state.log, &ui_state.prompt) {
+            ui_state.pending_command = Some(line);
+        }
+```
+
+3. After `build_ui` returns (in the caller, where `State` owns `self.ui`), drain it into the bus:
+
+```rust
+        // ← ADD right after the build_ui call, before submitting the frame
+        if let Some(line) = self.ui.pending_command.take() {
+            self.run_command(&line);
+        }
+```
 
 ## Step 4 — the bus + the feed rule: `src/state.rs`
 
@@ -173,6 +201,19 @@ drains `pending_command` into `run_command`.
                 self.ui.log = "cancelled".into(); self.set_prompt(GetState::Idle);
             }
         }
+    }
+
+    /// The ONE place that changes what the interface is waiting for: it writes both the
+    /// loop state (`self.get`, read by the click reroute) and the CLI prompt text
+    /// (`self.ui.prompt`, drawn by `cli_panel` in place of '>'). Idle clears the prompt.
+    fn set_prompt(&mut self, g: crate::app::getloop::GetState) {
+        use crate::app::getloop::GetState;
+        self.ui.prompt = match &g {
+            GetState::Idle => String::new(),
+            GetState::WaitingPoint { prompt } => prompt.clone(),
+            GetState::WaitingOption { prompt, .. } => prompt.clone(),
+        };
+        self.get = g;
     }
 ```
 

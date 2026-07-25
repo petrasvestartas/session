@@ -63,7 +63,7 @@
     "line": 10,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.406
+    "time_ms": 0.49
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 39,
     "passed": true,
     "test_name": "Setters",
-    "time_ms": 0.662
+    "time_ms": 0.572
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 55,
     "passed": true,
     "test_name": "Center Line",
-    "time_ms": 0.229
+    "time_ms": 0.135
   },
   {
     "checks": [
@@ -131,7 +131,7 @@
     "line": 67,
     "passed": true,
     "test_name": "Extend",
-    "time_ms": 0.302
+    "time_ms": 0.336
   },
   {
     "checks": [
@@ -157,7 +157,7 @@
     "line": 78,
     "passed": true,
     "test_name": "AABB",
-    "time_ms": 0.163
+    "time_ms": 0.195
   },
   {
     "checks": [
@@ -183,7 +183,7 @@
     "line": 91,
     "passed": true,
     "test_name": "Compute Point",
-    "time_ms": 0.205
+    "time_ms": 0.149
   },
   {
     "checks": [
@@ -204,7 +204,7 @@
     "line": 104,
     "passed": true,
     "test_name": "Session Geometry",
-    "time_ms": 0.261
+    "time_ms": 0.147
   },
   {
     "checks": [
@@ -235,7 +235,7 @@
     "line": 121,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 17.652
+    "time_ms": 15.287
   },
   {
     "checks": [
@@ -266,7 +266,7 @@
     "line": 140,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 18.513
+    "time_ms": 16.276
   },
   {
     "checks": [
@@ -312,7 +312,7 @@
     "line": 163,
     "passed": true,
     "test_name": "Polylines",
-    "time_ms": 0.214
+    "time_ms": 0.243
   },
   {
     "checks": [
@@ -338,7 +338,7 @@
     "line": 173,
     "passed": true,
     "test_name": "Planes",
-    "time_ms": 0.167
+    "time_ms": 0.162
   },
   {
     "checks": [
@@ -354,7 +354,7 @@
     "line": 184,
     "passed": true,
     "test_name": "Edge Vectors",
-    "time_ms": 0.133
+    "time_ms": 0.135
   },
   {
     "checks": [
@@ -375,6 +375,6 @@
     "line": 193,
     "passed": true,
     "test_name": "Axis",
-    "time_ms": 0.138
+    "time_ms": 0.168
   }
 ]

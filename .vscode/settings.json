@@ -16,6 +16,7 @@
     "session_viewer_archive/Cargo.toml",
     "session_server/Cargo.toml"
   ],
+  "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
   "editor.hover.enabled": "on",
   "VsCodeTaskButtons.showCounter": false,
   "VsCodeTaskButtons.tasks": [

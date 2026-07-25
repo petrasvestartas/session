@@ -72,6 +72,7 @@ then transform the hit back to world. The kernel's transform idiom: give a `Poin
 
 ```rust
 use session_rust::{Line, Mesh};
+use crate::engine::pick::Ray;   // 41's Ray { origin: Point, dir: Vector }
 
 const PICK_EPS: f64 = 1e-9;
 
@@ -81,7 +82,8 @@ const PICK_EPS: f64 = 1e-9;
 fn raycast_mesh(m: &mut Mesh, ray: &Ray, eps: f64) -> Option<(Point, f64)> {
     // world → local; None if degenerate
     let inv = m.xform.inverse()?;
-    let world_far = ray.origin + ray.dir * 1.0e7;                  // a point far down the world ray
+    let world_far = &ray.origin + &ray.dir * 1.0e7;                // a point far down the world ray
+                                                                   // (borrow: Point/Vector aren't Copy)
     let local_ray = Line::from_points(&inv.transform_point(&ray.origin),
                                       &inv.transform_point(&world_far));
 
@@ -159,7 +161,11 @@ pub struct PickHit {
 ## Step 4 — wire the click + a headless test: `src/state.rs`
 
 ```rust
-    // on left-button press (extends 41's ray build):
+    // on left-button press — REPLACE 41's z=0 ground-plane block inside this `if let`
+    // with the pick_ray call below. The vp/origin/viewport locals are 41's (Step 3), unchanged:
+    let vp = self.camera.view_proj(self.aspect());
+    let origin = self.camera.origin();
+    let viewport = (0.0, 0.0, self.gpu.config.width as f64, self.gpu.config.height as f64);
     if let Some(ray) = engine::pick::screen_to_world_ray(&vp, &origin, self.cursor, viewport) {
         match self.scene.pick_ray(&ray) {
             Some(hit) => log::info!("picked {} at ({:.1},{:.1},{:.1}), t={:.1}",

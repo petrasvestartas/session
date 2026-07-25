@@ -1,5 +1,6 @@
 use session_rust::{Point, Quaternion, Vector, Xform};
 
+/// World unit the scene coordinates are expressed in.
 #[derive(Clone, Copy, PartialEq)]
 pub enum Unit {
     Millimeters,
@@ -7,6 +8,7 @@ pub enum Unit {
 }
 
 impl Unit {
+    /// Scale factor from this unit to meters (mm → 0.001, m → 1.0).
     pub fn to_meters(self) -> f64 {
         match self {
             Unit::Millimeters => 0.001,
@@ -15,6 +17,7 @@ impl Unit {
     }
 }
 
+/// A named standard view direction (the six orthographic faces plus isometric).
 #[derive(Clone, Copy)]
 pub enum View {
     Front,
@@ -26,6 +29,8 @@ pub enum View {
     Iso,
 }
 
+/// Orbit camera: a quaternion orientation plus a target/distance, from which the
+/// eye position and up vector are derived every time anything changes.
 pub struct Camera {
     pub target: [f64; 3],
     pub distance: f64,
@@ -38,6 +43,7 @@ pub struct Camera {
 }
 
 impl Camera {
+    /// A camera at the isometric view (45° yaw, −30° pitch), distance 3, perspective, millimeters.
     pub fn new() -> Self {
         use std::f64::consts::{FRAC_PI_6};
 
@@ -63,6 +69,7 @@ impl Camera {
         cam
     }
 
+    /// Orbit by mouse deltas: yaw about `world_up`, pitch about the current right axis.
     pub fn orbit(&mut self, dx: f32, dy: f32) {
         let wu = Vector::new(self.world_up[0], self.world_up[1], self.world_up[2]);
         let right = self.orientation.rotate_vector(Vector::x_axis());
@@ -73,6 +80,7 @@ impl Camera {
         self.update_position();
     }
 
+    /// Slide the target (and eye) across the view plane by mouse deltas, scaled by distance.
     pub fn pan(&mut self, dx: f32, dy: f32) {
         let right = self.orientation.rotate_vector(Vector::x_axis());
         let k = self.distance * 0.0015;
@@ -82,16 +90,52 @@ impl Camera {
         self.update_position();
     }
 
+    /// Dolly in/out by scaling `distance`. NO range clamp — zoom is multiplicative (×0.9 per
+    /// detent) so it approaches but never reaches zero, and near/far planes scale with distance;
+    /// only a not-zero guard remains. (The old 0.2–100 clamp made deep zooms cull the scene.)
     pub fn zoom(&mut self, amount: f32) {
-        self.distance = (self.distance * (1.0 - amount as f64 * 0.1)).clamp(0.2, 100.0);
+        self.distance = (self.distance * (1.0 - amount as f64 * 0.1)).max(1.0e-6);
         self.update_position();
     }
 
+    /// CAD zoom: dolly toward the CURSOR — the point under the mouse stays under the mouse.
+    /// The cursor's world point on the target plane is computed from the view frame, then the
+    /// target is pulled toward it by the zoom factor. `cursor`/`viewport` in physical px.
+    pub fn zoom_at(&mut self, amount: f32, cursor: (f64, f64), viewport: (f64, f64)) {
+        let new_dist = (self.distance * (1.0 - amount as f64 * 0.1)).max(1.0e-6);
+        let k = new_dist / self.distance; // actual factor after the guard
+        let ndc_x = 2.0 * cursor.0 / viewport.0 - 1.0;
+        let ndc_y = 1.0 - 2.0 * cursor.1 / viewport.1;
+        // Frustum half-extents at the target plane (ortho h matches perspective at the target)
+        let half_h = self.distance * f64::to_radians(30.0).tan();
+        let half_w = half_h * (viewport.0 / viewport.1);
+        let right = self.orientation.rotate_vector(Vector::x_axis());
+        for i in 0..3 {
+            let cursor_off = right[i] * ndc_x * half_w + self.up[i] * ndc_y * half_h;
+            self.target[i] += cursor_off * (1.0 - k); // keeps the cursor's world point fixed
+        }
+        self.distance = new_dist;
+        self.update_position();
+    }
+
+    /// Flip between perspective and orthographic projection.
     pub fn toggle_projection(&mut self) {
         self.perspective = !self.perspective;
     }
 
+    /// Build the combined `projection · view · unit-scale` matrix for the given aspect ratio.
+    pub fn origin(&self) -> Point{
+        Point::new(self.target[0], self.target[1], self.target[2])
+    }
+
     pub fn view_proj(&self, aspect: f64) -> Xform {
+        self.view_proj_anchored(aspect, &self.origin())
+    }
+
+    /// Like `view_proj`, but camera-relative to a caller-supplied ANCHOR instead of the target.
+    /// Instances rebased about the same anchor stay valid while the target drifts (pan/zoom) —
+    /// panning then costs ONE uniform write instead of an instance-table rebuild.
+    pub fn view_proj_anchored(&self, aspect: f64, anchor: &Point) -> Xform {
         let dist = self.distance;
         let projection = if self.perspective {
             Xform::perspective(f64::to_radians(60.0), aspect, dist * 10.0, dist * 0.01)
@@ -101,10 +145,10 @@ impl Camera {
             Xform::orthographic(-aspect * h, aspect * h, -h, h, r, -r)
         };
 
-        let eye = Point::new(self.position[0], self.position[1], self.position[2]);
-        let target = Point::new(self.target[0], self.target[1], self.target[2]);
-        let up = Vector::new(self.up[0], self.up[1], self.up[2]);
-        let view = Xform::look_at_right_handed(&eye, &target, &up);
+        let eye    = Point::new(self.position[0] - anchor[0], self.position[1] - anchor[1], self.position[2] - anchor[2]);
+        let target = Point::new(self.target[0]   - anchor[0], self.target[1]   - anchor[1], self.target[2]   - anchor[2]);
+        let up     = Vector::new(self.up[0], self.up[1], self.up[2]);
+        let view   = Xform::look_at_right_handed(&eye, &target, &up);
 
         // units
         let s = self.unit.to_meters();
@@ -113,6 +157,7 @@ impl Camera {
         projection * view * scale
     }
 
+    /// Snap the orientation to a named standard view (Front/Top/Iso/…); switches to orthographic.
     pub fn set_view(&mut self, view: View) {
         use std::f64::consts::{FRAC_PI_2, FRAC_PI_6, PI};
         let z = Vector::z_axis();
@@ -135,10 +180,12 @@ impl Camera {
         self.update_position();
     }
 
+    /// Reset to a fresh default camera.
     pub fn reset(&mut self) {
         *self = Camera::new();
     }
 
+    /// Frame an AABB: center the target on it and set distance so its bounding sphere fills the FOV (+10%).
     pub fn fit(&mut self, min: [f32; 3], max: [f32; 3], aspect: f64) {
         // unit scale
         let s = self.unit.to_meters();
@@ -169,10 +216,12 @@ impl Camera {
         self.update_position();
     }
 
+    /// Set the world unit (mm/m) applied by `view_proj`'s scale.
     pub fn set_unit(&mut self, unit: Unit) {
         self.unit = unit;
     }
 
+    /// Recompute `position` and `up` from `orientation`/`target`/`distance` — call after any change.
     pub fn update_position(&mut self) {
         let fwd = self.orientation.rotate_vector(Vector::y_axis()); // eye -> target
         let up = self.orientation.rotate_vector(Vector::z_axis());

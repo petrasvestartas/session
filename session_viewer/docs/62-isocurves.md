@@ -82,16 +82,45 @@ surface; keep the `if let` guards regardless.)
 ## Step 2 — cache it with the mesh: `src/app/scene.rs`
 
 Sampling 10 lines × 48 points is cheap but not free — and it changes exactly when the tessellation
-does. Widen 61's cache entry to carry both:
+does. Widen 61's cache entry to carry both, and widen `surface_mesh` (61 Step 1) to fill both halves
+on first use. **Find 61's `tess_cache` field and `surface_mesh`, replace with:**
 
 ```rust
-    pub tess_cache: HashMap<String, (Mesh, Vec<CylinderSegment>)>,   // was: HashMap<String, Mesh>
-    // 61's surface_mesh fills both: (ns.mesh(), surface_linework(ns, ri))
+    pub tess_cache: std::collections::HashMap<String, (Mesh, Vec<CylinderSegment>)>,   // was: <String, Mesh>
+
+    /// 61's surface_mesh, widened: the cache entry is now (mesh, linework) — both built once.
+    fn surface_mesh(&mut self, guid: &str, ri: u32) -> Option<&(Mesh, Vec<CylinderSegment>)> {
+        if !self.tess_cache.contains_key(guid) {
+            let ns = self.session.objects.nurbssurfaces.iter().find(|s| s.guid() == guid)?;
+            self.tess_cache.insert(guid.to_string(), (ns.mesh(), surface_linework(ns, ri)));
+        }
+        self.tess_cache.get(guid)
+    }
 ```
 
-The build arm (61 Step 2) appends the cached linework to `segments` after `push_mesh` — note
-`push_mesh` already emits the *mesh's* edge tubes; for surfaces, suppress those (pass a flag or use a
-`push_mesh_faces_only` variant) so the surface wears its **iso lines**, not its tessellation
+Now the build arm (61 Step 2) unpacks the tuple, pushes the mesh **faces only**, and appends the
+cached iso lines to `segments`. **Find 61's surface build arm and replace its body with:**
+
+```rust
+    for ns in &self.session.objects.nurbssurfaces {
+        let guid = ns.guid().to_string();
+        let ri = self.guid_to_row[&guid];
+        let (m, linework) = &self.tess_cache[&guid];   // warmed by 61's priming pass (now passes ri — see below)
+        objects_base_entry(ri, ns.xform.duplicate(), ns_surface_color(ns), flags_for(&guid));
+        push_mesh_faces_only(m, ri, &mut verts, &mut vids, &mut idx, &mut glyphs);  // NO edge tubes
+        segments.extend(linework.iter().copied());                                 // iso lines instead
+    }
+```
+
+> **Keep 61's priming pass — and pass `ri` now.** The build loop above reads the *warmed* cache; it
+> can't call `surface_mesh` itself (that's `&mut self` — the E0502 case 61 solved with a separate
+> pass). 61's `for guid in &ns_guids { self.surface_mesh(guid); }` still runs just above it, but
+> `surface_mesh` now takes two args — update it to
+> `for guid in &ns_guids { let ri = self.guid_to_row[guid]; self.surface_mesh(guid, ri); }`.
+
+`push_mesh_faces_only` is `push_mesh` (30–32) with one thing removed: drop the `&mut segments`
+parameter and the loop that pushes triangle-edge `CylinderSegment`s — keep the arena vertex/index
+and boundary-glyph work verbatim. Surfaces then wear their **iso lines**, not their tessellation
 triangles' wireframe. That substitution — parameter-space lines instead of triangle edges — is
 exactly what visually separates "a surface" from "a mesh" in every CAD viewer.
 

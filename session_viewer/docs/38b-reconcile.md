@@ -47,9 +47,12 @@ instance*. The freshly-loaded object and the stored one are different map instan
 would differ even when the geometry is byte-identical — marking every mesh "changed" on every reload.
 
 Use the kernel's `jsondump` instead: it emits **sorted** JSON (deterministic regardless of map order),
-and every variant that has it round-trips through it in the minitests. `BRep` has no `jsondump`, so
-fingerprint it by its tessellation plus placement (kernel-gap #6 in `_KERNEL_GAPS.md`: a uniform
-`Geometry::jsondump()` / `content_hash()` would make this function one line):
+and every variant that has it round-trips through it in the minitests. Mind the return types, though —
+they are **not** uniform: `Mesh::jsondump` returns a `serde_json::Value` (so we `.to_string()` it),
+while `Line`/`Polyline`/`Point` return `Result<String, _>` (so those `.unwrap_or_default()`). `BRep`
+has no `jsondump` of its own, so fingerprint it by its tessellation (a `Mesh`, hence `.to_string()`)
+plus placement (kernel-gap #6 in `_KERNEL_GAPS.md`: a single uniform `Geometry::jsondump()` /
+`content_hash()` returning one type would collapse this whole match to one line):
 
 ```rust
 use std::hash::{Hash, Hasher};
@@ -60,12 +63,12 @@ use std::hash::{Hash, Hasher};
 /// bytes; the diff logic is identical either way.)
 fn content_hash(geom: &Geometry) -> u64 {
     let s = match geom {
-        Geometry::Mesh(m)     => m.jsondump().unwrap_or_default(),
-        Geometry::Line(l)     => l.jsondump().unwrap_or_default(),
+        Geometry::Mesh(m)     => m.jsondump().to_string(),          // jsondump -> serde_json::Value
+        Geometry::Line(l)     => l.jsondump().unwrap_or_default(),  // jsondump -> Result<String,_>
         Geometry::Polyline(p) => p.jsondump().unwrap_or_default(),
         Geometry::Point(p)    => p.jsondump().unwrap_or_default(),
         Geometry::BRep(b)     => format!("{}|{:?}",
-            b.mesh().jsondump().unwrap_or_default(), b.xform.to_cols()),
+            b.mesh().jsondump().to_string(), b.xform.to_cols()),    // mesh() -> Mesh -> Value
         _ => String::new(),
     };
     let mut h = std::collections::hash_map::DefaultHasher::new();
@@ -157,7 +160,7 @@ verbs, and the `Geometry` match — converting an object to those GPU types via 
         if row as usize == self.objects_base.len() {
             self.objects_base.push((model.duplicate(), color, flags));
             self.instances.push(Instance { model: model.to_f32(), color, flags, _pad: [0;3] });
-            if (self.instances.len() as u64) * SZ > self.instance_buffer.size() {
+            if (self.instances.len() as u64) * SZ as u64 > self.instance_buffer.size() {
                 self.grow_instances();
             }
         } else {
@@ -169,8 +172,35 @@ verbs, and the `Geometry` match — converting an object to those GPU types via 
     }
 ```
 
-(`write_row(row, f)` mutates `instances[row]` and `queue.write_buffer`s that one row. `grow_instances`
-mirrors the arena's 2x copy. `SZ = size_of::<Instance>()`.)
+(`SZ = size_of::<Instance>()` is a `usize`, so cast it (`SZ as u64`) before comparing against
+`instance_buffer.size()`, which is a `u64`.) The two helpers `set_object_row` leans on:
+
+```rust
+    /// Mutate one instance row and upload just it (SZ bytes at row*SZ).
+    fn write_row(&mut self, row: u32, f: impl FnOnce(&mut Instance)) {
+        f(&mut self.instances[row as usize]);
+        self.queue.write_buffer(&self.instance_buffer, row as u64 * SZ as u64,
+            bytemuck::bytes_of(&self.instances[row as usize]));
+    }
+
+    /// Instance buffer overflowed: re-alloc 2x, rebuild the (bound-once) bind group, re-upload all
+    /// rows. Same shape as 38a's ensure_seg_capacity; needs `instance_layout` hoisted onto Gpu.
+    fn grow_instances(&mut self) {
+        let need = (self.instances.len() * SZ) as u64;
+        let mut cap = self.instance_buffer.size().max(SZ as u64);
+        while cap < need { cap *= 2; }
+        self.instance_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("instance.buffer"), size: cap, mapped_at_creation: false,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+        });
+        self.instance_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("instance.bind_group"), layout: &self.instance_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0, resource: self.instance_buffer.as_entire_binding() }],
+        });
+        self.queue.write_buffer(&self.instance_buffer, 0, bytemuck::cast_slice(&self.instances));
+    }
+```
 
 **3b. Scene owns the `Geometry` match + rows, in `src/app/scene.rs`** — `apply_object` is 35's
 per-variant `build` logic for a *single* object; rows come from a small allocator that reuses freed
@@ -262,6 +292,25 @@ into shared buffers — same body, different sink. `free_rows: Vec<u32>` and `ne
 > but leaves `guid_to_row`/`free_rows`/`next_row` alone — those rows already point at the GPU data this
 > reload just wrote, and 35's "row == order index" only ever held on the *first* load. Every consumer
 > keys off `guid_to_row`, never `order`'s index, so the two are free to diverge.
+
+```rust
+    /// Swap in the reloaded document: rebuild order + hashes + the pick BVH for `new`, but KEEP
+    /// guid_to_row / free_rows / next_row — those rows already point at the GPU data reload wrote.
+    pub fn commit(&mut self, new: Session) {
+        // order + hashes: built exactly as Scene::new (35) does, over new's renderable objects
+        self.order  = new.lookup.iter().filter(|(_, g)| is_renderable(g))
+                                       .map(|(guid, _)| guid.clone()).collect();
+        self.hashes = new.lookup.iter().filter(|(_, g)| is_renderable(g))
+                                       .map(|(guid, g)| (guid.clone(), content_hash(g))).collect();
+        self.rebuild_bvh(&new);   // rebuild 36's world-AABB BVH over the new document
+        self.session = new;       // the reloaded doc is now current
+    }
+
+    /// Release a removed object's row for reuse (called in reload's `removed` loop).
+    pub fn free_row(&mut self, guid: &str) {
+        if let Some(row) = self.guid_to_row.remove(guid) { self.free_rows.push(row); }
+    }
+```
 
 > **Transform-only edits still re-flatten today.** Moving an object changes its `jsondump`, so it lands
 > in `changed` and gets a full remove-then-add — correct, if wasteful for a mesh that only slid

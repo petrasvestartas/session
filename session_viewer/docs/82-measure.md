@@ -16,7 +16,11 @@ src/state.rs          # feeds cursor world coords + snap kind + selection count 
 
 ## Step 1 — the measure verbs: `src/app/commands.rs`
 
-Each is 49's template with a different `Done`. The math is kernel calls or three-liners:
+Each is 49's template with a different `Done`. Build each as a `ProbeCmd`-shaped struct (49) that
+collects its picks in a `Vec<Point>`; the fragments below are only the final `feed_point`, run once
+the last point lands. There the collected picks are named `a`, `b` (and `c` for the three-point
+verbs), with `v` the angle's vertex — bind them off the vec (e.g. `let (v, a, b) = (pts[0].clone(),
+pts[1].clone(), pts[2].clone());`) before the math. The math itself is kernel calls or three-liners:
 
 ```rust
     // distance — probe, renamed, unrounded by default:
@@ -26,7 +30,7 @@ Each is 49's template with a different `Done`. The math is kernel calls or three
     // angle — three points: vertex, then one point per arm; kernel Vector::angle does the rest:
     let u = a - v.clone();                               // Point − Point → Vector
     let w = b - v;
-    let deg = u.angle(&w, false).to_degrees();           // kernel angle, unsigned
+    let deg = u.angle(&w, false);                        // kernel angle — already DEGREES, unsigned
     CmdStep::Done(format!("angle = {deg:.2}°"))
 
     // radius — three points on the arc; circumradius R = abc / 4A (pure triangle math):
@@ -39,6 +43,37 @@ Each is 49's template with a different `Done`. The math is kernel calls or three
     let r = (la * lb * lc) / (4.0 * area2.sqrt());
     CmdStep::Done(format!("radius = {r:.3}  (diameter {:.3})", r * 2.0))
 ```
+
+<svg viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="left: angle from a vertex v with arms to a and b, theta from u.angle(w); right: circumradius through three points a b c, R = product of side lengths over four times the area" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="150" y="18" fill="#888" text-anchor="middle">angle — vertex + two arms</text>
+  <line x1="90" y1="150" x2="50" y2="55" stroke="#6fb3ff" stroke-width="1.5"/>
+  <line x1="90" y1="150" x2="255" y2="75" stroke="#6fb3ff" stroke-width="1.5"/>
+  <path d="M78.4,122.3 A 30 30 0 0 1 117.3,137.6" fill="none" stroke="#5bbf87" stroke-width="1.3"/>
+  <text x="112" y="118" fill="#5bbf87">θ</text>
+  <circle cx="90" cy="150" r="3.5" fill="#d7dae0"/>
+  <circle cx="50" cy="55" r="3.5" fill="#6fb3ff"/>
+  <circle cx="255" cy="75" r="3.5" fill="#6fb3ff"/>
+  <text x="76" y="167" fill="#d7dae0">v</text>
+  <text x="38" y="50" fill="#d7dae0">a</text>
+  <text x="263" y="72" fill="#d7dae0">b</text>
+  <text x="150" y="190" fill="#666" text-anchor="middle">u=a−v  w=b−v  →  u.angle(w) = θ (deg)</text>
+  <line x1="320" y1="30" x2="320" y2="180" stroke="#3a3a3a"/>
+  <text x="490" y="18" fill="#888" text-anchor="middle">circumradius — three points</text>
+  <circle cx="490" cy="110" r="70" fill="none" stroke="#555"/>
+  <line x1="490" y1="40" x2="429" y2="145" stroke="#6fb3ff" stroke-width="1.5"/>
+  <line x1="429" y1="145" x2="551" y2="145" stroke="#6fb3ff" stroke-width="1.5"/>
+  <line x1="551" y1="145" x2="490" y2="40" stroke="#6fb3ff" stroke-width="1.5"/>
+  <line x1="490" y1="110" x2="490" y2="40" stroke="#5bbf87" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <text x="497" y="80" fill="#5bbf87">R</text>
+  <circle cx="490" cy="110" r="3" fill="#888"/>
+  <circle cx="490" cy="40" r="3.5" fill="#d7dae0"/>
+  <circle cx="429" cy="145" r="3.5" fill="#d7dae0"/>
+  <circle cx="551" cy="145" r="3.5" fill="#d7dae0"/>
+  <text x="490" y="32" fill="#d7dae0" text-anchor="middle">a</text>
+  <text x="417" y="150" fill="#d7dae0">b</text>
+  <text x="557" y="150" fill="#d7dae0">c</text>
+  <text x="490" y="190" fill="#666" text-anchor="middle">R = |ab|·|bc|·|ca| / 4·Area  (Heron)</text>
+</svg>
 
 `what` is instant, not a conversation — it reports the selection via kernel accessors:
 
@@ -72,11 +107,20 @@ guess tool.
 ## Step 2 — the status bar: `src/ui/mod.rs` + `src/state.rs`
 
 One always-on line above the CLI input, in the panel 48 built. It renders three facts `State`
-already knows and just has to hand over each frame:
+already knows and just has to hand over each frame. First **add three fields to the `UiState` struct
+(48)**:
 
 ```rust
-    // UiState gains: cursor_world: Option<[f64; 3]>, snap_label: &'static str, sel_count: usize
-    // state.rs, before build_ui — all three values exist already:
+    // find `struct UiState { … }` and add:
+    pub cursor_world: Option<[f64; 3]>,
+    pub snap_label: &'static str,
+    pub sel_count: usize,
+```
+
+They default fine (`None` / `""` / `0`) if `UiState` derives `Default`; otherwise seed them in its
+ctor. Then feed all three each frame — in `state.rs`, before `build_ui`, where every value already exists:
+
+```rust
     self.ui.cursor_world = self.last_cursor_world;              // cursor_world_point's last result
     self.ui.snap_label = self.snap_marker.map(|(_, k)| k.label()).unwrap_or("");
     self.ui.sel_count = self.scene.selected.len();

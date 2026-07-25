@@ -3,7 +3,7 @@
     "group": "NurbsSurface",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 20.096,
+    "time_ms": 9.228,
     "line": 8,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Get mesh\n    m = s.mesh()\n\n    # Point division matching Rhino's 4x6 grid\n    p, v, uv = s.divide_by_count_points(4, 6)\n\n    # Minimal and Full String Representation\n    sstr = str(s)\n    srepr = repr(s)\n\n    # Copy (duplicates everything except guid)\n    scopy = s.duplicate()\n    sother = NurbsSurface.create(False, False, 3, 3, 4, 4, points)",
     "checks": [
@@ -279,7 +279,7 @@
     "group": "NurbsSurface",
     "test_name": "Create From Parameters",
     "passed": true,
-    "time_ms": 132.13,
+    "time_ms": 56.135,
     "line": 107,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    # Mirrors compas_occt OCCNurbsSurface.from_parameters / from_points (surface_from_points.py).\n    # Validated pointwise against OCCT (validation/compare_surface_eval.py).\n    grid = [\n        [Point(0, 0, 0), Point(1, 0, 0), Point(2, 0, 0), Point(3, 0, 0)],\n        [Point(0, 1, 0), Point(1, 1, 2), Point(2, 1, 2), Point(3, 1, 0)],\n        [Point(0, 2, 0), Point(1, 2, 2), Point(2, 2, 2), Point(3, 2, 0)],\n        [Point(0, 3, 0), Point(1, 3, 0), Point(2, 3, 0), Point(3, 3, 0)],\n    ]\n    w = [[1.0] * 4 for _ in range(4)]\n    s = NurbsSurface.create_from_parameters(grid, w, [0, 1], [0, 1], [4, 4], [4, 4], 3, 3)\n    u0, u1 = s.domain(0)\n    v0, v1 = s.domain(1)\n\n    # frame_at (surface_frames.py): origin == point_at, z-axis == normal_at.\n    # Normal validated vs OCCT D1uxD1v (validation/compare_surface_eval.py).\n    fr = s.frame_at(0.3, 0.4)\n    n = s.normal_at(0.3, 0.4)\n    za = fr.z_axis\n\n    # intersections_with_line (surface_intersections_with_line.py): a vertical line\n    # through (1.5, 1.5) hits the surface once at (1.5, 1.5, 1.125). Validated vs\n    # OCCT GeomAPI_IntCS (validation harness, dev <= 1.6e-16).\n    from session_py import Line\n    hits = s.intersections_with_line(Line(1.5, 1.5, -5, 1.5, 1.5, 5))",
     "checks": [
@@ -360,7 +360,7 @@
     "group": "NurbsSurface",
     "test_name": "Booleans Queries",
     "passed": true,
-    "time_ms": 1.561,
+    "time_ms": 0.738,
     "line": 152,
     "code": "    from session_py import NurbsSurface\n    from session_py import Plane\n    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0, 0, 0, 5.0)\n\n    # Validity surface and nurbsknots\n    is_valid = s.is_valid()\n    are_nurbsknots_valid = s.is_valid_nurbsknot_vector(0) and s.is_valid_nurbsknot_vector(1)\n\n    # Are control points weights enabled?\n    is_rational = s.is_rational()\n\n    # Sphere has one seam that is closed, but two poles\n    is_closed = s.is_closed(0) == True and s.is_closed(1) == False\n\n    # sphere cannot be truly periodic because it has poles\n    is_periodic = s.is_periodic(0) and s.is_periodic(1)\n\n    # Planarity\n    plane = Plane.xy_plane()\n    is_planar = s.is_planar(plane)\n\n    # Surface is collapsed to a point\n    is_point = s.is_singular(0) and s.is_singular(1) and s.is_singular(2) and s.is_singular(3)\n\n    # Most surfaces are clamped except periodic surfaces\n    is_clamped = s.is_clamped(0, 2) and s.is_clamped(1, 2)",
     "checks": [
@@ -411,7 +411,7 @@
     "group": "NurbsSurface",
     "test_name": "Attributes",
     "passed": true,
-    "time_ms": 0.161,
+    "time_ms": 0.073,
     "line": 193,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Check the dimentions of a surface\n    # Mostly 3d\n    # But 2d can be used for: scalar field over parameter space e.g. czrvatzre map, distance field\n    # Planar geometry: texture coordinates\n    dimensions = s.dimension()\n\n    # Degree types 1 - linear, 2 - quadratic, 3 - cubic\n    order_u = s.order(0)\n    order_v = s.order(1)\n\n    # Control vertex count\n    cv_count_u = s.cv_count_dir(0)\n    cv_count_v = s.cv_count_dir(1)\n    cv_count = s.cv_count_dir(None)\n    cv_size = s.cv_size()\n\n    # Number of nurbsknots\n    k_count_0 = s.nurbsknot_count(0)\n    k_count_1 = s.nurbsknot_count(1)\n\n    # Span count\n    s_count_0 = s.span_count(0)\n    s_count_1 = s.span_count(1)",
     "checks": [
@@ -477,7 +477,7 @@
     "group": "NurbsSurface",
     "test_name": "Control Vertices Access",
     "passed": true,
-    "time_ms": 0.841,
+    "time_ms": 0.241,
     "line": 260,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n    s.make_rational()\n\n    # Raw CV access - cv() returns view of internal storage\n    cv_arr = s.cv(0, 0)\n\n    cv_arr[2] = 10.0\n\n    # Point and Weight\n    # NOTE\n    # point is (Xw, Yw, Zw, w)\n    # cv pointer is (X, Y, Z)\n    cv = s.get_cv(0, 0)\n    ok, x, y, z, w = s.get_cv_4d(0, 0)\n\n    s.set_cv(0, 0, Point(0, 0, 5))\n    s.set_cv_4d(0, 0, 0, 0, 4, 0.5)\n\n    w = s.weight(0, 0)\n    s.set_weight(0, 0, 1)",
     "checks": [
@@ -533,7 +533,7 @@
     "group": "NurbsSurface",
     "test_name": "NurbsKnot Access",
     "passed": true,
-    "time_ms": 1.022,
+    "time_ms": 0.393,
     "line": 319,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Get nurbsknot vectors and individual nurbsknot\n    nurbsknots_u = s.get_nurbsknots(0)\n    for i in range(s.nurbsknot_count(0)):\n        nurbsknot = s.nurbsknot(0, i)\n\n    nurbsknots_v = s.get_nurbsknots(1)\n    for i in range(s.nurbsknot_count(1)):\n        nurbsknot = s.nurbsknot(1, i)\n\n    # Set nurbsknots\n    is_set = s.set_nurbsknot(0, 2, 0.5)\n    is_set = s.set_nurbsknot(0, 2, 0.0)\n\n    # Verify start multiplicity\n    mult_u_start = s.nurbsknot_multiplicity(0, 0)\n    mult_v_start = s.nurbsknot_multiplicity(1, 0)\n\n    s.insert_nurbsknot(0, 0.1, 2)",
     "checks": [
@@ -634,7 +634,7 @@
     "group": "NurbsSurface",
     "test_name": "Domain",
     "passed": true,
-    "time_ms": 1.045,
+    "time_ms": 0.129,
     "line": 377,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # Get domain 0 - 1\n    domain_u = s.domain(0)\n    domain_v = s.domain(1)\n\n\n    # Set Domain\n    is_set_u = s.set_domain(0, -1.1, 2.3)\n    is_set_v = s.set_domain(1, -5.1, 1.3)\n\n    # Get sorted list of distinct nurbsknot values\n    span_vector = s.get_span_vector(0)\n    first_item = span_vector[0]\n    last_item = span_vector[-1]",
     "checks": [
@@ -685,7 +685,7 @@
     "group": "NurbsSurface",
     "test_name": "Division",
     "passed": true,
-    "time_ms": 22.231,
+    "time_ms": 6.76,
     "line": 430,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py import Vector\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # points, normals, uv\n    division_points, vectors, uvs0 = s.divide_by_count_points(3, 3)\n\n    # planes, uv\n    planes, uvs1 = s.divide_by_count_planes(3, 3)",
     "checks": [
@@ -1176,7 +1176,7 @@
     "group": "NurbsSurface",
     "test_name": "Evaluation",
     "passed": true,
-    "time_ms": 1.104,
+    "time_ms": 0.735,
     "line": 565,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py import Vector\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    u = 0.5\n    v = 0.5\n\n    # point_at(u, v) - returns Point\n    p1 = s.point_at(u, v)\n\n\n    # normal_at(u, v) - returns Vector\n    n1 = s.normal_at(u, v)\n\n    # evaluate(u, v, num_derivs) - returns vector of derivatives\n    derivs = s.evaluate(u, v, 1)\n\n    # point_at_corner(u_end, v_end) - corner point\n    p_corner = s.point_at_corner(1, 1)\n\n    # get isocurve - returns NurbsCurve\n    iso_u = s.iso_curve(0, v)\n    iso_v = s.iso_curve(1, u)",
     "checks": [
@@ -1227,7 +1227,7 @@
     "group": "NurbsSurface",
     "test_name": "Modification",
     "passed": true,
-    "time_ms": 101.692,
+    "time_ms": 51.688,
     "line": 625,
     "code": "    import copy\n    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py import Vector\n\n    points = [\n        # i=0\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        # i=1\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        # i=2\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        # i=3\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    s = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n\n    # Reverse one direction\n    s_rev = copy.deepcopy(s)\n    s_rev.reverse(0)\n\n\n    # Swap u and v direction\n    s_tr = copy.deepcopy(s)\n    s_tr.transpose()\n\n    # Swap coordinates - swap x and z\n    s_swap = copy.deepcopy(s)\n    s_swap.swap_coordinates(0, 2)\n\n    # Trim surface, domain changed but parametrization preserved\n    s_trim = copy.deepcopy(s)\n    s_trim.trim(0, (0.25, 0.75))\n\n    # Split surface into 4 quadrants, check shared corner point is the same\n    west, east = s.split(0, 0.5)\n    ww, we = west.split(1, (west.domain(1)[0] + west.domain(1)[1]) / 2.0)\n    ew, ee = east.split(1, (east.domain(1)[0] + east.domain(1)[1]) / 2.0)\n    center = s.point_at(0.5, 0.5)\n\n    # Make rational and change weight\n    s_rat = copy.deepcopy(s)\n    s_rat.make_rational()\n    s_rat.set_weight(2, 2, 3.0)\n    s_rat.make_non_rational()\n\n    # Increase degree\n    s_deg = copy.deepcopy(s)\n    s_deg.increase_degree(0, 6)\n    s_deg.increase_degree(1, 6)",
     "checks": [
@@ -1328,7 +1328,7 @@
     "group": "NurbsSurface",
     "test_name": "Transformations",
     "passed": true,
-    "time_ms": 1.423,
+    "time_ms": 0.747,
     "line": 711,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py import Xform\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n\n    # Variant 1: transform() - Apply stored xform (in-place)\n    surface1 = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n    surface1.xform = Xform.translation(0.0, 0.0, 1.0)\n    surface1.transform()\n\n\n    # Variant 2: transform(xform) - Apply custom xform (in-place)\n    surface2 = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n    x = Xform.translation(0.0, 0.0, 1.0)\n    surface2.transform(x)\n\n    # Variant 3: transformed() - Get copy with stored xform applied\n    surface3 = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n    surface3.xform = Xform.translation(0.0, 0.0, 10.0)\n    surface3_transformed = surface3.transformed()\n\n    # Variant 4: transformed(xform) - Get copy with custom xform\n    surface4 = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n    x = Xform.translation(0.0, 0.0, 10.0)\n    surface4_transformed = surface4.transformed(x)",
     "checks": [
@@ -1379,7 +1379,7 @@
     "group": "NurbsSurface",
     "test_name": "Meshing",
     "passed": true,
-    "time_ms": 633.885,
+    "time_ms": 312.51,
     "line": 766,
     "code": "    from session_py import NurbsSurface\n    from session_py import NurbsCurve\n    from session_py import Mesh\n    from session_py import Primitives\n    from session_py import Vector\n    from session_py import Point\n\n    # 1. Sphere \u2014 two poles, closed U, rational\n    sphere = Primitives.sphere_surface(0, 0, 0, 3.0)\n    mesh_sphere = sphere.mesh()\n    mesh_sphere_adaptive = sphere.mesh_adaptive(45.0)\n\n\n    # 2. Cone \u2014 singular apex (pole), closed U\n    cone = Primitives.cone_surface(0, 12, 0, 2.0, 6.0)\n    mesh_cone = cone.mesh()\n    mesh_cone_adaptive = cone.mesh_adaptive(45.0)\n\n    # 3. Torus \u2014 doubly closed (U and V), rational\n    torus = Primitives.torus_surface(0, 24, 0, 4.0, 1.5)\n    mesh_torus = torus.mesh()\n    mesh_torus_adaptive = torus.mesh_adaptive(45.0)\n\n    # 4. Loft \u2014 varying radius circles, closed U, multi-span V\n    loft = Primitives.create_loft([\n        Primitives.circle(0, 38, 0, 2.0),\n        Primitives.circle(0, 38, 2, 1.0),\n        Primitives.circle(0, 38, 4, 1.5),\n        Primitives.circle(0, 38, 6, 0.8)], 3)\n    mesh_loft = loft.mesh()\n    mesh_loft_adaptive = loft.mesh_adaptive(45.0)\n\n    # 5. Extrusion (circle) \u2014 closed U, linear V, rational\n    ext_dir = Vector(0, 0, 5)\n    cylinder = Primitives.create_extrusion(Primitives.circle(0, 52, 0, 3.0), ext_dir)\n    mesh_cylinder = cylinder.mesh()\n    mesh_cylinder_adaptive = cylinder.mesh_adaptive(45.0)\n\n    # 6. Ruled \u2014 bilinear (degree 1x1), tests twist subdivision\n    ra = NurbsCurve.create(False, 1, [\n        Point(0, 64, 0),\n        Point(5, 64, 5),\n    ])\n    rb = NurbsCurve.create(False, 1, [\n        Point(0, 69, 5),\n        Point(5, 69, 0),\n    ])\n    hypar = Primitives.create_ruled(ra, rb)\n    mesh_hypar = hypar.mesh()\n    mesh_hypar_adaptive = hypar.mesh_adaptive(45.0)\n\n    # 7. Sweep1 \u2014 circle along curved rail\n    profile = Primitives.circle(0, 0, 0, 1.0)\n    rail = NurbsCurve.create(False, 2, [\n        Point(0, 76, 0),\n        Point(0, 81, 0),\n        Point(2, 85, 0),\n    ])\n    sweep1 = Primitives.create_sweep1(rail, profile)\n    mesh_sweep1 = sweep1.mesh()\n    mesh_sweep1_adaptive = sweep1.mesh_adaptive(45.0)\n\n    # 8. Sweep2 \u2014 two rails + cross sections\n    r1 = NurbsCurve.create(False, 2, [\n        Point(0, 89, 0),\n        Point(1, 93, 0),\n        Point(2, 94, 0),\n    ])\n    r2 = NurbsCurve.create(False, 2, [\n        Point(4, 89, 0),\n        Point(4, 93, 0),\n        Point(3, 94, 0),\n    ])\n    sh1 = NurbsCurve.create(False, 2, [\n        Point(0, 89, 0),\n        Point(2, 89, 2),\n        Point(4, 89, 0),\n    ])\n    sh2 = NurbsCurve.create(False, 2, [\n        Point(2, 94, 0),\n        Point(2.5, 94, 1.5),\n        Point(3, 94, 0),\n    ])\n    sweep2 = Primitives.create_sweep2(r1, r2, [sh1, sh2])\n    mesh_sweep2 = sweep2.mesh()\n    mesh_sweep2_adaptive = sweep2.mesh_adaptive(45.0)\n\n    # 9. Edge surface (Coons patch) \u2014 4 boundary curves\n    south = NurbsCurve.create(False, 3, [\n        Point(1, 104, 0),\n        Point(1, 106, 3),\n        Point(1, 109, 3),\n        Point(1, 111, 0),\n    ])\n    west  = NurbsCurve.create(False, 2, [\n        Point(10, 104, 0),\n        Point(5.5, 104, 3.5),\n        Point(1, 104, 0),\n    ])\n    north = NurbsCurve.create(False, 3, [\n        Point(10, 104, 0),\n        Point(10, 106, 3),\n        Point(10, 109, 3),\n        Point(10, 111, 0),\n    ])\n    east  = NurbsCurve.create(False, 2, [\n        Point(10, 111, 0),\n        Point(5.5, 111, 3.5),\n        Point(1, 111, 0),\n    ])\n    arched = Primitives.create_edge(south, west, north, east)\n    mesh_arched = arched.mesh()\n    mesh_arched_adaptive = arched.mesh_adaptive(45.0)\n\n    # 10. Wave \u2014 multi-span freeform (13x13 CVs, 10 spans)\n    wave = Primitives.wave_surface(5.0, 1.5)\n    mesh_wave = wave.mesh()\n    mesh_wave_adaptive = wave.mesh_adaptive(45.0)\n\n    # 11. Planar \u2014 mesh() early exit: 2 triangles\n    planar = NurbsCurve.create(False, 1, [\n        Point(0, 132, 0),\n        Point(6, 132, 0),\n        Point(6, 136, 0),\n        Point(0, 136, 0),\n        Point(0, 132, 0),\n    ])\n    pln = Primitives.create_planar(planar)\n    mesh_planar = pln.mesh()\n    mesh_planar_adaptive = pln.mesh_adaptive(45.0)",
     "checks": [
@@ -1500,7 +1500,7 @@
     "group": "NurbsSurface",
     "test_name": "Split By Plane",
     "passed": true,
-    "time_ms": 2687.083,
+    "time_ms": 1097.57,
     "line": 922,
     "code": "    from session_py import Plane\n    from session_py import Point\n    from session_py import Vector\n    from session_py.primitives import Primitives\n\n    cyl = Primitives.cylinder_surface(0.0, 0.0, 0.0, 1.0, 4.0)\n    plane = Plane.from_point_normal(Point(0.0, 0.0, 2.0), Vector(0.3, 0.0, 1.0))\n\n    parts = cyl.split_by_plane(plane)\n\n    for ts in parts:\n        m = ts.mesh_q(20.0, 0.005)\n\n    sphere = Primitives.sphere_surface(0.0, 0.0, 0.0, 1.0)\n    plane2 = Plane.from_point_normal(Point(0.0, 0.0, 0.3), Vector(0.0, 0.0, 1.0))\n\n    caps = sphere.split_by_plane(plane2)",
     "checks": [
@@ -1541,7 +1541,7 @@
     "group": "NurbsSurface",
     "test_name": "Split By Curves",
     "passed": true,
-    "time_ms": 2127.349,
+    "time_ms": 898.255,
     "line": 948,
     "code": "    import math\n    from session_py import Closest\n    from session_py import NurbsCurve\n    from session_py import Point\n    from session_py.primitives import Primitives\n\n    wave = Primitives.wave_surface(10.0, 1.0)\n    lift_pts = []\n    for i in range(21):\n        x = 10.0 * i / 20.0\n        y = 5.0 + 2.0 * math.sin(x)\n        u, v, d = Closest.surface_point(wave, Point(x, y, 0.0))\n        lift_pts.append(wave.point_at(u, v))\n    crv = NurbsCurve.create_interpolated(lift_pts)\n\n    parts = wave.split_by_curves([crv])\n\n\n    off = NurbsCurve.create(False, 1, [Point(50.0, 50.0, 50.0), Point(60.0, 60.0, 60.0)])\n\n    whole = wave.split_by_curves([off])",
     "checks": [
@@ -1572,7 +1572,7 @@
     "group": "NurbsSurface",
     "test_name": "Split By Line",
     "passed": true,
-    "time_ms": 6894.86,
+    "time_ms": 3334.264,
     "line": 978,
     "code": "    from session_py import Line\n    from session_py import Point\n    from session_py.primitives import Primitives\n\n    wave = Primitives.wave_surface(10.0, 1.0)\n    line = Line.from_points(Point(-1.0, 5.0, 0.0), Point(11.0, 5.0, 0.0))\n\n    parts = wave.split_by_line(line)",
     "checks": [
@@ -1598,7 +1598,7 @@
     "group": "NurbsSurface",
     "test_name": "Split By Surface",
     "passed": true,
-    "time_ms": 3503.057,
+    "time_ms": 1306.173,
     "line": 994,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n    from session_py.primitives import Primitives\n\n    cyl = Primitives.cylinder_surface(0.0, 0.0, -2.0, 1.0, 4.0)\n    flat = NurbsSurface.create(False, False, 1, 1, 2, 2, [\n        Point(-3.0, -3.0, 0.0),\n        Point(-3.0, 3.0, 0.0),\n        Point(3.0, -3.0, 0.0),\n        Point(3.0, 3.0, 0.0),\n    ])\n\n    parts = cyl.split_by_surface(flat)\n\n    for ts in parts:\n        m = ts.mesh_q(20.0, 0.005)",
     "checks": [
@@ -1634,7 +1634,7 @@
     "group": "NurbsSurface",
     "test_name": "Split By Brep",
     "passed": true,
-    "time_ms": 722.635,
+    "time_ms": 361.444,
     "line": 1017,
     "code": "    from session_py import NurbsSurface\n    from session_py import BRep\n    from session_py import Point\n\n    flat = NurbsSurface.create(False, False, 1, 1, 2, 2, [\n        Point(-3.0, -3.0, 0.0),\n        Point(-3.0, 3.0, 0.0),\n        Point(3.0, -3.0, 0.0),\n        Point(3.0, 3.0, 0.0),\n    ])\n    cutter = BRep.create_box(2.0, 2.0, 2.0)\n\n    parts = flat.split_by_brep(cutter)\n\n    for ts in parts:\n        m = ts.mesh_q(20.0, 0.005)",
     "checks": [
@@ -1670,7 +1670,7 @@
     "group": "NurbsSurface",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 28.167,
+    "time_ms": 28.765,
     "line": 1040,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n    from pathlib import Path\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n    surface = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # JSON object\n    json_obj = surface.__jsondump__()\n    loaded_json = NurbsSurface.__jsonload__(json_obj)\n\n    # String\n    json_string = surface.file_json_dumps()\n    loaded_json_string = NurbsSurface.file_json_loads(json_string)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_nurbssurface.json\"\n    surface.file_json_dump(filename)\n    loaded_from_file = NurbsSurface.file_json_load(filename)",
     "checks": [
@@ -1696,7 +1696,7 @@
     "group": "NurbsSurface",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 15.827,
+    "time_ms": 17.01,
     "line": 1084,
     "code": "    from session_py import NurbsSurface\n    from session_py import Point\n    from pathlib import Path\n\n    points = [\n        Point(0.0, 0.0, 0.0),\n        Point(-1.0, 0.75, 2.0),\n        Point(-1.0, 4.25, 2.0),\n        Point(0.0, 5.0, 0.0),\n        Point(0.75, -1.0, 2.0),\n        Point(1.25, 1.25, 4.0),\n        Point(1.25, 3.75, 4.0),\n        Point(0.75, 6.0, 2.0),\n        Point(4.25, -1.0, 2.0),\n        Point(3.75, 1.25, 4.0),\n        Point(3.75, 3.75, 4.0),\n        Point(4.25, 6.0, 2.0),\n        Point(5.0, 0.0, 0.0),\n        Point(6.0, 0.75, 2.0),\n        Point(6.0, 4.25, 2.0),\n        Point(5.0, 5.0, 0.0),\n    ]\n    surface = NurbsSurface.create(False, False, 3, 3, 4, 4, points)\n\n    # String\n    proto_string = surface.pb_dumps()\n    loaded_proto_string = NurbsSurface.pb_loads(proto_string)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_nurbssurface.bin\"\n    surface.pb_dump(filename)\n    loaded = NurbsSurface.pb_load(filename)",
     "checks": [
@@ -1717,7 +1717,7 @@
     "group": "NurbsSurface",
     "test_name": "ClosestPoint",
     "passed": true,
-    "time_ms": 14.19,
+    "time_ms": 4.575,
     "line": 1123,
     "code": "    from session_py import Primitives, Point\n    # Sphere radius 2 at origin: closest surface point to an outside point is radial.\n    sphere = Primitives.sphere_surface(0, 0, 0, 2.0)\n    cp = sphere.closest_point(Point(5, 0, 0))\n    # Curvature: sphere radius R has Gaussian K = 1/R^2, |mean| = 1/R.\n    u0, u1 = sphere.domain(0)\n    v0, v1 = sphere.domain(1)\n    um = u0 + 0.37 * (u1 - u0)\n    vm = v0 + 0.41 * (v1 - v0)",
     "checks": [

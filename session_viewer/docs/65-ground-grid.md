@@ -49,7 +49,9 @@ struct GroundUniform {
     inv_view_proj: mat4x4<f32>,   // camera-relative clip → camera-relative world (33's frame!)
     cam_rel_eye: vec4<f32>,       // eye − origin (xyz), fade radius (w)
     ground_z: f32,                // plane height in camera-relative space: −origin.z
-    _pad: vec3<f32>,
+    _pad0: f32,                   // three SCALAR pads, not one vec3<f32> — see the byte-map below
+    _pad1: f32,
+    _pad2: f32,
 };
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
 @group(1) @binding(0) var<uniform> g: GroundUniform;
@@ -104,6 +106,44 @@ fn fs_main(in: VsOut) -> FsOut {
 }
 ```
 
+> **Why three scalar pads, not `_pad: vec3<f32>`.** The Rust mirror uploaded per frame is
+> `mat4 + vec4 + f32 + [f32; 3]` = **96 B**. A `vec3<f32>` in WGSL carries **16-byte alignment**, so
+> after `ground_z` ends at byte 84 the compiler bumps the `vec3` to 96, pads the struct out to **112 B**,
+> and the min-binding-size no longer matches the 96 B Rust upload — the bind panics at first frame.
+> Three plain `f32` pads sit at 84/88/92, keeping WGSL at 96 B, exact with Rust.
+
+<svg viewBox="0 0 520 148" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GroundUniform byte map: a vec3 pad forces 16-byte alignment leaving an 84 to 96 hole and inflating the WGSL struct to 112 bytes versus the 96-byte Rust mirror; three scalar pads fix it" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="10" y="16" fill="#888">GroundUniform — offsets in bytes</text>
+
+  <text x="10" y="48" fill="#e06c6c">vec3 pad ✗</text>
+  <rect x="120" y="36" width="205" height="20" fill="none" stroke="#555"/>
+  <text x="222" y="50" fill="#888" text-anchor="middle">inv_view_proj (64)</text>
+  <rect x="325" y="36" width="51" height="20" fill="none" stroke="#6fb3ff"/>
+  <text x="350" y="50" fill="#6fb3ff" text-anchor="middle">vec4</text>
+  <rect x="376" y="36" width="13" height="20" fill="none" stroke="#d7dae0"/>
+  <text x="382" y="70" fill="#666" text-anchor="middle" font-size="9">z</text>
+  <rect x="389" y="36" width="38" height="20" fill="none" stroke="#e06c6c" stroke-dasharray="3 2"/>
+  <text x="408" y="50" fill="#e06c6c" text-anchor="middle" font-size="9">hole</text>
+  <rect x="427" y="36" width="38" height="20" fill="none" stroke="#e06c6c"/>
+  <text x="446" y="50" fill="#e06c6c" text-anchor="middle" font-size="9">vec3</text>
+  <text x="472" y="50" fill="#e06c6c">= 112 B</text>
+  <text x="382" y="30" fill="#666" text-anchor="middle" font-size="9">84</text>
+  <text x="427" y="30" fill="#666" text-anchor="middle" font-size="9">96</text>
+
+  <text x="10" y="112" fill="#5bbf87">3 scalars ✓</text>
+  <rect x="120" y="100" width="205" height="20" fill="none" stroke="#555"/>
+  <text x="222" y="114" fill="#888" text-anchor="middle">inv_view_proj (64)</text>
+  <rect x="325" y="100" width="51" height="20" fill="none" stroke="#6fb3ff"/>
+  <text x="350" y="114" fill="#6fb3ff" text-anchor="middle">vec4</text>
+  <rect x="376" y="100" width="13" height="20" fill="none" stroke="#d7dae0"/>
+  <text x="382" y="134" fill="#666" text-anchor="middle" font-size="9">z</text>
+  <rect x="389" y="100" width="13" height="20" fill="none" stroke="#5bbf87"/>
+  <rect x="402" y="100" width="13" height="20" fill="none" stroke="#5bbf87"/>
+  <rect x="415" y="100" width="13" height="20" fill="none" stroke="#5bbf87"/>
+  <text x="408" y="114" fill="#5bbf87" text-anchor="middle" font-size="9">f×3</text>
+  <text x="434" y="114" fill="#5bbf87">= 96 B — matches Rust</text>
+</svg>
+
 Two details carrying earlier lessons' weight: the unproject uses `ndc_z = 0.5` for the far point —
 41's conditioning rule applies on the GPU too — and everything is **camera-relative** (the uniform
 feeds `inverse(view_proj)` of the already-rebased matrix and `ground_z = −origin.z`), so the ground
@@ -132,7 +172,7 @@ The per-frame uniform fills from values already at hand: `view_proj.inverse()` (
 version got wrong), `eye − origin`, fade radius ≈ 30× the camera distance (feels infinite without
 banding), and `−origin[2]`.
 
-> **Grid upgrade (optional but natural here).** Lesson 20's vertex grid is 50 fixed lines — fine on
+> **Grid upgrade (optional but natural here).** Lesson 20's vertex grid is 50 fixed vertices (25 segments) — fine on
 > the demo, small on a big scene. The same analytic trick renders an **infinite** grid: in this very
 > shader (or a sibling), `fract(hit.xy / step)` finds distance to the nearest grid line,
 > `fwidth` turns it into an antialiased ~1 px stroke, two scales (minor/major) blend by zoom. If you
@@ -164,7 +204,7 @@ Ch 65: THE STAGE. Analytic ground: a fullscreen triangle whose FRAGMENTS each un
        shade arctic white with a smoothstep horizon fade, and write EXACT frag_depth (clip z/w) so
        occlusion is real. Depth write ON, Greater (reverse-Z), alpha blend for the fade. NEVER a
        giant quad — f32 far-corner shimmer + interpolated-depth z-fights, both archive-verified.
-       Optional: the same hit powers a fract/fwidth INFINITE grid, retiring 20's 50-line one.
+       Optional: the same hit powers a fract/fwidth INFINITE grid, retiring 20's 50-vertex one.
 ```
 
 Edited: `shaders/ground.wgsl` (NEW), `engine/pipelines/build.rs` (`build_ground_pipeline`),

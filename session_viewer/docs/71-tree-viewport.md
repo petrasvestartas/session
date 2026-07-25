@@ -42,12 +42,10 @@ handler), walk the picked node's parent chain and add every ancestor to `tree_ex
 ```rust
     /// Make `guid`'s row exist and be on screen next frame.
     fn reveal_in_tree(&mut self, guid: &str) {
-        // ancestors: session.tree.find_node_by_guid → walk .parent upward, collecting guids
+        // ancestors(): the kernel's TreeNode accessor — immediate parent up to root, guids only
         if let Some(node) = self.scene.session.tree.find_node_by_guid(&guid.to_string()) {
-            let mut cur = node.borrow().parent.clone();
-            while let Some(p) = cur {
-                self.ui.tree_expanded.insert(p.borrow().guid().to_string());
-                cur = p.borrow().parent.clone();
+            for a in node.borrow().ancestors() {
+                self.ui.tree_expanded.insert(a.borrow().guid().to_string());
             }
         }
         self.ui.tree_scroll_to = Some(guid.to_string());   // consumed by the panel next frame
@@ -55,19 +53,34 @@ handler), walk the picked node's parent chain and add every ancestor to `tree_ex
     }
 ```
 
-(The kernel `TreeNode`'s parent link — check its field/accessor name; `find_node_by_guid` is the same
-call `remove_object` uses, verified. If a picked object has no tree node — a top-level nurbs row from
-70 — the expand loop is simply empty and only the scroll fires. Weak-parent variants
-(`Weak<RefCell<…>>`) need an `upgrade()` in the walk.)
+(`TreeNode::ancestors()` returns `Vec<Rc<RefCell<TreeNode>>>` from immediate parent up to root and
+already `upgrade()`s the internal `Weak` parent link for you — never touch the private `.parent` field
+directly. `find_node_by_guid` is the same call `remove_object` uses, verified. If a picked object has
+no tree node — a top-level nurbs row from 70 — `ancestors()` is empty and only the scroll fires.)
 
 ## Step 2 — scroll to the row: `src/ui/tree.rs`
 
+The scroll request is *input* to the panel (State → panel), so it can't ride on 70's `TreeIntent`
+(that flows panel → State). Give `tree_panel` one more parameter — extend 70's signature with
+`scroll_to: &mut Option<String>` — and at the call site (in `ui/mod.rs`) pass `&mut self.ui.tree_scroll_to`.
+**That is the bridge**: Step 1's `ui.tree_scroll_to` field and this `scroll_to` param are the same
+one-shot slot. (If 70 didn't add it: `tree_scroll_to: Option<String>` is a field on the tree UI state,
+init `None`.)
+
+```rust
+pub fn tree_panel(ui: &mut egui::Ui, rows: &[Row], scene_sel: &HashSet<String>,
+                  scene_hidden: &HashSet<String>,
+                  scroll_to: &mut Option<String>,          // ← NEW: &mut self.ui.tree_scroll_to
+                  out: &mut TreeIntent) {
+```
+
 `show_rows` gives us the geometry for free: rows have uniform height, so the target row's y is
-`index × row_h`. Honor the one-shot request before drawing:
+`index × row_h`. Honor the one-shot request before drawing (find the existing `ScrollArea::vertical`
+from 70's Step 2 and replace it with this):
 
 ```rust
     // inside tree_panel, before show_rows:
-    let scroll_target = out.scroll_to.take().and_then(|g| rows.iter().position(|r| r.guid == g));
+    let scroll_target = scroll_to.take().and_then(|g| rows.iter().position(|r| r.guid == g));
     let mut area = egui::ScrollArea::vertical();
     if let Some(ix) = scroll_target {
         // ~3 rows of context above
@@ -83,7 +96,9 @@ in the same `State` before `build_ui` — the data flow 47 set up already guaran
 ## Step 3 — double-click zooms: `src/ui/tree.rs` + `src/state.rs`
 
 The reverse convenience: finding an object in the tree, then hunting it in a big scene, is the same
-problem mirrored. Double-click a row → frame it:
+problem mirrored. Zoom *is* a genuine intent (panel → State), so it rides on 70's `TreeIntent` — add
+`pub zoom_to: Option<String>` to that struct (the `#[derive(Default)]` covers it). Double-click a
+row → frame it:
 
 ```rust
     // in the row: if ui.selectable_label(selected, &row.name).double_clicked()

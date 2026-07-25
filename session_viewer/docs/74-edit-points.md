@@ -73,6 +73,10 @@ grid of on-surface handles; start with curves, the surface loop is the same code
     }
 ```
 
+`greville_cache` is a **new `Scene` field** — a per-curve cache of `(R⁻¹, edit_points)` (the type owns
+`get_or_build`). Add it to `struct Scene` and initialize it empty in `Scene::new` (a struct literal, so a
+missing field is **E0063**), like any other cache.
+
 Notes that keep this honest: the solve is per-**coordinate** (three right-hand sides, one factored
 matrix); `R` and its factorization cache per curve and invalidate with the tess cache (knots/degree
 changes rebuild it — a CV *drag* doesn't, since `R` depends only on knots); and dragging an **end**

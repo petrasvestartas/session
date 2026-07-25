@@ -36,6 +36,7 @@
 ```
 Cargo.toml               # web-sys: Request, RequestInit, RequestMode, Response (fetch API)
 index.html               # Trunk copy-file — fixture .pb bytes served next to the wasm
+src/app/mod.rs           # NEW — the app module root; declares `pub mod persistence;`
 src/app/persistence.rs   # NEW — fetch_bytes (fetch API) + session_from_bytes (.pb/.json dispatch)
 src/lib.rs               # mod app; — the first app-layer file
 src/state.rs             # fetch + parse before Gpu::new; log what loaded
@@ -67,7 +68,14 @@ web-sys = { version = "0.3", features = [
     "Response"] }
 ```
 
-**1b. Create `src/app/persistence.rs`.** Two functions: get bytes, then hand them to `Session`'s
+**1b. Create the app module root `src/app/mod.rs`** — edition 2024 needs `mod.rs` for `mod app;`
+in `lib.rs` (Step 3a) to resolve, and it's what declares the submodule:
+
+```rust
+pub mod persistence;
+```
+
+**1c. Create `src/app/persistence.rs`.** Two functions: get bytes, then hand them to `Session`'s
 own loaders — the SAME `pb_loads`/`file_json_loads` every other language's minitest already proves
 round-trip correctly, just fed bytes/a string instead of a filepath:
 
@@ -82,9 +90,9 @@ use session_rust::Session;
 
 /// GET `url` (Trunk-served, same origin as the page) and return the raw bytes.
 pub async fn fetch_bytes(url: &str) -> Result<Vec<u8>, JsValue> {
-    let mut opts = RequestInit::new();
-    opts.method("GET");
-    opts.mode(RequestMode::SameOrigin);
+    let opts = RequestInit::new();
+    opts.set_method("GET");
+    opts.set_mode(RequestMode::SameOrigin);
     let request = Request::new_with_str_and_init(url, &opts)?;
 
     let window = web_sys::window().ok_or_else(|| JsValue::from_str("no window"))?;
@@ -170,6 +178,49 @@ impl State {
 A failed fetch (offline, 404) degrades to `bytes = vec![]` → `pb_loads` errors → `Session::default()`
 — an empty scene logs 0 objects; nothing panics.
 
+## Step 3c (optional) — time the load
+
+To see *where* the load time goes, bracket the three phases with `performance.now()`. First make the
+existing frame-timer's helper public — in `src/engine/performance.rs`, change **both** `now_ms`
+definitions (the `wasm32` one and the `not(wasm32)` one) from `fn now_ms` to:
+
+```rust
+pub fn now_ms() -> f64 {
+```
+
+Then in `state.rs`, add the import and stamp a timestamp between each phase — **replace the single
+`log::info!` line from 3b** with the four `now_ms()` calls and the wider format string:
+
+```rust
+use crate::engine::performance::now_ms;
+
+    pub async fn new(window: Arc<Window>) -> anyhow::Result<Self> {
+        let t0 = now_ms();
+        let bytes = persistence::fetch_bytes(DEMO_SESSION_URL).await.unwrap_or_default();
+        let t1 = now_ms();
+        let session = persistence::session_from_bytes(DEMO_SESSION_URL, &bytes);
+        let t2 = now_ms();
+        let gpu = Gpu::new(window.clone()).await?;
+        let t3 = now_ms();
+        log::info!("loaded '{}': {} objects, {} bytes | fetch {:.0}ms · parse {:.0}ms · gpu {:.0}ms · total {:.0}ms",
+            session.name, session.lookup.len(), bytes.len(), t1 - t0, t2 - t1, t3 - t2, t3 - t0);
+        Ok(Self { window, gpu, camera: Camera::new() })
+    }
+```
+
+The console now breaks the cost down:
+
+```
+loaded 'floor_model': 491 objects, 3026442 bytes | fetch 82ms · parse 1670ms · gpu 674ms · total 2427ms
+```
+
+> **`parse` dominates — and it's the build profile, not the parser.** `trunk serve` is the dev
+> profile (`unoptimized + debuginfo`); prost's protobuf decode + building the `lookup` map runs an
+> order of magnitude slower unoptimized. `trunk serve --release` typically drops `parse` from ~1.7s
+> to a few hundred ms; `fetch` (network) and `gpu` (Firefox pipeline/shader compile) are already
+> small. Runtime fps is unaffected — the hand-made demo hits 240 either way. Only reach for a real
+> parser optimization if `--release` is still slow.
+
 ## Verify
 
 ```bash
@@ -180,7 +231,7 @@ The old five-mesh demo still draws (nothing feeds the GPU yet), but the console 
 pipeline:
 
 ```
-loaded 'floor_model': 491 objects, 3070848 bytes
+loaded 'floor_model': 491 objects, 3026442 bytes
 ```
 
 Swap `DEMO_SESSION_URL` to `"session_data/30700_querschnitt_gg.pb"` → `42232 objects`. Break the URL
@@ -205,8 +256,9 @@ Ch 34a: FETCH THE FILE. app/persistence.rs: fetch_bytes (web-sys Request/Respons
 ```
 
 Edited: `Cargo.toml` (fetch-API web-sys features), `index.html` (Trunk `copy-file` fixtures),
-`src/app/persistence.rs` (NEW — `fetch_bytes` + `session_from_bytes`), `src/lib.rs` (`mod app;`),
-`src/state.rs` (fetch + parse + log before `Gpu::new`).
+`src/app/mod.rs` (NEW — `pub mod persistence;`), `src/app/persistence.rs` (NEW — `fetch_bytes` +
+`session_from_bytes`), `src/lib.rs` (`mod app;`), `src/state.rs` (fetch + parse + log before
+`Gpu::new`).
 
 ## Next
 

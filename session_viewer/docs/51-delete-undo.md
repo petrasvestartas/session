@@ -92,7 +92,7 @@ impl History {
 }
 ```
 
-Add `pub history: History` to `State` (module decl: `pub mod history;` in `app/mod.rs`).
+Add `pub history: History` to `State`, initialize it in `State::new` (`history: History::new(),` alongside the other field inits), and add the module decl `pub mod history;` in `app/mod.rs`.
 
 ## Step 2 — the first Command: `src/app/history/remove.rs` (NEW)
 
@@ -203,7 +203,7 @@ Keyboard shortcuts are just typists (the commands-only philosophy made literal):
         Key::Character("y") if ctrl  => self.run_command("redo"),
 ```
 
-> **Borrow note.** `dispatch` takes `&mut State` while calling `state.history.execute(&mut
+> **Borrow note.** `dispatch` takes `&mut State` while calling `state.history.execute(cmd, &mut
 > state.scene, &mut state.gpu)` — three disjoint fields of the same struct, which Rust allows only
 > when accessed *as fields*, not through `&mut State` methods. If the compiler objects in your
 > arrangement, make `History::execute` a free call taking the three fields, or destructure:

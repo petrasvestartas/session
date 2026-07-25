@@ -26,7 +26,13 @@ web-sys = { version = "0.3", features = [
     "CanvasRenderingContext2d", 
     "ImageData", 
     "Location",
-    "Performance"] }
+    "Performance",
+    # Fetch-API features:
+    "Request",
+    "RequestInit",
+    "RequestMode",
+    "Response",
+    ] }
 getrandom = { version = "0.2", features = ["js"] }
 js-sys = "0.3"
 bytemuck = { version = "1", features = ["derive"] }
@@ -34,6 +40,11 @@ egui         = { version = "0.34", default-features = false, features = ["defaul
 egui-wgpu    = { version = "0.34", default-features = false }
 egui-winit   = { version = "0.34", default-features = false }
 egui_extras  = { version = "0.34", default-features = false, features = ["svg"] }
+
+# Dependencies (session_rust's prost parsing above all) run optimized even in dev builds —
+# parse of a 17MB .pb drops ~5x. Our own crate stays unoptimized for fast rebuilds.
+[profile.dev.package."*"]
+opt-level = 3
 
 [profile.release]
 strip = true

@@ -5,6 +5,21 @@
 
 const navEl = document.getElementById('nav');
 const contentEl = document.getElementById('content');
+const toggleEl = document.getElementById('navToggle');
+
+// Sidebar collapse — remembers its state and can also be toggled with the `\` key.
+function setNavCollapsed(collapsed) {
+  document.body.classList.toggle('nav-collapsed', collapsed);
+  toggleEl.textContent = collapsed ? '»' : '«';
+  localStorage.setItem('navCollapsed', collapsed ? '1' : '0');
+}
+setNavCollapsed(localStorage.getItem('navCollapsed') === '1');
+toggleEl.addEventListener('click', () =>
+  setNavCollapsed(!document.body.classList.contains('nav-collapsed')));
+window.addEventListener('keydown', (e) => {
+  if (e.key === '\\' && !/^(INPUT|TEXTAREA)$/.test(e.target.tagName))
+    setNavCollapsed(!document.body.classList.contains('nav-collapsed'));
+});
 
 marked.setOptions({ gfm: true, breaks: false });
 

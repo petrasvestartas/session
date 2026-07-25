@@ -71,15 +71,17 @@ values. `depth` = `self.distance`, the orbit camera's target distance from lesso
 use session_rust::Geometry;
 
 impl Scene {
-    /// Nearest thin hit (Line / Polyline / Point) within `tol` world units of the ray,
-    /// as a PickHit. `&mut self`: Session::ray_cast rebuilds its cached BVH lazily.
+    /// Nearest thin hit (Line / Polyline / Point / PointCloud) within `tol` world units of the
+    /// ray, as a PickHit. `&mut self`: Session::ray_cast rebuilds its cached BVH lazily.
     pub fn pick_thin(&mut self, ray: &Ray, tol: f64) -> Option<PickHit> {
         let hits = self.session.ray_cast(&ray.origin, &ray.dir, tol);   // sorted by distance
         for h in hits {
             match self.session.lookup.get(h.guid()) {
                 // Kernel mesh/BRep arms are placement-blind / no-op — 42's pick_mesh owns solids.
+                // ray_cast force-adds all four thin kinds, so match all four (miss one → it's
+                // silently unpickable).
                 Some(Geometry::Line(_)) | Some(Geometry::Polyline(_)) |
-                Some(Geometry::Point(_)) => {
+                Some(Geometry::Point(_)) | Some(Geometry::PointCloud(_)) => {
                     return Some(PickHit {
                         guid: h.guid().to_string(), point: h.point.clone(), t: h.distance });
                 }
@@ -91,11 +93,10 @@ impl Scene {
 }
 ```
 
-Wait — `hits` borrows `self.session` mutably and the loop reads `lookup`. Split the borrow: collect
-the `(guid, point, distance)` triples out of the returned `Vec<RayHit>` first (it's owned — the
-mutable borrow ends when `ray_cast` returns), then match against `lookup`. The returned `Vec` *is*
-owned, so the code above compiles as written; the note is here because `h.guid()` lazily fills a
-`OnceLock` — read it once into a `String` if the borrow checker complains about the temporaries.
+On borrows: `ray_cast` returns an **owned** `Vec<RayHit>`, so the mutable borrow of `self.session`
+ends the moment it returns. The loop then borrows only `self.session.lookup` immutably — no conflict,
+and the code above compiles as written. (`h.guid()` lazily fills a `OnceLock` on first read, but
+that's an `&self` method, not a mutation, so it needs no `&mut`.)
 
 ## Step 3 — merge: solid vs thin priority: `src/app/scene.rs`
 
@@ -125,6 +126,13 @@ Rename 42's `pick_ray` to `pick_mesh` and make `pick_ray` the umbrella:
 The click site (42's Step 4) just adds the tolerance:
 
 ```rust
+        // proj_y / ortho_h / vp_h — the same three numbers 31 packs into the line uniform
+        // (mirror gpu.rs; see cylinder.wgsl's screen_radius). fovy = 60°, so cot(fovy/2) = 1/tan(30°).
+        let unit    = self.camera.unit.to_meters();                              // mm → m
+        let proj_y  = 1.0 / (30.0_f64).to_radians().tan() * unit;                // cot(fovy/2) · unit
+        let ortho_h = if self.camera.perspective { 0.0 }                         // perspective: unused
+                      else { 2.0 * self.camera.distance * (30.0_f64).to_radians().tan() * unit };
+        let vp_h    = self.gpu.config.height as f64;                             // framebuffer px
         // R_PX = 8
         let tol = self.camera.world_per_pixel(self.camera.distance, proj_y, ortho_h, vp_h) * 8.0;
         match self.scene.pick_ray(&ray, tol) { … }

@@ -29,7 +29,7 @@ It's lesson 31's trick again, one dimension down: one **unit-sphere template**, 
 src/shaders/sphere.wgsl        # NEW — unit sphere instanced per glyph; screen-constant radius
 src/engine/pipelines/build.rs  # build_sphere_pipeline
 src/engine/pipelines/mod.rs    # Pipelines gains `sphere`
-src/engine/gpu.rs              # GlyphPoint row, sphere template, glyph buffer, one draw
+src/engine/gpu.rs              # GlyphPoint row, sphere template, glyph buffer, storage_buffer guard, one draw
 ```
 
 The group-2 `instances` table and the group-1 `line` uniform are **unchanged from 31** — the sphere
@@ -287,6 +287,15 @@ handle set — mesh interior vertices stay hidden; `naked_vertices(true)` is the
             }
 ```
 
+> **Naked vs. every vertex.** `naked_vertices(true)` is the *handle* set — only boundary endpoints
+> (open polylines, mesh holes). On a scene of **closed** solids it is **empty**, so no handles appear
+> (see *The empty-buffer trap* below — that empty `glyphs` vec is exactly what crashed the frame).
+> Swap it for `mesh.vertices()` to drop a sphere on **every** vertex: a debug point view that also fixes
+> a second problem — 31's cylinders have **flat caps**, so where two thick edges meet at a corner the
+> caps leave a wedge gap that grows with line thickness. A sphere seated at the shared vertex fills the
+> gap and rounds the joint. For that use, drop the shader's `* 3.0` so the ball matches the tube radius
+> (×1) instead of reading as an oversized handle (×3).
+
 **5b. Build the sphere template and the glyph buffer**, right beside the cylinder template / segment
 buffer block (5c in lesson 31). It is the identical pattern — template VBO/IBO + a storage buffer,
 layout, and bind group:
@@ -304,11 +313,8 @@ layout, and bind group:
             usage: wgpu::BufferUsages::INDEX,
         });
 
-        let glyph_count = glyphs.len() as u32;
-        let glyph_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("glyphs.buffer"), contents: bytemuck::cast_slice(&glyphs),
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-        });
+        let glyph_count = glyphs.len() as u32;                 // real count — may be 0
+        let glyph_buffer = storage_buffer(&device, "glyphs.buffer", &glyphs);   // guarded — see below
         let glyph_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("glyphs.layout"),
             entries: &[wgpu::BindGroupLayoutEntry {
@@ -331,6 +337,62 @@ layout, and bind group:
 Pass `&glyph_layout` into `Pipelines::new` (Step 4b), and store the six new fields on `Gpu`
 (`sph_template_vbo/ibo`, `sph_index_count`, `glyph_buffer`, `glyph_bind_group`, `glyph_count`) exactly
 as 31 stored the cylinder set.
+
+## Step 5c — the empty-buffer trap ⚠️ (critical)
+
+The scene here is five **closed** solids, so `naked_vertices(true)` returns nothing and `glyphs` is
+**empty**. `bytemuck::cast_slice(&[])` is zero bytes, and wgpu **refuses to bind a 0-byte storage
+buffer** — the frame dies the instant the bind group is built:
+
+```
+wgpu on_uncaptured_error: Buffer with 'glyphs.buffer' label binding size is zero
+```
+
+<svg viewBox="0 0 380 96" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="empty vec makes a zero-byte buffer which wgpu rejects; the guard pads to one dummy row" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="40" y="20" fill="#888">glyphs: []</text>
+  <rect x="40" y="30" width="70" height="20" fill="none" stroke="#e06c6c" stroke-width="1.2"/>
+  <text x="75" y="44" fill="#e06c6c" text-anchor="middle">0 B ✗</text>
+  <text x="150" y="44" fill="#666">→ bind rejected</text>
+  <text x="40" y="76" fill="#888">guarded</text>
+  <rect x="40" y="86" width="70" height="0.1"/>
+  <rect x="120" y="30" width="70" height="20" fill="none" stroke="#5bbf87" stroke-width="1.2"/>
+  <text x="155" y="44" fill="#5bbf87" text-anchor="middle">48 B ✓</text>
+  <text x="230" y="44" fill="#666">1 dummy row, draw 0..0</text>
+</svg>
+
+This is **not** specific to glyphs — the same crash hits `instances` (a scene with no objects) or
+`segments` (a mesh with no edges). Any storage buffer built from a `Vec` that *can* be empty needs the
+guard. Add one helper at the bottom of `gpu.rs`, beside `unit_sphere()`:
+
+```rust
+/// A read-only storage buffer that is never zero-sized (wgpu can't bind a 0-byte buffer).
+/// When `data` is empty we still allocate one zeroed element; the real element count is
+/// tracked separately, so the draw call issues 0 instances and nothing renders.
+fn storage_buffer<T: bytemuck::Pod>(device: &wgpu::Device, label: &str, data: &[T]) -> wgpu::Buffer {
+    use wgpu::util::DeviceExt;
+    let one = [T::zeroed()];
+    let contents: &[u8] = if data.is_empty() { bytemuck::cast_slice(&one) } else { bytemuck::cast_slice(data) };
+    device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some(label),
+        contents,
+        usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+    })
+}
+```
+
+**Route all three storage buffers through it** — retrofit 30's `instances` and 31's `segments` too, so
+no scene can crash the frame (each was a `device.create_buffer_init(… STORAGE …)` block; collapse to one line):
+
+```rust
+let instance_buffer = storage_buffer(&device, "instance.buffer", &instances);   // was create_buffer_init
+let segment_buffer  = storage_buffer(&device, "segments.buffer", &segments);    // was create_buffer_init
+let glyph_buffer    = storage_buffer(&device, "glyphs.buffer",   &glyphs);      // Step 5b
+```
+
+> **Why one zeroed row, not a min-binding-size?** The *bound* buffer must be ≥ one `T`, but the *draw*
+> uses the real count (`glyph_count`, still `0`), so `draw_indexed(.., 0..0)` renders nothing. The dummy
+> row exists only to satisfy the binding — it is never drawn. `T: bytemuck::Pod` gives us `T::zeroed()`
+> for free.
 
 ## Step 6 — draw the spheres in one call: `src/engine/gpu.rs`
 
@@ -358,8 +420,11 @@ glyphs:
 cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
-Line/polyline endpoints now wear dark spheres that hold their pixel size as you zoom. Console (F12)
-shows **5 draws** — 31's four plus one sphere call, however many handles there are.
+On the closed-solid scene the naked set is empty, so you'll see 31's lines but **no** handle spheres —
+and, thanks to `storage_buffer`, **no crash**. Add an open polyline (or switch `naked_vertices` →
+`mesh.vertices()`) and its vertices wear dark spheres that hold their pixel size as you zoom. Console
+(F12) shows **5 draws** — 31's four plus the sphere call, however many glyphs there are (0 glyphs draws
+nothing, but the pass stays valid).
 
 ## Recap
 
@@ -369,12 +434,13 @@ Ch 32a: HANDLE POINTS as spheres — the 0-D twin. GlyphPoint (48 B: local cente
         instance_id, color — note the _pad; one vec3 leaves a 12-byte tail). unit_sphere() template
         (12×6 UV, 144 tris), sphere.wgsl offsets template verts around the world centre — symmetric,
         so no +Z frame math. Same four bind groups as 31 (glyphs at group 3). ONE draw for all
-        handles.
+        handles. storage_buffer() guards EVERY storage buffer against the zero-size bind crash
+        (empty scene / closed mesh / no edges → one zeroed dummy row, real count stays 0, draw 0..0).
 ```
 
 Edited: `shaders/sphere.wgsl` (NEW), `engine/pipelines/build.rs` (`build_sphere_pipeline`),
 `engine/pipelines/mod.rs` (`Pipelines.sphere`), `engine/gpu.rs` (`GlyphPoint`, `unit_sphere()`,
-glyph buffer + bind group, one draw).
+glyph buffer + bind group, `storage_buffer` guard, one draw).
 
 ## Next
 

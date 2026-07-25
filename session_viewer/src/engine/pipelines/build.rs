@@ -15,6 +15,7 @@ const CYL_TEMPLATE_ATTRIBS: [wgpu::VertexAttribute; 1] = [wgpu::VertexAttribute 
 
 // This helps the GPU to read the second vertex buffer - the instance row id.
 // Without a layout description, the pipeline doesn' know those bytes exists and in what shape they are.
+/// Vertex-buffer layout for the per-vertex instance-row id (`@location(3)`, one `u32` per vertex).
 fn instance_id_layout() -> wgpu::VertexBufferLayout<'static>{
     wgpu::VertexBufferLayout{
         array_stride: 4,
@@ -23,6 +24,7 @@ fn instance_id_layout() -> wgpu::VertexBufferLayout<'static>{
     }
 }
 
+/// Vertex-buffer layout for the unit-cylinder/-sphere template positions (`@location(0)`, one `vec3<f32>`).
 fn cyl_template_layout() -> wgpu::VertexBufferLayout<'static>{
     wgpu::VertexBufferLayout {
         array_stride: 12, // one vec3<f32> per templete vertex
@@ -31,6 +33,7 @@ fn cyl_template_layout() -> wgpu::VertexBufferLayout<'static>{
     }
 }
 
+/// Pipeline for solid mesh triangles — reverse-Z depth (write on) + MSAA; reads mvp / time / instances.
 pub fn build_triangle_pipeline(
     device: &wgpu::Device,
     color_format: wgpu::TextureFormat,
@@ -100,6 +103,7 @@ pub fn build_triangle_pipeline(
     )
 }
 
+/// Pipeline for the ground grid — buffer-less `LineList`, depth-tested but never written.
 pub fn build_grid_pipeline(
     device: &wgpu::Device,
     color_format: wgpu::TextureFormat,
@@ -167,6 +171,7 @@ pub fn build_grid_pipeline(
     )
 }
 
+/// Pipeline for mesh edges — `LineList` over the mesh vertices, depth-tested but not written.
 pub fn build_edges_pipeline(
     device: &wgpu::Device,
     color_format: wgpu::TextureFormat,
@@ -234,6 +239,7 @@ pub fn build_edges_pipeline(
     )
 }
 
+/// Pipeline for linework tubes — one unit-cylinder template instanced per segment; solid, occluding.
 pub fn build_cylinder_pipeline(
     device: &wgpu::Device,
     color_format: wgpu::TextureFormat,
@@ -294,6 +300,7 @@ pub fn build_cylinder_pipeline(
     })
 }
 
+/// Pipeline for the full-screen background — buffer-less triangle at the far plane, always drawn.
 pub fn build_background_pipeline(
     device: &wgpu::Device,
     color_format: wgpu::TextureFormat,
@@ -358,4 +365,262 @@ pub fn build_background_pipeline(
             cache: None,
         }
     )
+}
+
+/// Pipeline for handle/endpoint spheres — a unit-sphere template instanced per glyph.
+pub fn build_sphere_pipeline(
+    device: &wgpu::Device,
+    color_format: wgpu::TextureFormat,
+    mvp_layout: &wgpu::BindGroupLayout,
+    line_layout: &wgpu::BindGroupLayout,
+    instance_layout: &wgpu::BindGroupLayout,
+    glyph_layout: &wgpu::BindGroupLayout,
+) -> wgpu::RenderPipeline{
+
+    let shader = device.create_shader_module(
+        wgpu::ShaderModuleDescriptor{
+            label: Some("sphere.shader"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/sphere.wgsl").into()),
+    });
+
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{
+        label: Some("sphere.layout"),
+        bind_group_layouts: &[Some(mvp_layout), Some(line_layout), Some(instance_layout), Some(glyph_layout)],
+        immediate_size: 0,
+    });
+
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{
+        label: Some("sphere"),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState{
+            module: &shader,
+            entry_point: Some("vs_main"),
+            buffers: &[cyl_template_layout()], // reused - position only, stride 12
+            compilation_options: Default::default(),
+        },
+        fragment: Some(wgpu::FragmentState{
+            module: &shader,
+            entry_point: Some("fs_main"),
+            targets: &[Some(wgpu::ColorTargetState{
+                format: color_format,
+                blend: None,
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+        compilation_options: Default::default(),
+        }),
+        primitive: wgpu::PrimitiveState{
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: None,
+            polygon_mode: wgpu::PolygonMode::Fill,
+            unclipped_depth: false,
+            conservative: false,
+        },
+        depth_stencil: Some(wgpu::DepthStencilState{
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: Some(true),
+            depth_compare: Some(wgpu::CompareFunction::Greater), // reverse -Z¨
+            stencil: wgpu::StencilState::default(),
+            bias: wgpu::DepthBiasState::default(),
+        }),
+        multisample: wgpu::MultisampleState{ count: MSAA_SAMPLES, mask: !0, alpha_to_coverage_enabled: false},
+        multiview_mask: None,
+        cache: None,
+    })
+}
+
+
+/// Pipeline for flat ribbon edges — buffer-less camera-facing quads (2 tris per segment vs the
+/// cylinder's 24), opaque + depth-writing. Reads the SAME segment table as the cylinder pipeline.
+pub fn build_ribbon_pipeline(
+    device: &wgpu::Device,
+    color_format: wgpu::TextureFormat,
+    mvp_layout: &wgpu::BindGroupLayout,
+    line_layout: &wgpu::BindGroupLayout,
+    instance_layout: &wgpu::BindGroupLayout,
+    segment_layout: &wgpu::BindGroupLayout,
+) -> wgpu::RenderPipeline{
+
+    let shader = device.create_shader_module(
+        wgpu::ShaderModuleDescriptor{
+            label: Some("ribbon.shader"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/ribbon.wgsl").into()),
+    });
+
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{
+        label: Some("ribbon.layout"),
+        bind_group_layouts: &[Some(mvp_layout), Some(line_layout), Some(instance_layout), Some(segment_layout)],
+        immediate_size: 0,
+    });
+
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{
+        label: Some("ribbon"),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState{
+            module: &shader,
+            entry_point: Some("vs_main"),
+            buffers: &[],
+            compilation_options: Default::default(),
+        },
+        fragment: Some(wgpu::FragmentState{
+            module: &shader,
+            entry_point: Some("fs_main"),
+            targets: &[Some(wgpu::ColorTargetState{
+                format: color_format,
+                blend: None,
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+        compilation_options: Default::default(),
+        }),
+        primitive: wgpu::PrimitiveState{
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: None,
+            polygon_mode: wgpu::PolygonMode::Fill,
+            unclipped_depth: false,
+            conservative: false,
+        },
+        depth_stencil: Some(wgpu::DepthStencilState{
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: Some(true),
+            depth_compare: Some(wgpu::CompareFunction::Greater), // reverse -Z
+            stencil: wgpu::StencilState::default(),
+            bias: wgpu::DepthBiasState::default(),
+        }),
+        multisample: wgpu::MultisampleState{ count: MSAA_SAMPLES, mask: !0, alpha_to_coverage_enabled: false},
+        multiview_mask: None,
+        cache: None,
+    })
+}
+
+
+/// Pipeline for geometry dot billboards — buffer-less triangles like the point pipeline, but
+/// OPAQUE and DEPTH-WRITING (dots are geometry and must occlude, like the spheres they replace —
+/// 1 triangle per dot instead of 144). The sphere pipeline stays available for handles.
+pub fn build_glyph_pipeline(
+    device: &wgpu::Device,
+    color_format: wgpu::TextureFormat,
+    mvp_layout: &wgpu::BindGroupLayout,
+    line_layout: &wgpu::BindGroupLayout,
+    instance_layout: &wgpu::BindGroupLayout,
+    glyph_layout: &wgpu::BindGroupLayout,
+) -> wgpu::RenderPipeline{
+
+    let shader = device.create_shader_module(
+        wgpu::ShaderModuleDescriptor{
+            label: Some("glyph.shader"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/glyph.wgsl").into()),
+    });
+
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{
+        label: Some("glyph.layout"),
+        bind_group_layouts: &[Some(mvp_layout), Some(line_layout), Some(instance_layout), Some(glyph_layout)],
+        immediate_size: 0,
+    });
+
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{
+        label: Some("glyph"),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState{
+            module: &shader,
+            entry_point: Some("vs_main"),
+            buffers: &[],
+            compilation_options: Default::default(),
+        },
+        fragment: Some(wgpu::FragmentState{
+            module: &shader,
+            entry_point: Some("fs_main"),
+            targets: &[Some(wgpu::ColorTargetState{
+                format: color_format,
+                blend: None,
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+        compilation_options: Default::default(),
+        }),
+        primitive: wgpu::PrimitiveState{
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: None,
+            polygon_mode: wgpu::PolygonMode::Fill,
+            unclipped_depth: false,
+            conservative: false,
+        },
+        depth_stencil: Some(wgpu::DepthStencilState{
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: Some(true),
+            depth_compare: Some(wgpu::CompareFunction::Greater), // reverse -Z
+            stencil: wgpu::StencilState::default(),
+            bias: wgpu::DepthBiasState::default(),
+        }),
+        multisample: wgpu::MultisampleState{ count: MSAA_SAMPLES, mask: !0, alpha_to_coverage_enabled: false},
+        multiview_mask: None,
+        cache: None,
+    })
+}
+
+
+/// Pipeline for point-cloud billboards — buffer-less triangles, alpha-blended, depth-tested not written.
+pub fn build_point_pipeline(
+    device: &wgpu::Device,
+    color_format: wgpu::TextureFormat,
+    mvp_layout: &wgpu::BindGroupLayout,
+    line_layout: &wgpu::BindGroupLayout,
+    instance_layout: &wgpu::BindGroupLayout,
+    glyph_layout: &wgpu::BindGroupLayout,
+) -> wgpu::RenderPipeline{
+
+    let shader = device.create_shader_module(
+        wgpu::ShaderModuleDescriptor{
+            label: Some("point.shader"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/point.wgsl").into()),
+    });
+
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{
+        label: Some("point.layout"),
+        bind_group_layouts: &[Some(mvp_layout), Some(line_layout), Some(instance_layout), Some(glyph_layout)],
+        immediate_size: 0,
+    });
+
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{
+        label: Some("point"),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState{
+            module: &shader,
+            entry_point: Some("vs_main"),
+            buffers: &[],
+            compilation_options: Default::default(),
+        },
+        fragment: Some(wgpu::FragmentState{
+            module: &shader,
+            entry_point: Some("fs_main"),
+            targets: &[Some(wgpu::ColorTargetState{
+                format: color_format,
+                blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+        compilation_options: Default::default(),
+        }),
+        primitive: wgpu::PrimitiveState{
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: None,
+            polygon_mode: wgpu::PolygonMode::Fill,
+            unclipped_depth: false,
+            conservative: false,
+        },
+        depth_stencil: Some(wgpu::DepthStencilState{
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: Some(false),
+            depth_compare: Some(wgpu::CompareFunction::Greater), // reverse -Z¨
+            stencil: wgpu::StencilState::default(),
+            bias: wgpu::DepthBiasState::default(),
+        }),
+        multisample: wgpu::MultisampleState{ count: MSAA_SAMPLES, mask: !0, alpha_to_coverage_enabled: false},
+        multiview_mask: None,
+        cache: None,
+    })
 }

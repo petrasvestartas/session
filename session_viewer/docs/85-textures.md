@@ -221,9 +221,10 @@ Back in **`gpu.rs`**, **find** the `Pipelines::new(` call and pass `&material_la
             &mvp_layout,
             &time_layout,
             &instance_layout,
-            &material_layout,   // ← NEW
+            &material_layout,   // ← NEW, after instance_layout
             &line_layout,
-            &segment_layout);
+            &segment_layout,
+            &glyph_layout);     // ← keep the existing trailing arg
 ```
 
 ## Step 4 — declare + sample the texture: `src/shaders/triangle.wgsl`

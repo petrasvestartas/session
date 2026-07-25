@@ -49,9 +49,24 @@ differs; the original is untouched.
 ## Files we touch
 
 ```
-src/app/scene.rs      # clone_selection() → Vec<Geometry> with fresh guids
-src/app/commands.rs   # `copy` (two-point Get-loop) and `array` verbs
-src/state.rs          # Alt held at gumball-press → drag a COPY (54's skeleton, one branch)
+src/app/history/add.rs # AddGeometry::of_snapshots — the plural constructor (57 shipped only ::one)
+src/app/scene.rs       # clone_selection() → Vec<Geometry> with fresh guids
+src/app/commands.rs    # `copy` (two-point Get-loop) and `array` verbs
+src/state.rs           # Alt held at gumball-press → drag a COPY (54's skeleton, one branch)
+```
+
+## Step 0 — the plural constructor: `src/app/history/add.rs`
+
+57 gave `AddGeometry::one` (single object) and `RemoveObjects` the plural `of_snapshots`. Copy/array
+commit a *batch*, so add the matching plural to `AddGeometry` — find its `impl AddGeometry` block
+(57) and add this beside `one`:
+
+```rust
+    /// Insert MANY new objects as ONE undoable Command. RemoveObjects already has the plural
+    /// `of_snapshots`, so this just wraps it — same duality as `one`.
+    pub fn of_snapshots(geoms: Vec<Geometry>) -> Self {
+        Self { inner: RemoveObjects::of_snapshots(geoms) }
+    }
 ```
 
 ## Step 1 — clone with fresh identities: `src/app/scene.rs`
@@ -82,11 +97,15 @@ src/state.rs          # Alt held at gumball-press → drag a COPY (54's skeleton
 
 ## Step 2 — the `copy` command: `src/app/commands.rs`
 
-A two-point conversation (49's `ProbeCmd` shape): *from* anchor, *to* target; the delta is a plain
-translation applied with 54's `apply_delta`; the whole batch commits as **one** `AddGeometry`:
+`CopyCmd` is 57's `LineTool` shape exactly — a struct with `from: Option<Point>`, the first click
+stashes it (`self.from = Some(p); self.ask()`), the second click runs the body below. So `from` is
+that stashed first point and `to` is the fed second point (`p`). Add `use session_rust::Xform;` to
+`commands.rs`'s imports for `Xform::translation`. The delta is a plain translation applied with 54's
+`apply_delta`; the whole batch commits as **one** `AddGeometry`:
 
 ```rust
-    // CopyCmd::feed_point, second point:
+    // CopyCmd::feed_point, second click — `from` = stashed first Point, `to` = this fed Point:
+    let to = p;
     let d = Xform::translation(to[0] - from[0], to[1] - from[1], to[2] - from[2]);
     let mut clones = state.scene.clone_selection();
     for c in &mut clones {
@@ -97,16 +116,18 @@ translation applied with 54's `apply_delta`; the whole batch commits as **one** 
     CmdStep::Done(format!("copied {n} object(s)"))
 ```
 
-(`AddGeometry::of_snapshots(Vec<Geometry>)` — the plural constructor 57's wrapper already supports
-through `RemoveObjects::of_snapshots`. Snap (59) applies to both picks automatically, so
+(`AddGeometry::of_snapshots(Vec<Geometry>)` — the plural constructor from Step 0, wrapping
+`RemoveObjects::of_snapshots`. Snap (59) applies to both picks automatically, so
 copy-from-corner-to-corner is *exact*.)
 
 `array` is the same in a loop — count from the Get-loop's number parsing (49), one command total:
 
 ```rust
-    // array N: after `copy`'s two points, repeat the delta N−1 more times, accumulating:
+    // array `count`: after `copy`'s two points, step the from→to delta k=1..=count, accumulating.
+    // (`count` is the number parsed from the Get-loop, 49 — a distinct binding from copy's `n`.)
+    let (dx, dy, dz) = (to[0] - from[0], to[1] - from[1], to[2] - from[2]);
     let mut all = Vec::new();
-    for k in 1..=n {
+    for k in 1..=count {
         let dk = Xform::translation(dx * k as f64, dy * k as f64, dz * k as f64);
         let mut batch = state.scene.clone_selection();
         for c in &mut batch { apply_delta(c, &dk); }
@@ -120,6 +141,10 @@ copy-from-corner-to-corner is *exact*.)
 One branch on 54's **release**, not its press: the drag runs exactly as 54 built it (live,
 matrix-only, on the originals — cheapest possible preview), and Alt changes only what *commits*:
 
+> **New `State` field.** This branch reads `self.alt_down`, which no earlier lesson added — give `State`
+> an `alt_down: bool` (init `false`) and set it in the existing `WindowEvent::ModifiersChanged` arm:
+> `self.alt_down = mods.state().alt_key();`.
+
 ```rust
         // 54's release handler, first lines:
         if let Some(ctx) = self.gb_drag.take() {
@@ -131,7 +156,7 @@ matrix-only, on the originals — cheapest possible preview), and Alt changes on
                 }
                 let mut clones = self.scene.clone_selection();
                 for c in &mut clones {
-                    apply_delta(c, &ctx.final_delta);
+                    apply_delta(c, &ctx.last_delta);
                 }
                 self.commit(Box::new(AddGeometry::of_snapshots(clones)));
                 self.gb_pressed = None;
@@ -176,7 +201,8 @@ Ch 80: DUPLICATION = three rails composed: Clone + refresh_guid + AddGeometry. T
        take the final delta.
 ```
 
-Edited: `app/scene.rs` (`clone_selection`), `app/commands.rs` (`copy`, `array`), `state.rs`
+Edited: `app/history/add.rs` (`AddGeometry::of_snapshots`), `app/scene.rs` (`clone_selection`),
+`app/commands.rs` (`copy`, `array`), `state.rs`
 (Alt branch on 54's release). Kernel (done with this lesson): `refresh_guid` on 7 geometry types
 ×3 languages + `Refresh Guid` minitest ×3.
 

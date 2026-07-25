@@ -53,7 +53,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.058
+    "time_ms": 0.101
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 28,
     "passed": true,
     "test_name": "Create Box",
-    "time_ms": 0.328
+    "time_ms": 0.379
   },
   {
     "checks": [
@@ -135,7 +135,7 @@
     "line": 43,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 0.277
+    "time_ms": 0.42
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 94,
     "passed": true,
     "test_name": "Mesh",
-    "time_ms": 1.401
+    "time_ms": 1.578
   },
   {
     "checks": [
@@ -208,7 +208,7 @@
     "line": 107,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.259
+    "time_ms": 0.306
   },
   {
     "checks": [
@@ -229,7 +229,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Is Solid",
-    "time_ms": 0.265
+    "time_ms": 0.231
   },
   {
     "checks": [
@@ -255,7 +255,7 @@
     "line": 143,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.446
+    "time_ms": 0.393
   },
   {
     "checks": [
@@ -276,7 +276,7 @@
     "line": 161,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 35.452
+    "time_ms": 34.024
   },
   {
     "checks": [
@@ -317,7 +317,7 @@
     "line": 242,
     "passed": true,
     "test_name": "Create Cylinder",
-    "time_ms": 12.367
+    "time_ms": 10.527
   },
   {
     "checks": [
@@ -358,7 +358,7 @@
     "line": 258,
     "passed": true,
     "test_name": "Create Sphere",
-    "time_ms": 27.846
+    "time_ms": 24.75
   },
   {
     "checks": [
@@ -389,7 +389,7 @@
     "line": 421,
     "passed": true,
     "test_name": "From Nurbscurves",
-    "time_ms": 109.662
+    "time_ms": 91.848
   },
   {
     "checks": [
@@ -410,7 +410,7 @@
     "line": 216,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 25.111
+    "time_ms": 22.077
   },
   {
     "checks": [
@@ -436,7 +436,7 @@
     "line": 331,
     "passed": true,
     "test_name": "Volume",
-    "time_ms": 825.205
+    "time_ms": 660.636
   },
   {
     "checks": [
@@ -502,7 +502,7 @@
     "line": 306,
     "passed": true,
     "test_name": "Contains Point",
-    "time_ms": 0.831
+    "time_ms": 0.665
   },
   {
     "checks": [
@@ -558,7 +558,7 @@
     "line": 622,
     "passed": true,
     "test_name": "Boolean Example brep_booleans",
-    "time_ms": 39080.612
+    "time_ms": 17970.259
   },
   {
     "checks": [
@@ -614,7 +614,7 @@
     "line": 645,
     "passed": true,
     "test_name": "Boolean Off-Center Cyl",
-    "time_ms": 40802.194
+    "time_ms": 18030.646
   },
   {
     "checks": [
@@ -670,7 +670,7 @@
     "line": 669,
     "passed": true,
     "test_name": "Boolean Contained Box",
-    "time_ms": 47.289
+    "time_ms": 24.069
   },
   {
     "checks": [
@@ -726,7 +726,7 @@
     "line": 689,
     "passed": true,
     "test_name": "Boolean Box-Box",
-    "time_ms": 690.354
+    "time_ms": 364.126
   },
   {
     "checks": [
@@ -782,7 +782,7 @@
     "line": 712,
     "passed": true,
     "test_name": "Boolean Contained Sphere",
-    "time_ms": 30.63
+    "time_ms": 16.882
   },
   {
     "checks": [
@@ -808,7 +808,7 @@
     "line": 762,
     "passed": true,
     "test_name": "Block With Hole Volume",
-    "time_ms": 1.272
+    "time_ms": 0.471
   },
   {
     "checks": [
@@ -834,7 +834,7 @@
     "line": 606,
     "passed": true,
     "test_name": "Split By Brep",
-    "time_ms": 196.834
+    "time_ms": 113.428
   },
   {
     "checks": [
@@ -875,7 +875,7 @@
     "line": 524,
     "passed": true,
     "test_name": "Split By Plane",
-    "time_ms": 892.186
+    "time_ms": 559.407
   },
   {
     "checks": [
@@ -926,7 +926,7 @@
     "line": 737,
     "passed": true,
     "test_name": "Boolean Sphere Split",
-    "time_ms": 160086.311
+    "time_ms": 99925.046
   },
   {
     "checks": [
@@ -967,7 +967,7 @@
     "line": 290,
     "passed": true,
     "test_name": "Create Torus",
-    "time_ms": 207.427
+    "time_ms": 110.75
   },
   {
     "checks": [
@@ -993,7 +993,7 @@
     "line": 588,
     "passed": true,
     "test_name": "Split By Line",
-    "time_ms": 271.545
+    "time_ms": 170.578
   },
   {
     "checks": [
@@ -1034,7 +1034,7 @@
     "line": 187,
     "passed": true,
     "test_name": "Create Block With Hole",
-    "time_ms": 16.071
+    "time_ms": 11.811
   },
   {
     "checks": [
@@ -1075,7 +1075,7 @@
     "line": 560,
     "passed": true,
     "test_name": "Split By Plane Pieces",
-    "time_ms": 808.181
+    "time_ms": 545.378
   },
   {
     "checks": [
@@ -1116,7 +1116,7 @@
     "line": 274,
     "passed": true,
     "test_name": "Create Cone",
-    "time_ms": 7.399
+    "time_ms": 5.325
   },
   {
     "checks": [
@@ -1137,6 +1137,6 @@
     "line": 203,
     "passed": true,
     "test_name": "Mesh Orientation",
-    "time_ms": 20.006
+    "time_ms": 12.429
   }
 ]

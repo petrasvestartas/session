@@ -146,7 +146,7 @@ the verified `OBB::aabb()` accessor (36's world OBB → its enclosing world AABB
     /// the vertices. Recomputing here would put an O(total vertices) walk inside the PER-FRAME
     /// cull — the classic hidden cost. The cache invalidates exactly when the BVH does (rebuild).
     pub fn world_aabb(&self, guid: &str) -> ([f64; 3], [f64; 3]) {
-        self.world_boxes[self.order_index(guid)]   // order_index: position in `order` (or a map)
+        self.world_boxes[self.guid_to_row[guid] as usize]   // 36: row == order-index into world_boxes
     }
 ```
 
@@ -192,18 +192,40 @@ N. Then the per-frame cull (right after `new`, near 33's `rebuild_instances`):
 
 ## Step 3 — the shader collapses a culled instance: `src/shaders/*.wgsl`
 
-One rule, applied in **every** vertex shader that reads an instance row (`mesh.wgsl`, `cylinder.wgsl`,
-`sphere.wgsl`, `point.wgsl`): if the row is culled (or hidden), output a vertex the rasterizer throws
-away, so the primitive vanishes without a branch on the CPU or a second draw call. Right after you fetch
-`let inst = instances[...];`:
+One rule, applied in **every** vertex shader that reads an instance row (`triangle.wgsl`, `cylinder.wgsl`,
+`sphere.wgsl` — there is no `mesh.wgsl`/`point.wgsl`): if the row is culled (or hidden), output a vertex
+the rasterizer throws away, so the primitive vanishes without a branch on the CPU or a second draw call.
+Each shader reaches the instance differently, so the anchor and the flag read differ per file — but the
+collapse is identical: set the builtin position (`VsOut.pos`, **not** `o.clip` — no such field) to a
+`w = 0` vector and return early. `var o: VsOut;` zero-inits the rest, so only `pos` matters.
+
+In `triangle.wgsl`, right after `let inst = instances[in.inst_id];`:
 
 ```wgsl
 if ((inst.flags & FLAG_CULLED) != 0u || (inst.flags & FLAG_HIDDEN) != 0u) {
-    return out_clipped();   // w = 0 → clipped away; the triangle/segment/glyph collapses
+    var o: VsOut; o.pos = vec4<f32>(0.0); return o;   // w = 0 → clipped away; the triangle collapses
 }
 ```
 
-with a shared helper (or inline it): `fn out_clipped() -> VsOut { var o: VsOut; o.clip = vec4<f32>(0.0, 0.0, 0.0, 0.0); return o; }`. Declare the two consts in each shader — `const FLAG_HIDDEN: u32 = 2u;
+In `cylinder.wgsl`, right after `let seg = segments[si];` (the segment carries `instance_id`):
+
+```wgsl
+let flags = instances[seg.instance_id].flags;
+if ((flags & FLAG_CULLED) != 0u || (flags & FLAG_HIDDEN) != 0u) {
+    var o: VsOut; o.pos = vec4<f32>(0.0); return o;   // the whole segment collapses
+}
+```
+
+In `sphere.wgsl`, right after `let g = glyphs[gi];`:
+
+```wgsl
+let flags = instances[g.instance_id].flags;
+if ((flags & FLAG_CULLED) != 0u || (flags & FLAG_HIDDEN) != 0u) {
+    var o: VsOut; o.pos = vec4<f32>(0.0); return o;   // the glyph collapses
+}
+```
+
+Declare the two consts at the top of each shader — `const FLAG_HIDDEN: u32 = 2u;
 const FLAG_CULLED: u32 = 128u;` — matching the Rust bit values. **One draw call stays one draw call**:
 31's `draw_indexed(0..N, 0, 0..segments.len())` fires for the whole arena; the GPU simply discards the
 collapsed instances. Culling changes the *buffer*, never the *draw*.

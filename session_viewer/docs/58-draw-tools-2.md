@@ -48,8 +48,10 @@ needed, ghosts draw in the main cylinder pass, just from their own small buffer:
 ```
 
 Draw them right after the main cylinder draw, same pipeline, `preview_bind_group` at group 3. Ghost
-rows use a dedicated reserved row (like `GB_ROW`, 52) with identity model and a translucent gray —
-visually unmistakable as "not real yet".
+rows use a dedicated reserved row — export it as `pub const PREVIEW_ROW: u32` (the analog of `GB_ROW`,
+52) with identity model and a translucent gray, so a segment's raw world points draw untransformed and
+visually unmistakable as "not real yet". Make `CylinderSegment` and `PREVIEW_ROW` `pub` here — the
+tools in Step 3/4 build ghost segments and import both.
 
 ## Step 2 — tools learn about motion: `src/app/getloop.rs` + `src/state.rs`
 
@@ -82,9 +84,25 @@ And one routing addition: **Enter on an empty CLI while a command runs** already
 
 ## Step 3 — PolylineTool: `src/app/tools/polyline.rs`
 
+Add at the top of the file — the shared ghost helper `ghost_segment` (used here and in `rect.rs`),
+plus the `CylinderSegment` import it returns. `PREVIEW_ROW` is the reserved identity-model row Step 1
+set aside in `gpu`, so the segment's raw world points draw untransformed:
+
 ```rust
 use session_rust::{Geometry, Point, Polyline};
 use crate::app::getloop::{ActiveCommand, CmdStep, GetState};
+use crate::engine::gpu::{CylinderSegment, PREVIEW_ROW};
+
+/// A translucent-gray, screen-constant segment on the preview row — "not real yet".
+pub fn ghost_segment(a: &Point, b: &Point) -> CylinderSegment {
+    CylinderSegment {
+        p0: a.to_f32(),
+        radius: 0.0,                 // screen-constant px, like every edge
+        p1: b.to_f32(),
+        instance_id: PREVIEW_ROW,    // Step 1's reserved identity row
+        color: [0.6, 0.6, 0.6, 0.5], // translucent gray
+    }
+}
 
 pub struct PolylineTool {
     points: Vec<Point>,

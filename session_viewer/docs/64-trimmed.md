@@ -47,7 +47,7 @@ pub enum ObjRef<'a> {
     // lookup — incl. NurbsCurve/NurbsSurface (gap #4, fixed)
     Geom(&'a Geometry),
     // objects.nurbssurfacetrimmeds — the ONE type still outside
-    Trimmed(&'a NurbsSurfaceTrimmed),
+    Trimmed(&'a NurbsSurfaceTrimmed),   // scene.rs needs `use session_rust::NurbsSurfaceTrimmed;`
 }
 
 impl ObjRef<'_> {
@@ -96,15 +96,40 @@ the untrimmed domain rectangle:
     } else if let Some(ts) = self.session.objects.nurbssurfacetrimmeds.iter()
         .find(|t| t.guid() == guid) {
         let ri = self.guid_to_row[guid];
-        // boundary loops via 60's sampler over the trim curves
+        // boundary loops: sample each UV trim loop, LIFT (u,v)->3D via point_at, then tube
         Some((ts.mesh(), trimmed_linework(ts, ri)))
     }
 ```
 
-(`trimmed_linework` walks the trim's boundary curves — check the exact accessor on your kernel's
-`NurbsSurfaceTrimmed` (the loops that `mesh_q` itself consumes) and feed each through `sample_curve` →
-tubes, like 63's `brep_linework`. Iso lines from 62 apply too if you want the interior grid — clip
-them mentally or skip; the boundary is what must be right.)
+(`trimmed_linework` walks the trim's boundary loops — `ts.get_outer_loop()` plus `ts.get_inner_loop(i)`
+for `i in 0..ts.inner_loop_count()` (the very loops `mesh_q` itself consumes). **Critical: these are UV
+curves, not 3D.** Each `sample_curve` point is a `(u, v)` param pair living in the surface's parameter
+square, so before you tube it you must lift it back onto the surface with `ts.surface().point_at(u, v)`
+— `mesh_q` does exactly this (its `eval3` closure). Skip the lift and every boundary tube collapses into
+a flat ring near the world origin (the `[0,1]²` domain), floating off the actual surface. Feed the
+*lifted* polyline through 63's tube builder. Iso lines from 62 apply too if you want the interior grid —
+clip them mentally or skip; the boundary is what must be right.)
+
+<svg viewBox="0 0 660 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="trim loops sampled in the flat uv unit square must be lifted onto the curved surface with point_at(u,v) or they collapse to a flat ring at the world origin" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="110" y="16" fill="#888" text-anchor="middle">sample trim loop → (u, v)</text>
+  <rect x="40" y="30" width="140" height="120" fill="none" stroke="#555" stroke-width="1"/>
+  <text x="34" y="150" fill="#666" text-anchor="end">0</text>
+  <text x="34" y="36" fill="#666" text-anchor="end">1</text>
+  <text x="46" y="166" fill="#666">0</text><text x="176" y="166" fill="#666" text-anchor="end">1 (u)</text>
+  <path d="M 60,110 C 78,72 150,70 162,96 C 168,120 120,138 74,132 Z" fill="none" stroke="#6fb3ff" stroke-width="1.6"/>
+  <ellipse cx="112" cy="100" rx="20" ry="11" fill="none" stroke="#6fb3ff" stroke-width="1.3"/>
+  <text x="110" y="182" fill="#e06c6c" text-anchor="middle">flat in [0,1]² — WRONG if tubed as-is</text>
+
+  <g fill="#6fb3ff"><text x="250" y="96" font-size="14">──▶</text></g>
+  <text x="270" y="82" fill="#d7dae0" text-anchor="middle">surface</text>
+  <text x="270" y="112" fill="#d7dae0" text-anchor="middle">.point_at(u,v)</text>
+
+  <text x="500" y="16" fill="#888" text-anchor="middle">lift each (u, v) → 3D</text>
+  <path d="M 360,120 C 420,70 560,64 620,104 L 606,140 C 548,104 430,110 372,148 Z" fill="none" stroke="#5bbf87" stroke-width="1.2" opacity="0.6"/>
+  <path d="M 372,132 C 410,96 500,94 512,118 C 518,138 470,152 388,150 Z" fill="none" stroke="#6fb3ff" stroke-width="1.8"/>
+  <ellipse cx="452" cy="118" rx="20" ry="9" fill="none" stroke="#6fb3ff" stroke-width="1.4"/>
+  <text x="500" y="182" fill="#5bbf87" text-anchor="middle">boundary rides the surface — RIGHT</text>
+</svg>
 
 Transforms: matrix-only, same list — `Mesh | BRep | NurbsSurface | NurbsSurfaceTrimmed`. Reconcile's
 `changed` bucket invalidates its cache entry. Both are one-word edits to 61/63's arms.

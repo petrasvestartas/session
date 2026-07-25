@@ -51,7 +51,8 @@ The modern shape (no per-object GPU queries — those stall):
 ## Lever 3 — GPU cull + indirect draw: the CPU stops counting
 
 37/lever-2 decide per object on the CPU and re-upload flags. At 500k objects even that loop matters.
-WebGPU's answer — unavailable in WebGL, which is why 27 locked WebGPU-only:
+WebGPU's answer — unavailable in WebGL, which is why 27 locked WebGPU-only. The shape, in
+pseudocode (a sketch of the two passes — **not code to type**):
 
 ```
 compute pass (one thread per object):

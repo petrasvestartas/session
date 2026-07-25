@@ -153,8 +153,9 @@ draw it **last, in a pass that clears only the depth buffer** — color loads, d
     // gumball tables — small, rebuilt whole whenever selection/camera changes (they're ~400 rows)
     pub gb_segments: Vec<CylinderSegment>,
     pub gb_glyphs: Vec<GlyphPoint>,
-    // + gb_segment_buffer / gb_glyph_buffer / bind groups — same pattern as 31/32's,
-    //   small fixed capacity
+    pub gb_segment_count: u32,  pub gb_glyph_count: u32,
+    // + gb_segment_buffer / gb_glyph_buffer / bind groups — same pattern as 31/32's, small fixed capacity.
+    // ALL of these get a value in Gpu::new's `Self { … }` (Vec::new(), counts 0, empty buffers) — else E0063.
 ```
 
 ```rust
@@ -207,7 +208,10 @@ gumball sits at its base):
     }
 ```
 
-In `state.rs`, whenever the selection changes (the three gesture sites in 45 + hide in 46), rebuild:
+In `state.rs`, whenever the selection changes (the three gesture sites in 45 + hide in 46), rebuild.
+First add the field this uses: `gb: Option<GumballGeom>` on `struct State`, **and** initialize it
+`gb: None` in `State::new` — else E0609 here, then E0063 in the initializer (53 does the same for
+`gb_pressed`/`gb_hovered`):
 
 ```rust
     fn refresh_gumball(&mut self) {

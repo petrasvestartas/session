@@ -24,6 +24,10 @@ struct LineUniform{
     proj_y: f32, // vertical projection scale + unit scale (perspective: cot(fovy)/2) mm > m)
     ortho_h: f32, // ortho world-height * unit scale; 0.0 in perspcetive
     vp_h: f32, // framebuffer height, in pixels
+    vp_w: f32, // framebuffer width, in pixels (flat linework)
+    _pad0: f32,
+    _pad1: f32,
+    _pad2: f32,
 };
 
 // World-space radius that projects to thickness px, constant regardlesss of zoom

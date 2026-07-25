@@ -32,7 +32,7 @@
 src/engine/text.rs
 src/shaders/text.wgsl          # NEW — billboard vs (32b's trick) + atlas-sampling fs
 src/engine/pipelines/build.rs  # build_text_pipeline (first pipeline with a texture bind group)
-src/engine/gpu/mod.rs          # label buffer + one draw, after the gumball, before egui
+src/engine/gpu/mod.rs          # label buffer + TextUniform + one draw, after the gumball, before egui
 ```
 
 ## Step 1 — the atlas: `src/engine/text.rs`
@@ -58,8 +58,9 @@ archive's choice. A TTF rasterizer is a later luxury; label text is small and mo
 
 ## Step 2 — quads: `src/engine/text.rs`
 
-One vertex format, four corners per character, **anchor + pixel offset** split exactly like the
-gumball's screen-constant math — the anchor projects, the offset is applied in NDC-per-pixel after:
+One vertex format, **six vertices (two triangles) per character**, **anchor + pixel offset** split
+exactly like the gumball's screen-constant math — the anchor projects, the offset is applied in
+NDC-per-pixel after:
 
 ```rust
 #[repr(C)]
@@ -76,21 +77,84 @@ pub struct TextVertex {
 pub fn label_verts(text: &str, p: [f32; 3], color: [f32; 4], out: &mut Vec<TextVertex>) { /* … */ }
 ```
 
+The 44 bytes map field-for-field onto the WGSL vertex input — each Rust field is one `@location(N)`,
+same order, same format. Get an offset or a `format` wrong here and the atlas samples garbage:
+
+<svg viewBox="0 0 620 128" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TextVertex 44-byte layout: anchor at location 0 float32x3, px_off at location 1 float32x2, uv at location 2 float32x2, color at location 3 float32x4" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="10" y="16" fill="#888">TextVertex — 44 B, one plain vertex buffer (stride 44)</text>
+  <rect x="10"  y="28" width="132" height="26" fill="none" stroke="#6fb3ff"/>
+  <rect x="142" y="28" width="88"  height="26" fill="none" stroke="#6fb3ff"/>
+  <rect x="230" y="28" width="88"  height="26" fill="none" stroke="#6fb3ff"/>
+  <rect x="318" y="28" width="176" height="26" fill="none" stroke="#6fb3ff"/>
+  <g fill="#d7dae0" text-anchor="middle" font-size="11">
+    <text x="76"  y="45">anchor</text>
+    <text x="186" y="45">px_off</text>
+    <text x="274" y="45">uv</text>
+    <text x="406" y="45">color</text>
+  </g>
+  <g fill="#666" text-anchor="middle" font-size="10">
+    <text x="76"  y="68">@location(0)</text><text x="76"  y="80">float32x3</text>
+    <text x="186" y="68">@location(1)</text><text x="186" y="80">float32x2</text>
+    <text x="274" y="68">@location(2)</text><text x="274" y="80">float32x2</text>
+    <text x="406" y="68">@location(3)</text><text x="406" y="80">float32x4</text>
+  </g>
+  <g fill="#555" text-anchor="middle" font-size="10">
+    <text x="76"  y="98">off 0</text>
+    <text x="186" y="98">off 12</text>
+    <text x="274" y="98">off 20</text>
+    <text x="406" y="98">off 28</text>
+  </g>
+  <text x="10" y="122" fill="#888">world pt (shared) · px corner offset · atlas uv · rgba → the vs reads these by <tspan fill="#6fb3ff">@location</tspan>, not by struct name</text>
+</svg>
+
 Labels come from the document: object `name`s (the tree's names, 70) at each object's box-top center
 (`world_aabb` again), rebuilt only when the scene or names change — never per frame.
 
 ## Step 3 — the shader: `src/shaders/text.wgsl`
 
+Create the file. Group 0 is 31's `mvp`; group 1 is text's **own** `TextUniform` (just the viewport —
+labels borrow nothing from the line uniform, exactly like 32b's `CloudUniform`); group 3 is the course's
+first texture — the atlas + its sampler (group 2 stays the unused `instances` slot so the pipeline's
+layout array is contiguous). The `TextVertex` fields arrive as `@location`s (a WGSL vertex-input type,
+**not** the Rust CPU struct), matching the byte-map above:
+
 ```wgsl
+@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
+@group(1) @binding(0) var<uniform> view: TextUniform;
+
+// group 3 — first texture bind group of the course: an R8Unorm atlas + a linear sampler.
+@group(3) @binding(0) var atlas: texture_2d<f32>;
+@group(3) @binding(1) var samp: sampler;
+
+// Text billboards need only the viewport (px → NDC) — nothing from the line uniform, so their OWN
+// uniform. Pad with two scalars (a vec3 pad rounds to 16 B and mis-sizes vs the Rust mirror).
+struct TextUniform {
+    vp_w: f32,          // framebuffer width, px
+    vp_h: f32,          // framebuffer height, px
+    _pad0: f32,
+    _pad1: f32,
+};                      // 16 B — one vec4
+
+struct VsOut {
+    @builtin(position) pos: vec4<f32>,
+    @location(0) uv: vec2<f32>,
+    @location(1) color: vec4<f32>,
+};
+
 @vertex
-fn vs_main(in: TextVertex) -> VsOut {
-    let clip = mvp * vec4<f32>(in.anchor, 1.0);
+fn vs_main(
+    @location(0) anchor: vec3<f32>,   // world position of the label (shared by all its verts)
+    @location(1) px_off: vec2<f32>,   // this corner's offset from the anchor, in PIXELS
+    @location(2) uv: vec2<f32>,       // into the atlas
+    @location(3) color: vec4<f32>,
+) -> VsOut {
+    let clip = mvp * vec4<f32>(anchor, 1.0);
     // pixel offset applied AFTER projection (32b's billboard move): ×clip.w cancels the divide,
     // 2/viewport maps px → NDC. Labels face the camera and hold their size at every zoom.
-    let ndc_off = in.px_off * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * clip.w;
+    let ndc_off = px_off * 2.0 / vec2<f32>(view.vp_w, view.vp_h) * clip.w;
     var o: VsOut;
     o.pos = vec4<f32>(clip.xy + ndc_off, clip.zw);
-    o.uv = in.uv;  o.color = in.color;
+    o.uv = uv;  o.color = color;
     return o;
 }
 
@@ -102,8 +166,9 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 }
 ```
 
-(This wants a `vp_w` on the line uniform — the exact upgrade 32b deferred; take it now, the struct
-grows one padded slot. The pipeline: alpha blend on, depth **test on / write off** — labels hide
+(Build a `text_uniform` buffer `{ vp_w, vp_h, 0, 0 }` + a `text_bind_group` on the existing uniform
+layout, and refresh `vp_w`/`vp_h` in `resize()` — the cloud's `CloudUniform` (32b) does the same; text
+just drops the `size` field. The pipeline: alpha blend on, depth **test on / write off** — labels hide
 behind geometry but never punch holes in it. First texture bind group of the course: one
 `Texture` + `Sampler` layout at group 3.)
 
@@ -137,8 +202,8 @@ Ch 72: LABELS. A glyph atlas (ASCII on a fixed CELL grid, R8Unorm, baked once �
 ```
 
 Edited: `engine/text.rs` (NEW — atlas + `label_verts`), `shaders/text.wgsl` (NEW),
-`engine/pipelines/build.rs` (`build_text_pipeline`, texture layout, `vp_w` on the line uniform),
-`engine/gpu/mod.rs` (label buffer + draw).
+`engine/pipelines/build.rs` (`build_text_pipeline`, texture layout, `TextUniform`),
+`engine/gpu/mod.rs` (label buffer + `TextUniform` + draw).
 
 ## Next
 

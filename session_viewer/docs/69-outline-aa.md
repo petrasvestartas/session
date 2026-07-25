@@ -48,19 +48,63 @@ res — half is fine, the ramp hides it.
 separable identity: horizontal pass stores the nearest-mask distance along the row; vertical pass
 combines column-neighbors' row-distances into the true 2-D distance. Two passes × (2R+1) taps = 18:
 
+Both passes are the **same** formula — `out = min over k of sqrt(sample(p + k·dir)² + k²)` — once pass 1
+seeds the mask as a distance (on-mask → 0, off → ∞): then `sqrt(0² + k²) = |k|` (pass 1) and
+`sqrt(dist1² + k²)` (pass 2) fall out of one line. So it's genuinely one shader with a `dir` + `seed`
+uniform, ping-ponging two R16Float targets:
+
 ```wgsl
-// pass 1 (dir = (1,0)): out = min over k in -R..R of (mask(x+k,y) ? |k| : INF)
-// pass 2 (dir = (0,1)): out = min over k of sqrt(dist1(x,y+k)² + k²)   — exact euclidean, separable
+struct Sep { dir: vec2<f32>, radius: f32, seed: f32 };  // dir=(1,0)|(0,1); seed=1 on pass 1 (mask in)
+@group(0) @binding(0) var<uniform> sep: Sep;
+@group(0) @binding(1) var src: texture_2d<f32>;         // pass1: mask coverage; pass2: dist field
+
+const INF: f32 = 1e9;
+
+// pass1: coverage>0.5 → on-mask distance 0, else INF. pass2: src already IS a distance — pass through.
+fn seed(c: vec2<i32>) -> f32 {
+    let dim = vec2<i32>(textureDimensions(src));
+    let d = textureLoad(src, clamp(c, vec2<i32>(0), dim - vec2<i32>(1)), 0).r;
+    return select(d, select(INF, 0.0, d > 0.5), sep.seed > 0.5);
+}
+
+@fragment
+fn fs_main(@builtin(position) frag: vec4<f32>) -> @location(0) vec4<f32> {
+    let p = vec2<i32>(i32(frag.x), i32(frag.y));
+    let stp = vec2<i32>(i32(sep.dir.x), i32(sep.dir.y));
+    let r = i32(sep.radius);
+    var best = INF;
+    for (var k = -r; k <= r; k = k + 1) {
+        let d = seed(p + stp * k);
+        best = min(best, sqrt(d*d + f32(k*k)));         // separable euclidean combine
+    }
+    return vec4<f32>(best, 0.0, 0.0, 1.0);              // R16Float distance
+}
 ```
 
-One shader, a `dir` uniform, ping-pong between two R16Float targets. (The coverage grays from Step 1
-ride along: treat mask > 0.5 as inside, and carry the fractional value into the ramp for the
-anti-aliased inner edge.)
+Reuses the fullscreen-triangle `vs` the composite/GTAO passes already have. Pass 1 binds the mask with
+`seed=1, dir=(1,0)` → dist1; pass 2 binds dist1 with `seed=0, dir=(0,1)` → dist2 (the ping-pong). The
+coverage grays from Step 1 ride along: mask > 0.5 is inside, and the fractional value feeds the ramp for
+the anti-aliased inner edge.
 
 ## Step 3 — the ramp in composite: `composite.wgsl`
 
+Declare Step 2's output as a new binding in composite's post-process group (the next free slot after
+67's AO texture; reuse the fullscreen `samp` sampler the pass already binds), plus the ring width:
+
+```wgsl
+// find the composite binding block (67's AO texture) → add after it:
+@group(0) @binding(4) var outline_dist: texture_2d<f32>;   // Step 2's R16Float distance field
+
+const WIDTH: f32 = 3.0;   // ring radius, px
+```
+
+Then, in the composite `fs_main` (right before writing `out_rgb` to the swapchain), derive `inside`
+from the distance field itself — `d == 0` exactly on the mask, growing outward — so no separate mask
+binding is needed:
+
 ```wgsl
     let d = textureSample(outline_dist, samp, uv).r;
+    let inside = 1.0 - smoothstep(0.0, 1.0, d);               // ~1 on the mask, 0 one px out
     let ring = 1.0 - smoothstep(WIDTH - 1.0, WIDTH, d);        // crisp 1 px falloff at radius WIDTH
     let sel_color = vec3<f32>(1.0, 0.72, 0.1);
     out_rgb = mix(out_rgb, sel_color, ring * (1.0 - inside));  // ring outside the object only

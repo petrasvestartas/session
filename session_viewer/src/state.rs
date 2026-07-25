@@ -8,6 +8,22 @@ use winit::window::Window;
 
 use crate::engine::gpu::Gpu;
 use crate::camera::Camera;
+use crate::app::persistence;
+use crate::engine::performance::now_ms;
+
+// Runtime fetch paths — each must match an index.html copy-file target (data-target-path +
+// filename). The grid cycles these files across its cells (different drawing per cell).
+const DEMO_SESSION_URLS: &[&str] = &[
+    "session_data/30700_querschnitt_gg.pb",
+    "session_data/draw_pj_treppenhaus_a.pb",
+    "session_data/draw_pi_laengsschnitt.pb",
+    "session_data/draw_pd_treppenhaus04.pb",
+    "session_data/draw_pj_grundriss_og2.pb",
+    "session_data/draw_pf_he.pb",
+    "session_data/draw_pe_schalungsbild.pb",
+    "session_data/draw_pb_haus25.pb",
+    "session_data/draw_pc_gru_og2.pb",
+];
 
 pub struct State {
     pub window: Arc<Window>,
@@ -16,11 +32,30 @@ pub struct State {
 }
 
 impl State {
-    pub async fn new(window: Arc<Window>) -> anyhow::Result<Self> {
-        let gpu = Gpu::new(window.clone()).await?;
-        Ok(Self { window, gpu, camera: Camera::new() })
+
+    pub async fn new(window: Arc<Window>) -> anyhow::Result<Self>{
+        let t0 = now_ms();
+        let mut files = Vec::new();
+        for url in DEMO_SESSION_URLS {
+            let f0 = now_ms();
+            let bytes = persistence::fetch_bytes(url).await.unwrap_or_default();
+            let f1 = now_ms();
+            let session = persistence::session_from_bytes(url, &bytes);
+            log::info!("loaded '{}': {} objects, {} bytes | fetch {:.0}ms · parse {:.0}ms",
+                session.name, session.lookup.len(), bytes.len(), f1 - f0, now_ms() - f1);
+            if !session.lookup.is_empty() {
+                files.push(Gpu::walk_session(&session)); // failed fetch = skipped file
+            }
+            // `session` + `bytes` DROP here — peak memory holds one parsed file, not all nine
+        }
+        let t2 = now_ms();
+        let gpu = Gpu::new(window.clone(), &files).await?;
+        log::info!("{} files | load {:.0}ms · gpu {:.0}ms · total {:.0}ms",
+            files.len(), t2 - t0, now_ms() - t2, now_ms() - t0);
+        Ok(Self {window, gpu, camera: Camera::new() })
     }
 
+    /// Forward a canvas resize to the GPU layer.
     pub fn resize(&mut self, width: u32, height: u32) {
         self.gpu.resize(width, height);
     }
@@ -30,7 +65,11 @@ impl State {
     pub fn render(&mut self) -> anyhow::Result<()> {
         self.window.request_redraw();
         let aspect = self.gpu.config.width as f64 / self.gpu.config.height as f64;
-        let view_proj = self.camera.view_proj(aspect);
+        // Floating anchor: instances are rebased about a snapped anchor (full rebuild only when
+        // the target strays far); the view matrix absorbs the drift — pan costs one uniform.
+        let origin = self.camera.origin();
+        let anchor = self.gpu.rebase_anchor(&origin);
+        let view_proj = self.camera.view_proj_anchored(aspect, &anchor);
         self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj)
     }
 }

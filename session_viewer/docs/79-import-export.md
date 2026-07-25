@@ -64,7 +64,10 @@ ever sees a `Session`. Zero extra wiring; the funnel design pays again.
 ## Step 2 — the Open… dialog: `src/app/persistence.rs`
 
 The user-driven path 34a deferred. A hidden `<input type=file>`, clicked programmatically; the
-picked `File` is read as bytes and fed to the same funnel:
+picked `File` is read as bytes and fed to the same funnel.
+
+First, add the three features to the `web-sys` `features = [...]` list in `Cargo.toml`
+(next to the ones 34a added):
 
 ```toml
     "HtmlInputElement",
@@ -72,10 +75,24 @@ picked `File` is read as bytes and fed to the same funnel:
     "FileList",
 ```
 
+Add these two imports at the top of `persistence.rs` (alongside Step 1's): `JsCast`
+powers the `.dyn_into()` / `.unchecked_ref()` casts, and `Rc` is how the `done`
+callback survives being handed to *two* closures:
+
+```rust
+use std::rc::Rc;
+use wasm_bindgen::JsCast;
+```
+
+`done` is `impl Fn` — **not** `Clone`. It gets captured into the `onchange` closure
+*and*, from there, into the `spawn_local` future, so it has to be shared. Wrap it in an
+`Rc` once at the top, then clone the handle inside:
+
 ```rust
 /// Pop the browser's file dialog; on pick, hand (name, bytes) to `done`.
 /// New ground like 34a's fetch: verified against web-sys 0.3, wants a click-through.
 pub fn open_file_dialog(done: impl Fn(String, Vec<u8>) + 'static) {
+    let done = Rc::new(done);
     let document = web_sys::window().unwrap().document().unwrap();
     let input: web_sys::HtmlInputElement =
         document.create_element("input").unwrap().dyn_into().unwrap();
@@ -85,7 +102,7 @@ pub fn open_file_dialog(done: impl Fn(String, Vec<u8>) + 'static) {
     let onchange = wasm_bindgen::closure::Closure::wrap(Box::new(move || {
         if let Some(file) = input2.files().and_then(|l| l.get(0)) {
             let name = file.name();
-            let done = /* clone the callback handle */;
+            let done = done.clone();        // clone the Rc handle for the async frame
             wasm_bindgen_futures::spawn_local(async move {
                 let buf = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await.unwrap();
                 done(name, js_sys::Uint8Array::new(&buf).to_vec());
@@ -131,12 +148,19 @@ exactness by format; OBJ *is* a mesh format, that's honest.)
 `file_step` exists **only in C++** today — there is no `session_rust::file_step`, so the wasm viewer
 cannot parse STEP no matter what we wire. That's now **kernel-gap #11**: port the STEP codec
 C++ → Rust/Python (C++ is ground truth; the reader/writer logic is substantial — this is a real
-project, not an afternoon). The dispatch arm is written to fail loudly rather than silently:
+project, not an afternoon). The dispatch arm is written to fail loudly rather than silently.
+
+In `session_from_bytes` (Step 1), insert this arm **between the `.obj` arm and the final
+`else`** — it slots right in as one more `else if`, closing with the trailing `}` of the
+existing fallback:
 
 ```rust
     } else if url.ends_with(".step") || url.ends_with(".stp") {
         log::warn!("STEP import needs the C++->Rust codec port (kernel-gap #11)");
         Session::default()
+    } else {
+        Session::pb_loads(bytes).unwrap_or_default()
+    }
 ```
 
 ## Verify

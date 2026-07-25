@@ -65,6 +65,22 @@ int main(int argc, char** argv) {
         std::printf("REF_WRITTEN\n");
         return 0;
     }
+    // Point classification oracle: --inside file.step x y z [x y z ...] -> IN/OUT/ON per
+    // point, using OCCT's exact solid classifier (truth for our winding/angle debates).
+    if (std::strcmp(argv[1], "--inside") == 0 && argc >= 6) {
+        STEPControl_Reader r2;
+        if (r2.ReadFile(argv[2]) != IFSelect_RetDone) { std::printf("READ_FAIL\n"); return 1; }
+        r2.TransferRoots();
+        TopoDS_Shape s2 = r2.OneShape();
+        BRepClass3d_SolidClassifier c2(s2);
+        for (int k = 3; k + 2 < argc; k += 3) {
+            gp_Pnt p(std::atof(argv[k]), std::atof(argv[k+1]), std::atof(argv[k+2]));
+            c2.Perform(p, 1e-7);
+            std::printf("PT %s %s %s -> %s\n", argv[k], argv[k+1], argv[k+2],
+                        c2.State() == TopAbs_IN ? "IN" : c2.State() == TopAbs_OUT ? "OUT" : "ON");
+        }
+        return 0;
+    }
     // Boolean oracle on IMPORTED files: --cut A.step B.step reads both with the strict
     // importer, runs OCCT's cut, and reports the result -- the truth reference for our
     // imported-brep boolean campaign (oracle.exe only builds primitives).

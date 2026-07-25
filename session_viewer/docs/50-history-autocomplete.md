@@ -10,7 +10,7 @@
 ```
 src/app/commands.rs   # VERBS + ALIASES tables — one source of truth for dispatch AND completion
 src/ui/cli.rs         # ↑/↓ history walk, Tab completion (keys intercepted before the TextEdit)
-src/state.rs          # history: Vec<String> pushed by run_command
+src/state.rs          # cli_history: Vec<String> pushed by run_command
 ```
 
 ## Step 1 — the verb tables: `src/app/commands.rs`
@@ -24,7 +24,7 @@ pub const VERBS: &[&str] = &["hide", "show", "zoom", "probe", "help"];
 
 /// alias → canonical. Dispatch resolves through this BEFORE matching, so `match` arms only
 /// ever name canonical verbs (drop the `| "h"`-style patterns from 48).
-pub const ALIASES: &[(&str, &str)] = &[("h", "hide"), ("z", "zoom"), ("f", "zoom"), ("?", "help")];
+pub const ALIASES: &[(&str, &str)] = &[("h", "hide"), ("z", "zoom"), ("fit", "zoom"), ("f", "zoom"), ("?", "help")];
 
 pub fn resolve(verb: &str) -> &str {
     ALIASES.iter().find(|(a, _)| *a == verb).map(|(_, c)| *c).unwrap_or(verb)
@@ -37,15 +37,27 @@ and at the top of `dispatch`:
     let verb = resolve(parts.next().unwrap_or(""));   // ← aliases resolved once, here
 ```
 
+Because `verb` is now always canonical, strip the alias patterns from every arm — find each
+match arm in `dispatch` and drop the `| "…"` alternatives, e.g.:
+
+```rust
+    // 48:                          →  now:
+    "hide" | "h" => …                  "hide" => …
+    "zoom" | "z" | "fit" | "f" => …    "zoom" => …
+    "help" | "?" => …                  "help" => …
+```
+
 ## Step 2 — history: `src/state.rs`
 
 `run_command` records every non-empty line; the CLI walks the record:
 
 ```rust
-    pub history: Vec<String>,            // ← ADD to State (init empty)
+    pub cli_history: Vec<String>,        // ← ADD to State (init empty in State::new)
+                                         //   NB: named cli_history, not history — lesson 51 adds
+                                         //   `pub history: History` (undo stack) to this same struct.
 
     // first line of run_command:
-    if !line.trim().is_empty() { self.history.push(line.to_string()); }
+    if !line.trim().is_empty() { self.cli_history.push(line.to_string()); }
 ```
 
 ## Step 3 — ↑ / ↓ / Tab in the panel: `src/ui/cli.rs`
@@ -54,11 +66,19 @@ egui's `TextEdit` consumes arrow keys for cursor movement, so intercept **before
 widget. The panel gains a cursor into history (`None` = live line) and a stash of what was typed
 before the walk began:
 
-```rust
-/// Extra CLI state, lives beside `input` in UiState:
-///   hist_cursor: Option<usize>   — index into history while walking; None = editing a fresh line
-///   stash: String                — the fresh line saved when ↑ starts, restored past the end
+First, two new fields on `UiState` (find the `struct UiState` beside `input` — add these, and
+default both in `UiState::new`/`Default`, `hist_cursor: None` and `stash: String::new()`):
 
+```rust
+    pub hist_cursor: Option<usize>,   // index into cli_history while walking; None = editing a fresh line
+    pub stash: String,                // the fresh line saved when ↑ starts, restored past the end
+```
+
+Now `cli_panel`. Note the `history: &[String]` param is just a borrow of the caller's
+`cli_history` — the field rename from Step 2 only lives on `State`; inside this function it reads as
+`history`:
+
+```rust
 pub fn cli_panel(ctx: &egui::Context, input: &mut String, hist_cursor: &mut Option<usize>,
                  stash: &mut String, history: &[String], log: &str,
                  prompt: &str) -> Option<String> {
@@ -118,6 +138,20 @@ pub fn cli_panel(ctx: &egui::Context, input: &mut String, hist_cursor: &mut Opti
 }
 ```
 
+Inside 48's `build_ui` closure (where `cli_panel` is already called and its return stashed in
+`ui_state.pending_command` — the closure must not touch `State`), widen the arguments. `hist_cursor`/
+`stash` come from `ui_state`; the history record lives on `State`, so add a `cli_history: &[String]`
+parameter to `build_ui` **and** pass `&self.cli_history` at its call site in `render()` — the closure then
+borrows it (miss the call site → E0061; note the type is `&[String]`, not `&History` which doesn't exist
+until 51):
+
+```rust
+        // in build_ui's closure — same pending_command drain as 48, wider cli_panel args:
+        let out = cli_panel(ctx, &mut ui_state.input, &mut ui_state.hist_cursor,
+                            &mut ui_state.stash, cli_history, &ui_state.log, &ui_state.prompt);
+        if let Some(line) = out { ui_state.pending_command = Some(line); }
+```
+
 > **Two egui realities worth knowing.** (1) `consume_key` *removes* the key event, so the TextEdit
 > built afterwards never sees it — that's the whole interception trick, and it's frame-order
 > dependent: intercept first, build second. (2) After programmatically replacing `input`, egui keeps
@@ -145,15 +179,15 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ```
 Ch 49: options + multi-step — the conversation grammar.
 Ch 50: MUSCLE MEMORY. VERBS + ALIASES as const tables — one source of truth for dispatch (resolve()
-       before the match), Tab-completion, and help. History: Vec<String> on State, pushed by
-       run_command; the CLI walks it with ↑/↓ (cursor Option<usize>, live line stashed and restored
+       before the match), Tab-completion, and help. History: cli_history: Vec<String> on State
+       (named to dodge 51's undo `history`), pushed by run_command; the CLI walks it with ↑/↓ (cursor Option<usize>, live line stashed and restored
        past the end). Tab prefix-completes canonical verbs, unique-match-only. egui gotchas: keys
        must be consume_key'd BEFORE the TextEdit is built (frame order), and programmatic input
        replacement leaves the cursor at line start (TextEditState polish, optional).
 ```
 
 Edited: `app/commands.rs` (`VERBS`, `ALIASES`, `resolve`), `ui/cli.rs` (↑/↓ walk + stash, Tab
-completion), `state.rs` (`history`).
+completion), `state.rs` (`cli_history`).
 
 ## Next
 

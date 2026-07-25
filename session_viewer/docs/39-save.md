@@ -129,6 +129,9 @@ only *really* changed if its current hash differs from the stored one. Add a dir
 
     pub fn mark_dirty(&mut self, guid: &str) { self.dirty.insert(guid.to_string()); }
 
+    // and initialize it in Scene's constructor (`Scene::new`, from 35):
+    //   dirty: std::collections::HashSet::new(),
+
     /// Bytes to write, or None if nothing actually changed. Re-hashes each dirty
     /// object against its stored fingerprint: a nudge that got reverted hashes back
     /// to the same value → not a real change. On a real change, refreshes `hashes`
@@ -159,19 +162,49 @@ The viewer already runs a per-frame loop, so the debounce is a frame counter —
 stamps `last_edit` with the current frame; `render` checks whether edits have been quiet long enough,
 then runs the gate:
 
+Add the two fields to `struct State` — and initialize both in `State::new`'s `Ok(Self { … })`,
+or the struct won't compile:
+
 ```rust
-    // add to State: dirty_since: Option<u64>, frame: u64
+    // add to struct State:
+    pub dirty_since: Option<u64>,   // frame of the most recent edit, None once settled
+    pub frame: u64,                 // monotonic frame counter — nothing else advances it
+```
+```rust
+    // add to State::new's Ok(Self { … }) initializer:
+    dirty_since: None,
+    frame: 0,
+```
+
+`frame` is the debounce clock, so *something* must advance it. Nothing does yet — add the increment
+as the first line of `render()`, right beside the `request_redraw()` treadmill:
+
+```rust
+    // find, at the top of State::render():
+    pub fn render(&mut self) -> anyhow::Result<()> {
+        self.window.request_redraw();
+        self.frame += 1;   // WITHOUT this the debounce below is dead (frame - since is always 0)
+        // …existing render body…
+```
+
+Now the module-level constants, the `touch` entry point, and the debounce gate itself:
+
+```rust
+    // add near the top of state.rs (module scope):
     const SAVE_DEBOUNCE_FRAMES: u64 = 60;   // ~1 s at 60 fps
     const SAVE_FILENAME: &str = "session.pb";
 
+    // add to impl State:
     /// Editing code calls this on every mutation (gumball drag, delete, …).
     /// Cheap: just stamps a frame.
     pub fn touch(&mut self, guid: &str) {
         self.scene.mark_dirty(guid);
         self.dirty_since = Some(self.frame);
     }
+```
 
-    // inside render(), once per frame, after self.frame += 1:
+```rust
+    // add inside render(), after `self.frame += 1;`, before the clear/draw returns:
     if let Some(since) = self.dirty_since {
         if self.frame - since >= SAVE_DEBOUNCE_FRAMES {
             self.dirty_since = None;                               // one save per settled burst
@@ -203,7 +236,23 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 There's no in-viewer editing yet (that's Phase 7+), so drive the gates manually — wire **Ctrl+S** to
 `touch` a known guid (and, for the negative test, a key that calls `mark_dirty` on an object *without*
-changing it):
+changing it). Add two arms to the keyboard match in `src/lib.rs` (`self.ctrl` is already tracked by the
+`ModifiersChanged` handler; `state.scene` exposes a guid to poke — use whatever's first in `lookup`):
+
+```rust
+    // find, in lib.rs's `match event.logical_key.as_ref()`, beside the "f"/"F" arm:
+    Key::Character("s" | "S") if self.ctrl => {
+        if let Some(g) = state.scene.session.lookup.keys().next().cloned() {
+            state.touch(&g);   // real edit path: mark dirty + stamp dirty_since
+        }
+    }
+    Key::Character("d" | "D") => {
+        if let Some(g) = state.scene.session.lookup.keys().next().cloned() {
+            state.scene.mark_dirty(&g);          // dirty WITHOUT changing the hash…
+            state.dirty_since = Some(state.frame); // …but still arm the debounce (the negative test)
+        }
+    }
+```
 
 - **Edit an object, wait ~1 s** → exactly one download fires, console `saved N bytes`. Edit three
   objects in quick succession → still **one** save after they settle, not three (the debounce coalesced

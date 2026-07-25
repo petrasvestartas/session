@@ -62,7 +62,7 @@ and 45's function becomes a wrapper (find `set_selected_rows`, replace its body)
 ```
 
 The shader side needs **nothing**: 37 Step 3 already collapses any `FLAG_HIDDEN` row to a clipped
-vertex in all four pipelines. Drawing was solved before hiding existed — that's the instance-flag
+vertex in all three pipelines. Drawing was solved before hiding existed — that's the instance-flag
 architecture paying out again.
 
 ## Step 2 — the verbs: `src/app/scene.rs`
@@ -94,16 +94,17 @@ and it prevents a hidden object riding along in a later gumball drag:
 
 ## Step 3 — the pickers respect it: `src/app/scene.rs`
 
-Three one-line guards, one per path:
+Three one-line guards, one per path. The key spelling differs per loop — match it to the loop
+header from each prior lesson exactly, or `contains` won't type-check:
 
 ```rust
-    // pick_mesh (42) — inside the candidate loop, first line:
+    // pick_mesh (42) — first line inside `for guid in cands {`  (guid is an owned String → &guid)
     if self.hidden.contains(&guid) { continue; }
 
-    // pick_thin (44) — inside the hits loop, before the match:
+    // pick_thin (44) — before the `match` inside `for h in hits {`  (h.guid() already returns &str)
     if self.hidden.contains(h.guid()) { continue; }
 
-    // select_marquee (45) — inside the order loop, first line:
+    // select_marquee (45) — first line inside `for guid in &self.order {`  (guid is &String → no &)
     if self.hidden.contains(guid) { continue; }
 ```
 

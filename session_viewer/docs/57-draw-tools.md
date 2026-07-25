@@ -57,18 +57,20 @@ impl Command for AddGeometry {
 }
 ```
 
-(Two tiny additions to `RemoveObjects`: a `pub fn of_snapshots(snapshots: Vec<Geometry>) -> Self`
-constructor beside `of_selection`, and `pub fn len(&self) -> usize`. Its `revert` — restore +
+(Two tiny additions to `RemoveObjects` in `src/app/history/remove.rs` (51): a
+`pub fn of_snapshots(snapshots: Vec<Geometry>) -> Self` constructor beside `of_selection`, and
+`pub fn len(&self) -> usize`. Its `revert` — restore +
 `assign_row` + `apply_object` — is exactly "insert a new object"; guids mint lazily on first
 `geom.guid()` read, so a freshly built object is already identity-stable when the snapshot clones it.)
 
-And the bridge on `State` (the borrow-safe destructure from 51's note, factored once):
+And the bridge on `State` — add this method to `impl State` in `src/state.rs` (the borrow-safe
+destructure from 51's note, factored once):
 
 ```rust
     pub fn commit(&mut self, cmd: Box<dyn crate::app::history::Command>) {
         let State { history, scene, gpu, .. } = self;
         history.execute(cmd, scene, gpu);
-        scene_rebuild_bvh_if_needed(scene);   // new/removed objects change the box set (36)
+        scene.rebuild_bvh();   // new/removed objects change the box set (36)
     }
 ```
 
@@ -98,6 +100,9 @@ impl ActiveCommand for PointTool {
         CmdStep::Prompt(GetState::WaitingPoint { prompt: "point: pick location".into() })
     }
     fn back(&mut self) -> CmdStep { CmdStep::Cancel }   // one step — back means out
+    fn prompt(&self) -> GetState {                      // 49 made prompt() a REQUIRED trait method
+        GetState::WaitingPoint { prompt: "point: pick location".into() }
+    }
 }
 ```
 
@@ -146,10 +151,17 @@ impl ActiveCommand for LineTool {
         self.ask()
     }
     fn back(&mut self) -> CmdStep { self.from = None; self.ask() }   // forget FROM → first prompt
+    fn prompt(&self) -> GetState {                                   // 49 requires it (return GetState, not CmdStep)
+        let what = if self.from.is_none() { "line: pick FROM point" } else { "line: pick TO point" };
+        GetState::WaitingPoint { prompt: what.into() }
+    }
 }
 ```
 
 ## Step 4 — register the verbs: `src/app/commands.rs`
+
+Find the verb `match` that `dispatch()` runs (the one 48/49 grew — where `probe` etc. already
+resolve) and splice these two arms in beside the others:
 
 ```rust
         "point" => { let (cmd, get) = crate::app::tools::point::PointTool::start();

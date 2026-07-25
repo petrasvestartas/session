@@ -87,10 +87,31 @@ impl Instance {
 }
 ```
 
-(`CylinderSegment` and `GlyphPoint`: just add `pub` to the `struct` keyword — the fields can stay
-private; `Scene` constructs them field-by-field, so also `pub` each field, or add a small
-`CylinderSegment::new`/`GlyphPoint::new`. Making the fields `pub` is the smaller edit and matches how
-`ArenaUpload` exposes its own.)
+**Also make `CylinderSegment` and `GlyphPoint` `pub` — and `pub` every field** (find both at the
+bottom of the file): `Scene` constructs them field-by-field across the module boundary, so a private
+field would fail to compile there. Same edit both structs — `pub` on the keyword and on each field:
+
+```rust
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct CylinderSegment {
+    pub p0: [f32; 3],
+    pub radius: f32,
+    pub p1: [f32; 3],
+    pub instance_id: u32,
+    pub color: [f32; 4],
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct GlyphPoint {
+    pub center: [f32; 3],
+    pub radius: f32,
+    pub color: [f32; 4],
+    pub instance_id: u32,
+    pub _pad: [u32; 3],
+}
+```
 
 **1b. Add `ArenaUpload`** right after the structs — the complete, wgpu-free, Session-free boundary:
 
@@ -266,7 +287,7 @@ litmus grep pass.
 > like lesson 30's arena. Toggling `hidden` today needs a full rebuild-and-reupload; incremental sync
 > (touch only the rows that changed) is 38's job, once there's an actual edit to react to.
 
-## Step 4 — wire it into `State`: `src/app/mod.rs`, `src/lib.rs`, `src/state.rs`
+## Step 4 — wire it into `State`: `src/app/mod.rs`, `src/state.rs`
 
 **4a. `src/app/mod.rs`** — add the module beside 34's:
 

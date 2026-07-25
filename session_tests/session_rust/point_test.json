@@ -2,7 +2,7 @@
   {
     "checks": [
       {
-        "code_line": "p.name == \"my_point\" && p[0] == 10.0 && p[1] == 20.0 && p[2] == 30.0 &&\np.width == 1.0 && p.pointcolor == Color::blue() && !p.guid().is_empty()",
+        "code_line": "p.name == \"my_point\" && p[0] == 10.0 && p[1] == 20.0 && p[2] == 30.0 &&\np.width == 1.0 && p.pointcolor == Color::black() && !p.guid().is_empty()",
         "line": 54,
         "passed": true
       },
@@ -17,7 +17,7 @@
         "passed": true
       },
       {
-        "code_line": "prepr ==\n\"Point(my_point, 10.000000, 20.000000, 30.000000, Color(0, 0, 1, 1), 1.000000)\"",
+        "code_line": "prepr ==\n\"Point(my_point, 10.000000, 20.000000, 30.000000, Color(0, 0, 0, 1), 1.000000)\"",
         "line": 65,
         "passed": true
       },
@@ -88,7 +88,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.031
+    "time_ms": 0.044
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 82,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.017
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -170,7 +170,7 @@
     "line": 98,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 15.753
+    "time_ms": 17.024
   },
   {
     "checks": [
@@ -226,7 +226,7 @@
     "line": 129,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 15.917
+    "time_ms": 15.743
   },
   {
     "checks": [
@@ -247,7 +247,7 @@
     "line": 155,
     "passed": true,
     "test_name": "Is Ccw",
-    "time_ms": 0.01
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -263,7 +263,7 @@
     "line": 172,
     "passed": true,
     "test_name": "Mid Point",
-    "time_ms": 0.008
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -279,7 +279,7 @@
     "line": 184,
     "passed": true,
     "test_name": "Distance",
-    "time_ms": 0.016
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -295,7 +295,7 @@
     "line": 197,
     "passed": true,
     "test_name": "Squared Distance",
-    "time_ms": 0.007
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -311,7 +311,7 @@
     "line": 210,
     "passed": true,
     "test_name": "Area",
-    "time_ms": 0.014
+    "time_ms": 0.006
   },
   {
     "checks": [

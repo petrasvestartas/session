@@ -69,5 +69,8 @@
     "session-api"
   ],
   "outputStyle": "default",
-  "prefersReducedMotion": true
+  "prefersReducedMotion": true,
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": false
+  }
 }

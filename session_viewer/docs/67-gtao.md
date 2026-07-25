@@ -14,7 +14,7 @@
   </g>
   <g fill="#d7dae0" text-anchor="middle">
     <text x="63" y="49">depth (full res)</text><text x="63" y="62" fill="#666" font-size="9">the 3-D pass, free</text>
-    <text x="230" y="49">GTAO — HALF res</text><text x="230" y="62" fill="#666" font-size="9">3 slices × 6 steps · IGN · R16F</text>
+    <text x="230" y="49">GTAO — HALF res</text><text x="230" y="62" fill="#666" font-size="9">3 slices × 6 steps · IGN · RGBA16F</text>
     <text x="407" y="49">5-tap blur</text><text x="407" y="62" fill="#666" font-size="9">depth-aware, half res</text>
     <text x="587" y="49">composite</text><text x="587" y="62" fill="#666" font-size="9">depth-aware upsample × scene</text>
   </g>
@@ -27,7 +27,7 @@
 ## Files we touch
 
 ```
-src/shaders/gtao.wgsl          # NEW — the AO pass (fullscreen, reads depth, writes R16Float)
+src/shaders/gtao.wgsl          # NEW — the AO pass (fullscreen, reads depth, writes RGBA16Float)
 src/shaders/blur5.wgsl         # NEW — one 5-tap depth-aware blur
 src/engine/gpu/targets.rs      # NEW — half-res AO textures, full-res scene color target
 src/engine/pipelines/build.rs  # the two pipelines + a composite change
@@ -79,9 +79,28 @@ This single line is **mandatory** — remove it and the ground plane (65) stripe
 (≈ 1–2%), clamped to sane world bounds — a fixed world radius is invisible on a big model and
 engulfs a small one. `Gpu` has `scene_min/max` since 34b; the uniform update is one line per load.
 
-**5. R16Float + MSAA depth reads.** AO in an 8-bit channel bands visibly on smooth walls — use
-`R16Float` for both AO targets. And the depth buffer is MSAA (24): a sampler can't filter it; bind it
-as a multisampled texture and `textureLoad(depth_tex, pixel, 0)` — sample 0 is exact and cheap.
+**5. RGBA16Float + MSAA depth reads.** AO in an 8-bit channel bands visibly on smooth walls — use
+**16-bit float**. But the target carries *two* results, not one: the scalar `ao` **and** the
+3-component **bent normal** 68 reads back as `.gba` — so it must be **`RGBA16Float`**, `R` = ao,
+`GBA` = bent. A single `R16Float` channel can't hold a direction; write the pass to `R16Float` and 68's
+`decode_bent(.gba)` reads garbage. And the depth buffer is MSAA (24): a sampler can't filter it; bind
+it as a multisampled texture and `textureLoad(depth_tex, pixel, 0)` — sample 0 is exact and cheap.
+
+<svg viewBox="0 0 560 148" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="a single R16Float channel holds AO only and cannot carry a direction; RGBA16Float packs AO in R and the bent normal xyz in G B A" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="20" y="24" fill="#e06c6c">R16Float — WRONG</text>
+  <g><rect x="20" y="34" width="60" height="30" fill="none" stroke="#e06c6c" stroke-width="1.3"/><text x="50" y="53" fill="#d7dae0" text-anchor="middle">ao</text></g>
+  <text x="96" y="46" fill="#666">R</text>
+  <text x="130" y="46" fill="#e06c6c">bent → nowhere</text>
+  <text x="130" y="60" fill="#666" font-size="9">68's decode_bent(.gba) reads (0,0,0)</text>
+  <text x="20" y="98" fill="#5bbf87">RGBA16Float — one texel, 4 lanes</text>
+  <g fill="none" stroke="#5bbf87" stroke-width="1.3">
+    <rect x="20" y="108" width="60" height="30"/><rect x="80" y="108" width="60" height="30"/><rect x="140" y="108" width="60" height="30"/><rect x="200" y="108" width="60" height="30"/>
+  </g>
+  <g fill="#d7dae0" text-anchor="middle"><text x="50" y="127">ao</text><text x="110" y="127">bent.x</text><text x="170" y="127">bent.y</text><text x="230" y="127">bent.z</text></g>
+  <g fill="#6fb3ff" text-anchor="middle" font-size="9"><text x="50" y="103">R</text><text x="110" y="103">G</text><text x="170" y="103">B</text><text x="230" y="103">A</text></g>
+  <text x="284" y="120" fill="#888">frag out = vec4(ao, bent.xyz)</text>
+  <text x="284" y="134" fill="#666" font-size="9">68 samples .r for ao, .gba for the direction</text>
+</svg>
 
 ## The pass itself — shape, not scripture
 
@@ -95,7 +114,7 @@ visibility term (the GTAO closed form), averaged over slices. Output: `ao` — a
 ```wgsl
     // per slice: dir = rotate(slice_dir, ign(pixel)); h1/h2 = max horizon over 6 steps each way
     // ao += integrate_arc(h1, h2, n_proj);   bent += arc_midpoint_dir;
-    // → textureStore/fragment out: vec2<f32>(ao / SLICES, encode(bent))
+    // → fragment out: vec4<f32>(ao / SLICES, encode(bent))   // R = ao, GBA = bent (RGBA16Float)
 ```
 
 (3 × 6 × 2 ≈ 36 taps at quarter-pixel count ≈ **9 effective reads per full-res pixel**; the 5-tap
@@ -127,7 +146,7 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 ```
 Ch 66: render-on-demand — idle is free.
-Ch 67: GTAO, CONSTANT QUALITY. Scene → offscreen color; AO at HALF res in R16Float (banding), 3
+Ch 67: GTAO, CONSTANT QUALITY. Scene → offscreen color; AO at HALF res in RGBA16Float (R=ao, GBA=bent), 3
        slices × 6 steps, horizons integrated closed-form; ONE 5-tap depth-aware blur; composite does
        depth-aware upsample × scene. Budget ≈ 12 reads/px/drawn-frame vs the archive's ~112.
        The five ported traps: (1) view-pos via ANALYTIC inv-projection — cheaper and exact
@@ -140,7 +159,7 @@ Ch 67: GTAO, CONSTANT QUALITY. Scene → offscreen color; AO at HALF res in R16F
 ```
 
 Edited: `shaders/gtao.wgsl` + `shaders/blur5.wgsl` (NEW), `engine/gpu/targets.rs` (NEW — half-res
-R16F pair + scene color), `engine/pipelines/build.rs` (two pipelines + composite), `engine/gpu/mod.rs`
+RGBA16F pair + scene color), `engine/pipelines/build.rs` (two pipelines + composite), `engine/gpu/mod.rs`
 (pass order).
 
 ## Next

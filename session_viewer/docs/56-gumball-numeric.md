@@ -72,8 +72,10 @@ pub fn manual_delta(handle: HandleKind, value: f64, o: &Point) -> Xform {
 
 ## Step 2 — the popup: `src/ui/mod.rs`
 
-A borderless one-field window pinned at the click position. Add to `UiState`:
-`gb_input: Option<(HandleKind, String, (f32, f32))>` — handle, buffer, screen pos. In `build_ui`:
+A borderless one-field window pinned at the click position. Add **two** fields to `UiState`
+(and initialize both in `UiState::new`/`Default`): `gb_input: Option<(HandleKind, String, (f32, f32))>`
+— handle, buffer, screen pos — and `gb_submit: bool` (`false`), the closure→state flag the popup sets.
+In `build_ui`:
 
 ```rust
     if let Some((handle, buffer, pos)) = &mut ui_state.gb_input {
@@ -111,9 +113,10 @@ A borderless one-field window pinned at the click position. Add to `UiState`:
         if self.ui.gb_submit {
             self.ui.gb_submit = false;
             if let Some((handle, buffer, _)) = self.ui.gb_input.take() {
-                if let Ok(v) = buffer.trim().parse::<f64>() {
-                    let o = self.scene.selection_centroid()
-                        .map(|c| Point::new(c[0] as f64, c[1] as f64, c[2] as f64)).unwrap();
+                // guard: selection may have been cleared while the popup was open
+                if let (Ok(v), Some(c)) =
+                    (buffer.trim().parse::<f64>(), self.scene.selection_centroid()) {
+                    let o = Point::new(c[0] as f64, c[1] as f64, c[2] as f64);
                     let delta = crate::engine::gumball::manual_delta(handle, v, &o);
                     self.apply_transform_command(&delta);            // 54's commit path, factored:
                     // snapshots → apply_delta → execute
@@ -121,6 +124,12 @@ A borderless one-field window pinned at the click position. Add to `UiState`:
             }
         }
 ```
+
+`apply_transform_command(&mut self, delta: &Xform)` is 54's release-commit block lifted verbatim into
+a named `&mut self` method — snapshot the current selection, `apply_delta` each object, wrap
+`before`/`after` in `TransformObjects`, `self.history.execute(...)`. Factor it out of 54's release arm
+once; both the drag release and this Enter path call it. That shared method is why an exact typed move
+is undoable for the same reason a drag is.
 
 **The three gotchas** (each one a real archive bug):
 

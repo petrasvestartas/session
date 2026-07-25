@@ -2,3 +2,8 @@
 # so the code needs no `#[cfg(target_arch = "wasm32")]` gates. Trunk also builds this target.
 [build]
 target = "wasm32-unknown-unknown"
+
+# 4 GB linear-memory ceiling (wasm32 max) — the default 1 GB dies loading multi-hundred-MB
+# session fixtures (RuntimeError: unreachable = allocator abort).
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "link-arg=--max-memory=4294967296"]

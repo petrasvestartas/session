@@ -19,7 +19,7 @@
   <g fill="#d7dae0" text-anchor="middle" font-size="10">
     <text x="395" y="45">guid A</text><text x="475" y="45">guid B</text><text x="550" y="45">free</text><text x="620" y="45">guid C</text>
   </g>
-  <text x="480" y="74" fill="#6fb3ff" text-anchor="middle" font-size="10">free(B) → hole; next allocate best-fits into it</text>
+  <text x="480" y="74" fill="#6fb3ff" text-anchor="middle" font-size="10">free(B) → hole; next allocate first-fits into it</text>
   <text x="480" y="90" fill="#666" text-anchor="middle" font-size="10">neighbours never re-uploaded</text>
   <text x="340" y="128" fill="#888" text-anchor="middle">slots: HashMap&lt;guid, ArenaSlot{vertex_range, index_range}&gt; — the address book</text>
   <text x="340" y="148" fill="#666" text-anchor="middle">meshes: free-list arena · lines/points: guid→Range + drain-shift (small, dense tables)</text>
@@ -42,7 +42,7 @@ so any object can be found, freed, or overwritten later. It carries our per-vert
 
 ```rust
 //! Free-list allocator over a wgpu vertex buffer (+ its parallel vids buffer + an index buffer).
-//! Bump-allocate until full, then best-fit from freed ranges; grow 2x (copy old → new) when neither
+//! Bump-allocate until full, then first-fit from freed ranges; grow 2x (copy old → new) when neither
 //! fits. `slots` maps each guid to its ranges so reconcile (38b) can free/replace one object in
 //! place.
 
@@ -178,6 +178,11 @@ Add to `impl GpuArena`:
         self.cap_v = cap;
     }
     // grow_i mirrors grow_v for the single ibo (INDEX|COPY_DST|COPY_SRC).
+
+    /// Indices to draw = the high-water mark. Replaces 30's `arena_index_count` field: the draw now
+    /// calls `self.arena.index_count()`. Freed ranges still fall inside this span but were stamped
+    /// degenerate in `free`, so drawing them costs nothing.
+    pub fn index_count(&self) -> u32 { self.cursor_i }
 ```
 
 ## Step 4 — segments & glyphs: range maps + drain-shift: `src/engine/gpu/mod.rs`
@@ -225,8 +230,70 @@ range down. Both re-upload the (dense) segment buffer once:
 > `copy_buffer_to_buffer` the live prefix, swap the handle — is the same move the segment, glyph, and
 > instance buffers need when an added object overflows them. Factor one
 > `fn grow_buffer(old, used, elem, usage) -> Buffer` and call it from `ensure_seg_capacity` /
-> `ensure_glyph_capacity` / `grow_instances`. The draw reads every buffer from its `Gpu` field each
-> frame, so a grown handle is picked up automatically.
+> `ensure_glyph_capacity` / `grow_instances`.
+>
+> **But swapping the handle is not enough for the storage buffers.** The arena's `vbo`/`vids`/`ibo`
+> are re-bound every frame by `set_vertex_buffer`/`set_index_buffer`, so a grown handle is picked up
+> automatically. The segment, glyph, and instance buffers are *storage* buffers wired into a bind
+> group **once** in `Gpu::new` via `as_entire_binding()` — after you swap the handle, the bind group
+> still points at the dropped buffer, and the frame reads stale (or freed) memory. So `grow_buffer`
+> must be followed by **recreating that buffer's bind group** (`segment_bind_group` /
+> `glyph_bind_group` / `instance_bind_group`) against the new handle before the next draw.
+
+<svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="arena vertex/index buffers are re-bound every frame so a grown handle is auto-picked-up; segment glyph and instance storage buffers are bound once in a bind group and go stale unless the bind group is recreated after the swap" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="340" y="18" fill="#888" text-anchor="middle">after grow_buffer swaps the handle…</text>
+  <text x="165" y="42" fill="#5bbf87" text-anchor="middle">set every frame → auto</text>
+  <g fill="none" stroke="#5bbf87" stroke-width="1.1">
+    <rect x="40" y="54" width="250" height="24"/><rect x="40" y="82" width="250" height="24"/><rect x="40" y="110" width="250" height="24"/>
+  </g>
+  <g fill="#d7dae0" text-anchor="middle" font-size="10">
+    <text x="165" y="70">arena.vbo</text><text x="165" y="98">arena.vids</text><text x="165" y="126">arena.ibo</text>
+  </g>
+  <text x="165" y="152" fill="#5bbf87" text-anchor="middle" font-size="10">set_vertex_buffer / set_index_buffer</text>
+  <text x="165" y="166" fill="#666" text-anchor="middle" font-size="10">re-issued each draw → grown handle picked up</text>
+  <text x="515" y="42" fill="#e06c6c" text-anchor="middle">bound once (bind group) → STALE</text>
+  <g fill="none" stroke="#e06c6c" stroke-width="1.1">
+    <rect x="390" y="54" width="250" height="24"/><rect x="390" y="82" width="250" height="24"/><rect x="390" y="110" width="250" height="24"/>
+  </g>
+  <g fill="#d7dae0" text-anchor="middle" font-size="10">
+    <text x="515" y="70">segment_buffer</text><text x="515" y="98">glyph_buffer</text><text x="515" y="126">instance_buffer</text>
+  </g>
+  <text x="515" y="152" fill="#e06c6c" text-anchor="middle" font-size="10">as_entire_binding() once in Gpu::new</text>
+  <text x="515" y="166" fill="#666" text-anchor="middle" font-size="10">bind group still points at DROPPED buffer</text>
+  <text x="515" y="186" fill="#6fb3ff" text-anchor="middle" font-size="10">fix → recreate the bind group after the swap</text>
+</svg>
+
+**4b. The growth methods (code for the two notes above).** One prerequisite: hoist the three storage
+buffers' **bind-group layouts** onto `Gpu` — `segment_layout`, `glyph_layout`, `instance_layout` are
+locals in `new` today; a grown buffer needs its bind group rebuilt, and that needs the layout. Because
+segments/glyphs/instances each keep a **CPU mirror** that is re-uploaded in full right after, growth is
+just *allocate bigger + rebuild the bind group* — **no** `copy_buffer_to_buffer` (that's only the arena,
+which has no full mirror, which is why *its* buffers carry `COPY_SRC` and these don't need it):
+
+```rust
+    /// Grow the segment storage buffer if the CPU mirror outgrew it. Called by append_segments
+    /// BEFORE its write_buffer, so the freshly-grown buffer is filled from `self.segments` that
+    /// same line — no copy needed.
+    fn ensure_seg_capacity(&mut self) {
+        let need = (self.segments.len() * std::mem::size_of::<CylinderSegment>()) as u64;
+        if need <= self.segment_buffer.size() { return; }
+        let mut cap = self.segment_buffer.size().max(std::mem::size_of::<CylinderSegment>() as u64);
+        while cap < need { cap *= 2; }
+        self.segment_buffer = self.device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("segment.buffer"), size: cap, mapped_at_creation: false,
+            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+        });
+        // bound ONCE via as_entire_binding → rebuild the bind group against the new handle
+        self.segment_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("segment.bind_group"), layout: &self.segment_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0, resource: self.segment_buffer.as_entire_binding() }],
+        });
+    }
+    // ensure_glyph_capacity is identical over glyphs / GlyphPoint / glyph_buffer / glyph_bind_group /
+    // glyph_layout. grow_instances the same over instances / Instance / instance_buffer /
+    // instance_bind_group / instance_layout (call it from rebuild_instances, 33, before its write).
+```
 
 > **Two strategies, one reason.** Meshes get the free-list (their vert+index blocks are big; tail
 > re-uploads on every delete are the very cost we're avoiding); segments/glyphs get drain-shift
@@ -234,13 +301,54 @@ range down. Both re-upload the (dense) segment buffer once:
 
 ## Step 5 — fill through the arena: `src/engine/gpu/mod.rs`
 
-`Gpu::new` (35) receives its `ArenaUpload` as before, but instead of uploading three flat buffers it
-now walks the upload *per object*: for each mesh's slice, `arena.allocate(guid, …)`; each line/point
-batch, `append_segments`/`append_glyphs`. The upload therefore carries per-object boundaries — extend
-35's `ArenaUpload` so meshes arrive as `Vec<(String, Vec<RenderVertex>, Vec<u32>)>` (guid, verts,
-local indices) rather than one concatenated blob, and segments/glyphs as `Vec<(String, …)>` per guid.
-`Scene::build` (35) already loops per object, so the change is where it *pushes*: into per-object
-entries instead of shared vecs. The draw calls are untouched — same buffers, same counts.
+**5a. Give the upload per-object boundaries.** Extend 35's `ArenaUpload` so each object arrives with its
+guid and its own slices instead of one concatenated blob:
+
+```rust
+pub struct ArenaUpload {
+    pub meshes:   Vec<(String, Vec<RenderVertex>, Vec<u32>)>,  // guid, verts, 0-based LOCAL indices
+    pub segments: Vec<(String, Vec<CylinderSegment>)>,
+    pub glyphs:   Vec<(String, Vec<GlyphPoint>)>,
+    // instances / objects_base stay one row per object, in guid order (33)
+}
+```
+
+`Scene::build` (35) already loops per object — the only change is *where it pushes*: into these
+per-object entries instead of three shared vecs.
+
+**5b. Fill per object in `Gpu::new`.** Meshes go through the free-list allocator; segments/glyphs build
+their dense vec + range map inline (the `append_*` helpers are `&mut self`, unusable while `Gpu` is
+still under construction — they take over for incremental adds in 38b):
+
+```rust
+        let mut arena = GpuArena::new(&device, INITIAL_CAP_V, INITIAL_CAP_I);
+        for (row, (guid, verts, local_idx)) in upload.meshes.iter().enumerate() {
+            arena.allocate(guid, verts, row as u32, local_idx, &device, &queue);
+        }
+
+        let mut segments: Vec<CylinderSegment> = Vec::new();
+        let mut guid_to_seg: std::collections::HashMap<String, std::ops::Range<usize>> =
+            std::collections::HashMap::new();
+        for (guid, segs) in &upload.segments {
+            let start = segments.len();
+            segments.extend_from_slice(segs);
+            guid_to_seg.insert(guid.clone(), start..segments.len());
+        }
+        // glyphs / guid_to_glyph: identical over upload.glyphs
+```
+
+Then wire all of these into the `Ok(Self { … })` initializer — **and delete** 30's `arena_vbo`,
+`arena_vids`, `arena_ibo`, `arena_index_count` (from *both* `struct Gpu` and `Self`), replacing them with
+the Step-4 fields `arena`, `guid_to_seg`, `guid_to_glyph`, `segments`, `glyphs` (plus the hoisted
+`segment_layout` / `glyph_layout` / `instance_layout` from 4b). Miss one → *"missing field … in
+initializer of `Gpu`"* (E0063).
+
+**5c. Point the mesh draw at the arena.** Same *shape* as 30's mesh draw — one `draw_indexed` over the
+whole scene — but its three sources move onto the arena (`self.arena.vbo` / `.vids` / `.ibo`) and the
+count becomes `self.arena.index_count()` (replacing 30's `arena_vbo`/`arena_vids`/`arena_ibo` and the
+`arena_index_count` field). The instance range is unchanged from 30 (per-vertex `vids` selects each
+model row, so it stays a single-instance draw). Segment and glyph draws are untouched — same buffers,
+same counts.
 
 ## Verify
 

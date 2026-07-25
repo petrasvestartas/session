@@ -54,12 +54,20 @@ untouched:
 
 ```rust
     // (1) ORDER — is_renderable admits Geometry::NurbsSurface (same one-word arm as 60).
-    // (2) BUILD — the cached mesh flows through the EXISTING mesh path:
+    // (2) BUILD — the cached mesh flows through the EXISTING mesh path.
+    //     surface_mesh takes &mut self, so it CANNOT run inside an immutable
+    //     `for ns in &…nurbssurfaces` loop (E0502). Prime the cache in one mutable
+    //     pass, then build in a second pass where both borrows are immutable:
+    let ns_guids: Vec<String> =
+        self.session.objects.nurbssurfaces.iter().map(|s| s.guid().to_string()).collect();
+    for guid in &ns_guids { self.surface_mesh(guid); }          // tessellate-on-first-use
     for ns in &self.session.objects.nurbssurfaces {
         let guid = ns.guid().to_string();
         let ri = self.guid_to_row[&guid];
-        let m = /* tess_cache entry (Step 1) */;
-        objects_base_entry(ri, m.xform.duplicate(), ns_surface_color(ns), flags_for(&guid));
+        let m = match self.tess_cache.get(&guid) { Some(m) => m, None => continue };
+        // PLACEMENT is ns.xform — the cached mesh carries an IDENTITY xform (SHAPE only),
+        // so feeding m.xform here would snap a moved/rotated surface back to origin.
+        objects_base_entry(ri, ns.xform.duplicate(), ns_surface_color(ns), flags_for(&guid));
         push_mesh(m, ri, &mut verts, &mut vids, &mut idx, &mut segments, &mut glyphs);
     }
     // (3) WORLD BOX — OBB::from_nurbssurface(ns, PAD) (kernel-exact, samples the surface itself).
@@ -76,6 +84,24 @@ new shader. That decision from 39 lessons ago was for this moment.
 
 54's commit path calls `apply_delta` then `apply_object` (re-flatten). For surfaces, re-flatten would
 re-tessellate — the bug. Split the commit by *what changed*:
+
+<svg viewBox="0 0 680 176" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SHAPE versus PLACEMENT: the cached tessellation carries an identity xform and holds only shape; placement lives on ns.xform, which the gumball composes deltas into and set_object_row uploads as the instance model; feeding the mesh's own identity xform snaps the surface back to origin" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
+  <text x="120" y="22" fill="#888" text-anchor="middle">SHAPE — what it is</text>
+  <text x="430" y="22" fill="#888" text-anchor="middle">PLACEMENT — where it sits</text>
+  <rect x="10" y="32" width="220" height="60" fill="none" stroke="#6fb3ff"/>
+  <text x="24" y="52" fill="#d7dae0">tess_cache[guid] : Mesh</text>
+  <text x="24" y="68" fill="#666">verts — local / model space</text>
+  <text x="24" y="84" fill="#666">xform = IDENTITY  (never moves)</text>
+  <rect x="320" y="32" width="220" height="60" fill="none" stroke="#6fb3ff"/>
+  <text x="334" y="52" fill="#d7dae0">ns.xform : Xform</text>
+  <text x="334" y="68" fill="#666">gumball drag composes a delta:</text>
+  <text x="334" y="84" fill="#6fb3ff">ns.xform = delta * &amp;ns.xform</text>
+  <line x1="430" y1="92" x2="430" y2="120" stroke="#6fb3ff" stroke-width="1.3" marker-end="url(#ah61b)"/>
+  <text x="24" y="134" fill="#d7dae0">set_object_row(row, model, color, flags)</text>
+  <text x="330" y="134" fill="#5bbf87">model = ns.xform.duplicate()  ✓ stays put</text>
+  <text x="330" y="152" fill="#e06c6c">model = m.xform (= I)         ✗ snaps to origin</text>
+  <defs><marker id="ah61b" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6fb3ff"/></marker></defs>
+</svg>
 
 ```rust
     // in apply_delta (54): surfaces compose their xform like meshes —
