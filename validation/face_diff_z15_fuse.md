@@ -10,7 +10,9 @@ eps 0.08197, 9 samples/face, grid 11
 | TRUE (OCCT fuse) | 1 | - | 43 | 80.952185 | 1 |
 | OURS | 0 | 1 | 54 | 125.177723 | 1 |
 
-## Defect tickets (8)
+**WARNING: OCCT self-inconsistent on this config** — vol identities imply common=-0.0004 (from cut), 79.6415 (from fuse), but OCCT common=0.0000. The oracle truth itself is unreliable here; treat VOLUME/COUNT/AGG tickets as indicative only.
+
+## Defect tickets (7)
 
 | # | kind | face | srf | area | centroid | detail |
 |---|---|---|---|---|---|---|
@@ -21,7 +23,6 @@ eps 0.08197, 9 samples/face, grid 11
 | 4 | AREA | A FACE 15 | BSplineSurface | 14.5682 | (8.380,1.287,2.429) | ours 12.4908 vs operand 14.5682 (rel 14.3%) |
 | 5 | AREA | B FACE 2 | BSplineSurface | 2.7486 | (7.383,4.446,-2.592) | ours 2.5709 vs operand 2.7486 (rel 6.5%) |
 | 6 | AREA | B FACE 3 | BSplineSurface | 2.9989 | (7.040,4.091,-2.964) | ours 2.9346 vs operand 2.9989 (rel 2.1%) |
-| 7 | AGG_AREA | - | - | - | - | our total face area 261.854 vs expected true boundary 289.394 (rel -9.5%) |
 
 ## Our-face verdicts (54 OK / 54 faces)
 

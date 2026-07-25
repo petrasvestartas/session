@@ -23,7 +23,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Sphere",
-    "time_ms": 13.904
+    "time_ms": 13.516
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 19,
     "passed": true,
     "test_name": "Torus",
-    "time_ms": 47.391
+    "time_ms": 48.372
   },
   {
     "checks": [
@@ -75,7 +75,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Cylinder",
-    "time_ms": 2.988
+    "time_ms": 2.752
   },
   {
     "checks": [
@@ -101,7 +101,7 @@
     "line": 47,
     "passed": true,
     "test_name": "Cone",
-    "time_ms": 1.749
+    "time_ms": 1.999
   },
   {
     "checks": [
@@ -127,7 +127,7 @@
     "line": 61,
     "passed": true,
     "test_name": "Doubly Curved",
-    "time_ms": 75.008
+    "time_ms": 77.323
   },
   {
     "checks": [
@@ -158,7 +158,7 @@
     "line": 75,
     "passed": true,
     "test_name": "Grid Target",
-    "time_ms": 106.422
+    "time_ms": 110.977
   },
   {
     "checks": [
@@ -184,7 +184,7 @@
     "line": 91,
     "passed": true,
     "test_name": "Flat Quad",
-    "time_ms": 0.34
+    "time_ms": 0.363
   },
   {
     "checks": [
@@ -210,7 +210,7 @@
     "line": 111,
     "passed": true,
     "test_name": "Flat Triangle",
-    "time_ms": 0.235
+    "time_ms": 0.222
   },
   {
     "checks": [
@@ -236,6 +236,6 @@
     "line": 131,
     "passed": true,
     "test_name": "Double-Curved Triangle",
-    "time_ms": 3.354
+    "time_ms": 3.429
   }
 ]

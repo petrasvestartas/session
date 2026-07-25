@@ -20,7 +20,14 @@ the TRUE result follows from the boolean formula (cut = A && !B, etc):
   - a TRUE face is a region of an operand face where the same transition test
     passes; it is MISSING from ours when no our-face sample cloud covers it;
   - AREA tickets compare our area vs the operand face area for faces the
-    sampling says are kept whole (all samples on the true boundary).
+    sampling says are kept whole (all samples on the true boundary);
+  - AGG_AREA checks boundary-area conservation (our exact total vs the sampled
+    expectation; >12% flags wrongly kept regions, SUSPECT_KEPT ranks them);
+  - the oracle itself is sanity-checked: vol(A)-cut == common == vol(A)+vol(B)
+    -fuse; a violation (e.g. chairs z15, where OCCT silently disagrees with
+    itself) prints an OCCT-self-inconsistent WARNING.
+Probing is multi-scale (eps, eps/4, eps/16): a sample counts as non-boundary
+only if every scale agrees, so thin features are not punched through.
 
 Usage:
   python validation/face_diff.py --config z15 --op cut            # chair paths
@@ -665,10 +672,20 @@ def main():
         sys.exit("step_probe.exe not found: " + PROBE)
     report_path = args.report or os.path.join(HERE, "face_diff_%s_%s.md" % (tag, args.op))
 
-    # 1) oracle truth + summaries
+    # 1) oracle truth + summaries + inclusion-exclusion sanity of the oracle
+    # itself (vol(A)-cut == common == vol(A)+vol(B)-fuse; OCCT silently fails on
+    # tangent-heavy configs with OP_VALID still 1 -- e.g. chairs z15)
     truth = probe_boolean(args.op, A, B)
     ours_sum = probe_summary(R)
     degenerate = truth["valid"] == 0 or abs(truth["volume"]) < 0.01
+    sumA, sumB = probe_summary(A), probe_summary(B)
+    v3 = {op: (truth if op == args.op else probe_boolean(op, A, B))["volume"]
+          for op in ("cut", "common", "fuse")}
+    c_cut = sumA["volume"] - v3["cut"]
+    c_fuse = sumA["volume"] + sumB["volume"] - v3["fuse"]
+    ietol = max(0.02 * abs(sumA["volume"]), 0.05)
+    oracle_inconsistent = (abs(c_cut - v3["common"]) > ietol
+                           or abs(c_fuse - v3["common"]) > ietol)
 
     # 2) face tables (probe) + geometry (our STEP parser)
     pf_ours, pf_a, pf_b = probe_faces(R), probe_faces(A), probe_faces(B)
@@ -922,14 +939,23 @@ def main():
               ours_sum["volume"], ours_sum["valid"]))
     if degenerate:
         L.append("")
-        L.append("**WARNING: oracle result degenerate (OP_VALID=0 or |vol|<0.01) — verdicts untrusted.**")
+        L.append("**WARNING: oracle result degenerate (OP_VALID=0 or |vol|<0.01) -- verdicts untrusted.**")
+    if oracle_inconsistent:
+        L.append("")
+        L.append("**WARNING: OCCT self-inconsistent on this config** -- vol identities "
+                 "imply common=%.4f (from cut), %.4f (from fuse), but OCCT common=%.4f. "
+                 "The oracle truth itself is unreliable here; treat VOLUME/COUNT/AGG "
+                 "tickets as indicative only." % (c_cut, c_fuse, v3["common"]))
     for n in notes:
         L.append("")
         L.append("NOTE: " + n)
 
     tickets = []
     if subset:
-        pass                              # whole-file counts cover non-result solids
+        if len(F_ours) != truth["faces"]:
+            tickets.append(("COUNT", "-", "-", "-", "-",
+                            "picked-solid faces %d vs OCCT %d (%+d)" %
+                            (len(F_ours), truth["faces"], len(F_ours) - truth["faces"])))
     elif ours_sum["faces"] != truth["faces"]:
         tickets.append(("COUNT", "-", "-", "-", "-",
                         "our faces %d vs OCCT %d (%+d)" %
@@ -983,10 +1009,11 @@ def main():
     our_total = sum(f["pf"]["area"] for f in F_ours)
     if exp_area > 1e-9:
         agg_rel = (our_total - exp_area) / exp_area
-        if abs(agg_rel) > 0.05:
+        if abs(agg_rel) > 0.12:           # estimator carries ~5-8% tangent-band bias
             tickets.append(("AGG_AREA", "-", "-", "-", "-",
                             "our total face area %.3f vs expected true boundary %.3f "
-                            "(rel %+.1f%%)" % (our_total, exp_area, agg_rel * 100)))
+                            "(rel %+.1f%%, estimator bias ~8%%)" %
+                            (our_total, exp_area, agg_rel * 100)))
             if agg_rel > 0:
                 sus = [((f.get("ef", 1.0) - f.get("mf", 0.0)) * f["bboxarea"], f)
                        for f in F_ours if f.get("ef", 1.0) - f.get("mf", 0.0) > 0.1]

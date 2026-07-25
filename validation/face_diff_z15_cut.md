@@ -10,6 +10,8 @@ eps 0.0819, 9 samples/face, grid 11
 | TRUE (OCCT cut) | 2 | - | 44 | 80.297281 | 1 |
 | OURS | 0 | 2 | 38 | 40.812740 | 1 |
 
+**WARNING: OCCT self-inconsistent on this config** -- vol identities imply common=-0.0004 (from cut), 79.6415 (from fuse), but OCCT common=0.0000. The oracle truth itself is unreliable here; treat VOLUME/COUNT/AGG tickets as indicative only.
+
 ## Defect tickets (6)
 
 | # | kind | face | srf | area | centroid | detail |

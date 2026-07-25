@@ -3,7 +3,7 @@
     "group": "OBB",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.184,
+    "time_ms": 0.335,
     "line": 7,
     "code": "    from session_py import OBB\n    from session_py import Point\n    from session_py import Vector\n\n    # from_point\n    bb1 = OBB.from_point(Point(5.0, 5.0, 5.0), 2.0)\n\n\n    # from_points (AABB)\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 3.0, 4.0),\n    ]\n    bb2 = OBB.from_points(pts)\n    mn = bb2.min_point()\n    mx = bb2.max_point()\n\n\n    # OBB constructor\n    box = OBB(\n        center=Point(0.0, 0.0, 0.0),\n        x_axis=Vector(1.0, 0.0, 0.0),\n        y_axis=Vector(0.0, 1.0, 0.0),\n        z_axis=Vector(0.0, 0.0, 1.0),\n        half_size=Vector(1.0, 2.0, 3.0)\n    )\n\n\n    # aabb\n    bb_aabb = bb2.aabb()\n\n\n    # corners\n    corners = bb2.corners()\n\n\n    # point_at: center + x*x_axis + y*y_axis + z*z_axis (raw OBB offsets)\n    p_center = bb2.point_at(0.0, 0.0, 0.0)\n    hx, hy, hz = bb2.half_size[0], bb2.half_size[1], bb2.half_size[2]\n    p_max_pt = bb2.point_at(hx, hy, hz)\n\n\n    # inflate\n    bb3 = OBB.from_points([\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 2.0, 2.0),\n    ])\n    bb3.inflate(1.0)\n\n\n    # guid and name\n    bb1.name = \"test_bbox\"",
     "checks": [
@@ -94,7 +94,7 @@
     "group": "OBB",
     "test_name": "Collision",
     "passed": true,
-    "time_ms": 0.397,
+    "time_ms": 0.689,
     "line": 80,
     "code": "    from session_py import OBB\n    from session_py import Point\n\n    bb1 = OBB.from_point(Point(0.0, 0.0, 0.0), 1.0)\n    bb2 = OBB.from_point(Point(1.5, 0.0, 0.0), 1.0)\n    bb3 = OBB.from_point(Point(5.0, 5.0, 5.0), 0.5)",
     "checks": [
@@ -145,7 +145,7 @@
     "group": "OBB",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.244,
+    "time_ms": 0.502,
     "line": 99,
     "code": "    from session_py import OBB\n    from session_py import Point\n    from session_py import Xform\n\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n    ]\n    bb = OBB.from_points(pts)\n    bb.xform = Xform.translation(0.0, 0.0, 5.0)\n\n    bbt = bb.transformed()\n\n\n    bb.transform()",
     "checks": [
@@ -171,7 +171,7 @@
     "group": "OBB",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 22.495,
+    "time_ms": 20.762,
     "line": 122,
     "code": "    from session_py import OBB\n    from session_py import Point\n    from pathlib import Path\n\n    bb = OBB.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox\"\n\n    # JSON object\n    d = bb.__jsondump__()\n    loaded_j = OBB.__jsonload__(d)\n\n\n    # String\n    s = bb.file_json_dumps()\n    loaded_s = OBB.file_json_loads(s)\n\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_obb.json\"\n    bb.file_json_dump(fname)\n    loaded = OBB.file_json_load(fname)",
     "checks": [
@@ -217,7 +217,7 @@
     "group": "OBB",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 19.109,
+    "time_ms": 23.021,
     "line": 155,
     "code": "    from session_py import OBB\n    from session_py import Point\n    from pathlib import Path\n\n    bb = OBB.from_point(Point(1.0, 2.0, 3.0), 5.0)\n    bb.name = \"test_bbox_proto\"\n\n    # Bytes\n    b = bb.pb_dumps()\n    loaded_s = OBB.pb_loads(b)\n\n\n    # File\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_obb.bin\"\n    bb.pb_dump(fname)\n    loaded = OBB.pb_load(fname)",
     "checks": [
@@ -263,7 +263,7 @@
     "group": "OBB",
     "test_name": "Accessors",
     "passed": true,
-    "time_ms": 0.278,
+    "time_ms": 0.467,
     "line": 183,
     "code": "    import math\n    from session_py import OBB\n    from session_py import Point\n\n    # axis-aligned OBB: center=(1,2,3), half_size=(1,2,3), dims 2\u00d74\u00d76\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 4.0, 0.0),\n        Point(0.0, 4.0, 0.0),\n        Point(0.0, 0.0, 6.0),\n        Point(2.0, 4.0, 6.0),\n    ]\n    b = OBB.from_points(pts)\n\n    c = OBB.from_point(Point(5.0, 2.0, 3.0), 1.0)\n    b.union_with(c)",
     "checks": [
@@ -339,7 +339,7 @@
     "group": "OBB",
     "test_name": "From Geometry",
     "passed": true,
-    "time_ms": 1.374,
+    "time_ms": 2.77,
     "line": 218,
     "code": "    from session_py import Color\n    from session_py import Line\n    from session_py import NurbsCurve\n    from session_py import NurbsSurface\n    from session_py import OBB\n    from session_py import Point\n    from session_py import PointCloud\n    from session_py import Polyline\n    from session_py import Primitives\n    from session_py import Vector\n\n    bb_line = OBB.from_line(Line(0.0, 0.0, 0.0, 4.0, 0.0, 0.0), 0.1)\n\n\n    bb_pl = OBB.from_polyline(Polyline([\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 4.0, 4.0),\n    ]), 0.0)\n\n\n    bb_mesh = OBB.from_mesh(Primitives.cube(2.0), 0.0)\n\n\n    bb_pc = OBB.from_pointcloud(PointCloud(\n        [\n            Point(0.0, 0.0, 0.0),\n            Point(2.0, 0.0, 0.0),\n            Point(0.0, 2.0, 0.0),\n            Point(0.0, 0.0, 2.0),\n        ],\n        [\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n            Vector(0.0, 0.0, 1.0),\n        ],\n        [\n            Color(255, 0, 0, 255),\n            Color(0, 255, 0, 255),\n            Color(0, 0, 255, 255),\n            Color(255, 255, 0, 255),\n        ]\n    ), 0.0)\n\n\n    bb_nc = OBB.from_nurbscurve(NurbsCurve.create(False, 2, [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    ]), 0.5, False)\n\n\n    bb_ns = OBB.from_nurbssurface(NurbsSurface.create(False, False, 1, 1, 2, 2, [\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n        Point(2.0, 2.0, 2.0),\n    ]), 0.0)",
     "checks": [
@@ -405,7 +405,7 @@
     "group": "OBB",
     "test_name": "From Plane",
     "passed": true,
-    "time_ms": 0.752,
+    "time_ms": 0.717,
     "line": 294,
     "code": "    from session_py import OBB\n    from session_py import Plane\n    from session_py import Point\n\n    plane = Plane.xy_plane()\n    box = OBB.from_plane(plane, 2.0, 3.0, 4.0)\n\n\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 3.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n    ]\n    bb = OBB.from_points_with_plane(pts, plane, 0.0)",
     "checks": [
@@ -451,7 +451,7 @@
     "group": "OBB",
     "test_name": "Two Rectangles",
     "passed": true,
-    "time_ms": 0.117,
+    "time_ms": 0.21,
     "line": 321,
     "code": "    from session_py import OBB\n    from session_py import Point\n    from session_py import Vector\n\n    bb = OBB(\n        center=Point(1.0, 2.0, 3.0),\n        x_axis=Vector(1.0, 0.0, 0.0),\n        y_axis=Vector(0.0, 1.0, 0.0),\n        z_axis=Vector(0.0, 0.0, 1.0),\n        half_size=Vector(2.0, 3.0, 4.0)\n    )\n    rects = bb.two_rectangles()\n\n    # bottom rect (z=-4 offset): corners at z=-1; top rect (z=+4 offset): corners at z=7",
     "checks": [

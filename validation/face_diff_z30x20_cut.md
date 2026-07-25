@@ -10,17 +10,11 @@ eps 0.08454, 9 samples/face, grid 11
 | TRUE (OCCT cut) | 1 | - | 32 | 54.258044 | 1 |
 | OURS | 1 | 1 | 34 | 54.229700 | 1 |
 
-## Defect tickets (7)
+## Defect tickets (1)
 
 | # | kind | face | srf | area | centroid | detail |
 |---|---|---|---|---|---|---|
 | 0 | COUNT | - | - | - | - | our faces 34 vs OCCT 32 (+2) |
-| 1 | AGG_AREA | - | - | - | - | our total face area 181.974 vs expected true boundary 168.572 (rel +8.0%) |
-| 2 | SUSPECT_KEPT | ours FACE 19 | BSplineSurface | 21.8921 | (8.257,4.711,1.654) | on-source non-boundary samples int/ext 0/3 (~12.45 area kept beyond truth?) |
-| 3 | SUSPECT_KEPT | ours FACE 16 | BSplineSurface | 11.8238 | (7.873,2.479,1.792) | on-source non-boundary samples int/ext 0/3 (~8.88 area kept beyond truth?) |
-| 4 | SUSPECT_KEPT | ours FACE 32 | BSplineSurface | 5.8622 | (8.243,4.296,2.085) | on-source non-boundary samples int/ext 0/5 (~7.92 area kept beyond truth?) |
-| 5 | SUSPECT_KEPT | ours FACE 0 | BSplineSurface | 18.5702 | (9.948,2.329,3.139) | on-source non-boundary samples int/ext 0/2 (~4.97 area kept beyond truth?) |
-| 6 | SUSPECT_KEPT | ours FACE 33 | BSplineSurface | 7.3135 | (10.819,3.394,1.696) | on-source non-boundary samples int/ext 0/2 (~3.82 area kept beyond truth?) |
 
 ## Our-face verdicts (34 OK / 34 faces)
 

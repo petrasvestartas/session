@@ -142,6 +142,20 @@ opt-level = 3
 
 (Both trigger one slow full-rebuild of dependencies, then everything is cached.)
 
+**4c. Ask the GPU for its real limits** — baseline WebGPU caps any storage-buffer BINDING at
+128MB: a hard wall at ~1.4M objects (96B instance rows) / ~2.8M segments (48B rows). Desktop
+adapters allow far more — request it, but only for the two limits we lean on. **In `Gpu::new`,
+replace `required_limits: wgpu::Limits::default(),`:**
+
+```rust
+        let mut limits = wgpu::Limits::default();
+        let hw = adapter.limits();
+        limits.max_storage_buffer_binding_size = hw.max_storage_buffer_binding_size;
+        limits.max_buffer_size = hw.max_buffer_size;
+        // …
+                required_limits: limits,
+```
+
 ## Verify
 
 ```
@@ -162,7 +176,8 @@ Ch 34e: STREAM, WALK, DROP, CYCLE. SceneTables + Gpu::walk_session let each pars
         right after its walk (peak = one file); Gpu::new takes &[SceneTables] and lays cells out
         cycling the files (STRESS_GRID² floor, 5% gutters, bounds INCLUDE offsets — F fits the
         wall). wasm max-memory 4GB kills the allocator abort; dev.package opt-level 3 makes debug
-        parse ~5× faster. 503,516 objects, 4 draw calls.
+        parse ~5× faster; adapter-real storage limits defuse the 128MB binding wall (~1.4M
+        objects) before it's ever hit. 503,516 objects, 4 draw calls.
 ```
 
 ## Next

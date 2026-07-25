@@ -58,7 +58,7 @@
     "line": 10,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.48
+    "time_ms": 0.503
   },
   {
     "checks": [
@@ -84,7 +84,7 @@
     "line": 45,
     "passed": true,
     "test_name": "Default Polygon",
-    "time_ms": 0.145
+    "time_ms": 0.178
   },
   {
     "checks": [
@@ -110,7 +110,7 @@
     "line": 57,
     "passed": true,
     "test_name": "Setters",
-    "time_ms": 0.373
+    "time_ms": 0.386
   },
   {
     "checks": [
@@ -131,7 +131,7 @@
     "line": 77,
     "passed": true,
     "test_name": "Mesh Topology",
-    "time_ms": 0.165
+    "time_ms": 0.133
   },
   {
     "checks": [
@@ -157,7 +157,7 @@
     "line": 97,
     "passed": true,
     "test_name": "AABB",
-    "time_ms": 0.169
+    "time_ms": 0.17
   },
   {
     "checks": [
@@ -204,7 +204,7 @@
     "line": 137,
     "passed": true,
     "test_name": "Triangle Polygon",
-    "time_ms": 0.104
+    "time_ms": 0.107
   },
   {
     "checks": [
@@ -235,7 +235,7 @@
     "line": 156,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 19.17
+    "time_ms": 18.289
   },
   {
     "checks": [
@@ -266,7 +266,7 @@
     "line": 182,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 15.951
+    "time_ms": 15.72
   },
   {
     "checks": [
@@ -312,7 +312,7 @@
     "line": 208,
     "passed": true,
     "test_name": "From Top Bottom",
-    "time_ms": 0.267
+    "time_ms": 0.263
   },
   {
     "checks": [
@@ -384,7 +384,7 @@
     "line": 246,
     "passed": true,
     "test_name": "Planes",
-    "time_ms": 0.191
+    "time_ms": 0.192
   },
   {
     "checks": [
@@ -420,7 +420,7 @@
     "line": 259,
     "passed": true,
     "test_name": "Edge Vectors",
-    "time_ms": 0.141
+    "time_ms": 0.138
   },
   {
     "checks": [
@@ -451,7 +451,7 @@
     "line": 274,
     "passed": true,
     "test_name": "Axis",
-    "time_ms": 0.142
+    "time_ms": 0.15
   },
   {
     "checks": [
@@ -482,7 +482,7 @@
     "line": 288,
     "passed": true,
     "test_name": "Joint Types",
-    "time_ms": 0.151
+    "time_ms": 0.13
   },
   {
     "checks": [
@@ -518,7 +518,7 @@
     "line": 300,
     "passed": true,
     "test_name": "J Mf",
-    "time_ms": 0.13
+    "time_ms": 0.129
   },
   {
     "checks": [
@@ -539,7 +539,7 @@
     "line": 317,
     "passed": true,
     "test_name": "Key",
-    "time_ms": 0.131
+    "time_ms": 0.128
   },
   {
     "checks": [
@@ -565,7 +565,7 @@
     "line": 327,
     "passed": true,
     "test_name": "Component Plane",
-    "time_ms": 0.164
+    "time_ms": 0.142
   },
   {
     "checks": [
@@ -601,7 +601,7 @@
     "line": 342,
     "passed": true,
     "test_name": "Json Roundtrip Joinery",
-    "time_ms": 20.089
+    "time_ms": 19.35
   },
   {
     "checks": [
@@ -642,6 +642,6 @@
     "line": 368,
     "passed": true,
     "test_name": "Protobuf Roundtrip Joinery",
-    "time_ms": 17.835
+    "time_ms": 17.084
   }
 ]

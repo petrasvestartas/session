@@ -3,7 +3,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Sphere",
     "passed": true,
-    "time_ms": 16.393,
+    "time_ms": 33.924,
     "line": 6,
     "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import Primitives\n\n    s = Primitives.sphere_surface(0, 0, 0, 1.0)\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
     "checks": [
@@ -29,7 +29,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Torus",
     "passed": true,
-    "time_ms": 36.693,
+    "time_ms": 75.183,
     "line": 19,
     "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import Primitives\n\n    s = Primitives.torus_surface(0, 0, 0, 3.0, 1.0)\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
     "checks": [
@@ -55,7 +55,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Cylinder",
     "passed": true,
-    "time_ms": 5.423,
+    "time_ms": 11.957,
     "line": 32,
     "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import Primitives\n\n    s = Primitives.cylinder_surface(0, 0, 0, 1.0, 5.0)\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
     "checks": [
@@ -81,7 +81,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Cone",
     "passed": true,
-    "time_ms": 5.447,
+    "time_ms": 12.922,
     "line": 45,
     "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import Primitives\n\n    s = Primitives.cone_surface(0, 0, 0, 1.0, 5.0)\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
     "checks": [
@@ -107,7 +107,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Doubly Curved",
     "passed": true,
-    "time_ms": 120.268,
+    "time_ms": 267.513,
     "line": 58,
     "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import Primitives\n\n    s = Primitives.wave_surface(1.0, 0.5)\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
     "checks": [
@@ -133,7 +133,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Grid Target",
     "passed": true,
-    "time_ms": 302.393,
+    "time_ms": 650.151,
     "line": 71,
     "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import Primitives\n\n    s = Primitives.wave_surface(1.0, 0.5)\n    m_lo = RemeshNurbsSurfaceGrid.from_u_v(s, 8, 8)\n    m_hi = RemeshNurbsSurfaceGrid.from_u_v(s, 32, 32)",
     "checks": [
@@ -164,7 +164,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Flat Quad",
     "passed": true,
-    "time_ms": 1.688,
+    "time_ms": 4.226,
     "line": 86,
     "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    s = NurbsSurface.create(False, False, 1, 1, 2, 2, [\n        Point(0, 0, 0),\n        Point(0, 4, 0),\n        Point(4, 0, 0),\n        Point(4, 4, 0),\n    ])\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
     "checks": [
@@ -190,7 +190,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Flat Triangle",
     "passed": true,
-    "time_ms": 1.343,
+    "time_ms": 3.677,
     "line": 105,
     "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    s = NurbsSurface.create(False, False, 1, 1, 2, 2, [\n        Point(0, 0, 0),\n        Point(2, 4, 0),\n        Point(4, 0, 0),\n        Point(2, 4, 0),\n    ])\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
     "checks": [
@@ -216,7 +216,7 @@
     "group": "RemeshNurbsSurfaceGrid",
     "test_name": "Double-Curved Triangle",
     "passed": true,
-    "time_ms": 3.353,
+    "time_ms": 7.374,
     "line": 124,
     "code": "    from session_py import RemeshNurbsSurfaceGrid\n    from session_py import NurbsSurface\n    from session_py import Point\n\n    s = NurbsSurface.create(False, False, 2, 2, 3, 3, [\n        Point(0, 0, 0),\n        Point(2, 0, 3),\n        Point(4, 0, 0),\n        Point(0, 2, 2),\n        Point(2, 2, 5),\n        Point(4, 2, 2),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n    ])\n    m = RemeshNurbsSurfaceGrid.from_u_v(s, 0, 0)",
     "checks": [

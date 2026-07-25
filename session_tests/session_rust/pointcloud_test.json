@@ -68,7 +68,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.083
+    "time_ms": 0.049
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 297,
     "passed": true,
     "test_name": "Transform",
-    "time_ms": 0.016
+    "time_ms": 0.026
   },
   {
     "checks": [
@@ -130,7 +130,7 @@
     "line": 330,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 16.643
+    "time_ms": 17.362
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 363,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 16.059
+    "time_ms": 16.038
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 217,
     "passed": true,
     "test_name": "Get Colors",
-    "time_ms": 0.015
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -223,7 +223,7 @@
     "line": 313,
     "passed": true,
     "test_name": "Transformed",
-    "time_ms": 0.013
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -239,7 +239,7 @@
     "line": 192,
     "passed": true,
     "test_name": "Set Color",
-    "time_ms": 0.007
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -255,7 +255,7 @@
     "line": 77,
     "passed": true,
     "test_name": "Point Count",
-    "time_ms": 0.006
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -271,7 +271,7 @@
     "line": 180,
     "passed": true,
     "test_name": "Get Color",
-    "time_ms": 0.006
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -313,7 +313,7 @@
     "line": 204,
     "passed": true,
     "test_name": "Add Color",
-    "time_ms": 0.005
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -339,7 +339,7 @@
     "line": 155,
     "passed": true,
     "test_name": "Get Points",
-    "time_ms": 0.008
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -355,7 +355,7 @@
     "line": 88,
     "passed": true,
     "test_name": "Len",
-    "time_ms": 0.004
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -381,7 +381,7 @@
     "line": 242,
     "passed": true,
     "test_name": "Get Normal",
-    "time_ms": 0.015
+    "time_ms": 0.009
   },
   {
     "checks": [
@@ -397,7 +397,7 @@
     "line": 231,
     "passed": true,
     "test_name": "Normal Count",
-    "time_ms": 0.005
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -418,7 +418,7 @@
     "line": 99,
     "passed": true,
     "test_name": "Is Empty",
-    "time_ms": 0.006
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -465,7 +465,7 @@
     "line": 169,
     "passed": true,
     "test_name": "Color Count",
-    "time_ms": 0.005
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -522,7 +522,7 @@
     "line": 61,
     "passed": true,
     "test_name": "From Coords",
-    "time_ms": 0.01
+    "time_ms": 0.014
   },
   {
     "checks": [
@@ -548,7 +548,7 @@
     "line": 283,
     "passed": true,
     "test_name": "Get Normals",
-    "time_ms": 0.006
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -574,7 +574,7 @@
     "line": 112,
     "passed": true,
     "test_name": "Get Point",
-    "time_ms": 0.005
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -600,6 +600,6 @@
     "line": 256,
     "passed": true,
     "test_name": "Set Normal",
-    "time_ms": 0.006
+    "time_ms": 0.005
   }
 ]
