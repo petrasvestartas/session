@@ -63,7 +63,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.05
+    "time_ms": 0.071
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 64,
     "passed": true,
     "test_name": "Translation",
-    "time_ms": 0.377
+    "time_ms": 0.218
   },
   {
     "checks": [
@@ -165,7 +165,7 @@
     "line": 84,
     "passed": true,
     "test_name": "Rotation X",
-    "time_ms": 0.223
+    "time_ms": 0.145
   },
   {
     "checks": [
@@ -216,7 +216,7 @@
     "line": 105,
     "passed": true,
     "test_name": "Rotation Y",
-    "time_ms": 0.146
+    "time_ms": 0.21
   },
   {
     "checks": [
@@ -267,7 +267,7 @@
     "line": 126,
     "passed": true,
     "test_name": "Rotation Z",
-    "time_ms": 0.138
+    "time_ms": 0.16
   },
   {
     "checks": [
@@ -318,7 +318,7 @@
     "line": 147,
     "passed": true,
     "test_name": "Rotation Axis",
-    "time_ms": 0.156
+    "time_ms": 0.195
   },
   {
     "checks": [
@@ -369,7 +369,7 @@
     "line": 171,
     "passed": true,
     "test_name": "Rotation Around Line",
-    "time_ms": 0.157
+    "time_ms": 0.155
   },
   {
     "checks": [
@@ -471,7 +471,7 @@
     "line": 223,
     "passed": true,
     "test_name": "Plane To Plane",
-    "time_ms": 0.165
+    "time_ms": 0.169
   },
   {
     "checks": [
@@ -522,7 +522,7 @@
     "line": 247,
     "passed": true,
     "test_name": "Scale XYZ",
-    "time_ms": 0.138
+    "time_ms": 0.136
   },
   {
     "checks": [
@@ -573,7 +573,7 @@
     "line": 267,
     "passed": true,
     "test_name": "Scale Uniform",
-    "time_ms": 0.175
+    "time_ms": 0.145
   },
   {
     "checks": [
@@ -624,7 +624,7 @@
     "line": 288,
     "passed": true,
     "test_name": "Scale Non Uniform",
-    "time_ms": 0.149
+    "time_ms": 0.144
   },
   {
     "checks": [
@@ -675,7 +675,7 @@
     "line": 309,
     "passed": true,
     "test_name": "Look At Right Handed",
-    "time_ms": 0.162
+    "time_ms": 0.15
   },
   {
     "checks": [
@@ -726,7 +726,7 @@
     "line": 332,
     "passed": true,
     "test_name": "Look To Right Handed",
-    "time_ms": 0.165
+    "time_ms": 0.167
   },
   {
     "checks": [
@@ -777,7 +777,7 @@
     "line": 355,
     "passed": true,
     "test_name": "Perspective",
-    "time_ms": 0.138
+    "time_ms": 0.198
   },
   {
     "checks": [
@@ -828,7 +828,7 @@
     "line": 378,
     "passed": true,
     "test_name": "Orthographic",
-    "time_ms": 0.135
+    "time_ms": 0.143
   },
   {
     "checks": [
@@ -864,7 +864,7 @@
     "line": 400,
     "passed": true,
     "test_name": "Project To Plane",
-    "time_ms": 0.036
+    "time_ms": 0.039
   },
   {
     "checks": [
@@ -900,7 +900,7 @@
     "line": 429,
     "passed": true,
     "test_name": "Project To Plane By Axis",
-    "time_ms": 0.031
+    "time_ms": 0.038
   },
   {
     "checks": [
@@ -956,7 +956,7 @@
     "line": 459,
     "passed": true,
     "test_name": "Inverse",
-    "time_ms": 0.176
+    "time_ms": 0.197
   },
   {
     "checks": [
@@ -1007,7 +1007,7 @@
     "line": 550,
     "passed": true,
     "test_name": "Transform Geometry",
-    "time_ms": 0.055
+    "time_ms": 0.043
   },
   {
     "checks": [
@@ -1068,7 +1068,7 @@
     "line": 607,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 17.712
+    "time_ms": 16.031
   },
   {
     "checks": [
@@ -1129,7 +1129,7 @@
     "line": 631,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 15.44
+    "time_ms": 13.825
   },
   {
     "checks": [
@@ -1155,7 +1155,7 @@
     "line": 681,
     "passed": true,
     "test_name": "From Change Of Basis",
-    "time_ms": 0.049
+    "time_ms": 0.038
   },
   {
     "checks": [
@@ -1176,7 +1176,7 @@
     "line": 517,
     "passed": true,
     "test_name": "Transform Vector",
-    "time_ms": 0.009
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -1197,7 +1197,7 @@
     "line": 494,
     "passed": true,
     "test_name": "Transform Point",
-    "time_ms": 0.007
+    "time_ms": 0.011
   },
   {
     "checks": [

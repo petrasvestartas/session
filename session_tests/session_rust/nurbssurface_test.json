@@ -273,7 +273,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 4.538
+    "time_ms": 3.903
   },
   {
     "checks": [
@@ -354,7 +354,7 @@
     "line": 1104,
     "passed": true,
     "test_name": "Create From Parameters",
-    "time_ms": 10.738
+    "time_ms": 10.253
   },
   {
     "checks": [
@@ -405,7 +405,7 @@
     "line": 106,
     "passed": true,
     "test_name": "Booleans Queries",
-    "time_ms": 0.095
+    "time_ms": 0.115
   },
   {
     "checks": [
@@ -527,7 +527,7 @@
     "line": 213,
     "passed": true,
     "test_name": "Control Vertices Access",
-    "time_ms": 0.023
+    "time_ms": 0.025
   },
   {
     "checks": [
@@ -628,7 +628,7 @@
     "line": 274,
     "passed": true,
     "test_name": "NurbsKnot Access",
-    "time_ms": 0.093
+    "time_ms": 0.088
   },
   {
     "checks": [
@@ -669,7 +669,7 @@
     "line": 335,
     "passed": true,
     "test_name": "Domain",
-    "time_ms": 0.019
+    "time_ms": 0.045
   },
   {
     "checks": [
@@ -1140,7 +1140,7 @@
     "line": 388,
     "passed": true,
     "test_name": "Division",
-    "time_ms": 1.022
+    "time_ms": 1.02
   },
   {
     "checks": [
@@ -1191,7 +1191,7 @@
     "line": 521,
     "passed": true,
     "test_name": "Evaluation",
-    "time_ms": 0.077
+    "time_ms": 0.09
   },
   {
     "checks": [
@@ -1282,7 +1282,7 @@
     "line": 582,
     "passed": true,
     "test_name": "Modification",
-    "time_ms": 2.2
+    "time_ms": 2.302
   },
   {
     "checks": [
@@ -1333,7 +1333,7 @@
     "line": 671,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 0.122
+    "time_ms": 0.135
   },
   {
     "checks": [
@@ -1399,7 +1399,7 @@
     "line": 731,
     "passed": true,
     "test_name": "Meshing",
-    "time_ms": 244.291
+    "time_ms": 242.504
   },
   {
     "checks": [
@@ -1425,7 +1425,7 @@
     "line": 991,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 29.886
+    "time_ms": 21.751
   },
   {
     "checks": [
@@ -1446,7 +1446,7 @@
     "line": 1041,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 17.574
+    "time_ms": 17.049
   },
   {
     "checks": [
@@ -1487,7 +1487,7 @@
     "line": 864,
     "passed": true,
     "test_name": "Split By Plane",
-    "time_ms": 425.076
+    "time_ms": 530.817
   },
   {
     "checks": [
@@ -1513,7 +1513,7 @@
     "line": 924,
     "passed": true,
     "test_name": "Split By Line",
-    "time_ms": 399.12
+    "time_ms": 441.271
   },
   {
     "checks": [
@@ -1549,7 +1549,7 @@
     "line": 966,
     "passed": true,
     "test_name": "Split By Brep",
-    "time_ms": 52.681
+    "time_ms": 53.735
   },
   {
     "checks": [
@@ -1575,7 +1575,7 @@
     "line": 1086,
     "passed": true,
     "test_name": "ClosestPoint",
-    "time_ms": 0.518
+    "time_ms": 0.505
   },
   {
     "checks": [
@@ -1611,7 +1611,7 @@
     "line": 941,
     "passed": true,
     "test_name": "Split By Surface",
-    "time_ms": 1880.208
+    "time_ms": 1995.873
   },
   {
     "checks": [
@@ -1642,6 +1642,6 @@
     "line": 892,
     "passed": true,
     "test_name": "Split By Curves",
-    "time_ms": 100.727
+    "time_ms": 111.56
   }
 ]

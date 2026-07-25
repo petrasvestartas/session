@@ -3,7 +3,7 @@
     "group": "Io",
     "test_name": "Read Bunny",
     "passed": true,
-    "time_ms": 0.062,
+    "time_ms": 0.061,
     "line": 10,
     "code": "    // load Stanford Bunny (real-world XYZ point cloud: 397 points)\n    if (!std::filesystem::exists(\"session_data/bunny.xyz\"))\n        return;\n\n    PointCloud cloud = io::read_xyz(\"session_data/bunny.xyz\");\n\n\n    auto points = cloud.get_points();\n\n    bool has_non_zero = std::any_of(points.begin(), points.end(),\n        [](const auto& p) { return p[0] != 0.0 || p[1] != 0.0 || p[2] != 0.0; });",
     "checks": [],
@@ -13,7 +13,7 @@
     "group": "Io",
     "test_name": "Write Read Roundtrip",
     "passed": true,
-    "time_ms": 17.372,
+    "time_ms": 3.166,
     "line": 27,
     "code": "    // build a small cloud (4 points), write to XYZ, read back, compare counts\n    std::filesystem::create_directories(\"./serialization\");\n    PointCloud original;\n    original.add_point(Point(0.0, 0.0, 0.0));\n    original.add_point(Point(1.0, 0.0, 0.0));\n    original.add_point(Point(0.0, 1.0, 0.0));\n    original.add_point(Point(0.0, 0.0, 1.0));\n\n\n    std::string temp_file = \"./serialization/test_temp_roundtrip.xyz\";\n    io::write_xyz(original, temp_file);\n\n\n    PointCloud loaded = io::read_xyz(temp_file);\n\n\n    std::filesystem::remove(temp_file);",
     "checks": [
@@ -39,7 +39,7 @@
     "group": "Io",
     "test_name": "String Roundtrip",
     "passed": true,
-    "time_ms": 0.034,
+    "time_ms": 0.031,
     "line": 50,
     "code": "    PointCloud original;\n    original.add_point(Point(0.0, 0.0, 0.0));\n    original.add_point(Point(1.0, 0.0, 0.0));\n    original.add_point(Point(0.0, 1.0, 0.0));\n    original.add_point(Point(0.0, 0.0, 1.0));\n    std::string s = io::write_xyz_to_string(original);\n    PointCloud loaded = io::read_xyz_from_str(s);",
     "checks": [

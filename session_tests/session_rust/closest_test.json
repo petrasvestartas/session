@@ -58,7 +58,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Line Point",
-    "time_ms": 0.032
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -89,7 +89,7 @@
     "line": 34,
     "passed": true,
     "test_name": "Polyline Point",
-    "time_ms": 0.065
+    "time_ms": 0.037
   },
   {
     "checks": [
@@ -115,7 +115,7 @@
     "line": 57,
     "passed": true,
     "test_name": "Curve Point",
-    "time_ms": 0.599
+    "time_ms": 0.52
   },
   {
     "checks": [
@@ -141,7 +141,7 @@
     "line": 82,
     "passed": true,
     "test_name": "Surface Point",
-    "time_ms": 1.186
+    "time_ms": 1.099
   },
   {
     "checks": [
@@ -167,7 +167,7 @@
     "line": 169,
     "passed": true,
     "test_name": "Mesh Point",
-    "time_ms": 0.545
+    "time_ms": 0.491
   },
   {
     "checks": [
@@ -193,7 +193,7 @@
     "line": 187,
     "passed": true,
     "test_name": "Mesh Point AABB",
-    "time_ms": 0.536
+    "time_ms": 0.503
   },
   {
     "checks": [
@@ -229,7 +229,7 @@
     "line": 205,
     "passed": true,
     "test_name": "Pointcloud Point",
-    "time_ms": 0.027
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -255,7 +255,7 @@
     "line": 256,
     "passed": true,
     "test_name": "Lines Closest",
-    "time_ms": 0.055
+    "time_ms": 0.041
   },
   {
     "checks": [
@@ -291,7 +291,7 @@
     "line": 230,
     "passed": true,
     "test_name": "Pointcloud Point SpatialKDTree",
-    "time_ms": 0.04
+    "time_ms": 0.03
   },
   {
     "checks": [
@@ -317,7 +317,7 @@
     "line": 296,
     "passed": true,
     "test_name": "Nurbscurves Closest",
-    "time_ms": 0.39
+    "time_ms": 0.338
   },
   {
     "checks": [
@@ -358,7 +358,7 @@
     "line": 119,
     "passed": true,
     "test_name": "Surface Curve",
-    "time_ms": 117.464
+    "time_ms": 98.259
   },
   {
     "checks": [
@@ -384,7 +384,7 @@
     "line": 276,
     "passed": true,
     "test_name": "Polylines Closest",
-    "time_ms": 0.075
+    "time_ms": 0.079
   },
   {
     "checks": [
@@ -410,6 +410,6 @@
     "line": 316,
     "passed": true,
     "test_name": "Boxes Closest",
-    "time_ms": 0.019
+    "time_ms": 0.016
   }
 ]
