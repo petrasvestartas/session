@@ -107,6 +107,13 @@ impl Camera {
     }
 
     pub fn view_proj(&self, aspect: f64) -> Xform {
+        self.view_proj_anchored(aspect, &self.origin())
+    }
+
+    /// Camera-relative to a caller-supplied ANCHOR instead of the target.
+    /// Instances rebased about the same anchor stay valid while the target drifts (pan/zoom)
+    /// panning theb costs 1x uniform instead of an instance-table rebuild.
+    pub fn view_proj_anchored(&self, aspect: f64, anchor: &Point) -> Xform {
         let dist = self.distance;
         let projection = if self.perspective {
             Xform::perspective(f64::to_radians(60.0), aspect, dist * 10.0, dist * 0.01)
@@ -116,9 +123,8 @@ impl Camera {
             Xform::orthographic(-aspect * h, aspect * h, -h, h, r, -r)
         };
 
-        let origin = self.origin();
-        let eye    = Point::new(self.position[0] - origin[0], self.position[1] - origin[1], self.position[2] - origin[2]);
-        let target = Point::new(self.target[0]   - origin[0], self.target[1]   - origin[1], self.target[2]   - origin[2]);
+        let eye    = Point::new(self.position[0] - anchor[0], self.position[1] - anchor[1], self.position[2] - anchor[2]);
+        let target = Point::new(self.target[0]   - anchor[0], self.target[1]   - anchor[1], self.target[2]   - anchor[2]);
         let up     = Vector::new(self.up[0], self.up[1], self.up[2]);
         let view   = Xform::look_at_right_handed(&eye, &target, &up);
 

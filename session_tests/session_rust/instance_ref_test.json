@@ -2,63 +2,23 @@
   {
     "checks": [
       {
-        "code_line": "r.name == \"my_instance_ref\" && !r.guid().is_empty()",
-        "line": 31,
+        "code_line": "TOLERANCE.is_close(moved[12], 6.0)",
+        "line": 54,
         "passed": true
       },
       {
-        "code_line": "r.definition_guid == \"def-123\"",
-        "line": 32,
-        "passed": true
-      },
-      {
-        "code_line": "m0 == 2.0",
-        "line": 33,
-        "passed": true
-      },
-      {
-        "code_line": "r[12] == 10.0 && r[13] == 20.0 && r[14] == 30.0",
-        "line": 34,
-        "passed": true
-      },
-      {
-        "code_line": "rstr.contains(\"def-123\")",
-        "line": 35,
-        "passed": true
-      },
-      {
-        "code_line": "rrepr.contains(\"InstanceRef\") && rrepr.contains(\"my_instance_ref\")",
-        "line": 36,
-        "passed": true
-      },
-      {
-        "code_line": "rcopy.guid() != r.guid()",
-        "line": 37,
-        "passed": true
-      },
-      {
-        "code_line": "r == rother",
-        "line": 38,
-        "passed": true
-      },
-      {
-        "code_line": "r != rwn",
-        "line": 39,
-        "passed": true
-      },
-      {
-        "code_line": "rwn.name == \"custom\" && rwn.definition_guid == \"def-9\"",
-        "line": 40,
+        "code_line": "TOLERANCE.is_close(r[12], 6.0)",
+        "line": 55,
         "passed": true
       }
     ],
-    "code": "        use crate::InstanceRef;\n        use crate::Xform;\n\n        // Constructor from a definition guid and a placement transform\n        let x = Xform::translation(10.0, 20.0, 30.0);\n        let r = InstanceRef::new(\"def-123\", x.clone());\n\n        // Setter on a copy (keep r pristine for the == check below)\n        let mut rset = r.duplicate();\n        rset[0] = 2.0;\n        let m0 = rset[0];\n\n        // Minimal and Full String Representation\n        let rstr = r.str();\n        let rrepr = r.repr();\n\n        // Copy (duplicate everything but guid)\n        let rcopy = r.duplicate();\n        let rother = InstanceRef::new(\"def-123\", x.clone());\n\n        // with_name constructor\n        let rwn = InstanceRef::with_name(\"custom\", \"def-9\", Xform::identity());\n",
+    "code": "        use crate::InstanceRef;\n        use crate::Xform;\n\n        let mut r = InstanceRef::new(\"def\", Xform::translation(1.0, 0.0, 0.0));\n        let moved = r.transformed(&Xform::translation(5.0, 0.0, 0.0)); // Make a copy\n        r.transform(&Xform::translation(5.0, 0.0, 0.0)); // compose in place\n\n        // translation(5) * translation(1) => translation(6)",
     "failures": [],
     "group": "InstanceRef",
-    "line": 7,
+    "line": 45,
     "passed": true,
-    "test_name": "Constructor",
-    "time_ms": 0.049
+    "test_name": "Transformation",
+    "time_ms": 0.01
   },
   {
     "checks": [
@@ -124,28 +84,7 @@
     "line": 98,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 15.605
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_close(moved[12], 6.0)",
-        "line": 54,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(r[12], 6.0)",
-        "line": 55,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::InstanceRef;\n        use crate::Xform;\n\n        let mut r = InstanceRef::new(\"def\", Xform::translation(1.0, 0.0, 0.0));\n        let moved = r.transformed(&Xform::translation(5.0, 0.0, 0.0)); // Make a copy\n        r.transform(&Xform::translation(5.0, 0.0, 0.0)); // compose in place\n\n        // translation(5) * translation(1) => translation(6)",
-    "failures": [],
-    "group": "InstanceRef",
-    "line": 45,
-    "passed": true,
-    "test_name": "Transformation",
-    "time_ms": 0.011
+    "time_ms": 0.077
   },
   {
     "checks": [
@@ -216,6 +155,67 @@
     "line": 60,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 16.699
+    "time_ms": 0.351
+  },
+  {
+    "checks": [
+      {
+        "code_line": "r.name == \"my_instance_ref\" && !r.guid().is_empty()",
+        "line": 31,
+        "passed": true
+      },
+      {
+        "code_line": "r.definition_guid == \"def-123\"",
+        "line": 32,
+        "passed": true
+      },
+      {
+        "code_line": "m0 == 2.0",
+        "line": 33,
+        "passed": true
+      },
+      {
+        "code_line": "r[12] == 10.0 && r[13] == 20.0 && r[14] == 30.0",
+        "line": 34,
+        "passed": true
+      },
+      {
+        "code_line": "rstr.contains(\"def-123\")",
+        "line": 35,
+        "passed": true
+      },
+      {
+        "code_line": "rrepr.contains(\"InstanceRef\") && rrepr.contains(\"my_instance_ref\")",
+        "line": 36,
+        "passed": true
+      },
+      {
+        "code_line": "rcopy.guid() != r.guid()",
+        "line": 37,
+        "passed": true
+      },
+      {
+        "code_line": "r == rother",
+        "line": 38,
+        "passed": true
+      },
+      {
+        "code_line": "r != rwn",
+        "line": 39,
+        "passed": true
+      },
+      {
+        "code_line": "rwn.name == \"custom\" && rwn.definition_guid == \"def-9\"",
+        "line": 40,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::InstanceRef;\n        use crate::Xform;\n\n        // Constructor from a definition guid and a placement transform\n        let x = Xform::translation(10.0, 20.0, 30.0);\n        let r = InstanceRef::new(\"def-123\", x.clone());\n\n        // Setter on a copy (keep r pristine for the == check below)\n        let mut rset = r.duplicate();\n        rset[0] = 2.0;\n        let m0 = rset[0];\n\n        // Minimal and Full String Representation\n        let rstr = r.str();\n        let rrepr = r.repr();\n\n        // Copy (duplicate everything but guid)\n        let rcopy = r.duplicate();\n        let rother = InstanceRef::new(\"def-123\", x.clone());\n\n        // with_name constructor\n        let rwn = InstanceRef::with_name(\"custom\", \"def-9\", Xform::identity());\n",
+    "failures": [],
+    "group": "InstanceRef",
+    "line": 7,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.016
   }
 ]

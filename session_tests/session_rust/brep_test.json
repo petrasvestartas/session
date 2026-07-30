@@ -53,7 +53,7 @@
     "line": 5,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.056
+    "time_ms": 0.046
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 28,
     "passed": true,
     "test_name": "Create Box",
-    "time_ms": 0.286
+    "time_ms": 0.25
   },
   {
     "checks": [
@@ -135,7 +135,7 @@
     "line": 43,
     "passed": true,
     "test_name": "Accessors",
-    "time_ms": 0.232
+    "time_ms": 0.215
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 62,
     "passed": true,
     "test_name": "Add Face",
-    "time_ms": 0.023
+    "time_ms": 0.016
   },
   {
     "checks": [
@@ -192,7 +192,7 @@
     "line": 94,
     "passed": true,
     "test_name": "Mesh",
-    "time_ms": 1.225
+    "time_ms": 1.199
   },
   {
     "checks": [
@@ -208,7 +208,7 @@
     "line": 107,
     "passed": true,
     "test_name": "Point At",
-    "time_ms": 0.253
+    "time_ms": 0.219
   },
   {
     "checks": [
@@ -229,7 +229,7 @@
     "line": 120,
     "passed": true,
     "test_name": "Is Solid",
-    "time_ms": 0.227
+    "time_ms": 0.221
   },
   {
     "checks": [
@@ -255,7 +255,7 @@
     "line": 143,
     "passed": true,
     "test_name": "Transformation",
-    "time_ms": 0.426
+    "time_ms": 0.344
   },
   {
     "checks": [
@@ -276,7 +276,7 @@
     "line": 161,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 31.748
+    "time_ms": 17.055
   },
   {
     "checks": [
@@ -317,7 +317,7 @@
     "line": 242,
     "passed": true,
     "test_name": "Create Cylinder",
-    "time_ms": 10.38
+    "time_ms": 12.722
   },
   {
     "checks": [
@@ -358,7 +358,7 @@
     "line": 258,
     "passed": true,
     "test_name": "Create Sphere",
-    "time_ms": 22.186
+    "time_ms": 19.897
   },
   {
     "checks": [
@@ -389,7 +389,7 @@
     "line": 421,
     "passed": true,
     "test_name": "From Nurbscurves",
-    "time_ms": 92.804
+    "time_ms": 57.962
   },
   {
     "checks": [
@@ -410,7 +410,7 @@
     "line": 216,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 22.492
+    "time_ms": 3.943
   },
   {
     "checks": [
@@ -436,7 +436,7 @@
     "line": 331,
     "passed": true,
     "test_name": "Volume",
-    "time_ms": 655.475
+    "time_ms": 548.18
   },
   {
     "checks": [
@@ -502,7 +502,7 @@
     "line": 306,
     "passed": true,
     "test_name": "Contains Point",
-    "time_ms": 0.731
+    "time_ms": 0.402
   },
   {
     "checks": [
@@ -558,7 +558,7 @@
     "line": 622,
     "passed": true,
     "test_name": "Boolean Example brep_booleans",
-    "time_ms": 28582.892
+    "time_ms": 12534.866
   },
   {
     "checks": [
@@ -614,7 +614,7 @@
     "line": 645,
     "passed": true,
     "test_name": "Boolean Off-Center Cyl",
-    "time_ms": 29158.737
+    "time_ms": 12427.678
   },
   {
     "checks": [
@@ -670,7 +670,7 @@
     "line": 669,
     "passed": true,
     "test_name": "Boolean Contained Box",
-    "time_ms": 23.744
+    "time_ms": 17.461
   },
   {
     "checks": [
@@ -726,7 +726,7 @@
     "line": 689,
     "passed": true,
     "test_name": "Boolean Box-Box",
-    "time_ms": 356.171
+    "time_ms": 266.548
   },
   {
     "checks": [
@@ -782,7 +782,7 @@
     "line": 712,
     "passed": true,
     "test_name": "Boolean Contained Sphere",
-    "time_ms": 18.159
+    "time_ms": 12.249
   },
   {
     "checks": [
@@ -808,7 +808,7 @@
     "line": 762,
     "passed": true,
     "test_name": "Block With Hole Volume",
-    "time_ms": 0.487
+    "time_ms": 0.212
   },
   {
     "checks": [
@@ -834,7 +834,74 @@
     "line": 606,
     "passed": true,
     "test_name": "Split By Brep",
-    "time_ms": 109.933
+    "time_ms": 79.44
+  },
+  {
+    "checks": [
+      {
+        "code_line": "split.face_count() == 7",
+        "line": 599,
+        "passed": true
+      },
+      {
+        "code_line": "(split_area - box_area).abs() < box_area * 0.01",
+        "line": 600,
+        "passed": true
+      },
+      {
+        "code_line": "!split.mesh().is_empty()",
+        "line": 601,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::brep::BRep;\n        use crate::line::Line;\n        use crate::Point;\n\n        let bbox = BRep::create_box(2.0, 2.0, 2.0);\n        let line = Line::from_points(&Point::new(0.0, -2.0, 1.0), &Point::new(0.0, 2.0, 1.0));\n        let split = bbox.split_by_line(&line, None);\n        let box_area = bbox.mesh().area();\n        let split_area = split.mesh().area();\n",
+    "failures": [],
+    "group": "BRep",
+    "line": 588,
+    "passed": true,
+    "test_name": "Split By Line",
+    "time_ms": 124.263
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pieces.len() == 2",
+        "line": 574,
+        "passed": true
+      },
+      {
+        "code_line": "pieces[0].face_count() == 5",
+        "line": 575,
+        "passed": true
+      },
+      {
+        "code_line": "pieces[1].face_count() == 5",
+        "line": 576,
+        "passed": true
+      },
+      {
+        "code_line": "(total - bbox.mesh().area()).abs() < bbox.mesh().area() * 0.01",
+        "line": 577,
+        "passed": true
+      },
+      {
+        "code_line": "whole.len() == 1",
+        "line": 582,
+        "passed": true
+      },
+      {
+        "code_line": "whole[0].face_count() == 6",
+        "line": 583,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::brep::BRep;\n        use crate::plane::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let bbox = BRep::create_box(2.0, 2.0, 2.0);\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));\n        let pieces = bbox.split_by_plane_pieces(&plane, None);\n        let mut total = 0.0;\n        for piece in &pieces {\n            total += piece.mesh().area();\n        }\n\n\n        let far = Plane::from_point_normal(Point::new(0.0, 0.0, 5.0), Vector::new(0.0, 0.0, 1.0));\n        let whole = bbox.split_by_plane_pieces(&far, None);\n",
+    "failures": [],
+    "group": "BRep",
+    "line": 560,
+    "passed": true,
+    "test_name": "Split By Plane Pieces",
+    "time_ms": 397.643
   },
   {
     "checks": [
@@ -875,7 +942,151 @@
     "line": 524,
     "passed": true,
     "test_name": "Split By Plane",
-    "time_ms": 529.6
+    "time_ms": 400.989
+  },
+  {
+    "checks": [
+      {
+        "code_line": "vol > 60.0",
+        "line": 210,
+        "passed": true
+      },
+      {
+        "code_line": "vol < 175.0",
+        "line": 211,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::brep::BRep;\n\n        // Reversed faces must flip winding; the bug inflated volume() past the solid box.\n        let bh = BRep::create_block_with_hole(8.0, 6.0, 4.0, 1.5);\n        let vol = bh.mesh().volume();\n",
+    "failures": [],
+    "group": "BRep",
+    "line": 203,
+    "passed": true,
+    "test_name": "Mesh Orientation",
+    "time_ms": 9.677
+  },
+  {
+    "checks": [
+      {
+        "code_line": "bh.is_valid()",
+        "line": 193,
+        "passed": true
+      },
+      {
+        "code_line": "bh.face_count() == 7",
+        "line": 194,
+        "passed": true
+      },
+      {
+        "code_line": "bh.name == \"block_with_hole\"",
+        "line": 195,
+        "passed": true
+      },
+      {
+        "code_line": "!m.is_empty()",
+        "line": 196,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_vertices() > 0",
+        "line": 197,
+        "passed": true
+      },
+      {
+        "code_line": "m.number_of_faces() > 0",
+        "line": 198,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::brep::BRep;\n\n        let bh = BRep::create_block_with_hole(8.0, 6.0, 4.0, 1.5);\n        let m = bh.mesh();\n",
+    "failures": [],
+    "group": "BRep",
+    "line": 187,
+    "passed": true,
+    "test_name": "Create Block With Hole",
+    "time_ms": 9.53
+  },
+  {
+    "checks": [
+      {
+        "code_line": "tor.is_valid()",
+        "line": 295,
+        "passed": true
+      },
+      {
+        "code_line": "tor.face_count() == 1",
+        "line": 296,
+        "passed": true
+      },
+      {
+        "code_line": "tor.is_solid()",
+        "line": 297,
+        "passed": true
+      },
+      {
+        "code_line": "tor.name == \"torus\"",
+        "line": 298,
+        "passed": true
+      },
+      {
+        "code_line": "!m.is_empty()",
+        "line": 299,
+        "passed": true
+      },
+      {
+        "code_line": "(tor.volume() - (2.0 * PI * PI * 2.0 * 0.25)).abs() /\n(2.0 * PI * PI * 2.0 * 0.25) < 1e-3",
+        "line": 301,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::brep::BRep;\n        const PI: f64 = std::f64::consts::PI;\n        let tor = BRep::create_torus(2.0, 0.5);   // major R=2, minor r=0.5\n        let m = tor.mesh();\n        // V = 2 pi^2 R r^2",
+    "failures": [],
+    "group": "BRep",
+    "line": 290,
+    "passed": true,
+    "test_name": "Create Torus",
+    "time_ms": 90.891
+  },
+  {
+    "checks": [
+      {
+        "code_line": "cone.is_valid()",
+        "line": 279,
+        "passed": true
+      },
+      {
+        "code_line": "cone.face_count() == 2",
+        "line": 280,
+        "passed": true
+      },
+      {
+        "code_line": "cone.is_solid()",
+        "line": 281,
+        "passed": true
+      },
+      {
+        "code_line": "cone.name == \"cone\"",
+        "line": 282,
+        "passed": true
+      },
+      {
+        "code_line": "!m.is_empty()",
+        "line": 283,
+        "passed": true
+      },
+      {
+        "code_line": "(cone.volume() - (PI * 1.0 * 2.0 / 3.0)).abs() / (PI * 2.0 / 3.0) < 1e-4",
+        "line": 285,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::brep::BRep;\n        const PI: f64 = std::f64::consts::PI;\n        let cone = BRep::create_cone(1.0, 2.0);   // base r=1 at z=0, apex z=2\n        let m = cone.mesh();\n        // V = (1/3) pi r^2 h",
+    "failures": [],
+    "group": "BRep",
+    "line": 274,
+    "passed": true,
+    "test_name": "Create Cone",
+    "time_ms": 4.381
   },
   {
     "checks": [
@@ -926,217 +1137,6 @@
     "line": 737,
     "passed": true,
     "test_name": "Boolean Sphere Split",
-    "time_ms": 137900.864
-  },
-  {
-    "checks": [
-      {
-        "code_line": "tor.is_valid()",
-        "line": 295,
-        "passed": true
-      },
-      {
-        "code_line": "tor.face_count() == 1",
-        "line": 296,
-        "passed": true
-      },
-      {
-        "code_line": "tor.is_solid()",
-        "line": 297,
-        "passed": true
-      },
-      {
-        "code_line": "tor.name == \"torus\"",
-        "line": 298,
-        "passed": true
-      },
-      {
-        "code_line": "!m.is_empty()",
-        "line": 299,
-        "passed": true
-      },
-      {
-        "code_line": "(tor.volume() - (2.0 * PI * PI * 2.0 * 0.25)).abs() /\n(2.0 * PI * PI * 2.0 * 0.25) < 1e-3",
-        "line": 301,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::brep::BRep;\n        const PI: f64 = std::f64::consts::PI;\n        let tor = BRep::create_torus(2.0, 0.5);   // major R=2, minor r=0.5\n        let m = tor.mesh();\n        // V = 2 pi^2 R r^2",
-    "failures": [],
-    "group": "BRep",
-    "line": 290,
-    "passed": true,
-    "test_name": "Create Torus",
-    "time_ms": 109.438
-  },
-  {
-    "checks": [
-      {
-        "code_line": "split.face_count() == 7",
-        "line": 599,
-        "passed": true
-      },
-      {
-        "code_line": "(split_area - box_area).abs() < box_area * 0.01",
-        "line": 600,
-        "passed": true
-      },
-      {
-        "code_line": "!split.mesh().is_empty()",
-        "line": 601,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::brep::BRep;\n        use crate::line::Line;\n        use crate::Point;\n\n        let bbox = BRep::create_box(2.0, 2.0, 2.0);\n        let line = Line::from_points(&Point::new(0.0, -2.0, 1.0), &Point::new(0.0, 2.0, 1.0));\n        let split = bbox.split_by_line(&line, None);\n        let box_area = bbox.mesh().area();\n        let split_area = split.mesh().area();\n",
-    "failures": [],
-    "group": "BRep",
-    "line": 588,
-    "passed": true,
-    "test_name": "Split By Line",
-    "time_ms": 166.732
-  },
-  {
-    "checks": [
-      {
-        "code_line": "bh.is_valid()",
-        "line": 193,
-        "passed": true
-      },
-      {
-        "code_line": "bh.face_count() == 7",
-        "line": 194,
-        "passed": true
-      },
-      {
-        "code_line": "bh.name == \"block_with_hole\"",
-        "line": 195,
-        "passed": true
-      },
-      {
-        "code_line": "!m.is_empty()",
-        "line": 196,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_vertices() > 0",
-        "line": 197,
-        "passed": true
-      },
-      {
-        "code_line": "m.number_of_faces() > 0",
-        "line": 198,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::brep::BRep;\n\n        let bh = BRep::create_block_with_hole(8.0, 6.0, 4.0, 1.5);\n        let m = bh.mesh();\n",
-    "failures": [],
-    "group": "BRep",
-    "line": 187,
-    "passed": true,
-    "test_name": "Create Block With Hole",
-    "time_ms": 11.623
-  },
-  {
-    "checks": [
-      {
-        "code_line": "pieces.len() == 2",
-        "line": 574,
-        "passed": true
-      },
-      {
-        "code_line": "pieces[0].face_count() == 5",
-        "line": 575,
-        "passed": true
-      },
-      {
-        "code_line": "pieces[1].face_count() == 5",
-        "line": 576,
-        "passed": true
-      },
-      {
-        "code_line": "(total - bbox.mesh().area()).abs() < bbox.mesh().area() * 0.01",
-        "line": 577,
-        "passed": true
-      },
-      {
-        "code_line": "whole.len() == 1",
-        "line": 582,
-        "passed": true
-      },
-      {
-        "code_line": "whole[0].face_count() == 6",
-        "line": 583,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::brep::BRep;\n        use crate::plane::Plane;\n        use crate::Point;\n        use crate::Vector;\n\n        let bbox = BRep::create_box(2.0, 2.0, 2.0);\n        let plane = Plane::from_point_normal(Point::new(0.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0));\n        let pieces = bbox.split_by_plane_pieces(&plane, None);\n        let mut total = 0.0;\n        for piece in &pieces {\n            total += piece.mesh().area();\n        }\n\n\n        let far = Plane::from_point_normal(Point::new(0.0, 0.0, 5.0), Vector::new(0.0, 0.0, 1.0));\n        let whole = bbox.split_by_plane_pieces(&far, None);\n",
-    "failures": [],
-    "group": "BRep",
-    "line": 560,
-    "passed": true,
-    "test_name": "Split By Plane Pieces",
-    "time_ms": 533.295
-  },
-  {
-    "checks": [
-      {
-        "code_line": "cone.is_valid()",
-        "line": 279,
-        "passed": true
-      },
-      {
-        "code_line": "cone.face_count() == 2",
-        "line": 280,
-        "passed": true
-      },
-      {
-        "code_line": "cone.is_solid()",
-        "line": 281,
-        "passed": true
-      },
-      {
-        "code_line": "cone.name == \"cone\"",
-        "line": 282,
-        "passed": true
-      },
-      {
-        "code_line": "!m.is_empty()",
-        "line": 283,
-        "passed": true
-      },
-      {
-        "code_line": "(cone.volume() - (PI * 1.0 * 2.0 / 3.0)).abs() / (PI * 2.0 / 3.0) < 1e-4",
-        "line": 285,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::brep::BRep;\n        const PI: f64 = std::f64::consts::PI;\n        let cone = BRep::create_cone(1.0, 2.0);   // base r=1 at z=0, apex z=2\n        let m = cone.mesh();\n        // V = (1/3) pi r^2 h",
-    "failures": [],
-    "group": "BRep",
-    "line": 274,
-    "passed": true,
-    "test_name": "Create Cone",
-    "time_ms": 5.115
-  },
-  {
-    "checks": [
-      {
-        "code_line": "vol > 60.0",
-        "line": 210,
-        "passed": true
-      },
-      {
-        "code_line": "vol < 175.0",
-        "line": 211,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::brep::BRep;\n\n        // Reversed faces must flip winding; the bug inflated volume() past the solid box.\n        let bh = BRep::create_block_with_hole(8.0, 6.0, 4.0, 1.5);\n        let vol = bh.mesh().volume();\n",
-    "failures": [],
-    "group": "BRep",
-    "line": 203,
-    "passed": true,
-    "test_name": "Mesh Orientation",
-    "time_ms": 12.01
+    "time_ms": 73204.158
   }
 ]

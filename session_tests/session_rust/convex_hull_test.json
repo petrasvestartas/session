@@ -2,27 +2,6 @@
   {
     "checks": [
       {
-        "code_line": "mesh.number_of_vertices() == 4",
-        "line": 73,
-        "passed": true
-      },
-      {
-        "code_line": "mesh.number_of_faces() == 4",
-        "line": 74,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::ConvexHull;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(0.0, 0.0, 1.0),\n            Point::new(0.25, 0.25, 0.25),\n        ];\n        let mesh = ConvexHull::hull_3d(&pts);\n",
-    "failures": [],
-    "group": "ConvexHull",
-    "line": 61,
-    "passed": true,
-    "test_name": "Hull 3d",
-    "time_ms": 0.149
-  },
-  {
-    "checks": [
-      {
         "code_line": "hull.len() >= 3",
         "line": 37,
         "passed": true
@@ -34,7 +13,7 @@
     "line": 25,
     "passed": true,
     "test_name": "Hull 2d Collinear",
-    "time_ms": 0.027
+    "time_ms": 0.023
   },
   {
     "checks": [
@@ -55,7 +34,28 @@
     "line": 80,
     "passed": true,
     "test_name": "Hull 3d Cube",
-    "time_ms": 0.228
+    "time_ms": 0.218
+  },
+  {
+    "checks": [
+      {
+        "code_line": "mesh.number_of_vertices() == 4",
+        "line": 73,
+        "passed": true
+      },
+      {
+        "code_line": "mesh.number_of_faces() == 4",
+        "line": 74,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::ConvexHull;\n        use crate::Point;\n        let pts = vec![\n            Point::new(0.0, 0.0, 0.0),\n            Point::new(1.0, 0.0, 0.0),\n            Point::new(0.0, 1.0, 0.0),\n            Point::new(0.0, 0.0, 1.0),\n            Point::new(0.25, 0.25, 0.25),\n        ];\n        let mesh = ConvexHull::hull_3d(&pts);\n",
+    "failures": [],
+    "group": "ConvexHull",
+    "line": 61,
+    "passed": true,
+    "test_name": "Hull 3d",
+    "time_ms": 0.069
   },
   {
     "checks": [
@@ -71,7 +71,7 @@
     "line": 43,
     "passed": true,
     "test_name": "Hull 2d Circle",
-    "time_ms": 0.033
+    "time_ms": 0.037
   },
   {
     "checks": [
@@ -87,6 +87,6 @@
     "line": 6,
     "passed": true,
     "test_name": "Hull 2d",
-    "time_ms": 0.014
+    "time_ms": 0.01
   }
 ]

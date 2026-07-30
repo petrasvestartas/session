@@ -3,7 +3,7 @@
     "group": "Color",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.076,
+    "time_ms": 0.006,
     "line": 12,
     "code": "        // uncomment #include \"color.h\"\n\n        // Constructor\n        Color c(1.0f, 0.0f, 0.0f, 1.0f, \"red\");\n\n        // Setters\n        c[0] = 1.0f;\n        c[1] = 0.0f;\n        c[2] = 0.0f;\n        c[3] = 1.0f;\n\n        // Getters\n        float r = c[0];\n        float g = c[1];\n        float b = c[2];\n        float a = c[3];\n\n        // Minimal and Full String Representation\n        std::string cstr = c.str();\n        std::string crepr = c.repr();\n\n        // Copy (duplicates everything except guid())\n        Color ccopy = c;\n        Color cother(1.0f, 0.0f, 0.0f, 1.0f, \"red\");",
     "checks": [
@@ -54,7 +54,7 @@
     "group": "Color",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 21.056,
+    "time_ms": 0.149,
     "line": 48,
     "code": "      // uncomment #include \"color.h\"\n\n      Color c(1.0f, 0.5f, 0.25f, 1.0f, \"serialization/test_color\");\n\n      //   jsondump()      │ ordered_json │ to JSON object (internal use)\n      //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n      //   file_json_dumps()    │ std::string  │ to JSON string\n      //   file_json_loads(s)   │ std::string  │ from JSON string\n      //   file_json_dump(path) │ file         │ write to file\n      //   file_json_load(path) │ file         │ read from file\n\n      std::string filename = \"serialization/test_color.json\";\n      c.file_json_dump(filename);\n      Color loaded = Color::file_json_load(filename);",
     "checks": [
@@ -90,7 +90,7 @@
     "group": "Color",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 14.987,
+    "time_ms": 0.041,
     "line": 71,
     "code": "      // uncomment #include \"color.h\"\n\n      Color c(1.0f, 0.5f, 0.25f, 1.0f, \"serialization/test_color\");\n\n      std::string filename = \"serialization/test_color.bin\";\n      c.pb_dump(filename);\n      Color loaded = Color::pb_load(filename);",
     "checks": [

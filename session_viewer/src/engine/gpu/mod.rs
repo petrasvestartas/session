@@ -15,6 +15,19 @@ use adapters::{line_to_segment, point_to_glyph, polyline_to_segments};
 use bytemuck::Zeroable;
 use session_rust::{Mesh, Xform, RenderVertex, Point, Geometry};
 
+/// Re-anchor distance: the instance table is rebased about a snapped anchor.
+/// The camera can drift this far (mm) before a full rebuild.
+/// Within it, pan/zoon only changes the view matrix.
+/// f32 error at 1e5 mm from the achor = 6e-3 mm - far below a pixel.
+const REANCHOR_DIST: f64 = 1.0e5;
+
+/// const for the unit_cylinder method
+const CYL_SIDES: u32 = 12;
+
+/// const for the unit_sphere method
+const SPH_LONS: usize = 12;
+const SPH_LATS: usize = 6;
+
 pub struct Gpu {
     pub surface: wgpu::Surface<'static>,     // Screen to draw pixels on.
     pub device: wgpu::Device,                // Handle to the GPU, used to create resources (textures, buffers, pipelines).
@@ -33,6 +46,7 @@ pub struct Gpu {
     pub arena_ibo: wgpu::Buffer,
     pub arena_index_count: u32,
     instances: Vec<Instance>,
+    last_origin: Option<Point>, // rebuild_instances skips when the camera target did not move
     objects_base: Vec<(Xform, [f32; 4])>, // TRUE world model+color; isntance[] is rebased from this
     instance_buffer: wgpu::Buffer, // new() builds this storage buffer as a local and drops it, only the bidn group survives; rebuild_instances() reuploads into it every frame, so the buffer handle itself must live on GPU, not vanish atht eh of new()
     pub instance_bind_group: wgpu::BindGroup,
@@ -67,7 +81,7 @@ impl Gpu {
         session: &session_rust::Session) -> anyhow::Result<Self> {
         
 
-        // 1. Instance — the driver entry point. WebGPU first, WebGL2 fallback in the browser.
+        // 1. Instance — the driver entry point. WebGPU only in the browser, never WebGL.
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: if cfg!(target_arch = "wasm32") {
                 wgpu::Backends::BROWSER_WEBGPU
@@ -90,7 +104,7 @@ impl Gpu {
             })
             .await?;
 
-        // 4. Device (creates resources) + Queue (submits work). WebGL2 limits for browser reach.
+        // 4. Device (creates resources) + Queue (submits work).
         let (device, queue) = adapter
             .request_device(&wgpu::DeviceDescriptor {
                 label: None,
@@ -509,6 +523,7 @@ impl Gpu {
             arena_ibo,
             arena_index_count,
             instances,
+            last_origin: None,
             objects_base,
             instance_buffer, // was a dropped local in new(), now moved onto GPU so rebuild_instances() can write into every frame
             instance_bind_group,
@@ -538,14 +553,42 @@ impl Gpu {
 
     }
 
+    /// The anchor the instance table is rebased about.
+    /// A full rebuild (42 000 x at stress scale) runs
+    /// only when the camera target strays REANCHOR_DIST from the current anchor - orbit newer moves the target.
+    /// And pan/zoom within the budget just changes the view matrix
+    pub fn rebase_anchor(&mut self, origin: &Point) -> Point{
+        let need = match &self.last_origin {
+            None => true,
+            Some(a) => {
+                let (dx, dy, dz) = (a[0] - origin[0], a[1] - origin[1], a[2] - origin[2]);
+                (dx * dx + dy * dy + dz * dz).sqrt() > REANCHOR_DIST
+            }
+        };
+        if need {
+            self.rebuild_instances(origin);
+        }
+        self.last_origin.clone().unwrap()
+    }
+
     /// Rebase every instance's translation around 'origin' - an f64 subtract agains the TRUE world transfrom in 'objects_base'
     /// Then cast to f32.
     /// 'instances', what GPU actually sees, never holds a coordinate bigger than the camera's distnace from 'origin',
     /// no matter how fas the scene fists from world (0,0,0).
     fn rebuild_instances(&mut self, origin: &Point){
-        let shift = Xform::translation(-origin[0], -origin[1], -origin[2]);
+        // let shift = Xform::translation(-origin[0], -origin[1], -origin[2]);
+        // for (i, (model, color)) in self.objects_base.iter().enumerate() {
+        //     self.instances[i].model = (&shift * model).to_f32(); // f64 multiply, f32 cast last
+        //     self.instances[i].color = *color;
+        // }
+        // self.queue.write_buffer(&self.instance_buffer, 0, bytemuck::cast_slice(&self.instances));
+        self.last_origin = Some(origin.clone());
         for (i, (model, color)) in self.objects_base.iter().enumerate() {
-            self.instances[i].model = (&shift * model).to_f32(); // f64 multiply, f32 cast last
+            let mut m = model.to_f32();
+            m[12] = (model.m[12] - origin[0]) as f32;
+            m[13] = (model.m[13] - origin[1]) as f32;
+            m[14] = (model.m[14] - origin[2]) as f32;
+            self.instances[i].model = m;
             self.instances[i].color = *color;
         }
         self.queue.write_buffer(&self.instance_buffer, 0, bytemuck::cast_slice(&self.instances));
@@ -569,7 +612,6 @@ impl Gpu {
         // Time for triangle wgsl buffer.
         self.time += 1.0 / 60.0;
         self.queue.write_buffer(&self.time_buffer, 0, bytemuck::bytes_of(&self.time));
-        self.rebuild_instances(origin); // Make sure objects are displayed within limits, we rebuild buffers here to avoid camera wiggle!
         self.queue.write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&view_proj.to_f32()));
 
         let line = LineUniform{
@@ -798,7 +840,7 @@ struct CloudUniform{
 /// Primitives
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-const CYL_SIDES: u32 = 12;
+
 
 /// Unit-cylinder template mesh (positions + indices) along +Z, radius 1, z in [0,1], with cap fans.
 /// The shader rescales xy by the screen-constant radius and maps z along (p1-p0), so it's registered ONCE.
@@ -827,8 +869,6 @@ fn unit_cylinder(sides: u32) -> (Vec<[f32; 3]>, Vec<u32>){
     (v, idx)
 }
 
-const SPH_LONS: usize = 12;
-const SPH_LATS: usize = 6;
 
 // Unit sphere on the origin, radius 1. The shader offsets each template vertex by the
 /// Unit-sphere template mesh (positions + indices) for the instanced sphere glyphs.

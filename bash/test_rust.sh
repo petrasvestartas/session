@@ -50,7 +50,10 @@ fi
 
 cd "$REPO_ROOT"
 PYTHON=$(get_python_path "$REPO_ROOT")
-print_class_summary "rust" "${REPO_ROOT}/session_tests/session_rust" "$PYTHON"
+print_class_summary "rust" "${REPO_ROOT}/session_tests/session_rust" "$PYTHON" || {
+    log_lang "rust" "class-summary reported stale/missing/failing classes (see above)"
+    exit 1
+}
 log_lang "rust" "Tests complete"
 
 # Update viewer if requested

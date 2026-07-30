@@ -3,7 +3,7 @@
     "group": "Objects",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.004,
     "line": 10,
     "code": "    // uncomment #include \"objects.h\"\n    Objects obj;\n    Objects named(\"custom_objects\");",
     "checks": [
@@ -34,7 +34,7 @@
     "group": "Objects",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 13.845,
+    "time_ms": 0.172,
     "line": 21,
     "code": "    // uncomment #include \"objects.h\"\n    // uncomment #include \"file_encoders.h\"\n    // uncomment #include \"point.h\"\n    Objects original;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    original.points->push_back(point1);\n    original.points->push_back(point2);\n\n    std::string filename = \"serialization/test_objects.json\";\n    file_encoders::file_json_dump(original, filename);\n    Objects loaded = file_encoders::file_json_load<Objects>(filename);",
     "checks": [
@@ -50,7 +50,7 @@
     "group": "Objects",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 16.953,
+    "time_ms": 0.059,
     "line": 38,
     "code": "    // uncomment #include \"objects.h\"\n    // uncomment #include \"point.h\"\n    Objects original;\n    auto point1 = std::make_shared<Point>(1.0, 2.0, 3.0);\n    auto point2 = std::make_shared<Point>(4.0, 5.0, 6.0);\n    original.points->push_back(point1);\n    original.points->push_back(point2);\n\n    std::string filename = \"serialization/test_objects.bin\";\n    original.pb_dump(filename);\n    Objects loaded = Objects::pb_load(filename);",
     "checks": [
@@ -66,7 +66,7 @@
     "group": "Objects",
     "test_name": "Component Constructor",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 54,
     "code": "    // Component is a generic envelope for custom domain objects.\n    // type_name identifies the class; extra holds all custom fields as JSON.\n    Component c;\n    c.type_name = \"FloorBuilder\";\n    c.name      = \"floor_builder\";\n    c.extra     = {{\"size\", 3000}, {\"height\", 650}};",
     "checks": [
@@ -97,7 +97,7 @@
     "group": "Objects",
     "test_name": "Component Json Roundtrip",
     "passed": true,
-    "time_ms": 0.033,
+    "time_ms": 0.01,
     "line": 68,
     "code": "    // Round-trip a Component through JSON: all custom fields must survive.\n    Component original;\n    original.type_name = \"FloorBuilder\";\n    original.name      = \"floor_builder\";\n    original.extra     = {{\"size\", 3000}, {\"height\", 650}, {\"rise\", 453}};\n    std::string original_guid = original.guid();\n\n    // jsondump produces a flat dict: type/guid/name + all extra fields\n    auto j = original.jsondump();\n\n    // jsonload reconstructs the Component from that dict\n    Component loaded = Component::jsonload(j);",
     "checks": [
@@ -148,7 +148,7 @@
     "group": "Objects",
     "test_name": "Objects Component Json Roundtrip",
     "passed": true,
-    "time_ms": 17.953,
+    "time_ms": 0.085,
     "line": 91,
     "code": "    // An Objects collection serializes components alongside geometry.\n    Objects original;\n    Component c;\n    c.type_name = \"FloorBuilder\";\n    c.name      = \"floor_builder\";\n    c.extra     = {{\"size\", 3000}, {\"height\", 650}};\n    // Pin the guid before push_back so both sides of the later equality have\n    // the same value. Otherwise `c.guid()` after the push copy lazily\n    // generates a fresh random guid on `c` that differs from the one cached\n    // on original.components->at(0) during dump.\n    std::string expected_guid = c.guid();\n    original.components->push_back(c);\n\n    std::string filename = \"serialization/test_objects_component.json\";\n    file_encoders::file_json_dump(original, filename);\n    Objects loaded = file_encoders::file_json_load<Objects>(filename);",
     "checks": [

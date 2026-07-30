@@ -13,7 +13,7 @@
     "line": 16,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 17.25
+    "time_ms": 0.341
   },
   {
     "checks": [
@@ -44,49 +44,7 @@
     "line": 100,
     "passed": true,
     "test_name": "Component Protobuf Roundtrip",
-    "time_ms": 16.112
-  },
-  {
-    "checks": [
-      {
-        "code_line": "loaded.points.len() == original.points.len()",
-        "line": 36,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::{Objects, Point};\n        let mut original = Objects::new();\n        original.points.push(Point::new(1.0, 2.0, 3.0));\n        original.points.push(Point::new(4.0, 5.0, 6.0));\n        original.pb_dump(\"serialization/test_objects.bin\");\n        let loaded = Objects::pb_load(\"serialization/test_objects.bin\");",
-    "failures": [],
-    "group": "Objects",
-    "line": 29,
-    "passed": true,
-    "test_name": "Protobuf Roundtrip",
-    "time_ms": 16.191
-  },
-  {
-    "checks": [
-      {
-        "code_line": "obj.name == \"my_objects\"",
-        "line": 9,
-        "passed": true
-      },
-      {
-        "code_line": "!obj.guid().is_empty()",
-        "line": 10,
-        "passed": true
-      },
-      {
-        "code_line": "!obj.to_string().is_empty()",
-        "line": 11,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Objects;\n        let obj = Objects::new();\n",
-    "failures": [],
-    "group": "Objects",
-    "line": 5,
-    "passed": true,
-    "test_name": "Constructor",
-    "time_ms": 0.004
+    "time_ms": 0.133
   },
   {
     "checks": [
@@ -122,7 +80,7 @@
     "line": 65,
     "passed": true,
     "test_name": "Component Json Roundtrip",
-    "time_ms": 17.353
+    "time_ms": 0.194
   },
   {
     "checks": [
@@ -153,6 +111,48 @@
     "line": 41,
     "passed": true,
     "test_name": "Component Constructor",
-    "time_ms": 0.012
+    "time_ms": 0.005
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded.points.len() == original.points.len()",
+        "line": 36,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{Objects, Point};\n        let mut original = Objects::new();\n        original.points.push(Point::new(1.0, 2.0, 3.0));\n        original.points.push(Point::new(4.0, 5.0, 6.0));\n        original.pb_dump(\"serialization/test_objects.bin\");\n        let loaded = Objects::pb_load(\"serialization/test_objects.bin\");",
+    "failures": [],
+    "group": "Objects",
+    "line": 29,
+    "passed": true,
+    "test_name": "Protobuf Roundtrip",
+    "time_ms": 0.158
+  },
+  {
+    "checks": [
+      {
+        "code_line": "obj.name == \"my_objects\"",
+        "line": 9,
+        "passed": true
+      },
+      {
+        "code_line": "!obj.guid().is_empty()",
+        "line": 10,
+        "passed": true
+      },
+      {
+        "code_line": "!obj.to_string().is_empty()",
+        "line": 11,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Objects;\n        let obj = Objects::new();\n",
+    "failures": [],
+    "group": "Objects",
+    "line": 5,
+    "passed": true,
+    "test_name": "Constructor",
+    "time_ms": 0.002
   }
 ]

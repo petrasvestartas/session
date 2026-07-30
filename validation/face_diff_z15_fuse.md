@@ -1,8 +1,8 @@
-# face_diff z15 fuse
+# face_diff res_z15_fuse fuse
 
-A: `C:\pc\3_code\code_rust\session\session_cpp\serialization\boolean_steps\chairs\chair0.stp`  
-B: `C:\pc\3_code\code_rust\session\session_cpp\serialization\boolean_steps\chairs\rot\B_z15.step`  
-ours: `C:\pc\3_code\code_rust\session\session_cpp\serialization\boolean_steps\chairs\rot\res_z15_fuse.step`  
+A: `session_cpp/corpus/work/chairs/chair0.stp`  
+B: `session_cpp/corpus/work/chairs/rot/B_z15.step`  
+ours: `session_cpp/corpus/work/chairs/rot/res_z15_fuse.step`  
 eps 0.08197, 9 samples/face, grid 11
 
 | side | solids | shells | faces | volume | OCCT valid |
@@ -10,7 +10,9 @@ eps 0.08197, 9 samples/face, grid 11
 | TRUE (OCCT fuse) | 1 | - | 43 | 80.952185 | 1 |
 | OURS | 0 | 1 | 54 | 125.177723 | 1 |
 
-**WARNING: OCCT self-inconsistent on this config** — vol identities imply common=-0.0004 (from cut), 79.6415 (from fuse), but OCCT common=0.0000. The oracle truth itself is unreliable here; treat VOLUME/COUNT/AGG tickets as indicative only.
+**WARNING: OCCT self-inconsistent on this config** -- vol identities imply common=-0.0004 (from cut), 79.6415 (from fuse), but OCCT common=0.0000. The oracle truth itself is unreliable here; treat VOLUME/COUNT/AGG tickets as indicative only. Odd cell (majority vote): fuse.
+
+**The op under test IS the odd cell** -- the VOLUME ticket below gates on the identity-derived volume 160.593703, not on OCCT's 80.952185.
 
 ## Defect tickets (7)
 
@@ -18,7 +20,7 @@ eps 0.08197, 9 samples/face, grid 11
 |---|---|---|---|---|---|---|
 | 0 | COUNT | - | - | - | - | our faces 54 vs OCCT 43 (+11) |
 | 1 | SOLIDITY | - | - | - | - | our solids 0 vs OCCT 1 (shells 1, valid 1) |
-| 2 | VOLUME | - | - | - | - | our vol 125.1777 vs OCCT 80.9522 (rel 5.46e-01) |
+| 2 | VOLUME | - | - | - | - | our vol 125.1777 vs identity-derived 160.5937 (rel 2.21e-01) |
 | 3 | AREA | A FACE 3 | BSplineSurface | 2.9990 | (5.803,4.235,2.961) | ours 2.9464 vs operand 2.9990 (rel 1.8%) |
 | 4 | AREA | A FACE 15 | BSplineSurface | 14.5682 | (8.380,1.287,2.429) | ours 12.4908 vs operand 14.5682 (rel 14.3%) |
 | 5 | AREA | B FACE 2 | BSplineSurface | 2.7486 | (7.383,4.446,-2.592) | ours 2.5709 vs operand 2.7486 (rel 6.5%) |
@@ -28,7 +30,7 @@ eps 0.08197, 9 samples/face, grid 11
 
 | face | verdict | srf | area | bnd/int/ext/amb | bnd-frac | face/bbox | src |
 |---|---|---|---|---|---|---|---|
-| 0 | OK | BSplineSurface | 18.4413 | 8/1/0/0 | 0.89 | 0.83 | A |
+| 0 | OK | BSplineSurface | 18.4412 | 8/1/0/0 | 0.89 | 0.83 | A |
 | 1 | OK | BSplineSurface | 0.2737 | 6/3/0/0 | 0.67 | 0.60 | A |
 | 2 | OK | BSplineSurface | 17.8624 | 9/0/0/0 | 1.00 | 1.00 | A |
 | 3 | OK | BSplineSurface | 2.5139 | 8/1/0/0 | 0.89 | 0.91 | A |
@@ -44,7 +46,7 @@ eps 0.08197, 9 samples/face, grid 11
 | 13 | OK | BSplineSurface | 2.6540 | 9/0/0/0 | 1.00 | 1.00 | A |
 | 14 | OK | BSplineSurface | 0.9782 | 9/0/0/0 | 1.00 | 1.00 | A |
 | 15 | OK | BSplineSurface | 0.4137 | 3/6/0/0 | 0.33 | 0.45 | A |
-| 16 | OK | BSplineSurface | 0.8436 | 6/3/0/0 | 0.67 | 0.51 | A |
+| 16 | OK | BSplineSurface | 0.8435 | 6/3/0/0 | 0.67 | 0.51 | A |
 | 17 | OK | BSplineSurface | 11.3499 | 7/2/0/0 | 0.78 | 0.60 | A |
 | 18 | OK | BSplineSurface | 12.3746 | 9/0/0/0 | 1.00 | 0.85 | A |
 | 19 | OK | BSplineSurface | 0.1163 | 6/3/0/0 | 0.67 | 0.50 | A |
@@ -73,9 +75,9 @@ eps 0.08197, 9 samples/face, grid 11
 | 42 | OK | BSplineSurface | 0.9782 | 9/0/0/0 | 1.00 | 1.00 | B |
 | 43 | OK | BSplineSurface | 0.5358 | 9/0/0/0 | 1.00 | 0.92 | B |
 | 44 | OK | BSplineSurface | 0.1111 | 5/4/0/0 | 0.56 | 0.49 | B |
-| 45 | OK | BSplineSurface | 12.1111 | 6/3/0/0 | 0.67 | 0.57 | B |
+| 45 | OK | BSplineSurface | 12.1110 | 6/3/0/0 | 0.67 | 0.57 | B |
 | 46 | OK | BSplineSurface | 6.2012 | 7/2/0/0 | 0.78 | 0.83 | B |
-| 47 | OK | BSplineSurface | 3.5706 | 8/1/0/0 | 0.89 | 0.85 | B |
+| 47 | OK | BSplineSurface | 3.5704 | 8/1/0/0 | 0.89 | 0.85 | B |
 | 48 | OK | BSplineSurface | 27.2033 | 7/0/2/0 | 0.78 | 0.73 | B |
 | 49 | OK | BSplineSurface | 16.4399 | 5/0/4/0 | 0.56 | 0.47 | B |
 | 50 | OK | BSplineSurface | 3.9294 | 6/1/2/0 | 0.67 | 0.61 | B |

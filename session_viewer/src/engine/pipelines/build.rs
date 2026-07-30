@@ -29,7 +29,7 @@ fn cyl_template_layout() -> wgpu::VertexBufferLayout<'static>{
     wgpu::VertexBufferLayout {
         array_stride: 12, // one vec3<f32> per templete vertex
         step_mode: wgpu::VertexStepMode::Vertex,
-        attributes: &CYL_TEMPLATE_ATTRIBS,
+        attributes: &CYL_TEMPLATE_ATTRIBS
     }
 }
 

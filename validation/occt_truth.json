@@ -1,0 +1,750 @@
+{
+ "volA": 80.296861869,
+ "volB": 80.296861784,
+ "probe": "/home/petras/code/code_rust/session/validation/step_probe/build/step_probe",
+ "configs": {
+  "base": {
+   "volB": 80.296861784,
+   "iso_ok": true,
+   "ops": {
+    "cut": {
+     "solids": 1,
+     "faces": 35,
+     "volume": 46.794113895,
+     "valid": 1
+    },
+    "common": {
+     "solids": 1,
+     "faces": 25,
+     "volume": 33.503026589,
+     "valid": 1
+    },
+    "fuse": {
+     "solids": 1,
+     "faces": 50,
+     "volume": 127.091467465,
+     "valid": 1
+    }
+   },
+   "implied_common_from_cut": 33.502747973999995,
+   "implied_common_from_fuse": 33.50225618799999,
+   "verdict": "CONSISTENT",
+   "odd_cell": "",
+   "degenerate_ops": [],
+   "occt_invalid_ops": [],
+   "derived": {}
+  },
+  "z15": {
+   "volB": 80.29684156,
+   "iso_ok": true,
+   "ops": {
+    "cut": {
+     "solids": 2,
+     "faces": 44,
+     "volume": 80.297280939,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 119,
+      "naked": 0,
+      "seam": 0,
+      "shared": 119,
+      "degen": 0,
+      "solids": 2,
+      "shells": 2,
+      "faces": 44,
+      "valid": 1,
+      "volume": 80.297141141,
+      "dv": -0.00013979800000640807
+     }
+    },
+    "common": {
+     "solids": 0,
+     "faces": 0,
+     "volume": 0.0,
+     "valid": 0,
+     "oracle_quality": {
+      "edges": 0,
+      "naked": 0,
+      "seam": 0,
+      "shared": 0,
+      "degen": 0,
+      "solids": 0,
+      "shells": 0,
+      "faces": 0,
+      "valid": 0,
+      "volume": 0.0,
+      "dv": 0.0
+     }
+    },
+    "fuse": {
+     "solids": 1,
+     "faces": 43,
+     "volume": 80.952184512,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 118,
+      "naked": 0,
+      "seam": 0,
+      "shared": 118,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 43,
+      "valid": 1,
+      "volume": 80.952061257,
+      "dv": -0.00012325500000542888
+     }
+    }
+   },
+   "implied_common_from_cut": -0.0004190700000066272,
+   "implied_common_from_fuse": 79.64151891700001,
+   "verdict": "SELF-INCONSISTENT",
+   "odd_cell": "fuse",
+   "degenerate_ops": [
+    "common"
+   ],
+   "occt_invalid_ops": [],
+   "derived": {
+    "fuse": 160.59370342900002
+   }
+  },
+  "z30": {
+   "volB": 80.29683554,
+   "iso_ok": true,
+   "ops": {
+    "cut": {
+     "solids": 2,
+     "faces": 42,
+     "volume": 55.935476163,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 120,
+      "naked": 0,
+      "seam": 0,
+      "shared": 120,
+      "degen": 0,
+      "solids": 2,
+      "shells": 2,
+      "faces": 42,
+      "valid": 1,
+      "volume": 55.935115913,
+      "dv": -0.0003602499999999509
+     }
+    },
+    "common": {
+     "solids": 1,
+     "faces": 27,
+     "volume": 24.361761574,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 76,
+      "naked": 0,
+      "seam": 0,
+      "shared": 76,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 27,
+      "valid": 1,
+      "volume": 24.362041964,
+      "dv": 0.0002803900000003523
+     }
+    },
+    "fuse": {
+     "solids": 1,
+     "faces": 59,
+     "volume": 136.23294149,
+     "valid": 0,
+     "oracle_quality": {
+      "edges": 166,
+      "naked": 0,
+      "seam": 0,
+      "shared": 166,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 60,
+      "valid": 1,
+      "volume": 136.232039507,
+      "dv": -0.0009019830000056572
+     }
+    }
+   },
+   "implied_common_from_cut": 24.361385706,
+   "implied_common_from_fuse": 24.360755919000013,
+   "verdict": "CONSISTENT",
+   "odd_cell": "",
+   "degenerate_ops": [],
+   "occt_invalid_ops": [
+    "fuse"
+   ],
+   "derived": {}
+  },
+  "z45": {
+   "volB": 80.296561838,
+   "iso_ok": true,
+   "ops": {
+    "cut": {
+     "solids": 2,
+     "faces": 41,
+     "volume": 59.196940399,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 117,
+      "naked": 0,
+      "seam": 0,
+      "shared": 117,
+      "degen": 0,
+      "solids": 2,
+      "shells": 2,
+      "faces": 41,
+      "valid": 1,
+      "volume": 59.196184843,
+      "dv": -0.0007555560000014339
+     }
+    },
+    "common": {
+     "solids": 1,
+     "faces": 28,
+     "volume": 21.100608055,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 78,
+      "naked": 0,
+      "seam": 0,
+      "shared": 78,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 28,
+      "valid": 1,
+      "volume": 21.100947743,
+      "dv": 0.00033968800000039323
+     }
+    },
+    "fuse": {
+     "solids": 1,
+     "faces": 55,
+     "volume": 139.494282465,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 156,
+      "naked": 0,
+      "seam": 0,
+      "shared": 156,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 55,
+      "valid": 1,
+      "volume": 139.493120535,
+      "dv": -0.0011619299999949817
+     }
+    }
+   },
+   "implied_common_from_cut": 21.099921469999998,
+   "implied_common_from_fuse": 21.099141242,
+   "verdict": "CONSISTENT",
+   "odd_cell": "",
+   "degenerate_ops": [],
+   "occt_invalid_ops": [],
+   "derived": {}
+  },
+  "z90": {
+   "volB": 80.29684156,
+   "iso_ok": true,
+   "ops": {
+    "cut": {
+     "solids": 1,
+     "faces": 36,
+     "volume": 66.993722705,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 108,
+      "naked": 0,
+      "seam": 0,
+      "shared": 108,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 36,
+      "valid": 1,
+      "volume": 66.993365358,
+      "dv": -0.000357346999990682
+     }
+    },
+    "common": {
+     "solids": 2,
+     "faces": 30,
+     "volume": 13.303337442,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 78,
+      "naked": 0,
+      "seam": 0,
+      "shared": 78,
+      "degen": 0,
+      "solids": 2,
+      "shells": 2,
+      "faces": 30,
+      "valid": 1,
+      "volume": 13.303570188,
+      "dv": 0.0002327460000000059
+     }
+    },
+    "fuse": {
+     "solids": 1,
+     "faces": 53,
+     "volume": 147.290899308,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 159,
+      "naked": 0,
+      "seam": 0,
+      "shared": 159,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 53,
+      "valid": 1,
+      "volume": 147.290352062,
+      "dv": -0.0005472459999964485
+     }
+    }
+   },
+   "implied_common_from_cut": 13.303139164000001,
+   "implied_common_from_fuse": 13.302804121000008,
+   "verdict": "CONSISTENT",
+   "odd_cell": "",
+   "degenerate_ops": [],
+   "occt_invalid_ops": [],
+   "derived": {}
+  },
+  "x20": {
+   "volB": 80.296834319,
+   "iso_ok": true,
+   "ops": {
+    "cut": {
+     "solids": 1,
+     "faces": 38,
+     "volume": 80.296667731,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 103,
+      "naked": 0,
+      "seam": 0,
+      "shared": 103,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 38,
+      "valid": 1,
+      "volume": 80.296487988,
+      "dv": -0.00017974300000389576
+     }
+    },
+    "common": {
+     "solids": 1,
+     "faces": 4,
+     "volume": 0.000480435,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 6,
+      "naked": 0,
+      "seam": 0,
+      "shared": 6,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 4,
+      "valid": 1,
+      "volume": 0.000480411,
+      "dv": -2.3999999999998415e-08
+     }
+    },
+    "fuse": {
+     "solids": 1,
+     "faces": 68,
+     "volume": 160.593388812,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 173,
+      "naked": 0,
+      "seam": 0,
+      "shared": 173,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 68,
+      "valid": 1,
+      "volume": 160.593370451,
+      "dv": -1.836100000218721e-05
+     }
+    }
+   },
+   "implied_common_from_cut": 0.0001941379999976789,
+   "implied_common_from_fuse": 0.00030737599999497434,
+   "verdict": "CONSISTENT",
+   "odd_cell": "",
+   "degenerate_ops": [
+    "common"
+   ],
+   "occt_invalid_ops": [],
+   "derived": {}
+  },
+  "y30": {
+   "volB": 80.29685861,
+   "iso_ok": true,
+   "ops": {
+    "cut": {
+     "solids": 1,
+     "faces": 32,
+     "volume": 46.959587455,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 96,
+      "naked": 0,
+      "seam": 0,
+      "shared": 96,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 32,
+      "valid": 1,
+      "volume": 46.958838279,
+      "dv": -0.0007491759999993519
+     }
+    },
+    "common": {
+     "solids": 2,
+     "faces": 31,
+     "volume": 33.337509315,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 81,
+      "naked": 0,
+      "seam": 0,
+      "shared": 81,
+      "degen": 0,
+      "solids": 2,
+      "shells": 2,
+      "faces": 31,
+      "valid": 1,
+      "volume": 33.337881296,
+      "dv": 0.00037198100000068735
+     }
+    },
+    "fuse": {
+     "solids": 1,
+     "faces": 54,
+     "volume": 127.256749706,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 164,
+      "naked": 0,
+      "seam": 0,
+      "shared": 164,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 54,
+      "valid": 1,
+      "volume": 127.255856865,
+      "dv": -0.0008928409999953146
+     }
+    }
+   },
+   "implied_common_from_cut": 33.337274414,
+   "implied_common_from_fuse": 33.33697077300002,
+   "verdict": "CONSISTENT",
+   "odd_cell": "",
+   "degenerate_ops": [],
+   "occt_invalid_ops": [],
+   "derived": {}
+  },
+  "z30x20": {
+   "volB": 80.29683554,
+   "iso_ok": true,
+   "ops": {
+    "cut": {
+     "solids": 1,
+     "faces": 32,
+     "volume": 54.258043908,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 97,
+      "naked": 0,
+      "seam": 0,
+      "shared": 97,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 32,
+      "valid": 1,
+      "volume": 54.257656885,
+      "dv": -0.0003870229999947128
+     }
+    },
+    "common": {
+     "solids": 1,
+     "faces": 20,
+     "volume": 26.039392788,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 55,
+      "naked": 0,
+      "seam": 0,
+      "shared": 55,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 20,
+      "valid": 1,
+      "volume": 26.039376921,
+      "dv": -1.586700000189012e-05
+     }
+    },
+    "fuse": {
+     "solids": 1,
+     "faces": 51,
+     "volume": 134.554895346,
+     "valid": 0,
+     "oracle_quality": {
+      "edges": 147,
+      "naked": 0,
+      "seam": 0,
+      "shared": 147,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 52,
+      "valid": 1,
+      "volume": 134.554564054,
+      "dv": -0.00033129199999848424
+     }
+    }
+   },
+   "implied_common_from_cut": 26.038817961,
+   "implied_common_from_fuse": 26.03880206300002,
+   "verdict": "CONSISTENT",
+   "odd_cell": "",
+   "degenerate_ops": [],
+   "occt_invalid_ops": [
+    "fuse"
+   ],
+   "derived": {}
+  },
+  "z37": {
+   "volB": 80.296834319,
+   "iso_ok": true,
+   "ops": {
+    "cut": {
+     "solids": 2,
+     "faces": 42,
+     "volume": 57.558017647,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 120,
+      "naked": 0,
+      "seam": 0,
+      "shared": 120,
+      "degen": 0,
+      "solids": 2,
+      "shells": 2,
+      "faces": 42,
+      "valid": 1,
+      "volume": 57.557698852,
+      "dv": -0.0003187949999983175
+     }
+    },
+    "common": {
+     "solids": 2,
+     "faces": 30,
+     "volume": 22.739306955,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 79,
+      "naked": 0,
+      "seam": 0,
+      "shared": 79,
+      "degen": 0,
+      "solids": 2,
+      "shells": 2,
+      "faces": 30,
+      "valid": 1,
+      "volume": 22.739412338,
+      "dv": 0.00010538300000106915
+     }
+    },
+    "fuse": {
+     "solids": 1,
+     "faces": 56,
+     "volume": 137.855215666,
+     "valid": 0,
+     "oracle_quality": {
+      "edges": 163,
+      "naked": 0,
+      "seam": 0,
+      "shared": 163,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 56,
+      "valid": 0,
+      "volume": 137.85451332,
+      "dv": -0.0007023459999970783
+     }
+    }
+   },
+   "implied_common_from_cut": 22.738844221999997,
+   "implied_common_from_fuse": 22.738480522000003,
+   "verdict": "CONSISTENT",
+   "odd_cell": "",
+   "degenerate_ops": [],
+   "occt_invalid_ops": [
+    "fuse"
+   ],
+   "derived": {}
+  },
+  "x13y29": {
+   "volB": 80.296846,
+   "iso_ok": true,
+   "ops": {
+    "cut": {
+     "solids": 1,
+     "faces": 29,
+     "volume": 48.473352771,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 90,
+      "naked": 0,
+      "seam": 0,
+      "shared": 90,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 29,
+      "valid": 1,
+      "volume": 48.472774154,
+      "dv": -0.0005786170000021684
+     }
+    },
+    "common": {
+     "solids": 3,
+     "faces": 31,
+     "volume": 31.823922776,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 75,
+      "naked": 0,
+      "seam": 0,
+      "shared": 75,
+      "degen": 0,
+      "solids": 3,
+      "shells": 3,
+      "faces": 31,
+      "valid": 1,
+      "volume": 31.824065496,
+      "dv": 0.00014271999999948548
+     }
+    },
+    "fuse": {
+     "solids": 1,
+     "faces": 50,
+     "volume": 128.770845901,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 155,
+      "naked": 0,
+      "seam": 0,
+      "shared": 155,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 50,
+      "valid": 1,
+      "volume": 128.769945917,
+      "dv": -0.0008999840000001313
+     }
+    }
+   },
+   "implied_common_from_cut": 31.823509097999995,
+   "implied_common_from_fuse": 31.822861968000012,
+   "verdict": "CONSISTENT",
+   "odd_cell": "",
+   "degenerate_ops": [],
+   "occt_invalid_ops": [],
+   "derived": {}
+  },
+  "z63": {
+   "volB": 80.296555718,
+   "iso_ok": true,
+   "ops": {
+    "cut": {
+     "solids": 2,
+     "faces": 41,
+     "volume": 62.62389385,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 117,
+      "naked": 0,
+      "seam": 0,
+      "shared": 117,
+      "degen": 0,
+      "solids": 2,
+      "shells": 2,
+      "faces": 41,
+      "valid": 1,
+      "volume": 62.622712932,
+      "dv": -0.0011809180000028618
+     }
+    },
+    "common": {
+     "solids": 2,
+     "faces": 32,
+     "volume": 17.673143532,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 84,
+      "naked": 0,
+      "seam": 0,
+      "shared": 84,
+      "degen": 0,
+      "solids": 2,
+      "shells": 2,
+      "faces": 32,
+      "valid": 1,
+      "volume": 17.674161211,
+      "dv": 0.0010176790000002711
+     }
+    },
+    "fuse": {
+     "solids": 1,
+     "faces": 53,
+     "volume": 142.920445794,
+     "valid": 1,
+     "oracle_quality": {
+      "edges": 156,
+      "naked": 0,
+      "seam": 0,
+      "shared": 156,
+      "degen": 0,
+      "solids": 1,
+      "shells": 1,
+      "faces": 53,
+      "valid": 1,
+      "volume": 142.919649849,
+      "dv": -0.0007959449999930257
+     }
+    }
+   },
+   "implied_common_from_cut": 17.672968018999995,
+   "implied_common_from_fuse": 17.672971792999988,
+   "verdict": "CONSISTENT",
+   "odd_cell": "",
+   "degenerate_ops": [],
+   "occt_invalid_ops": [],
+   "derived": {}
+  }
+ }
+}

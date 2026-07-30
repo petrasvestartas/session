@@ -22,6 +22,18 @@
 #include <STEPControl_Writer.hxx>
 #include <BRepCheck.hxx>
 #include <BRepCheck_Result.hxx>
+#include <TopExp.hxx>
+#include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
+#include <BRepPrimAPI_MakeCylinder.hxx>
+#include <BRepPrimAPI_MakeCone.hxx>
+#include <BRepBuilderAPI_MakePolygon.hxx>
+#include <BRepBuilderAPI_MakeFace.hxx>
+#include <BRepBuilderAPI_MakeSolid.hxx>
+#include <BRepBuilderAPI_Sewing.hxx>
+#include <TopoDS_Shell.hxx>
+#include <gp_Ax2.hxx>
+#include <gp_Dir.hxx>
+#include <vector>
 #include <iostream>
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <BRepPrimAPI_MakeTorus.hxx>
@@ -37,6 +49,92 @@
 
 int main(int argc, char** argv) {
     if (argc < 2) { std::printf("usage: step_probe <file.step>\n"); return 2; }
+    // Operand writer for the rotated-primitive corpus tier:
+    //   --prim box   out.step sx sy sz          (corner at -s/2, centred)
+    //   --prim sph   out.step r
+    //   --prim cyl   out.step r h               (axis +z, base at -h/2)
+    //   --prim cone  out.step r h               (axis +z, base at -h/2)
+    //   --prim tor   out.step R r
+    if (std::strcmp(argv[1], "--prim") == 0 && argc >= 5) {
+        const char* kind = argv[2];
+        const char* out = argv[3];
+        double p[4] = {0, 0, 0, 0};
+        for (int i = 4; i < argc && i - 4 < 4; ++i) p[i - 4] = std::atof(argv[i]);
+        TopoDS_Shape s;
+        if (std::strcmp(kind, "box") == 0)
+            s = BRepPrimAPI_MakeBox(gp_Pnt(-p[0] / 2, -p[1] / 2, -p[2] / 2),
+                                    p[0], p[1], p[2]).Solid();
+        else if (std::strcmp(kind, "sph") == 0)
+            s = BRepPrimAPI_MakeSphere(p[0]).Solid();
+        else if (std::strcmp(kind, "cyl") == 0)
+            s = BRepPrimAPI_MakeCylinder(gp_Ax2(gp_Pnt(0, 0, -p[1] / 2), gp_Dir(0, 0, 1)),
+                                         p[0], p[1]).Solid();
+        else if (std::strcmp(kind, "cone") == 0)
+            s = BRepPrimAPI_MakeCone(gp_Ax2(gp_Pnt(0, 0, -p[1] / 2), gp_Dir(0, 0, 1)),
+                                     p[0], 0.0, p[1]).Solid();
+        else if (std::strcmp(kind, "tor") == 0)
+            s = BRepPrimAPI_MakeTorus(p[0], p[1]).Solid();
+        else { std::printf("BAD_KIND %s\n", kind); return 2; }
+        STEPControl_Writer sw;
+        sw.Transfer(s, STEPControl_AsIs);
+        sw.Write(out);
+        std::printf("PRIM_WRITTEN %s\n", kind);
+        return 0;
+    }
+    // Polyhedron writer: --poly in.txt out.step, where in.txt holds
+    //   V x y z            (one per vertex, 0-based index order)
+    //   F i j k [...]      (one per planar face, CCW seen from outside)
+    // Planar-faced, non-axis-aligned solids (platonics) are the geometry class the
+    // chairs represent, and the kernel has no BRep constructors for them.
+    if (std::strcmp(argv[1], "--poly") == 0 && argc >= 4) {
+        std::FILE* f = std::fopen(argv[2], "r");
+        if (!f) { std::printf("READ_FAIL %s\n", argv[2]); return 1; }
+        std::vector<gp_Pnt> vs;
+        std::vector<std::vector<int>> fs;
+        char line[4096];
+        while (std::fgets(line, sizeof line, f)) {
+            if (line[0] == 'V') {
+                double x, y, z;
+                if (std::sscanf(line + 1, "%lf %lf %lf", &x, &y, &z) == 3)
+                    vs.push_back(gp_Pnt(x, y, z));
+            } else if (line[0] == 'F') {
+                std::vector<int> idx;
+                const char* c = line + 1;
+                int v = 0, n = 0;
+                while (std::sscanf(c, "%d%n", &v, &n) == 1) { idx.push_back(v); c += n; }
+                if (idx.size() >= 3) fs.push_back(idx);
+            }
+        }
+        std::fclose(f);
+        BRepBuilderAPI_Sewing sew(1e-7);
+        for (auto& idx : fs) {
+            BRepBuilderAPI_MakePolygon poly;
+            for (int i : idx) {
+                if (i < 0 || i >= (int)vs.size()) { std::printf("BAD_INDEX %d\n", i); return 2; }
+                poly.Add(vs[i]);
+            }
+            poly.Close();
+            BRepBuilderAPI_MakeFace mf(poly.Wire(), Standard_True);
+            if (!mf.IsDone()) { std::printf("FACE_FAIL\n"); return 1; }
+            sew.Add(mf.Face());
+        }
+        sew.Perform();
+        TopoDS_Shape sh = sew.SewedShape();
+        TopoDS_Shape solid = sh;
+        for (TopExp_Explorer e(sh, TopAbs_SHELL); e.More(); e.Next()) {
+            BRepBuilderAPI_MakeSolid ms(TopoDS::Shell(e.Current()));
+            if (ms.IsDone()) solid = ms.Solid();
+            break;
+        }
+        GProp_GProps vp; BRepGProp::VolumeProperties(solid, vp, 1e-9);
+        if (vp.Mass() < 0) solid.Reverse();
+        STEPControl_Writer sw;
+        sw.Transfer(solid, STEPControl_AsIs);
+        sw.Write(argv[3]);
+        std::printf("POLY_WRITTEN verts %zu faces %zu volume %.9f\n",
+                    vs.size(), fs.size(), std::abs(vp.Mass()));
+        return 0;
+    }
     // Reference writer: OCCT's own box(4,4,4,centered) cut torus(2,0.8) to STEP -- the
     // ground-truth entity structure to diff our writer against.
     if (std::strcmp(argv[1], "--make-ref") == 0 && argc >= 3) {
@@ -149,6 +247,33 @@ int main(int argc, char** argv) {
                 }
             }
         }
+        return 0;
+    }
+    if (argc > 2 && std::strcmp(argv[2], "-n") == 0) {   // naked edges: <2 face parents
+        TopTools_IndexedDataMapOfShapeListOfShape m;
+        TopExp::MapShapesAndAncestors(s, TopAbs_EDGE, TopAbs_FACE, m);
+        int naked = 0, seam = 0, shared = 0, degen = 0, nonman = 0;
+        for (int i = 1; i <= m.Extent(); ++i) {
+            const TopoDS_Edge& e = TopoDS::Edge(m.FindKey(i));
+            if (BRep_Tool::Degenerated(e)) { ++degen; continue; }
+            int nf = m.FindFromIndex(i).Extent();
+            if (nf > 2) { ++nonman; ++shared; continue; }   // non-manifold: >2 faces
+            if (nf >= 2) { ++shared; continue; }
+            // A seam edge has ONE face parent but occurs twice inside that face.
+            int occ = 0;
+            if (nf == 1) {
+                const TopoDS_Shape& f = m.FindFromIndex(i).First();
+                for (TopExp_Explorer ee(f, TopAbs_EDGE); ee.More(); ee.Next())
+                    if (ee.Current().IsSame(e)) ++occ;
+            }
+            if (occ >= 2) ++seam; else ++naked;
+        }
+        int nclosed = 0, nopen = 0;
+        for (TopExp_Explorer e(s, TopAbs_SHELL); e.More(); e.Next())
+            (BRep_Tool::IsClosed(e.Current()) ? nclosed : nopen)++;
+        std::printf("EDGES %d\nNAKED %d\nSEAM %d\nSHARED %d\nDEGEN %d\nNONMANIFOLD %d\n"
+                    "SHELLS_CLOSED %d\nSHELLS_OPEN %d\n",
+                    m.Extent(), naked, seam, shared, degen, nonman, nclosed, nopen);
         return 0;
     }
     if (argc > 2 && std::strcmp(argv[2], "-c") == 0) {   // BRepCheck: per-subshape failures

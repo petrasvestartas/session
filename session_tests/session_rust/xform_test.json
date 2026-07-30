@@ -63,7 +63,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.048
+    "time_ms": 0.034
   },
   {
     "checks": [
@@ -114,7 +114,7 @@
     "line": 64,
     "passed": true,
     "test_name": "Translation",
-    "time_ms": 0.204
+    "time_ms": 0.161
   },
   {
     "checks": [
@@ -165,7 +165,7 @@
     "line": 84,
     "passed": true,
     "test_name": "Rotation X",
-    "time_ms": 0.156
+    "time_ms": 0.128
   },
   {
     "checks": [
@@ -216,7 +216,7 @@
     "line": 105,
     "passed": true,
     "test_name": "Rotation Y",
-    "time_ms": 0.141
+    "time_ms": 0.125
   },
   {
     "checks": [
@@ -267,7 +267,7 @@
     "line": 126,
     "passed": true,
     "test_name": "Rotation Z",
-    "time_ms": 0.138
+    "time_ms": 0.131
   },
   {
     "checks": [
@@ -318,7 +318,7 @@
     "line": 147,
     "passed": true,
     "test_name": "Rotation Axis",
-    "time_ms": 0.145
+    "time_ms": 0.126
   },
   {
     "checks": [
@@ -369,7 +369,7 @@
     "line": 171,
     "passed": true,
     "test_name": "Rotation Around Line",
-    "time_ms": 0.155
+    "time_ms": 0.133
   },
   {
     "checks": [
@@ -420,7 +420,7 @@
     "line": 194,
     "passed": true,
     "test_name": "Change Basis",
-    "time_ms": 0.159
+    "time_ms": 0.133
   },
   {
     "checks": [
@@ -471,7 +471,7 @@
     "line": 223,
     "passed": true,
     "test_name": "Plane To Plane",
-    "time_ms": 0.171
+    "time_ms": 0.147
   },
   {
     "checks": [
@@ -522,7 +522,7 @@
     "line": 247,
     "passed": true,
     "test_name": "Scale XYZ",
-    "time_ms": 0.139
+    "time_ms": 0.123
   },
   {
     "checks": [
@@ -573,7 +573,7 @@
     "line": 267,
     "passed": true,
     "test_name": "Scale Uniform",
-    "time_ms": 0.153
+    "time_ms": 0.128
   },
   {
     "checks": [
@@ -624,7 +624,7 @@
     "line": 288,
     "passed": true,
     "test_name": "Scale Non Uniform",
-    "time_ms": 0.148
+    "time_ms": 0.128
   },
   {
     "checks": [
@@ -675,7 +675,7 @@
     "line": 309,
     "passed": true,
     "test_name": "Look At Right Handed",
-    "time_ms": 0.149
+    "time_ms": 0.135
   },
   {
     "checks": [
@@ -726,7 +726,7 @@
     "line": 332,
     "passed": true,
     "test_name": "Look To Right Handed",
-    "time_ms": 0.139
+    "time_ms": 0.127
   },
   {
     "checks": [
@@ -777,7 +777,7 @@
     "line": 355,
     "passed": true,
     "test_name": "Perspective",
-    "time_ms": 0.14
+    "time_ms": 0.126
   },
   {
     "checks": [
@@ -828,7 +828,7 @@
     "line": 378,
     "passed": true,
     "test_name": "Orthographic",
-    "time_ms": 0.167
+    "time_ms": 0.125
   },
   {
     "checks": [
@@ -864,7 +864,7 @@
     "line": 400,
     "passed": true,
     "test_name": "Project To Plane",
-    "time_ms": 0.041
+    "time_ms": 0.024
   },
   {
     "checks": [
@@ -900,7 +900,7 @@
     "line": 429,
     "passed": true,
     "test_name": "Project To Plane By Axis",
-    "time_ms": 0.032
+    "time_ms": 0.022
   },
   {
     "checks": [
@@ -956,7 +956,7 @@
     "line": 459,
     "passed": true,
     "test_name": "Inverse",
-    "time_ms": 0.194
+    "time_ms": 0.145
   },
   {
     "checks": [
@@ -1007,7 +1007,7 @@
     "line": 550,
     "passed": true,
     "test_name": "Transform Geometry",
-    "time_ms": 0.074
+    "time_ms": 0.03
   },
   {
     "checks": [
@@ -1068,7 +1068,7 @@
     "line": 607,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 12.956
+    "time_ms": 0.132
   },
   {
     "checks": [
@@ -1129,7 +1129,7 @@
     "line": 631,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 15.633
+    "time_ms": 0.064
   },
   {
     "checks": [
@@ -1155,49 +1155,7 @@
     "line": 681,
     "passed": true,
     "test_name": "From Change Of Basis",
-    "time_ms": 0.061
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_vector_close(&v, &Vector::new(2.0, 3.0, 4.0))",
-        "line": 525,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_vector_close(&u, &Vector::y_axis())",
-        "line": 529,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Xform;\n        use crate::Vector;\n\n        let t = Xform::translation(10.0, 20.0, 30.0);\n        let s = Xform::scale_xyz(2.0, 3.0, 4.0);\n        let composite = &t * &s;\n        let v = composite.transform_vector(&Vector::new(1.0, 1.0, 1.0));\n\n        let r = Xform::rotation_z(90.0, true);\n        let u = r.transform_vector(&Vector::x_axis());",
-    "failures": [],
-    "group": "Xform",
-    "line": 517,
-    "passed": true,
-    "test_name": "Transform Vector",
-    "time_ms": 0.009
-  },
-  {
-    "checks": [
-      {
-        "code_line": "TOLERANCE.is_point_close(&p, &Point::new(12.0, 23.0, 34.0))",
-        "line": 502,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_point_close(&q, &Point::new(-0.6, -0.4, -1.35))",
-        "line": 512,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::Xform;\n        use crate::Point;\n\n        let t = Xform::translation(10.0, 20.0, 30.0);\n        let s = Xform::scale_xyz(2.0, 3.0, 4.0);\n        let composite = &t * &s;\n        let p = composite.transform_point(&Point::new(1.0, 1.0, 1.0));\n\n        let mut pr = Xform::identity();\n        pr.m[0] = 1.2;\n        pr.m[5] = 0.8;\n        pr.m[10] = 1.1;\n        pr.m[14] = 0.5;\n        pr.m[11] = -1.0;\n        pr.m[15] = 0.0;\n        let q = pr.transform_point(&Point::new(1.0, 1.0, 2.0));",
-    "failures": [],
-    "group": "Xform",
-    "line": 494,
-    "passed": true,
-    "test_name": "Transform Point",
-    "time_ms": 0.007
+    "time_ms": 0.018
   },
   {
     "checks": [
@@ -1243,6 +1201,48 @@
     "line": 534,
     "passed": true,
     "test_name": "To Cols",
-    "time_ms": 0.002
+    "time_ms": 0.001
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_vector_close(&v, &Vector::new(2.0, 3.0, 4.0))",
+        "line": 525,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_vector_close(&u, &Vector::y_axis())",
+        "line": 529,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Xform;\n        use crate::Vector;\n\n        let t = Xform::translation(10.0, 20.0, 30.0);\n        let s = Xform::scale_xyz(2.0, 3.0, 4.0);\n        let composite = &t * &s;\n        let v = composite.transform_vector(&Vector::new(1.0, 1.0, 1.0));\n\n        let r = Xform::rotation_z(90.0, true);\n        let u = r.transform_vector(&Vector::x_axis());",
+    "failures": [],
+    "group": "Xform",
+    "line": 517,
+    "passed": true,
+    "test_name": "Transform Vector",
+    "time_ms": 0.006
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_point_close(&p, &Point::new(12.0, 23.0, 34.0))",
+        "line": 502,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_point_close(&q, &Point::new(-0.6, -0.4, -1.35))",
+        "line": 512,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::Xform;\n        use crate::Point;\n\n        let t = Xform::translation(10.0, 20.0, 30.0);\n        let s = Xform::scale_xyz(2.0, 3.0, 4.0);\n        let composite = &t * &s;\n        let p = composite.transform_point(&Point::new(1.0, 1.0, 1.0));\n\n        let mut pr = Xform::identity();\n        pr.m[0] = 1.2;\n        pr.m[5] = 0.8;\n        pr.m[10] = 1.1;\n        pr.m[14] = 0.5;\n        pr.m[11] = -1.0;\n        pr.m[15] = 0.0;\n        let q = pr.transform_point(&Point::new(1.0, 1.0, 2.0));",
+    "failures": [],
+    "group": "Xform",
+    "line": 494,
+    "passed": true,
+    "test_name": "Transform Point",
+    "time_ms": 0.006
   }
 ]

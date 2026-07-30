@@ -2,7 +2,7 @@
 # Shared functions for minitest system
 
 # Single source of truth for class names (sorted alphabetically)
-CLASS_NAMES=("aabb" "boolean_polyline" "brep" "closest" "color" "convex_hull" "element" "element_beam" "element_column" "element_plate" "file_encoders" "file_obj" "graph" "intersection" "io" "nurbsknot" "line" "instance_ref" "matrix" "mesh" "mesh_offset" "nurbscurve" "nurbssurface" "obb" "objects" "plane" "point" "pointcloud" "polyline" "primitives" "quaternion" "remesh_cdt" "remesh_nurbssurface_grid" "remesh_nurbssurface_adaptive" "session" "session_config" "spatial_aabbtree" "spatial_bvh" "spatial_kdtree" "spatial_rtree" "tolerance" "tree" "nurbssurface_trimmed" "vector" "xform")
+CLASS_NAMES=("aabb" "boolean_polyline" "brep" "closest" "color" "convex_hull" "element" "element_beam" "element_column" "element_plate" "file_encoders" "file_obj" "file_step" "graph" "intersection" "io" "io_xyz" "nurbsknot" "line" "instance_ref" "matrix" "mesh" "mesh_offset" "nurbscurve" "nurbssurface" "obb" "objects" "plane" "point" "pointcloud" "polyline" "primitives" "quaternion" "remesh_cdt" "remesh_nurbssurface_grid" "remesh_nurbssurface_adaptive" "session" "session_config" "spatial_aabbtree" "spatial_bvh" "spatial_kdtree" "spatial_rtree" "tolerance" "tree" "nurbssurface_trimmed" "vector" "xform")
 
 # Resolve repo root from script location
 resolve_repo_root() {
@@ -99,24 +99,73 @@ get_jobs() {
     echo "${MINITEST_JOBS:-$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)}"
 }
 
-# Print per-class pass/fail summary by reading JSON output files
-# Usage: print_class_summary <lang_prefix> <json_dir> <python_exe>
+# Print per-class pass/fail summary by reading JSON output files.
+# Iterates CLASS_NAMES -- it must NEVER glob. Globbing counted JSON left behind by DELETED
+# classes as passing tests (elementfeature 10 + reciprocal 1 = 11 phantom C++ tests, plus
+# phantom py/rust file_step) and could not notice a class that produced no JSON at all
+# (C++ has no `io` tests although py and rust do). Here a missing class and a stale
+# artifact are both FAILURES, not silence. Set MINITEST_LENIENT=1 to downgrade the
+# missing/stale anomalies to warnings (real test failures still fail). Pass the binary's own aggregate as arg 4 and it is reconciled against the
+# per-class sum instead of being added to it (adding them is where "1531" came from).
+# Usage: print_class_summary <lang_prefix> <json_dir> <python_exe> [aggregate_total]
 print_class_summary() {
     local lang="$1"
     local json_dir="$2"
     local python_exe="${3:-python3}"
+    local aggregate="${4:-}"
     [[ -d "$json_dir" ]] || return 0
     [[ -x "$python_exe" ]] || python_exe="python3"
-    "$python_exe" - "$json_dir" "$lang" <<'EOF' 2>/dev/null || true
+    "$python_exe" - "$json_dir" "$lang" "$aggregate" "${CLASS_NAMES[@]}" <<'EOF'
 import json, glob, os, sys
-d, lang = sys.argv[1], sys.argv[2]
-for f in sorted(glob.glob(os.path.join(d, '*_test.json'))):
-    cls = os.path.basename(f).replace('_test.json', '')
+d, lang, aggregate = sys.argv[1], sys.argv[2], sys.argv[3]
+lenient = os.environ.get('MINITEST_LENIENT') == '1'
+tag = 'WARN' if lenient else 'ERROR' 
+classes = sys.argv[4:]
+total = passed = 0
+missing, stale, failed, seen = [], [], [], set()
+for cls in classes:
+    f = os.path.join(d, cls + '_test.json')
+    if not os.path.exists(f):
+        missing.append(cls)
+        continue
+    seen.add(os.path.basename(f))
     tests = json.load(open(f))
-    total = len(tests)
-    passed = sum(1 for t in tests if t.get('passed', False))
-    status = 'passed' if passed == total else 'FAILED'
-    print(f'[{lang}-{cls}] {passed}/{total} {status}')
+    n = len(tests)
+    p = sum(1 for t in tests if t.get('passed', False))
+    total += n
+    passed += p
+    if p != n:
+        failed.append(cls)
+    print(f'[{lang}-{cls}] {p}/{n} ' + ('passed' if p == n else 'FAILED'))
+for f in sorted(glob.glob(os.path.join(d, '*_test.json'))):
+    if os.path.basename(f) not in seen:
+        stale.append(os.path.basename(f).replace('_test.json', ''))
+print(f'[{lang}] TOTAL {passed}/{total} over {len(classes) - len(missing)}/'
+      f'{len(classes)} classes')
+rc = 0
+if missing:
+    print(f'[{lang}] {tag}: {len(missing)} class(es) in CLASS_NAMES produced NO json - '
+          f'this language does not implement them or they did not run: '
+          f'{" ".join(missing)}')
+    rc = rc if lenient else 1
+if stale:
+    print(f'[{lang}] {tag}: {len(stale)} json file(s) with no entry in CLASS_NAMES - '
+          f'either add the class to CLASS_NAMES (if its test source exists) or delete '
+          f'the file; it is NOT a passing test: {" ".join(stale)}')
+    rc = rc if lenient else 1
+if failed:
+    print(f'[{lang}] ERROR: failing classes: {" ".join(failed)}')
+    rc = 1
+if aggregate:
+    try:
+        exp = int(aggregate)
+    except ValueError:
+        exp = None
+    if exp is not None and exp != total:
+        print(f'[{lang}] ERROR: binary aggregate {exp} != per-class sum {total} - these '
+              f'count the SAME tests and must reconcile, never be summed')
+        rc = 1
+sys.exit(rc)
 EOF
 }
 

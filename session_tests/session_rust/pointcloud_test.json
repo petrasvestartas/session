@@ -68,7 +68,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.049
+    "time_ms": 0.026
   },
   {
     "checks": [
@@ -94,7 +94,7 @@
     "line": 297,
     "passed": true,
     "test_name": "Transform",
-    "time_ms": 0.026
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -130,7 +130,7 @@
     "line": 330,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 17.362
+    "time_ms": 0.152
   },
   {
     "checks": [
@@ -166,33 +166,7 @@
     "line": 363,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 16.038
-  },
-  {
-    "checks": [
-      {
-        "code_line": "colors.len() == 2",
-        "line": 224,
-        "passed": true
-      },
-      {
-        "code_line": "colors[0].r == 1.0",
-        "line": 225,
-        "passed": true
-      },
-      {
-        "code_line": "colors[1].g == 1.0",
-        "line": 226,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::PointCloud;\n        use crate::Color;\n\n        let pc = PointCloud::new(vec![], vec![], vec![Color::new(1.0, 0.0, 0.0, 1.0), Color::new(0.0, 1.0, 0.0, 1.0)]);\n        let colors = pc.get_colors();\n",
-    "failures": [],
-    "group": "PointCloud",
-    "line": 217,
-    "passed": true,
-    "test_name": "Get Colors",
-    "time_ms": 0.02
+    "time_ms": 0.1
   },
   {
     "checks": [
@@ -223,55 +197,33 @@
     "line": 313,
     "passed": true,
     "test_name": "Transformed",
-    "time_ms": 0.016
+    "time_ms": 0.006
   },
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(pc.get_color(0).r as f64, 1.0) && pc.get_color(0).g == 0.0\n&& pc.get_color(0).b == 0.0 && pc.get_color(0).a == 1.0",
-        "line": 199,
+        "code_line": "normals.len() == 2",
+        "line": 290,
         "passed": true
-      }
-    ],
-    "code": "        use crate::PointCloud;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(vec![], vec![], vec![Color::new(0.0, 0.0, 0.0, 0.0)]);\n        pc.set_color(0, &Color::new(1.0, 0.0, 0.0, 1.0));\n",
-    "failures": [],
-    "group": "PointCloud",
-    "line": 192,
-    "passed": true,
-    "test_name": "Set Color",
-    "time_ms": 0.008
-  },
-  {
-    "checks": [
+      },
       {
-        "code_line": "pc.point_count() == 3",
-        "line": 83,
+        "code_line": "TOLERANCE.is_close(normals[0][2], 1.0)",
+        "line": 291,
         "passed": true
-      }
-    ],
-    "code": "        use crate::PointCloud;\n        use crate::Point;\n\n        let pc = PointCloud::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(0.0, 1.0, 0.0)], vec![], vec![]);\n",
-    "failures": [],
-    "group": "PointCloud",
-    "line": 77,
-    "passed": true,
-    "test_name": "Point Count",
-    "time_ms": 0.005
-  },
-  {
-    "checks": [
+      },
       {
-        "code_line": "c.r == 0.0 && c.g == 1.0 && c.b == 0.0 && c.a == 1.0",
-        "line": 187,
+        "code_line": "TOLERANCE.is_close(normals[1][0], 1.0)",
+        "line": 292,
         "passed": true
       }
     ],
-    "code": "        use crate::PointCloud;\n        use crate::Color;\n\n        let pc = PointCloud::new(vec![], vec![], vec![Color::new(1.0, 0.0, 0.0, 1.0), Color::new(0.0, 1.0, 0.0, 1.0)]);\n        let c = pc.get_color(1);\n",
+    "code": "        use crate::PointCloud;\n        use crate::Vector;\n\n        let pc = PointCloud::new(vec![], vec![Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 0.0, 0.0)], vec![]);\n        let normals = pc.get_normals();\n",
     "failures": [],
     "group": "PointCloud",
-    "line": 180,
+    "line": 283,
     "passed": true,
-    "test_name": "Get Color",
-    "time_ms": 0.007
+    "test_name": "Get Normals",
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -292,70 +244,33 @@
     "line": 270,
     "passed": true,
     "test_name": "Add Normal",
+    "time_ms": 0.002
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(pc.get_normal(0)[0], 0.0)",
+        "line": 263,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pc.get_normal(0)[1], 1.0)",
+        "line": 264,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pc.get_normal(0)[2], 0.0)",
+        "line": 265,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::PointCloud;\n        use crate::Vector;\n\n        let mut pc = PointCloud::new(vec![], vec![Vector::new(0.0, 0.0, 1.0)], vec![]);\n        pc.set_normal(0, &Vector::new(0.0, 1.0, 0.0));\n",
+    "failures": [],
+    "group": "PointCloud",
+    "line": 256,
+    "passed": true,
+    "test_name": "Set Normal",
     "time_ms": 0.003
-  },
-  {
-    "checks": [
-      {
-        "code_line": "pc.color_count() == 1",
-        "line": 211,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pc.get_color(0).r as f64, 1.0) && pc.get_color(0).g == 0.0\n&& pc.get_color(0).b == 0.0",
-        "line": 212,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::PointCloud;\n        use crate::Color;\n\n        let mut pc = PointCloud::default();\n        pc.add_color(&Color::new(1.0, 0.0, 0.0, 1.0));\n",
-    "failures": [],
-    "group": "PointCloud",
-    "line": 204,
-    "passed": true,
-    "test_name": "Add Color",
-    "time_ms": 0.007
-  },
-  {
-    "checks": [
-      {
-        "code_line": "points.len() == 2",
-        "line": 162,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(points[0][0], 1.0)",
-        "line": 163,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(points[1][2], 6.0)",
-        "line": 164,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::PointCloud;\n        use crate::Point;\n\n        let pc = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)], vec![], vec![]);\n        let points = pc.get_points();\n",
-    "failures": [],
-    "group": "PointCloud",
-    "line": 155,
-    "passed": true,
-    "test_name": "Get Points",
-    "time_ms": 0.007
-  },
-  {
-    "checks": [
-      {
-        "code_line": "pc.len() == 2",
-        "line": 94,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::PointCloud;\n        use crate::Point;\n\n        let pc = PointCloud::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0)], vec![], vec![]);\n",
-    "failures": [],
-    "group": "PointCloud",
-    "line": 88,
-    "passed": true,
-    "test_name": "Len",
-    "time_ms": 0.01
   },
   {
     "checks": [
@@ -381,7 +296,7 @@
     "line": 242,
     "passed": true,
     "test_name": "Get Normal",
-    "time_ms": 0.009
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -397,27 +312,158 @@
     "line": 231,
     "passed": true,
     "test_name": "Normal Count",
+    "time_ms": 0.002
+  },
+  {
+    "checks": [
+      {
+        "code_line": "colors.len() == 2",
+        "line": 224,
+        "passed": true
+      },
+      {
+        "code_line": "colors[0].r == 1.0",
+        "line": 225,
+        "passed": true
+      },
+      {
+        "code_line": "colors[1].g == 1.0",
+        "line": 226,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::PointCloud;\n        use crate::Color;\n\n        let pc = PointCloud::new(vec![], vec![], vec![Color::new(1.0, 0.0, 0.0, 1.0), Color::new(0.0, 1.0, 0.0, 1.0)]);\n        let colors = pc.get_colors();\n",
+    "failures": [],
+    "group": "PointCloud",
+    "line": 217,
+    "passed": true,
+    "test_name": "Get Colors",
     "time_ms": 0.004
   },
   {
     "checks": [
       {
-        "code_line": "pc0.is_empty()",
-        "line": 106,
+        "code_line": "pc.color_count() == 1",
+        "line": 211,
         "passed": true
       },
       {
-        "code_line": "!pc1.is_empty()",
-        "line": 107,
+        "code_line": "TOLERANCE.is_close(pc.get_color(0).r as f64, 1.0) && pc.get_color(0).g == 0.0\n&& pc.get_color(0).b == 0.0",
+        "line": 212,
         "passed": true
       }
     ],
-    "code": "        use crate::PointCloud;\n        use crate::Point;\n\n        let pc0 = PointCloud::default();\n        let pc1 = PointCloud::new(vec![Point::new(0.0, 0.0, 0.0)], vec![], vec![]);\n",
+    "code": "        use crate::PointCloud;\n        use crate::Color;\n\n        let mut pc = PointCloud::default();\n        pc.add_color(&Color::new(1.0, 0.0, 0.0, 1.0));\n",
     "failures": [],
     "group": "PointCloud",
-    "line": 99,
+    "line": 204,
     "passed": true,
-    "test_name": "Is Empty",
+    "test_name": "Add Color",
+    "time_ms": 0.002
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pc.len() == 3 && pc.color_count() == 3 && pc.normal_count() == 3",
+        "line": 69,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pc.get_point(1)[0], 1.0)",
+        "line": 70,
+        "passed": true
+      },
+      {
+        "code_line": "pc.get_color(1).g == 1.0",
+        "line": 71,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(pc.get_normal(1)[2], 1.0)",
+        "line": 72,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::PointCloud;\n\n        let coords = vec![0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0];\n        let colors = vec![255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255];\n        let normals = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0];\n        let pc = PointCloud::from_coords(coords, colors, normals);\n",
+    "failures": [],
+    "group": "PointCloud",
+    "line": 61,
+    "passed": true,
+    "test_name": "From Coords",
+    "time_ms": 0.002
+  },
+  {
+    "checks": [
+      {
+        "code_line": "TOLERANCE.is_close(pc.get_color(0).r as f64, 1.0) && pc.get_color(0).g == 0.0\n&& pc.get_color(0).b == 0.0 && pc.get_color(0).a == 1.0",
+        "line": 199,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::PointCloud;\n        use crate::Color;\n\n        let mut pc = PointCloud::new(vec![], vec![], vec![Color::new(0.0, 0.0, 0.0, 0.0)]);\n        pc.set_color(0, &Color::new(1.0, 0.0, 0.0, 1.0));\n",
+    "failures": [],
+    "group": "PointCloud",
+    "line": 192,
+    "passed": true,
+    "test_name": "Set Color",
+    "time_ms": 0.002
+  },
+  {
+    "checks": [
+      {
+        "code_line": "c.r == 0.0 && c.g == 1.0 && c.b == 0.0 && c.a == 1.0",
+        "line": 187,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::PointCloud;\n        use crate::Color;\n\n        let pc = PointCloud::new(vec![], vec![], vec![Color::new(1.0, 0.0, 0.0, 1.0), Color::new(0.0, 1.0, 0.0, 1.0)]);\n        let c = pc.get_color(1);\n",
+    "failures": [],
+    "group": "PointCloud",
+    "line": 180,
+    "passed": true,
+    "test_name": "Get Color",
+    "time_ms": 0.002
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pc.color_count() == 2",
+        "line": 175,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::PointCloud;\n        use crate::Color;\n\n        let pc = PointCloud::new(vec![], vec![], vec![Color::new(1.0, 0.0, 0.0, 1.0), Color::new(0.0, 1.0, 0.0, 1.0)]);\n",
+    "failures": [],
+    "group": "PointCloud",
+    "line": 169,
+    "passed": true,
+    "test_name": "Color Count",
+    "time_ms": 0.002
+  },
+  {
+    "checks": [
+      {
+        "code_line": "points.len() == 2",
+        "line": 162,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(points[0][0], 1.0)",
+        "line": 163,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(points[1][2], 6.0)",
+        "line": 164,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::PointCloud;\n        use crate::Point;\n\n        let pc = PointCloud::new(vec![Point::new(1.0, 2.0, 3.0), Point::new(4.0, 5.0, 6.0)], vec![], vec![]);\n        let points = pc.get_points();\n",
+    "failures": [],
+    "group": "PointCloud",
+    "line": 155,
+    "passed": true,
+    "test_name": "Get Points",
     "time_ms": 0.005
   },
   {
@@ -454,22 +500,6 @@
   {
     "checks": [
       {
-        "code_line": "pc.color_count() == 2",
-        "line": 175,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::PointCloud;\n        use crate::Color;\n\n        let pc = PointCloud::new(vec![], vec![], vec![Color::new(1.0, 0.0, 0.0, 1.0), Color::new(0.0, 1.0, 0.0, 1.0)]);\n",
-    "failures": [],
-    "group": "PointCloud",
-    "line": 169,
-    "passed": true,
-    "test_name": "Color Count",
-    "time_ms": 0.004
-  },
-  {
-    "checks": [
-      {
         "code_line": "TOLERANCE.is_close(pc.get_point(0)[0], 4.0)",
         "line": 133,
         "passed": true
@@ -491,64 +521,7 @@
     "line": 126,
     "passed": true,
     "test_name": "Set Point",
-    "time_ms": 0.005
-  },
-  {
-    "checks": [
-      {
-        "code_line": "pc.len() == 3 && pc.color_count() == 3 && pc.normal_count() == 3",
-        "line": 69,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pc.get_point(1)[0], 1.0)",
-        "line": 70,
-        "passed": true
-      },
-      {
-        "code_line": "pc.get_color(1).g == 1.0",
-        "line": 71,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pc.get_normal(1)[2], 1.0)",
-        "line": 72,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::PointCloud;\n\n        let coords = vec![0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0];\n        let colors = vec![255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255];\n        let normals = vec![0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0];\n        let pc = PointCloud::from_coords(coords, colors, normals);\n",
-    "failures": [],
-    "group": "PointCloud",
-    "line": 61,
-    "passed": true,
-    "test_name": "From Coords",
-    "time_ms": 0.014
-  },
-  {
-    "checks": [
-      {
-        "code_line": "normals.len() == 2",
-        "line": 290,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(normals[0][2], 1.0)",
-        "line": 291,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(normals[1][0], 1.0)",
-        "line": 292,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::PointCloud;\n        use crate::Vector;\n\n        let pc = PointCloud::new(vec![], vec![Vector::new(0.0, 0.0, 1.0), Vector::new(1.0, 0.0, 0.0)], vec![]);\n        let normals = pc.get_normals();\n",
-    "failures": [],
-    "group": "PointCloud",
-    "line": 283,
-    "passed": true,
-    "test_name": "Get Normals",
-    "time_ms": 0.007
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -574,32 +547,59 @@
     "line": 112,
     "passed": true,
     "test_name": "Get Point",
-    "time_ms": 0.006
+    "time_ms": 0.003
   },
   {
     "checks": [
       {
-        "code_line": "TOLERANCE.is_close(pc.get_normal(0)[0], 0.0)",
-        "line": 263,
+        "code_line": "pc0.is_empty()",
+        "line": 106,
         "passed": true
       },
       {
-        "code_line": "TOLERANCE.is_close(pc.get_normal(0)[1], 1.0)",
-        "line": 264,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(pc.get_normal(0)[2], 0.0)",
-        "line": 265,
+        "code_line": "!pc1.is_empty()",
+        "line": 107,
         "passed": true
       }
     ],
-    "code": "        use crate::PointCloud;\n        use crate::Vector;\n\n        let mut pc = PointCloud::new(vec![], vec![Vector::new(0.0, 0.0, 1.0)], vec![]);\n        pc.set_normal(0, &Vector::new(0.0, 1.0, 0.0));\n",
+    "code": "        use crate::PointCloud;\n        use crate::Point;\n\n        let pc0 = PointCloud::default();\n        let pc1 = PointCloud::new(vec![Point::new(0.0, 0.0, 0.0)], vec![], vec![]);\n",
     "failures": [],
     "group": "PointCloud",
-    "line": 256,
+    "line": 99,
     "passed": true,
-    "test_name": "Set Normal",
-    "time_ms": 0.005
+    "test_name": "Is Empty",
+    "time_ms": 0.003
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pc.len() == 2",
+        "line": 94,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::PointCloud;\n        use crate::Point;\n\n        let pc = PointCloud::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0)], vec![], vec![]);\n",
+    "failures": [],
+    "group": "PointCloud",
+    "line": 88,
+    "passed": true,
+    "test_name": "Len",
+    "time_ms": 0.003
+  },
+  {
+    "checks": [
+      {
+        "code_line": "pc.point_count() == 3",
+        "line": 83,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::PointCloud;\n        use crate::Point;\n\n        let pc = PointCloud::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0), Point::new(0.0, 1.0, 0.0)], vec![], vec![]);\n",
+    "failures": [],
+    "group": "PointCloud",
+    "line": 77,
+    "passed": true,
+    "test_name": "Point Count",
+    "time_ms": 0.004
   }
 ]

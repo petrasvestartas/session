@@ -2,6 +2,27 @@
   {
     "checks": [
       {
+        "code_line": "loaded.point_count() == original.point_count()",
+        "line": 62,
+        "passed": true
+      },
+      {
+        "code_line": "TOLERANCE.is_close(loaded.get_points()[1][0], 1.0)",
+        "line": 63,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{Point, PointCloud};\n        use crate::io::{read_xyz_from_str, write_xyz_to_string};\n        let mut original = PointCloud::default();\n        original.add_point(&Point::new(0.0, 0.0, 0.0));\n        original.add_point(&Point::new(1.0, 0.0, 0.0));\n        original.add_point(&Point::new(0.0, 1.0, 0.0));\n        original.add_point(&Point::new(0.0, 0.0, 1.0));\n        let s = write_xyz_to_string(&original);\n        let loaded = read_xyz_from_str(&s);\n",
+    "failures": [],
+    "group": "Io",
+    "line": 51,
+    "passed": true,
+    "test_name": "String Roundtrip",
+    "time_ms": 0.029
+  },
+  {
+    "checks": [
+      {
         "code_line": "cloud.point_count() == 2",
         "line": 72,
         "passed": true
@@ -28,54 +49,7 @@
     "line": 68,
     "passed": true,
     "test_name": "Read Colors",
-    "time_ms": 0.03
-  },
-  {
-    "checks": [
-      {
-        "code_line": "loaded.point_count() == original.point_count()",
-        "line": 62,
-        "passed": true
-      },
-      {
-        "code_line": "TOLERANCE.is_close(loaded.get_points()[1][0], 1.0)",
-        "line": 63,
-        "passed": true
-      }
-    ],
-    "code": "        use crate::{Point, PointCloud};\n        use crate::io::{read_xyz_from_str, write_xyz_to_string};\n        let mut original = PointCloud::default();\n        original.add_point(&Point::new(0.0, 0.0, 0.0));\n        original.add_point(&Point::new(1.0, 0.0, 0.0));\n        original.add_point(&Point::new(0.0, 1.0, 0.0));\n        original.add_point(&Point::new(0.0, 0.0, 1.0));\n        let s = write_xyz_to_string(&original);\n        let loaded = read_xyz_from_str(&s);\n",
-    "failures": [],
-    "group": "Io",
-    "line": 51,
-    "passed": true,
-    "test_name": "String Roundtrip",
-    "time_ms": 0.038
-  },
-  {
-    "checks": [
-      {
-        "code_line": "cloud.point_count() == 397",
-        "line": 18,
-        "passed": true
-      },
-      {
-        "code_line": "points.len() == 397",
-        "line": 20,
-        "passed": true
-      },
-      {
-        "code_line": "has_non_zero",
-        "line": 22,
-        "passed": true
-      }
-    ],
-    "code": "        // load Stanford Bunny (real-world XYZ point cloud: 397 points)\n        use std::path::PathBuf;\n        use crate::io::read_xyz;\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let bunny_path = src_dir.parent().unwrap().join(\"session_data\").join(\"bunny.xyz\");\n        if !bunny_path.exists() {\n            return Ok(());\n        }\n        let cloud = read_xyz(bunny_path.to_str().unwrap()).unwrap();\n\n        let points = cloud.get_points();\n        let has_non_zero = points.iter().any(|p| p[0] != 0.0 || p[1] != 0.0 || p[2] != 0.0);",
-    "failures": [],
-    "group": "Io",
-    "line": 7,
-    "passed": true,
-    "test_name": "Read Bunny",
-    "time_ms": 1.54
+    "time_ms": 0.011
   },
   {
     "checks": [
@@ -101,6 +75,32 @@
     "line": 27,
     "passed": true,
     "test_name": "Write Read Roundtrip",
-    "time_ms": 16.871
+    "time_ms": 0.14
+  },
+  {
+    "checks": [
+      {
+        "code_line": "cloud.point_count() == 397",
+        "line": 18,
+        "passed": true
+      },
+      {
+        "code_line": "points.len() == 397",
+        "line": 20,
+        "passed": true
+      },
+      {
+        "code_line": "has_non_zero",
+        "line": 22,
+        "passed": true
+      }
+    ],
+    "code": "        // load Stanford Bunny (real-world XYZ point cloud: 397 points)\n        use std::path::PathBuf;\n        use crate::io::read_xyz;\n        let src_dir = PathBuf::from(env!(\"CARGO_MANIFEST_DIR\"));\n        let bunny_path = src_dir.parent().unwrap().join(\"session_data\").join(\"bunny.xyz\");\n        if !bunny_path.exists() {\n            return Ok(());\n        }\n        let cloud = read_xyz(bunny_path.to_str().unwrap()).unwrap();\n\n        let points = cloud.get_points();\n        let has_non_zero = points.iter().any(|p| p[0] != 0.0 || p[1] != 0.0 || p[2] != 0.0);",
+    "failures": [],
+    "group": "Io",
+    "line": 7,
+    "passed": true,
+    "test_name": "Read Bunny",
+    "time_ms": 1.092
   }
 ]

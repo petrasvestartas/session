@@ -68,20 +68,21 @@ fi
 
 # Run tests
 log_lang "cpp" "Running minitest..."
+MINITEST_LOG="$(mktemp)"
 if [[ "$PLATFORM" == "windows" ]]; then
     if [[ -f "./build/Release/point_minitest.exe" ]]; then
-        ./build/Release/point_minitest.exe
+        ./build/Release/point_minitest.exe | tee "$MINITEST_LOG"
     elif [[ -f "./build/point_minitest.exe" ]]; then
-        ./build/point_minitest.exe
+        ./build/point_minitest.exe | tee "$MINITEST_LOG"
     else
         log_lang "cpp" "ERROR: point_minitest.exe not found"
         exit 1
     fi
 else
     if [[ -x "./build/point_minitest" ]]; then
-        ./build/point_minitest
+        ./build/point_minitest | tee "$MINITEST_LOG"
     elif [[ -x "./build/Release/point_minitest" ]]; then
-        ./build/Release/point_minitest
+        ./build/Release/point_minitest | tee "$MINITEST_LOG"
     else
         log_lang "cpp" "ERROR: point_minitest not found"
         exit 1
@@ -90,7 +91,15 @@ fi
 
 cd "$REPO_ROOT"
 PYTHON=$(get_python_path "$REPO_ROOT")
-print_class_summary "cpp" "${REPO_ROOT}/session_tests/session_cpp" "$PYTHON"
+# The binary prints its own aggregate ("[cpp-minitest] N/N passed"). Pass it in so the
+# summary RECONCILES the two counts instead of anyone adding them together (the old
+# "1531 minitests" was 760 + 771 -- the same tests counted twice).
+CPP_AGG=$(grep -oE "\[cpp-minitest\] [0-9]+/[0-9]+" "$MINITEST_LOG" 2>/dev/null | tail -1 | grep -oE "[0-9]+" | tail -1)
+rm -f "$MINITEST_LOG"
+print_class_summary "cpp" "${REPO_ROOT}/session_tests/session_cpp" "$PYTHON" "$CPP_AGG" || {
+    log_lang "cpp" "class-summary reported stale/missing/failing classes (see above)"
+    exit 1
+}
 log_lang "cpp" "Tests complete"
 
 # Update viewer if requested

@@ -29,7 +29,20 @@ done
 
 echo -e "\n=== Init submodules ==="
 git submodule sync --recursive
-git submodule update --init --recursive
+# A nested submodule's pinned commit may be missing right after its initial
+# clone (git: "Unable to find current revision"). Fetch inside every already
+# initialized submodule and retry, so the pinned commit becomes reachable.
+attempt=1
+max_attempts=3
+until git submodule update --init --recursive; do
+  if [ "${attempt}" -ge "${max_attempts}" ]; then
+    echo "Submodule update still failing after ${attempt} attempts." >&2
+    exit 1
+  fi
+  echo "Submodule update failed (attempt ${attempt}); fetching in submodules and retrying..."
+  git submodule foreach --recursive 'git fetch --tags origin || git fetch --tags || true'
+  attempt=$((attempt + 1))
+done
 
 echo -e "\n=== Pull latest in each submodule (${TARGET_BRANCH}) ==="
 git submodule foreach --recursive '

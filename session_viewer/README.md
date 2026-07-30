@@ -14,6 +14,25 @@ cargo install trunk
 
 A recent WebGPU browser (Chrome, Edge, Firefox, or Safari 18+).
 
+### WebGPU on Ubuntu
+
+Linux browsers don't expose hardware WebGPU out of the box.
+
+**Chrome** needs Vulkan features, and on Wayland desktops must run under XWayland
+(Vulkan is incompatible with Chrome's Wayland backend — the window won't open):
+
+```bash
+google-chrome --ozone-platform=x11 --enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE
+```
+
+To make it permanent, copy `/usr/share/applications/google-chrome.desktop` to
+`~/.local/share/applications/` and add the same switches to every `Exec=` line.
+Leave `chrome://flags` at defaults. If Chrome refuses to start at all, delete stale
+`~/.config/google-chrome/Singleton*` symlinks.
+
+**Firefox** needs one pref: `about:config` → `dom.webgpu.enabled` → `true`, then
+restart Firefox.
+
 ## Run the viewer
 
 ```bash

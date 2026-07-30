@@ -44,6 +44,8 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROBE = os.path.join(HERE, "step_probe", "build", "Release", "step_probe.exe")
+if not os.path.exists(PROBE):
+    PROBE = os.path.join(HERE, "step_probe", "build", "step_probe")
 CHAIRS = os.path.normpath(os.path.join(
     HERE, "..", "session_cpp", "serialization", "boolean_steps", "chairs"))
 
@@ -684,8 +686,20 @@ def main():
     c_cut = sumA["volume"] - v3["cut"]
     c_fuse = sumA["volume"] + sumB["volume"] - v3["fuse"]
     ietol = max(0.02 * abs(sumA["volume"]), 0.05)
-    oracle_inconsistent = (abs(c_cut - v3["common"]) > ietol
-                           or abs(c_fuse - v3["common"]) > ietol)
+    ok_cut = abs(c_cut - v3["common"]) <= ietol
+    ok_fuse = abs(c_fuse - v3["common"]) <= ietol
+    oracle_inconsistent = not (ok_cut and ok_fuse)
+    # Which cell is the liar (majority vote of the two identities)? When it is the op
+    # under test, the identity-derived volume replaces OCCT's as the VOLUME gate --
+    # OCCT's own number is known wrong there (chairs z15 fuse).
+    odd = ("" if not oracle_inconsistent else
+           "fuse" if ok_cut else "cut" if ok_fuse else
+           "common" if abs(c_cut - c_fuse) <= ietol else "unresolved")
+    derived_vol = None
+    if odd == args.op:
+        derived_vol = {"cut": sumA["volume"] - v3["common"],
+                       "fuse": sumA["volume"] + sumB["volume"] - v3["common"],
+                       "common": 0.5 * (c_cut + c_fuse)}[odd]
 
     # 2) face tables (probe) + geometry (our STEP parser)
     pf_ours, pf_a, pf_b = probe_faces(R), probe_faces(A), probe_faces(B)
@@ -945,7 +959,13 @@ def main():
         L.append("**WARNING: OCCT self-inconsistent on this config** -- vol identities "
                  "imply common=%.4f (from cut), %.4f (from fuse), but OCCT common=%.4f. "
                  "The oracle truth itself is unreliable here; treat VOLUME/COUNT/AGG "
-                 "tickets as indicative only." % (c_cut, c_fuse, v3["common"]))
+                 "tickets as indicative only. Odd cell (majority vote): %s."
+                 % (c_cut, c_fuse, v3["common"], odd or "-"))
+        if derived_vol is not None:
+            L.append("")
+            L.append("**The op under test IS the odd cell** -- the VOLUME ticket below "
+                     "gates on the identity-derived volume %.6f, not on OCCT's %.6f."
+                     % (derived_vol, truth["volume"]))
     for n in notes:
         L.append("")
         L.append("NOTE: " + n)
@@ -964,12 +984,15 @@ def main():
         tickets.append(("SOLIDITY", "-", "-", "-", "-",
                         "our solids %d vs OCCT %d (shells %d, valid %d)" %
                         (ours_sum["solids"], truth["solids"], ours_sum["shells"], ours_sum["valid"])))
-    if not subset and truth["volume"]:
-        vrel = abs(ours_sum["volume"] - truth["volume"]) / abs(truth["volume"])
+    gate_vol = derived_vol if derived_vol is not None else truth["volume"]
+    if not subset and gate_vol:
+        vrel = abs(ours_sum["volume"] - gate_vol) / abs(gate_vol)
         if vrel > 0.01:
             tickets.append(("VOLUME", "-", "-", "-", "-",
-                            "our vol %.4f vs OCCT %.4f (rel %.2e)" %
-                            (ours_sum["volume"], truth["volume"], vrel)))
+                            "our vol %.4f vs %s %.4f (rel %.2e)" %
+                            (ours_sum["volume"],
+                             "identity-derived" if derived_vol is not None else "OCCT",
+                             gate_vol, vrel)))
     for f in F_ours:
         if f["verdict"] in ("EXTRA_INTERIOR", "EXTRA_EXTERIOR", "OVERSHOOT", "UNKNOWN"):
             c = centroid(f)

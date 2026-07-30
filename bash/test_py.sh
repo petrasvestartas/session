@@ -111,6 +111,11 @@ for cls in classes:
             print(out, end='')
         if err.strip():
             print(err, end='', file=sys.stderr)
+    except ModuleNotFoundError as e:
+        # class not implemented in this language -- the class summary below flags it
+        if e.name != mod_name:
+            failed.append(cls)
+            print(f'[py-{cls}] FAILED: {e}', file=sys.stderr)
     except Exception as e:
         failed.append(cls)
         print(f'[py-{cls}] FAILED: {e}', file=sys.stderr)
@@ -118,6 +123,16 @@ if failed:
     print(f'[py] FAILED: {\" \".join(failed)}', file=sys.stderr)
     sys.exit(1)
 "
+fi
+
+# Same honesty check the other languages get: iterate CLASS_NAMES, flag stale json and
+# classes that produced none, and print a reconciled total (set MINITEST_LENIENT=1 to
+# downgrade the anomalies to warnings).
+if [[ -z "$CLASS_FILTER" ]]; then
+    print_class_summary "py" "${REPO_ROOT}/session_tests/session_py" "$PYTHON" || {
+        log_lang "py" "class-summary reported stale/missing/failing classes (see above)"
+        exit 1
+    }
 fi
 
 log_lang "py" "Tests complete (${#CLASS_NAMES[@]} modules)"

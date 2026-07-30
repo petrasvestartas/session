@@ -47,6 +47,8 @@ impl State {
         let aspect = self.gpu.config.width as f64 / self.gpu.config.height as f64;
         let view_proj = self.camera.view_proj(aspect);
         let origin = self.camera.origin();
+        let anchor = self.gpu.rebase_anchor(&origin);
+        let view_proj = self.camera.view_proj_anchored(aspect, &anchor);
         self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj, &origin)
     }
 }

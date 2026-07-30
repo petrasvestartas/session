@@ -1,0 +1,461 @@
+TRACE v=1 name=sph_box_common op=common occt=8.0.0.rc2-a66b3fd6
+SPEC a=sphere,r=2.5 b=box,dx=4,dy=4,dz=4,center
+ARG i=0 spec=sphere,r=2.5 type=SOLID nsolid=1 nshell=1 nface=1 nedge=3 nvert=2 vol=65.4498469 area=78.5398163 valid=1
+AFACE a=0 i=1 surf=Sphere u0=0 u1=6.28318531 v0=-1.57079633 v1=1.57079633 uper=1 vper=0 uclo=1 vclo=0 ori=FWD tol=1e-07 area=78.5398163
+AFEDGE a=0 f=1 e=1 seam=0 degen=1 ori=REV
+AFEDGE a=0 f=1 e=2 seam=1 degen=0 ori=FWD
+AFEDGE a=0 f=1 e=3 seam=0 degen=1 ori=FWD
+AEDGE a=0 i=1 curve=Degenerated t0=0 t1=6.28318531 len=- tol=1e-07 degen=1 closed=0 v1=1 v2=1
+AEDGE a=0 i=2 curve=Circle t0=4.71238898 t1=7.85398163 len=7.85398163 tol=1e-07 degen=0 closed=0 v1=2 v2=1
+AEDGE a=0 i=3 curve=Degenerated t0=0 t1=6.28318531 len=- tol=1e-07 degen=1 closed=0 v1=2 v2=2
+AVERT a=0 i=1 p=0,0,2.5 tol=1e-07
+AVERT a=0 i=2 p=0,0,-2.5 tol=1e-07
+ARG i=1 spec=box,dx=4,dy=4,dz=4,center type=SOLID nsolid=1 nshell=1 nface=6 nedge=12 nvert=8 vol=64 area=96 valid=1
+AFACE a=1 i=1 surf=Plane u0=0 u1=4 v0=-4 v1=0 uper=0 vper=0 uclo=0 vclo=0 ori=REV tol=1e-07 area=16
+AFEDGE a=1 f=1 e=1 seam=0 degen=0 ori=FWD
+AFEDGE a=1 f=1 e=2 seam=0 degen=0 ori=FWD
+AFEDGE a=1 f=1 e=3 seam=0 degen=0 ori=REV
+AFEDGE a=1 f=1 e=4 seam=0 degen=0 ori=REV
+AFACE a=1 i=2 surf=Plane u0=0 u1=4 v0=-4 v1=0 uper=0 vper=0 uclo=0 vclo=0 ori=FWD tol=1e-07 area=16
+AFEDGE a=1 f=2 e=5 seam=0 degen=0 ori=REV
+AFEDGE a=1 f=2 e=6 seam=0 degen=0 ori=REV
+AFEDGE a=1 f=2 e=7 seam=0 degen=0 ori=FWD
+AFEDGE a=1 f=2 e=8 seam=0 degen=0 ori=FWD
+AFACE a=1 i=3 surf=Plane u0=0 u1=4 v0=0 v1=4 uper=0 vper=0 uclo=0 vclo=0 ori=REV tol=1e-07 area=16
+AFEDGE a=1 f=3 e=9 seam=0 degen=0 ori=FWD
+AFEDGE a=1 f=3 e=5 seam=0 degen=0 ori=FWD
+AFEDGE a=1 f=3 e=10 seam=0 degen=0 ori=REV
+AFEDGE a=1 f=3 e=1 seam=0 degen=0 ori=REV
+AFACE a=1 i=4 surf=Plane u0=0 u1=4 v0=0 v1=4 uper=0 vper=0 uclo=0 vclo=0 ori=FWD tol=1e-07 area=16
+AFEDGE a=1 f=4 e=11 seam=0 degen=0 ori=REV
+AFEDGE a=1 f=4 e=7 seam=0 degen=0 ori=REV
+AFEDGE a=1 f=4 e=12 seam=0 degen=0 ori=FWD
+AFEDGE a=1 f=4 e=3 seam=0 degen=0 ori=FWD
+AFACE a=1 i=5 surf=Plane u0=0 u1=4 v0=0 v1=4 uper=0 vper=0 uclo=0 vclo=0 ori=REV tol=1e-07 area=16
+AFEDGE a=1 f=5 e=4 seam=0 degen=0 ori=FWD
+AFEDGE a=1 f=5 e=11 seam=0 degen=0 ori=FWD
+AFEDGE a=1 f=5 e=8 seam=0 degen=0 ori=REV
+AFEDGE a=1 f=5 e=9 seam=0 degen=0 ori=REV
+AFACE a=1 i=6 surf=Plane u0=0 u1=4 v0=0 v1=4 uper=0 vper=0 uclo=0 vclo=0 ori=FWD tol=1e-07 area=16
+AFEDGE a=1 f=6 e=2 seam=0 degen=0 ori=REV
+AFEDGE a=1 f=6 e=12 seam=0 degen=0 ori=REV
+AFEDGE a=1 f=6 e=6 seam=0 degen=0 ori=FWD
+AFEDGE a=1 f=6 e=10 seam=0 degen=0 ori=FWD
+AEDGE a=1 i=1 curve=Line t0=0 t1=4 len=4 tol=1e-07 degen=0 closed=0 v1=2 v2=1
+AEDGE a=1 i=2 curve=Line t0=0 t1=4 len=4 tol=1e-07 degen=0 closed=0 v1=1 v2=3
+AEDGE a=1 i=3 curve=Line t0=0 t1=4 len=4 tol=1e-07 degen=0 closed=0 v1=4 v2=3
+AEDGE a=1 i=4 curve=Line t0=0 t1=4 len=4 tol=1e-07 degen=0 closed=0 v1=2 v2=4
+AEDGE a=1 i=5 curve=Line t0=0 t1=4 len=4 tol=1e-07 degen=0 closed=0 v1=6 v2=5
+AEDGE a=1 i=6 curve=Line t0=0 t1=4 len=4 tol=1e-07 degen=0 closed=0 v1=5 v2=7
+AEDGE a=1 i=7 curve=Line t0=0 t1=4 len=4 tol=1e-07 degen=0 closed=0 v1=8 v2=7
+AEDGE a=1 i=8 curve=Line t0=0 t1=4 len=4 tol=1e-07 degen=0 closed=0 v1=6 v2=8
+AEDGE a=1 i=9 curve=Line t0=0 t1=4 len=4 tol=1e-07 degen=0 closed=0 v1=2 v2=6
+AEDGE a=1 i=10 curve=Line t0=0 t1=4 len=4 tol=1e-07 degen=0 closed=0 v1=1 v2=5
+AEDGE a=1 i=11 curve=Line t0=0 t1=4 len=4 tol=1e-07 degen=0 closed=0 v1=4 v2=8
+AEDGE a=1 i=12 curve=Line t0=0 t1=4 len=4 tol=1e-07 degen=0 closed=0 v1=3 v2=7
+AVERT a=1 i=1 p=-2,-2,2 tol=1e-07
+AVERT a=1 i=2 p=-2,-2,-2 tol=1e-07
+AVERT a=1 i=3 p=-2,2,2 tol=1e-07
+AVERT a=1 i=4 p=-2,2,-2 tol=1e-07
+AVERT a=1 i=5 p=2,-2,2 tol=1e-07
+AVERT a=1 i=6 p=2,-2,-2 tol=1e-07
+AVERT a=1 i=7 p=2,2,2 tol=1e-07
+AVERT a=1 i=8 p=2,2,-2 tol=1e-07
+STAGE name=after_Init nbshapes=43 nbsource=43 nsd=0 npb=0 ncb=0 nfaceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 ffcurves=0 ffpoints=0 fftangent=0
+STAGE name=after_VV nbshapes=43 nbsource=43 nsd=0 npb=0 ncb=0 nfaceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 ffcurves=0 ffpoints=0 fftangent=0
+STAGE name=after_VE nbshapes=43 nbsource=43 nsd=0 npb=0 ncb=0 nfaceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 ffcurves=0 ffpoints=0 fftangent=0
+STAGE name=after_EE nbshapes=43 nbsource=43 nsd=0 npb=3 ncb=0 nfaceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 ffcurves=0 ffpoints=0 fftangent=0
+STAGE name=after_VF nbshapes=43 nbsource=43 nsd=0 npb=3 ncb=0 nfaceinfo=1 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 ffcurves=0 ffpoints=0 fftangent=0
+STAGE name=after_EF nbshapes=47 nbsource=43 nsd=0 npb=17 ncb=0 nfaceinfo=4 VV=0 VE=0 VF=0 EE=0 EF=4 FF=0 ffcurves=0 ffpoints=0 fftangent=0
+STAGE name=after_FF nbshapes=47 nbsource=43 nsd=0 npb=17 ncb=0 nfaceinfo=7 VV=0 VE=0 VF=0 EE=0 EF=4 FF=6 ffcurves=7 ffpoints=0 fftangent=0
+DS tag=afterFF nbshapes=47 nbsource=43 nbranges=2
+RANGE tag=afterFF i=0 first=0 last=8
+RANGE tag=afterFF i=1 first=9 last=42
+SI tag=afterFF i=0 type=SOLID rank=0 new=0 ref=-1 flag=-1 brep=0 interf=1 nsub=1 sub=1 box=void
+SI tag=afterFF i=1 type=SHELL rank=0 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=1 sub=2 box=void
+SI tag=afterFF i=2 type=FACE rank=0 new=0 ref=0 flag=-1 brep=1 interf=1 nsub=5 sub=4,5,6,7,8 box=-2.50000025,-2.50000025,-2.50000025;2.50000025,2.50000025,2.50000025
+SI tag=afterFF i=3 type=WIRE rank=0 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=3 sub=4,6,8 box=void
+SI tag=afterFF i=4 type=EDGE rank=0 new=0 ref=-1 flag=2 brep=1 interf=1 nsub=1 sub=5 box=-2e-07,-2e-07,2.4999998;2e-07,2e-07,2.5000002
+SI tag=afterFF i=5 type=VERTEX rank=0 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=-1.5e-07,-1.5e-07,2.49999985;1.5e-07,1.5e-07,2.50000015
+SI tag=afterFF i=6 type=EDGE rank=0 new=0 ref=0 flag=-1 brep=1 interf=1 nsub=2 sub=5,7 box=-2e-07,-2.00000001e-07,-2.5000002;2.5000002,2e-07,2.5000002
+SI tag=afterFF i=7 type=VERTEX rank=0 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=-1.5e-07,-1.5e-07,-2.50000015;1.5e-07,1.5e-07,-2.49999985
+SI tag=afterFF i=8 type=EDGE rank=0 new=0 ref=-1 flag=2 brep=1 interf=1 nsub=1 sub=7 box=-2e-07,-2e-07,-2.5000002;2e-07,2e-07,-2.4999998
+SI tag=afterFF i=9 type=SOLID rank=1 new=0 ref=-1 flag=-1 brep=0 interf=1 nsub=1 sub=10 box=void
+SI tag=afterFF i=10 type=SHELL rank=1 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=6 sub=11,21,31,35,39,41 box=void
+SI tag=afterFF i=11 type=FACE rank=1 new=0 ref=4 flag=-1 brep=1 interf=1 nsub=8 sub=13,14,15,16,17,18,19,20 box=-2.00000025,-2.00000025,-2.00000025;-1.99999975,2.00000025,2.00000025
+SI tag=afterFF i=12 type=WIRE rank=1 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=4 sub=13,16,18,20 box=void
+SI tag=afterFF i=13 type=EDGE rank=1 new=0 ref=3 flag=-1 brep=1 interf=1 nsub=2 sub=14,15 box=-2.0000002,-2.0000002,-2.0000002;-1.9999998,-1.9999998,2.0000002
+SI tag=afterFF i=14 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=-2.00000015,-2.00000015,1.99999985;-1.99999985,-1.99999985,2.00000015
+SI tag=afterFF i=15 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=-2.00000015,-2.00000015,-2.00000015;-1.99999985,-1.99999985,-1.99999985
+SI tag=afterFF i=16 type=EDGE rank=1 new=0 ref=4 flag=-1 brep=1 interf=1 nsub=2 sub=14,17 box=-2.0000002,-2.0000002,1.9999998;-1.9999998,2.0000002,2.0000002
+SI tag=afterFF i=17 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=-2.00000015,1.99999985,1.99999985;-1.99999985,2.00000015,2.00000015
+SI tag=afterFF i=18 type=EDGE rank=1 new=0 ref=5 flag=-1 brep=1 interf=1 nsub=2 sub=17,19 box=-2.0000002,1.9999998,-2.0000002;-1.9999998,2.0000002,2.0000002
+SI tag=afterFF i=19 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=-2.00000015,1.99999985,-2.00000015;-1.99999985,2.00000015,-1.99999985
+SI tag=afterFF i=20 type=EDGE rank=1 new=0 ref=6 flag=-1 brep=1 interf=1 nsub=2 sub=15,19 box=-2.0000002,-2.0000002,-2.0000002;-1.9999998,2.0000002,-1.9999998
+SI tag=afterFF i=21 type=FACE rank=1 new=0 ref=1 flag=-1 brep=1 interf=1 nsub=8 sub=23,24,25,26,27,28,29,30 box=1.99999975,-2.00000025,-2.00000025;2.00000025,2.00000025,2.00000025
+SI tag=afterFF i=22 type=WIRE rank=1 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=4 sub=23,26,28,30 box=void
+SI tag=afterFF i=23 type=EDGE rank=1 new=0 ref=7 flag=-1 brep=1 interf=1 nsub=2 sub=24,25 box=1.9999998,-2.0000002,-2.0000002;2.0000002,-1.9999998,2.0000002
+SI tag=afterFF i=24 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.99999985,-2.00000015,1.99999985;2.00000015,-1.99999985,2.00000015
+SI tag=afterFF i=25 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.99999985,-2.00000015,-2.00000015;2.00000015,-1.99999985,-1.99999985
+SI tag=afterFF i=26 type=EDGE rank=1 new=0 ref=1 flag=-1 brep=1 interf=1 nsub=2 sub=24,27 box=1.9999998,-2.0000002,1.9999998;2.0000002,2.0000002,2.0000002
+SI tag=afterFF i=27 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.99999985,1.99999985,1.99999985;2.00000015,2.00000015,2.00000015
+SI tag=afterFF i=28 type=EDGE rank=1 new=0 ref=8 flag=-1 brep=1 interf=1 nsub=2 sub=27,29 box=1.9999998,1.9999998,-2.0000002;2.0000002,2.0000002,2.0000002
+SI tag=afterFF i=29 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.99999985,1.99999985,-2.00000015;2.00000015,2.00000015,-1.99999985
+SI tag=afterFF i=30 type=EDGE rank=1 new=0 ref=2 flag=-1 brep=1 interf=1 nsub=2 sub=25,29 box=1.9999998,-2.0000002,-2.0000002;2.0000002,2.0000002,-1.9999998
+SI tag=afterFF i=31 type=FACE rank=1 new=0 ref=5 flag=-1 brep=1 interf=1 nsub=8 sub=13,14,15,23,24,25,33,34 box=-2.00000025,-2.00000025,-2.00000025;2.00000025,-1.99999975,2.00000025
+SI tag=afterFF i=32 type=WIRE rank=1 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=4 sub=13,23,33,34 box=void
+SI tag=afterFF i=33 type=EDGE rank=1 new=0 ref=9 flag=-1 brep=1 interf=1 nsub=2 sub=15,25 box=-2.0000002,-2.0000002,-2.0000002;2.0000002,-1.9999998,-1.9999998
+SI tag=afterFF i=34 type=EDGE rank=1 new=0 ref=10 flag=-1 brep=1 interf=1 nsub=2 sub=14,24 box=-2.0000002,-2.0000002,1.9999998;2.0000002,-1.9999998,2.0000002
+SI tag=afterFF i=35 type=FACE rank=1 new=0 ref=6 flag=-1 brep=1 interf=1 nsub=8 sub=17,18,19,27,28,29,37,38 box=-2.00000025,1.99999975,-2.00000025;2.00000025,2.00000025,2.00000025
+SI tag=afterFF i=36 type=WIRE rank=1 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=4 sub=18,28,37,38 box=void
+SI tag=afterFF i=37 type=EDGE rank=1 new=0 ref=11 flag=-1 brep=1 interf=1 nsub=2 sub=19,29 box=-2.0000002,1.9999998,-2.0000002;2.0000002,2.0000002,-1.9999998
+SI tag=afterFF i=38 type=EDGE rank=1 new=0 ref=12 flag=-1 brep=1 interf=1 nsub=2 sub=17,27 box=-2.0000002,1.9999998,1.9999998;2.0000002,2.0000002,2.0000002
+SI tag=afterFF i=39 type=FACE rank=1 new=0 ref=2 flag=-1 brep=1 interf=1 nsub=8 sub=15,19,20,25,29,30,33,37 box=-2.00000025,-2.00000025,-2.00000025;2.00000025,2.00000025,-1.99999975
+SI tag=afterFF i=40 type=WIRE rank=1 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=4 sub=20,30,33,37 box=void
+SI tag=afterFF i=41 type=FACE rank=1 new=0 ref=3 flag=-1 brep=1 interf=1 nsub=8 sub=14,16,17,24,26,27,34,38 box=-2.00000025,-2.00000025,1.99999975;2.00000025,2.00000025,2.00000025
+SI tag=afterFF i=42 type=WIRE rank=1 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=4 sub=16,26,34,38 box=void
+SI tag=afterFF i=43 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.99999975,-2.50001e-07,-1.50000025;2.00000025,2.50001e-07,-1.49999975
+SI tag=afterFF i=44 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.99999975,-2.50001e-07,1.49999975;2.00000025,2.50001e-07,1.50000025
+SI tag=afterFF i=45 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.49999975,-2.50001e-07,-2.00000025;1.50000025,2.50001e-07,-1.99999975
+SI tag=afterFF i=46 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.49999975,-2.50001e-07,1.99999975;1.50000025,2.50001e-07,2.00000025
+DSVERT tag=afterFF i=5 p=0,0,2.5 tol=1e-07 new=0 sd=-1
+DSVERT tag=afterFF i=7 p=0,0,-2.5 tol=1e-07 new=0 sd=-1
+DSVERT tag=afterFF i=14 p=-2,-2,2 tol=1e-07 new=0 sd=-1
+DSVERT tag=afterFF i=15 p=-2,-2,-2 tol=1e-07 new=0 sd=-1
+DSVERT tag=afterFF i=17 p=-2,2,2 tol=1e-07 new=0 sd=-1
+DSVERT tag=afterFF i=19 p=-2,2,-2 tol=1e-07 new=0 sd=-1
+DSVERT tag=afterFF i=24 p=2,-2,2 tol=1e-07 new=0 sd=-1
+DSVERT tag=afterFF i=25 p=2,-2,-2 tol=1e-07 new=0 sd=-1
+DSVERT tag=afterFF i=27 p=2,2,2 tol=1e-07 new=0 sd=-1
+DSVERT tag=afterFF i=29 p=2,2,-2 tol=1e-07 new=0 sd=-1
+DSVERT tag=afterFF i=43 p=2,0,-1.5 tol=2.00001e-07 new=1 sd=-1
+DSVERT tag=afterFF i=44 p=2,0,1.5 tol=2.00001e-07 new=1 sd=-1
+DSVERT tag=afterFF i=45 p=1.5,0,-2 tol=2.00001e-07 new=1 sd=-1
+DSVERT tag=afterFF i=46 p=1.5,0,2 tol=2.00001e-07 new=1 sd=-1
+PAVE tag=afterFF e=6 k=0 t=4.71238898 v=7
+PAVE tag=afterFF e=6 k=1 t=5.35589009 v=45
+PAVE tag=afterFF e=6 k=2 t=5.6396842 v=43
+PAVE tag=afterFF e=6 k=3 t=6.92668642 v=44
+PAVE tag=afterFF e=6 k=4 t=7.21048053 v=46
+PAVE tag=afterFF e=6 k=5 t=7.85398163 v=5
+PB tag=afterFF e=6 k=0 orig=6 t0=4.71238898 t1=5.35589009 v1=7 v2=45 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=4.71238906:5.35588997
+PB tag=afterFF e=6 k=1 orig=6 t0=5.35589009 t1=5.6396842 v1=45 v2=43 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=5.35589021:5.63968408
+PB tag=afterFF e=6 k=2 orig=6 t0=5.6396842 t1=6.92668642 v1=43 v2=44 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=5.63968432:6.9266863
+PB tag=afterFF e=6 k=3 orig=6 t0=6.92668642 t1=7.21048053 v1=44 v2=46 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=6.92668654:7.21048041
+PB tag=afterFF e=6 k=4 orig=6 t0=7.21048053 t1=7.85398163 v1=46 v2=5 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=7.21048064:7.85398155
+PAVE tag=afterFF e=13 k=0 t=0 v=15
+PAVE tag=afterFF e=13 k=1 t=4 v=14
+PB tag=afterFF e=13 k=0 orig=13 t0=0 t1=4 v1=15 v2=14 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=1.9884375e-07:3.9999998
+PAVE tag=afterFF e=16 k=0 t=0 v=14
+PAVE tag=afterFF e=16 k=1 t=4 v=17
+PB tag=afterFF e=16 k=0 orig=16 t0=0 t1=4 v1=14 v2=17 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=1.9884375e-07:3.9999998
+PAVE tag=afterFF e=18 k=0 t=0 v=19
+PAVE tag=afterFF e=18 k=1 t=4 v=17
+PB tag=afterFF e=18 k=0 orig=18 t0=0 t1=4 v1=19 v2=17 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=1.9884375e-07:3.9999998
+PAVE tag=afterFF e=20 k=0 t=0 v=15
+PAVE tag=afterFF e=20 k=1 t=4 v=19
+PB tag=afterFF e=20 k=0 orig=20 t0=0 t1=4 v1=15 v2=19 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=1.9884375e-07:3.9999998
+PAVE tag=afterFF e=23 k=0 t=0 v=25
+PAVE tag=afterFF e=23 k=1 t=4 v=24
+PB tag=afterFF e=23 k=0 orig=23 t0=0 t1=4 v1=25 v2=24 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=1.9884375e-07:3.9999998
+PAVE tag=afterFF e=26 k=0 t=0 v=24
+PAVE tag=afterFF e=26 k=1 t=4 v=27
+PB tag=afterFF e=26 k=0 orig=26 t0=0 t1=4 v1=24 v2=27 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=1.9884375e-07:3.9999998
+PAVE tag=afterFF e=28 k=0 t=0 v=29
+PAVE tag=afterFF e=28 k=1 t=4 v=27
+PB tag=afterFF e=28 k=0 orig=28 t0=0 t1=4 v1=29 v2=27 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=1.9884375e-07:3.9999998
+PAVE tag=afterFF e=30 k=0 t=0 v=25
+PAVE tag=afterFF e=30 k=1 t=4 v=29
+PB tag=afterFF e=30 k=0 orig=30 t0=0 t1=4 v1=25 v2=29 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=1.9884375e-07:3.9999998
+PAVE tag=afterFF e=33 k=0 t=0 v=15
+PAVE tag=afterFF e=33 k=1 t=4 v=25
+PB tag=afterFF e=33 k=0 orig=33 t0=0 t1=4 v1=15 v2=25 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=1.9884375e-07:3.9999998
+PAVE tag=afterFF e=34 k=0 t=0 v=14
+PAVE tag=afterFF e=34 k=1 t=4 v=24
+PB tag=afterFF e=34 k=0 orig=34 t0=0 t1=4 v1=14 v2=24 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=1.9884375e-07:3.9999998
+PAVE tag=afterFF e=37 k=0 t=0 v=19
+PAVE tag=afterFF e=37 k=1 t=4 v=29
+PB tag=afterFF e=37 k=0 orig=37 t0=0 t1=4 v1=19 v2=29 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=1.9884375e-07:3.9999998
+PAVE tag=afterFF e=38 k=0 t=0 v=17
+PAVE tag=afterFF e=38 k=1 t=4 v=27
+PB tag=afterFF e=38 k=0 orig=38 t0=0 t1=4 v1=17 v2=27 edge=-1 etol=- cb=-1 split=1 splittable=1 shrunk=1.9884375e-07:3.9999998
+FI tag=afterFF f=2 nIn=0 nOn=5 nSc=0 vIn=- vOn=5,7,43,44,45,46 vSc=-
+FIPB tag=afterFF f=2 set=On k=0 orig=6 t0=4.71238898 t1=5.35589009 edge=-1
+FIPB tag=afterFF f=2 set=On k=1 orig=6 t0=5.35589009 t1=5.6396842 edge=-1
+FIPB tag=afterFF f=2 set=On k=2 orig=6 t0=5.6396842 t1=6.92668642 edge=-1
+FIPB tag=afterFF f=2 set=On k=3 orig=6 t0=6.92668642 t1=7.21048053 edge=-1
+FIPB tag=afterFF f=2 set=On k=4 orig=6 t0=7.21048053 t1=7.85398163 edge=-1
+FI tag=afterFF f=11 nIn=0 nOn=4 nSc=0 vIn=- vOn=14,15,17,19 vSc=-
+FIPB tag=afterFF f=11 set=On k=0 orig=13 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=11 set=On k=1 orig=16 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=11 set=On k=2 orig=18 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=11 set=On k=3 orig=20 t0=0 t1=4 edge=-1
+FI tag=afterFF f=21 nIn=0 nOn=4 nSc=0 vIn=43,44 vOn=24,25,27,29 vSc=-
+FIPB tag=afterFF f=21 set=On k=0 orig=23 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=21 set=On k=1 orig=26 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=21 set=On k=2 orig=28 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=21 set=On k=3 orig=30 t0=0 t1=4 edge=-1
+FI tag=afterFF f=31 nIn=0 nOn=4 nSc=0 vIn=- vOn=14,15,24,25 vSc=-
+FIPB tag=afterFF f=31 set=On k=0 orig=13 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=31 set=On k=1 orig=23 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=31 set=On k=2 orig=33 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=31 set=On k=3 orig=34 t0=0 t1=4 edge=-1
+FI tag=afterFF f=35 nIn=0 nOn=4 nSc=0 vIn=- vOn=17,19,27,29 vSc=-
+FIPB tag=afterFF f=35 set=On k=0 orig=18 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=35 set=On k=1 orig=28 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=35 set=On k=2 orig=37 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=35 set=On k=3 orig=38 t0=0 t1=4 edge=-1
+FI tag=afterFF f=39 nIn=0 nOn=4 nSc=0 vIn=45 vOn=15,19,25,29 vSc=-
+FIPB tag=afterFF f=39 set=On k=0 orig=20 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=39 set=On k=1 orig=30 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=39 set=On k=2 orig=33 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=39 set=On k=3 orig=37 t0=0 t1=4 edge=-1
+FI tag=afterFF f=41 nIn=0 nOn=4 nSc=0 vIn=46 vOn=14,17,24,27 vSc=-
+FIPB tag=afterFF f=41 set=On k=0 orig=16 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=41 set=On k=1 orig=26 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=41 set=On k=2 orig=34 t0=0 t1=4 edge=-1
+FIPB tag=afterFF f=41 set=On k=3 orig=38 t0=0 t1=4 edge=-1
+IEF tag=afterFF i1=6 i2=21 ctype=VERTEX r1=5.63968402:5.63968438 new=43
+IEF tag=afterFF i1=6 i2=21 ctype=VERTEX r1=6.92668624:6.9266866 new=44
+IEF tag=afterFF i1=6 i2=39 ctype=VERTEX r1=5.35588991:5.35589027 new=45
+IEF tag=afterFF i1=6 i2=41 ctype=VERTEX r1=7.21048035:7.21048071 new=46
+IFF tag=afterFF i1=2 i2=11 tangent=0 ncurves=1 npoints=0
+SEC tag=afterFF f1=2 f2=11 c=0 type=Circle geom=Geom_TrimmedCurve t0=0 t1=6.28318531 len=9.42477796 tol=1e-07 tantol=1.5e-07 p0=-2,0,1.5 p1=-2,0,1.5 c2d1=1 c2d2=1 npb=0 box=-2.0000002,-1.5000002,-1.5000002;-1.9999998,1.5000002,1.5000002
+SEC2D tag=afterFF f1=2 f2=11 c=0 face=2 umin=2.49809155 umax=3.78509374 vmin=-0.64350111 vmax=0.643501109 s=3.14159265:0.643501109|3.14159266:-0.64350111|3.14159265:0.643501109
+SEC2D tag=afterFF f1=2 f2=11 c=0 face=11 umin=0.5 umax=3.5 vmin=-3.5 vmax=-0.5 s=3.5:-2|0.5:-2|3.5:-2
+IFF tag=afterFF i1=2 i2=21 tangent=0 ncurves=2 npoints=0
+SEC tag=afterFF f1=2 f2=21 c=0 type=Circle geom=Geom_TrimmedCurve t0=0 t1=3.14159265 len=4.71238898 tol=1e-07 tantol=1.5e-07 p0=2,0,1.5 p1=2,0,-1.5 c2d1=1 c2d2=1 npb=0 box=1.9999998,-1.5000002,-1.5000002;2.0000002,2e-07,1.5000002
+SEC2D tag=afterFF f1=2 f2=21 c=0 face=2 umin=5.6396842 umax=6.28318531 vmin=-0.643501109 vmax=0.643501109 s=6.28318531:0.643501109|5.6396842:-2.81417945e-09|6.28318531:-0.643501109
+SEC2D tag=afterFF f1=2 f2=21 c=0 face=21 umin=0.5 umax=3.5 vmin=-2 vmax=-0.5 s=3.5:-2|2:-0.5|0.5:-2
+SEC tag=afterFF f1=2 f2=21 c=1 type=Circle geom=Geom_TrimmedCurve t0=3.14159265 t1=6.28318531 len=4.71238898 tol=1e-07 tantol=1.5e-07 p0=2,0,-1.5 p1=2,0,1.5 c2d1=1 c2d2=1 npb=0 box=1.9999998,-2.00000001e-07,-1.5000002;2.0000002,1.5000002,1.5000002
+SEC2D tag=afterFF f1=2 f2=21 c=1 face=2 umin=0 umax=0.643501109 vmin=-0.643501109 vmax=0.643501109 s=0:-0.643501109|0.643501109:2.81416423e-09|0:0.643501109
+SEC2D tag=afterFF f1=2 f2=21 c=1 face=21 umin=0.5 umax=3.5 vmin=-3.5 vmax=-2 s=0.5:-2|2:-3.5|3.5:-2
+IFF tag=afterFF i1=2 i2=31 tangent=0 ncurves=1 npoints=0
+SEC tag=afterFF f1=2 f2=31 c=0 type=Circle geom=Geom_TrimmedCurve t0=0 t1=6.28318531 len=9.42477796 tol=1e-07 tantol=1.5e-07 p0=0,-2,1.5 p1=0,-2,1.5 c2d1=1 c2d2=1 npb=0 box=-1.5000002,-2.0000002,-1.5000002;1.5000002,-1.9999998,1.5000002
+SEC2D tag=afterFF f1=2 f2=31 c=0 face=2 umin=4.06888788 umax=5.35589007 vmin=-0.64350111 vmax=0.643501109 s=4.71238898:0.643501109|4.71238898:-0.64350111|4.71238898:0.643501109
+SEC2D tag=afterFF f1=2 f2=31 c=0 face=31 umin=0.5 umax=3.5 vmin=0.5 vmax=3.5 s=3.5:2|0.5:2|3.5:2
+IFF tag=afterFF i1=2 i2=35 tangent=0 ncurves=1 npoints=0
+SEC tag=afterFF f1=2 f2=35 c=0 type=Circle geom=Geom_TrimmedCurve t0=0 t1=6.28318531 len=9.42477796 tol=1e-07 tantol=1.5e-07 p0=0,2,1.5 p1=0,2,1.5 c2d1=1 c2d2=1 npb=0 box=-1.5000002,1.9999998,-1.5000002;1.5000002,2.0000002,1.5000002
+SEC2D tag=afterFF f1=2 f2=35 c=0 face=2 umin=0.927295237 umax=2.21429743 vmin=-0.64350111 vmax=0.643501109 s=1.57079633:0.643501109|1.57079632:-0.64350111|1.57079633:0.643501109
+SEC2D tag=afterFF f1=2 f2=35 c=0 face=35 umin=0.5 umax=3.5 vmin=0.5 vmax=3.5 s=3.5:2|0.5:2|3.5:2
+IFF tag=afterFF i1=2 i2=39 tangent=0 ncurves=1 npoints=0
+SEC tag=afterFF f1=2 f2=39 c=0 type=Circle geom=Geom_TrimmedCurve t0=0 t1=6.28318531 len=9.42477796 tol=1e-07 tantol=1.5e-07 p0=1.5,0,-2 p1=1.5,0,-2 c2d1=1 c2d2=1 npb=0 box=-1.5000002,-1.5000002,-2.0000002;1.5000002,1.5000002,-1.9999998
+SEC2D tag=afterFF f1=2 f2=39 c=0 face=2 umin=0 umax=6.28318531 vmin=-0.927295218 vmax=-0.927295218 s=0:-0.927295218|3.14159265:-0.927295218|6.28318531:-0.927295218
+SEC2D tag=afterFF f1=2 f2=39 c=0 face=39 umin=0.5 umax=3.5 vmin=0.5 vmax=3.5 s=3.5:2|0.5:2|3.5:2
+IFF tag=afterFF i1=2 i2=41 tangent=0 ncurves=1 npoints=0
+SEC tag=afterFF f1=2 f2=41 c=0 type=Circle geom=Geom_TrimmedCurve t0=0 t1=6.28318531 len=9.42477796 tol=1e-07 tantol=1.5e-07 p0=1.5,0,2 p1=1.5,0,2 c2d1=1 c2d2=1 npb=0 box=-1.5000002,-1.5000002,1.9999998;1.5000002,1.5000002,2.0000002
+SEC2D tag=afterFF f1=2 f2=41 c=0 face=2 umin=0 umax=6.28318531 vmin=0.927295218 vmax=0.927295218 s=0:0.927295218|3.14159265:0.927295218|6.28318531:0.927295218
+SEC2D tag=afterFF f1=2 f2=41 c=0 face=41 umin=0.5 umax=3.5 vmin=0.5 vmax=3.5 s=3.5:2|0.5:2|3.5:2
+PF errors=0 warnings=0
+STAGE name=final nbshapes=62 nbsource=43 nsd=0 npb=5 ncb=0 nfaceinfo=7 VV=0 VE=0 VF=0 EE=0 EF=4 FF=6 ffcurves=7 ffpoints=0 fftangent=0
+DS tag=final nbshapes=62 nbsource=43 nbranges=2
+RANGE tag=final i=0 first=0 last=8
+RANGE tag=final i=1 first=9 last=42
+SI tag=final i=0 type=SOLID rank=0 new=0 ref=-1 flag=-1 brep=0 interf=1 nsub=1 sub=1 box=void
+SI tag=final i=1 type=SHELL rank=0 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=1 sub=2 box=void
+SI tag=final i=2 type=FACE rank=0 new=0 ref=0 flag=-1 brep=1 interf=1 nsub=5 sub=4,5,6,7,8 box=-2.50000025,-2.50000025,-2.50000025;2.50000025,2.50000025,2.50000025
+SI tag=final i=3 type=WIRE rank=0 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=3 sub=4,6,8 box=void
+SI tag=final i=4 type=EDGE rank=0 new=0 ref=-1 flag=2 brep=1 interf=1 nsub=1 sub=5 box=-2e-07,-2e-07,2.4999998;2e-07,2e-07,2.5000002
+SI tag=final i=5 type=VERTEX rank=0 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=-1.5e-07,-1.5e-07,2.49999985;1.5e-07,1.5e-07,2.50000015
+SI tag=final i=6 type=EDGE rank=0 new=0 ref=0 flag=-1 brep=1 interf=1 nsub=2 sub=5,7 box=-2e-07,-2.00000001e-07,-2.5000002;2.5000002,2e-07,2.5000002
+SI tag=final i=7 type=VERTEX rank=0 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=-1.5e-07,-1.5e-07,-2.50000015;1.5e-07,1.5e-07,-2.49999985
+SI tag=final i=8 type=EDGE rank=0 new=0 ref=-1 flag=2 brep=1 interf=1 nsub=1 sub=7 box=-2e-07,-2e-07,-2.5000002;2e-07,2e-07,-2.4999998
+SI tag=final i=9 type=SOLID rank=1 new=0 ref=-1 flag=-1 brep=0 interf=1 nsub=1 sub=10 box=void
+SI tag=final i=10 type=SHELL rank=1 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=6 sub=11,21,31,35,39,41 box=void
+SI tag=final i=11 type=FACE rank=1 new=0 ref=4 flag=-1 brep=1 interf=1 nsub=8 sub=13,14,15,16,17,18,19,20 box=-2.00000025,-2.00000025,-2.00000025;-1.99999975,2.00000025,2.00000025
+SI tag=final i=12 type=WIRE rank=1 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=4 sub=13,16,18,20 box=void
+SI tag=final i=13 type=EDGE rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=14,15 box=-2.0000002,-2.0000002,-2.0000002;-1.9999998,-1.9999998,2.0000002
+SI tag=final i=14 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=-2.00000015,-2.00000015,1.99999985;-1.99999985,-1.99999985,2.00000015
+SI tag=final i=15 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=-2.00000015,-2.00000015,-2.00000015;-1.99999985,-1.99999985,-1.99999985
+SI tag=final i=16 type=EDGE rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=14,17 box=-2.0000002,-2.0000002,1.9999998;-1.9999998,2.0000002,2.0000002
+SI tag=final i=17 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=-2.00000015,1.99999985,1.99999985;-1.99999985,2.00000015,2.00000015
+SI tag=final i=18 type=EDGE rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=17,19 box=-2.0000002,1.9999998,-2.0000002;-1.9999998,2.0000002,2.0000002
+SI tag=final i=19 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=-2.00000015,1.99999985,-2.00000015;-1.99999985,2.00000015,-1.99999985
+SI tag=final i=20 type=EDGE rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=15,19 box=-2.0000002,-2.0000002,-2.0000002;-1.9999998,2.0000002,-1.9999998
+SI tag=final i=21 type=FACE rank=1 new=0 ref=1 flag=-1 brep=1 interf=1 nsub=8 sub=23,24,25,26,27,28,29,30 box=1.99999975,-2.00000025,-2.00000025;2.00000025,2.00000025,2.00000025
+SI tag=final i=22 type=WIRE rank=1 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=4 sub=23,26,28,30 box=void
+SI tag=final i=23 type=EDGE rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=24,25 box=1.9999998,-2.0000002,-2.0000002;2.0000002,-1.9999998,2.0000002
+SI tag=final i=24 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.99999985,-2.00000015,1.99999985;2.00000015,-1.99999985,2.00000015
+SI tag=final i=25 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.99999985,-2.00000015,-2.00000015;2.00000015,-1.99999985,-1.99999985
+SI tag=final i=26 type=EDGE rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=24,27 box=1.9999998,-2.0000002,1.9999998;2.0000002,2.0000002,2.0000002
+SI tag=final i=27 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.99999985,1.99999985,1.99999985;2.00000015,2.00000015,2.00000015
+SI tag=final i=28 type=EDGE rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=27,29 box=1.9999998,1.9999998,-2.0000002;2.0000002,2.0000002,2.0000002
+SI tag=final i=29 type=VERTEX rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.99999985,1.99999985,-2.00000015;2.00000015,2.00000015,-1.99999985
+SI tag=final i=30 type=EDGE rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=25,29 box=1.9999998,-2.0000002,-2.0000002;2.0000002,2.0000002,-1.9999998
+SI tag=final i=31 type=FACE rank=1 new=0 ref=5 flag=-1 brep=1 interf=1 nsub=8 sub=13,14,15,23,24,25,33,34 box=-2.00000025,-2.00000025,-2.00000025;2.00000025,-1.99999975,2.00000025
+SI tag=final i=32 type=WIRE rank=1 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=4 sub=13,23,33,34 box=void
+SI tag=final i=33 type=EDGE rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=15,25 box=-2.0000002,-2.0000002,-2.0000002;2.0000002,-1.9999998,-1.9999998
+SI tag=final i=34 type=EDGE rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=14,24 box=-2.0000002,-2.0000002,1.9999998;2.0000002,-1.9999998,2.0000002
+SI tag=final i=35 type=FACE rank=1 new=0 ref=6 flag=-1 brep=1 interf=1 nsub=8 sub=17,18,19,27,28,29,37,38 box=-2.00000025,1.99999975,-2.00000025;2.00000025,2.00000025,2.00000025
+SI tag=final i=36 type=WIRE rank=1 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=4 sub=18,28,37,38 box=void
+SI tag=final i=37 type=EDGE rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=19,29 box=-2.0000002,1.9999998,-2.0000002;2.0000002,2.0000002,-1.9999998
+SI tag=final i=38 type=EDGE rank=1 new=0 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=17,27 box=-2.0000002,1.9999998,1.9999998;2.0000002,2.0000002,2.0000002
+SI tag=final i=39 type=FACE rank=1 new=0 ref=2 flag=-1 brep=1 interf=1 nsub=8 sub=15,19,20,25,29,30,33,37 box=-2.00000025,-2.00000025,-2.00000025;2.00000025,2.00000025,-1.99999975
+SI tag=final i=40 type=WIRE rank=1 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=4 sub=20,30,33,37 box=void
+SI tag=final i=41 type=FACE rank=1 new=0 ref=3 flag=-1 brep=1 interf=1 nsub=8 sub=14,16,17,24,26,27,34,38 box=-2.00000025,-2.00000025,1.99999975;2.00000025,2.00000025,2.00000025
+SI tag=final i=42 type=WIRE rank=1 new=0 ref=-1 flag=-1 brep=0 interf=0 nsub=4 sub=16,26,34,38 box=void
+SI tag=final i=43 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.99999975,-2.50001e-07,-1.50000025;2.00000025,2.50001e-07,-1.49999975
+SI tag=final i=44 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.99999975,-2.50001e-07,1.49999975;2.00000025,2.50001e-07,1.50000025
+SI tag=final i=45 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.49999975,-2.50001e-07,-2.00000025;1.50000025,2.50001e-07,-1.99999975
+SI tag=final i=46 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=1.49999975,-2.50001e-07,1.99999975;1.50000025,2.50001e-07,2.00000025
+SI tag=final i=47 type=EDGE rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=7,45 box=-2e-07,-2e-07,-2.5000002;1.5000002,2e-07,-1.9999998
+SI tag=final i=48 type=EDGE rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=43,45 box=1.4999998,-2e-07,-2.0000002;2.0000002,2e-07,-1.4999998
+SI tag=final i=49 type=EDGE rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=43,44 box=1.9999998,-2.00000001e-07,-1.5000002;2.5000002,2e-07,1.5000002
+SI tag=final i=50 type=EDGE rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=44,46 box=1.4999998,-2e-07,1.4999998;2.0000002,2e-07,2.0000002
+SI tag=final i=51 type=EDGE rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=2 sub=5,46 box=-2e-07,-2e-07,1.9999998;1.5000002,2e-07,2.5000002
+SI tag=final i=52 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=-2.00000025,-2.5e-07,1.49999975;-1.99999975,2.5e-07,1.50000025
+SI tag=final i=53 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=-2.5e-07,-2.00000025,1.49999975;2.5e-07,-1.99999975,1.50000025
+SI tag=final i=54 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=-2.5e-07,1.99999975,1.49999975;2.5e-07,2.00000025,1.50000025
+SI tag=final i=55 type=EDGE rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=void
+SI tag=final i=56 type=EDGE rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=void
+SI tag=final i=57 type=EDGE rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=void
+SI tag=final i=58 type=EDGE rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=void
+SI tag=final i=59 type=EDGE rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=void
+SI tag=final i=60 type=EDGE rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=void
+SI tag=final i=61 type=EDGE rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=1 nsub=0 sub=- box=void
+DSVERT tag=final i=5 p=0,0,2.5 tol=1e-07 new=0 sd=-1
+DSVERT tag=final i=7 p=0,0,-2.5 tol=1e-07 new=0 sd=-1
+DSVERT tag=final i=14 p=-2,-2,2 tol=1e-07 new=0 sd=-1
+DSVERT tag=final i=15 p=-2,-2,-2 tol=1e-07 new=0 sd=-1
+DSVERT tag=final i=17 p=-2,2,2 tol=1e-07 new=0 sd=-1
+DSVERT tag=final i=19 p=-2,2,-2 tol=1e-07 new=0 sd=-1
+DSVERT tag=final i=24 p=2,-2,2 tol=1e-07 new=0 sd=-1
+DSVERT tag=final i=25 p=2,-2,-2 tol=1e-07 new=0 sd=-1
+DSVERT tag=final i=27 p=2,2,2 tol=1e-07 new=0 sd=-1
+DSVERT tag=final i=29 p=2,2,-2 tol=1e-07 new=0 sd=-1
+DSVERT tag=final i=43 p=2,0,-1.5 tol=1e-07 new=1 sd=-1
+DSVERT tag=final i=44 p=2,0,1.5 tol=1.00000003e-07 new=1 sd=-1
+DSVERT tag=final i=45 p=1.5,0,-2 tol=1.00000001e-07 new=1 sd=-1
+DSVERT tag=final i=46 p=1.5,0,2 tol=1.00000002e-07 new=1 sd=-1
+DSVERT tag=final i=52 p=-2,0,1.5 tol=1e-07 new=1 sd=-1
+DSVERT tag=final i=53 p=0,-2,1.5 tol=1e-07 new=1 sd=-1
+DSVERT tag=final i=54 p=0,2,1.5 tol=1e-07 new=1 sd=-1
+PAVE tag=final e=6 k=0 t=4.71238898 v=7
+PAVE tag=final e=6 k=1 t=5.35589009 v=45
+PAVE tag=final e=6 k=2 t=5.6396842 v=43
+PAVE tag=final e=6 k=3 t=6.92668642 v=44
+PAVE tag=final e=6 k=4 t=7.21048053 v=46
+PAVE tag=final e=6 k=5 t=7.85398163 v=5
+PB tag=final e=6 k=0 orig=6 t0=4.71238898 t1=5.35589009 v1=7 v2=45 edge=47 etol=1e-07 cb=-1 split=1 splittable=1 shrunk=4.71238906:5.35588997
+PB tag=final e=6 k=1 orig=6 t0=5.35589009 t1=5.6396842 v1=45 v2=43 edge=48 etol=1e-07 cb=-1 split=1 splittable=1 shrunk=5.35589021:5.63968408
+PB tag=final e=6 k=2 orig=6 t0=5.6396842 t1=6.92668642 v1=43 v2=44 edge=49 etol=1e-07 cb=-1 split=1 splittable=1 shrunk=5.63968432:6.9266863
+PB tag=final e=6 k=3 orig=6 t0=6.92668642 t1=7.21048053 v1=44 v2=46 edge=50 etol=1e-07 cb=-1 split=1 splittable=1 shrunk=6.92668654:7.21048041
+PB tag=final e=6 k=4 orig=6 t0=7.21048053 t1=7.85398163 v1=46 v2=5 edge=51 etol=1e-07 cb=-1 split=1 splittable=1 shrunk=7.21048064:7.85398155
+FI tag=final f=2 nIn=0 nOn=5 nSc=7 vIn=- vOn=5,7,43,44,45,46 vSc=-
+FIPB tag=final f=2 set=On k=0 orig=6 t0=4.71238898 t1=5.35589009 edge=47
+FIPB tag=final f=2 set=On k=1 orig=6 t0=5.35589009 t1=5.6396842 edge=48
+FIPB tag=final f=2 set=On k=2 orig=6 t0=5.6396842 t1=6.92668642 edge=49
+FIPB tag=final f=2 set=On k=3 orig=6 t0=6.92668642 t1=7.21048053 edge=50
+FIPB tag=final f=2 set=On k=4 orig=6 t0=7.21048053 t1=7.85398163 edge=51
+FIPB tag=final f=2 set=Sc k=0 orig=-1 t0=0 t1=3.14159265 edge=60
+FIPB tag=final f=2 set=Sc k=1 orig=-1 t0=0 t1=6.28318531 edge=55
+FIPB tag=final f=2 set=Sc k=2 orig=-1 t0=0 t1=6.28318531 edge=56
+FIPB tag=final f=2 set=Sc k=3 orig=-1 t0=0 t1=6.28318531 edge=57
+FIPB tag=final f=2 set=Sc k=4 orig=-1 t0=0 t1=6.28318531 edge=58
+FIPB tag=final f=2 set=Sc k=5 orig=-1 t0=0 t1=6.28318531 edge=61
+FIPB tag=final f=2 set=Sc k=6 orig=-1 t0=3.14159265 t1=6.28318531 edge=59
+FI tag=final f=11 nIn=0 nOn=0 nSc=1 vIn=- vOn=14,15,17,19 vSc=-
+FIPB tag=final f=11 set=Sc k=0 orig=-1 t0=0 t1=6.28318531 edge=61
+FI tag=final f=21 nIn=0 nOn=0 nSc=2 vIn=43,44 vOn=24,25,27,29 vSc=-
+FIPB tag=final f=21 set=Sc k=0 orig=-1 t0=0 t1=3.14159265 edge=60
+FIPB tag=final f=21 set=Sc k=1 orig=-1 t0=3.14159265 t1=6.28318531 edge=59
+FI tag=final f=31 nIn=0 nOn=0 nSc=1 vIn=- vOn=14,15,24,25 vSc=-
+FIPB tag=final f=31 set=Sc k=0 orig=-1 t0=0 t1=6.28318531 edge=58
+FI tag=final f=35 nIn=0 nOn=0 nSc=1 vIn=- vOn=17,19,27,29 vSc=-
+FIPB tag=final f=35 set=Sc k=0 orig=-1 t0=0 t1=6.28318531 edge=57
+FI tag=final f=39 nIn=0 nOn=0 nSc=1 vIn=45 vOn=15,19,25,29 vSc=-
+FIPB tag=final f=39 set=Sc k=0 orig=-1 t0=0 t1=6.28318531 edge=56
+FI tag=final f=41 nIn=0 nOn=0 nSc=1 vIn=46 vOn=14,17,24,27 vSc=-
+FIPB tag=final f=41 set=Sc k=0 orig=-1 t0=0 t1=6.28318531 edge=55
+IEF tag=final i1=6 i2=21 ctype=VERTEX r1=5.63968402:5.63968438 new=43
+IEF tag=final i1=6 i2=21 ctype=VERTEX r1=6.92668624:6.9266866 new=44
+IEF tag=final i1=6 i2=39 ctype=VERTEX r1=5.35588991:5.35589027 new=45
+IEF tag=final i1=6 i2=41 ctype=VERTEX r1=7.21048035:7.21048071 new=46
+IFF tag=final i1=2 i2=11 tangent=0 ncurves=1 npoints=0
+SEC tag=final f1=2 f2=11 c=0 type=Circle geom=Geom_TrimmedCurve t0=0 t1=6.28318531 len=9.42477796 tol=1e-07 tantol=1.5e-07 p0=-2,0,1.5 p1=-2,0,1.5 c2d1=1 c2d2=1 npb=1 box=-2.0000002,-1.5000002,-1.5000002;-1.9999998,1.5000002,1.5000002
+SEC2D tag=final f1=2 f2=11 c=0 face=2 umin=2.49809155 umax=3.78509374 vmin=-0.64350111 vmax=0.643501109 s=3.14159265:0.643501109|3.14159266:-0.64350111|3.14159265:0.643501109
+SEC2D tag=final f1=2 f2=11 c=0 face=11 umin=0.5 umax=3.5 vmin=-3.5 vmax=-0.5 s=3.5:-2|0.5:-2|3.5:-2
+SECPB tag=final f1=2 f2=11 c=0 k=0 t0=0 t1=6.28318531 v1=52 v2=52 edge=61 etol=1e-07
+IFF tag=final i1=2 i2=21 tangent=0 ncurves=2 npoints=0
+SEC tag=final f1=2 f2=21 c=0 type=Circle geom=Geom_TrimmedCurve t0=0 t1=3.14159265 len=4.71238898 tol=1e-07 tantol=1.5e-07 p0=2,0,1.5 p1=2,0,-1.5 c2d1=1 c2d2=1 npb=1 box=1.9999998,-1.5000002,-1.5000002;2.0000002,2e-07,1.5000002
+SEC2D tag=final f1=2 f2=21 c=0 face=2 umin=5.6396842 umax=6.28318531 vmin=-0.643501109 vmax=0.643501109 s=6.28318531:0.643501109|5.6396842:-2.81417945e-09|6.28318531:-0.643501109
+SEC2D tag=final f1=2 f2=21 c=0 face=21 umin=0.5 umax=3.5 vmin=-2 vmax=-0.5 s=3.5:-2|2:-0.5|0.5:-2
+SECPB tag=final f1=2 f2=21 c=0 k=0 t0=0 t1=3.14159265 v1=44 v2=43 edge=60 etol=1e-07
+SEC tag=final f1=2 f2=21 c=1 type=Circle geom=Geom_TrimmedCurve t0=3.14159265 t1=6.28318531 len=4.71238898 tol=1e-07 tantol=1.5e-07 p0=2,0,-1.5 p1=2,0,1.5 c2d1=1 c2d2=1 npb=1 box=1.9999998,-2.00000001e-07,-1.5000002;2.0000002,1.5000002,1.5000002
+SEC2D tag=final f1=2 f2=21 c=1 face=2 umin=0 umax=0.643501109 vmin=-0.643501109 vmax=0.643501109 s=0:-0.643501109|0.643501109:2.81416423e-09|0:0.643501109
+SEC2D tag=final f1=2 f2=21 c=1 face=21 umin=0.5 umax=3.5 vmin=-3.5 vmax=-2 s=0.5:-2|2:-3.5|3.5:-2
+SECPB tag=final f1=2 f2=21 c=1 k=0 t0=3.14159265 t1=6.28318531 v1=43 v2=44 edge=59 etol=1e-07
+IFF tag=final i1=2 i2=31 tangent=0 ncurves=1 npoints=0
+SEC tag=final f1=2 f2=31 c=0 type=Circle geom=Geom_TrimmedCurve t0=0 t1=6.28318531 len=9.42477796 tol=1e-07 tantol=1.5e-07 p0=0,-2,1.5 p1=0,-2,1.5 c2d1=1 c2d2=1 npb=1 box=-1.5000002,-2.0000002,-1.5000002;1.5000002,-1.9999998,1.5000002
+SEC2D tag=final f1=2 f2=31 c=0 face=2 umin=4.06888788 umax=5.35589007 vmin=-0.64350111 vmax=0.643501109 s=4.71238898:0.643501109|4.71238898:-0.64350111|4.71238898:0.643501109
+SEC2D tag=final f1=2 f2=31 c=0 face=31 umin=0.5 umax=3.5 vmin=0.5 vmax=3.5 s=3.5:2|0.5:2|3.5:2
+SECPB tag=final f1=2 f2=31 c=0 k=0 t0=0 t1=6.28318531 v1=53 v2=53 edge=58 etol=1e-07
+IFF tag=final i1=2 i2=35 tangent=0 ncurves=1 npoints=0
+SEC tag=final f1=2 f2=35 c=0 type=Circle geom=Geom_TrimmedCurve t0=0 t1=6.28318531 len=9.42477796 tol=1e-07 tantol=1.5e-07 p0=0,2,1.5 p1=0,2,1.5 c2d1=1 c2d2=1 npb=1 box=-1.5000002,1.9999998,-1.5000002;1.5000002,2.0000002,1.5000002
+SEC2D tag=final f1=2 f2=35 c=0 face=2 umin=0.927295237 umax=2.21429743 vmin=-0.64350111 vmax=0.643501109 s=1.57079633:0.643501109|1.57079632:-0.64350111|1.57079633:0.643501109
+SEC2D tag=final f1=2 f2=35 c=0 face=35 umin=0.5 umax=3.5 vmin=0.5 vmax=3.5 s=3.5:2|0.5:2|3.5:2
+SECPB tag=final f1=2 f2=35 c=0 k=0 t0=0 t1=6.28318531 v1=54 v2=54 edge=57 etol=1e-07
+IFF tag=final i1=2 i2=39 tangent=0 ncurves=1 npoints=0
+SEC tag=final f1=2 f2=39 c=0 type=Circle geom=Geom_TrimmedCurve t0=0 t1=6.28318531 len=9.42477796 tol=1e-07 tantol=1.5e-07 p0=1.5,0,-2 p1=1.5,0,-2 c2d1=1 c2d2=1 npb=1 box=-1.5000002,-1.5000002,-2.0000002;1.5000002,1.5000002,-1.9999998
+SEC2D tag=final f1=2 f2=39 c=0 face=2 umin=0 umax=6.28318531 vmin=-0.927295218 vmax=-0.927295218 s=0:-0.927295218|3.14159265:-0.927295218|6.28318531:-0.927295218
+SEC2D tag=final f1=2 f2=39 c=0 face=39 umin=0.5 umax=3.5 vmin=0.5 vmax=3.5 s=3.5:2|0.5:2|3.5:2
+SECPB tag=final f1=2 f2=39 c=0 k=0 t0=0 t1=6.28318531 v1=45 v2=45 edge=56 etol=1e-07
+IFF tag=final i1=2 i2=41 tangent=0 ncurves=1 npoints=0
+SEC tag=final f1=2 f2=41 c=0 type=Circle geom=Geom_TrimmedCurve t0=0 t1=6.28318531 len=9.42477796 tol=1e-07 tantol=1.5e-07 p0=1.5,0,2 p1=1.5,0,2 c2d1=1 c2d2=1 npb=1 box=-1.5000002,-1.5000002,1.9999998;1.5000002,1.5000002,2.0000002
+SEC2D tag=final f1=2 f2=41 c=0 face=2 umin=0 umax=6.28318531 vmin=0.927295218 vmax=0.927295218 s=0:0.927295218|3.14159265:0.927295218|6.28318531:0.927295218
+SEC2D tag=final f1=2 f2=41 c=0 face=41 umin=0.5 umax=3.5 vmin=0.5 vmax=3.5 s=3.5:2|0.5:2|3.5:2
+SECPB tag=final f1=2 f2=41 c=0 k=0 t0=0 t1=6.28318531 v1=46 v2=46 edge=55 etol=1e-07
+BOP errors=0 warnings=0
+RES type=COMPOUND nsolid=1 nshell=1 nface=7 nedge=9 nvert=7 naked=0 ndegen=0 vol=54.4542756 area=73.8274305 valid=1
+RESSOLID i=1 nface=7 vol=54.4542756 ori=FWD
+RESSHELL i=1 nface=7 closed=1 faces=1,2,3,4,5,6,7
+RESFACE i=1 surf=Sphere u0=0 u1=6.28318531 v0=-0.927295218 v1=0.927295218 ori=FWD tol=1e-07 area=31.4159297 nwire=4 nedge=9 nseam=2
+RESFEDGE f=1 w=0 e=1 ori=REV seam=0 degen=0 pc=1 uv0=0:0.927295218 uv1=6.28318531:0.927295218
+RESFEDGE f=1 w=0 e=2 ori=FWD seam=1 degen=0 pc=1 uv0=6.28318531:0.643501109 uv1=6.28318531:0.927295218
+RESFEDGE f=1 w=0 e=3 ori=REV seam=0 degen=0 pc=1 uv0=6.28318531:0.643501109 uv1=6.28318531:-0.643501109
+RESFEDGE f=1 w=0 e=4 ori=FWD seam=1 degen=0 pc=1 uv0=6.28318531:-0.927295218 uv1=6.28318531:-0.643501109
+RESFEDGE f=1 w=0 e=5 ori=FWD seam=0 degen=0 pc=1 uv0=0:-0.927295218 uv1=6.28318531:-0.927295218
+RESFEDGE f=1 w=0 e=4 ori=REV seam=1 degen=0 pc=1 uv0=0:-0.927295218 uv1=0:-0.643501109
+RESFEDGE f=1 w=0 e=6 ori=REV seam=0 degen=0 pc=1 uv0=0:-0.643501109 uv1=0:0.643501109
+RESFEDGE f=1 w=0 e=2 ori=REV seam=1 degen=0 pc=1 uv0=0:0.643501109 uv1=0:0.927295218
+RESFEDGE f=1 w=1 e=7 ori=REV seam=0 degen=0 pc=1 uv0=1.57079633:0.643501109 uv1=1.57079633:0.643501109
+RESFEDGE f=1 w=2 e=8 ori=FWD seam=0 degen=0 pc=1 uv0=3.14159265:0.643501109 uv1=3.14159265:0.643501109
+RESFEDGE f=1 w=3 e=9 ori=FWD seam=0 degen=0 pc=1 uv0=4.71238898:0.643501109 uv1=4.71238898:0.643501109
+RESFACE i=2 surf=Plane u0=0.5 u1=3.5 v0=0.5 v1=3.5 ori=FWD tol=1e-07 area=7.06858347 nwire=1 nedge=1 nseam=0
+RESFEDGE f=2 w=0 e=1 ori=FWD seam=0 degen=0 pc=1 uv0=3.5:2 uv1=3.5:2
+RESFACE i=3 surf=Plane u0=0.5 u1=3.5 v0=-3.5 v1=-0.5 ori=FWD tol=1e-07 area=7.06858347 nwire=1 nedge=2 nseam=0
+RESFEDGE f=3 w=0 e=6 ori=FWD seam=0 degen=0 pc=1 uv0=0.5:-2 uv1=3.5:-2
+RESFEDGE f=3 w=0 e=3 ori=FWD seam=0 degen=0 pc=1 uv0=3.5:-2 uv1=0.5:-2
+RESFACE i=4 surf=Plane u0=0.5 u1=3.5 v0=0.5 v1=3.5 ori=REV tol=1e-07 area=7.06858347 nwire=1 nedge=1 nseam=0
+RESFEDGE f=4 w=0 e=5 ori=REV seam=0 degen=0 pc=1 uv0=3.5:2 uv1=3.5:2
+RESFACE i=5 surf=Plane u0=0.5 u1=3.5 v0=0.5 v1=3.5 ori=FWD tol=1e-07 area=7.06858347 nwire=1 nedge=1 nseam=0
+RESFEDGE f=5 w=0 e=7 ori=FWD seam=0 degen=0 pc=1 uv0=3.5:2 uv1=3.5:2
+RESFACE i=6 surf=Plane u0=0.5 u1=3.5 v0=-3.5 v1=-0.5 ori=REV tol=1e-07 area=7.06858347 nwire=1 nedge=1 nseam=0
+RESFEDGE f=6 w=0 e=8 ori=REV seam=0 degen=0 pc=1 uv0=3.5:-2 uv1=3.5:-2
+RESFACE i=7 surf=Plane u0=0.5 u1=3.5 v0=0.5 v1=3.5 ori=REV tol=1e-07 area=7.06858347 nwire=1 nedge=1 nseam=0
+RESFEDGE f=7 w=0 e=9 ori=REV seam=0 degen=0 pc=1 uv0=3.5:2 uv1=3.5:2
+RESEDGE i=1 curve=Circle t0=0 t1=6.28318531 len=9.42477796 tol=1e-07 degen=0 nface=2
+RESEDGE i=2 curve=Circle t0=6.92668642 t1=7.21048053 len=0.709485273 tol=1e-07 degen=0 nface=2
+RESEDGE i=3 curve=Circle t0=0 t1=3.14159265 len=4.71238898 tol=1e-07 degen=0 nface=2
+RESEDGE i=4 curve=Circle t0=5.35589009 t1=5.6396842 len=0.709485273 tol=1e-07 degen=0 nface=2
+RESEDGE i=5 curve=Circle t0=0 t1=6.28318531 len=9.42477796 tol=1e-07 degen=0 nface=2
+RESEDGE i=6 curve=Circle t0=3.14159265 t1=6.28318531 len=4.71238898 tol=1e-07 degen=0 nface=2
+RESEDGE i=7 curve=Circle t0=0 t1=6.28318531 len=9.42477796 tol=1e-07 degen=0 nface=2
+RESEDGE i=8 curve=Circle t0=0 t1=6.28318531 len=9.42477796 tol=1e-07 degen=0 nface=2
+RESEDGE i=9 curve=Circle t0=0 t1=6.28318531 len=9.42477796 tol=1e-07 degen=0 nface=2
+RESVERT i=1 p=1.5,0,2 tol=1.00000002e-07
+RESVERT i=2 p=2,0,1.5 tol=1.00000003e-07
+RESVERT i=3 p=2,0,-1.5 tol=1e-07
+RESVERT i=4 p=1.5,0,-2 tol=1.00000001e-07
+RESVERT i=5 p=0,2,1.5 tol=1e-07
+RESVERT i=6 p=-2,0,1.5 tol=1e-07
+RESVERT i=7 p=0,-2,1.5 tol=1e-07
+IMGFACE a=0 f=1 split=1 nimg=8 nkept=1 out=0,0,0,0,0,0,0,1
+IMGEDGE a=0 e=2 nimg=5 out=0,0,0,2,4
+IMGFACE a=1 f=1 split=1 nimg=2 nkept=1 out=0,6
+IMGFACE a=1 f=2 split=1 nimg=2 nkept=1 out=0,3
+IMGFACE a=1 f=3 split=1 nimg=2 nkept=1 out=0,7
+IMGFACE a=1 f=4 split=1 nimg=2 nkept=1 out=0,5
+IMGFACE a=1 f=5 split=1 nimg=2 nkept=1 out=0,4
+IMGFACE a=1 f=6 split=1 nimg=2 nkept=1 out=0,2
+SUMMARY name=sph_box_common op=common dsshapes=62 dssource=43 newverts=7 sd=0 pb=5 cb=0 faceinfo=7 VV=0 VE=0 VF=0 EE=0 EF=4 FF=6 seccurves=7 secpoints=0 fftangent=0 secpb=7 res_solid=1 res_shell=1 res_face=7 res_edge=9 res_vert=7 res_naked=0 res_degen=0 res_vol=54.4542756 res_area=73.8274305 res_valid=1 pf_err=0 bop_err=0
