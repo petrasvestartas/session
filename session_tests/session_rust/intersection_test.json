@@ -28,7 +28,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Line Line",
-    "time_ms": 0.023
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -70,7 +70,7 @@
     "line": 39,
     "passed": true,
     "test_name": "Line Line Parameters",
-    "time_ms": 0.005
+    "time_ms": 0.006
   },
   {
     "checks": [
@@ -148,7 +148,7 @@
     "line": 89,
     "passed": true,
     "test_name": "Plane Plane",
-    "time_ms": 0.022
+    "time_ms": 0.021
   },
   {
     "checks": [
@@ -303,7 +303,7 @@
     "line": 218,
     "passed": true,
     "test_name": "Plane Plane Plane",
-    "time_ms": 0.012
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -319,7 +319,7 @@
     "line": 250,
     "passed": true,
     "test_name": "Plane Plane Plane Parallel",
-    "time_ms": 0.011
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -434,7 +434,7 @@
     "line": 351,
     "passed": true,
     "test_name": "Ray Sphere Miss",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -471,7 +471,7 @@
     "line": 384,
     "passed": true,
     "test_name": "Ray Triangle Miss",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -513,7 +513,7 @@
     "line": 416,
     "passed": true,
     "test_name": "Ray Mesh",
-    "time_ms": 0.244
+    "time_ms": 0.234
   },
   {
     "checks": [
@@ -550,7 +550,7 @@
     "line": 479,
     "passed": true,
     "test_name": "Ray Mesh Miss",
-    "time_ms": 0.079
+    "time_ms": 0.08
   },
   {
     "checks": [
@@ -576,7 +576,7 @@
     "line": 502,
     "passed": true,
     "test_name": "Ray Mesh Bvh",
-    "time_ms": 0.207
+    "time_ms": 0.206
   },
   {
     "checks": [
@@ -613,7 +613,7 @@
     "line": 565,
     "passed": true,
     "test_name": "Ray Mesh Bvh Miss",
-    "time_ms": 0.104
+    "time_ms": 0.106
   },
   {
     "checks": [
@@ -639,7 +639,7 @@
     "line": 588,
     "passed": true,
     "test_name": "Ray Mesh Bvh Vs Naive",
-    "time_ms": 6.273
+    "time_ms": 6.302
   },
   {
     "checks": [
@@ -690,7 +690,7 @@
     "line": 627,
     "passed": true,
     "test_name": "Ray Box Real World",
-    "time_ms": 0.023
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -772,7 +772,7 @@
     "line": 675,
     "passed": true,
     "test_name": "Ray Triangle Real World",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -903,7 +903,7 @@
     "line": 696,
     "passed": true,
     "test_name": "Surface Plane",
-    "time_ms": 0.772
+    "time_ms": 0.771
   },
   {
     "checks": [
@@ -984,7 +984,7 @@
     "line": 726,
     "passed": true,
     "test_name": "Surface Plane Curved",
-    "time_ms": 3.657
+    "time_ms": 3.671
   },
   {
     "checks": [
@@ -1123,7 +1123,7 @@
     "line": 895,
     "passed": true,
     "test_name": "Surface Surface Accuracy",
-    "time_ms": 6401.872
+    "time_ms": 6459.83
   },
   {
     "checks": [
@@ -1189,7 +1189,7 @@
     "line": 833,
     "passed": true,
     "test_name": "Surface Surface",
-    "time_ms": 1862.061
+    "time_ms": 1879.666
   },
   {
     "checks": [
@@ -1245,7 +1245,7 @@
     "line": 781,
     "passed": true,
     "test_name": "Surface Plane UV",
-    "time_ms": 21.46
+    "time_ms": 21.559
   },
   {
     "checks": [
@@ -1372,7 +1372,7 @@
     "line": 1243,
     "passed": true,
     "test_name": "Closed And Open Paths 2D",
-    "time_ms": 0.047
+    "time_ms": 0.05
   },
   {
     "checks": [
@@ -1398,7 +1398,7 @@
     "line": 1227,
     "passed": true,
     "test_name": "Orthogonal Vector Between Two Plane Pairs",
-    "time_ms": 0.03
+    "time_ms": 0.031
   },
   {
     "checks": [
@@ -1429,7 +1429,7 @@
     "line": 1210,
     "passed": true,
     "test_name": "Quad From Line Top Bottom Planes",
-    "time_ms": 0.033
+    "time_ms": 0.035
   },
   {
     "checks": [
@@ -1450,7 +1450,7 @@
     "line": 1191,
     "passed": true,
     "test_name": "Polyline Plane To Line",
-    "time_ms": 0.029
+    "time_ms": 0.03
   },
   {
     "checks": [
@@ -1538,7 +1538,7 @@
     "line": 1080,
     "passed": true,
     "test_name": "Scale Vector To Distance Of 2 Planes",
-    "time_ms": 0.014
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -1584,7 +1584,7 @@
     "line": 1058,
     "passed": true,
     "test_name": "Plane 4 Lines",
-    "time_ms": 0.022
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -1605,7 +1605,7 @@
     "line": 1037,
     "passed": true,
     "test_name": "Plane 4 Planes Open",
-    "time_ms": 0.035
+    "time_ms": 0.037
   },
   {
     "checks": [
@@ -1661,7 +1661,7 @@
     "line": 1007,
     "passed": true,
     "test_name": "Plane 4 Planes Closed",
-    "time_ms": 0.04
+    "time_ms": 0.041
   },
   {
     "checks": [

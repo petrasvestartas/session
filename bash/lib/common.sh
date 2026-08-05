@@ -125,8 +125,12 @@ print_class_summary() {
     [[ -d "$json_dir" ]] || return 0
     [[ -x "$python_exe" ]] || python_exe="python3"
     local skip_var="NOT_IMPLEMENTED_${lang}"
+    # $python_exe is a NATIVE Windows interpreter under MSYS bash, so it cannot open the
+    # MSYS-style /d/a/... path that $json_dir carries there: every class then looks missing
+    # and the run fails with "0/0 classes" while the tests themselves all passed.
+    local json_dir_native=$(to_windows_path "$json_dir")
     MINITEST_SKIP="${!skip_var:-}" \
-    "$python_exe" - "$json_dir" "$lang" "$aggregate" "${CLASS_NAMES[@]}" <<'EOF'
+    "$python_exe" - "$json_dir_native" "$lang" "$aggregate" "${CLASS_NAMES[@]}" <<'EOF'
 import json, glob, os, sys
 d, lang, aggregate = sys.argv[1], sys.argv[2], sys.argv[3]
 lenient = os.environ.get('MINITEST_LENIENT') == '1'

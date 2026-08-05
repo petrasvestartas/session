@@ -484,7 +484,7 @@
     "group": "Tolerance",
     "test_name": "Precision From Tolerance",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.007,
     "line": 228,
     "code": "        // uncomment #include \"tolerance.h\"\n        // Default absolute tolerance is 1e-9 → precision should be 9\n        int prec = TOLERANCE.precision_from_tolerance();",
     "checks": [

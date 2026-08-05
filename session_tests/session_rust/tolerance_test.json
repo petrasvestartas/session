@@ -93,7 +93,7 @@
     "line": 51,
     "passed": true,
     "test_name": "Format Number",
-    "time_ms": 0.004
+    "time_ms": 0.003
   },
   {
     "checks": [
@@ -109,7 +109,7 @@
     "line": 60,
     "passed": true,
     "test_name": "Key",
-    "time_ms": 0.008
+    "time_ms": 0.007
   },
   {
     "checks": [
@@ -223,7 +223,7 @@
     "line": 303,
     "passed": true,
     "test_name": "Is Finite",
-    "time_ms": 0.001
+    "time_ms": 0.0
   },
   {
     "checks": [
@@ -276,7 +276,7 @@
     "line": 270,
     "passed": true,
     "test_name": "Precision From Tolerance",
-    "time_ms": 0.005
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -334,7 +334,7 @@
     "line": 238,
     "passed": true,
     "test_name": "Is Allclose",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -355,7 +355,7 @@
     "line": 224,
     "passed": true,
     "test_name": "Is Point Close",
-    "time_ms": 0.002
+    "time_ms": 0.003
   },
   {
     "checks": [

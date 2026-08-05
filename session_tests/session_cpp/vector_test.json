@@ -682,7 +682,7 @@
     "group": "Vector",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.07,
+    "time_ms": 0.069,
     "line": 446,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    // file_json_dump(filename) / file_json_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.json\";\n    v.file_json_dump(filename);\n    Vector loaded = Vector::file_json_load(filename);",
     "checks": [
@@ -713,7 +713,7 @@
     "group": "Vector",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 0.036,
+    "time_ms": 0.035,
     "line": 470,
     "code": "    // uncomment #include \"vector.h\"\n\n    Vector v(42.1, 84.2, 126.3);\n    v.name = \"test_vector\";\n\n    // pb_dump(filename) / pb_load(filename) - file-based serialization\n    std::string filename = \"serialization/test_vector.bin\";\n    v.pb_dump(filename);\n    Vector loaded = Vector::pb_load(filename);",
     "checks": [

@@ -13,7 +13,7 @@
     "line": 24,
     "passed": true,
     "test_name": "Creation",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -82,7 +82,7 @@
     "line": 71,
     "passed": true,
     "test_name": "Search Miss",
-    "time_ms": 0.001
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -1167,7 +1167,7 @@
     "line": 134,
     "passed": true,
     "test_name": "Search 100 Boxes",
-    "time_ms": 0.459
+    "time_ms": 0.447
   },
   {
     "checks": [

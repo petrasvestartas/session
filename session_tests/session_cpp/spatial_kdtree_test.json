@@ -3,7 +3,7 @@
     "group": "SpatialKDTree",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.006,
     "line": 13,
     "code": "    // uncomment #include \"spatial_kdtree.h\"\n    // uncomment #include \"point.h\"\n    // SpatialKDTree: O(n log n) build, O(log n) nearest — static point set closest search\n    std::vector<Point> pts = {\n        Point(0.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n        Point(10.0, 0.0, 0.0),\n    };\n    SpatialKDTree tree(pts);\n    auto [idx, dist] = tree.nearest(Point(2.0, 0.0, 0.0));",
     "checks": [

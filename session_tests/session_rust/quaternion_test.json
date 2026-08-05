@@ -23,7 +23,7 @@
     "line": 425,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 0.186
+    "time_ms": 0.179
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 455,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.058
+    "time_ms": 0.061
   },
   {
     "checks": [
@@ -70,7 +70,7 @@
     "line": 403,
     "passed": true,
     "test_name": "Nlerp",
-    "time_ms": 0.011
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -96,7 +96,7 @@
     "line": 376,
     "passed": true,
     "test_name": "Slerp",
-    "time_ms": 0.014
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -305,7 +305,7 @@
     "line": 223,
     "passed": true,
     "test_name": "Rotate Vector",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [
@@ -566,6 +566,6 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.029
+    "time_ms": 0.028
   }
 ]

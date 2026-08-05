@@ -74,7 +74,7 @@
     "group": "InstanceRef",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.002,
     "line": 52,
     "code": "    // uncomment #include \"instance_ref.h\"\n    // uncomment #include \"xform.h\"\n\n    InstanceRef ref(\"def\", Xform::translation(1.0, 0.0, 0.0));\n    InstanceRef moved = ref.transformed(Xform::translation(5.0, 0.0, 0.0)); // Make a copy\n    ref.transform(Xform::translation(5.0, 0.0, 0.0)); // compose in place\n\n    // translation(5) * translation(1) => translation(6)",
     "checks": [
@@ -95,7 +95,7 @@
     "group": "InstanceRef",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.159,
+    "time_ms": 0.138,
     "line": 65,
     "code": "    // uncomment #include \"instance_ref.h\"\n\n    InstanceRef ref(\"def-abc\", Xform::translation(1.0, 2.0, 3.0));\n    ref.name = \"test_ref\";\n    ref.flags = 7;\n\n    // JSON object\n    nlohmann::ordered_json j = ref.jsondump();\n    InstanceRef loaded_j = InstanceRef::jsonload(j);\n\n\n    // String\n    std::string s = ref.file_json_dumps();\n    InstanceRef loaded_s = InstanceRef::file_json_loads(s);\n\n    // File\n    std::string fname = \"serialization/test_instance_ref.json\";\n    ref.file_json_dump(fname);\n    InstanceRef loaded = InstanceRef::file_json_load(fname);",
     "checks": [
@@ -166,7 +166,7 @@
     "group": "InstanceRef",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 0.042,
+    "time_ms": 0.044,
     "line": 99,
     "code": "    // uncomment #include \"instance_ref.h\"\n\n    InstanceRef ref(\"def-xyz\", Xform::translation(1.0, 2.0, 3.0));\n    ref.name = \"test_ref\";\n    ref.flags = 5;\n\n    // String\n    std::string s = ref.pb_dumps();\n    InstanceRef loaded_s = InstanceRef::pb_loads(s);\n\n\n    // File\n    std::string fname = \"serialization/test_instance_ref.bin\";\n    ref.pb_dump(fname);\n    InstanceRef loaded = InstanceRef::pb_load(fname);",
     "checks": [

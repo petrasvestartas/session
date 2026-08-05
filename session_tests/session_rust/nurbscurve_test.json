@@ -58,7 +58,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 11.89
+    "time_ms": 11.743
   },
   {
     "checks": [
@@ -379,7 +379,7 @@
     "line": 226,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.381
+    "time_ms": 0.391
   },
   {
     "checks": [
@@ -475,7 +475,7 @@
     "line": 643,
     "passed": true,
     "test_name": "Modifications",
-    "time_ms": 14.283
+    "time_ms": 14.478
   },
   {
     "checks": [
@@ -501,7 +501,7 @@
     "line": 782,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 1.371
+    "time_ms": 0.984
   },
   {
     "checks": [
@@ -522,7 +522,7 @@
     "line": 824,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.631
+    "time_ms": 0.606
   },
   {
     "checks": [
@@ -573,7 +573,7 @@
     "line": 738,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 1.86
+    "time_ms": 1.856
   },
   {
     "checks": [
@@ -860,7 +860,7 @@
     "line": 117,
     "passed": true,
     "test_name": "Create From Parameters",
-    "time_ms": 0.035
+    "time_ms": 0.036
   },
   {
     "checks": [
@@ -911,7 +911,7 @@
     "line": 160,
     "passed": true,
     "test_name": "Create Fitted",
-    "time_ms": 0.175
+    "time_ms": 0.174
   },
   {
     "checks": [
@@ -962,7 +962,7 @@
     "line": 194,
     "passed": true,
     "test_name": "Join",
-    "time_ms": 0.106
+    "time_ms": 0.105
   },
   {
     "checks": [
@@ -1048,6 +1048,6 @@
     "line": 859,
     "passed": true,
     "test_name": "Curvature",
-    "time_ms": 0.856
+    "time_ms": 0.869
   }
 ]

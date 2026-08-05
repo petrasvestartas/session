@@ -295,7 +295,7 @@
     "line": 207,
     "passed": true,
     "test_name": "Merge Aabb",
-    "time_ms": 0.009
+    "time_ms": 0.008
   },
   {
     "checks": [
@@ -516,7 +516,7 @@
     "line": 224,
     "passed": true,
     "test_name": "Fixed 100 Boxes",
-    "time_ms": 0.367
+    "time_ms": 0.384
   },
   {
     "checks": [
@@ -547,7 +547,7 @@
     "line": 358,
     "passed": true,
     "test_name": "Nearest Neighbors",
-    "time_ms": 0.042
+    "time_ms": 0.044
   },
   {
     "checks": [
@@ -604,6 +604,6 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.033
+    "time_ms": 0.036
   }
 ]

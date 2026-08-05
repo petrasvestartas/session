@@ -34,7 +34,7 @@
     "group": "Edge",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.58,
+    "time_ms": 0.073,
     "line": 51,
     "code": "    Edge original(\"v0\", \"v1\", \"test_edge_attr\");\n\n    std::string fname = \"serialization/test_edge.json\";\n    file_encoders::file_json_dump(original, fname);\n    Edge loaded = file_encoders::file_json_load<Edge>(fname);",
     "checks": [
@@ -164,7 +164,7 @@
     "group": "Graph",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.137,
+    "time_ms": 0.132,
     "line": 107,
     "code": "    Graph original(\"test_graph\");\n    original.add_node(\"node1\", \"Node 1\");\n    original.add_node(\"node2\", \"Node 2\");\n    original.add_edge(\"node1\", \"node2\", \"edge1\");\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_graph.json\";\n    original.file_json_dump(fname);\n    Graph loaded = Graph::file_json_load(fname);\n\n    auto edge_key = std::make_tuple<std::string, std::string>(\"node1\", \"node2\");",
     "checks": [
@@ -190,7 +190,7 @@
     "group": "Graph",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 0.208,
+    "time_ms": 0.08,
     "line": 130,
     "code": "    Graph original(\"test_graph\");\n    original.add_node(\"node1\", \"Node 1\");\n    original.add_node(\"node2\", \"Node 2\");\n    original.add_edge(\"node1\", \"node2\", \"edge1\");\n\n    //   pb_dumps()      │ std::string  │ to protobuf binary string\n    //   pb_loads(data)  │ std::string  │ from protobuf binary string\n    //   pb_dump(path)   │ file         │ write to file\n    //   pb_load(path)   │ file         │ read from file\n\n    std::string filename = \"serialization/test_graph.bin\";\n    original.pb_dump(filename);\n    Graph loaded = Graph::pb_load(filename);\n\n    auto edge_key = std::make_tuple<std::string, std::string>(\"node1\", \"node2\");",
     "checks": [
@@ -400,7 +400,7 @@
     "group": "Graph",
     "test_name": "Get Neighbors",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 237,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"a\", \"c\");\n\n    auto neigh = g.get_neighbors(\"a\");",
     "checks": [
@@ -533,7 +533,7 @@
     "group": "Graph",
     "test_name": "Connected Components",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.012,
     "line": 313,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n    g.add_edge(\"c\", \"a\");\n    g.add_edge(\"b\", \"d\");\n    g.add_edge(\"e\", \"f\");\n    auto comps = g.connected_components();",
     "checks": [
@@ -559,7 +559,7 @@
     "group": "Graph",
     "test_name": "Shortest Path",
     "passed": true,
-    "time_ms": 0.005,
+    "time_ms": 0.006,
     "line": 327,
     "code": "    Graph g(\"g\");\n    g.add_edge(\"a\", \"b\");\n    g.add_edge(\"b\", \"c\");\n    g.add_edge(\"c\", \"a\");\n    g.add_edge(\"b\", \"d\");\n    g.add_edge(\"e\", \"f\");",
     "checks": [
@@ -663,7 +663,7 @@
     "group": "Vertex",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.043,
+    "time_ms": 0.042,
     "line": 26,
     "code": "    Vertex original(\"v0\", \"test_attribute\");\n\n    std::string fname = \"serialization/test_vertex.json\";\n    file_encoders::file_json_dump(original, fname);\n    Vertex loaded = file_encoders::file_json_load<Vertex>(fname);",
     "checks": [

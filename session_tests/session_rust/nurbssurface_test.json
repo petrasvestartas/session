@@ -273,7 +273,7 @@
     "line": 6,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 3.096
+    "time_ms": 3.109
   },
   {
     "checks": [
@@ -354,7 +354,7 @@
     "line": 1104,
     "passed": true,
     "test_name": "Create From Parameters",
-    "time_ms": 8.099
+    "time_ms": 8.1
   },
   {
     "checks": [
@@ -405,7 +405,7 @@
     "line": 106,
     "passed": true,
     "test_name": "Booleans Queries",
-    "time_ms": 0.06
+    "time_ms": 0.058
   },
   {
     "checks": [
@@ -471,7 +471,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Attributes",
-    "time_ms": 0.016
+    "time_ms": 0.015
   },
   {
     "checks": [
@@ -1140,7 +1140,7 @@
     "line": 388,
     "passed": true,
     "test_name": "Division",
-    "time_ms": 0.805
+    "time_ms": 0.808
   },
   {
     "checks": [
@@ -1282,7 +1282,7 @@
     "line": 582,
     "passed": true,
     "test_name": "Modification",
-    "time_ms": 2.115
+    "time_ms": 2.114
   },
   {
     "checks": [
@@ -1333,7 +1333,7 @@
     "line": 671,
     "passed": true,
     "test_name": "Transformations",
-    "time_ms": 0.066
+    "time_ms": 0.072
   },
   {
     "checks": [
@@ -1399,7 +1399,7 @@
     "line": 731,
     "passed": true,
     "test_name": "Meshing",
-    "time_ms": 180.501
+    "time_ms": 177.641
   },
   {
     "checks": [
@@ -1425,7 +1425,7 @@
     "line": 991,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 0.739
+    "time_ms": 0.726
   },
   {
     "checks": [
@@ -1446,7 +1446,7 @@
     "line": 1041,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.183
+    "time_ms": 0.181
   },
   {
     "checks": [
@@ -1482,7 +1482,7 @@
     "line": 966,
     "passed": true,
     "test_name": "Split By Brep",
-    "time_ms": 36.841
+    "time_ms": 37.487
   },
   {
     "checks": [
@@ -1518,7 +1518,7 @@
     "line": 941,
     "passed": true,
     "test_name": "Split By Surface",
-    "time_ms": 1304.528
+    "time_ms": 1321.207
   },
   {
     "checks": [
@@ -1544,7 +1544,7 @@
     "line": 924,
     "passed": true,
     "test_name": "Split By Line",
-    "time_ms": 313.649
+    "time_ms": 316.684
   },
   {
     "checks": [
@@ -1575,7 +1575,7 @@
     "line": 892,
     "passed": true,
     "test_name": "Split By Curves",
-    "time_ms": 81.765
+    "time_ms": 82.583
   },
   {
     "checks": [
@@ -1616,7 +1616,7 @@
     "line": 864,
     "passed": true,
     "test_name": "Split By Plane",
-    "time_ms": 310.59
+    "time_ms": 316.924
   },
   {
     "checks": [
@@ -1642,6 +1642,6 @@
     "line": 1086,
     "passed": true,
     "test_name": "ClosestPoint",
-    "time_ms": 0.418
+    "time_ms": 0.43
   }
 ]

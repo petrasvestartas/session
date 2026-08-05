@@ -3,7 +3,7 @@
     "group": "Io",
     "test_name": "Read Bunny",
     "passed": true,
-    "time_ms": 0.776,
+    "time_ms": 0.757,
     "line": 8,
     "code": "    # load Stanford Bunny (real-world XYZ point cloud: 397 points)\n    bunny_path = Path(__file__).resolve().parents[3] / \"session_data\" / \"bunny.xyz\"\n    if not bunny_path.exists():\n        return\n    from session_py.io import read_xyz\n    cloud = read_xyz(str(bunny_path))\n\n    points = cloud.get_points()\n    has_non_zero = any(p[0] != 0.0 or p[1] != 0.0 or p[2] != 0.0 for p in points)",
     "checks": [
@@ -29,7 +29,7 @@
     "group": "Io",
     "test_name": "Write Read Roundtrip",
     "passed": true,
-    "time_ms": 0.25,
+    "time_ms": 0.254,
     "line": 24,
     "code": "    # build a small cloud (4 points), write to XYZ, read back, compare counts\n    from session_py import Point, PointCloud\n    from session_py.io import read_xyz, write_xyz\n    original = PointCloud()\n    original.add_point(Point(0.0, 0.0, 0.0))\n    original.add_point(Point(1.0, 0.0, 0.0))\n    original.add_point(Point(0.0, 1.0, 0.0))\n    original.add_point(Point(0.0, 0.0, 1.0))\n\n    temp_file = str(Path(__file__).resolve().parents[2] / \"serialization\" / \"test_temp_roundtrip.xyz\")\n    write_xyz(original, temp_file)\n    loaded = read_xyz(temp_file)\n    os.remove(temp_file)",
     "checks": [
