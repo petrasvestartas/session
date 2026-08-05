@@ -3,7 +3,7 @@
     "group": "InstanceRef",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.209,
+    "time_ms": 0.183,
     "line": 7,
     "code": "    from session_py import InstanceRef\n    from session_py import Xform\n\n    # Constructor from a definition guid and a placement transform\n    x = Xform.translation(10.0, 20.0, 30.0)\n    r = InstanceRef(\"def-123\", x.duplicate())\n\n    # Setter on a copy (keep r pristine for the == check below)\n    rset = r.duplicate()\n    rset[0] = 2.0\n    m0 = rset[0]\n\n    # Minimal and Full String Representation\n    rstr = str(r)\n    rrepr = repr(r)\n\n    # Copy (duplicate everything but guid)\n    rcopy = r.duplicate()\n    rother = InstanceRef(\"def-123\", x.duplicate())\n\n    # with_name constructor\n    rwn = InstanceRef.with_name(\"custom\", \"def-9\", Xform.identity())",
     "checks": [
@@ -90,7 +90,7 @@
     "group": "InstanceRef",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.426,
+    "time_ms": 0.376,
     "line": 59,
     "code": "    from session_py import InstanceRef\n    from session_py import Xform\n\n    r = InstanceRef(\"def-abc\", Xform.translation(1.0, 2.0, 3.0))\n    r.name = \"test_ref\"\n    r.flags = 7\n\n    # JSON object\n    j = r.__jsondump__()\n    loaded_j = InstanceRef.__jsonload__(j)\n\n\n    # String\n    s = r.file_json_dumps()\n    loaded_s = InstanceRef.file_json_loads(s)\n\n    # File\n    fname = \"serialization/test_instance_ref.json\"\n    r.file_json_dump(fname)\n    loaded = InstanceRef.file_json_load(fname)",
     "checks": [
@@ -161,7 +161,7 @@
     "group": "InstanceRef",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 0.602,
+    "time_ms": 0.427,
     "line": 95,
     "code": "    from session_py import InstanceRef\n    from session_py import Xform\n\n    r = InstanceRef(\"def-xyz\", Xform.translation(1.0, 2.0, 3.0))\n    r.name = \"test_ref\"\n    r.flags = 5\n\n    # Bytes\n    b = r.pb_dumps()\n    loaded_s = InstanceRef.pb_loads(b)\n\n\n    # File\n    fname = \"serialization/test_instance_ref.bin\"\n    r.pb_dump(fname)\n    loaded = InstanceRef.pb_load(fname)",
     "checks": [

@@ -18,7 +18,7 @@
     "line": 51,
     "passed": true,
     "test_name": "String Roundtrip",
-    "time_ms": 0.03
+    "time_ms": 0.033
   },
   {
     "checks": [
@@ -75,7 +75,7 @@
     "line": 27,
     "passed": true,
     "test_name": "Write Read Roundtrip",
-    "time_ms": 0.132
+    "time_ms": 0.159
   },
   {
     "checks": [
@@ -101,6 +101,6 @@
     "line": 7,
     "passed": true,
     "test_name": "Read Bunny",
-    "time_ms": 1.089
+    "time_ms": 1.099
   }
 ]

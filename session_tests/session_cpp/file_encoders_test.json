@@ -3,7 +3,7 @@
     "group": "FileEncoders",
     "test_name": "Json Dump Load",
     "passed": true,
-    "time_ms": 0.137,
+    "time_ms": 0.136,
     "line": 13,
     "code": "    // uncomment #include \"file_encoders.h\"\n    // uncomment #include \"point.h\"\n    std::filesystem::create_directories(\"./serialization\");\n    Point original(1.5, 2.5, 3.5);\n    original.name = \"test_point\";\n\n    std::string filepath = \"./serialization/test_encoders_point.json\";\n    file_json_dump(original, filepath);\n\n    Point loaded = file_json_load<Point>(filepath);\n\n\n    std::filesystem::remove(filepath);",
     "checks": [
@@ -194,7 +194,7 @@
     "group": "FileEncoders",
     "test_name": "Nested Collections",
     "passed": true,
-    "time_ms": 0.067,
+    "time_ms": 0.06,
     "line": 114,
     "code": "    // uncomment #include \"file_encoders.h\"\n    // uncomment #include \"line.h\"\n    std::vector<Line> lines;\n    lines.push_back(Line(0.0, 0.0, 0.0, 1.0, 0.0, 0.0));\n    lines.push_back(Line(0.0, 0.0, 0.0, 0.0, 1.0, 0.0));\n\n    auto json_arr = file_encode_collection(lines);\n    std::string json_str = json_arr.dump();\n\n\n    auto loaded_json = nlohmann::json::parse(json_str);\n    auto loaded = file_decode_collection<Line>(loaded_json);",
     "checks": [
@@ -225,7 +225,7 @@
     "group": "FileEncoders",
     "test_name": "Roundtrip File Io",
     "passed": true,
-    "time_ms": 0.112,
+    "time_ms": 0.113,
     "line": 134,
     "code": "    // uncomment #include \"file_encoders.h\"\n    // uncomment #include \"vector.h\"\n    std::filesystem::create_directories(\"./serialization\");\n    std::vector<Vector> vectors;\n    vectors.push_back(Vector(1.0, 0.0, 0.0));\n    vectors.push_back(Vector(0.0, 1.0, 0.0));\n    vectors.push_back(Vector(0.0, 0.0, 1.0));\n\n    std::string filepath = \"./serialization/test_encoders_collection.json\";\n    auto json_arr = file_encode_collection(vectors);\n    file_json_dump(json_arr, filepath);\n\n    auto loaded_json = file_json_load_data(filepath);\n    auto decoded_vectors = file_decode_collection<Vector>(loaded_json);\n\n\n    std::filesystem::remove(filepath);",
     "checks": [
@@ -256,7 +256,7 @@
     "group": "FileEncoders",
     "test_name": "Pretty Vs Compact",
     "passed": true,
-    "time_ms": 0.053,
+    "time_ms": 0.052,
     "line": 158,
     "code": "    // uncomment #include \"file_encoders.h\"\n    // uncomment #include \"point.h\"\n    Point point(1.0, 2.0, 3.0);\n\n    std::string pretty = file_json_dumps(point, true);\n    std::string compact = file_json_dumps(point, false);\n\n\n    Point loaded_pretty = file_json_loads<Point>(pretty);\n    Point loaded_compact = file_json_loads<Point>(compact);",
     "checks": [
@@ -364,7 +364,7 @@
     "group": "FileEncoders",
     "test_name": "Decode Dict",
     "passed": true,
-    "time_ms": 0.021,
+    "time_ms": 0.022,
     "line": 225,
     "code": "    // uncomment #include \"file_encoders.h\"\n    // uncomment #include \"vector.h\"\n    std::map<std::string, int> data;\n    data[\"a\"] = 1;\n    data[\"b\"] = 2;\n    nlohmann::json j = data;\n    std::string json_str = j.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n\n\n    Vector vec(1.0, 2.0, 3.0);\n    std::string vec_json = file_json_dumps(vec);\n    Vector loaded_vec = file_json_loads<Vector>(vec_json);",
     "checks": [
@@ -416,7 +416,7 @@
     "group": "FileEncoders",
     "test_name": "Dict Of Lists",
     "passed": true,
-    "time_ms": 0.066,
+    "time_ms": 0.067,
     "line": 255,
     "code": "    // uncomment #include \"file_encoders.h\"\n    // uncomment #include \"point.h\"\n    std::vector<Point> points;\n    points.push_back(Point(1.0, 0.0, 0.0));\n    points.push_back(Point(0.0, 1.0, 0.0));\n\n    nlohmann::json data;\n    data[\"numbers\"] = {1, 2, 3};\n    data[\"letters\"] = {\"a\", \"b\", \"c\"};\n    data[\"points\"] = file_encode_collection(points);\n\n    std::string json_str = data.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n\n    auto loaded_points = file_decode_collection<Point>(loaded[\"points\"]);",
     "checks": [
@@ -447,7 +447,7 @@
     "group": "FileEncoders",
     "test_name": "List Of Dict",
     "passed": true,
-    "time_ms": 0.037,
+    "time_ms": 0.039,
     "line": 277,
     "code": "    // uncomment #include \"file_encoders.h\"\n    // uncomment #include \"point.h\"\n    Point point(1.0, 2.0, 3.0);\n\n    nlohmann::json data = nlohmann::json::array();\n    data.push_back({{\"name\", \"point1\"}, {\"value\", 10}});\n    data.push_back({{\"name\", \"point2\"}, {\"value\", 20}});\n    data.push_back({{\"geometry\", point.jsondump()}});\n\n    std::string json_str = data.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n\n    Point loaded_point = Point::jsonload(loaded[2][\"geometry\"]);",
     "checks": [
@@ -478,7 +478,7 @@
     "group": "FileEncoders",
     "test_name": "Dict Of Dicts",
     "passed": true,
-    "time_ms": 0.063,
+    "time_ms": 0.067,
     "line": 297,
     "code": "    // uncomment #include \"file_encoders.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    Point point(1.0, 2.0, 3.0);\n    Vector vec(0.0, 0.0, 1.0);\n\n    nlohmann::json data;\n    data[\"config\"][\"tolerance\"] = 0.001;\n    data[\"config\"][\"scale\"] = 1000;\n    data[\"geometry\"][\"point\"] = point.jsondump();\n    data[\"geometry\"][\"vector\"] = vec.jsondump();\n\n    std::string json_str = data.dump();\n    auto loaded = nlohmann::json::parse(json_str);\n\n    Point loaded_point = Point::jsonload(loaded[\"geometry\"][\"point\"]);\n    Vector loaded_vec = Vector::jsonload(loaded[\"geometry\"][\"vector\"]);",
     "checks": [

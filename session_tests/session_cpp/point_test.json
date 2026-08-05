@@ -3,7 +3,7 @@
     "group": "Point",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.009,
     "line": 14,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"vector.h\"\n        // uncomment #include \"color.h\"\n\n        // Constructor\n        Point p(1.0, 2.0, 3.0);\n\n        // Setters\n        p[0] = 10.0;\n        p[1] = 20.0;\n        p[2] = 30.0;\n\n        // Getters\n        double x = p[0];\n        double y = p[1];\n        double z = p[2];\n\n        // Minimal and Full String Representation\n        std::string pstr = p.str();\n        std::string prepr = p.repr();\n\n        // Copy (duplicate everything but guid())\n        Point pcopy = p;\n        Point pother(1.0, 2.0, 3.0);\n\n        // No-copy operators\n        Point pmult = p;\n        pmult *= 2.0;\n        Point pdiv = p;\n        pdiv /= 2.0;\n        Point padd = p;\n        padd += Vector(1.0, 1.0, 1.0);\n        Point psub = p;\n        psub -= Vector(1.0, 1.0, 1.0);\n\n        // Copy operators\n        Point result_mul = p * 2.0;\n        Point result_div = p / 2.0;\n        Point result_add = p + Vector(1.0, 1.0, 1.0);\n        Point diff_point = p - Vector(1.0, 1.0, 1.0);\n\n        // Static sum and sub methods\n        Point p1(1.0, 2.0, 3.0);\n        Point p2(4.0, 5.0, 6.0);\n        Point psum = Point::sum(p1, p2);\n        Point pdif = Point::sub(p2, p1);",
     "checks": [
@@ -150,7 +150,7 @@
     "group": "Point",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.079,
+    "time_ms": 0.073,
     "line": 100,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(1.0f, 0.5f, 0.25f, 1.0f);\n\n        //   jsondump()      │ ordered_json │ to JSON object (internal use)\n        //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n        //   file_json_dumps()    │ std::string  │ to JSON string\n        //   file_json_loads(s)   │ std::string  │ from JSON string\n        //   file_json_dump(path) │ file         │ write to file\n        //   file_json_load(path) │ file         │ read from file\n\n        std::string filename = \"serialization/test_point.json\";\n        p.file_json_dump(filename);\n        Point loaded = Point::file_json_load(filename);\n",
     "checks": [
@@ -206,7 +206,7 @@
     "group": "Point",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 0.035,
+    "time_ms": 0.039,
     "line": 132,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(1.0f, 0.5f, 0.25f, 1.0f);\n\n        std::string filename = \"serialization/test_point.bin\";\n        p.pb_dump(filename);\n        Point loaded = Point::pb_load(filename);",
     "checks": [

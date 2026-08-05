@@ -13,7 +13,7 @@
     "line": 16,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 0.912
+    "time_ms": 0.355
   },
   {
     "checks": [
@@ -44,7 +44,7 @@
     "line": 100,
     "passed": true,
     "test_name": "Component Protobuf Roundtrip",
-    "time_ms": 0.144
+    "time_ms": 0.136
   },
   {
     "checks": [
@@ -80,7 +80,7 @@
     "line": 65,
     "passed": true,
     "test_name": "Component Json Roundtrip",
-    "time_ms": 0.188
+    "time_ms": 0.202
   },
   {
     "checks": [
@@ -127,7 +127,7 @@
     "line": 29,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.169
+    "time_ms": 0.166
   },
   {
     "checks": [

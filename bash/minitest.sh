@@ -235,7 +235,9 @@ fi
 if [[ "$REGEN_API" == "true" ]]; then
     log "=== Regenerating Browser API Index ==="
     cd "$REPO_ROOT"
-    if ! python -m session_mcp.generate_browser_index; then
+    # `python` is absent on stock Ubuntu; only Windows/venv setups have the unsuffixed name.
+    PY_EXE=$(command -v python3 || command -v python)
+    if ! "${PY_EXE:-python3}" -m session_mcp.generate_browser_index; then
         log "Warning: Failed to generate browser index"
     fi
 else

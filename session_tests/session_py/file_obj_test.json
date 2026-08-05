@@ -13,7 +13,7 @@
     "group": "FileObj",
     "test_name": "Write Read Roundtrip",
     "passed": true,
-    "time_ms": 0.319,
+    "time_ms": 0.347,
     "line": 28,
     "code": "    # build a small mesh (4 verts, 2 faces), write to OBJ, read back, compare counts\n    from session_py import Mesh, Point\n    from session_py.file_obj import read_file_obj, write_file_obj\n    original_mesh = Mesh()\n    v0 = original_mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = original_mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = original_mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    v3 = original_mesh.add_vertex(Point(0.0, 0.0, 1.0))\n    original_mesh.add_face([v0, v1, v2])\n    original_mesh.add_face([v0, v1, v3])\n\n    temp_file = str(Path(__file__).resolve().parents[2] / \"serialization\" / \"test_temp_roundtrip.obj\")\n    write_file_obj(original_mesh, temp_file)\n    loaded_mesh = read_file_obj(temp_file)\n    os.remove(temp_file)",
     "checks": [
@@ -49,7 +49,7 @@
     "group": "FileObj",
     "test_name": "String Roundtrip",
     "passed": true,
-    "time_ms": 0.1,
+    "time_ms": 0.107,
     "line": 52,
     "code": "    from session_py import Mesh, Point\n    from session_py.file_obj import read_file_obj_from_str, write_file_obj_to_string\n    from session_py.tolerance import TOLERANCE\n    original_mesh = Mesh()\n    v0 = original_mesh.add_vertex(Point(0.0, 0.0, 0.0))\n    v1 = original_mesh.add_vertex(Point(1.0, 0.0, 0.0))\n    v2 = original_mesh.add_vertex(Point(0.0, 1.0, 0.0))\n    v3 = original_mesh.add_vertex(Point(0.0, 0.0, 1.0))\n    original_mesh.add_face([v0, v1, v2])\n    original_mesh.add_face([v0, v1, v3])\n    s = write_file_obj_to_string(original_mesh)\n    loaded_mesh = read_file_obj_from_str(s)",
     "checks": [

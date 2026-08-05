@@ -39,7 +39,7 @@
     "group": "MeshOffset",
     "test_name": "from_mesh_grid",
     "passed": true,
-    "time_ms": 0.298,
+    "time_ms": 0.287,
     "line": 30,
     "code": "    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(2, 0, 0),\n        Point(0, 1, 0),\n        Point(1, 1, 0),\n        Point(2, 1, 0),\n        Point(0, 2, 0),\n        Point(1, 2, 0),\n        Point(2, 2, 0),\n    ]\n    faces = [\n        [0, 1, 4, 3],\n        [1, 2, 5, 4],\n        [3, 4, 7, 6],\n        [4, 5, 8, 7],\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, faces)\n    result = MeshOffset.from_mesh(mesh, 2.0)",
     "checks": [
@@ -65,7 +65,7 @@
     "group": "MeshOffset",
     "test_name": "from_mesh_layers",
     "passed": true,
-    "time_ms": 0.151,
+    "time_ms": 0.152,
     "line": 59,
     "code": "    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    layers = MeshOffset.from_mesh_layers(mesh, 1.0)",
     "checks": [
@@ -116,7 +116,7 @@
     "group": "MeshOffset",
     "test_name": "file_json_dump",
     "passed": true,
-    "time_ms": 0.875,
+    "time_ms": 0.821,
     "line": 82,
     "code": "    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    from pathlib import Path\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    result = MeshOffset.from_mesh(mesh, 1.0)\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh_offset.json\"\n    result.file_json_dump(fname)\n    loaded = Mesh.file_json_load(fname)",
     "checks": [
@@ -142,7 +142,7 @@
     "group": "MeshOffset",
     "test_name": "file_json_load",
     "passed": true,
-    "time_ms": 0.268,
+    "time_ms": 0.262,
     "line": 104,
     "code": "    from session_py import Mesh\n    from pathlib import Path\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh_offset.json\"\n    loaded = Mesh.file_json_load(fname)",
     "checks": [
@@ -168,7 +168,7 @@
     "group": "MeshOffset",
     "test_name": "to_proto",
     "passed": true,
-    "time_ms": 0.671,
+    "time_ms": 0.679,
     "line": 115,
     "code": "    from session_py import MeshOffset\n    from session_py import Mesh\n    from session_py import Point\n    from pathlib import Path\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0, 1, 2, 3]])\n    result = MeshOffset.from_mesh(mesh, 1.0)\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh_offset.bin\"\n    result.pb_dump(fname)\n    loaded = Mesh.pb_load(fname)",
     "checks": [
@@ -194,7 +194,7 @@
     "group": "MeshOffset",
     "test_name": "from_proto",
     "passed": true,
-    "time_ms": 0.276,
+    "time_ms": 0.28,
     "line": 137,
     "code": "    from session_py import Mesh\n    from pathlib import Path\n    fname = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh_offset.bin\"\n    loaded = Mesh.pb_load(fname)",
     "checks": [

@@ -4,6 +4,15 @@
 # Single source of truth for class names (sorted alphabetically)
 CLASS_NAMES=("aabb" "boolean_polyline" "brep" "closest" "color" "convex_hull" "element" "element_beam" "element_column" "element_plate" "file_encoders" "file_obj" "file_step" "graph" "intersection" "io" "io_xyz" "nurbsknot" "line" "instance_ref" "matrix" "mesh" "mesh_offset" "nurbscurve" "nurbssurface" "obb" "objects" "plane" "point" "pointcloud" "polyline" "primitives" "quaternion" "remesh_cdt" "remesh_nurbssurface_grid" "remesh_nurbssurface_adaptive" "session" "session_config" "spatial_aabbtree" "spatial_bvh" "spatial_kdtree" "spatial_rtree" "tolerance" "tree" "nurbssurface_trimmed" "vector" "xform")
 
+# Classes with NO test source in a given language, so they legitimately produce no json.
+# These are reported as SKIP; every other class in CLASS_NAMES must still emit json or the
+# run fails, which is the whole point of the missing-class guard in print_class_summary.
+# Delete an entry the moment its test file lands (C++: src/<cls>_test.cpp,
+# Python: src/session_py/<cls>_test.py, Rust: src/<cls>_test.rs).
+NOT_IMPLEMENTED_cpp="io"
+NOT_IMPLEMENTED_py="file_step io_xyz"
+NOT_IMPLEMENTED_rust="file_step io_xyz"
+
 # Resolve repo root from script location
 resolve_repo_root() {
     local script_path="$1"
@@ -115,18 +124,21 @@ print_class_summary() {
     local aggregate="${4:-}"
     [[ -d "$json_dir" ]] || return 0
     [[ -x "$python_exe" ]] || python_exe="python3"
+    local skip_var="NOT_IMPLEMENTED_${lang}"
+    MINITEST_SKIP="${!skip_var:-}" \
     "$python_exe" - "$json_dir" "$lang" "$aggregate" "${CLASS_NAMES[@]}" <<'EOF'
 import json, glob, os, sys
 d, lang, aggregate = sys.argv[1], sys.argv[2], sys.argv[3]
 lenient = os.environ.get('MINITEST_LENIENT') == '1'
-tag = 'WARN' if lenient else 'ERROR' 
+tag = 'WARN' if lenient else 'ERROR'
+not_implemented = set(os.environ.get('MINITEST_SKIP', '').split())
 classes = sys.argv[4:]
 total = passed = 0
-missing, stale, failed, seen = [], [], [], set()
+missing, stale, failed, seen, skipped = [], [], [], set(), []
 for cls in classes:
     f = os.path.join(d, cls + '_test.json')
     if not os.path.exists(f):
-        missing.append(cls)
+        (skipped if cls in not_implemented else missing).append(cls)
         continue
     seen.add(os.path.basename(f))
     tests = json.load(open(f))
@@ -140,9 +152,12 @@ for cls in classes:
 for f in sorted(glob.glob(os.path.join(d, '*_test.json'))):
     if os.path.basename(f) not in seen:
         stale.append(os.path.basename(f).replace('_test.json', ''))
-print(f'[{lang}] TOTAL {passed}/{total} over {len(classes) - len(missing)}/'
-      f'{len(classes)} classes')
+print(f'[{lang}] TOTAL {passed}/{total} over {len(classes) - len(missing) - len(skipped)}/'
+      f'{len(classes) - len(skipped)} classes')
 rc = 0
+if skipped:
+    print(f'[{lang}] SKIP: {len(skipped)} class(es) not implemented in this language: '
+          f'{" ".join(skipped)}')
 if missing:
     print(f'[{lang}] {tag}: {len(missing)} class(es) in CLASS_NAMES produced NO json - '
           f'this language does not implement them or they did not run: '

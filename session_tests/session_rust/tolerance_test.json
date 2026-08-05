@@ -93,7 +93,7 @@
     "line": 51,
     "passed": true,
     "test_name": "Format Number",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -202,7 +202,7 @@
     "line": 313,
     "passed": true,
     "test_name": "Is Vector Close",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -355,7 +355,7 @@
     "line": 224,
     "passed": true,
     "test_name": "Is Point Close",
-    "time_ms": 0.003
+    "time_ms": 0.002
   },
   {
     "checks": [
@@ -438,7 +438,7 @@
     "line": 182,
     "passed": true,
     "test_name": "Count Digits",
-    "time_ms": 0.002
+    "time_ms": 0.001
   },
   {
     "checks": [
@@ -485,7 +485,7 @@
     "line": 130,
     "passed": true,
     "test_name": "Triangle Edge By Angle",
-    "time_ms": 0.002
+    "time_ms": 0.01
   },
   {
     "checks": [

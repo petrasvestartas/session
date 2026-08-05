@@ -34,7 +34,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Parameters",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 23,
     "code": "    // uncomment #include \"remesh_nurbssurface_adaptive.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    RemeshNurbsSurfaceAdaptive ta(s);\n    ta.set_max_angle(15.0)\n      .set_max_edge_length(2.0)\n      .set_min_edge_length(0.1)\n      .set_max_chord_height(0.05);",
     "checks": [
@@ -65,7 +65,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Mesh",
     "passed": true,
-    "time_ms": 9.77,
+    "time_ms": 9.856,
     "line": 40,
     "code": "    // uncomment #include \"remesh_nurbssurface_adaptive.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::sphere_surface(0, 0, 0, 1.0);\n    RemeshNurbsSurfaceAdaptive ta(s);\n    Mesh m = ta.mesh();",
     "checks": [
@@ -86,7 +86,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Torus",
     "passed": true,
-    "time_ms": 22.669,
+    "time_ms": 23.134,
     "line": 53,
     "code": "    // uncomment #include \"remesh_nurbssurface_adaptive.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::torus_surface(0, 0, 0, 3.0, 1.0);\n    Mesh m = RemeshNurbsSurfaceAdaptive(s).mesh();",
     "checks": [
@@ -107,7 +107,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Cylinder",
     "passed": true,
-    "time_ms": 1.082,
+    "time_ms": 1.079,
     "line": 65,
     "code": "    // uncomment #include \"remesh_nurbssurface_adaptive.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::cylinder_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbsSurfaceAdaptive(s).mesh();",
     "checks": [
@@ -128,7 +128,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Cone",
     "passed": true,
-    "time_ms": 0.943,
+    "time_ms": 0.935,
     "line": 77,
     "code": "    // uncomment #include \"remesh_nurbssurface_adaptive.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::cone_surface(0, 0, 0, 1.0, 5.0);\n    Mesh m = RemeshNurbsSurfaceAdaptive(s).mesh();",
     "checks": [
@@ -149,7 +149,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Doubly Curved",
     "passed": true,
-    "time_ms": 22.341,
+    "time_ms": 22.284,
     "line": 89,
     "code": "    // uncomment #include \"remesh_nurbssurface_adaptive.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::wave_surface(1.0, 0.5);\n    Mesh m = RemeshNurbsSurfaceAdaptive(s).mesh();",
     "checks": [
@@ -170,7 +170,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Flat",
     "passed": true,
-    "time_ms": 3.263,
+    "time_ms": 3.232,
     "line": 101,
     "code": "    // uncomment #include \"remesh_nurbssurface_adaptive.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"primitives.h\"\n    NurbsSurface s = Primitives::wave_surface(1.0, 0.0);\n    Mesh m = RemeshNurbsSurfaceAdaptive(s).mesh();",
     "checks": [
@@ -191,7 +191,7 @@
     "group": "RemeshNurbsSurfaceAdaptive",
     "test_name": "Singular Triangle",
     "passed": true,
-    "time_ms": 1.405,
+    "time_ms": 1.388,
     "line": 113,
     "code": "    // uncomment #include \"remesh_nurbssurface_adaptive.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"nurbssurface.h\"\n    // uncomment #include \"point.h\"\n    NurbsSurface s = NurbsSurface::create(false, false, 2, 1, 3, 2, {\n        Point(0, 0, 0),\n        Point(2, 0, 3),\n        Point(4, 0, 0),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n        Point(2, 4, 0),\n    });\n    Mesh m = RemeshNurbsSurfaceAdaptive(s).mesh();",
     "checks": [

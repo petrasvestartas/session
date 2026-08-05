@@ -83,7 +83,7 @@
     "group": "Tolerance",
     "test_name": "Format Number",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 47,
     "code": "        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.format_number(3.14159, 2);",
     "checks": [
@@ -218,7 +218,7 @@
     "group": "Tolerance",
     "test_name": "Unique From Two Int",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 112,
     "code": "        // uncomment #include \"tolerance.h\"\n        uint64_t r0 = unique_from_two_int(3, 7);\n        uint64_t r1 = unique_from_two_int(7, 3);",
     "checks": [
@@ -484,7 +484,7 @@
     "group": "Tolerance",
     "test_name": "Precision From Tolerance",
     "passed": true,
-    "time_ms": 0.009,
+    "time_ms": 0.008,
     "line": 228,
     "code": "        // uncomment #include \"tolerance.h\"\n        // Default absolute tolerance is 1e-9 → precision should be 9\n        int prec = TOLERANCE.precision_from_tolerance();",
     "checks": [
