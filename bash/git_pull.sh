@@ -4,7 +4,9 @@ set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "${SCRIPT_DIR}/.."
 
-TARGET_BRANCH="main"
+# Exported: `git submodule foreach` runs its body in a fresh shell, so a plain
+# (unexported) variable would expand to "" there and `git checkout ""` fails.
+export TARGET_BRANCH="main"
 
 echo "=== Preflight ==="
 if [ -n "$(git status --porcelain)" ]; then
@@ -44,8 +46,12 @@ until git submodule update --init --recursive; do
   attempt=$((attempt + 1))
 done
 
+# Top level only (no --recursive): the six top-level submodules track ${TARGET_BRANCH},
+# while nested copies (session_cpp/session_data, session_py/session_data, ...) stay at the
+# commit their parent pins. Pulling nested ones to the branch tip would leave every parent
+# with a modified submodule pointer, and the dirty check above would then abort the next run.
 echo -e "\n=== Pull latest in each submodule (${TARGET_BRANCH}) ==="
-git submodule foreach --recursive '
+git submodule foreach '
   set -e
   if [ -n "$(git status --porcelain)" ]; then
     echo "Submodule dirty: $name"
@@ -57,5 +63,9 @@ git submodule foreach --recursive '
   git pull --ff-only origin "${TARGET_BRANCH}"
 '
 
+# Re-sync nested submodules to the pins of the just-updated top-level submodules.
+echo -e "\n=== Sync nested submodules to new pins ==="
+git submodule foreach 'git submodule update --init --recursive'
+
 echo -e "\n=== Final submodule status ==="
-git submodule status
+git submodule status --recursive
