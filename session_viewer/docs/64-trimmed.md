@@ -101,14 +101,41 @@ the untrimmed domain rectangle:
     }
 ```
 
-(`trimmed_linework` walks the trim's boundary loops — `ts.get_outer_loop()` plus `ts.get_inner_loop(i)`
+`trimmed_linework` walks the trim's boundary loops — `ts.get_outer_loop()` plus `ts.get_inner_loop(i)`
 for `i in 0..ts.inner_loop_count()` (the very loops `mesh_q` itself consumes). **Critical: these are UV
 curves, not 3D.** Each `sample_curve` point is a `(u, v)` param pair living in the surface's parameter
 square, so before you tube it you must lift it back onto the surface with `ts.surface().point_at(u, v)`
 — `mesh_q` does exactly this (its `eval3` closure). Skip the lift and every boundary tube collapses into
-a flat ring near the world origin (the `[0,1]²` domain), floating off the actual surface. Feed the
-*lifted* polyline through 63's tube builder. Iso lines from 62 apply too if you want the interior grid —
-clip them mentally or skip; the boundary is what must be right.)
+a flat ring near the world origin (the `[0,1]²` domain), floating off the actual surface:
+
+```rust
+/// Trim boundary loops as tubes: sample each UV loop (60's sampler), LIFT (u,v) → 3D, tube.
+fn trimmed_linework(ts: &NurbsSurfaceTrimmed, ri: u32) -> Vec<CylinderSegment> {
+    let edge = [0.10, 0.10, 0.10, 1.0];
+    let mut segs = Vec::new();
+    let mut one_loop = |uv: &NurbsCurve| {
+        let mut prev: Option<Point> = None;
+        for q in sample_curve(uv) {                       // q = (u, v, 0) in the param square
+            let Some(p) = ts.surface().point_at(q[0], q[1]) else { continue };   // the LIFT
+            if let Some(a) = &prev {
+                if a.distance(&p, None) > 1e-9 {          // 63's zero-length filter
+                    segs.push(CylinderSegment { p0: a.to_f32(), radius: 0.0, p1: p.to_f32(),
+                                                instance_id: ri, color: edge });
+                }
+            }
+            prev = Some(p);
+        }
+    };
+    if let Some(outer) = ts.get_outer_loop() { one_loop(outer); }
+    for i in 0..ts.inner_loop_count() {
+        if let Some(inner) = ts.get_inner_loop(i) { one_loop(inner); }
+    }
+    segs
+}
+```
+
+Iso lines from 62 apply too if you want the interior grid — clip them mentally or skip; the boundary
+is what must be right.
 
 <svg viewBox="0 0 660 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="trim loops sampled in the flat uv unit square must be lifted onto the curved surface with point_at(u,v) or they collapse to a flat ring at the world origin" style="max-width:100%;height:auto;font:11px ui-monospace,monospace">
   <text x="110" y="16" fill="#888" text-anchor="middle">sample trim loop → (u, v)</text>

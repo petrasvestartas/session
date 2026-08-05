@@ -162,7 +162,7 @@
     "line": 145,
     "passed": true,
     "test_name": "Build Fitted NurbsKnots Adaptive",
-    "time_ms": 0.003
+    "time_ms": 0.004
   },
   {
     "checks": [
@@ -178,7 +178,7 @@
     "line": 159,
     "passed": true,
     "test_name": "Build Fitted NurbsKnots Periodic Adaptive",
-    "time_ms": 0.004
+    "time_ms": 0.005
   },
   {
     "checks": [

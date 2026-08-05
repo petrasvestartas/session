@@ -57,11 +57,24 @@ impl Command for AddGeometry {
 }
 ```
 
-(Two tiny additions to `RemoveObjects` in `src/app/history/remove.rs` (51): a
-`pub fn of_snapshots(snapshots: Vec<Geometry>) -> Self` constructor beside `of_selection`, and
-`pub fn len(&self) -> usize`. Its `revert` — restore +
-`assign_row` + `apply_object` — is exactly "insert a new object"; guids mint lazily on first
-`geom.guid()` read, so a freshly built object is already identity-stable when the snapshot clones it.)
+Two tiny additions to `RemoveObjects` in `src/app/history/remove.rs` (51) — add both inside its
+`impl RemoveObjects`, beside `of_selection`:
+
+```rust
+    /// Wrap ready-made snapshots (57's AddGeometry; 80's copy batches reuse it).
+    pub fn of_snapshots(snapshots: Vec<Geometry>) -> Self {
+        Self { snapshots }
+    }
+    pub fn len(&self) -> usize {
+        self.snapshots.len()
+    }
+```
+
+Its `revert` — restore + `assign_row` + `apply_object` — is exactly "insert a new object"; guids
+mint lazily on first `geom.guid()` read, so a freshly built object is already identity-stable when
+the snapshot clones it. Module wiring: `app/history/mod.rs` gains `pub mod add;`, and `app/mod.rs`
+gains `pub mod tools;` (with `src/app/tools/mod.rs` containing exactly the two lines the file list
+shows: `pub mod point;` / `pub mod line;`).
 
 And the bridge on `State` — add this method to `impl State` in `src/state.rs` (the borrow-safe
 destructure from 51's note, factored once):

@@ -261,7 +261,7 @@
     "group": "Plane",
     "test_name": "Translate By Normal",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.004,
     "line": 182,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    Plane moved = pl.translate_by_normal(5.0);",
     "checks": [
@@ -375,7 +375,7 @@
     "group": "Plane",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.085,
+    "time_ms": 0.077,
     "line": 232,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_plane.json\";\n    pl.file_json_dump(fname);\n    Plane loaded = Plane::file_json_load(fname);",
     "checks": [
@@ -396,7 +396,7 @@
     "group": "Plane",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 0.04,
+    "time_ms": 0.039,
     "line": 253,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    pl.name = \"test_plane\";\n\n    std::string fname = \"serialization/test_plane.bin\";\n    pl.pb_dump(fname);\n    Plane loaded = Plane::pb_load(fname);",
     "checks": [
@@ -417,7 +417,7 @@
     "group": "Plane",
     "test_name": "Has On Negative Side",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.001,
     "line": 267,
     "code": "    // uncomment #include \"plane.h\"\n\n    Plane pl = Plane::xy_plane();\n    Point above(0.0, 0.0, 1.0);\n    Point below(0.0, 0.0, -1.0);",
     "checks": [

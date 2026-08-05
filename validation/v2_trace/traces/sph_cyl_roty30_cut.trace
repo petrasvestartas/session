@@ -121,20 +121,20 @@ PAVE tag=final e=23 k=1 t=1 v=21
 PB tag=final e=23 k=0 orig=23 t0=0 t1=1 v1=21 v2=21 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
 IFF tag=final i1=5 i2=12 tangent=0 ncurves=2 npoints=0
 SEC tag=final f1=5 f2=12 c=0 type=Circle geom=NurbsCurve t0=0 t1=1 len=6.28318531 tol=1e-07 tantol=1e-07 p0=2.01166933,0,1.48431348 p1=2.01166933,0,1.48431348 c2d1=1 c2d2=1 npb=2 box=0.27961852,-1,1.48431348;2.01166933,1,2.48431348 closed=1 dev1=0 dev2=0 carrier=17
-SEC2D tag=final f1=5 f2=12 c=0 face=5 umin=-0.585784031 umax=0.585784031 vmin=1.40946835 vmax=1.92246474 s=0:1.40946835|0:1.92246474|0:1.40946835
-SEC2D tag=final f1=5 f2=12 c=0 face=12 umin=0 umax=4 vmin=0.786410981 vmax=0.786410981 s=0:0.786410981|2:0.786410981|4:0.786410981
+SEC2D tag=final f1=5 f2=12 c=0 face=5 umin=-0.585786437 umax=0.585786437 vmin=1.40946835 vmax=1.92246474 s=0:1.40946835|0.159059933:1.91976194|0:1.40946835
+SEC2D tag=final f1=5 f2=12 c=0 face=12 umin=0 umax=4 vmin=0.786410981 vmax=0.786410981 s=0:0.786410981|1.95296224:0.786410981|4:0.786410981
 SECPB tag=final f1=5 f2=12 c=0 k=0 t0=0 t1=0.5 v1=16 v2=18 edge=19 etol=1e-07 len=3.14159265
 SECPB tag=final f1=5 f2=12 c=0 k=1 t0=0.5 t1=1 v1=18 v2=16 edge=20 etol=1e-07 len=3.14159265
 SEC tag=final f1=5 f2=12 c=1 type=Circle geom=NurbsCurve t0=0 t1=1 len=6.28318531 tol=1e-07 tantol=1e-07 p0=-0.27961852,0,-2.48431348 p1=-0.27961852,0,-2.48431348 c2d1=1 c2d2=1 npb=1 box=-2.01166933,-1,-2.48431348;-0.27961852,1,-1.48431348 closed=1 dev1=0 dev2=0 carrier=22
-SEC2D tag=final f1=5 f2=12 c=1 face=5 umin=1.41421597 umax=2.58578403 vmin=0.0775352579 vmax=0.590531651 s=2:0.0775352579|2:0.590531651|2:0.0775352579
-SEC2D tag=final f1=5 f2=12 c=1 face=12 umin=0 umax=4 vmin=0.213589019 vmax=0.213589019 s=0:0.213589019|2:0.213589019|4:0.213589019
+SEC2D tag=final f1=5 f2=12 c=1 face=5 umin=1.41421356 umax=2.58578644 vmin=0.0775352579 vmax=0.590531651 s=2:0.0775352579|1.97646467:0.590188807|2:0.0775352579
+SEC2D tag=final f1=5 f2=12 c=1 face=12 umin=0 umax=4 vmin=0.213589019 vmax=0.213589019 s=0:0.213589019|1.95296224:0.213589019|4:0.213589019
 SECPB tag=final f1=5 f2=12 c=1 k=0 t0=0 t1=1 v1=21 v2=21 edge=23 etol=1e-07 len=6.28318531
 SECSTAT pairs=3 ok=1 tangent=0 empty=0 nogeom=2 failed=0 curves=2 blocks=3 kept=3 dropped=0 trim_paves=0 seam_paves=1 bound_paves=4 section_edges=3 fused_groups=0 common_blocks=0 max_dev=0 okpairs=1
 BOP errors=0 warnings=1
-RES type=SOLID nsolid=0 nshell=1 nface=2 nedge=6 nvert=5 naked=0 ndegen=0 vol=50.388051 area=100.776102 valid=0 closure=5.52677103e-09 nonmanifold=0 seam=3
-RESSOLID i=1 nface=-1 vol=50.388051 ori=FWD
+RES type=SOLID nsolid=1 nshell=1 nface=2 nedge=6 nvert=5 naked=0 ndegen=0 vol=50.3880514 area=100.776103 valid=1 closure=6.36668313e-10 nonmanifold=0 seam=3
+RESSOLID i=1 nface=-1 vol=50.3880514 ori=FWD
 RESSHELL i=1 nface=2 closed=1 faces=1,2
-RESFACE i=1 surf=Curved u0=0 u1=4 v0=0 v1=2 ori=FWD tol=1e-07 area=71.9829301 nwire=2 nedge=9 nseam=4
+RESFACE i=1 surf=Curved u0=0 u1=4 v0=0 v1=2 ori=FWD tol=1e-07 area=71.9829306 nwire=2 nedge=9 nseam=4
 RESFEDGE f=1 w=0 e=0 ori=FWD seam=0 degen=1 pc=1 uv0=- uv1=-
 RESFEDGE f=1 w=0 e=1 ori=FWD seam=1 degen=0 pc=1 uv0=- uv1=-
 RESFEDGE f=1 w=0 e=2 ori=REV seam=0 degen=0 pc=1 uv0=- uv1=-
@@ -161,4 +161,4 @@ RESVERT i=2 p=2.01166933,0,1.48431348 tol=1e-07
 RESVERT i=3 p=0.27961852,0,2.48431348 tol=1e-07
 RESVERT i=4 p=0,0,2.5 tol=1e-07
 RESVERT i=5 p=-0.27961852,0,-2.48431348 tol=1e-07
-SUMMARY name=sph_cyl_roty30_cut op=cut dsshapes=24 dssource=16 newverts=3 sd=0 pb=16 cb=0 faceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 seccurves=2 secpoints=0 fftangent=0 secpb=3 res_solid=0 res_shell=1 res_face=2 res_edge=6 res_vert=5 res_naked=0 res_degen=0 res_vol=50.388051 res_area=100.776102 res_valid=0 pf_err=0 bop_err=0
+SUMMARY name=sph_cyl_roty30_cut op=cut dsshapes=24 dssource=16 newverts=3 sd=0 pb=16 cb=0 faceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 seccurves=2 secpoints=0 fftangent=0 secpb=3 res_solid=1 res_shell=1 res_face=2 res_edge=6 res_vert=5 res_naked=0 res_degen=0 res_vol=50.3880514 res_area=100.776103 res_valid=1 pf_err=0 bop_err=0

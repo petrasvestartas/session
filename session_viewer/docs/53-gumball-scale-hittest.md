@@ -35,33 +35,51 @@ src/state.rs
 The naive formula — scale by *Euclidean distance* from camera to gumball — has a subtle bug the
 archive hit: during an orbit around a target the gumball is offset from, the Euclidean distance
 stays constant while the gumball's *screen depth* changes, so the widget visibly breathes. The
-correct depth is the **view-space Z** — the third row of the view matrix applied to the origin:
+correct depth is the **view-space Z**: how far the gumball origin sits *along the look direction* —
+`dot(origin − eye, forward)`, with `forward` read straight off the camera quaternion the way
+`update_position` does (17). In `src/engine/gumball.rs`, add below the `SHAFT_R` const:
 
 ```rust
-pub const SCREEN_PX: f32 = 140.0;   // add to gumball.rs — desired on-screen size
+pub const SCREEN_PX: f32 = 140.0;   // desired on-screen size of the widget
+```
 
+In `src/state.rs`, add to `impl State` (next to `refresh_gumball`, 52); the `proj_y`/`ortho_h`/
+`vp_h` lines are 44's pick-site trio verbatim, and the camera fields (`unit`, `orientation`,
+`position`, `perspective`, `distance`) are all in meters/camera space, so the mm gumball origin is
+scaled by `unit` first:
+
+```rust
     /// Gumball scale so ARC_RADIUS spans ~SCREEN_PX pixels. Depth = VIEW-SPACE Z, not Euclidean
     /// distance (the archive's orbit-breathing bug). Mirrors 44's world_per_pixel per projection.
     fn gumball_scale(&self, origin: [f32; 3]) -> f32 {
-        let vm = self.camera.view_matrix().to_cols();              // column-major m[col][row]
-        let vz = vm[0][2] as f32 * origin[0] + vm[1][2] as f32 * origin[1]
-               + vm[2][2] as f32 * origin[2] + vm[3][2] as f32;    // (V · o).z
-        let depth = (-vz).max(0.001);                              // camera looks down −Z
-        let vp_h = self.gpu.config.height as f32;
-        let world_per_px = if self.camera.is_ortho() {
-            (self.camera.ortho_h() as f32) / vp_h
-        } else {
-            // same formula as 44 / cylinder.wgsl
-            depth / (self.camera.proj_y() as f32 * vp_h)
-        };
-        SCREEN_PX * world_per_px / crate::engine::gumball::ARC_RADIUS
+        let unit = self.camera.unit.to_meters();                            // mm → m
+        let fwd = self.camera.orientation.rotate_vector(Vector::y_axis());  // eye → target (17)
+        let depth = ((origin[0] as f64 * unit - self.camera.position[0]) * fwd[0]
+                   + (origin[1] as f64 * unit - self.camera.position[1]) * fwd[1]
+                   + (origin[2] as f64 * unit - self.camera.position[2]) * fwd[2]).max(0.001);
+        let proj_y  = 1.0 / (30.0_f64).to_radians().tan() * unit;           // 44's trio, verbatim
+        let ortho_h = if self.camera.perspective { 0.0 }
+                      else { 2.0 * self.camera.distance * (30.0_f64).to_radians().tan() * unit };
+        let vp_h    = self.gpu.config.height as f64;
+        let world_per_px = self.camera.world_per_pixel(depth, proj_y, ortho_h, vp_h);   // mm / px
+        (crate::engine::gumball::SCREEN_PX as f64 * world_per_px) as f32
+            / crate::engine::gumball::ARC_RADIUS
     }
 ```
 
-`refresh_gumball` (52) now passes `self.gumball_scale(o)` instead of `1.0` — and must also run when
-the **camera** moves, not just the selection (the scale depends on depth). Cheapest correct hook:
-rebuild in `render()` whenever `self.gb.is_some()` and the camera changed this frame. ~400 rows,
-one small buffer write — nothing at 60 fps.
+(`use session_rust::Vector;` if `state.rs` doesn't import it yet.) In `refresh_gumball` (52), find
+`crate::engine::gumball::build(o, 1.0, self.gpu.gb_row)` → replace the `1.0` with
+`self.gumball_scale(o)`.
+
+The scale must also refresh when the **camera** moves, not just the selection (it depends on depth).
+Cheapest correct hook: in `render()` (`src/state.rs`), right after the `let view_proj = …` line,
+insert:
+
+```rust
+        if self.gb.is_some() { self.refresh_gumball(); }   // depth changed with the camera (53)
+```
+
+Rebuilding every drawn frame is fine — ~400 rows, one small buffer write, nothing at 60 fps.
 
 > **Order matters (archive bug #2):** compute the scale *after* the selection change creates the
 > gumball, never before — or a freshly-selected object flashes a wrong-sized widget for one frame.
@@ -105,14 +123,17 @@ fn rank(k: HandleKind) -> u8 {
 }
 ```
 
-The two distance helpers are the classic closest-approach formulas (f64, index access as elsewhere).
-They assume 42's `Ray { origin: Point, dir: Vector }` and `Point` endpoints (what `Line::from_points`
-takes); if your `GumballGeom` stores `[f32;3]`, read those components the same way. ~460 primitives, run
-per mouse event, not per frame — the direct parametric version is plenty:
+The two distance helpers are the classic closest-approach formulas, in f64 against 41's
+`Ray { origin: Point, dir: Vector }`. The gumball rows store `[f32; 3]` endpoints
+(`CylinderSegment.p0/p1`, `GlyphPoint.center`), so the helpers take `[f32; 3]` and cast up — which
+is exactly what the `hit_test` calls above pass. Add `use crate::engine::pick::Ray;` at the top of
+`gumball.rs` (below 52's `use crate::engine::gpu::…` line). ~460 primitives, run per mouse event,
+not per frame — the direct parametric version is plenty:
 
 ```rust
 /// Shortest distance from point `c` to the ray (origin + t·dir, t ≥ 0).
-fn ray_point_distance(ray: &Ray, c: Point) -> f64 {
+fn ray_point_distance(ray: &Ray, c: [f32; 3]) -> f64 {
+    let c = [c[0] as f64, c[1] as f64, c[2] as f64];
     let d = [ray.dir[0], ray.dir[1], ray.dir[2]];
     let w = [c[0]-ray.origin[0], c[1]-ray.origin[1], c[2]-ray.origin[2]];
     let dd = d[0]*d[0] + d[1]*d[1] + d[2]*d[2];
@@ -124,12 +145,12 @@ fn ray_point_distance(ray: &Ray, c: Point) -> f64 {
 
 /// Shortest distance between the ray (t ≥ 0) and segment p0→p1 (s ∈ [0,1]): solve the two infinite
 /// lines' closest approach, clamp the segment param, re-solve the ray param, clamp it ≥ 0.
-fn ray_segment_distance(ray: &Ray, p0: Point, p1: Point) -> f64 {
+fn ray_segment_distance(ray: &Ray, p0: [f32; 3], p1: [f32; 3]) -> f64 {
     let dot = |u: [f64;3], v: [f64;3]| u[0]*v[0] + u[1]*v[1] + u[2]*v[2];
     let o = [ray.origin[0], ray.origin[1], ray.origin[2]];
     let d = [ray.dir[0], ray.dir[1], ray.dir[2]];
-    let a = [p0[0], p0[1], p0[2]];
-    let e = [p1[0]-a[0], p1[1]-a[1], p1[2]-a[2]];
+    let a = [p0[0] as f64, p0[1] as f64, p0[2] as f64];
+    let e = [p1[0] as f64 - a[0], p1[1] as f64 - a[1], p1[2] as f64 - a[2]];
     let r = [o[0]-a[0], o[1]-a[1], o[2]-a[2]];
     let (aa, bb, cc) = (dot(d,d), dot(d,e), dot(e,e));
     let (dr, er) = (dot(d,r), dot(e,r));
@@ -181,8 +202,39 @@ and `ray` are out of scope, so rebuild them first: `screen_to_world_ray(...)?` f
 
 Both handles are new `State` fields — add `gb_pressed: Option<(HandleKind, (f64, f64))>` (the cursor is
 41's `(f64, f64)`) and `gb_hovered: Option<HandleKind>` to `struct State`, and initialize **both to
-`None`** in `State::new`. For the tint, `build` (52) gains a `hovered: Option<HandleKind>` parameter and
-`refresh_gumball` passes `self.gb_hovered`, so matching rows render lightened toward white.
+`None`** in `State::new`. `state.rs` needs `use crate::engine::gumball::HandleKind;` for the field
+types.
+
+The tint itself is three edits. In `gumball.rs`, find 52's `build` signature:
+
+```rust
+pub fn build(o: [f32; 3], s: f32, row: u32) -> GumballGeom {
+```
+
+→ replace with:
+
+```rust
+pub fn build(o: [f32; 3], s: f32, row: u32, hovered: Option<HandleKind>) -> GumballGeom {
+```
+
+Then find the function's last two lines (the uniform-sphere push, then `    g`) and insert the tint
+between them, so it runs over every emitted row:
+
+```rust
+    // 53: lighten the hovered handle's rows toward white
+    if let Some(h) = hovered {
+        for (seg, k) in g.segments.iter_mut() {
+            if *k == h { for c in &mut seg.color[..3] { *c = *c * 0.4 + 0.6; } }
+        }
+        for (gl, k) in g.glyphs.iter_mut() {
+            if *k == h { for c in &mut gl.color[..3] { *c = *c * 0.4 + 0.6; } }
+        }
+    }
+    g
+```
+
+Finally, in `refresh_gumball` (52), the `build(…)` call gains the new argument:
+`crate::engine::gumball::build(o, self.gumball_scale(o), self.gpu.gb_row, self.gb_hovered)`.
 
 ## Step 4 — verify
 

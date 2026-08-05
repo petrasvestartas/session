@@ -46,9 +46,9 @@ IEF tag=final src=probe i1=3 i2=13 ctype=VERTEX r1=0:1.07383269 new=-1 kind=TRAN
 IEF tag=final src=probe i1=3 i2=13 ctype=VERTEX r1=1.07383269:5.38516481 new=-1 kind=TRANSVERSAL
 IEF tag=final src=probe i1=3 i2=13 ctype=VERTEX r1=3.63368614:3.67859584 new=17 kind=TRANSVERSAL
 PROBE vv_fused=0 ve_paves=0 ee_vertex=1 ee_edge=0 ee_newv=1 ee_cb=0 vf_in=0 ef_transversal=10 ef_tangential=0 ef_coincident=0 ef_newv=6
-STAGE name=after_FF nbshapes=51 nbsource=16 nsd=4 npb=28 ncb=0 nfaceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 ffcurves=6 ffpoints=0 fftangent=0
-STAGE name=final nbshapes=51 nbsource=16 nsd=4 npb=43 ncb=0 nfaceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 ffcurves=6 ffpoints=0 fftangent=0
-DS tag=final nbshapes=51 nbsource=16 nbranges=2
+STAGE name=after_FF nbshapes=50 nbsource=16 nsd=6 npb=26 ncb=0 nfaceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 ffcurves=6 ffpoints=0 fftangent=0
+STAGE name=final nbshapes=50 nbsource=16 nsd=6 npb=38 ncb=0 nfaceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 ffcurves=6 ffpoints=0 fftangent=0
+DS tag=final nbshapes=50 nbsource=16 nbranges=2
 RANGE tag=final i=0 first=0 last=7
 RANGE tag=final i=1 first=8 last=15
 SI tag=final i=0 type=VERTEX rank=0 new=0 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=2,0,-2.5;2,0,-2.5
@@ -77,105 +77,100 @@ SI tag=final i=22 type=EDGE rank=-1 new=1 ref=8 flag=-1 brep=1 interf=0 nsub=2 s
 SI tag=final i=23 type=EDGE rank=-1 new=1 ref=9 flag=-1 brep=1 interf=0 nsub=2 sub=20,21 box=-0.0197907633,9.46855767e-07,-2.33784208;1.60118855,1.93503563,-1.43972692
 SI tag=final i=24 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.648235943,-2.94506537e-06,0.879410144;0.648235943,-2.94506537e-06,0.879410144
 SI tag=final i=25 type=EDGE rank=-1 new=1 ref=10 flag=-1 brep=1 interf=0 nsub=1 sub=24 box=-1.10797146,-1.09676319,-0.332980444;0.648236132,1.0967606,0.879410645
-SI tag=final i=26 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.648235943,0,0.879410144;0.648235943,0,0.879410144
-SI tag=final i=27 type=EDGE rank=-1 new=1 ref=11 flag=-1 brep=1 interf=0 nsub=2 sub=24,26 box=-1.10797146,-1.09676319,-0.332980444;0.648236098,1.0967606,0.879410562
-SI tag=final i=28 type=EDGE rank=-1 new=1 ref=12 flag=-1 brep=1 interf=0 nsub=2 sub=24,26 box=0.648235943,-2.94506537e-06,0.879410144;0.648235943,0,0.879410144
-SI tag=final i=29 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,-1.98875857,-2.5;0.211753028,-1.98875857,-2.5
-SI tag=final i=30 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,1.98875857,-2.5;0.211753028,1.98875857,-2.5
-SI tag=final i=31 type=EDGE rank=-1 new=1 ref=13 flag=-1 brep=1 interf=0 nsub=2 sub=29,30 box=-1.51629547,-1.98875857,-2.5;0.211753028,1.98875857,-1.29000742
-SI tag=final i=32 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=-0.0198007233,-1.93504442,-2.33786432;-0.0198007233,-1.93504442,-2.33786432
-SI tag=final i=33 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=-0.0198007233,1.93504442,-2.33786432;-0.0198007233,1.93504442,-2.33786432
-SI tag=final i=34 type=EDGE rank=-1 new=1 ref=14 flag=-1 brep=1 interf=0 nsub=2 sub=32,33 box=-1.51629547,-1.93504442,-2.33786432;-0.0198007233,1.93504442,-1.29000742
-SI tag=final i=35 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,1.83811499,-2.5;0.211753028,1.83811499,-2.5
-SI tag=final i=36 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,-1.83811499,-2.5;0.211753028,-1.83811499,-2.5
-SI tag=final i=37 type=EDGE rank=-1 new=1 ref=15 flag=-1 brep=1 interf=0 nsub=2 sub=35,36 box=0.211753028,-1.83811499,-2.5;1.36764339,1.83811499,-2.5
-SI tag=final i=38 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=1.36736341,0,-2.5;1.36736341,0,-2.5
-SI tag=final i=39 type=EDGE rank=-1 new=1 ref=16 flag=-1 brep=1 interf=0 nsub=2 sub=35,38 box=0.211753028,0,-2.5;1.36736341,1.83811499,-2.5
-SI tag=final i=40 type=EDGE rank=-1 new=1 ref=17 flag=-1 brep=1 interf=0 nsub=2 sub=36,38 box=0.211753028,-1.83811499,-2.5;1.36736341,0,-2.5
-SI tag=final i=41 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,-2,-2.5;0.211753028,-2,-2.5
-SI tag=final i=42 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,2,-2.5;0.211753028,2,-2.5
-SI tag=final i=43 type=EDGE rank=-1 new=1 ref=18 flag=-1 brep=1 interf=0 nsub=2 sub=41,42 box=0.211753028,-2,-2.5;0.211753028,2,-2.5
-SI tag=final i=44 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,-1.98875857,-2.5;0.211753028,-1.98875857,-2.5
-SI tag=final i=45 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,-1.83811499,-2.5;0.211753028,-1.83811499,-2.5
-SI tag=final i=46 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,1.83811499,-2.5;0.211753028,1.83811499,-2.5
-SI tag=final i=47 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,1.98875857,-2.5;0.211753028,1.98875857,-2.5
-SI tag=final i=48 type=EDGE rank=-1 new=1 ref=19 flag=-1 brep=1 interf=0 nsub=2 sub=45,46 box=0.211753028,-1.83811499,-2.5;0.211753028,1.83811499,-2.5
-SI tag=final i=49 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,-1.83811499,-2.5;0.211753028,-1.83811499,-2.5
-SI tag=final i=50 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,1.83811499,-2.5;0.211753028,1.83811499,-2.5
+SI tag=final i=26 type=EDGE rank=-1 new=1 ref=11 flag=-1 brep=1 interf=0 nsub=1 sub=24 box=-1.10797146,-1.09676319,-0.332980444;0.648236132,1.0967606,0.879410645
+SI tag=final i=27 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,-1.98875857,-2.5;0.211753028,-1.98875857,-2.5
+SI tag=final i=28 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,1.98875857,-2.5;0.211753028,1.98875857,-2.5
+SI tag=final i=29 type=EDGE rank=-1 new=1 ref=12 flag=-1 brep=1 interf=0 nsub=2 sub=27,28 box=-1.51629547,-1.98875857,-2.5;0.211753028,1.98875857,-1.29000742
+SI tag=final i=30 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=-0.0198007233,-1.93504442,-2.33786432;-0.0198007233,-1.93504442,-2.33786432
+SI tag=final i=31 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=-0.0198007233,1.93504442,-2.33786432;-0.0198007233,1.93504442,-2.33786432
+SI tag=final i=32 type=EDGE rank=-1 new=1 ref=13 flag=-1 brep=1 interf=0 nsub=2 sub=30,31 box=-1.51629547,-1.93504442,-2.33786432;-0.0198007233,1.93504442,-1.29000742
+SI tag=final i=33 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,1.83811499,-2.5;0.211753028,1.83811499,-2.5
+SI tag=final i=34 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,-1.83811499,-2.5;0.211753028,-1.83811499,-2.5
+SI tag=final i=35 type=EDGE rank=-1 new=1 ref=14 flag=-1 brep=1 interf=0 nsub=2 sub=33,34 box=0.211753028,-1.83811499,-2.5;1.36764339,1.83811499,-2.5
+SI tag=final i=36 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=1.36736341,0,-2.5;1.36736341,0,-2.5
+SI tag=final i=37 type=EDGE rank=-1 new=1 ref=15 flag=-1 brep=1 interf=0 nsub=2 sub=33,36 box=0.211753028,0,-2.5;1.36736341,1.83811499,-2.5
+SI tag=final i=38 type=EDGE rank=-1 new=1 ref=16 flag=-1 brep=1 interf=0 nsub=2 sub=34,36 box=0.211753028,-1.83811499,-2.5;1.36736341,0,-2.5
+SI tag=final i=39 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,-2,-2.5;0.211753028,-2,-2.5
+SI tag=final i=40 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,2,-2.5;0.211753028,2,-2.5
+SI tag=final i=41 type=EDGE rank=-1 new=1 ref=17 flag=-1 brep=1 interf=0 nsub=2 sub=39,40 box=0.211753028,-2,-2.5;0.211753028,2,-2.5
+SI tag=final i=42 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,-1.98875857,-2.5;0.211753028,-1.98875857,-2.5
+SI tag=final i=43 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,-1.83811499,-2.5;0.211753028,-1.83811499,-2.5
+SI tag=final i=44 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,1.83811499,-2.5;0.211753028,1.83811499,-2.5
+SI tag=final i=45 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,1.98875857,-2.5;0.211753028,1.98875857,-2.5
+SI tag=final i=46 type=EDGE rank=-1 new=1 ref=18 flag=-1 brep=1 interf=0 nsub=2 sub=43,44 box=0.211753028,-1.83811499,-2.5;0.211753028,1.83811499,-2.5
+SI tag=final i=47 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=1.60118855,1.34433586e-07,-1.50297138;1.60118855,1.34433586e-07,-1.50297138
+SI tag=final i=48 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,-1.83811499,-2.5;0.211753028,-1.83811499,-2.5
+SI tag=final i=49 type=VERTEX rank=-1 new=1 ref=-1 flag=-1 brep=1 interf=0 nsub=0 sub=- box=0.211753028,1.83811499,-2.5;0.211753028,1.83811499,-2.5
 DSVERT tag=final i=0 p=2,0,-2.5 tol=1e-07 new=0 sd=-1
 DSVERT tag=final i=1 p=0,0,2.5 tol=1e-07 new=0 sd=-1
 DSVERT tag=final i=8 p=1.204363,0,-3.19503298 tol=1e-07 new=0 sd=-1
 DSVERT tag=final i=9 p=2.43394109,0,2.04788011 tol=1e-07 new=0 sd=-1
 DSVERT tag=final i=16 p=-0.0197655823,-1.93501408,-2.33778756 tol=1e-07 new=1 sd=-1
-DSVERT tag=final i=17 p=1.60118855,-6.77988595e-07,-1.50297138 tol=1e-07 new=1 sd=-1
-DSVERT tag=final i=20 p=1.60118855,9.46855767e-07,-1.50297138 tol=1e-07 new=1 sd=-1
+DSVERT tag=final i=17 p=1.60118855,-6.77988595e-07,-1.50297138 tol=1e-07 new=1 sd=47
+DSVERT tag=final i=20 p=1.60118855,9.46855767e-07,-1.50297138 tol=1e-07 new=1 sd=47
 DSVERT tag=final i=21 p=-0.0197907633,1.93503563,-2.33784208 tol=1e-07 new=1 sd=-1
 DSVERT tag=final i=24 p=0.648235943,-2.94506537e-06,0.879410144 tol=1e-07 new=1 sd=-1
-DSVERT tag=final i=26 p=0.648235943,0,0.879410144 tol=1e-07 new=1 sd=-1
-DSVERT tag=final i=29 p=0.211753028,-1.98875857,-2.5 tol=1e-07 new=1 sd=-1
-DSVERT tag=final i=30 p=0.211753028,1.98875857,-2.5 tol=1e-07 new=1 sd=-1
-DSVERT tag=final i=32 p=-0.0198007233,-1.93504442,-2.33786432 tol=1e-07 new=1 sd=-1
-DSVERT tag=final i=33 p=-0.0198007233,1.93504442,-2.33786432 tol=1e-07 new=1 sd=-1
-DSVERT tag=final i=35 p=0.211753028,1.83811499,-2.5 tol=1e-07 new=1 sd=50
-DSVERT tag=final i=36 p=0.211753028,-1.83811499,-2.5 tol=1e-07 new=1 sd=49
-DSVERT tag=final i=38 p=1.36736341,0,-2.5 tol=1e-07 new=1 sd=-1
-DSVERT tag=final i=41 p=0.211753028,-2,-2.5 tol=1e-07 new=1 sd=-1
-DSVERT tag=final i=42 p=0.211753028,2,-2.5 tol=1e-07 new=1 sd=-1
-DSVERT tag=final i=44 p=0.211753028,-1.98875857,-2.5 tol=1e-07 new=1 sd=-1
-DSVERT tag=final i=45 p=0.211753028,-1.83811499,-2.5 tol=1e-07 new=1 sd=49
-DSVERT tag=final i=46 p=0.211753028,1.83811499,-2.5 tol=1e-07 new=1 sd=50
-DSVERT tag=final i=47 p=0.211753028,1.98875857,-2.5 tol=1e-07 new=1 sd=-1
-DSVERT tag=final i=49 p=0.211753028,-1.83811499,-2.5 tol=1.00000001e-07 new=1 sd=-1
-DSVERT tag=final i=50 p=0.211753028,1.83811499,-2.5 tol=1.00000001e-07 new=1 sd=-1
-SD tag=final i=35 sd=50
-SD tag=final i=36 sd=49
-SD tag=final i=45 sd=49
-SD tag=final i=46 sd=50
+DSVERT tag=final i=27 p=0.211753028,-1.98875857,-2.5 tol=1e-07 new=1 sd=-1
+DSVERT tag=final i=28 p=0.211753028,1.98875857,-2.5 tol=1e-07 new=1 sd=-1
+DSVERT tag=final i=30 p=-0.0198007233,-1.93504442,-2.33786432 tol=1e-07 new=1 sd=-1
+DSVERT tag=final i=31 p=-0.0198007233,1.93504442,-2.33786432 tol=1e-07 new=1 sd=-1
+DSVERT tag=final i=33 p=0.211753028,1.83811499,-2.5 tol=1e-07 new=1 sd=49
+DSVERT tag=final i=34 p=0.211753028,-1.83811499,-2.5 tol=1e-07 new=1 sd=48
+DSVERT tag=final i=36 p=1.36736341,0,-2.5 tol=1e-07 new=1 sd=-1
+DSVERT tag=final i=39 p=0.211753028,-2,-2.5 tol=1e-07 new=1 sd=-1
+DSVERT tag=final i=40 p=0.211753028,2,-2.5 tol=1e-07 new=1 sd=-1
+DSVERT tag=final i=42 p=0.211753028,-1.98875857,-2.5 tol=1e-07 new=1 sd=-1
+DSVERT tag=final i=43 p=0.211753028,-1.83811499,-2.5 tol=1e-07 new=1 sd=48
+DSVERT tag=final i=44 p=0.211753028,1.83811499,-2.5 tol=1e-07 new=1 sd=49
+DSVERT tag=final i=45 p=0.211753028,1.98875857,-2.5 tol=1e-07 new=1 sd=-1
+DSVERT tag=final i=47 p=1.60118855,1.34433586e-07,-1.50297138 tol=9.12422181e-07 new=1 sd=-1
+DSVERT tag=final i=48 p=0.211753028,-1.83811499,-2.5 tol=1.00000001e-07 new=1 sd=-1
+DSVERT tag=final i=49 p=0.211753028,1.83811499,-2.5 tol=1.00000001e-07 new=1 sd=-1
+SD tag=final i=17 sd=47
+SD tag=final i=20 sd=47
+SD tag=final i=33 sd=49
+SD tag=final i=34 sd=48
+SD tag=final i=43 sd=48
+SD tag=final i=44 sd=49
 PAVE tag=final e=2 k=0 t=0 v=0
-PAVE tag=final e=2 k=1 t=0.926538393 v=30
-PAVE tag=final e=2 k=2 t=3.07346161 v=29
+PAVE tag=final e=2 k=1 t=0.926538393 v=28
+PAVE tag=final e=2 k=2 t=3.07346161 v=27
 PAVE tag=final e=2 k=3 t=4 v=0
-PB tag=final e=2 k=0 orig=2 t0=0 t1=0.926538393 v1=0 v2=30 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=2 k=1 orig=2 t0=0.926538393 t1=3.07346161 v1=30 v2=29 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=2 k=2 orig=2 t0=3.07346161 t1=4 v1=29 v2=0 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=2 k=0 orig=2 t0=0 t1=0.926538393 v1=0 v2=28 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=2 k=1 orig=2 t0=0.926538393 t1=3.07346161 v1=28 v2=27 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=2 k=2 orig=2 t0=3.07346161 t1=4 v1=27 v2=0 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
 PAVE tag=final e=3 k=0 t=0 v=0
-PAVE tag=final e=3 k=1 t=1.07383269 v=17
-PAVE tag=final e=3 k=2 t=1.07383269 v=20
-PAVE tag=final e=3 k=3 t=3.63973611 v=24
-PAVE tag=final e=3 k=4 t=3.63973611 v=26
-PAVE tag=final e=3 k=5 t=5.38516481 v=1
-PB tag=final e=3 k=0 orig=3 t0=0 t1=1.07383269 v1=0 v2=17 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=3 k=1 orig=3 t0=1.07383269 t1=1.07383269 v1=17 v2=20 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=3 k=2 orig=3 t0=1.07383269 t1=3.63973611 v1=20 v2=24 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=3 k=3 orig=3 t0=3.63973611 t1=3.63973611 v1=24 v2=26 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=3 k=4 orig=3 t0=3.63973611 t1=5.38516481 v1=26 v2=1 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PAVE tag=final e=3 k=1 t=1.07383269 v=47
+PAVE tag=final e=3 k=2 t=3.63973611 v=24
+PAVE tag=final e=3 k=3 t=5.38516481 v=1
+PB tag=final e=3 k=0 orig=3 t0=0 t1=1.07383269 v1=0 v2=47 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=3 k=1 orig=3 t0=1.07383269 t1=3.63973611 v1=47 v2=24 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=3 k=2 orig=3 t0=3.63973611 t1=5.38516481 v1=24 v2=1 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
 PAVE tag=final e=4 k=0 t=0 v=1
 PAVE tag=final e=4 k=1 t=4 v=1
 PB tag=final e=4 k=0 orig=4 t0=0 t1=4 v1=1 v2=1 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
 PAVE tag=final e=10 k=0 t=0 v=8
-PAVE tag=final e=10 k=1 t=0.73232847 v=50
-PAVE tag=final e=10 k=2 t=0.827483685 v=33
+PAVE tag=final e=10 k=1 t=0.73232847 v=49
+PAVE tag=final e=10 k=2 t=0.827483685 v=31
 PAVE tag=final e=10 k=3 t=0.827484406 v=21
 PAVE tag=final e=10 k=4 t=3.17251402 v=16
-PAVE tag=final e=10 k=5 t=3.17251631 v=32
-PAVE tag=final e=10 k=6 t=3.26767153 v=49
+PAVE tag=final e=10 k=5 t=3.17251631 v=30
+PAVE tag=final e=10 k=6 t=3.26767153 v=48
 PAVE tag=final e=10 k=7 t=4 v=8
-PB tag=final e=10 k=0 orig=10 t0=0 t1=0.73232847 v1=8 v2=50 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=10 k=1 orig=10 t0=0.73232847 t1=0.827483685 v1=50 v2=33 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=10 k=2 orig=10 t0=0.827483685 t1=0.827484406 v1=33 v2=21 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=10 k=0 orig=10 t0=0 t1=0.73232847 v1=8 v2=49 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=10 k=1 orig=10 t0=0.73232847 t1=0.827483685 v1=49 v2=31 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=10 k=2 orig=10 t0=0.827483685 t1=0.827484406 v1=31 v2=21 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
 PB tag=final e=10 k=3 orig=10 t0=0.827484406 t1=3.17251402 v1=21 v2=16 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=10 k=4 orig=10 t0=3.17251402 t1=3.17251631 v1=16 v2=32 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=10 k=5 orig=10 t0=3.17251631 t1=3.26767153 v1=32 v2=49 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=10 k=6 orig=10 t0=3.26767153 t1=4 v1=49 v2=8 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=10 k=4 orig=10 t0=3.17251402 t1=3.17251631 v1=16 v2=30 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=10 k=5 orig=10 t0=3.17251631 t1=3.26767153 v1=30 v2=48 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=10 k=6 orig=10 t0=3.26767153 t1=4 v1=48 v2=8 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
 PAVE tag=final e=11 k=0 t=0 v=8
-PAVE tag=final e=11 k=1 t=0.713890735 v=38
-PAVE tag=final e=11 k=2 t=1.73797094 v=17
-PAVE tag=final e=11 k=3 t=1.73797094 v=20
-PAVE tag=final e=11 k=4 t=5.38516481 v=9
-PB tag=final e=11 k=0 orig=11 t0=0 t1=0.713890735 v1=8 v2=38 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=11 k=1 orig=11 t0=0.713890735 t1=1.73797094 v1=38 v2=17 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=11 k=2 orig=11 t0=1.73797094 t1=1.73797094 v1=17 v2=20 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=11 k=3 orig=11 t0=1.73797094 t1=5.38516481 v1=20 v2=9 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PAVE tag=final e=11 k=1 t=0.713890735 v=36
+PAVE tag=final e=11 k=2 t=1.73797094 v=47
+PAVE tag=final e=11 k=3 t=5.38516481 v=9
+PB tag=final e=11 k=0 orig=11 t0=0 t1=0.713890735 v1=8 v2=36 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=11 k=1 orig=11 t0=0.713890735 t1=1.73797094 v1=36 v2=47 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=11 k=2 orig=11 t0=1.73797094 t1=5.38516481 v1=47 v2=9 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
 PAVE tag=final e=12 k=0 t=0 v=9
 PAVE tag=final e=12 k=1 t=4 v=9
 PB tag=final e=12 k=0 orig=12 t0=0 t1=4 v1=9 v2=9 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
@@ -192,93 +187,87 @@ PAVE tag=final e=23 k=0 t=0 v=20
 PAVE tag=final e=23 k=1 t=1 v=21
 PB tag=final e=23 k=0 orig=23 t0=0 t1=1 v1=20 v2=21 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
 PAVE tag=final e=25 k=0 t=0 v=24
-PAVE tag=final e=25 k=1 t=0.999999584 v=26
-PAVE tag=final e=25 k=2 t=1 v=24
-PB tag=final e=25 k=0 orig=25 t0=0 t1=0.999999584 v1=24 v2=26 edge=27 etol=1e-07 cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=25 k=1 orig=25 t0=0.999999584 t1=1 v1=26 v2=24 edge=28 etol=1e-07 cb=-1 split=1 splittable=0 shrunk=-
-PAVE tag=final e=27 k=0 t=0 v=24
-PAVE tag=final e=27 k=1 t=0.999999584 v=26
-PB tag=final e=27 k=0 orig=27 t0=0 t1=0.999999584 v1=24 v2=26 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PAVE tag=final e=28 k=0 t=0.999999584 v=26
-PAVE tag=final e=28 k=1 t=1 v=24
-PB tag=final e=28 k=0 orig=28 t0=0.999999584 t1=1 v1=26 v2=24 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PAVE tag=final e=31 k=0 t=0 v=29
-PAVE tag=final e=31 k=1 t=0.287831686 v=32
-PAVE tag=final e=31 k=2 t=6.02553463 v=33
-PAVE tag=final e=31 k=3 t=6.31336631 v=30
-PB tag=final e=31 k=0 orig=31 t0=0 t1=0.287831686 v1=29 v2=32 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=31 k=1 orig=31 t0=0.287831686 t1=6.02553463 v1=32 v2=33 edge=34 etol=1e-07 cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=31 k=2 orig=31 t0=6.02553463 t1=6.31336631 v1=33 v2=30 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PAVE tag=final e=34 k=0 t=0.287831686 v=32
-PAVE tag=final e=34 k=1 t=6.02553463 v=33
-PB tag=final e=34 k=0 orig=34 t0=0.287831686 t1=6.02553463 v1=32 v2=33 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PAVE tag=final e=37 k=0 t=0 v=35
-PAVE tag=final e=37 k=1 t=2.27144217 v=38
-PAVE tag=final e=37 k=2 t=4.54288434 v=36
-PB tag=final e=37 k=0 orig=37 t0=0 t1=2.27144217 v1=35 v2=38 edge=39 etol=1e-07 cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=37 k=1 orig=37 t0=2.27144217 t1=4.54288434 v1=38 v2=36 edge=40 etol=1e-07 cb=-1 split=1 splittable=0 shrunk=-
-PAVE tag=final e=39 k=0 t=0 v=35
-PAVE tag=final e=39 k=1 t=2.27144217 v=38
-PB tag=final e=39 k=0 orig=39 t0=0 t1=2.27144217 v1=35 v2=38 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PAVE tag=final e=40 k=0 t=2.27144217 v=38
-PAVE tag=final e=40 k=1 t=4.54288434 v=36
-PB tag=final e=40 k=0 orig=40 t0=2.27144217 t1=4.54288434 v1=38 v2=36 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PAVE tag=final e=43 k=0 t=0 v=41
-PAVE tag=final e=43 k=1 t=0.00281035716 v=44
-PAVE tag=final e=43 k=2 t=0.0404712529 v=45
-PAVE tag=final e=43 k=3 t=0.959528747 v=46
-PAVE tag=final e=43 k=4 t=0.997189643 v=47
-PAVE tag=final e=43 k=5 t=1 v=42
-PB tag=final e=43 k=0 orig=43 t0=0 t1=0.00281035716 v1=41 v2=44 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=43 k=1 orig=43 t0=0.00281035716 t1=0.0404712529 v1=44 v2=45 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=43 k=2 orig=43 t0=0.0404712529 t1=0.959528747 v1=45 v2=46 edge=48 etol=1e-07 cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=43 k=3 orig=43 t0=0.959528747 t1=0.997189643 v1=46 v2=47 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PB tag=final e=43 k=4 orig=43 t0=0.997189643 t1=1 v1=47 v2=42 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
-PAVE tag=final e=48 k=0 t=0.0404712529 v=45
-PAVE tag=final e=48 k=1 t=0.959528747 v=46
-PB tag=final e=48 k=0 orig=48 t0=0.0404712529 t1=0.959528747 v1=45 v2=46 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PAVE tag=final e=25 k=1 t=1 v=24
+PB tag=final e=25 k=0 orig=25 t0=0 t1=1 v1=24 v2=24 edge=26 etol=1e-07 cb=-1 split=1 splittable=0 shrunk=-
+PAVE tag=final e=26 k=0 t=0 v=24
+PAVE tag=final e=26 k=1 t=1 v=24
+PB tag=final e=26 k=0 orig=26 t0=0 t1=1 v1=24 v2=24 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PAVE tag=final e=29 k=0 t=0 v=27
+PAVE tag=final e=29 k=1 t=0.287831686 v=30
+PAVE tag=final e=29 k=2 t=6.02553463 v=31
+PAVE tag=final e=29 k=3 t=6.31336631 v=28
+PB tag=final e=29 k=0 orig=29 t0=0 t1=0.287831686 v1=27 v2=30 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=29 k=1 orig=29 t0=0.287831686 t1=6.02553463 v1=30 v2=31 edge=32 etol=1e-07 cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=29 k=2 orig=29 t0=6.02553463 t1=6.31336631 v1=31 v2=28 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PAVE tag=final e=32 k=0 t=0.287831686 v=30
+PAVE tag=final e=32 k=1 t=6.02553463 v=31
+PB tag=final e=32 k=0 orig=32 t0=0.287831686 t1=6.02553463 v1=30 v2=31 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PAVE tag=final e=35 k=0 t=0 v=33
+PAVE tag=final e=35 k=1 t=2.27144217 v=36
+PAVE tag=final e=35 k=2 t=4.54288434 v=34
+PB tag=final e=35 k=0 orig=35 t0=0 t1=2.27144217 v1=33 v2=36 edge=37 etol=1e-07 cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=35 k=1 orig=35 t0=2.27144217 t1=4.54288434 v1=36 v2=34 edge=38 etol=1e-07 cb=-1 split=1 splittable=0 shrunk=-
+PAVE tag=final e=37 k=0 t=0 v=33
+PAVE tag=final e=37 k=1 t=2.27144217 v=36
+PB tag=final e=37 k=0 orig=37 t0=0 t1=2.27144217 v1=33 v2=36 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PAVE tag=final e=38 k=0 t=2.27144217 v=36
+PAVE tag=final e=38 k=1 t=4.54288434 v=34
+PB tag=final e=38 k=0 orig=38 t0=2.27144217 t1=4.54288434 v1=36 v2=34 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PAVE tag=final e=41 k=0 t=0 v=39
+PAVE tag=final e=41 k=1 t=0.00281035716 v=42
+PAVE tag=final e=41 k=2 t=0.0404712529 v=43
+PAVE tag=final e=41 k=3 t=0.959528747 v=44
+PAVE tag=final e=41 k=4 t=0.997189643 v=45
+PAVE tag=final e=41 k=5 t=1 v=40
+PB tag=final e=41 k=0 orig=41 t0=0 t1=0.00281035716 v1=39 v2=42 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=41 k=1 orig=41 t0=0.00281035716 t1=0.0404712529 v1=42 v2=43 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=41 k=2 orig=41 t0=0.0404712529 t1=0.959528747 v1=43 v2=44 edge=46 etol=1e-07 cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=41 k=3 orig=41 t0=0.959528747 t1=0.997189643 v1=44 v2=45 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PB tag=final e=41 k=4 orig=41 t0=0.997189643 t1=1 v1=45 v2=40 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
+PAVE tag=final e=46 k=0 t=0.0404712529 v=43
+PAVE tag=final e=46 k=1 t=0.959528747 v=44
+PB tag=final e=46 k=0 orig=46 t0=0.0404712529 t1=0.959528747 v1=43 v2=44 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
 IFF tag=final i1=5 i2=13 tangent=0 ncurves=3 npoints=0
 SEC tag=final f1=5 f2=13 c=0 type=BSpline geom=NurbsCurve t0=0 t1=1 len=3.0344772 tol=1e-07 tantol=1e-07 p0=-0.0197655823,-1.93501408,-2.33778756 p1=1.60118855,-6.77988595e-07,-1.50297138 c2d1=1 c2d2=1 npb=1 box=-0.0197655823,-1.93501408,-2.33778756;1.60118855,-6.77988595e-07,-1.43997731 closed=0 dev1=8.89719899e-09 dev2=1.18788329e-08 carrier=18
-SEC2D tag=final f1=5 f2=13 c=0 face=5 umin=2.99279255 umax=3.9999997 vmin=0.0324424887 vmax=0.21203325 s=2.99279255:0.0324424887|3.39808839:0.211010202|3.9999997:0.199405725
-SEC2D tag=final f1=5 f2=13 c=0 face=13 umin=3.16705781 umax=3.99999965 vmin=1.66071079e-05 vmax=0.322733102 s=3.17251402:1.66071079e-05|3.34619634:0.253285594|3.99999965:0.322733102
-SECPB tag=final f1=5 f2=13 c=0 k=0 t0=0 t1=1 v1=16 v2=17 edge=19 etol=1e-07 len=3.0344772
+SEC2D tag=final f1=5 f2=13 c=0 face=5 umin=2.99279255 umax=3.9999997 vmin=0.0324424887 vmax=0.21203337 s=2.99279255:0.0324424887|3.3390154:0.207394598|3.9999997:0.199405725
+SEC2D tag=final f1=5 f2=13 c=0 face=13 umin=3.16705778 umax=3.99999965 vmin=1.66071079e-05 vmax=0.322733102 s=3.17251402:1.66071079e-05|3.29603251:0.23599007|3.99999965:0.322733102
+SECPB tag=final f1=5 f2=13 c=0 k=0 t0=0 t1=1 v1=16 v2=47 edge=19 etol=1e-07 len=3.0344772
 SEC tag=final f1=5 f2=13 c=1 type=BSpline geom=NurbsCurve t0=0 t1=1 len=3.03454074 tol=1e-07 tantol=1e-07 p0=1.60118855,9.46855767e-07,-1.50297138 p1=-0.0197907633,1.93503563,-2.33784208 c2d1=1 c2d2=1 npb=1 box=-0.0197907633,9.46855767e-07,-2.33784208;1.60118855,1.93503563,-1.43997704 closed=0 dev1=9.12906292e-09 dev2=9.14195659e-08 carrier=22
-SEC2D tag=final f1=5 f2=13 c=1 face=5 umin=4.18144416e-07 umax=1.00721653 vmin=0.0324315843 vmax=0.212033246 s=4.18144416e-07:0.199405725|0.601923895:0.211009758|1.00721653:0.0324315843
-SEC2D tag=final f1=5 f2=13 c=1 face=13 umin=4.94286698e-07 umax=0.832942192 vmin=4.79288554e-06 vmax=0.322733102 s=4.94286698e-07:0.322733102|0.653814594:0.253282305|0.827484406:4.79288554e-06
-SECPB tag=final f1=5 f2=13 c=1 k=0 t0=0 t1=1 v1=20 v2=21 edge=23 etol=1e-07 len=3.03454074
-SEC tag=final f1=5 f2=13 c=2 type=BSpline geom=NurbsCurve t0=0 t1=1 len=7.07255307 tol=1e-07 tantol=1e-07 p0=0.648235943,-2.94506537e-06,0.879410144 p1=0.648235943,-2.94506537e-06,0.879410144 c2d1=1 c2d2=1 npb=2 box=-1.10787904,-1.09446219,-0.331016394;0.648235943,1.09446255,0.879410144 closed=1 dev1=1.618867e-08 dev2=1.27959421e-08 carrier=25
-SEC2D tag=final f1=5 f2=13 c=2 face=5 umin=-3.21252432e-06 umax=3.99999679 vmin=0.433433215 vmax=0.675882029 s=3.99999679:0.675882029|1.9999983:0.44606048|-3.21252432e-06:0.675882029
-SEC2D tag=final f1=5 f2=13 c=2 face=13 umin=1.37684078 umax=2.6231592 vmin=0.214009382 vmax=0.603721408 s=2.00000263:0.603721408|1.9999988:0.214009382|2.00000263:0.603721408
-SECPB tag=final f1=5 f2=13 c=2 k=0 t0=0 t1=0.999999584 v1=24 v2=26 edge=27 etol=1e-07 len=7.07255013
-SECPB tag=final f1=5 f2=13 c=2 k=1 t0=0.999999584 t1=1 v1=26 v2=24 edge=28 etol=1e-07 len=2.94506537e-06
+SEC2D tag=final f1=5 f2=13 c=1 face=5 umin=4.18144416e-07 umax=1.00721653 vmin=0.0324315843 vmax=0.21203337 s=4.18144416e-07:0.199405725|0.542455013:0.212032499|1.00721653:0.0324315843
+SEC2D tag=final f1=5 f2=13 c=1 face=13 umin=4.94286698e-07 umax=0.83294222 vmin=4.79288554e-06 vmax=0.322733102 s=4.94286698e-07:0.322733102|0.598814657:0.267932232|0.827484406:4.79288554e-06
+SECPB tag=final f1=5 f2=13 c=1 k=0 t0=0 t1=1 v1=47 v2=21 edge=23 etol=1e-07 len=3.03454074
+SEC tag=final f1=5 f2=13 c=2 type=BSpline geom=NurbsCurve t0=0 t1=1 len=7.07255307 tol=1e-07 tantol=1e-07 p0=0.648235943,-2.94506537e-06,0.879410144 p1=0.648235943,-2.94506537e-06,0.879410144 c2d1=1 c2d2=1 npb=1 box=-1.10787904,-1.09446219,-0.331016394;0.648235943,1.09446255,0.879410144 closed=1 dev1=1.61881856e-08 dev2=1.27955558e-08 carrier=25
+SEC2D tag=final f1=5 f2=13 c=2 face=5 umin=-3.21252432e-06 umax=3.99999679 vmin=0.433432835 vmax=0.675882029 s=3.99999679:0.675882029|2.38505907:0.439976891|-3.21252432e-06:0.675882029
+SEC2D tag=final f1=5 f2=13 c=2 face=13 umin=1.37684037 umax=2.62315962 vmin=0.214009382 vmax=0.603721408 s=2.00000263:0.603721408|2.27703415:0.229749023|2.00000263:0.603721408
+SECPB tag=final f1=5 f2=13 c=2 k=0 t0=0 t1=1 v1=24 v2=24 edge=26 etol=1e-07 len=7.07255307
 IFF tag=final i1=5 i2=14 tangent=0 ncurves=1 npoints=0
-SEC tag=final f1=5 f2=14 c=0 type=BSpline geom=NurbsCurve t0=0 t1=6.31336631 len=6.31338057 tol=1e-07 tantol=1e-07 p0=0.211753028,-1.98875857,-2.5 p1=0.211753028,1.98875857,-2.5 c2d1=1 c2d2=1 npb=1 box=-1.51606691,-1.98875857,-2.5;0.211753028,1.98875857,-1.29016746 closed=0 dev1=7.25427066e-08 dev2=0 carrier=31
-SEC2D tag=final f1=5 f2=14 c=0 face=5 umin=0.926538393 umax=3.07346161 vmin=0 vmax=0.241966514 s=3.07346161:0|2:0.241966514|0.926538393:0
-SEC2D tag=final f1=5 f2=14 c=0 face=14 umin=0.169742076 umax=0.697061743 vmin=0.00281035716 vmax=0.997189643 s=0.697061743:0.00281035716|0.169742076:0.5|0.697061743:0.997189643
-SECPB tag=final f1=5 f2=14 c=0 k=0 t0=0.287831686 t1=6.02553463 v1=32 v2=33 edge=34 etol=1e-07 len=5.7377161
+SEC tag=final f1=5 f2=14 c=0 type=BSpline geom=NurbsCurve t0=0 t1=6.31336631 len=6.31338057 tol=1e-07 tantol=1e-07 p0=0.211753028,-1.98875857,-2.5 p1=0.211753028,1.98875857,-2.5 c2d1=1 c2d2=1 npb=1 box=-1.51606691,-1.98875857,-2.5;0.211753028,1.98875857,-1.29016746 closed=0 dev1=7.25427066e-08 dev2=0 carrier=29
+SEC2D tag=final f1=5 f2=14 c=0 face=5 umin=0.926538393 umax=3.07346161 vmin=0 vmax=0.241966514 s=3.07346161:0|2.13095548:0.238906689|0.926538393:0
+SEC2D tag=final f1=5 f2=14 c=0 face=14 umin=0.169742076 umax=0.697061743 vmin=0.00281035716 vmax=0.997189643 s=0.697061743:0.00281035716|0.176410372:0.427385413|0.697061743:0.997189643
+SECPB tag=final f1=5 f2=14 c=0 k=0 t0=0.287831686 t1=6.02553463 v1=30 v2=31 edge=32 etol=1e-07 len=5.7377161
 IFF tag=final i1=6 i2=13 tangent=0 ncurves=1 npoints=0
-SEC tag=final f1=6 f2=13 c=0 type=BSpline geom=NurbsCurve t0=0 t1=4.54288434 len=4.54289546 tol=1e-07 tantol=1e-07 p0=0.211753028,1.83811499,-2.5 p1=0.211753028,-1.83811499,-2.5 c2d1=1 c2d2=1 npb=2 box=0.211753028,-1.83811499,-2.5;1.36736341,1.83811499,-2.5 closed=0 dev1=0 dev2=6.36820036e-08 carrier=37
-SEC2D tag=final f1=6 f2=13 c=0 face=6 umin=0.552938257 umax=0.841840852 vmin=0.0404712529 vmax=0.959528747 s=0.552938257:0.959528747|0.841840852:0.5|0.552938257:0.0404712529
-SEC2D tag=final f1=6 f2=13 c=0 face=13 umin=-0.73232847 umax=0.73232847 vmin=0 vmax=0.132566182 s=0.73232847:0|0:0.132566182|-0.73232847:0
-SECPB tag=final f1=6 f2=13 c=0 k=0 t0=0 t1=2.27144217 v1=50 v2=38 edge=39 etol=1e-07 len=2.27144773
-SECPB tag=final f1=6 f2=13 c=0 k=1 t0=2.27144217 t1=4.54288434 v1=38 v2=49 edge=40 etol=1e-07 len=2.27144773
+SEC tag=final f1=6 f2=13 c=0 type=BSpline geom=NurbsCurve t0=0 t1=4.54288434 len=4.54289546 tol=1e-07 tantol=1e-07 p0=0.211753028,1.83811499,-2.5 p1=0.211753028,-1.83811499,-2.5 c2d1=1 c2d2=1 npb=2 box=0.211753028,-1.83811499,-2.5;1.36736341,1.83811499,-2.5 closed=0 dev1=0 dev2=6.36820036e-08 carrier=35
+SEC2D tag=final f1=6 f2=13 c=0 face=6 umin=0.552938257 umax=0.841840852 vmin=0.0404712529 vmax=0.959528747 s=0.552938257:0.959528747|0.840058058:0.5402449|0.552938257:0.0404712529
+SEC2D tag=final f1=6 f2=13 c=0 face=13 umin=-0.73232847 umax=0.73232847 vmin=0 vmax=0.132566182 s=0.73232847:0|0.0644524377:0.131748117|-0.73232847:0
+SECPB tag=final f1=6 f2=13 c=0 k=0 t0=0 t1=2.27144217 v1=49 v2=36 edge=37 etol=1e-07 len=2.27144773
+SECPB tag=final f1=6 f2=13 c=0 k=1 t0=2.27144217 t1=4.54288434 v1=36 v2=48 edge=38 etol=1e-07 len=2.27144773
 IFF tag=final i1=6 i2=14 tangent=0 ncurves=1 npoints=0
-SEC tag=final f1=6 f2=14 c=0 type=Line geom=NurbsCurve t0=0 t1=1 len=4 tol=1e-07 tantol=1e-07 p0=0.211753028,-2,-2.5 p1=0.211753028,2,-2.5 c2d1=1 c2d2=1 npb=1 box=0.211753028,-2,-2.5;0.211753028,2,-2.5 closed=0 dev1=0 dev2=0 carrier=43
+SEC tag=final f1=6 f2=14 c=0 type=Line geom=NurbsCurve t0=0 t1=1 len=4 tol=1e-07 tantol=1e-07 p0=0.211753028,-2,-2.5 p1=0.211753028,2,-2.5 c2d1=1 c2d2=1 npb=1 box=0.211753028,-2,-2.5;0.211753028,2,-2.5 closed=0 dev1=0 dev2=0 carrier=41
 SEC2D tag=final f1=6 f2=14 c=0 face=6 umin=0.552938257 umax=0.552938257 vmin=0 vmax=1 s=0.552938257:0|0.552938257:0.5|0.552938257:1
 SEC2D tag=final f1=6 f2=14 c=0 face=14 umin=0.697061743 umax=0.697061743 vmin=0 vmax=1 s=0.697061743:0|0.697061743:0.5|0.697061743:1
-SECPB tag=final f1=6 f2=14 c=0 k=0 t0=0.0404712529 t1=0.959528747 v1=49 v2=50 edge=48 etol=1e-07 len=3.67622998
-SECSTAT pairs=4 ok=4 tangent=0 empty=0 nogeom=0 failed=0 curves=6 blocks=14 kept=8 dropped=6 trim_paves=6 seam_paves=2 bound_paves=12 section_edges=8 fused_groups=2 common_blocks=0 max_dev=9.14195659e-08 okpairs=4
+SECPB tag=final f1=6 f2=14 c=0 k=0 t0=0.0404712529 t1=0.959528747 v1=48 v2=49 edge=46 etol=1e-07 len=3.67622998
+SECSTAT pairs=4 ok=4 tangent=0 empty=0 nogeom=0 failed=0 curves=6 blocks=13 kept=7 dropped=6 trim_paves=6 seam_paves=2 bound_paves=12 section_edges=7 fused_groups=3 common_blocks=0 max_dev=9.14195659e-08 okpairs=4
 BOP errors=1 warnings=0
 BOPERR v2-front-refused(delegated-to-kernel)
-RES type=SOLID nsolid=0 nshell=11 nface=11 nedge=21 nvert=17 naked=21 ndegen=0 vol=29.6098993 area=66.4739647 valid=0 closure=0.0850991025 nonmanifold=0 seam=0
+RES type=SOLID nsolid=0 nshell=11 nface=11 nedge=21 nvert=17 naked=21 ndegen=0 vol=29.6969948 area=66.7587752 valid=0 closure=0.0871231428 nonmanifold=0 seam=0
 RESSOLID i=1 nface=-1 vol=0.889742225 ori=FWD
-RESSOLID i=2 nface=-1 vol=1.26119117 ori=FWD
+RESSOLID i=2 nface=-1 vol=1.35056166 ori=FWD
 RESSOLID i=3 nface=-1 vol=6.18593952 ori=FWD
 RESSOLID i=4 nface=-1 vol=0.889742606 ori=FWD
 RESSOLID i=5 nface=-1 vol=2.48987991 ori=FWD
 RESSOLID i=6 nface=-1 vol=2.03414179 ori=FWD
 RESSOLID i=7 nface=-1 vol=5.87352552 ori=FWD
-RESSOLID i=8 nface=-1 vol=1.33980472 ori=FWD
+RESSOLID i=8 nface=-1 vol=1.33752974 ori=FWD
 RESSOLID i=9 nface=-1 vol=1.9714933 ori=FWD
 RESSOLID i=10 nface=-1 vol=0.605211747 ori=FWD
 RESSOLID i=11 nface=-1 vol=6.06922676 ori=FWD
@@ -295,7 +284,7 @@ RESSHELL i=10 nface=1 closed=0 faces=10
 RESSHELL i=11 nface=1 closed=0 faces=11
 RESFACE i=1 surf=Curved u0=0 u1=4 v0=0 v1=1 ori=FWD tol=1e-07 area=2.87484511 nwire=1 nedge=1 nseam=0
 RESFEDGE f=1 w=0 e=1 ori=FWD seam=0 degen=0 pc=1 uv0=- uv1=-
-RESFACE i=2 surf=Curved u0=0 u1=4 v0=0 v1=1 ori=FWD tol=1e-07 area=4.07503339 nwire=1 nedge=2 nseam=0
+RESFACE i=2 surf=Curved u0=0 u1=4 v0=0 v1=1 ori=FWD tol=1e-07 area=4.36379826 nwire=1 nedge=2 nseam=0
 RESFEDGE f=2 w=0 e=2 ori=FWD seam=0 degen=0 pc=1 uv0=- uv1=-
 RESFEDGE f=2 w=0 e=21 ori=FWD seam=0 degen=0 pc=1 uv0=- uv1=-
 RESFACE i=3 surf=Curved u0=0 u1=4 v0=0 v1=1 ori=FWD tol=1e-07 area=19.9873823 nwire=1 nedge=1 nseam=0
@@ -315,7 +304,7 @@ RESFEDGE f=7 w=0 e=11 ori=FWD seam=0 degen=0 pc=1 uv0=- uv1=-
 RESFEDGE f=7 w=0 e=12 ori=FWD seam=0 degen=0 pc=1 uv0=- uv1=-
 RESFEDGE f=7 w=0 e=13 ori=FWD seam=0 degen=0 pc=1 uv0=- uv1=-
 RESFEDGE f=7 w=0 e=14 ori=FWD seam=0 degen=0 pc=1 uv0=- uv1=-
-RESFACE i=8 surf=Curved u0=0 u1=4 v0=0 v1=1 ori=REV tol=1e-07 area=2.3823381 nwire=1 nedge=1 nseam=0
+RESFACE i=8 surf=Curved u0=0 u1=4 v0=0 v1=1 ori=REV tol=1e-07 area=2.37838376 nwire=1 nedge=1 nseam=0
 RESFEDGE f=8 w=0 e=15 ori=FWD seam=0 degen=0 pc=1 uv0=- uv1=-
 RESFACE i=9 surf=Curved u0=0 u1=4 v0=0 v1=1 ori=REV tol=1e-07 area=3.43405388 nwire=1 nedge=1 nseam=0
 RESFEDGE f=9 w=0 e=16 ori=FWD seam=0 degen=0 pc=1 uv0=- uv1=-
@@ -363,4 +352,4 @@ RESVERT i=14 p=-0.0198007233,1.93504442,-2.33786432 tol=1e-07
 RESVERT i=15 p=-0.0198007233,-1.93504442,-2.33786432 tol=1e-07
 RESVERT i=16 p=-0.0198007233,-1.93504442,-2.33786432 tol=1e-07
 RESVERT i=17 p=-0.0198007233,1.93504442,-2.33786432 tol=1e-07
-SUMMARY name=cone_cone_p2_cut op=cut dsshapes=51 dssource=16 newverts=21 sd=4 pb=43 cb=0 faceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 seccurves=6 secpoints=0 fftangent=0 secpb=8 res_solid=0 res_shell=11 res_face=11 res_edge=21 res_vert=17 res_naked=21 res_degen=0 res_vol=29.6098993 res_area=66.4739647 res_valid=0 pf_err=0 bop_err=1
+SUMMARY name=cone_cone_p2_cut op=cut dsshapes=50 dssource=16 newverts=21 sd=6 pb=38 cb=0 faceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 seccurves=6 secpoints=0 fftangent=0 secpb=7 res_solid=0 res_shell=11 res_face=11 res_edge=21 res_vert=17 res_naked=21 res_degen=0 res_vol=29.6969948 res_area=66.7587752 res_valid=0 pf_err=0 bop_err=1

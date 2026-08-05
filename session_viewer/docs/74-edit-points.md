@@ -58,24 +58,97 @@ grid of on-surface handles; start with curves, the surface loop is the same code
 
 ## Step 2 — the refit: `src/app/scene.rs`
 
+The cache type first — `R` depends only on knots/degree, so one inversion serves every drag. The
+matrix builds **numerically**: displace CV `j` by a unit (homogeneous, weight untouched),
+re-evaluate at every Greville parameter — column `j` falls out, no basis-function internals needed,
+and it matches the analytic matrix to ~1e-14. Add to `app/scene.rs`:
+
 ```rust
-    /// Move edit point k of `nc` to `target`: solve R · P' = E' for the new CVs.
-    /// R[i][j] = basis_j(greville_i) — build via the kernel's basis evaluation (or numerically:
-    /// column j = curve with CV_j displaced by unit — cv_count evaluations, done ONCE per curve
-    /// and cached; the numeric route needs no access to internals and matches to 1e-14).
+/// Per-curve R⁻¹ cache for edit-point drags (R[i][j] = basis_j(greville_i)).
+#[derive(Default)]
+pub struct GrevilleCache {
+    map: std::collections::HashMap<String, Vec<Vec<f64>>>,   // guid → R⁻¹, dense cv_count²
+}
+
+impl GrevilleCache {
+    /// R⁻¹ for `nc`, built on first use (numeric column probe, then a dense inverse).
+    pub fn r_inverse(&mut self, guid: &str, nc: &NurbsCurve) -> &Vec<Vec<f64>> {
+        if !self.map.contains_key(guid) {
+            let n = nc.cv_count();
+            let ts = nc.get_greville_abcissae();
+            let base: Vec<Point> = ts.iter().map(|&t| nc.point_at(t)).collect();
+            let mut r = vec![vec![0.0; n]; n];
+            let mut probe = nc.duplicate();
+            for j in 0..n {
+                let Some((x, y, z, w)) = probe.get_cv_4d(j) else { continue };
+                probe.set_cv_4d(j, x + w, y, z, w);           // +1 in euclidean x (homogeneous!)
+                for i in 0..n {
+                    r[i][j] = probe.point_at(ts[i])[0] - base[i][0];
+                }
+                probe.set_cv_4d(j, x, y, z, w);               // restore
+            }
+            self.map.insert(guid.to_string(), invert(r));
+        }
+        &self.map[guid]
+    }
+    pub fn invalidate(&mut self, guid: &str) { self.map.remove(guid); }
+}
+
+/// Dense Gauss–Jordan inverse with partial pivoting — cv_count is dozens, not thousands.
+fn invert(mut a: Vec<Vec<f64>>) -> Vec<Vec<f64>> {
+    let n = a.len();
+    let mut inv: Vec<Vec<f64>> = (0..n)
+        .map(|i| { let mut row = vec![0.0; n]; row[i] = 1.0; row })
+        .collect();
+    for col in 0..n {
+        let piv = (col..n).max_by(|&r1, &r2|
+            a[r1][col].abs().partial_cmp(&a[r2][col].abs()).unwrap()).unwrap();
+        a.swap(col, piv);
+        inv.swap(col, piv);
+        let d = a[col][col];
+        for k in 0..n { a[col][k] /= d; inv[col][k] /= d; }
+        for row in 0..n {
+            if row == col { continue; }
+            let f = a[row][col];
+            if f == 0.0 { continue; }
+            for k in 0..n {
+                a[row][k] -= f * a[col][k];
+                inv[row][k] -= f * inv[col][k];
+            }
+        }
+    }
+    inv
+}
+```
+
+`greville_cache: GrevilleCache` is a **new `Scene` field** — add it to `struct Scene` and
+initialize `greville_cache: GrevilleCache::default()` in `Scene::new` (a struct literal, so a
+missing field is **E0063**), like any other cache. Then the refit itself, in `impl Scene`:
+
+```rust
+    /// Move edit point k of curve `guid` to `target`: P' = R⁻¹ · E' per coordinate,
+    /// CVs written back HOMOGENEOUS with their original weights — 73's rule, unchanged.
     pub fn refit_through(&mut self, guid: &str, k: usize, target: &Point) {
-        let (r_inv, mut e) = self.greville_cache.get_or_build(guid);   // R⁻¹ + current edit points
+        let Some(nc) = self.session.objects.nurbscurves.iter_mut()
+            .find(|c| c.guid() == guid) else { return };
+        let ts = nc.get_greville_abcissae();
+        let mut e: Vec<Point> = ts.iter().map(|&t| nc.point_at(t)).collect();
+        if k >= e.len() { return; }
         e[k] = target.clone();
-        let new_cvs = r_inv.apply(&e);                                 // P' = R⁻¹ E', per x/y/z
-        for (j, p) in new_cvs.iter().enumerate() {
-            /* set_cv_4d with original w — 73's move_cv body, looped */
+        let rinv = self.greville_cache.r_inverse(guid, nc);
+        let n = nc.cv_count();
+        for j in 0..n {
+            let Some((_, _, _, w)) = nc.get_cv_4d(j) else { continue };
+            let (mut px, mut py, mut pz) = (0.0, 0.0, 0.0);
+            for i in 0..n {
+                px += rinv[j][i] * e[i][0];
+                py += rinv[j][i] * e[i][1];
+                pz += rinv[j][i] * e[i][2];
+            }
+            nc.set_cv_4d(j, px * w, py * w, pz * w, w);
         }
     }
 ```
-
-`greville_cache` is a **new `Scene` field** — a per-curve cache of `(R⁻¹, edit_points)` (the type owns
-`get_or_build`). Add it to `struct Scene` and initialize it empty in `Scene::new` (a struct literal, so a
-missing field is **E0063**), like any other cache.
 
 Notes that keep this honest: the solve is per-**coordinate** (three right-hand sides, one factored
 matrix); `R` and its factorization cache per curve and invalidate with the tess cache (knots/degree

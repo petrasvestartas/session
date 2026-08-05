@@ -64,8 +64,8 @@ src/engine/pipelines/mod.rs    # thread the instance layout through Pipelines::n
 
 One row per copy: a model matrix (column-major, from `Xform::to_f32()`), a color, and a `flags` word
 reserved for later (selection bit in 45, culled bit in 37). Storage-buffer array elements align to
-16-byte boundaries, so the row pads to **96 bytes** — `bytemuck` checks the size against the WGSL
-struct.
+16-byte boundaries, so the row pads to **96 bytes**, matching the WGSL struct's stride. Add it at the
+very bottom of `gpu.rs`, below `impl Gpu`:
 
 ```rust
 #[repr(C)]
@@ -178,6 +178,11 @@ Thread it through `Pipelines::new` (only the triangle pipeline needs it):
 Replace the three demo meshes with **one** source dodecahedron (uploaded once by `gpu_mesh`) and 100
 instance rows: a centered 10×10 grid of translations, tinted by position so the win is obvious.
 
+In `new()`, delete the lesson-22 mesh block — from `let mut mesh = Mesh::create_box(1000.0, 1000.0,
+1000.0);` down through `let meshes = vec![mesh, flat, smooth];` — **and** the whole lesson-23
+`edge_buffers` block right after it (`let mut edge_buffers: Vec<(wgpu::Buffer, u32)> = Vec::new();`
+through the loop's closing `}`). Put this in their place:
+
 ```rust
 // ONE source mesh; the instance rows place + tint 100 copies of it.
 let mut mesh = Mesh::create_dodecahedron(300.0);
@@ -233,18 +238,35 @@ let instance_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
 });
 ```
 
-Build the pipelines **after** `instance_layout` exists (it's now an argument), and store the new fields
-on `Gpu` (`mesh: Mesh`, `instances: Vec<Instance>`, `instance_bind_group`) in place of
-`meshes`/`edge_buffers`:
+Then three wiring edits:
+
+**4a.** Find `let pipelines = Pipelines::new(&device, config.format, &mvp_layout, &time_layout);`
+and replace with the five-arg call — `instance_layout` must exist first, so if the line currently
+sits above the block you just wrote, move it below:
 
 ```rust
 let pipelines = Pipelines::new(&device, config.format, &mvp_layout, &time_layout, &instance_layout);
 ```
 
+**4b.** In `pub struct Gpu { … }`, replace `pub meshes: Vec<Mesh>,` with:
+
+```rust
+    pub mesh: Mesh,
+    instances: Vec<Instance>,       // non-pub — Instance is a private type
+    pub instance_bind_group: wgpu::BindGroup,
+```
+
+and delete `pub edge_buffers: Vec<(wgpu::Buffer, u32)>,`.
+
+**4c.** In the `Ok(Self { … })` initializer at the end of `new()`, replace `meshes,` with
+`mesh, instances, instance_bind_group,` and delete `edge_buffers,`.
+
 ## Step 5 — draw the field in one call: `src/engine/gpu.rs`
 
-The mesh loop collapses to a single instanced draw: bind the table at group 2, set the one source mesh's
-buffers, pass the instance range `0..100`:
+The mesh loop collapses to a single instanced draw. In `clear()`, find the block from
+`pass.set_pipeline(&self.pipelines.triangle);` through the closing `}` of the lesson-22
+`for mesh in &mut self.meshes { … }` loop and replace it with — bind the table at group 2, set the
+one source mesh's buffers, pass the instance range `0..100`:
 
 ```rust
         // Meshes — ONE draw, N instances (the storage table supplies each copy's model + color)
@@ -260,14 +282,15 @@ buffers, pass the instance range `0..100`:
         draws += 1;
 ```
 
-Delete the old per-mesh and edges loops (edges return in 31); report the instance count as the object
-count so the counter tells the real story:
+Also delete the lesson-23 edges block below it — `pass.set_pipeline(&self.pipelines.edges);` through
+the `for (vbo, count) in &self.edge_buffers { … }` loop (edges return in 31). Then report the
+instance count as the object count so the counter tells the real story:
 
 ```rust
         let objects = self.instances.len() as u32;   // was self.meshes.len()
         self.queue.submit([encoder.finish()]);
         output.present();
-        self.perf.frame(draws, objects);
+        self.performance.frame(draws, objects);
 ```
 
 ## Step 6 — run

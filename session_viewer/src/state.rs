@@ -12,7 +12,11 @@ use crate::app::persistence;
 use crate::engine::performance::now_ms;
 
 // Runtime fetch path — must match an index.html copy-file target (data-target-path + filename).
-const DEMO_SESSION_URL: &str = "session_data/30700_querschnitt_gg.pb";
+const DEMO_SESSION_URLS: &[&str] = &[ 
+    "session_data/30700_querschnitt_gg.pb",
+    "session_data/draw_pj_treppenhaus_a.pb",
+    // …one line per fixture; each must match an index.html copy-file target
+];
 
 pub struct State {
     pub window: Arc<Window>,
@@ -23,15 +27,23 @@ pub struct State {
 impl State {
 
     pub async fn new(window: Arc<Window>) -> anyhow::Result<Self>{
-        let t0 = now_ms();
-        let bytes = persistence::fetch_bytes(DEMO_SESSION_URL).await.unwrap_or_default();
-        let t1 = now_ms();
-        let session = persistence::session_from_bytes(DEMO_SESSION_URL, &bytes);
-        let t2 = now_ms();
-        let gpu = Gpu::new(window.clone(), &session).await?;
-        let t3 = now_ms();
-        log::info!("loaded '{}': {} objects, {} bytes | fetch {:.0}ms · parse {:.0}ms · gpu {:.0}ms · total {:.0}ms",
-            session.name, session.lookup.len(), bytes.len(), t1 - t0, t2 - t1, t3 - t2, t3 - t0);
+        let mut files = Vec::new();
+
+        for url in DEMO_SESSION_URLS{
+        
+            let f0 = now_ms();
+            let bytes = persistence::fetch_bytes(url).await.unwrap_or_default();
+            let f1 = now_ms();
+            let session = persistence::session_from_bytes(url, &bytes);
+            log::info!("loaded '{}': {} objects, {} bytes | fetch {:.0}ms · parse {:.0}ms",
+                session.name, session.lookup.len(), bytes.len(), f1 - f0, now_ms() - f1);
+            if !session.lookup.is_empty(){
+                files.push(Gpu::walk_session(&session)); // failed fetch = skipped file
+            }
+            // `session` + `bytes` DROP here - peak memory holds one parsed file, not all of them
+        }
+
+        let gpu = Gpu::new(window.clone(), &files).await?;
         Ok(Self {window, gpu, camera: Camera::new() })
     }
 

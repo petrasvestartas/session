@@ -36,7 +36,7 @@
 
 ```
 src/engine/gpu/mod.rs   # SectionUniform (4 planes max) + per-frame rebase + upload
-src/shaders/*.wgsl      # triangle/cylinder/sphere/ground fs: the discard line (points live in sphere.wgsl)
+src/shaders/*.wgsl      # triangle/cylinder/sphere/point/ground fs: the discard line
 src/app/scene.rs        # pick filter: reject hits behind active sections
 src/app/commands.rs     # `section` verb: 3 points / wp / off / flip / drag
 src/state.rs            # sections: Vec<Plane> (kernel type) — viewer state, like the camera
@@ -63,8 +63,10 @@ struct SectionUniform {
 ```
 
 ```rust
-    /// Called in clear(), beside the frustum build. `sections` are WORLD planes from State.
-    fn upload_sections(&mut self, sections: &[Plane], origin: &Point) {
+    /// `sections` are WORLD planes from State. Rebase against the same ANCHOR the instance rows
+    /// use (34c) — in State::render(), right after `let anchor = self.gpu.rebase_anchor(&origin);`,
+    /// call `self.gpu.upload_sections(&self.sections, &anchor);`.
+    pub fn upload_sections(&mut self, sections: &[Plane], origin: &Point) {
         let mut u = SectionUniform { planes: [[0.0; 4]; 4], count: sections.len().min(4) as u32,
                                      _pad: [0; 3] };
         for (i, pl) in sections.iter().take(4).enumerate() {
@@ -78,29 +80,60 @@ struct SectionUniform {
     }
 ```
 
-(The buffer + bind group are 07's uniform pattern: `SectionUniform` is its **own** uniform, bound in
-every geometry pipeline at that shader's next free group slot. Don't fold it into the line uniform to
-save a bind group — sectioning has nothing to do with line width; sharing a group-1 *layout* of the same
-shape is fine, but its **data** stays separate, like 32b's `CloudUniform`.)
+The buffer is 07's uniform pattern; `SectionUniform` is its **own** uniform with its own buffer —
+don't fold the data into the line uniform, sectioning has nothing to do with line width. But
+*where* it binds matters: cylinder/sphere/point already use groups 0–3, and WebGPU's default
+`max_bind_groups` is **4** — there is no group 4 to claim. The one group every pipeline shares is
+**group 0 (mvp)** — so the section uniform becomes `@group(0) @binding(1)`, piggybacking on the one
+layout all pipelines already bind. In `Gpu::new`, find the `mvp_layout` creation → add a second
+entry to its `entries` array:
+
+```rust
+            wgpu::BindGroupLayoutEntry {
+                binding: 1,                                    // sections (78) — every shader sees it
+                visibility: wgpu::ShaderStages::FRAGMENT,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false,
+                    min_binding_size: None,
+                },
+                count: None,
+            },
+```
+
+create the buffer just above the `mvp_bind_group` (zeroed = count 0 = sections off):
+
+```rust
+        let section_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("sections"),
+            size: std::mem::size_of::<SectionUniform>() as u64,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+```
+
+and add `wgpu::BindGroupEntry { binding: 1, resource: section_buffer.as_entire_binding() }` to the
+`mvp_bind_group`'s `entries`. (Store `section_buffer` on `Gpu` — `upload_sections` writes it. No
+pipeline gains a layout slot, no pass binds anything new: group 0 was already bound everywhere.)
 
 ## Step 2 — one line per shader: `src/shaders/*.wgsl`
 
-Each geometry fs (`triangle.wgsl` = meshes, `cylinder.wgsl`, `sphere.wgsl` = spheres *and* point
-billboards, and the ground in `grid.wgsl`/`background.wgsl`) gains the loop — first thing in
-`fs_main`, before any lighting. `triangle.wgsl` already carries `world_pos` in `VsOut`
-(`@location(1)`); the shaders that don't yet pass it to the fragment stage (cylinder/sphere) add it
-to `VsOut` — the vs already computes the world position.
+Each geometry fs (`triangle.wgsl` = meshes; `cylinder.wgsl`; `sphere.wgsl` = spheres; `point.wgsl`
+= cloud billboards; `ground.wgsl` = 65's analytic ground, which computes its own `hit`) gains the
+loop — first thing in `fs_main`, before any lighting. The background gradient stays uncut — it's
+sky. `triangle.wgsl` already carries `world_pos` in `VsOut` (`@location(1)`); the shaders that
+don't yet pass it to the fragment stage (cylinder/sphere/point) add it to `VsOut` — the vs already
+computes the world position.
 
-First declare the uniform once per shader, at the next free group slot (in `triangle.wgsl` groups
-0/1/2 are taken, so use group 3 — pick each shader's own next-free slot). Add at the top, beside the
-other `@group` declarations:
+First declare the uniform once per shader — same slot everywhere, because Step 1 put it in the
+shared mvp group. Add at the top of each file, right below its `@group(0) @binding(0) … mvp` line:
 
 ```wgsl
 struct SectionUniform {
     planes: array<vec4<f32>, 4>,   // (n.xyz, d_rebased)
     count: u32,
 };
-@group(3) @binding(0) var<uniform> sec: SectionUniform;
+@group(0) @binding(1) var<uniform> sec: SectionUniform;
 ```
 
 Then, as the first statement in each `fs_main`:
@@ -164,11 +197,64 @@ drag:
         }
 ```
 
-The drag is 54's skeleton pointed at a plane instead of an object: `SectionDrag`'s `on_move` runs
-`closest_param_on_axis(ray, plane.origin, plane.normal)` and translates the plane's origin along its
-normal by `t − t0` — live, `poke()` per move; Enter/click commits, Esc restores the stashed plane.
-No Command/undo: sections are **viewer state like the camera**, not document state — they don't
-save, don't hash, don't undo (Rhino draws the same line).
+`SectionBy3Points` is 75's `Cplane3Points` **verbatim** except its last two lines — copy that
+struct+impl under a new name and replace the two `state.work_plane = …; state.on_cplane_changed();`
+lines of `feed_point` with:
+
+```rust
+        state.sections.push(Plane::from_axes(o, x, y, z));
+        state.poke();
+        return CmdStep::Done("section set".into());
+```
+
+The drag is 54's skeleton pointed at a plane instead of an object — live `poke()` per move,
+Enter/Esc ends it (no Command/undo: sections are **viewer state like the camera**, not document
+state — they don't save, don't hash, don't undo; Rhino draws the same line):
+
+```rust
+pub struct SectionDrag {
+    t0: Option<f64>,             // axis param at the first on_move (lazy press reference)
+}
+
+impl SectionDrag {
+    pub fn start(sections: &[Plane]) -> (Box<dyn ActiveCommand>, GetState) {
+        let prompt = if sections.is_empty() { "section drag: no section set".into() }
+                     else { "section drag: move the mouse, Enter to accept".into() };
+        (Box::new(SectionDrag { t0: None }), GetState::WaitingPoint { prompt })
+    }
+}
+
+impl ActiveCommand for SectionDrag {
+    fn on_move(&mut self, state: &mut crate::state::State, _p: Point) {
+        let Some(pl) = state.sections.last() else { return };
+        let (o, n) = (pl.origin(), pl.z_axis());
+        let Some(ray) = state.cursor_ray() else { return };
+        let Some(t) = crate::engine::gumball::closest_param_on_axis(&ray, &o, &n) else { return };
+        let t0 = *self.t0.get_or_insert(t);
+        let dt = t - t0;
+        if dt.abs() > 0.0 {
+            let moved = Plane::from_point_normal(o + n.clone() * dt, n);
+            *state.sections.last_mut().unwrap() = moved;
+            self.t0 = Some(t);                       // incremental: origin moved, re-anchor
+            state.poke();
+        }
+    }
+    fn feed_point(&mut self, _state: &mut crate::state::State, _p: Point) -> CmdStep {
+        CmdStep::Done("section placed".into())       // a click accepts, like Enter
+    }
+    fn feed_text(&mut self, _state: &mut crate::state::State, _s: &str) -> CmdStep {
+        CmdStep::Done("section placed".into())       // Enter on the empty CLI accepts
+    }
+    fn back(&mut self) -> CmdStep { CmdStep::Cancel }
+    fn prompt(&self) -> GetState {
+        GetState::WaitingPoint { prompt: "section drag: move the mouse, Enter to accept".into() }
+    }
+}
+```
+
+(Both commands live in `commands.rs` beside 75's; `state.cursor_ray()` goes `pub(crate)` so they
+can call it — one-word edit in `state.rs` (54). `Plane::from_point_normal(point, normal)` and
+`o + n * dt` (`Point + Vector`) are verified kernel ops.)
 
 ## Step 5 — verify
 

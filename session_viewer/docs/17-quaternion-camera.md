@@ -40,7 +40,8 @@ Bring in `Quaternion`, replacing `yaw`/`pitch`. **Store state in f64** as plain 
 `[f32;3]` (casts everywhere), not `Point` (a **document object**: `guid`, `name: String`, colour,
 width, allocated per `new()`, vs. a camera eye's three numbers). `[f64;3]` is `Copy`, zero-alloc,
 default `[0.0; 3]`; it wraps into `Point`/`Vector` only at `look_at` (Step 5). `world_up` is the `+Z`
-axis, `position`/`up` *derived*, **no `last_right`**:
+axis, `position`/`up` *derived*, **no `last_right`**. Replace the `use session_rust::…` line, the
+`Camera` struct, and `new()` with:
 
 ```rust
 use session_rust::{Point, Quaternion, Vector, Xform};
@@ -84,7 +85,7 @@ impl Camera {
 
 Already a complete frame, so this is tiny: apply it to the basis vectors, place the eye behind the
 target along `fwd`. `rotate_vector` returns a `Vector`; read its components in — no casts, no
-per-frame `Point` alloc:
+per-frame `Point` alloc. A new method — add it inside `impl Camera`:
 
 ```rust
     /// Recompute `position` and `up` from the orientation. Call after any change to
@@ -103,7 +104,7 @@ per-frame `Point` alloc:
 
 Yaw about `world_up`, pitch about the camera's own right (`orientation·[1,0,0]`), composed onto the
 current orientation. Only `dx`/`dy` still cast (stay `f32`; signature and `lib.rs` don't change). No
-clamp, no pole code:
+clamp, no pole code. Replace `orbit` with:
 
 ```rust
     pub fn orbit(&mut self, dx: f32, dy: f32) {
@@ -120,7 +121,7 @@ clamp, no pole code:
 ## Step 4 — pan & zoom follow the derived frame
 
 `pan` slides `target` along the camera's right (`orientation·[1,0,0]`) and cached `up`; `zoom` scales
-`distance`. Both refresh the derived frame afterward:
+`distance`. Both refresh the derived frame afterward. Replace both methods with:
 
 ```rust
     pub fn pan(&mut self, dx: f32, dy: f32) {
@@ -140,11 +141,20 @@ clamp, no pole code:
 
 ## Step 5 — `view_proj` reads the derived eye/up
 
-Projection (lesson 16) is unchanged except `self.distance` is `f64` now. **One boundary**: `[f64;3]`
-wraps into `Point`/`Vector` here for `look_at` — f32 cast stays downstream at the GPU upload:
+Projection (lesson 16) is unchanged except `self.distance` is `f64` now (the `as f64` cast goes).
+**One boundary**: `[f64;3]` wraps into `Point`/`Vector` here for `look_at` — f32 cast stays
+downstream at the GPU upload. Replace the whole `view_proj` with:
 
 ```rust
-        // … perspective / ortho projection exactly as lesson 16 (use `self.distance` directly) …
+    pub fn view_proj(&self, aspect: f64) -> Xform {
+        let dist = self.distance;                 // f64 already — no cast
+        let projection = if self.perspective {
+            Xform::perspective(f64::to_radians(60.0), aspect, dist * 0.001, dist * 100.0)
+        } else {
+            let h = dist * f64::to_radians(30.0).tan();
+            let r = dist * 100.0;
+            Xform::orthographic(-aspect * h, aspect * h, -h, h, -r, r)
+        };
 
         let eye    = Point::new(self.position[0], self.position[1], self.position[2]);
         let target = Point::new(self.target[0],   self.target[1],   self.target[2]);
@@ -154,12 +164,14 @@ wraps into `Point`/`Vector` here for `look_at` — f32 cast stays downstream at 
         let s = self.unit.to_meters();
         let scale = Xform::scale_xyz(s, s, s);
         projection * view * scale     // Xform stays f64; the f32 cast is the GPU upload, downstream
+    }
 ```
 
 ## Step 6 — named views are single quaternions: `set_view`
 
 Each view is one `from_axis_angle` rotating the default `[0,−d,0]` offset onto the right axis. `up`
-reads straight from the quaternion, so every view comes out upright **with no special-casing**:
+reads straight from the quaternion, so every view comes out upright **with no special-casing**.
+Replace `set_view` with:
 
 ```rust
     pub fn set_view(&mut self, view: View) {

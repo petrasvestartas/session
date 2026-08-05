@@ -63,7 +63,7 @@ pub struct Gpu {
 impl Gpu {
     /// Set up the five wgpu objects, in order: Instance → Surface → Adapter → Device + Queue → configure.
     pub async fn new(
-        window: std::sync::Arc<winit::window::Window>,
+        window: std::sync::Arc<winit::window::Window>, 
         session: &session_rust::Session) -> anyhow::Result<Self> {
         
 
@@ -183,10 +183,12 @@ impl Gpu {
         let mut glyphs: Vec<GlyphPoint> = Vec::new();
         let mut objects_base: Vec<(Xform, [f32; 4])> = Vec::with_capacity(session.lookup.len());
 
-        // Each object's placement lives in its xform (kernel convention) - `to_render()`/
-        // `start()`/`get_points()` read stored coordinates and ignore it, so the xform IS the
-        // instance model. `ri` is the row in objects_base, not the lookup index - skipped
-        // variants (Plane/OBB/...) leave no hole.
+        // Each object's placement lives in its xform - `to_render()` reads the stored vertices
+        // and ignores the xform, so the xform is  the instance model
+        // (identity for standalone lines/points, whose segment/glyph coordinates are already world).
+        // objects_base keeps the true placement
+        // `ri` is the row in objects_base, not the lookup index - so skipped variants (Plane/OBB)
+
         for geom in session.lookup.values() {
             let ri = objects_base.len() as u32;
             match geom{
@@ -211,7 +213,7 @@ impl Gpu {
                     objects_base.push((p.xform.clone(), p.pointcolor.to_f32()));
                     glyphs.push(point_to_glyph(p, ri));
                 }
-                // Later lessons - the match must stay exhaustive over all 11 variants
+                // Later lessons - the matsch must stay exhaustive over all 11 variants
                 Geometry::Plane(_) |
                 Geometry::OBB(_) |
                 Geometry::PointCloud(_) |
@@ -758,7 +760,7 @@ struct CylinderSegment{
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 struct LineUniform{
     thickness: f32, // on-screwwn width, px
-    proj_y: f32, // vertical projection scale x unit scale
+    proj_y: f32, // vertical projection scale x unit scale 
     ortho_h: f32, // ortho world half.heigh x unit scale
     vp_h: f32, // framebuffer height, px
 } // 16 B - one vec4, no padding

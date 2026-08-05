@@ -23,7 +23,7 @@
     "line": 7,
     "passed": true,
     "test_name": "Constructor",
-    "time_ms": 0.039
+    "time_ms": 0.045
   },
   {
     "checks": [
@@ -49,7 +49,7 @@
     "line": 19,
     "passed": true,
     "test_name": "Add Point",
-    "time_ms": 0.033
+    "time_ms": 0.02
   },
   {
     "checks": [
@@ -70,7 +70,7 @@
     "line": 33,
     "passed": true,
     "test_name": "Add Line",
-    "time_ms": 0.023
+    "time_ms": 0.013
   },
   {
     "checks": [
@@ -91,7 +91,7 @@
     "line": 46,
     "passed": true,
     "test_name": "Add Plane",
-    "time_ms": 0.048
+    "time_ms": 0.038
   },
   {
     "checks": [
@@ -112,7 +112,7 @@
     "line": 78,
     "passed": true,
     "test_name": "Add Polyline",
-    "time_ms": 0.025
+    "time_ms": 0.018
   },
   {
     "checks": [
@@ -133,7 +133,7 @@
     "line": 91,
     "passed": true,
     "test_name": "Add Pointcloud",
-    "time_ms": 0.025
+    "time_ms": 0.416
   },
   {
     "checks": [
@@ -154,7 +154,7 @@
     "line": 104,
     "passed": true,
     "test_name": "Add Mesh",
-    "time_ms": 0.068
+    "time_ms": 0.102
   },
   {
     "checks": [
@@ -180,7 +180,7 @@
     "line": 173,
     "passed": true,
     "test_name": "Add Element",
-    "time_ms": 0.192
+    "time_ms": 0.332
   },
   {
     "checks": [
@@ -196,7 +196,7 @@
     "line": 189,
     "passed": true,
     "test_name": "Add Group",
-    "time_ms": 0.006
+    "time_ms": 0.012
   },
   {
     "checks": [
@@ -212,7 +212,7 @@
     "line": 199,
     "passed": true,
     "test_name": "Add Edge",
-    "time_ms": 0.042
+    "time_ms": 0.057
   },
   {
     "checks": [
@@ -228,7 +228,7 @@
     "line": 215,
     "passed": true,
     "test_name": "Add Hierarchy",
-    "time_ms": 0.039
+    "time_ms": 0.05
   },
   {
     "checks": [
@@ -249,7 +249,7 @@
     "line": 233,
     "passed": true,
     "test_name": "Get Children",
-    "time_ms": 0.059
+    "time_ms": 0.085
   },
   {
     "checks": [
@@ -265,7 +265,7 @@
     "line": 254,
     "passed": true,
     "test_name": "Add Relationship",
-    "time_ms": 0.032
+    "time_ms": 0.046
   },
   {
     "checks": [
@@ -286,7 +286,7 @@
     "line": 270,
     "passed": true,
     "test_name": "Get Neighbours",
-    "time_ms": 0.035
+    "time_ms": 0.039
   },
   {
     "checks": [
@@ -302,195 +302,262 @@
     "line": 343,
     "passed": true,
     "test_name": "Get Object",
-    "time_ms": 0.015
+    "time_ms": 0.017
   },
   {
     "checks": [
       {
         "code_line": "removed",
-        "line": 364,
+        "line": 374,
         "passed": true
       },
       {
         "code_line": "!session.lookup.contains_key(&guid)",
-        "line": 365,
+        "line": 375,
+        "passed": true
+      },
+      {
+        "code_line": "eremoved",
+        "line": 376,
+        "passed": true
+      },
+      {
+        "code_line": "session.objects.elements.is_empty()",
+        "line": 377,
+        "passed": true
+      },
+      {
+        "code_line": "!loaded.lookup.contains_key(&eguid)",
+        "line": 378,
         "passed": true
       }
     ],
-    "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let point = Point::new(1.0, 2.0, 3.0);\n        let guid = point.guid().to_string();\n        session.add_point(point, None);\n        let removed = session.remove_object(&guid);\n",
+    "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let point = Point::new(1.0, 2.0, 3.0);\n        let guid = point.guid().to_string();\n        session.add_point(point, None);\n        let removed = session.remove_object(&guid);\n\n        let polygon = vec![Point::new(0.0,0.0,0.0), Point::new(2.0,0.0,0.0), Point::new(2.0,2.0,0.0), Point::new(0.0,2.0,0.0)];\n        let plate = crate::element::Element::plate(polygon, 0.2, \"p1\");\n        let eguid = plate.guid().to_string();\n        session.add_element(plate, None);\n        let eremoved = session.remove_object(&eguid);\n\n        let fname = \"serialization/test_session_remove.bin\";\n        session.pb_dump(fname);\n        let loaded = Session::pb_load(fname);\n",
     "failures": [],
     "group": "Session",
     "line": 356,
     "passed": true,
     "test_name": "Remove Object",
-    "time_ms": 0.027
+    "time_ms": 0.612
   },
   {
     "checks": [
       {
         "code_line": "geom.points.len() == 1",
-        "line": 378,
+        "line": 391,
         "passed": true
       }
     ],
     "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let point = Point::new(1.0, 2.0, 3.0);\n        session.add_point(point, None);\n\n        let geom = session.get_geometry();\n",
     "failures": [],
     "group": "Session",
-    "line": 370,
+    "line": 383,
     "passed": true,
     "test_name": "Get Geometry",
-    "time_ms": 0.092
+    "time_ms": 0.05
   },
   {
     "checks": [
       {
         "code_line": "session.objects.elements.len() == 2",
-        "line": 395,
+        "line": 408,
         "passed": true
       },
       {
         "code_line": "session.graph.has_edge((&g1, &g2))",
-        "line": 396,
+        "line": 409,
         "passed": true
       }
     ],
     "code": "        use crate::{Session, Point};\n        use crate::element::Element;\n        let mut session = Session::default();\n        let p1 = Element::plate(vec![Point::new(0.0,0.0,0.0), Point::new(1.0,0.0,0.0), Point::new(1.0,1.0,0.0), Point::new(0.0,1.0,0.0)], 0.2, \"p1\");\n        let p2 = Element::plate(vec![Point::new(0.0,0.0,-0.2), Point::new(1.0,0.0,-0.2), Point::new(1.0,1.0,-0.2), Point::new(0.0,1.0,-0.2)], 0.2, \"p2\");\n        let g1 = p1.guid().to_string();\n        let g2 = p2.guid().to_string();\n        session.add_element(p1, None);\n        session.add_element(p2, None);\n        session.compute_face_to_face(5.0, 0.001);\n",
     "failures": [],
     "group": "Session",
-    "line": 383,
+    "line": 396,
     "passed": true,
     "test_name": "Compute Face To Face",
-    "time_ms": 0.649
+    "time_ms": 1.077
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == session.name",
-        "line": 423,
+        "line": 436,
         "passed": true
       },
       {
         "code_line": "loaded.lookup.len() == session.lookup.len()",
-        "line": 424,
+        "line": 437,
         "passed": true
       },
       {
         "code_line": "loaded.graph.number_of_vertices() == session.graph.number_of_vertices()",
-        "line": 425,
+        "line": 438,
         "passed": true
       }
     ],
     "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let p1 = Point::new(1.0, 2.0, 3.0);\n        let p2 = Point::new(4.0, 5.0, 6.0);\n        let g1 = p1.guid().to_string();\n        let g2 = p2.guid().to_string();\n        session.add_point(p1, None);\n        session.add_point(p2, None);\n        session.add_edge(&g1, &g2, \"connection\");\n\n        //   jsondump()      │ String       │ to JSON string (internal use)\n        //   jsonload(s)     │ String       │ from JSON string (internal use)\n        //   file_json_dumps()    │ String       │ to JSON string\n        //   file_json_loads(s)   │ String       │ from JSON string\n        //   file_json_dump(path) │ file         │ write to file\n        //   file_json_load(path) │ file         │ read from file\n\n        let fname = \"serialization/test_session.json\";\n        session.file_json_dump(fname);\n        let loaded = Session::file_json_load(fname);\n",
     "failures": [],
     "group": "Session",
-    "line": 401,
+    "line": 414,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 1.144
+    "time_ms": 1.401
   },
   {
     "checks": [
       {
         "code_line": "loaded.name == session.name",
-        "line": 445,
+        "line": 458,
         "passed": true
       },
       {
         "code_line": "loaded.lookup.len() == session.lookup.len()",
-        "line": 446,
+        "line": 459,
         "passed": true
       }
     ],
     "code": "        use crate::{Session, Point};\n        let mut session = Session::default();\n        let p1 = Point::new(1.0, 2.0, 3.0);\n        let p2 = Point::new(4.0, 5.0, 6.0);\n        let g1 = p1.guid().to_string();\n        let g2 = p2.guid().to_string();\n        session.add_point(p1, None);\n        session.add_point(p2, None);\n        session.add_edge(&g1, &g2, \"connection\");\n\n        let fname = \"serialization/test_session.bin\";\n        session.pb_dump(fname);\n        let loaded = Session::pb_load(fname);\n",
     "failures": [],
     "group": "Session",
-    "line": 430,
+    "line": 443,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.43
+    "time_ms": 0.472
   },
   {
     "checks": [
       {
         "code_line": "transformed.meshes.len() == 3",
-        "line": 504,
+        "line": 563,
         "passed": true
       }
     ],
-    "code": "        use crate::{Session, Point, Vector, Mesh, Plane, Xform};\n        let mut scene = Session::new(\"tree_transformation_test\");\n\n        let create_box = |cx: f64, cy: f64, cz: f64, size: f64| -> Mesh {\n            let mut mesh = Mesh::new();\n            let h = size * 0.5;\n            let vkeys = [\n                mesh.add_vertex(Point::new(cx - h, cy - h, cz - h), None),\n                mesh.add_vertex(Point::new(cx + h, cy - h, cz - h), None),\n                mesh.add_vertex(Point::new(cx + h, cy + h, cz - h), None),\n                mesh.add_vertex(Point::new(cx - h, cy + h, cz - h), None),\n                mesh.add_vertex(Point::new(cx - h, cy - h, cz + h), None),\n                mesh.add_vertex(Point::new(cx + h, cy - h, cz + h), None),\n                mesh.add_vertex(Point::new(cx + h, cy + h, cz + h), None),\n                mesh.add_vertex(Point::new(cx - h, cy + h, cz + h), None),\n            ];\n            mesh.add_face(vec![vkeys[0], vkeys[1], vkeys[2], vkeys[3]], None);\n            mesh.add_face(vec![vkeys[4], vkeys[7], vkeys[6], vkeys[5]], None);\n            mesh.add_face(vec![vkeys[0], vkeys[4], vkeys[5], vkeys[1]], None);\n            mesh.add_face(vec![vkeys[2], vkeys[6], vkeys[7], vkeys[3]], None);\n            mesh.add_face(vec![vkeys[0], vkeys[3], vkeys[7], vkeys[4]], None);\n            mesh.add_face(vec![vkeys[1], vkeys[5], vkeys[6], vkeys[2]], None);\n            mesh\n        };\n\n        let mut box1 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box1_node = scene.add_mesh(box1.clone(), None);\n        let mut box2 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box2_node = scene.add_mesh(box2.clone(), None);\n        let mut box3 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box3_node = scene.add_mesh(box3.clone(), None);\n\n        scene.add(&box1_node, None);\n        scene.add(&box2_node, &box1_node);\n        scene.add(&box3_node, &box2_node);\n\n        let box1_top = Point::new(0.0, 0.0, 1.0);\n        let x = Vector::new(1.0, 0.0, 0.0);\n        let y = Vector::new(0.0, 1.0, 0.0);\n        let plane_from = Plane::new(Point::new(0.0, 0.0, 0.0), x.clone(), y.clone());\n        let plane_to = Plane::new(box1_top, x.clone(), y.clone());\n        let xy_to_top = Xform::plane_to_plane(&plane_from, &plane_to);\n        box1.xform = Xform::rotation_z(PI / 1.5, false) * xy_to_top;\n        box2.xform = Xform::translation(2.0, 0.0, 0.0) * Xform::rotation_z(PI / 6.0, false);\n        box3.xform = Xform::translation(2.0, 0.0, 0.0);\n\n        scene.objects.meshes[0].xform = box1.xform.clone();\n        scene.objects.meshes[1].xform = box2.xform.clone();\n        scene.objects.meshes[2].xform = box3.xform.clone();\n\n        let transformed = scene.get_geometry();\n",
+    "code": "        use crate::{Session, Geometry, Point, Vector, Mesh, Plane, Xform};\n        let mut scene = Session::new(\"tree_transformation_test\");\n\n        let create_box = |cx: f64, cy: f64, cz: f64, size: f64| -> Mesh {\n            let mut mesh = Mesh::new();\n            let h = size * 0.5;\n            let vkeys = [\n                mesh.add_vertex(Point::new(cx - h, cy - h, cz - h), None),\n                mesh.add_vertex(Point::new(cx + h, cy - h, cz - h), None),\n                mesh.add_vertex(Point::new(cx + h, cy + h, cz - h), None),\n                mesh.add_vertex(Point::new(cx - h, cy + h, cz - h), None),\n                mesh.add_vertex(Point::new(cx - h, cy - h, cz + h), None),\n                mesh.add_vertex(Point::new(cx + h, cy - h, cz + h), None),\n                mesh.add_vertex(Point::new(cx + h, cy + h, cz + h), None),\n                mesh.add_vertex(Point::new(cx - h, cy + h, cz + h), None),\n            ];\n            mesh.add_face(vec![vkeys[0], vkeys[1], vkeys[2], vkeys[3]], None);\n            mesh.add_face(vec![vkeys[4], vkeys[7], vkeys[6], vkeys[5]], None);\n            mesh.add_face(vec![vkeys[0], vkeys[4], vkeys[5], vkeys[1]], None);\n            mesh.add_face(vec![vkeys[2], vkeys[6], vkeys[7], vkeys[3]], None);\n            mesh.add_face(vec![vkeys[0], vkeys[3], vkeys[7], vkeys[4]], None);\n            mesh.add_face(vec![vkeys[1], vkeys[5], vkeys[6], vkeys[2]], None);\n            mesh\n        };\n\n        let mut box1 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box1_node = scene.add_mesh(box1.clone(), None);\n        let mut box2 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box2_node = scene.add_mesh(box2.clone(), None);\n        let mut box3 = create_box(0.0, 0.0, 0.0, 2.0);\n        let box3_node = scene.add_mesh(box3.clone(), None);\n\n        scene.add(&box1_node, None);\n        scene.add(&box2_node, &box1_node);\n        scene.add(&box3_node, &box2_node);\n\n        let box1_top = Point::new(0.0, 0.0, 1.0);\n        let x = Vector::new(1.0, 0.0, 0.0);\n        let y = Vector::new(0.0, 1.0, 0.0);\n        let plane_from = Plane::new(Point::new(0.0, 0.0, 0.0), x.clone(), y.clone());\n        let plane_to = Plane::new(box1_top, x.clone(), y.clone());\n        let xy_to_top = Xform::plane_to_plane(&plane_from, &plane_to);\n        box1.xform = Xform::rotation_z(PI / 1.5, false) * xy_to_top;\n        box2.xform = Xform::translation(2.0, 0.0, 0.0) * Xform::rotation_z(PI / 6.0, false);\n        box3.xform = Xform::translation(2.0, 0.0, 0.0);\n\n        for (i, xf) in [&box1.xform, &box2.xform, &box3.xform].iter().enumerate() {\n            let guid = scene.objects.meshes[i].guid().to_string();\n            if let Some(Geometry::Mesh(m)) = scene.lookup.get_mut(&guid) {\n                std::rc::Rc::make_mut(m).xform = (*xf).clone(); // lookup is the mutable truth\n            }\n        }\n\n        let transformed = scene.get_geometry();\n",
     "failures": [],
     "group": "Session",
-    "line": 451,
+    "line": 507,
     "passed": true,
     "test_name": "Tree Transformation Hierarchy",
-    "time_ms": 0.672
+    "time_ms": 0.696
   },
   {
     "checks": [
       {
         "code_line": "loaded.objects.components.len() == 1",
-        "line": 564,
+        "line": 623,
         "passed": true
       },
       {
         "code_line": "loaded.objects.components[0].guid == guid",
-        "line": 565,
+        "line": 624,
         "passed": true
       },
       {
         "code_line": "loaded.objects.components[0].type_name == \"FloorBuilder\"",
-        "line": 566,
+        "line": 625,
         "passed": true
       },
       {
         "code_line": "loaded.objects.components[0].extra[\"size\"] == serde_json::json!(3000)",
-        "line": 567,
+        "line": 626,
         "passed": true
       },
       {
         "code_line": "loaded.objects.components[0].extra[\"rise\"] == serde_json::json!(453)",
-        "line": 568,
+        "line": 627,
         "passed": true
       }
     ],
     "code": "        // A session with a component serialises to JSON and back.\n        // All custom fields in `extra` must survive the round-trip.\n        use crate::{Session, Component};\n        use crate::file_encoders::{file_json_dump, file_json_load};\n\n        let mut session = Session::default();\n\n        let mut extra = std::collections::HashMap::new();\n        extra.insert(\"size\".to_string(),   serde_json::json!(3000));\n        extra.insert(\"height\".to_string(), serde_json::json!(650));\n        extra.insert(\"rise\".to_string(),   serde_json::json!(453));\n\n        let guid = uuid::Uuid::new_v4().to_string();\n        session.add_component(Component {\n            type_name: \"FloorBuilder\".to_string(),\n            guid: guid.clone(),\n            name: \"floor_builder\".to_string(),\n            extra,\n        }, None);\n\n        file_json_dump(&session, \"serialization/test_session_component.json\", false).unwrap();\n        let loaded = file_json_load::<Session>(\"serialization/test_session_component.json\").unwrap();\n",
     "failures": [],
     "group": "Session",
-    "line": 540,
+    "line": 599,
     "passed": true,
     "test_name": "Component Json Roundtrip",
-    "time_ms": 0.393
+    "time_ms": 0.435
   },
   {
     "checks": [
       {
         "code_line": "session.objects.components.len() == 1",
-        "line": 532,
+        "line": 591,
         "passed": true
       },
       {
         "code_line": "session.graph.has_node(&guid)",
-        "line": 533,
+        "line": 592,
         "passed": true
       },
       {
         "code_line": "session.objects.components[0].type_name == \"FloorBuilder\"",
-        "line": 534,
+        "line": 593,
         "passed": true
       },
       {
         "code_line": "session.objects.components[0].extra[\"size\"] == serde_json::json!(3000)",
-        "line": 535,
+        "line": 594,
         "passed": true
       }
     ],
     "code": "        // add_component stores a custom domain object in session.objects.components\n        // and registers it in the graph under its guid.\n        // The lookup is NOT in the geometry lookup (components are not geometry)\n        // but they ARE in the tree and graph.\n        use crate::{Session, Component};\n\n        let mut session = Session::default();\n\n        let mut extra = std::collections::HashMap::new();\n        extra.insert(\"size\".to_string(),   serde_json::json!(3000));\n        extra.insert(\"height\".to_string(), serde_json::json!(650));\n\n        let guid = uuid::Uuid::new_v4().to_string();\n        let c = Component {\n            type_name: \"FloorBuilder\".to_string(),\n            guid: guid.clone(),\n            name: \"floor_builder\".to_string(),\n            extra,\n        };\n\n        session.add_component(c, None);\n",
     "failures": [],
     "group": "Session",
-    "line": 509,
+    "line": 568,
     "passed": true,
     "test_name": "Add Component",
-    "time_ms": 0.014
+    "time_ms": 0.017
+  },
+  {
+    "checks": [
+      {
+        "code_line": "order.len() == 2",
+        "line": 499,
+        "passed": true
+      },
+      {
+        "code_line": "order[0] == point_guid",
+        "line": 500,
+        "passed": true
+      },
+      {
+        "code_line": "order[1] == line_guid",
+        "line": 501,
+        "passed": true
+      },
+      {
+        "code_line": "loaded.order() == order",
+        "line": 502,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{Session, Line, Point};\n        let mut session = Session::default();\n        let line = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n        let point = Point::new(1.0, 2.0, 3.0);\n        let line_guid = line.guid().to_string();\n        let point_guid = point.guid().to_string();\n        session.add_line(line, None);\n        session.add_point(point, None);\n\n        let order = session.order();\n\n        let fname = \"serialization/test_session_order.bin\";\n        session.pb_dump(fname);\n        let loaded = Session::pb_load(fname);\n",
+    "failures": [],
+    "group": "Session",
+    "line": 483,
+    "passed": true,
+    "test_name": "Order",
+    "time_ms": 0.351
+  },
+  {
+    "checks": [
+      {
+        "code_line": "loaded.objects.lines[0].width == 5.0",
+        "line": 477,
+        "passed": true
+      },
+      {
+        "code_line": "matches!(loaded.lookup.get(&guid), Some(Geometry::Line(l)) if l.width == 5.0)",
+        "line": 478,
+        "passed": true
+      }
+    ],
+    "code": "        use crate::{Session, Line, Geometry};\n        let mut session = Session::default();\n        let line = Line::new(0.0, 0.0, 0.0, 1.0, 0.0, 0.0);\n        let guid = line.guid().to_string();\n        session.add_line(line, None);\n\n        if let Some(Geometry::Line(l)) = session.lookup.get_mut(&guid) { std::rc::Rc::make_mut(l).width = 5.0; }\n\n        let fname = \"serialization/test_session_lookup.bin\";\n        session.pb_dump(fname);\n        let loaded = Session::pb_load(fname);\n",
+    "failures": [],
+    "group": "Session",
+    "line": 464,
+    "passed": true,
+    "test_name": "Lookup Mutation Roundtrip",
+    "time_ms": 0.175
   },
   {
     "checks": [
@@ -516,7 +583,7 @@
     "line": 315,
     "passed": true,
     "test_name": "Ray Cast",
-    "time_ms": 0.307
+    "time_ms": 0.35
   },
   {
     "checks": [
@@ -532,7 +599,7 @@
     "line": 289,
     "passed": true,
     "test_name": "Get Collisions",
-    "time_ms": 0.123
+    "time_ms": 0.127
   },
   {
     "checks": [
@@ -553,7 +620,7 @@
     "line": 159,
     "passed": true,
     "test_name": "Add Brep",
-    "time_ms": 0.229
+    "time_ms": 0.193
   },
   {
     "checks": [
@@ -574,7 +641,7 @@
     "line": 140,
     "passed": true,
     "test_name": "Add Nurbssurface",
-    "time_ms": 0.046
+    "time_ms": 0.026
   },
   {
     "checks": [
@@ -595,7 +662,7 @@
     "line": 121,
     "passed": true,
     "test_name": "Add Nurbscurve",
-    "time_ms": 0.341
+    "time_ms": 0.375
   },
   {
     "checks": [
@@ -616,6 +683,6 @@
     "line": 59,
     "passed": true,
     "test_name": "Add OBB",
-    "time_ms": 0.029
+    "time_ms": 0.013
   }
 ]

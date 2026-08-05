@@ -58,7 +58,7 @@ pub struct Gpu {
 
 Boots wgpu. First, an instance with default parameters:
 ```rust
-pub struct Gpu {
+pub async fn new(window: std::sync::Arc<winit::window::Window>) -> anyhow::Result<Self> {
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
         backends: wgpu::Backends::BROWSER_WEBGPU | wgpu::Backends::GL,
         flags: Default::default(),
@@ -66,7 +66,6 @@ pub struct Gpu {
         backend_options: Default::default(),
         display: None,
     });
-}
 ```
 
 Create the surface from the window, then request an adapter:

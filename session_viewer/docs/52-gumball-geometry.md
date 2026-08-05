@@ -38,12 +38,17 @@ src/state.rs            # rebuild the gumball when the selection changes
 
 ## Step 1 — handles + tuning: `src/engine/gumball.rs` (NEW)
 
+Create the file, and register it: in `src/engine/mod.rs`, find `pub mod pipelines;` → insert
+`pub mod gumball;` after it.
+
 Every part of the widget belongs to exactly one **handle** — the id the hit-test (53) returns and the
 drag math (54/55) switches on. The constants are the archive's tuned values, not guesses:
 
 ```rust
 //! The gumball: pure geometry + ids. No wgpu here — it EMITS the same CylinderSegment/GlyphPoint
 //! rows lessons 31/32 defined, and the gpu draws them in an overlay pass.
+
+use crate::engine::gpu::{CylinderSegment, GlyphPoint};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum HandleKind {
@@ -149,13 +154,71 @@ The gumball must float over geometry (you grab it even when the selection is bur
 parts must depth-test against *each other* (the far arc behind the near shaft). The standard trick:
 draw it **last, in a pass that clears only the depth buffer** — color loads, depth restarts:
 
+Four pieces of `Gpu` state. In `struct Gpu`, find the glyph fields (`pub glyph_bind_group: …` /
+`glyph_count`) and add below them:
+
 ```rust
     // gumball tables — small, rebuilt whole whenever selection/camera changes (they're ~400 rows)
-    pub gb_segments: Vec<CylinderSegment>,
-    pub gb_glyphs: Vec<GlyphPoint>,
-    pub gb_segment_count: u32,  pub gb_glyph_count: u32,
-    // + gb_segment_buffer / gb_glyph_buffer / bind groups — same pattern as 31/32's, small fixed capacity.
-    // ALL of these get a value in Gpu::new's `Self { … }` (Vec::new(), counts 0, empty buffers) — else E0063.
+    pub gb_segment_buffer: wgpu::Buffer,
+    pub gb_segment_bind_group: wgpu::BindGroup,
+    pub gb_glyph_buffer: wgpu::Buffer,
+    pub gb_glyph_bind_group: wgpu::BindGroup,
+    pub gb_segment_count: u32,
+    pub gb_glyph_count: u32,
+    pub gb_row: u32,             // the reserved identity instance row (Step 4)
+```
+
+In `Gpu::new`, right after the `glyph_bind_group` creation (it uses the same `segment_layout` /
+`glyph_layout` locals, so this must go before they fall out of scope), create the two fixed-capacity
+buffers — `storage_buffer` with a zeroed slice reserves the bytes up front, so `upload_gumball` below
+is a plain `write_buffer`, never a reallocation:
+
+```rust
+        // gumball buffers — fixed capacity, zero rows drawn until a selection exists
+        const GB_MAX_SEGMENTS: usize = 512;   // 3 axes × (2 shaft + 64 arc) = 198 used
+        const GB_MAX_GLYPHS: usize = 8;       // 4 used
+        let gb_segment_buffer = storage_buffer(&device, "gumball.segments",
+            &vec![CylinderSegment::zeroed(); GB_MAX_SEGMENTS]);
+        let gb_segment_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("gumball.segments.bind_group"),
+            layout: &segment_layout,
+            entries: &[wgpu::BindGroupEntry { binding: 0,
+                resource: gb_segment_buffer.as_entire_binding() }],
+        });
+        let gb_glyph_buffer = storage_buffer(&device, "gumball.glyphs",
+            &vec![GlyphPoint::zeroed(); GB_MAX_GLYPHS]);
+        let gb_glyph_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("gumball.glyphs.bind_group"),
+            layout: &glyph_layout,
+            entries: &[wgpu::BindGroupEntry { binding: 0,
+                resource: gb_glyph_buffer.as_entire_binding() }],
+        });
+```
+
+Add all seven to `Gpu::new`'s `Ok(Self { … })` initializer (the four buffer/bind-group locals by
+name, `gb_segment_count: 0, gb_glyph_count: 0`, and `gb_row` from Step 4) — a struct literal, so a
+missing field is E0063.
+
+`upload_gumball` / `clear_gumball` — the pair `state.rs` calls in Step 4. Add both to `impl Gpu`
+(anywhere near `write_row`):
+
+```rust
+    /// Strip the handle tags, write the two fixed-capacity buffers. The tagged copy stays on
+    /// State (`self.gb`) — 53's hit-test reads it there.
+    pub fn upload_gumball(&mut self, g: &crate::engine::gumball::GumballGeom) {
+        let segs: Vec<CylinderSegment> = g.segments.iter().map(|(s, _)| *s).collect();
+        let glyphs: Vec<GlyphPoint> = g.glyphs.iter().map(|(p, _)| *p).collect();
+        self.queue.write_buffer(&self.gb_segment_buffer, 0, bytemuck::cast_slice(&segs));
+        self.queue.write_buffer(&self.gb_glyph_buffer, 0, bytemuck::cast_slice(&glyphs));
+        self.gb_segment_count = segs.len() as u32;
+        self.gb_glyph_count = glyphs.len() as u32;
+    }
+
+    /// Deselect → nothing to draw; the buffers keep their capacity.
+    pub fn clear_gumball(&mut self) {
+        self.gb_segment_count = 0;
+        self.gb_glyph_count = 0;
+    }
 ```
 
 ```rust
@@ -177,16 +240,31 @@ draw it **last, in a pass that clears only the depth buffer** — color loads, d
                 occlusion_query_set: None, timestamp_writes: None, multiview_mask: None,
             });
             // same cylinder + sphere pipelines, bind groups 0-2 as the main pass,
-            // group 3 = gumball buffers
+            // group 3 = the gumball buffers instead of the scene tables
             gp.set_pipeline(&self.pipelines.cylinder);
-            /* …bind groups, template buffers, draw_indexed over gb_segment_count… */
-            gp.set_pipeline(&self.pipelines.sphere);
-            /* …same, over gb_glyph_count… */
+            gp.set_bind_group(0, &self.mvp_bind_group, &[]);
+            gp.set_bind_group(1, &self.line_bind_group, &[]);
+            gp.set_bind_group(2, &self.instance_bind_group, &[]);
+            gp.set_bind_group(3, &self.gb_segment_bind_group, &[]);
+            gp.set_vertex_buffer(0, self.cyl_template_vbo.slice(..));
+            gp.set_index_buffer(self.cyl_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+            gp.draw_indexed(0..self.cyl_index_count, 0, 0..self.gb_segment_count);
+            if self.gb_glyph_count > 0 {
+                gp.set_pipeline(&self.pipelines.sphere);
+                gp.set_bind_group(0, &self.mvp_bind_group, &[]);
+                gp.set_bind_group(1, &self.line_bind_group, &[]);
+                gp.set_bind_group(2, &self.instance_bind_group, &[]);
+                gp.set_bind_group(3, &self.gb_glyph_bind_group, &[]);
+                gp.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
+                gp.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                gp.draw_indexed(0..self.sph_index_count, 0, 0..self.gb_glyph_count);
+            }
         }
 ```
 
-(Reverse-Z (26): depth clears to `0.0`, the far plane. `upload_gumball(&GumballGeom)` strips the
-handle tags, writes the two buffers, and keeps the tagged copy on `State` for 53's hit-test.)
+(Reverse-Z (26): depth clears to `0.0`, the far plane. The two draw blocks are the main pass's
+cylinder/sphere blocks verbatim, with group 3 swapped to the gumball bind groups and the counts
+swapped to `gb_*` — that's the whole trick: same pipelines, different tables.)
 
 ## Step 4 — where it sits: `src/app/scene.rs` + `src/state.rs`
 
@@ -217,7 +295,7 @@ First add the field this uses: `gb: Option<GumballGeom>` on `struct State`, **an
     fn refresh_gumball(&mut self) {
         match self.scene.selection_centroid() {
             Some(o) => {
-                let g = crate::engine::gumball::build(o, 1.0, GB_ROW);
+                let g = crate::engine::gumball::build(o, 1.0, self.gpu.gb_row);
                 self.gb = Some(g);
                 self.gpu.upload_gumball(self.gb.as_ref().unwrap());
             }
@@ -226,9 +304,18 @@ First add the field this uses: `gb: Option<GumballGeom>` on `struct State`, **an
     }
 ```
 
-(`GB_ROW` is one reserved instance row with an identity model, created at startup — the gumball is
-world-anchored and never rebased wrong because 33's rebase writes models, and identity + world coords
-is exactly the convention lines already use.)
+`gpu.gb_row` is one reserved instance row with an identity model, created at startup — the gumball
+is world-anchored and never rebased wrong, because 33's rebase writes models, and identity + world
+coords is exactly the convention lines already use. Reserve it in `Gpu::new`, right after the
+`let ArenaUpload { … } = upload;` destructure and **before** the `instances` vec is built from
+`objects_base` (the row must exist in `objects_base` so `rebuild_instances` rebases it too):
+
+```rust
+        // one reserved identity row for the gumball (52) — rides 33/34c's rebase like a line row
+        let mut objects_base = objects_base;
+        let gb_row = objects_base.len() as u32;
+        objects_base.push((Xform::identity(), [1.0, 1.0, 1.0, 1.0], 0));
+```
 
 ## Step 5 — verify
 

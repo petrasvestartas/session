@@ -214,7 +214,7 @@ impl State {
                 let nurbs_removed: Vec<session_rust::NurbsSurface> = guids.iter()
                     .filter_map(|g| {
                         self.scene.session.objects.nurbssurfaces.iter().find(|n| n.guid() == *g).map(|n| {
-                            let mut clone = n.clone();
+                            let mut clone = (**n).clone();
                             if let Some(iid) = self.scene.gpu_session.pick.instance_id(g) {
                                 if let Some(inst) = self.scene.gpu_session.instances_cpu.get(iid as usize) {
                                     let m = inst.model;
@@ -233,7 +233,7 @@ impl State {
                     .collect();
                 // NurbsCurves (the interactive `curve` tool) live in objects.nurbscurves.
                 let curves_removed: Vec<session_rust::NurbsCurve> = guids.iter()
-                    .filter_map(|g| self.scene.session.objects.nurbscurves.iter().find(|n| n.guid() == *g).cloned())
+                    .filter_map(|g| self.scene.session.objects.nurbscurves.iter().find(|n| n.guid() == *g).map(|n| (**n).clone()))
                     .collect();
                 let n = guids.len();
                 for guid in &guids {

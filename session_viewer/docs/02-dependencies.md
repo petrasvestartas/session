@@ -63,7 +63,6 @@ The output kind. `cdylib` ("C dynamic library" — C ABI, not the C language) co
 - getrandom — random number support
 - js-sys — bindings to plain JS (Array, Date, Math); reads the browser pixel ratio on resize
 - bytemuck — casts vertices into GPU byte buffers
-- pollster — runs async in native tests
 - egui — the toolbar UI
 - egui-wgpu — paints the panel in the same wgpu frame as the 3D scene
 - egui-winit — routes input events into egui

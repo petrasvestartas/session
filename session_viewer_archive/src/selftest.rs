@@ -126,6 +126,7 @@ pub fn run() -> String {
     // base CV and confirm the trim still meshes to a non-empty result (proves edit -> re-tess).
     let mut edit_ok = true;
     for ts in &mut session.objects.nurbssurfacetrimmeds {
+        let ts = std::rc::Rc::make_mut(ts);
         let cv = ts.m_surface.cv(0, 0).unwrap().to_vec();
         ts.m_surface.set_cv(0, 0, &session_rust::Point::new(cv[0] + 1.0, cv[1], cv[2]));
         let m = ts.mesh_render(20.0, 0.01);
@@ -141,6 +142,7 @@ pub fn run() -> String {
     // empty mesh (any of which would manifest as a viewer freeze on commit).
     if let Some(ts) = session.objects.nurbssurfacetrimmeds.iter_mut()
         .find(|t| !t.cut_planes.is_empty()) {
+        let ts = std::rc::Rc::make_mut(ts);
         let base = ts.m_surface.cv(0, 0).unwrap().to_vec();
         let mut worst = (0usize, 0usize, true);
         for step in 0..40 {

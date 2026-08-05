@@ -310,8 +310,8 @@ PAVE tag=final e=65 k=1 t=0.773480651 v=64
 PB tag=final e=65 k=0 orig=65 t0=0.226519349 t1=0.773480651 v1=63 v2=64 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
 IFF tag=final i1=20 i2=32 tangent=0 ncurves=1 npoints=0
 SEC tag=final f1=20 f2=32 c=0 type=BSpline geom=NurbsCurve t0=0 t1=6.48247391 len=6.48248939 tol=1e-07 tantol=1e-07 p0=-0.835898385,1.97256588,-2 p1=-0.835898385,-1.97256588,-2 c2d1=1 c2d2=1 npb=2 box=-0.835898385,-1.97256588,-2;1.34990971,1.97256588,-2 closed=0 dev1=0 dev2=6.32423112e-08 carrier=37
-SEC2D tag=final f1=20 f2=32 c=0 face=20 umin=0.00685852997 umax=0.99314147 vmin=0.291025404 vmax=0.837477426 s=0.99314147:0.291025404|0.5:0.837477426|0.00685852997:0.291025404
-SEC2D tag=final f1=20 f2=32 c=0 face=32 umin=-1.1136128 umax=1.1136128 vmin=0 vmax=0.218580814 s=1.1136128:0|0:0.218580814|-1.1136128:0
+SEC2D tag=final f1=20 f2=32 c=0 face=20 umin=0.00685852997 umax=0.99314147 vmin=0.291025404 vmax=0.837477426 s=0.99314147:0.291025404|0.572628062:0.831110653|0.00685852997:0.291025404
+SEC2D tag=final f1=20 f2=32 c=0 face=32 umin=-1.1136128 umax=1.1136128 vmin=0 vmax=0.218580814 s=1.1136128:0|0.127234474:0.2160341|-1.1136128:0
 SECPB tag=final f1=20 f2=32 c=0 k=0 t0=0 t1=3.24123696 v1=66 v2=38 edge=39 etol=1e-07 len=3.24124469
 SECPB tag=final f1=20 f2=32 c=0 k=1 t0=3.24123696 t1=6.48247391 v1=38 v2=67 edge=40 etol=1e-07 len=3.24124469
 IFF tag=final i1=20 i2=33 tangent=0 ncurves=1 npoints=0
@@ -321,8 +321,8 @@ SEC2D tag=final f1=20 f2=33 c=0 face=33 umin=0.417468245 umax=0.417468245 vmin=0
 SECPB tag=final f1=20 f2=33 c=0 k=0 t0=0.00685852997 t1=0.99314147 v1=66 v2=67 edge=46 etol=1e-07 len=3.94513176
 IFF tag=final i1=21 i2=32 tangent=0 ncurves=1 npoints=0
 SEC tag=final f1=21 f2=32 c=0 type=BSpline geom=NurbsCurve t0=0 t1=1 len=0.539298149 tol=1e-07 tantol=1e-07 p0=1.92621813,0,2 p1=1.92621813,0,2 c2d1=1 c2d2=1 npb=1 box=1.74023108,-0.0783577382,2;1.92621813,0.0783577382,2 closed=1 dev1=0 dev2=0 carrier=48
-SEC2D tag=final f1=21 f2=32 c=0 face=21 umin=0.935057769 umax=0.981554532 vmin=0.480410565 vmax=0.519589435 s=0.981554532:0.5|0.935057769:0.5|0.981554532:0.5
-SEC2D tag=final f1=21 f2=32 c=0 face=32 umin=4 umax=8 vmin=0.950433269 vmax=0.969031974 s=4:0.969031974|6:0.950433269|8:0.969031974
+SEC2D tag=final f1=21 f2=32 c=0 face=21 umin=0.935057769 umax=0.981554532 vmin=0.480410565 vmax=0.519589435 s=0.981554532:0.5|0.935110595:0.50131982|0.981554532:0.5
+SEC2D tag=final f1=21 f2=32 c=0 face=32 umin=4 umax=8 vmin=0.950433269 vmax=0.969031974 s=4:0.969031974|5.96271244:0.950454399|8:0.969031974
 SECPB tag=final f1=21 f2=32 c=0 k=0 t0=0 t1=1 v1=47 v2=47 edge=49 etol=1e-07 len=0.539298149
 IFF tag=final i1=22 i2=33 tangent=0 ncurves=1 npoints=0
 SEC tag=final f1=22 f2=33 c=0 type=Line geom=NurbsCurve t0=0 t1=1 len=1.34418876 tol=1e-07 tantol=1e-07 p0=-0.835898385,-2,-2 p1=-2,-2,-1.32790562 c2d1=1 c2d2=1 npb=0 box=-2,-2,-2;-0.835898385,-2,-1.32790562 closed=0 dev1=0 dev2=0 carrier=52
@@ -334,8 +334,8 @@ SEC2D tag=final f1=24 f2=33 c=0 face=24 umin=0.708974596 umax=1 vmin=0 vmax=0.16
 SEC2D tag=final f1=24 f2=33 c=0 face=33 umin=0.0814210548 umax=0.417468245 vmin=1 vmax=1 s=0.0814210548:1|0.24944465:1|0.417468245:1
 IFF tag=final i1=25 i2=32 tangent=0 ncurves=1 npoints=0
 SEC tag=final f1=25 f2=32 c=0 type=BSpline geom=NurbsCurve t0=0 t1=2.35771454 len=2.35772308 tol=2.11375852e-07 tantol=1e-07 p0=-2,-1.09392261,-1.32790562 p1=-2,1.09392261,-1.32790562 c2d1=1 c2d2=1 npb=1 box=-2,-1.09392261,-1.32790562;-2,1.09392261,-0.943122914 closed=0 dev1=0 dev2=2.11373738e-07 carrier=58
-SEC2D tag=final f1=25 f2=32 c=0 face=25 umin=0.226519349 umax=0.773480651 vmin=0.168023595 vmax=0.264219272 s=0.773480651:0.168023595|0.5:0.264219272|0.226519349:0.168023595
-SEC2D tag=final f1=25 f2=32 c=0 face=32 umin=1.62518106 umax=2.37481894 vmin=0 vmax=0.0666463352 s=2.37481894:0|2:0.0666463352|1.62518106:0
+SEC2D tag=final f1=25 f2=32 c=0 face=25 umin=0.226519349 umax=0.773480651 vmin=0.168023595 vmax=0.264219272 s=0.773480651:0.168023595|0.513835962:0.263977077|0.226519349:0.168023595
+SEC2D tag=final f1=25 f2=32 c=0 face=32 umin=1.62518106 umax=2.37481894 vmin=0 vmax=0.0666463352 s=2.37481894:0|2.02083708:0.0664785063|1.62518106:0
 SECPB tag=final f1=25 f2=32 c=0 k=0 t0=0 t1=2.35771454 v1=68 v2=69 edge=59 etol=1e-07 len=2.35772308
 IFF tag=final i1=25 i2=33 tangent=0 ncurves=1 npoints=0
 SEC tag=final f1=25 f2=33 c=0 type=Line geom=NurbsCurve t0=0 t1=1 len=4 tol=1e-07 tantol=1e-07 p0=-2,-2,-1.32790562 p1=-2,2,-1.32790562 c2d1=1 c2d2=1 npb=1 box=-2,-2,-1.32790562;-2,2,-1.32790562 closed=0 dev1=0 dev2=0 carrier=62

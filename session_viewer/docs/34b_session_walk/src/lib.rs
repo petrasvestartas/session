@@ -43,8 +43,8 @@ impl App {
         use winit::platform::web::EventLoopExtWebSys;
         console_log::init_with_level(log::Level::Info).ok();
         let event_loop = EventLoop::<State>::with_user_event().build()?;
-        let app = App {
-            proxy: Some(event_loop.create_proxy()),
+        let app = App { 
+            proxy: Some(event_loop.create_proxy()), 
             state: None,
             orbiting: false,
             last_cursor: (0.0, 0.0),

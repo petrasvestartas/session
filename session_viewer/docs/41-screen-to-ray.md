@@ -39,8 +39,9 @@ the far plane — a real precision fix, not a shortcut.
 # NEW — Ray { origin, dir }; screen_to_world_ray(view_proj, origin, cursor, viewport)
 src/engine/pick.rs
 src/engine/mod.rs    # pub mod pick;
-# track the cursor; on click build a ray, intersect z=0, drop a marker (the verify)
+# cursor field + on_left_click: build a ray, intersect z=0, log the hit (the verify)
 src/state.rs
+src/lib.rs           # CursorMoved stashes state.cursor; a Left MouseInput arm calls it
 ```
 
 `engine/pick.rs` names only `Point`/`Vector`/`Xform` — geometry primitives, never `Session`/`Mesh` — so
@@ -52,8 +53,8 @@ and arrives in 42.
 ```rust
 use session_rust::{Point, Vector, Xform};
 
-/// A world-space ray. `dir` is normalized.
-#[derive(Clone, Copy)]
+/// A world-space ray. `dir` is normalized. (Clone only — kernel Point/Vector aren't Copy.)
+#[derive(Clone)]
 pub struct Ray {
     pub origin: Point,
     pub dir: Vector,
@@ -120,46 +121,62 @@ ray) but numerically solid. **Never unproject at the exact far plane for a pick 
 > mid-range, so unproject near at `0.5` and far at `1.0`. If you carry a `ProjMode` (16), branch the two
 > `ndc_z` values on it; the rest of the function is identical.
 
-## Step 3 — wire it up + the self-check: `src/state.rs`
+## Step 3 — wire it up + the self-check: `src/state.rs` + `src/lib.rs`
 
 Track the cursor, and on a left-click build the ray and intersect it with the ground plane `z = 0` —
 if the ray is right, the hit lands exactly under the cursor from every camera angle.
 
-First give `State` a field for the latest cursor position — **add it to `struct State` and initialize
-it in `State::new`**:
+**3a. The cursor lands on `State`** (the pick code lives there; `App` in lib.rs only forwards) —
+add to `struct State` and initialize in `State::new`'s `Ok(Self { … })`:
 
 ```rust
 // in `struct State`:
-    cursor: (f64, f64),      // latest cursor position, physical pixels
-// in `State::new`, next to the other field inits:
+    pub cursor: (f64, f64),      // latest cursor position, physical pixels
+// in `State::new`'s Ok(Self { … }), next to the other field inits:
     cursor: (0.0, 0.0),
 ```
 
-State already handles `CursorMoved` for orbit/pan — **in that existing arm**, also stash the position:
+Mouse events arrive in **lib.rs** (`App::window_event`). In the existing
+`WindowEvent::CursorMoved` arm — right beside the `self.last_cursor = …` line it already ends
+with — stash the position on `State` too:
 
 ```rust
-            WindowEvent::CursorMoved { position, .. } => {
-                self.cursor = (position.x, position.y);   // physical pixels
-                // ...existing orbit/pan handling stays below...
+                state.cursor = (position.x, position.y);   // physical pixels, for picking
+```
+
+and add a left-button arm next to the existing `MouseButton::Right` one:
+
+```rust
+            WindowEvent::MouseInput { state: btn, button: MouseButton::Left, .. } => {
+                if btn == ElementState::Pressed { state.on_left_click(); }
             }
 ```
 
-Then, **in the left-button `MouseInput` press branch** (`ElementState::Pressed`,
-`MouseButton::Left`), build the ray and drop the marker:
+**3b. The click handler itself** — add to `impl State` (in `state.rs`), together with the small
+`aspect()` helper every pick lesson from here on reuses:
 
 ```rust
-    let aspect = self.gpu.config.width as f64 / self.gpu.config.height as f64;
-    let vp = self.camera.view_proj(aspect);
-    let origin = self.camera.origin();
-    let viewport = (0.0, 0.0, self.gpu.config.width as f64, self.gpu.config.height as f64);
-    if let Some(ray) = engine::pick::screen_to_world_ray(&vp, &origin, self.cursor, viewport) {
-        // intersect with z = 0: origin.z + t·dir.z = 0
-        if ray.dir[2].abs() > 1e-9 {
-            let t = -ray.origin[2] / ray.dir[2];
-            if t > 0.0 {
-                let hit = ray.origin + ray.dir * t;
-                log::info!("grid hit: ({:.1}, {:.1}, {:.1})", hit[0], hit[1], hit[2]);
-                // (optional) drop a Point marker at `hit` through 32's glyph path to see it
+    /// Viewport aspect ratio — picking and projection share it from here on.
+    pub fn aspect(&self) -> f64 {
+        self.gpu.config.width as f64 / self.gpu.config.height as f64
+    }
+
+    /// Left-click entry point (wired from lib.rs). Today: the ground-plane self-check;
+    /// 42 replaces the z=0 block with the real pick.
+    pub fn on_left_click(&mut self) {
+        let vp = self.camera.view_proj(self.aspect());
+        let origin = self.camera.origin();
+        let viewport = (0.0, 0.0, self.gpu.config.width as f64, self.gpu.config.height as f64);
+        if let Some(ray) =
+            crate::engine::pick::screen_to_world_ray(&vp, &origin, self.cursor, viewport) {
+            // intersect with z = 0: origin.z + t·dir.z = 0
+            if ray.dir[2].abs() > 1e-9 {
+                let t = -ray.origin[2] / ray.dir[2];
+                if t > 0.0 {
+                    let hit = &ray.origin + &ray.dir * t;   // borrow: Point/Vector aren't Copy
+                    log::info!("grid hit: ({:.1}, {:.1}, {:.1})", hit[0], hit[1], hit[2]);
+                    // (optional) drop a Point marker at `hit` through 32's glyph path to see it
+                }
             }
         }
     }
@@ -198,7 +215,8 @@ Ch 41: SCREEN → RAY. A cursor pixel → NDC (x,y ∈ [-1,1], y flipped for top
 ```
 
 Edited: `engine/pick.rs` (NEW — `Ray`, `screen_to_world_ray`, `unproject`), `engine/mod.rs`
-(`pub mod pick;`), `state.rs` (cursor tracking, click → ray → z=0 marker as the self-check).
+(`pub mod pick;`), `state.rs` (`cursor` field, `aspect()`, `on_left_click` — ray → z=0 self-check),
+`lib.rs` (cursor stash + Left-button arm).
 
 ## Next
 

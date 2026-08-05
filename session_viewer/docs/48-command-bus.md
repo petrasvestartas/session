@@ -35,6 +35,13 @@ src/state.rs          # run_command(); clicks feed the Get-loop BEFORE picking; 
 
 ## Step 1 — what a command can be waiting for: `src/app/getloop.rs` (NEW)
 
+Declare both new modules in `src/app/mod.rs`, beside the existing ones:
+
+```rust
+pub mod commands;
+pub mod getloop;
+```
+
 ```rust
 use session_rust::Point;
 
@@ -140,11 +147,18 @@ Wire it in three mechanical edits:
 1. In `src/ui/mod.rs`, add `mod cli;` at the top and give `UiState` (47's struct) four new fields:
 
 ```rust
-    // ← ADD to UiState — the CLI's own state (all init to defaults in State::new)
+    // ← ADD to UiState — the CLI's own state
     pub input: String,               // the text field's current contents
     pub log: String,                 // last response line (written by run_command)
     pub prompt: String,              // Get-loop prompt, "" = show '>' (written by set_prompt)
     pub pending_command: Option<String>,   // a submitted line, drained by State after build_ui
+```
+
+and to the `UiState { … }` literal in `State::new` (47):
+
+```rust
+            input: String::new(), log: String::new(), prompt: String::new(),
+            pending_command: None,
 ```
 
 2. Inside 47's `build_ui` closure — after the `settings` window — call the panel and stash its
@@ -158,10 +172,11 @@ Wire it in three mechanical edits:
         }
 ```
 
-3. After `build_ui` returns (in the caller, where `State` owns `self.ui`), drain it into the bus:
+3. After `build_ui` returns, drain it into the bus — in `State::render()`, right after 47's
+   `self.shell.state.handle_platform_output(…)` line:
 
 ```rust
-        // ← ADD right after the build_ui call, before submitting the frame
+        // ← ADD — the closure only collected; State runs the line here, where &mut self is free
         if let Some(line) = self.ui.pending_command.take() {
             self.run_command(&line);
         }
@@ -217,10 +232,12 @@ Wire it in three mechanical edits:
     }
 ```
 
-And the two input reroutes — this is the Get-loop actually looping:
+And the two input reroutes — this is the Get-loop actually looping. First the click: in
+`State::on_left_release` (45), right after the `ray`/`tol` construction and BEFORE the
+click-vs-marquee branch:
 
 ```rust
-    // in the left-click handler, BEFORE 45's selection logic:
+    use crate::app::getloop::GetState;
     if matches!(self.get, GetState::WaitingPoint { .. }) {
         if let Some(hit) = self.scene.pick_ray(&ray, tol) {        // a click IS a point
             if let Some(mut cmd) = self.active.take() {
@@ -231,11 +248,25 @@ And the two input reroutes — this is the Get-loop actually looping:
         // never falls through to selection
         return;
     }
+```
 
-    // in the key handler:
-    Key::Named(NamedKey::Escape) => {
-        self.active = None; self.set_prompt(GetState::Idle); self.ui.log = "cancelled".into();
+Then Esc. The key match lives in lib.rs, but `set_prompt` is private to `State` — so give `State`
+a public verb (next to `run_command`):
+
+```rust
+    /// Esc: abort the active command (wired from lib.rs).
+    pub fn cancel_command(&mut self) {
+        use crate::app::getloop::GetState;
+        self.active = None;
+        self.set_prompt(GetState::Idle);
+        self.ui.log = "cancelled".into();
     }
+```
+
+and add the arm in lib.rs's `match event.logical_key.as_ref()`:
+
+```rust
+                        Key::Named(NamedKey::Escape) => state.cancel_command(),
 ```
 
 (When nothing is hit, intersect the ray with the work plane `z = 0` — 41 Step 3's formula — so

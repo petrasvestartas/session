@@ -20,6 +20,9 @@
 #include <TopoDS_Face.hxx>
 #include <Interface_Static.hxx>
 #include <STEPControl_Writer.hxx>
+#include <Message.hxx>
+#include <Message_PrinterOStream.hxx>
+#include <Message_Messenger.hxx>
 #include <BRepCheck.hxx>
 #include <BRepCheck_Result.hxx>
 #include <TopExp.hxx>
@@ -208,7 +211,15 @@ int main(int argc, char** argv) {
         Interface_Static::SetIVal("read.surfacecurve.mode", std::atoi(m));
     STEPControl_Reader r;
     IFSelect_ReturnStatus st = r.ReadFile(argv[1]);
-    if (st != IFSelect_RetDone) { std::printf("READ_FAIL\n"); return 1; }
+    if (st != IFSelect_RetDone) {
+        std::printf("READ_FAIL\n");
+        if (argc > 2 && std::strcmp(argv[2], "--diag") == 0) {
+            Message::DefaultMessenger()->AddPrinter(new Message_PrinterOStream());
+            STEPControl_Reader r2;
+            r2.ReadFile(argv[1]);
+        }
+        return 1;
+    }
     int nroots = r.TransferRoots();
     TopoDS_Shape s = r.OneShape();
     int nsolid = 0, nshell = 0, nface = 0;

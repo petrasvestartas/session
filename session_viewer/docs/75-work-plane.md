@@ -68,37 +68,247 @@ pays (48 → 59 → here).
 
 ## Step 2 — the command: `src/app/commands.rs`
 
-A three-way verb, all Get-loop (49's grammar):
+A three-way verb, all Get-loop (49's grammar). The dispatch arm (`commands.rs` needs
+`use session_rust::Plane;`):
 
 ```rust
-    "cplane" => match parts.next() {
-        Some("world") => { state.work_plane = Plane::default(); state.on_cplane_changed();
-                           Dispatch::Instant("cplane: world XY".into()) }
-        Some("face") => { /* WaitingPoint; on click: pick_ray → hit mesh face (43) → Plane from the
-                            face's plane (kernel face normal + hit point as origin) */ }
-        _ => { /* 3-point ActiveCommand: origin → x-direction point → y-side point;
-                 Plane::new_origin_x_y(…) — check your kernel's from-points constructor.
-                 back/Esc from 49 apply as always. */ }
+        "cplane" => match parts.next() {
+            Some("world") => {
+                state.work_plane = Plane::default();
+                state.on_cplane_changed();
+                Dispatch::Instant("cplane: world XY".into())
+            }
+            Some("face") => { let (cmd, get) = CplaneFace::start(); Dispatch::Start(cmd, get) }
+            _            => { let (cmd, get) = Cplane3Points::start(); Dispatch::Start(cmd, get) }
+        }
+```
+
+(`on_cplane_changed()` is **defined in Step 3** — it pushes the plane frame to the ground shader and
+calls `poke()`. It's called here before you write it; add the verb now, add the method in Step 3,
+and the build is green only once both exist.)
+
+The two commands, below `dispatch` in `commands.rs` — 49's ActiveCommand shape, nothing new:
+
+```rust
+pub struct Cplane3Points {
+    pts: Vec<Point>,
+}
+
+impl Cplane3Points {
+    pub fn start() -> (Box<dyn ActiveCommand>, GetState) {
+        (Box::new(Cplane3Points { pts: Vec::new() }),
+         GetState::WaitingPoint { prompt: "cplane: pick ORIGIN".into() })
+    }
+    fn ask(&self) -> GetState {
+        let what = match self.pts.len() {
+            0 => "cplane: pick ORIGIN",
+            1 => "cplane: pick a point on the X axis",
+            _ => "cplane: pick a point on the +Y side",
+        };
+        GetState::WaitingPoint { prompt: what.into() }
+    }
+}
+
+impl ActiveCommand for Cplane3Points {
+    fn feed_point(&mut self, state: &mut crate::state::State, p: Point) -> CmdStep {
+        self.pts.push(p);
+        if self.pts.len() < 3 { return CmdStep::Prompt(self.ask()); }
+        let (o, px, py) = (self.pts[0].clone(), self.pts[1].clone(), self.pts[2].clone());
+        // x toward the second pick; z = x × (toward the third); y closes the frame
+        let x = (px - o.clone()).normalized();
+        let mut z = x.cross(&(py - o.clone()));
+        if z.magnitude() < 1e-12 { return CmdStep::Done("points are collinear — unchanged".into()); }
+        z.normalize_self();
+        let y = z.cross(&x);
+        state.work_plane = Plane::from_axes(o, x, y, z);
+        state.on_cplane_changed();
+        CmdStep::Done("cplane set".into())
+    }
+    fn feed_text(&mut self, state: &mut crate::state::State, s: &str) -> CmdStep {
+        let n: Vec<f64> = s.split(',').filter_map(|t| t.trim().parse().ok()).collect();
+        if n.len() == 3 { return self.feed_point(state, Point::new(n[0], n[1], n[2])); }
+        CmdStep::Prompt(self.ask())
+    }
+    fn back(&mut self) -> CmdStep { self.pts.pop(); CmdStep::Prompt(self.ask()) }
+    fn prompt(&self) -> GetState { self.ask() }
+}
+
+pub struct CplaneFace;
+
+impl CplaneFace {
+    pub fn start() -> (Box<dyn ActiveCommand>, GetState) {
+        (Box::new(CplaneFace),
+         GetState::WaitingPoint { prompt: "cplane: click a mesh face".into() })
+    }
+}
+
+impl ActiveCommand for CplaneFace {
+    fn feed_point(&mut self, state: &mut crate::state::State, _p: Point) -> CmdStep {
+        // the fed point is the snapped click; the FACE comes from 43's sub-object resolve
+        match state.face_plane_under_cursor() {
+            Some(pl) => {
+                state.work_plane = pl;
+                state.on_cplane_changed();
+                CmdStep::Done("cplane: face".into())
+            }
+            None => CmdStep::Prompt(self.prompt()),
+        }
+    }
+    fn feed_text(&mut self, _state: &mut crate::state::State, _s: &str) -> CmdStep {
+        CmdStep::Prompt(self.prompt())
+    }
+    fn back(&mut self) -> CmdStep { CmdStep::Cancel }
+    fn prompt(&self) -> GetState {
+        GetState::WaitingPoint { prompt: "cplane: click a mesh face".into() }
+    }
+}
+```
+
+`face_plane_under_cursor` composes machinery from 42/43 — add to `impl State` (`state.rs`):
+
+```rust
+    /// The plane of the mesh face under the cursor (43's resolve → kernel face normal).
+    pub fn face_plane_under_cursor(&mut self) -> Option<Plane> {
+        let ray = self.cursor_ray()?;
+        let vp = self.camera.view_proj(self.aspect());
+        let origin = self.camera.origin();
+        let viewport = (0.0, 0.0, self.gpu.config.width as f64, self.gpu.config.height as f64);
+        let hit = self.scene.pick_mesh(&ray)?;
+        let sub = self.scene.resolve_subobject(&hit.guid, &hit, self.cursor,
+                                               &vp, &origin, viewport)?;
+        let crate::app::pick::SubKind::Face(fk) = sub.kind else { return None };
+        let Some(Geometry::Mesh(m)) = self.scene.session.lookup.get(&hit.guid) else { return None };
+        let n = m.xform.transform_vector(&m.face_normal(fk)?);     // local normal → world
+        Some(Plane::from_point_normal(hit.point.clone(), n))
     }
 ```
 
-(`on_cplane_changed()` is **defined in Step 3** — it rebuilds the grid uniform and calls `poke()`.
-It's called here before you write it; add the verb now, add the method in Step 3, and the build is
-green only once both exist.)
+(`state.rs` gains `Plane` in its `session_rust` use. Register the verb: `"cplane"` in `VERBS`,
+alias `("cp","cplane")`.)
 
-(`rect`/`box` (58) build their geometry in plane **uv**: corner clicks convert to plane coordinates
-(`plane.x_axis()`/`y_axis()` dot products), the rectangle spans u/v, and the result transforms back —
-a `to_plane`/`from_plane` helper pair on `State`. `box` extrudes along `z_axis()`.)
+**`rect`/`box` (58) build in plane uv.** Corner clicks convert to plane coordinates, the rectangle
+spans u/v, the result converts back — through one helper pair on `State`, so the tools still never
+touch `work_plane` directly:
+
+```rust
+    /// World ↔ work-plane coordinates. Tools stay plane-blind: they see (u, v, w) triples.
+    pub fn to_plane(&self, p: &Point) -> [f64; 3] {
+        let d = p.clone() - self.work_plane.origin();
+        [d.dot(&self.work_plane.x_axis()), d.dot(&self.work_plane.y_axis()),
+         d.dot(&self.work_plane.z_axis())]
+    }
+    pub fn from_plane(&self, u: f64, v: f64, w: f64) -> Point {
+        let o = self.work_plane.origin();
+        let (x, y, z) = (self.work_plane.x_axis(), self.work_plane.y_axis(),
+                         self.work_plane.z_axis());
+        Point::new(o[0] + x[0]*u + y[0]*v + z[0]*w,
+                   o[1] + x[1]*u + y[1]*v + z[1]*w,
+                   o[2] + x[2]*u + y[2]*v + z[2]*w)
+    }
+```
+
+In `rect.rs` (58), find `rect_corners` → replace it and its callers' first lines:
+
+```rust
+/// Two picked world corners → the 4 rectangle corners ON the work plane (u/v span, w = 0).
+fn rect_corners(state: &crate::state::State, a: &Point, b: &Point) -> [Point; 4] {
+    let (pa, pb) = (state.to_plane(a), state.to_plane(b));
+    let (u0, u1) = (pa[0].min(pb[0]), pa[0].max(pb[0]));
+    let (v0, v1) = (pa[1].min(pb[1]), pa[1].max(pb[1]));
+    [state.from_plane(u0, v0, 0.0), state.from_plane(u1, v0, 0.0),
+     state.from_plane(u1, v1, 0.0), state.from_plane(u0, v1, 0.0)]
+}
+```
+
+(`rect_ghost` gains the same `state` parameter and passes it through; the two `rect_corners(&a, &p)`
+call sites become `rect_corners(state, &a, &p)`.) `BoxTool::finish` builds its mesh in plane space
+and places it with one kernel transform — find its `let (x0, x1) = …` through `m.xform = …` lines →
+replace with:
+
+```rust
+        let (pa, pb) = (state.to_plane(a), state.to_plane(b));
+        let (u0, u1) = (pa[0].min(pb[0]), pa[0].max(pb[0]));
+        let (v0, v1) = (pa[1].min(pb[1]), pa[1].max(pb[1]));
+        let mut m = Mesh::create_box(u1 - u0, v1 - v0, h);
+        // center the box in plane space, then map plane space → the tilted work plane
+        let center = Xform::translation((u0 + u1) * 0.5, (v0 + v1) * 0.5, h * 0.5);
+        m.xform = Xform::plane_to_plane(&Plane::default(), &state.work_plane) * &center;
+```
+
+(`rect.rs` gains `Plane` in its imports. `BoxTool`'s clicked-height arm reads `p[2].abs()` — make
+that plane-aware too: `state.to_plane(&p)[2].abs()`.)
 
 ## Step 3 — the visible plane: grid + snap
 
-- **Grid/ground (65):** the analytic shader gains the plane frame (origin + axes as a uniform);
-  ray∩plane replaces ray∩z=0 (same math as Step 1, GPU-side), and grid lines run along plane u/v —
-  the fade and depth logic don't change. World XY renders pixel-identical to before.
-- **Snap (59):** the `Grid` candidate quantizes in plane uv instead of world xy — express the raw
-  point in plane coordinates, round u and v to the step, convert back. `Endpoint`/`Vertex` snaps are
-  world-space and unaffected.
-- `on_cplane_changed()` = update the grid uniform + `poke()` (66).
+**Ground/grid (65).** The analytic shader gains the plane frame; ray∩plane replaces ray∩z=0 (same
+math as Step 1, GPU-side), and the fade measures in plane uv. World XY renders pixel-identical to
+before. In `ground.wgsl`, find `GroundUniform` → replace `ground_z` + pads with the frame (the Rust
+mirror grows by the same three `[f32; 4]`s — 144 B both sides, no vec3 traps):
+
+```wgsl
+struct GroundUniform {
+    inv_view_proj: mat4x4<f32>,
+    cam_rel_eye: vec4<f32>,       // eye − origin (xyz), fade radius (w)
+    plane_o: vec4<f32>,           // work-plane origin, CAMERA-RELATIVE (origin-subtracted)
+    plane_x: vec4<f32>,           // unit u axis (xyz)
+    plane_y: vec4<f32>,           // unit v axis (xyz)
+};
+```
+
+and in `fs_main`, find the block from `let denom = dir.z;` through `let d = length(hit.xy -
+g.cam_rel_eye.xy);` → replace with:
+
+```wgsl
+    let n = cross(g.plane_x.xyz, g.plane_y.xyz);
+    let denom = dot(dir, n);
+    if (abs(denom) < 1e-7) { discard; }
+    let t = dot(g.plane_o.xyz - p0, n) / denom;
+    if (t <= 0.0) { discard; }
+    let hit = p0 + dir * t;
+    // horizon fade, measured in plane uv (world-XY before; identical there)
+    let rel = hit - g.plane_o.xyz;
+    let uv = vec2<f32>(dot(rel, g.plane_x.xyz), dot(rel, g.plane_y.xyz));
+    let eye_rel = g.cam_rel_eye.xyz - g.plane_o.xyz;
+    let euv = vec2<f32>(dot(eye_rel, g.plane_x.xyz), dot(eye_rel, g.plane_y.xyz));
+    let d = length(uv - euv);
+```
+
+On the Rust side, `Gpu` stores the frame — `pub work_plane: (Point, Vector, Vector)` (origin, x, y;
+init `(Point::new(0.0, 0.0, 0.0), Vector::x_axis(), Vector::y_axis())` in `Gpu::new`) — and 65's
+per-frame `GroundUniform` fill writes `plane_o = work_plane.0 − origin` (the camera-relative
+subtract, f64 then cast) plus the two axes in place of the old `ground_z`. If you took 65's
+fract/fwidth infinite-grid upgrade, its lines already key off the hit — express them in `uv` and
+they ride the plane for free.
+
+**Snap (59).** The `Grid` candidate quantizes in plane uv instead of world xy; `Endpoint`/`Vertex`
+snaps are world-space and unaffected. `snap()` gains a `plane: &Plane` parameter (the call site in
+`cursor_world_point` passes `&self.work_plane`; `snap.rs` imports `Plane`). Find 59's grid-candidate
+block (`if raw[2].abs() < 1e-6 { … }`) → replace with:
+
+```rust
+    // grid candidate — the crossing nearest the raw point, in PLANE uv (75)
+    let d = raw.clone() - plane.origin();
+    let (u, v, w) = (d.dot(&plane.x_axis()), d.dot(&plane.y_axis()), d.dot(&plane.z_axis()));
+    if w.abs() < 1e-6 {
+        let (gu, gv) = ((u / GRID_STEP).round() * GRID_STEP, (v / GRID_STEP).round() * GRID_STEP);
+        let (o, x, y) = (plane.origin(), plane.x_axis(), plane.y_axis());
+        let g = Point::new(o[0] + x[0]*gu + y[0]*gv,
+                           o[1] + x[1]*gu + y[1]*gv,
+                           o[2] + x[2]*gu + y[2]*gv);
+        consider(g, SnapKind::Grid);
+    }
+```
+
+**The change broadcaster** — the method Step 2 has been calling, in `impl State`:
+
+```rust
+    /// The work plane changed: push the frame to the ground shader + redraw (66).
+    pub fn on_cplane_changed(&mut self) {
+        self.gpu.work_plane = (self.work_plane.origin(),
+                               self.work_plane.x_axis(), self.work_plane.y_axis());
+        self.poke();
+    }
+```
 
 ## Step 4 — verify
 

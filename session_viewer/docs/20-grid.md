@@ -6,7 +6,7 @@ type (**lines**), depth rule — drawn in the *same* pass before the box, giving
 pattern reused for every later overlay: edges, gizmos, selection highlights.
 
 The grid is **static** — never changes — so needs no vertex buffer: the shader *generates* every line
-endpoint from `@builtin(vertex_index)`, CPU just says "draw 46 vertices." No buffer, no `RenderVertex`,
+endpoint from `@builtin(vertex_index)`, CPU just says "draw 50 vertices." No buffer, no `RenderVertex`,
 no kernel geometry.
 
 ## Why

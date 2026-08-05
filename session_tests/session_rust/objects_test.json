@@ -7,13 +7,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::{Objects, Point};\n        use crate::file_encoders::{file_json_dump, file_json_load};\n        let mut original = Objects::new();\n        original.points.push(Point::new(1.0, 2.0, 3.0));\n        original.points.push(Point::new(4.0, 5.0, 6.0));\n        file_json_dump(&original, \"serialization/test_objects.json\", false).unwrap();\n        let loaded = file_json_load::<Objects>(\"serialization/test_objects.json\").unwrap();",
+    "code": "        use crate::{Objects, Point};\n        use crate::file_encoders::{file_json_dump, file_json_load};\n        let mut original = Objects::new();\n        original.points.push(std::rc::Rc::new(Point::new(1.0, 2.0, 3.0)));\n        original.points.push(std::rc::Rc::new(Point::new(4.0, 5.0, 6.0)));\n        file_json_dump(&original, \"serialization/test_objects.json\", false).unwrap();\n        let loaded = file_json_load::<Objects>(\"serialization/test_objects.json\").unwrap();",
     "failures": [],
     "group": "Objects",
     "line": 16,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 0.341
+    "time_ms": 0.912
   },
   {
     "checks": [
@@ -44,7 +44,7 @@
     "line": 100,
     "passed": true,
     "test_name": "Component Protobuf Roundtrip",
-    "time_ms": 0.133
+    "time_ms": 0.144
   },
   {
     "checks": [
@@ -80,7 +80,7 @@
     "line": 65,
     "passed": true,
     "test_name": "Component Json Roundtrip",
-    "time_ms": 0.194
+    "time_ms": 0.188
   },
   {
     "checks": [
@@ -121,13 +121,13 @@
         "passed": true
       }
     ],
-    "code": "        use crate::{Objects, Point};\n        let mut original = Objects::new();\n        original.points.push(Point::new(1.0, 2.0, 3.0));\n        original.points.push(Point::new(4.0, 5.0, 6.0));\n        original.pb_dump(\"serialization/test_objects.bin\");\n        let loaded = Objects::pb_load(\"serialization/test_objects.bin\");",
+    "code": "        use crate::{Objects, Point};\n        let mut original = Objects::new();\n        original.points.push(std::rc::Rc::new(Point::new(1.0, 2.0, 3.0)));\n        original.points.push(std::rc::Rc::new(Point::new(4.0, 5.0, 6.0)));\n        original.pb_dump(\"serialization/test_objects.bin\");\n        let loaded = Objects::pb_load(\"serialization/test_objects.bin\");",
     "failures": [],
     "group": "Objects",
     "line": 29,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.158
+    "time_ms": 0.169
   },
   {
     "checks": [

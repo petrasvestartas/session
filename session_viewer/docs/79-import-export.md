@@ -134,9 +134,33 @@ The mirror, riding 39's download machinery:
                 let _ = crate::app::persistence::download_bytes("export.obj", s.as_bytes());
                 Dispatch::Instant("exported export.obj".into())
             }
-            Some("pb") | Some("json") | None => { /* 39's session_to_bytes + download — whole doc */ }
+            Some("json") => {                                          // whole doc, 39's machinery
+                let bytes = crate::app::persistence::session_to_bytes("session.json",
+                                                                      &state.scene.session);
+                let _ = crate::app::persistence::download_bytes("session.json", &bytes);
+                Dispatch::Instant("exported session.json".into())
+            }
+            Some("pb") | None => {
+                let bytes = crate::app::persistence::session_to_bytes("session.pb",
+                                                                      &state.scene.session);
+                let _ = crate::app::persistence::download_bytes("session.pb", &bytes);
+                Dispatch::Instant("exported session.pb".into())
+            }
             _ => Dispatch::Instant("export obj|pb|json".into()),
         }
+```
+
+`first_selected_mesh` is a five-liner on `impl Scene`:
+
+```rust
+    /// First selected Mesh, else the scene's only mesh — `export obj`'s subject.
+    pub fn first_selected_mesh(&self) -> Option<&Mesh> {
+        self.selected.iter()
+            .filter_map(|g| match self.session.lookup.get(g) {
+                Some(Geometry::Mesh(m)) => Some(m), _ => None })
+            .next()
+            .or_else(|| self.session.objects.meshes.first())
+    }
 ```
 
 (The kernel writer takes ONE mesh — multi-object OBJ (`o name` groups) is a small kernel extension,

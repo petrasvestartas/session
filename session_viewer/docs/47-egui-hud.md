@@ -105,12 +105,14 @@ pub fn build_ui(shell: &mut Shell, window: &winit::window::Window,
 }
 ```
 
-Add `mod ui;` in `lib.rs`, and to `State`: `pub shell: Shell, pub ui: UiState` (build the `Shell` in
-`State::new` right after `Gpu::new` — it needs the device and surface format). Seed `UiState` from the
-current camera/thickness values — note the `ortho` flag is the inverse of the camera's `perspective`:
+Add `mod ui;` in `lib.rs`, and to `struct State`: `pub shell: crate::ui::Shell, pub ui:
+crate::ui::UiState`. Build the `Shell` in `State::new` right after `Gpu::new` (it needs the device
+and surface format), seed `UiState` from the current camera/thickness values — the `ortho` flag is
+the inverse of the camera's `perspective` — and add both (`shell`/`ui`) to the `Ok(Self { … })`:
 
 ```rust
-        // in State::new, after gpu + shell are built:
+        // in State::new, right after `let gpu = Gpu::new(...).await?;`:
+        let shell = crate::ui::Shell::new(&window, &gpu.device, gpu.config.format);
         let ui = crate::ui::UiState {
             show_grid: gpu.show_grid, show_edges: gpu.show_edges,
             ortho: !camera.perspective,          // camera stores `perspective`; UI shows its inverse
@@ -118,6 +120,26 @@ current camera/thickness values — note the `ortho` flag is the inverse of the 
             fps: 0.0, frame_ms: 0.0, draws: 0, drawn: 0, total: 0,
         };
 ```
+
+Three of those sources don't exist yet — small enablers, all in `engine/`:
+
+- **`Gpu.thickness`** — `clear()` has hardcoded `thickness: 2.0` since 31. Add
+  `pub thickness: f32,` to `struct Gpu`, `thickness: 2.0,` to its `Ok(Self { … })`, and in
+  `clear()`'s per-frame `LineUniform` replace `thickness: 2.0,` with `thickness: self.thickness,`.
+- **`Gpu.show_grid` / `show_edges`** — Step 4's gates; add the fields now (see the note there).
+- **Perf readouts** — 28's `Performance` keeps its numbers private and never stored the draw
+  count. In `engine/performance.rs`, add `pub last_draws: u32,` to the struct (init `0` in
+  `Performance::new`), set it in `frame()` (first line: `self.last_draws = draws;`), and add two
+  accessors to `impl Performance`:
+
+```rust
+    pub fn fps(&self) -> f32 {
+        if self.frame_ms > 0.0 { (1000.0 / self.frame_ms) as f32 } else { 0.0 }
+    }
+    pub fn ms(&self) -> f32 { self.frame_ms as f32 }
+```
+
+(`drawn`/`total` come from 37's `perf_drawn`/`perf_total` on `Gpu`.)
 
 ## Step 2 — events go to egui first: `src/lib.rs`
 
@@ -153,7 +175,9 @@ finished triangles. (`Gpu` knowing `egui_wgpu` is fine — it's a GPU library, n
                  ui: Option<crate::ui::UiFrame>) -> anyhow::Result<()> {
 ```
 
-then, after the last 3-D pass ends but **before** `queue.submit` / `present`:
+then, after the last 3-D pass's closing `}` — the block below ENDS with the submit, so **delete
+the existing `self.queue.submit([encoder.finish()]);` line** (the `output.present();` after it
+stays):
 
 ```rust
         // ---- egui pass (after the 3-D passes, same encoder) ----
@@ -204,13 +228,17 @@ pub struct UiFrame<'a> {
 
 ## Step 4 — the frame ties together: `src/state.rs`
 
-`render()` now: copy HUD numbers in → build the UI → **apply** the settings → tessellate → draw:
+`render()` now: copy HUD numbers in → build the UI → **apply** the settings → tessellate → draw.
+Find the final `self.gpu.clear(wgpu::Color { r: 0.9, … }, &view_proj, &origin)` expression at the
+end of `render()` and replace it with:
 
 ```rust
-        // 1. feed the HUD (numbers 28/37 already compute)
-        self.ui.fps = self.perf_fps; self.ui.frame_ms = self.perf_ms;
-        self.ui.draws = self.perf_draws; self.ui.drawn = self.perf_drawn;
-        self.ui.total = self.perf_total;
+        // 1. feed the HUD (the Step-1 accessors + 37's cull counters)
+        self.ui.fps = self.gpu.performance.fps();
+        self.ui.frame_ms = self.gpu.performance.ms();
+        self.ui.draws = self.gpu.performance.last_draws;
+        self.ui.drawn = self.gpu.perf_drawn;
+        self.ui.total = self.gpu.perf_total;
 
         // 2. lay out; widgets mutate self.ui only
         let full_out = crate::ui::build_ui(&mut self.shell, &self.window, &mut self.ui);
@@ -222,11 +250,12 @@ pub struct UiFrame<'a> {
         self.gpu.thickness = self.ui.thickness;
         self.camera.set_ortho(self.ui.ortho);            // 16's projection toggle, now data-driven
 
-        // 4. tessellate + hand to the gpu
+        // 4. tessellate + hand to the gpu (the same clear call, one new argument)
         let tris = self.shell.ctx.tessellate(full_out.shapes, full_out.pixels_per_point);
         let ui_frame = crate::ui::UiFrame { renderer: &mut self.shell.renderer, tris,
             textures_delta: full_out.textures_delta, pixels_per_point: full_out.pixels_per_point };
-        self.gpu.clear(bg, &view_proj, &origin, Some(ui_frame))
+        self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj, &origin,
+            Some(ui_frame))
 ```
 
 Camera only has `toggle_projection` (from 16) — add the data-driven setter next to it in
@@ -238,12 +267,14 @@ Camera only has `toggle_projection` (from 16) — add the data-driven setter nex
     }
 ```
 
-(`show_grid`/`show_edges` are two new `bool` fields on `Gpu`, gated in `clear()`: wrap the
-`pass.set_pipeline(&self.pipelines.grid)` block in `if self.show_grid { … }` and the
-`pass.set_pipeline(&self.pipelines.cylinder)` block in `if self.show_edges { … }`. Add both to
-`struct Gpu` **and** initialize them in `Gpu::new`'s `Self { … }` (`show_grid: true, show_edges: true`) —
-a struct literal, so a missing field is an **E0063** build error. `thickness` already drives 31's line
-uniform every frame; the slider just changes the number it uploads.)
+(`show_grid`/`show_edges` are two new `pub bool` fields on `Gpu`, gated in `clear()`: wrap the
+grid block — `pass.set_pipeline(&self.pipelines.grid)` through its `draws += 1;` — in
+`if self.show_grid { … }`, and wrap the whole Edges block — 34f's
+`if self.segment_count > 0 { … }` (both SOLID and FLAT branches) — in
+`if self.show_edges { … }`. Add both to `struct Gpu` **and** initialize them in `Gpu::new`'s
+`Self { … }` (`show_grid: true, show_edges: true`) — a struct literal, so a missing field is an
+**E0063** build error. `thickness` drives the line uniform every frame after Step 1's enabler;
+the slider just changes the number it uploads.)
 
 ## Step 5 — verify
 

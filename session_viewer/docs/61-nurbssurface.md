@@ -52,28 +52,50 @@ The same four arms as 60, but the build arm goes through `push_mesh`/`flatten_me
 surface **is** a mesh, so 30–32's whole pipeline (arena, edge tubes, boundary glyphs) applies
 untouched:
 
+**(1) ORDER** — `is_renderable` admits `Geometry::NurbsSurface(_)` (the same one-word arm as 60).
+
+**(2) BUILD** — the cached mesh flows through the **existing** mesh path, as one more arm in
+`Scene::build`'s match. One catch: `surface_mesh` takes `&mut self`, so it cannot run inside the
+walk (the loop already borrows `self.order`/`self.session` — E0502). Prime the cache first — insert
+at the **top of `build`**, before the accumulators:
+
 ```rust
-    // (1) ORDER — is_renderable admits Geometry::NurbsSurface (same one-word arm as 60).
-    // (2) BUILD — the cached mesh flows through the EXISTING mesh path.
-    //     surface_mesh takes &mut self, so it CANNOT run inside an immutable
-    //     `for ns in &…nurbssurfaces` loop (E0502). Prime the cache in one mutable
-    //     pass, then build in a second pass where both borrows are immutable:
-    let ns_guids: Vec<String> =
-        self.session.objects.nurbssurfaces.iter().map(|s| s.guid().to_string()).collect();
-    for guid in &ns_guids { self.surface_mesh(guid); }          // tessellate-on-first-use
-    for ns in &self.session.objects.nurbssurfaces {
-        let guid = ns.guid().to_string();
-        let ri = self.guid_to_row[&guid];
-        let m = match self.tess_cache.get(&guid) { Some(m) => m, None => continue };
-        // PLACEMENT is ns.xform — the cached mesh carries an IDENTITY xform (SHAPE only),
-        // so feeding m.xform here would snap a moved/rotated surface back to origin.
-        objects_base_entry(ri, ns.xform.duplicate(), ns_surface_color(ns), flags_for(&guid));
-        push_mesh(m, ri, &mut verts, &mut vids, &mut idx, &mut segments, &mut glyphs);
-    }
-    // (3) WORLD BOX — OBB::from_nurbssurface(ns, PAD) (kernel-exact, samples the surface itself).
-    // (4) PICK — the cached mesh is the pick proxy: raycast_mesh (42) against tess_cache[guid],
-    //     added as an arm in pick_mesh's candidate loop (surfaces resolve like BReps did).
+        // tessellate-on-first-use, BEFORE the walk borrows self immutably (E0502 otherwise)
+        let ns_guids: Vec<String> = self.session.objects.nurbssurfaces.iter()
+            .map(|s| s.guid().to_string()).collect();
+        for guid in &ns_guids { self.surface_mesh(guid); }
 ```
+
+then add the arm beside 60's curve arm:
+
+```rust
+            Geometry::NurbsSurface(ns) => {
+                // PLACEMENT is ns.xform — the cached mesh carries an IDENTITY xform (SHAPE only);
+                // feeding m.xform here would snap a moved/rotated surface back to origin.
+                objects_base.push((ns.xform.duplicate(), surface_color(ns), flags));
+                if let Some(m) = self.tess_cache.get(guid) {
+                    push_mesh(m, ri, &mut verts, &mut vids, &mut idx, &mut segments, &mut glyphs);
+                }
+            }
+```
+
+with the color helper beside 60's `curve_color` (surfaces carry no scalar color either):
+
+```rust
+pub fn surface_color(ns: &NurbsSurface) -> [f32; 4] {
+    ns.facecolors.first().map(|c| c.to_f32()).unwrap_or([0.75, 0.75, 0.78, 1.0])
+}
+```
+
+(`scene.rs`'s `session_rust` use gains `NurbsSurface`.)
+
+**(3) WORLD BOX** — one arm in `world_obb` (36): `Geometry::NurbsSurface(ns) =>
+OBB::from_nurbssurface(ns, PAD),` (kernel-exact, samples the surface itself).
+
+**(4) PICK** — the cached mesh is the pick proxy: in `pick_mesh`'s candidate match (42), the
+`NurbsSurface` arm ray-casts `self.tess_cache[guid]` exactly like the Mesh arm (remember the
+inverse-transform uses `ns.xform`, not the cached mesh's identity `m.xform` — the same placement
+rule as the build arm).
 
 **Smooth shading arrives free.** Lesson 22 made the shader data-driven: vertices with zero normals
 shade flat (screen-space derivatives), vertices with baked normals shade smooth. The kernel bakes
@@ -103,22 +125,40 @@ re-tessellate — the bug. Split the commit by *what changed*:
   <defs><marker id="ah61b" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6fb3ff"/></marker></defs>
 </svg>
 
-```rust
-    // in apply_delta (54): surfaces compose their xform like meshes —
-    //   the tessellation is LOCAL; placement lives on the instance row. NO cache invalidation here.
-    /* Geometry-less arm, keyed by guid like 60's box arm: */
-    if let Some(ns) = session.objects.nurbssurfaces.iter_mut().find(|s| s.guid() == guid) {
-        ns.xform = delta * &ns.xform;
-    }
+In `apply_delta` (54, `app/scene.rs`), surfaces compose their xform like meshes — the tessellation
+is LOCAL; placement lives on the instance row; **no cache invalidation here**. Add the arm beside
+`Geometry::BRep`:
 
-    // in the commit loop (54): surfaces (and meshes/BReps) take the FAST path —
-    let is_matrix_only = /* Mesh | BRep | NurbsSurface */;
-    if is_matrix_only {
-        gpu.set_object_row(row, new_model, color, flags);     // one row write — 38b's verb
-    } else {
-        scene.apply_object(gpu, &guid, geom, row);            // thin geometry re-flattens (54)
-    }
+```rust
+        Geometry::NurbsSurface(ns) => ns.xform = delta * &ns.xform,
 ```
+
+(Kernel wrinkle: `Session` stores surfaces in `lookup` *and* in `objects.nurbssurfaces` — the
+`add_nurbssurface` dual write. `apply_delta` mutates the `lookup` copy, which is what `build`'s
+placement arm above reads; keep it that way consistently and the collection copy is just the
+tessellation source, whose *shape* never changes on a transform.)
+
+Then split the commit by *what changed* — in `TransformObjects::restore` (54,
+`app/history/transform.rs`), find `scene.apply_object(gpu, &guid, geom, row);` → replace with:
+
+```rust
+            let flags = if scene.hidden.contains(&guid) { Instance::FLAG_HIDDEN } else { 0 };
+            match geom {
+                // matrix-only: shape untouched, one row write (38b's verb), cache untouched
+                Geometry::Mesh(m) =>
+                    gpu.set_object_row(row, m.xform.duplicate(), m.objectcolor().to_f32(), flags),
+                Geometry::BRep(b) =>
+                    gpu.set_object_row(row, b.xform.duplicate(), b.surfacecolor.to_f32(), flags),
+                Geometry::NurbsSurface(ns) =>
+                    gpu.set_object_row(row, ns.xform.duplicate(), surface_color(ns), flags),
+                // thin geometry bakes coords → re-flatten (54's path, unchanged)
+                _ => scene.apply_object(gpu, &guid, geom, row),
+            }
+```
+
+(`set_object_row(row, model, color, flags)` — 38b's row verb, writing `objects_base[row]` + the
+instance row. `transform.rs` needs `use crate::app::scene::surface_color;` +
+`use crate::engine::gpu::Instance;`, and `surface_color` goes `pub` for it.)
 
 `tess_cache` is invalidated in exactly two places, both later: a shape edit (73's control-point drag,
 which calls `tess_cache.remove(guid)` then re-flattens once on release) and reconcile's `changed`

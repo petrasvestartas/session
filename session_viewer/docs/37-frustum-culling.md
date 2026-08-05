@@ -192,8 +192,11 @@ N. Then the per-frame cull (right after `new`, near 33's `rebuild_instances`):
 
 ## Step 3 — the shader collapses a culled instance: `src/shaders/*.wgsl`
 
-One rule, applied in **every** vertex shader that reads an instance row (`triangle.wgsl`, `cylinder.wgsl`,
-`sphere.wgsl` — there is no `mesh.wgsl`/`point.wgsl`): if the row is culled (or hidden), output a vertex
+One rule, applied in **every** vertex shader that reads an instance row for a table that has data
+(`triangle.wgsl`, `cylinder.wgsl`, `sphere.wgsl`, plus 34f's `ribbon.wgsl`/`glyph.wgsl` — same
+edit, same anchors as cylinder/sphere; `point.wgsl` also reads the row, but its cloud table is
+empty until PointCloud is wired — add the same collapse there when it lands): if the row is
+culled (or hidden), output a vertex
 the rasterizer throws away, so the primitive vanishes without a branch on the CPU or a second draw call.
 Each shader reaches the instance differently, so the anchor and the flag read differ per file — but the
 collapse is identical: set the builtin position (`VsOut.pos`, **not** `o.clip` — no such field) to a
@@ -225,6 +228,10 @@ if ((flags & FLAG_CULLED) != 0u || (flags & FLAG_HIDDEN) != 0u) {
 }
 ```
 
+In `ribbon.wgsl`, right after `let seg = segments[vid / 6u];` — and in `glyph.wgsl`, right after
+`let g = glyphs[vid / 3u];` — the same two lines as cylinder/sphere respectively (`seg.instance_id`
+/ `g.instance_id`).
+
 Declare the two consts at the top of each shader — `const FLAG_HIDDEN: u32 = 2u;
 const FLAG_CULLED: u32 = 128u;` — matching the Rust bit values. **One draw call stays one draw call**:
 31's `draw_indexed(0..N, 0, 0..segments.len())` fires for the whole arena; the GPU simply discards the
@@ -243,9 +250,21 @@ what's drawn:
             // world frame — matches 36's boxes
             .rebased_to_world(&origin);
         let (drawn, culled) = self.gpu.apply_frustum_cull(&self.scene, &frustum);
-        // Feed (drawn, drawn + culled) to whatever accessor 28's perf counter exposed for the HUD.
         self.gpu.perf_set_drawn(drawn, drawn + culled);
         self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj, &origin)
+```
+
+`perf_set_drawn` doesn't exist yet — 28's counter never had a drawn/total split. Give `Gpu` the
+two numbers (the HUD lesson, 47, reads them): add `pub perf_drawn: u32, pub perf_total: u32,` to
+`struct Gpu`, initialize both to `0` in the `Ok(Self { … })`, and add next to
+`apply_frustum_cull`:
+
+```rust
+    /// HUD feed: how many objects survived the cull this frame, out of how many total.
+    pub fn perf_set_drawn(&mut self, drawn: u32, total: u32) {
+        self.perf_drawn = drawn;
+        self.perf_total = total;
+    }
 ```
 
 (`Xform::to_cols()` is the f64 column-major accessor 33's frustum math and 34's BRep box already use;
@@ -259,8 +278,10 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 Load the stress file (34), press `F`, then zoom into one corner:
 
-- **`drawn / total` on the HUD drops** as objects leave the view — the whole point. Zoom back out and
-  it climbs to the full count.
+- **`drawn / total` drops** as objects leave the view — the whole point. Zoom back out and it
+  climbs to the full count. (Until 47's HUD panel exists, log it: add
+  `log::info!("cull: {} / {}", drawn, drawn + culled);` after the `apply_frustum_cull` call —
+  or fold the two numbers into 28's once-a-second perf line.)
 - **Slow-orbit at the screen edge and nothing pops in late.** This is the test that catches an
   inverted plane or a too-tight box: an object whose center is just outside the frustum but whose body
   still crosses the edge must stay drawn. The positive-vertex test (Step 1) guarantees it — if you see

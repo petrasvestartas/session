@@ -133,6 +133,9 @@ WindowEvent::RedrawRequested => {
 }
 ```
 
+The per-frame check makes winit's resize event redundant — delete the
+`WindowEvent::Resized(size) => state.resize(size.width, size.height),` arm just above it.
+
 ## Step 4 — run it
 
 ```bash
@@ -153,9 +156,9 @@ Window wide → triangle wide, window tall → triangle tall — **not a resize 
 just raw clip space. The shader emits the triangle in **clip space (NDC)**:
 
 ```wgsl
-vec4<f32>(0.0,  0.5, 0.0, 1.0),   // these [-1,1] coords map to the FULL buffer…
-vec4<f32>(-0.5, -0.5, 0.0, 1.0),
-vec4<f32>(0.5, -0.5, 0.0, 1.0)
+vec2<f32>( 0.0,  0.5),   // these [-1,1] coords map to the FULL buffer…
+vec2<f32>(-0.5, -0.5),
+vec2<f32>( 0.5, -0.5),
 ```
 
 NDC `[-1, 1]` **always** stretches to fill the buffer on both axes, so once the
@@ -189,12 +192,12 @@ At the top of the file (above the structs):
 @group(0) @binding(0) var<uniform> aspect: f32;   // = width / height
 ```
 
-In `vs_main`, replace `output.pos = positions[vi];` with:
+In `vs_main`, replace `o.pos   = vec4<f32>(positions[vi], 0.0, 1.0);` with:
 
 ```wgsl
-var p = positions[vi];
+var p = vec4<f32>(positions[vi], 0.0, 1.0);
 p.x = p.x / aspect;        // a wide window shrinks x → the triangle keeps its shape
-output.pos = p;
+o.pos   = p;
 ```
 
 **2 — `src/engine/pipelines/build.rs`: give the pipeline a bind-group layout.**
@@ -238,14 +241,11 @@ impl Pipelines {
 
 **4 — `src/engine/gpu.rs`: create the buffer + bind group, store them, write on resize, bind on draw.**
 
-Add two fields to the `Gpu` struct:
+In `struct Gpu`, find `pub pipelines: Pipelines,` and add two fields after it:
 
 ```rust
-pub struct Gpu {
-    // …existing fields…
     pub aspect_buffer: wgpu::Buffer,
     pub aspect_bind_group: wgpu::BindGroup,
-}
 ```
 
 In `new()`, **before** `Pipelines::new(...)`, build the uniform (one `f32`, 4 bytes):
@@ -281,12 +281,15 @@ In `new()`, **before** `Pipelines::new(...)`, build the uniform (one `f32`, 4 by
     });
 ```
 
-Pass the layout to the pipelines and store the new fields:
+Pass the layout to the pipelines — replace `let pipelines = Pipelines::new(&device, config.format);` with:
 
 ```rust
-    // was (&device, config.format)
     let pipelines = Pipelines::new(&device, config.format, &aspect_layout);
-    // …
+```
+
+and store the new fields — replace `Ok(Self { surface, device, queue, config, pipelines })` with:
+
+```rust
     Ok(Self { surface, device, queue, config, pipelines, aspect_buffer, aspect_bind_group })
 ```
 
@@ -304,24 +307,23 @@ In `resize()`, after `self.surface.configure(...)`, push the new ratio to the GP
     }
 ```
 
-In `clear()`, bind it **before** the draw call:
+In `clear()`, find `pass.set_pipeline(&self.pipelines.triangle);` and bind the group after it,
+**before** the draw call:
 
 ```rust
             pass.set_pipeline(&self.pipelines.triangle);
             pass.set_bind_group(0, &self.aspect_bind_group, &[]);   // NEW
-            pass.draw(0..3, 0..1)
+            pass.draw(0..3, 0..1);
 ```
 
-**5 — `Cargo.toml`: the two crates the buffer code uses.**
+**5 — `Cargo.toml`: nothing to add.**
 
-```toml
-bytemuck = "1"
-# wgpu already a dependency — `util::DeviceExt`/`BufferInitDescriptor` need its "util" feature,
-# which is on by default; nothing to add unless you disabled default-features.
-```
+`bytemuck` is already a dependency (chapter 02's manifest), and wgpu's
+`util::DeviceExt`/`BufferInitDescriptor` come with its default "util" feature — the manifest
+stays untouched.
 
 `cargo check` (wasm32) — clean build; shape now holds at any aspect. This is exactly
-where the **camera** chapter begins, so skipping it is equally fine.
+where the **camera** chapter begins.
 
 
 ## What changed vs Chapter 4 (recap)
@@ -331,8 +333,9 @@ Chapter 4:  buffer stuck at 300×150  →  browser stretches it to fill  →  sq
 Chapter 5:  buffer = clientSize × DPR →  1 buffer px = 1 screen px      →  crisp & correct
 ```
 
-Edited: `lib.rs` only — helper `desired_canvas_size`, used in `user_event` (initial)
-and `window_event` (every frame). Untouched: `state.rs`, `gpu.rs`, shader, pipeline.
+Edited: `lib.rs` — helper `desired_canvas_size`, used in `user_event` (initial)
+and `window_event` (every frame); plus the aspect-uniform section: `triangle.wgsl`,
+`build.rs`, `pipelines/mod.rs`, `gpu.rs`. Untouched: `state.rs`, `Cargo.toml`.
 
 
 

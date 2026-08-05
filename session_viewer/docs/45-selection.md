@@ -33,7 +33,8 @@ src/engine/gpu/mod.rs   # FLAG_SELECTED; set_selected_rows (flip-tracking like 3
 src/shaders/*.wgsl      # every instance-reading vs tints selected rows (triangle/cylinder/sphere)
 src/camera.rs           # Camera::marquee_frustum(view_proj, rect_ndc) — the marquee sub-frustum
 src/app/scene.rs        # selected: HashSet<guid>; click/shift-click/marquee mutate it
-src/state.rs            # mouse: click = replace, Shift+click = toggle, drag = marquee
+src/state.rs            # on_left_release: click = replace, Shift+click = toggle, drag = marquee
+src/lib.rs              # Left press stashes drag_start; release calls on_left_release; shift flag
 ```
 
 ## Step 1 — the flag + flip-tracked upload: `src/engine/gpu/mod.rs`
@@ -64,14 +65,16 @@ Selection changes a few rows out of 42k, so upload like 37's cull did — only r
 ## Step 2 — the tint: every instance-reading shader
 
 Selected objects tint toward highlight-yellow in **every** pipeline the object owns — faces, edge
-tubes, sphere glyphs — because they all read the same `instances[]` row. The three instance-reading
-shaders are `triangle.wgsl`, `cylinder.wgsl`, `sphere.wgsl` (there is no `mesh.wgsl`/`point.wgsl`),
-and they differ in two ways that matter here: `triangle.wgsl` already has an `inst` local and its
+tubes, sphere glyphs — because they all read the same `instances[]` row. The instance-reading
+shaders with live tables are `triangle.wgsl`, `cylinder.wgsl`, `sphere.wgsl` — plus 34f's
+`ribbon.wgsl`/`glyph.wgsl`, which get the cylinder/sphere edit respectively (their 34h tint
+multiply line is the `o.color` anchor; `point.wgsl`'s cloud table stays empty until PointCloud is
+wired). They differ in two ways that matter here: `triangle.wgsl` already has an `inst` local and its
 `VsOut.color` is a **`vec3`**; `cylinder.wgsl`/`sphere.wgsl` only pull `.model` out of `instances[…]`
 and their `VsOut.color` is a **`vec4`**. So the tint takes two forms.
 
-In **`triangle.wgsl`**, find `o.color = inst.color.rgb;` and add right after it (vec3, no alpha —
-`inst` is already in scope):
+In **`triangle.wgsl`**, find `o.color = in.color * inst.color.rgb;` (34h's line) and add right
+after it (vec3, no alpha — `inst` is already in scope; the `const` goes at the top of the file):
 
 ```wgsl
 const FLAG_SELECTED: u32 = 1u;
@@ -80,8 +83,10 @@ if ((inst.flags & FLAG_SELECTED) != 0u) {
 }
 ```
 
-In **`cylinder.wgsl`**, find `o.color = seg.color;` — there is no `inst` local, so bind one first
-(the row is `seg.instance_id`); `o.color` is a `vec4`, so the mix keeps the alpha:
+In **`cylinder.wgsl`**, find 34h's tint line
+`o.color = seg.color * instances[seg.instance_id].color;` — there is no `inst` local, so bind one
+(the row is `seg.instance_id`); `o.color` is a `vec4`, so the mix keeps the alpha. Add after it
+(the `const` goes at the top of the file):
 
 ```wgsl
 const FLAG_SELECTED: u32 = 1u;
@@ -91,8 +96,12 @@ if ((inst.flags & FLAG_SELECTED) != 0u) {
 }
 ```
 
-In **`sphere.wgsl`**, the same, but the glyph row is `g.instance_id`. Find `o.color = g.color;` and
-add after it:
+The same block goes in **`ribbon.wgsl`** after ITS `o.color = seg.color * …;` line (34f's default
+edges must tint too, or selection only shows in SOLID mode).
+
+In **`sphere.wgsl`**, the same, but the glyph row is `g.instance_id`. Find
+`o.color = g.color * instances[g.instance_id].color;` (34h) and add after it — and repeat in
+**`glyph.wgsl`** at its matching line:
 
 ```wgsl
 const FLAG_SELECTED: u32 = 1u;
@@ -179,14 +188,28 @@ the click just made. So the release branches on drag distance and runs exactly o
   <text x="280" y="168" fill="#e06c6c" text-anchor="middle">never both — a click has x0==x1 → 2/(x1−x0) = NaN</text>
 </svg>
 
-This needs **two new `State` fields** first (same pattern as `self.ctrl`, 39/40): add each to
-`struct State` **and** initialize it in `State::new`, or it won't compile —
+This needs **two new `State` fields** first: add each to `struct State` **and** initialize it in
+`State::new`, or it won't compile —
 
-- `drag_start: (f64, f64)` — init `(0.0, 0.0)`; set in the **press** handler: `self.drag_start = (mx, my);`
-- `shift: bool` — init `false`; set in the **`ModifiersChanged`** handler beside `ctrl`:
-  `self.shift = mods.state().shift_key();`
+- `pub drag_start: (f64, f64)` — init `(0.0, 0.0)`
+- `pub shift: bool` — init `false`; set from **lib.rs**'s `ModifiersChanged` arm, beside the
+  `self.ctrl = …` line: `state.shift = mods.state().shift_key();`
 
-Then, in the release handler, replace the whole selection block with:
+Press and release split in **lib.rs** — replace 41's Left-button `MouseInput` arm with:
+
+```rust
+            WindowEvent::MouseInput { state: btn, button: MouseButton::Left, .. } => {
+                if btn == ElementState::Pressed {
+                    state.drag_start = state.cursor;    // press: remember the spot
+                } else {
+                    state.on_left_release();            // release: click vs marquee
+                }
+            }
+```
+
+and in `state.rs`, rename 41–44's `on_left_click` to `on_left_release`. Its body keeps the
+`vp`/`origin`/`viewport`/`ray`/`tol` construction from 41/44, then the whole
+pick-and-log block at the end is replaced with the gesture branch:
 
 ```rust
         // release: `self.cursor` is where we let go (41's px field); press stashed self.drag_start.
@@ -219,7 +242,8 @@ Then, in the release handler, replace the whole selection block with:
             if x0 > x1 { std::mem::swap(&mut x0, &mut x1); }
             if y0 > y1 { std::mem::swap(&mut y0, &mut y1); }
             let vp = self.camera.view_proj(w / h);
-            let origin = Point::new(self.camera.position[0], self.camera.position[1], self.camera.position[2]);
+            // the rebase point view_proj was anchored at (33/37) — NOT the eye position
+            let origin = self.camera.origin();
             let f = Camera::marquee_frustum(&vp, &origin, x0, y0, x1, y1);
             self.scene.select_marquee(&f, shift);
         }

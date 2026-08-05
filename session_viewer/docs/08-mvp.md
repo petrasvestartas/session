@@ -116,8 +116,18 @@ layout + bind group. Keep `use wgpu::util::DeviceExt;`. Start at identity;
         });
 ```
 
-Pass `&mvp_layout` to `Pipelines::new`, and put `mvp_buffer` / `mvp_bind_group` in
-`Ok(Self { … })`.
+Pass `&mvp_layout` to `Pipelines::new` (the parameter names inside `build.rs`/`mod.rs`
+stay `aspect_layout` — only the caller changes), and put `mvp_buffer` / `mvp_bind_group` in
+`Ok(Self { … })`:
+
+```rust
+        let pipelines = Pipelines::new(&device, config.format, &mvp_layout, &time_layout);
+```
+```rust
+        Ok(Self { surface, device, queue, config, pipelines,
+                  mvp_buffer, mvp_bind_group, vertex_buffer, num_vertices,
+                  time: 0.0, time_buffer, time_bind_group })
+```
 
 **(d)** `resize` no longer writes a uniform — drop the aspect line, keep the surface
 reconfigure.
@@ -127,10 +137,12 @@ reconfigure.
 ```rust
         let aspect = self.config.width as f64 / self.config.height as f64;
         let projection = Xform::perspective(60f64.to_radians(), aspect, 0.1, 100.0);
-        let view  = Xform::look_at_right_handed(&Point::new(0.0,0.0,2.0), &Point::new(0.0,0.0,0.0),
-                                                &Vector::new(0.0,1.0,0.0));
-        let model = Xform::rotation_y(self.time as f64, false);   // radians
-        let mvp   = projection * view * model;
+        let eye    = Point::new(0.0, 0.0, 2.0);
+        let target = Point::new(0.0, 0.0, 0.0);
+        let up     = Vector::new(0.0, 1.0, 0.0);
+        let view   = Xform::look_at_right_handed(&eye, &target, &up);
+        let model  = Xform::rotation_y(self.time as f64, false);   // radians
+        let mvp    = projection * view * model;
         self.queue.write_buffer(&self.mvp_buffer, 0, bytemuck::cast_slice(&mvp.to_f32()));
 ```
 

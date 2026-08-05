@@ -534,7 +534,7 @@
     "group": "PointCloud",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.078,
+    "time_ms": 0.068,
     "line": 299,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)},\n        {Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)},\n        {Color(1.0f, 0.0f, 0.0f, 1.0f), Color(0.0f, 1.0f, 0.0f, 1.0f)}\n    );\n    pc.name = \"test_pointcloud\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    std::string fname = \"serialization/test_pointcloud.json\";\n    pc.file_json_dump(fname);\n    PointCloud loaded = PointCloud::file_json_load(fname);",
     "checks": [
@@ -570,7 +570,7 @@
     "group": "PointCloud",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 0.04,
+    "time_ms": 0.037,
     "line": 330,
     "code": "    // uncomment #include \"pointcloud.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"vector.h\"\n    // uncomment #include \"color.h\"\n\n    PointCloud pc(\n        {Point(1.0, 2.0, 3.0), Point(4.0, 5.0, 6.0)},\n        {Vector(0.0, 0.0, 1.0), Vector(0.0, 0.0, 1.0)},\n        {Color(1.0f, 0.0f, 0.0f, 1.0f), Color(0.0f, 1.0f, 0.0f, 1.0f)}\n    );\n    pc.name = \"test_pointcloud\";\n\n    std::string fname = \"serialization/test_pointcloud.bin\";\n    pc.pb_dump(fname);\n    PointCloud loaded = PointCloud::pb_load(fname);",
     "checks": [

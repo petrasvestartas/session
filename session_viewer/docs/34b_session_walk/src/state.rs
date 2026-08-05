@@ -12,7 +12,7 @@ use crate::app::persistence;
 use crate::engine::performance::now_ms;
 
 // Runtime fetch path — must match an index.html copy-file target (data-target-path + filename).
-const DEMO_SESSION_URL: &str = "session_data/30700_querschnitt_gg.pb";
+const DEMO_SESSION_URL: &str = "session_data/floor_model.pb";
 
 pub struct State {
     pub window: Arc<Window>,

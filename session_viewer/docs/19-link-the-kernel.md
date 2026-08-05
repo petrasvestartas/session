@@ -48,29 +48,28 @@ src/shaders/triangle.wgsl        # read RenderVertex's color (location 2, vec4)
 src/engine/gpu.rs                # hold a Mesh; gpu_mesh() + draw_indexed in clear()
 ```
 
-(`Cargo.toml` already lists `session_rust`, added in the camera chapters — nothing to add.)
+(`Cargo.toml` has listed `session_rust` since lesson 02 — nothing to add.)
 
 ## Step 1 — the pipeline speaks `RenderVertex`: `src/engine/pipelines/build.rs`
 
 The hand-rolled `Vertex` struct (and its `bytemuck` import) are gone — `RenderVertex` is the vertex
-format now, declaring its own `layout()`. Delete the struct/impl, import `RenderVertex`, point the
-pipeline at it:
+format now, declaring its own `layout()`. Two edits:
+
+**(a)** At the top of the file, delete `use bytemuck::{Pod, Zeroable};` and the whole
+`pub struct Vertex { … }` + `impl Vertex { … }` block (lesson 06's), and put in their place:
 
 ```rust
-use session_rust::RenderVertex;     // replaces the local `Vertex` struct + bytemuck import
-
-pub fn build_triangle_pipeline(/* …unchanged… */) -> wgpu::RenderPipeline {
-    // …shader, layout, etc. unchanged…
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vs_main"),
-                // ← was Vertex::layout(); pos@0, normal@1, color@2
-                buffers: &[RenderVertex::layout()],
-                compilation_options: Default::default(),
-            },
-    // …
-}
+use session_rust::RenderVertex;
 ```
+
+**(b)** In `build_triangle_pipeline`'s `VertexState`, replace `buffers: &[Vertex::layout()],` with:
+
+```rust
+                buffers: &[RenderVertex::layout()],   // pos@0, normal@1, color@2 — stride 40
+```
+
+Everything else in the builder (shader module, pipeline layout, fragment, primitive, depth) is
+unchanged.
 
 ## Step 2 — the shader reads `RenderVertex`'s color: `src/shaders/triangle.wgsl`
 
@@ -98,26 +97,36 @@ picked up when lighting arrives.)
 
 ## Step 3 — hold a `Mesh`: `src/engine/gpu.rs`
 
-Swap the cube's buffers for a `Mesh`: update imports (drop `Vertex`, add `Mesh`/`Color`), replace the
-three buffer fields with one `mesh`, build a box in `new()`:
+Swap the cube's buffers for a `Mesh`, four edits:
+
+**(a)** Replace the two imports `use session_rust::Xform;` and
+`use crate::engine::pipelines::build::Vertex;` with:
 
 ```rust
-use session_rust::{Color, Mesh, Xform};   // was: session_rust::Xform + build::Vertex
+use session_rust::{Color, Mesh, Xform};
 ```
 
-```rust
-pub struct Gpu {
-    // …surface/device/queue/config/pipelines/mvp/time/depth unchanged…
-    pub mesh: Mesh,                         // replaces vertex_buffer / index_buffer / num_indices
-}
-```
+**(b)** In `struct Gpu`, replace the three lines `pub vertex_buffer: wgpu::Buffer,` /
+`pub index_buffer: wgpu::Buffer,` / `pub num_indices: u32,` with one field:
 
 ```rust
-        // in new(), where the CUBE / vertex_buffer / index_buffer used to be:
+    pub mesh: Mesh,
+```
+
+**(c)** In `new()`, replace the whole `CUBE` / `CUBE_IDX` / `vertex_buffer` / `index_buffer` /
+`num_indices` block with:
+
+```rust
         let mut mesh = Mesh::create_box(1000.0, 1000.0, 1000.0);   // a 1 m box, authored in mm
         mesh.set_objectcolor(Color::new(0.2, 0.5, 0.9, 1.0));      // blue — visible on the grey bg
+```
 
-        // …then return `mesh` in `Ok(Self { … })` instead of the buffer fields.
+**(d)** Return `mesh` instead of the buffer fields — the full line now reads:
+
+```rust
+        Ok(Self { surface, device, queue, config, pipelines,
+                  mvp_buffer, mvp_bind_group, mesh,
+                  time: 0.0, time_buffer, time_bind_group, depth_view })
 ```
 
 (A new `Mesh` defaults to `ColorMode::OBJECTCOLOR`; `to_render` honors the mode, so object color
@@ -149,8 +158,9 @@ cd session_viewer && trunk serve   # http://localhost:8770
 
 A blue box — but a genuine `session_rust::Mesh`, the type the kernel builds NURBS, booleans and
 file-loaded geometry into. Orbit, fit (`F`), named views work. Swap `Mesh::create_box(…)` for
-`Mesh::cube(1000.0)`, a sphere, or any constructor — it draws through `gpu_mesh`. (Flat solid for now;
-normals/lighting arrive lesson 21, already in the buffer at location 1.)
+`Primitives::cube(1000.0)` (add `Primitives` to the `use session_rust::{…}` line) or any other mesh
+constructor — it draws through `gpu_mesh`. (Flat solid for now; normals/lighting arrive lesson 21,
+already in the buffer at location 1.)
 
 ## Recap
 

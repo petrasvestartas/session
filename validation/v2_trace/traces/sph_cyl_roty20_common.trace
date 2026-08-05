@@ -125,24 +125,24 @@ PAVE tag=final e=21 k=1 t=1 v=19
 PB tag=final e=21 k=0 orig=21 t0=0 t1=1 v1=19 v2=19 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
 IFF tag=final i1=5 i2=12 tangent=0 ncurves=2 npoints=0
 SEC tag=final f1=5 f2=12 c=0 type=Circle geom=NurbsCurve t0=0 t1=1 len=6.28318531 tol=1e-07 tantol=1e-07 p0=1.72335922,0,1.81108614 p1=1.72335922,0,1.81108614 c2d1=1 c2d2=1 npb=1 box=-0.156026023,-1,1.81108614;1.72335922,1,2.49512643 closed=1 dev1=0 dev2=0 carrier=17
-SEC2D tag=final f1=5 f2=12 c=0 face=5 umin=0 umax=4 vmin=1.51497823 vmax=1.95639035 s=0:1.51497823|2:1.95639035|4:1.51497823
-SEC2D tag=final f1=5 f2=12 c=0 face=12 umin=0 umax=4 vmin=0.786410981 vmax=0.786410981 s=0:0.786410981|2:0.786410981|4:0.786410981
+SEC2D tag=final f1=5 f2=12 c=0 face=5 umin=0 umax=4 vmin=1.51497823 vmax=1.95639035 s=0:1.51497823|1.80272012:1.95475648|4:1.51497823
+SEC2D tag=final f1=5 f2=12 c=0 face=12 umin=0 umax=4 vmin=0.786410981 vmax=0.786410981 s=0:0.786410981|1.9671224:0.786410981|4:0.786410981
 SECPB tag=final f1=5 f2=12 c=0 k=0 t0=0 t1=1 v1=16 v2=16 edge=18 etol=1e-07 len=6.28318531
 SEC tag=final f1=5 f2=12 c=1 type=Circle geom=NurbsCurve t0=0 t1=1 len=6.28318531 tol=1e-07 tantol=1e-07 p0=0.156026023,0,-2.49512643 p1=0.156026023,0,-2.49512643 c2d1=1 c2d2=1 npb=1 box=-1.72335922,-1,-2.49512643;0.156026023,1,-1.81108614 closed=1 dev1=0 dev2=0 carrier=20
-SEC2D tag=final f1=5 f2=12 c=1 face=5 umin=0 umax=4 vmin=0.0436096488 vmax=0.485021772 s=0:0.0436096488|2:0.485021772|4:0.0436096488
-SEC2D tag=final f1=5 f2=12 c=1 face=12 umin=0 umax=4 vmin=0.213589019 vmax=0.213589019 s=0:0.213589019|2:0.213589019|4:0.213589019
+SEC2D tag=final f1=5 f2=12 c=1 face=5 umin=0 umax=4 vmin=0.0436096488 vmax=0.485021772 s=0:0.0436096488|1.98084753:0.484889802|4:0.0436096488
+SEC2D tag=final f1=5 f2=12 c=1 face=12 umin=0 umax=4 vmin=0.213589019 vmax=0.213589019 s=0:0.213589019|1.9671224:0.213589019|4:0.213589019
 SECPB tag=final f1=5 f2=12 c=1 k=0 t0=0 t1=1 v1=19 v2=19 edge=21 etol=1e-07 len=6.28318531
 SECSTAT pairs=3 ok=1 tangent=0 empty=0 nogeom=2 failed=0 curves=2 blocks=2 kept=2 dropped=0 trim_paves=0 seam_paves=0 bound_paves=4 section_edges=2 fused_groups=0 common_blocks=0 max_dev=0 okpairs=1
 BOP errors=0 warnings=0
-RES type=SOLID nsolid=0 nshell=1 nface=3 nedge=5 nvert=4 naked=0 ndegen=0 vol=15.0617947 area=35.3500571 valid=0 closure=4.78400647e-09 nonmanifold=0 seam=3
-RESSOLID i=1 nface=-1 vol=15.0617947 ori=FWD
+RES type=SOLID nsolid=0 nshell=1 nface=3 nedge=5 nvert=4 naked=0 ndegen=0 vol=15.0617954 area=35.3500579 valid=0 closure=1.00178898e-09 nonmanifold=0 seam=3
+RESSOLID i=1 nface=-1 vol=15.0617954 ori=FWD
 RESSHELL i=1 nface=3 closed=1 faces=1,2,3
-RESFACE i=1 surf=Curved u0=0 u1=4 v0=0 v1=2 ori=FWD tol=1e-07 area=3.27844231 nwire=1 nedge=4 nseam=2
+RESFACE i=1 surf=Curved u0=0 u1=4 v0=0 v1=2 ori=FWD tol=1e-07 area=3.27844278 nwire=1 nedge=4 nseam=2
 RESFEDGE f=1 w=0 e=0 ori=FWD seam=0 degen=1 pc=1 uv0=- uv1=-
 RESFEDGE f=1 w=0 e=1 ori=FWD seam=1 degen=0 pc=1 uv0=- uv1=-
 RESFEDGE f=1 w=0 e=2 ori=REV seam=0 degen=0 pc=1 uv0=- uv1=-
 RESFEDGE f=1 w=0 e=1 ori=REV seam=1 degen=0 pc=1 uv0=- uv1=-
-RESFACE i=2 surf=Curved u0=0 u1=4 v0=0 v1=2 ori=FWD tol=1e-07 area=3.27844248 nwire=1 nedge=4 nseam=2
+RESFACE i=2 surf=Curved u0=0 u1=4 v0=0 v1=2 ori=FWD tol=1e-07 area=3.27844282 nwire=1 nedge=4 nseam=2
 RESFEDGE f=2 w=0 e=3 ori=FWD seam=1 degen=0 pc=1 uv0=- uv1=-
 RESFEDGE f=2 w=0 e=0 ori=FWD seam=0 degen=1 pc=1 uv0=- uv1=-
 RESFEDGE f=2 w=0 e=3 ori=REV seam=1 degen=0 pc=1 uv0=- uv1=-
@@ -161,4 +161,4 @@ RESVERT i=1 p=0,0,-2.5 tol=1e-07
 RESVERT i=2 p=0.156026023,0,-2.49512643 tol=1e-07
 RESVERT i=3 p=1.72335922,0,1.81108614 tol=1e-07
 RESVERT i=4 p=0,0,2.5 tol=1e-07
-SUMMARY name=sph_cyl_roty20_common op=common dsshapes=22 dssource=16 newverts=2 sd=0 pb=14 cb=0 faceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 seccurves=2 secpoints=0 fftangent=0 secpb=2 res_solid=0 res_shell=1 res_face=3 res_edge=5 res_vert=4 res_naked=0 res_degen=0 res_vol=15.0617947 res_area=35.3500571 res_valid=0 pf_err=0 bop_err=0
+SUMMARY name=sph_cyl_roty20_common op=common dsshapes=22 dssource=16 newverts=2 sd=0 pb=14 cb=0 faceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 seccurves=2 secpoints=0 fftangent=0 secpb=2 res_solid=0 res_shell=1 res_face=3 res_edge=5 res_vert=4 res_naked=0 res_degen=0 res_vol=15.0617954 res_area=35.3500579 res_valid=0 pf_err=0 bop_err=0

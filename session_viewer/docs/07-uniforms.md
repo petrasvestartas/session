@@ -83,7 +83,8 @@ At the top, next to `aspect`, declare a second uniform in **group 1**:
 @binding(0)`, **not** `binding(1)` — it's the first (only) entry of a *different*
 group.
 
-Use it in the fragment shader — fade the colour with a sine of time:
+Use it in the fragment shader — fade the colour with a sine of time. Replace the whole
+`fs_main` with:
 
 ```wgsl
 @fragment

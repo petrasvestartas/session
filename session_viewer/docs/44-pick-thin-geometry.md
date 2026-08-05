@@ -67,9 +67,9 @@ values. `depth` = `self.distance`, the orbit camera's target distance from lesso
 
 ## Step 2 — the thin cast: `src/app/scene.rs`
 
-```rust
-use session_rust::Geometry;
+(`Geometry` is already in scene.rs's imports from 35 — nothing to add.)
 
+```rust
 impl Scene {
     /// Nearest thin hit (Line / Polyline / Point / PointCloud) within `tol` world units of the
     /// ray, as a PickHit. `&mut self`: Session::ray_cast rebuilds its cached BVH lazily.
@@ -123,7 +123,9 @@ Rename 42's `pick_ray` to `pick_mesh` and make `pick_ray` the umbrella:
 > clicking where the surface isn't (or via the tree, 70). This is Rhino's behaviour, and the archive's
 > rule (`reference_viewer_picking_system`).
 
-The click site (42's Step 4) just adds the tolerance:
+The click site just adds the tolerance — in `State::on_left_click`, insert the `tol` derivation
+right before the pick call, and add `, tol` to the call itself (whatever shape 42/43 left it in —
+`pick_ray(&ray)` becomes `pick_ray(&ray, tol)`):
 
 ```rust
         // proj_y / ortho_h / vp_h — the same three numbers 31 packs into the line uniform
@@ -135,7 +137,6 @@ The click site (42's Step 4) just adds the tolerance:
         let vp_h    = self.gpu.config.height as f64;                             // framebuffer px
         // R_PX = 8
         let tol = self.camera.world_per_pixel(self.camera.distance, proj_y, ortho_h, vp_h) * 8.0;
-        match self.scene.pick_ray(&ray, tol) { … }
 ```
 
 ## Step 4 — verify (including the stress gate)

@@ -50,7 +50,9 @@ pub fn closest_param_on_axis(ray: &crate::engine::pick::Ray, a: &Point, u: &Vect
 ```
 
 (Unit vectors on both sides — `ray.dir` is normalized (41), `u` is a bare axis. The `None` arm
-matters: dragging the Z arrow while looking straight down Z has no answer; the drag simply holds.)
+matters: dragging the Z arrow while looking straight down Z has no answer; the drag simply holds.
+`gumball.rs` now names kernel types — add `use session_rust::{Point, Vector};` beside 53's `Ray`
+import.)
 
 ## Step 2 — the Command: `src/app/history/transform.rs` (NEW)
 
@@ -100,23 +102,79 @@ restore), so the commit path *is* `history.execute(cmd, …)`, no special casing
 
 ## Step 3 — the drag machine: `src/state.rs`
 
-Four small handlers around the fields 53 already added:
+Four small handlers around the fields 53 already added. First the context struct — add it at file
+scope in `state.rs` (below the `use` lines), plus the field: `gb_drag: Option<DragCtx>` on
+`struct State`, initialized `gb_drag: None` in `State::new` (like 53's fields). New imports for this
+lesson: extend `state.rs`'s `session_rust` use to cover `{Geometry, Point, Vector, Xform}`, add
+`use crate::app::history::transform::TransformObjects;` and
+`use crate::app::scene::apply_delta;` — and `app/history/mod.rs` (51) gains
+`pub mod transform;` beside `pub mod remove;`:
+
+One more field this lesson adds: `lmb_down: bool` on `struct State` (init `false`). It must track
+the **raw** winit button state, *before* egui routing — in `lib.rs`'s `window_event` handler, insert
+**above** 47's `let resp = state.shell.state.on_window_event(…)` line:
 
 ```rust
-    // fields: gb_pressed: Option<(HandleKind, (f64, f64))>   (53)
-    //         gb_drag: Option<DragCtx>  ← ADD to struct State + init `gb_drag: None` in State::new (like 53). DragCtx:
-    struct DragCtx {
-        handle: HandleKind,
-        origin: Point,                       // gumball anchor at press
-        axis: Vector,                        // world axis for this handle
-        t0: f64,                             // axis param at press
-        before: Vec<Geometry>,               // absolute snapshots (guid inside)
-        base_models: Vec<(String, u32, Xform)>,  // (guid, row, model-at-press) for the live path
-        last_delta: Xform,                   // begin_drag seeds it identity; each move overwrites it; release bakes it
+        // raw button state — egui may consume the release (56's popup), never let a stale
+        // press start a "no-button drag"
+        if let winit::event::WindowEvent::MouseInput {
+            state: s, button: winit::event::MouseButton::Left, .. } = &event {
+            state.lmb_down = *s == winit::event::ElementState::Pressed;
+        }
+```
+
+```rust
+struct DragCtx {
+    handle: HandleKind,
+    origin: Point,                       // gumball anchor at press
+    axis: Vector,                        // world axis for this handle
+    t0: f64,                             // axis param at press
+    before: Vec<Geometry>,               // absolute snapshots (guid inside)
+    base_models: Vec<(String, u32, Xform)>,  // (guid, row, model-at-press) for the live path
+    last_delta: Xform,                   // begin_drag seeds identity; each move overwrites; release bakes
+}
+```
+
+**Two small helpers first** — both in `impl State`. `cursor_ray` is 41's unproject factored into a
+method (the drag needs a ray on every mouse move); `begin_drag` fills the `DragCtx`:
+
+```rust
+    /// 41's screen_to_world_ray with its three locals, factored (42's click site builds the same).
+    fn cursor_ray(&self) -> Option<crate::engine::pick::Ray> {
+        let vp = self.camera.view_proj(self.aspect());
+        let origin = self.camera.origin();
+        let viewport = (0.0, 0.0, self.gpu.config.width as f64, self.gpu.config.height as f64);
+        crate::engine::pick::screen_to_world_ray(&vp, &origin, self.cursor, viewport)
+    }
+
+    /// Press crossed the threshold: snapshot the selection + stash the axis frame.
+    fn begin_drag(&mut self, handle: HandleKind) {
+        let Some(o) = self.scene.selection_centroid() else { return };
+        let origin = Point::new(o[0] as f64, o[1] as f64, o[2] as f64);
+        use HandleKind::*;
+        let axis = match handle {
+            TranslateX | RotateX | ScaleX => Vector::x_axis(),
+            TranslateY | RotateY | ScaleY => Vector::y_axis(),
+            _                             => Vector::z_axis(),   // Z handles + ScaleUniform (55)
+        };
+        let Some(ray) = self.cursor_ray() else { return };
+        let t0 = crate::engine::gumball::closest_param_on_axis(&ray, &origin, &axis)
+            .unwrap_or(0.0);
+        let mut before = Vec::new();
+        let mut base_models = Vec::new();
+        for guid in &self.scene.selected {
+            let Some(geom) = self.scene.session.lookup.get(guid) else { continue };
+            let Some(&row) = self.scene.guid_to_row.get(guid) else { continue };
+            before.push(geom.clone());
+            base_models.push((guid.clone(), row, self.gpu.base_model(row)));
+        }
+        self.gb_drag = Some(DragCtx { handle, origin, axis, t0, before, base_models,
+                                      last_delta: Xform::identity() });
     }
 ```
 
-**Mouse move** — begin past the threshold, then live-update:
+**Mouse move** — begin past the threshold, then live-update (in the cursor-move handler, after 53's
+hover block):
 
 ```rust
         if let Some((handle, press_at)) = self.gb_pressed {
@@ -129,24 +187,23 @@ Four small handlers around the fields 53 already added:
         }
         let mut live_delta = None;
         if let Some(ctx) = &self.gb_drag {
-            // 41's screen_to_world_ray, factored
-            let ray = self.cursor_ray();
-            if let Some(t) = crate::engine::gumball::closest_param_on_axis(
-                &ray, &ctx.origin, &ctx.axis) {
+            if let Some(t) = self.cursor_ray().and_then(|ray|
+                crate::engine::gumball::closest_param_on_axis(&ray, &ctx.origin, &ctx.axis)) {
                 let dt = t - ctx.t0;
                 let delta = Xform::translation(ctx.axis[0]*dt, ctx.axis[1]*dt, ctx.axis[2]*dt);
                 for (_, row, base) in &ctx.base_models {
                     // matrix-only — see the note
                     self.gpu.set_live_model(*row, &(&delta * base));
                 }
-                self.refresh_gumball_at(&delta);                          // the widget rides along
                 live_delta = Some(delta);
             }
         }
         // stash the final delta on the ctx so release can bake it (can't touch
-        // ctx above — it's borrowed immutably to read origin/axis/base_models)
-        if let (Some(delta), Some(ctx)) = (live_delta, self.gb_drag.as_mut()) {
-            ctx.last_delta = delta;
+        // ctx above — it's borrowed immutably to read origin/axis/base_models), and
+        // move the widget along with the drag:
+        if let Some(delta) = live_delta {
+            if let Some(ctx) = self.gb_drag.as_mut() { ctx.last_delta = delta.duplicate(); }
+            self.refresh_gumball_at(&delta);                          // the widget rides along
         }
 ```
 
@@ -171,19 +228,44 @@ Four small handlers around the fields 53 already added:
         self.gb_pressed = None;
 ```
 
-Two helpers to pin down:
+**Esc** — cancel mid-drag. In the key handler, insert this arm **above** 48's Escape arm (match
+order is the guard, same trick 56 will use):
 
 ```rust
-// engine/gpu/mod.rs — the LIVE path: instance model only. Writes objects_base so 33's per-frame
-// rebase carries the delta; does NOT touch the arena, hashes, or the Session.
-pub fn set_live_model(&mut self, row: u32, model: &Xform) {
-    self.objects_base[row as usize].0 = model.duplicate();
-    self.write_row(row, |_| {});      // rebased + re-uploaded by the normal frame path
-}
+        Key::Named(NamedKey::Escape) if self.gb_drag.is_some() => {
+            if let Some(ctx) = self.gb_drag.take() {
+                for (_, row, base) in &ctx.base_models {
+                    self.gpu.set_live_model(*row, base);   // snap back — the kernel never mutated
+                }
+            }
+            self.gb_pressed = None;
+            self.refresh_gumball();
+        }
+```
 
-// app/scene.rs — bake a delta into a kernel object at COMMIT time.
+The helpers to pin down. In `engine/gpu/mod.rs`, `impl Gpu` (beside 38b's `write_row`):
+
+```rust
+    // the LIVE path: instance model only. Writes objects_base so 33's per-frame
+    // rebase carries the delta; does NOT touch the arena, hashes, or the Session.
+    pub fn set_live_model(&mut self, row: u32, model: &Xform) {
+        self.objects_base[row as usize].0 = model.duplicate();
+        self.write_row(row, |_| {});      // rebased + re-uploaded by the normal frame path
+    }
+
+    /// The true model at press — begin_drag's base_models read.
+    pub fn base_model(&self, row: u32) -> Xform {
+        self.objects_base[row as usize].0.duplicate()
+    }
+```
+
+In `app/scene.rs`, a free function (`pub` — 56/80 call it from other modules; `state.rs` imports it:
+`use crate::app::scene::apply_delta;`):
+
+```rust
+// bake a delta into a kernel object at COMMIT time.
 // Mesh/BRep: placement lives in xform → compose. Thin: coords are world → bake via transform().
-fn apply_delta(geom: &mut Geometry, delta: &Xform) {
+pub fn apply_delta(geom: &mut Geometry, delta: &Xform) {
     match geom {
         Geometry::Mesh(m) => m.xform = delta * &m.xform,
         Geometry::BRep(b) => b.xform = delta * &b.xform,
@@ -193,6 +275,34 @@ fn apply_delta(geom: &mut Geometry, delta: &Xform) {
         _ => {}
     }
 }
+```
+
+Plus the release block's two remaining names. In `impl Scene` (`app/scene.rs`) — the boxes moved, so
+36's tree rebuilds from the *current* document (38b's `commit` rebuilds it for a reloaded one):
+
+```rust
+    /// Rebuild the broad-phase over the current document — call after any transform commit.
+    pub fn rebuild_bvh(&mut self) {
+        let (bvh, world_boxes) = Self::build_bvh(&self.session, &self.order);
+        self.bvh = bvh;
+        self.world_boxes = world_boxes;
+    }
+```
+
+And in `impl State` (`state.rs`) — the widget riding along mid-drag: rebuild it at the
+delta-transformed press origin (`refresh_gumball` itself would read the *unmoved* selection boxes):
+
+```rust
+    /// Rebuild the gumball at the drag's live position (origin = delta · press origin).
+    fn refresh_gumball_at(&mut self, delta: &Xform) {
+        let Some(ctx) = &self.gb_drag else { return };
+        let o = delta.transform_point(&ctx.origin);
+        let o = [o[0] as f32, o[1] as f32, o[2] as f32];
+        let g = crate::engine::gumball::build(o, self.gumball_scale(o),
+                                              self.gpu.gb_row, self.gb_hovered);
+        self.gpu.upload_gumball(&g);
+        self.gb = Some(g);
+    }
 ```
 
 > **Why the Session stays clean mid-drag.** The live path writes only `objects_base` + instance rows —

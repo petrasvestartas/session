@@ -42,7 +42,8 @@ again. That inversion — **open for extension, closed at the core** — is the 
 src/app/history/mod.rs      # NEW — trait Command + History { done, undone }
 src/app/history/remove.rs   # NEW — RemoveObjects: absolute snapshots, apply/revert
 src/app/commands.rs         # `delete` verb; `undo`/`redo` verbs
-src/state.rs                # State.history; Ctrl+Z / Ctrl+Y / Del key
+src/state.rs                # State.history
+src/lib.rs                  # Ctrl+Z / Ctrl+Y / Del key — they just type the verbs
 src/app/scene.rs            # restore_geometry — Geometry → the right Session::add_* call
 ```
 
@@ -92,7 +93,9 @@ impl History {
 }
 ```
 
-Add `pub history: History` to `State`, initialize it in `State::new` (`history: History::new(),` alongside the other field inits), and add the module decl `pub mod history;` in `app/mod.rs`.
+Add `pub history: History` to `State`, initialize it in `State::new` (`history: History::new(),`
+alongside the other field inits), add the module decl `pub mod history;` in `app/mod.rs`, and
+declare the submodule at the top of `history/mod.rs` itself: `pub mod remove;` (Step 2's file).
 
 ## Step 2 — the first Command: `src/app/history/remove.rs` (NEW)
 
@@ -175,8 +178,10 @@ is a straightforward extension of the snapshot once the tree UI exists, 70.)
 
 ## Step 4 — verbs + keys: `src/app/commands.rs` + `src/state.rs`
 
-Three new arms (and add `"delete"`, `"undo"`, `"redo"` to `VERBS`; alias `("rm","delete")`,
-`("del","delete")`):
+Three new arms in `dispatch` (add `"delete"`, `"undo"`, `"redo"` to 50's `VERBS`; aliases
+`("rm","delete")`, `("del","delete")` to `ALIASES`; and
+`use crate::app::history::Command;` at the top of `commands.rs` — `cmd.label()` is a trait
+method):
 
 ```rust
         "delete" => {
@@ -195,12 +200,13 @@ Three new arms (and add `"delete"`, `"undo"`, `"redo"` to `VERBS`; alias `("rm",
                        .map(|l| format!("redo: {l}")).unwrap_or("nothing to redo".into())),
 ```
 
-Keyboard shortcuts are just typists (the commands-only philosophy made literal):
+Keyboard shortcuts are just typists (the commands-only philosophy made literal) — in lib.rs's
+`match event.logical_key.as_ref()`, beside the Escape arm (48):
 
 ```rust
-        Key::Named(NamedKey::Delete) => self.run_command("delete"),
-        Key::Character("z") if ctrl  => self.run_command("undo"),
-        Key::Character("y") if ctrl  => self.run_command("redo"),
+                        Key::Named(NamedKey::Delete) => state.run_command("delete"),
+                        Key::Character("z" | "Z") if self.ctrl => state.run_command("undo"),
+                        Key::Character("y" | "Y") if self.ctrl => state.run_command("redo"),
 ```
 
 > **Borrow note.** `dispatch` takes `&mut State` while calling `state.history.execute(cmd, &mut

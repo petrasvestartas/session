@@ -77,8 +77,15 @@ fn content_hash(geom: &Geometry) -> u64 {
 }
 ```
 
-`Scene` remembers last load's hashes — add `hashes: HashMap<String, u64>` to the struct, fill it in
-`Scene::new` alongside `order`. That map is the "current document state" the next load diffs against.
+`Scene` remembers last load's hashes — add `hashes: HashMap<String, u64>` to the struct, and fill
+it in `Scene::new`'s loop, right after the `order.push(guid.clone());` line:
+
+```rust
+                hashes.insert(guid.clone(), content_hash(geom));
+```
+
+(declare `let mut hashes = HashMap::new();` beside `order`, add `hashes` to the `Self { … }`).
+That map is the "current document state" the next load diffs against.
 
 ## Step 2 — the diff: `src/app/scene.rs`
 
@@ -114,8 +121,18 @@ impl Scene {
 }
 ```
 
-(`is_renderable` is the same 5-variant test `Scene::new` (35) already uses to build `order` — factor it
-into a small free function both call, so the diff and the loader agree on what counts as an object.)
+`is_renderable` is the 5-variant test `Scene::new` (35) already uses to build `order` — factor it
+into a free function both call, so the diff and the loader agree on what counts as an object. In
+`scene.rs`, next to the converters:
+
+```rust
+fn is_renderable(g: &Geometry) -> bool {
+    matches!(g, Geometry::Mesh(_) | Geometry::BRep(_) | Geometry::Line(_) |
+                Geometry::Polyline(_) | Geometry::Point(_))
+}
+```
+
+and in `Scene::new`, the `if matches!(geom, …)` gate becomes `if is_renderable(geom)`.
 
 ## Step 3 — apply the diff: `Gpu` verbs + `Scene` dispatch + `State` orchestration
 
@@ -172,8 +189,15 @@ verbs, and the `Geometry` match — converting an object to those GPU types via 
     }
 ```
 
-(`SZ = size_of::<Instance>()` is a `usize`, so cast it (`SZ as u64`) before comparing against
-`instance_buffer.size()`, which is a `u64`.) The two helpers `set_object_row` leans on:
+`SZ` is a new module-level const — add near the top of `gpu/mod.rs`, next to the other consts:
+
+```rust
+/// One instance row's byte size — write_row / grow_instances offsets.
+const SZ: usize = std::mem::size_of::<Instance>();
+```
+
+(a `usize`, so cast it — `SZ as u64` — before comparing against `instance_buffer.size()`, which
+is a `u64`.) The two helpers `set_object_row` leans on:
 
 ```rust
     /// Mutate one instance row and upload just it (SZ bytes at row*SZ).
@@ -212,33 +236,36 @@ rows:
     pub fn apply_object(&self, gpu: &mut Gpu, guid: &str, geom: &Geometry, row: u32) {
         // idempotent: clears any prior data for this guid before (re)adding
         gpu.remove_object(guid);
-        let (model, color) = match geom {
+        // instance color stays a WHITE TINT (34h) — the real colors ride the rows flatten_mesh
+        // and the adapters bake; placement = the object's own xform, exactly as in build().
+        let model = match geom {
             Geometry::Mesh(m) => {
                 let (v,i,e,n) = flatten_mesh(m, row);
                 gpu.add_mesh_data(guid,&v,&i,&e,&n,row);
-                (m.xform.duplicate(), m.objectcolor().to_f32())
+                m.xform.duplicate()
             }
             Geometry::BRep(b) => {
-                let bm=b.mesh();
+                let mut bm = b.mesh();
+                bm.set_objectcolor(b.surfacecolor.clone());
                 let (v,i,e,n)=flatten_mesh(&bm,row);
                 gpu.add_mesh_data(guid,&v,&i,&e,&n,row);
-                (bm.xform.duplicate(), b.surfacecolor.to_f32())
+                b.xform.duplicate()
             }
             Geometry::Line(l) => {
                 gpu.add_segments(guid, &[line_to_segment(l,row)]);
-                (Xform::identity(), l.linecolor.to_f32())
+                l.xform.duplicate()
             }
             Geometry::Polyline(p) => {
                 gpu.add_segments(guid, &polyline_to_segments(p,row));
-                (Xform::identity(), p.linecolor.to_f32())
+                p.xform.duplicate()
             }
             Geometry::Point(p) => {
                 gpu.add_glyphs(guid, &[point_to_glyph(p,row)]);
-                (Xform::identity(), p.pointcolor.to_f32())
+                p.xform.duplicate()
             }
             _ => return,
         };
-        gpu.set_object_row(row, model, color, 0);
+        gpu.set_object_row(row, model, [1.0; 4], 0);
     }
 
     /// Row for `guid`: its existing one, else a recycled free row, else a fresh one at the end.
@@ -251,9 +278,9 @@ rows:
     }
 ```
 
-(`flatten_mesh` is 35's `push_mesh` split to *return* `(verts, idx, edges, naked)` instead of pushing
-into shared buffers — same body, different sink. `free_rows: Vec<u32>` and `next_row: u32` are new
-`Scene` fields; `Scene::new` seeds `next_row = order.len()`.)
+(`flatten_mesh` landed in 38a Step 5a — the per-object split of 35's `push_mesh`.
+`free_rows: Vec<u32>` and `next_row: u32` are new `Scene` fields — add both to `struct Scene` and
+to `Scene::new`'s `Self { … }`: `free_rows: Vec::new(), next_row: order.len() as u32`.)
 
 **3c. State orchestrates the reload, in `src/state.rs`:**
 
@@ -262,7 +289,8 @@ into shared buffers — same body, different sink. `free_rows: Vec<u32>` and `ne
         let bytes = crate::app::persistence::fetch_bytes(url).await.unwrap_or_default();
         let new = crate::app::persistence::session_from_bytes(url, &bytes);
         let diff = self.scene.reconcile(&new);
-        let unchanged = self.scene.order.len() - diff.changed.len() - diff.removed.len();
+        // guid_to_row is the pub view of "how many objects are loaded" (order is Scene-private)
+        let unchanged = self.scene.guid_to_row.len() - diff.changed.len() - diff.removed.len();
         log::info!("reload: {} added, {} changed, {} removed, {} unchanged",
             diff.added.len(), diff.changed.len(), diff.removed.len(), unchanged);
 
@@ -302,7 +330,10 @@ into shared buffers — same body, different sink. `free_rows: Vec<u32>` and `ne
                                        .map(|(guid, _)| guid.clone()).collect();
         self.hashes = new.lookup.iter().filter(|(_, g)| is_renderable(g))
                                        .map(|(guid, g)| (guid.clone(), content_hash(g))).collect();
-        self.rebuild_bvh(&new);   // rebuild 36's world-AABB BVH over the new document
+        // rebuild 36's world-AABB BVH + extents cache over the new document
+        let (bvh, world_boxes) = Self::build_bvh(&new, &self.order);
+        self.bvh = bvh;
+        self.world_boxes = world_boxes;
         self.session = new;       // the reloaded doc is now current
     }
 

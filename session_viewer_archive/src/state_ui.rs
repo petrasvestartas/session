@@ -22,6 +22,8 @@ pub(crate) fn build_vmap(session: &session_rust::session::Session) -> HashMap<St
             Geometry::OBB(x)        => &x.name,
             Geometry::BRep(x)       => &x.name,
             Geometry::Element(x)    => &x.name,
+            Geometry::NurbsCurve(x)   => &x.name,
+            Geometry::NurbsSurface(x) => &x.name,
         }
     }
     let mut vmap: HashMap<String, String> = session.lookup
@@ -786,7 +788,7 @@ impl State {
             // NURBS surface + BRep once. Coarse meshes make this rebuild cheap.
             self.scene.gpu_session.tess_angle_deg = a;
             self.scene.gpu_session.tess_chord_factor = a * 0.0003; // 10° → 0.003 (default ratio)
-            let surfaces: Vec<session_rust::NurbsSurface> =
+            let surfaces: Vec<std::rc::Rc<session_rust::NurbsSurface>> =
                 self.scene.session.objects.nurbssurfaces.clone();
             for s in &surfaces {
                 let guid = s.guid().to_string();

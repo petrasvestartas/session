@@ -54,7 +54,7 @@ auto-seeded white/black on `add_vertex`/`add_face`, so a non-empty vec means not
 | mesh edges → `CylinderSegment.color` | `linecolors[i]` (already works) | black |
 | mesh vertex dots → `GlyphPoint.color` | POINTCOLORS+coverage → `pointcolors[i]` | `[0.1,0.1,0.1,1]` |
 | line/polyline → `CylinderSegment.color` | `linecolor` (already works) | black |
-| point → `GlyphPoint.color` | `pointcolor` (already works) | black (was blue — kernel default changed alongside this lesson, ×3 languages) |
+| point → `GlyphPoint.color` | `pointcolor` (already works) | black (34d changed the kernel default from blue, ×3 languages) |
 | brep → mesh lanes | `surfacecolor` as the built mesh's objectcolor | black |
 
 **Width is a multiplier**, encoded in the `radius` field every segment/glyph already carries — zero
@@ -63,46 +63,58 @@ layout churn:
 ```
 radius == 0.0 → px = LineUniform.thickness            (global default — unchanged)
 radius <  0.0 → px = LineUniform.thickness * (-radius) (kernel width lands here)
-radius >  0.0 → world-units radius                     (unchanged, reserved)
+radius >  0.0 → world-units radius                     (unchanged — 34f's paper-space lane)
 ```
 
-`width == 1.0` (every kernel default) encodes as `0.0`, so untouched files stay bit-identical. The
-future thickness slider (47) writes `LineUniform.thickness` and every user width scales with it,
-Rhino-style.
+`width == 1.0` (every kernel default) encodes as `0.0` (34f's `encode_width` already does this), so
+untouched files stay bit-identical. The future thickness slider (47) writes `LineUniform.thickness`
+and every user width scales with it, Rhino-style.
 
 ## Files we touch
 
 ```
-session_rust/src/render_mesh.rs   # to_render(): FACECOLORS branch (Rust-only — no py/cpp port)
-src/engine/gpu/adapters.rs        # encode_width + use it for line/polyline/point radius
-src/engine/gpu/mod.rs             # walk pushes WHITE TINT; BRep bakes surfacecolor; push_mesh widths+dots
-src/shaders/triangle.wgsl         # resurrect the baked vertex color
-src/shaders/cylinder.wgsl         # negative-radius decode + tint multiply
-src/shaders/sphere.wgsl           # same
-src/shaders/point.wgsl            # tint multiply
+session_rust/src/render_mesh.rs   # Step 1: to_render() FACECOLORS branch (Rust-only, no py/cpp port)
+src/engine/gpu/adapters.rs        # Step 2: point widths enter the encoding
+src/engine/gpu/mod.rs             # Step 3: imports; walk pushes WHITE TINT + BRep bake; push_mesh
+src/shaders/triangle.wgsl         # Step 4a: resurrect the baked vertex color
+src/shaders/ribbon.wgsl           # Step 4b: negative-radius decode + tint multiply
+src/shaders/glyph.wgsl            # Step 4c: same
+src/shaders/cylinder.wgsl         # Step 4d: same (SOLID parity)
+src/shaders/sphere.wgsl           # Step 4d: same
+src/shaders/point.wgsl            # Step 4e: tint multiply
 ```
 
 ## Step 1 — FACECOLORS in `to_render`: `session_rust/src/render_mesh.rs`
 
-`to_render` shares vertices between faces, but a shared vertex can only carry ONE color — flat
-per-face color needs its own vertices, three per triangle. This file is the Rust-only GPU bridge
-(verified: `session_py`/`session_cpp` have no `to_render`) — no 3-language port.
+(The KERNEL crate, not the viewer — but Rust-only: `session_py`/`session_cpp` have no `to_render`,
+so no 3-language port.) `to_render` shares vertices between faces, but a shared vertex can only
+carry ONE color — flat per-face color needs its own vertices, three per triangle.
 
-**Find the `has_point_colors` gate** (after `let point_colors = self.get_pointcolors();`) **and
-insert the FACECOLORS early-return right after it**, before `let mut vertices`:
+**Find the `has_point_colors` gate and the `let mut vertices` line that follows it:**
+
+```rust
+        let has_point_colors =
+            self.color_mode == crate::mesh::ColorMode::POINTCOLORS && point_colors.len() == keys.len();
+
+        let mut vertices: Vec<RenderVertex> = Vec::with_capacity(keys.len());
+```
+
+**Insert the FACECOLORS early-return between them** (after the gate, before `let mut vertices`):
 
 ```rust
         // FACECOLORS: flat per-face color needs duplicated vertices — a shared vertex can only
         // carry one color. Same gate style as pointcolors: the MODE is the user-set signal.
-        let has_face_colors =
-            self.color_mode == crate::mesh::ColorMode::FACECOLORS && self.facecolors.len() == self.face.len();
+        // (facecolors is private to mesh.rs; from this sibling module use get_facecolors().)
+        let has_face_colors = self.color_mode == crate::mesh::ColorMode::FACECOLORS
+            && self.get_facecolors().len() == self.face.len();
         if has_face_colors {
+            let face_colors = self.get_facecolors();
             let mut vertices: Vec<RenderVertex> = Vec::new();
             let mut indices: Vec<u32> = Vec::new();
             let mut face_keys: Vec<usize> = self.face.keys().copied().collect();
             face_keys.sort_unstable();
             for (fi, fk) in face_keys.iter().enumerate() {
-                let c = &self.facecolors[fi];
+                let c = &face_colors[fi];
                 let color = [c.r, c.g, c.b, 1.0];
                 let mut tris: Vec<[usize; 3]> = Vec::new();
                 if let Some(cached) = self.triangulation.get(fk) {
@@ -133,64 +145,128 @@ insert the FACECOLORS early-return right after it**, before `let mut vertices`:
         }
 ```
 
-The shared-vertex path below stays untouched for OBJECTCOLOR/POINTCOLORS. Also **extend the doc
-comment** above `to_render` (it currently names only two modes). Memory grows only for meshes
-actually in FACECOLORS mode.
+The shared-vertex path below stays untouched for OBJECTCOLOR/POINTCOLORS. Memory grows only for
+meshes actually in FACECOLORS mode. Check it: `cargo check --lib` in `session_rust/`.
 
-## Step 2 — the width encoder: `src/engine/gpu/adapters.rs`
+## Step 2 — point widths: `src/engine/gpu/adapters.rs`
 
-**Mostly landed in 34f**: `encode_width` exists and `line_to_segment`/`polyline_to_segments`
-already encode their widths (34f Step 5 flips them into the world lane for planar sheets). One
-piece remains — **points**: replace `radius: 0.0` in `point_to_glyph` with:
+34f already landed `encode_width` and wired `line_to_segment`/`polyline_to_segments`. One piece
+remains — points. In `point_to_glyph`, find:
 
 ```rust
-        radius: encode_width(p.width),    // point_to_glyph
+        center: p.to_f32(),
+        radius: 0.0,
 ```
 
-## Step 3 — the walk pushes a TINT: `src/engine/gpu/mod.rs` (`walk_session`, since 34e)
+Replace the radius line with:
 
-**3a. Imports.** Extend the top-of-file `use` lines (`ColorMode` is NOT re-exported at the crate
-root — it lives in the `mesh` module):
+```rust
+        radius: encode_width(p.width),
+```
+
+## Step 3 — the walk pushes a TINT: `src/engine/gpu/mod.rs`
+
+**3a. Imports.** At the top of the file, find:
+
+```rust
+use adapters::{line_to_segment, point_to_glyph, polyline_to_segments};
+use bytemuck::Zeroable;
+use session_rust::{Mesh, Xform, RenderVertex, Point, Geometry};
+```
+
+Replace with (`encode_width` joins the list; `ColorMode` is NOT re-exported at the crate root —
+it lives in the `mesh` module):
 
 ```rust
 use adapters::{line_to_segment, point_to_glyph, polyline_to_segments, encode_width};
+use bytemuck::Zeroable;
+use session_rust::{Mesh, Xform, RenderVertex, Point, Geometry};
 use session_rust::mesh::ColorMode;
 ```
 
-**3b. In the session walk, every `objects_base.push((xform, color))` becomes white tint** — the row
-colors now carry the real color, the instance slot is the modulation channel:
+**3b. Every `t.objects.push((xform, color))` becomes white tint** — the row colors now carry the
+real color, the instance slot is the modulation channel. In `walk_session`'s match, find the five
+renderable arms:
 
 ```rust
                 Geometry::Mesh(m) => {
-                    objects_base.push((m.xform.clone(), [1.0; 4]));   // was m.objectcolor() — to_render bakes it
-                    push_mesh(m, ri, &mut verts, &mut vids, &mut idx, &mut segments, &mut glyphs);
+                    t.objects.push((m.xform.clone(), m.objectcolor().to_f32()));
+                    push_mesh(m, ri, &mut t.verts, &mut t.vids, &mut t.idx,
+                        &mut t.segments, &mut t.glyphs);
                 }
                 Geometry::BRep(b) => {
-                    let mut bm = b.mesh();
-                    bm.set_objectcolor(b.surfacecolor.clone());       // bake surfacecolor into the built mesh
-                    objects_base.push((b.xform.clone(), [1.0; 4]));
-                    push_mesh(&bm, ri, &mut verts, &mut vids, &mut idx, &mut segments, &mut glyphs);
+                    let bm = b.mesh();
+                    t.objects.push((b.xform.clone(), b.surfacecolor.to_f32()));
+                    push_mesh(&bm, ri, &mut t.verts, &mut t.vids, &mut t.idx,
+                        &mut t.segments, &mut t.glyphs);
                 }
                 Geometry::Line(l) => {
-                    objects_base.push((l.xform.clone(), [1.0; 4]));   // linecolor already rides the segment row
-                    segments.push(line_to_segment(l, ri));
+                    t.objects.push((l.xform.clone(), l.linecolor.to_f32()));
+                    t.segments.push(line_to_segment(l, ri));
                 }
                 Geometry::Polyline(pl) => {
-                    objects_base.push((pl.xform.clone(), [1.0; 4]));
-                    segments.extend(polyline_to_segments(pl, ri));
+                    t.objects.push((pl.xform.clone(), pl.linecolor.to_f32()));
+                    t.segments.extend(polyline_to_segments(pl, ri));
                 }
                 Geometry::Point(p) => {
-                    objects_base.push((p.xform.clone(), [1.0; 4]));
-                    glyphs.push(point_to_glyph(p, ri));
+                    t.objects.push((p.xform.clone(), p.pointcolor.to_f32()));
+                    t.glyphs.push(point_to_glyph(p, ri));
                 }
 ```
 
-**Update the `objects_base` field comment** (struct, ~line 36): "TRUE world model + TINT (white;
-selection/overrides write here later)". `rebuild_instances` is unchanged — it now streams the tint.
+Replace all five with (BRep additionally BAKES its surfacecolor into the built mesh, so
+`to_render` carries it into the vertex rows):
 
-**3c. `push_mesh` — per-edge widths and honest dots.** Replace the edge loop with an indexed one
-(`m.widths()` is seeded in the same discovery order `edges_with_colors()` walks — kernel-guaranteed
-alignment), and gate the dot color on POINTCOLORS:
+```rust
+                Geometry::Mesh(m) => {
+                    t.objects.push((m.xform.clone(), [1.0; 4]));   // was m.objectcolor() — to_render bakes it
+                    push_mesh(m, ri, &mut t.verts, &mut t.vids, &mut t.idx,
+                        &mut t.segments, &mut t.glyphs);
+                }
+                Geometry::BRep(b) => {
+                    let mut bm = b.mesh();
+                    bm.set_objectcolor(b.surfacecolor.clone());    // bake surfacecolor into the built mesh
+                    t.objects.push((b.xform.clone(), [1.0; 4]));
+                    push_mesh(&bm, ri, &mut t.verts, &mut t.vids, &mut t.idx,
+                        &mut t.segments, &mut t.glyphs);
+                }
+                Geometry::Line(l) => {
+                    t.objects.push((l.xform.clone(), [1.0; 4]));   // linecolor already rides the segment row
+                    t.segments.push(line_to_segment(l, ri));
+                }
+                Geometry::Polyline(pl) => {
+                    t.objects.push((pl.xform.clone(), [1.0; 4]));
+                    t.segments.extend(polyline_to_segments(pl, ri));
+                }
+                Geometry::Point(p) => {
+                    t.objects.push((p.xform.clone(), [1.0; 4]));
+                    t.glyphs.push(point_to_glyph(p, ri));
+                }
+```
+
+(`rebuild_instances` is unchanged — it now streams the tint.)
+
+**3c. `push_mesh` — per-edge widths.** In `push_mesh` (bottom of `gpu/mod.rs`), find the edge
+loop:
+
+```rust
+    for (a, b, col) in m.edges_with_colors(){
+        let pa = m.vertex_point(a).unwrap();
+        let pb = m.vertex_point(b).unwrap();
+        segments.push(
+            CylinderSegment{
+                p0: pa.to_f32(),
+                radius: 0.0,
+                p1: pb.to_f32(),
+                instance_id: ri,
+                color: col.to_f32()
+            }
+        )
+    }
+```
+
+Replace with an indexed loop (`m.widths()` is seeded in the same discovery order
+`edges_with_colors()` walks — kernel-guaranteed alignment):
 
 ```rust
     for (i, (a, b, col)) in m.edges_with_colors().into_iter().enumerate(){
@@ -206,7 +282,27 @@ alignment), and gate the dot color on POINTCOLORS:
             }
         )
     }
+```
 
+**3d. `push_mesh` — honest dots.** Directly below, find the dot loop:
+
+```rust
+    for vk in m.vertices(){
+        let p = m.vertex_point(vk).unwrap();
+        glyphs.push(
+            GlyphPoint { 
+                center: p.to_f32(), 
+                radius: 0.0, 
+                color: [0.1, 0.1, 0.1, 1.0], 
+                instance_id: ri, 
+                _pad: [0;3] }
+        );
+    }
+```
+
+Replace with:
+
+```rust
     // Dots honor user-set pointcolors; the auto-seeded white vec is filtered by the MODE gate.
     // m.vertices() is sorted — the same order to_render indexes pointcolors by.
     let pc = m.get_pointcolors();
@@ -226,44 +322,108 @@ alignment), and gate the dot color on POINTCOLORS:
 
 ## Step 4 — six shaders, one rule each (both linework modes stay honest)
 
-**4a. `triangle.wgsl`** — find `o.color = inst.color.rgb;` (vs_main) and replace — this single line
-resurrects everything `to_render` bakes (objectcolor, pointcolors, and now facecolors):
+**4a. `src/shaders/triangle.wgsl`** — in `vs_main`, find:
 
 ```wgsl
-    o.color = in.color * inst.color.rgb; // baked base color × instance tint (white today)
+    o.color = inst.color.rgb; // Set the color
 ```
 
-**4b. `ribbon.wgsl` (default edges, 34f)** — find `var px = line.thickness;` and give it the
-px-multiplier lane (negative radii — 3D files' widths; planar sheets already converted theirs to
-the world lane in `walk_session`):
+Replace — this single line resurrects everything `to_render` bakes (objectcolor, pointcolors, and
+now facecolors):
+
+```wgsl
+    o.color = in.color.rgb * inst.color.rgb; // baked base color × instance tint (white today)
+```
+
+**4b. `src/shaders/ribbon.wgsl`** (default edges, 34f) — two edits. Find:
+
+```wgsl
+    var px = line.thickness;
+    if (seg.radius > 0.0) {
+```
+
+Give it the px-multiplier lane (negative radii — 3D files' widths; planar sheets already
+converted theirs to the world lane in `walk_session`):
 
 ```wgsl
     let mult = select(1.0, -seg.radius, seg.radius < 0.0);
     var px = line.thickness * mult;
+    if (seg.radius > 0.0) {
 ```
 
-then `o.color = seg.color;` → `o.color = seg.color * instances[seg.instance_id].color;`
+Then find `o.color = seg.color;` and replace with:
 
-**4c. `glyph.wgsl` (default dots, 34f)** — the same two changes with `g.radius` / `g.color`.
+```wgsl
+    o.color = seg.color * instances[seg.instance_id].color;
+```
+
+**4c. `src/shaders/glyph.wgsl`** (default dots, 34f) — the same two changes. Find:
+
+```wgsl
+    var px = line.thickness;
+    if (g.radius > 0.0) {
+```
+
+Replace with:
+
+```wgsl
+    let mult = select(1.0, -g.radius, g.radius < 0.0);
+    var px = line.thickness * mult;
+    if (g.radius > 0.0) {
+```
+
+Then `o.color = g.color;` → `o.color = g.color * instances[g.instance_id].color;`
 
 **4d. SOLID parity — `cylinder.wgsl` + `sphere.wgsl`** (so `LINEWORK_SOLID = true` honors the
-same widths/tints). Cylinder: the radius select gains the same `mult`
-(`let r = select(screen_radius(clip_c.w, line) * mult, seg.radius, seg.radius > 0.0);`) and
-`o.color` the same tint multiply; sphere: the `let base = … * 1.0;` pair likewise.
+same widths/tints). In `cylinder.wgsl`, find (note: no spaces around the `>`):
 
-**4e. `point.wgsl`** — `o.color = p.color;` → `o.color = p.color * instances[p.instance_id].color;`
+```wgsl
+    let r = select(screen_radius(clip_c.w, line), seg.radius, seg.radius>0.0);
+```
+
+Replace with:
+
+```wgsl
+    let mult = select(1.0, -seg.radius, seg.radius < 0.0);
+    let r = select(screen_radius(clip_c.w, line) * mult, seg.radius, seg.radius>0.0);
+```
+
+Then `o.color = seg.color;` → `o.color = seg.color * instances[seg.instance_id].color;`
+
+In `sphere.wgsl`, find:
+
+```wgsl
+    let base = screen_radius(clip_c.w, line) * 1.0; // sphere inflation radius
+```
+
+Replace with:
+
+```wgsl
+    let mult = select(1.0, -g.radius, g.radius < 0.0);
+    let base = screen_radius(clip_c.w, line) * mult; // sphere inflation radius
+```
+
+(the `let r = select(base, g.radius, g.radius > 0.0);` line below it stays), then
+`o.color = g.color;` → `o.color = g.color * instances[g.instance_id].color;`
+
+**4e. `src/shaders/point.wgsl`** — find `o.color = p.color;` and replace with:
+
+```wgsl
+    o.color = p.color * instances[p.instance_id].color;
+```
+
 (tint wiring only; per-cloud `point_size` waits for the PointCloud lesson).
 
 ## Verify
 
 `cargo check` in both `session_rust` (native) and `session_viewer` (wasm). Then two gates:
 
-**1. Regression — nothing moved.** `floor_model.pb` and the stress file must look pixel-identical:
+**1. Regression — nothing moved.** `floor_model.pb` and the stress wall must look pixel-identical:
 every default is white-tint × row-color and `radius 0.0`.
 
-**2. Positive — user colors/widths appear.** Write a fixture with every channel exercised
-(`session_rust/examples/colors_widths.rs`, run with `cargo run --example colors_widths` from
-`session_rust/`):
+**2. Positive — user colors/widths appear.** Write a fixture with every channel exercised. Create
+`session_rust/examples/colors_widths.rs` with exactly this content, then run
+`cargo run --example colors_widths` from `session_rust/`:
 
 ```rust
 use session_rust::{Session, Mesh, Polyline, Point, Color, Xform};
@@ -293,7 +453,7 @@ fn main() {
     pl.width = 5.0;                                                // 5× the global thickness
 
     let mut p = Point::new(0.0, -800.0, 0.0);
-    p.width = 4.0;                                                 // fat dot (pointcolor default blue)
+    p.width = 4.0;                                                 // fat dot, 4× the global px
 
     s.add_mesh(m1, None);
     s.add_mesh(m2, None);
@@ -304,28 +464,26 @@ fn main() {
 }
 ```
 
-Add a `copy-file` link for it in `index.html` (same pattern as 34a Step 2), swap `DEMO_SESSION_URL`,
+Add a `copy-file` link for it in `index.html` (same pattern as 34e Step 5), point
+`DEMO_SESSION_URLS` (34e) at just this file — `&["session_data/colors_widths.pb"]` —
 and check, left to right: box 1 shows six distinct flat face colors (not white — the FACECOLORS bug
 is dead), box 2 shows the vertex gradient AND gradient-colored dots, box 3 is indistinguishable from
-before, the polyline is red at 5× thickness, the point is a fat blue dot. Then swap the URL back.
+before, the polyline is red at 5× thickness, the point is a fat black dot (4× — the width lane on
+a glyph). Then swap the URL list back.
 
 ## Recap
 
 ```
 Ch 34b: session → tables; colors were whatever happened to reach the rows.
-Ch 34c: RESOLVE COLORS/WIDTHS ONCE, CPU-SIDE. Row color = the user's color (precedence:
+Ch 34h: RESOLVE COLORS/WIDTHS ONCE, CPU-SIDE. Row color = the user's color (precedence:
         color_mode gates FACECOLORS/POINTCOLORS — auto-seeded vecs mean nothing; linecolors ride
         edges_with_colors; surfacecolor bakes into the BRep mesh). Instance.color = WHITE TINT,
-        multiplied in all four shaders (selection's channel, lesson 45). Width = multiplier in the
+        multiplied in all the shaders (selection's channel, lesson 45). Width = multiplier in the
         radius sign lane (0 default / negative px-multiplier / positive world) — width==1.0 encodes
         0.0, defaults bit-identical. to_render grows a FACECOLORS branch (duplicated verts, flat
         color; Rust-only bridge). Dots: pointcolors when user-set, dark constant otherwise —
         every-vertex-dots policy unchanged.
 ```
-
-Edited: `session_rust/src/render_mesh.rs` (FACECOLORS branch), `gpu/adapters.rs` (`encode_width` +
-three radius lines), `gpu/mod.rs` (tint pushes, BRep bake, push_mesh widths+dots),
-`triangle/cylinder/sphere/point.wgsl` (decode + tint multiply).
 
 ## Next
 

@@ -66,7 +66,7 @@ split it:
     /// reload, minus the fetch. Both manual reload and the watcher call this.
     fn apply_session(&mut self, new: Session) {
         let diff = self.scene.reconcile(&new);
-        let unchanged = self.scene.order.len() - diff.changed.len() - diff.removed.len();
+        let unchanged = self.scene.guid_to_row.len() - diff.changed.len() - diff.removed.len();
         log::info!("sync: {} added, {} changed, {} removed, {} unchanged",
             diff.added.len(), diff.changed.len(), diff.removed.len(), unchanged);
         for g in &diff.removed {

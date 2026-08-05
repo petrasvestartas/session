@@ -169,12 +169,12 @@ for iy in 0..n {
 Put this in its place — it still ends by producing a `Vec<Instance>` called `instances`, so the
 `instance_buffer` block right below keeps working unchanged.
 
-Only `create_box` and `create_dodecahedron` are `Mesh` factories; `sphere`/`cylinder`/`torus` are `Brep`
-factories — call `.mesh()` on those to get a `Mesh`. Add `Brep` to the `use session_rust::{…}` import at
+Only `create_box` and `create_dodecahedron` are `Mesh` factories; `sphere`/`cylinder`/`torus` are `BRep`
+factories — call `.mesh()` on those to get a `Mesh`. Add `BRep` to the `use session_rust::{…}` import at
 the top of the file (and drop `Color`, since the arena no longer calls `Color::white()`):
 
 ```rust
-use session_rust::{Mesh, Xform, RenderVertex, Brep};   // ← was: {Color, Mesh, Xform, RenderVertex}
+use session_rust::{Mesh, Xform, RenderVertex, BRep};   // ← was: {Color, Mesh, Xform, RenderVertex}
 ```
 
 ```rust
@@ -185,11 +185,11 @@ let objects: Vec<(Mesh, Xform, [f32; 4])> = vec![
      Xform::translation(-2400.0, 0.0, 0.0), [0.90, 0.30, 0.30, 1.0]),
     (Mesh::create_dodecahedron(400.0),
      Xform::translation(-1200.0, 0.0, 0.0), [0.90, 0.70, 0.20, 1.0]),
-    (Brep::create_sphere(380.0).mesh(),
+    (BRep::create_sphere(380.0).mesh(),
      Xform::translation(    0.0, 0.0, 0.0), [0.30, 0.80, 0.40, 1.0]),
-    (Brep::create_cylinder(320.0, 800.0).mesh(),
+    (BRep::create_cylinder(320.0, 800.0).mesh(),
      Xform::translation( 1200.0, 0.0, 0.0), [0.30, 0.60, 0.90, 1.0]),
-    (Brep::create_torus(360.0, 140.0).mesh(),
+    (BRep::create_torus(360.0, 140.0).mesh(),
      Xform::translation( 2400.0, 0.0, 0.0), [0.70, 0.40, 0.90, 1.0]),
 ];
 

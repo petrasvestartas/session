@@ -1,6 +1,6 @@
 # 26 Reverse-Z — depth precision that survives the whole scene
 
-Lesson 23's edges poked through the box; clip-range and edge-nudge band-aids (24) only worked *around*
+Lesson 23's edges z-fought the faces they sit on; the shader-nudge band-aid (23) only worked *around*
 it. The real disease: **f32 depth precision collapses in the distance.** Reverse-Z cures it properly,
 closing the depth story lesson 12 opened — the last camera lesson.
 
@@ -32,7 +32,7 @@ It costs nothing and needs no new buffer — we already render to a **Depth32Flo
 1. projection   swap near/far args      → near maps to 1, far maps to 0
 2. depth test   Less → Greater          → "nearer" now means LARGER depth
 3. depth clear  1.0 → 0.0               → the cleared buffer starts at the far plane (0)
-4. edge nudge   −1e-5 → +1e-5           → pull edges toward the camera = toward LARGER depth now
+4. edge nudge   −1e-4 → +1e-5           → pull edges toward the camera = toward LARGER depth now
 ```
 
 The background pipeline keeps `Always` (depth-direction-agnostic); everything else that used `Less`
@@ -41,16 +41,18 @@ flips to `Greater`.
 ## Files we touch
 
 ```
-src/engine/camera.rs               # swap near/far in perspective AND ortho
+src/camera.rs                      # swap near/far in perspective AND ortho
 src/engine/pipelines/build.rs      # Less → Greater on triangle, grid, edges (NOT background)
 src/engine/gpu.rs                  # depth clear 1.0 → 0.0
-src/shaders/edges.wgsl             # nudge sign −1e-5 → +1e-5
+src/shaders/edges.wgsl             # nudge −1e-4 → +1e-5
 ```
 
-## Step 1 — reverse both projections: `src/engine/camera.rs`
+## Step 1 — reverse both projections: `src/camera.rs`
 
 In `view_proj`, swap the last two arguments of **both** projection calls — that single swap produces
-the reversed mapping (verified: near→1, far→0 for perspective *and* ortho):
+the reversed mapping (verified: near→1, far→0 for perspective *and* ortho). The snippet also tightens
+lesson 16's perspective range `dist * 0.001` / `dist * 100.0` to `dist * 0.01` / `dist * 10.0` —
+reverse-Z no longer needs a huge ratio, and later lessons assume `0.01…10`:
 
 ```rust
         let projection = if self.perspective {
@@ -111,7 +113,7 @@ The nudge still pulls edges a hair toward the camera so they beat the face they 
 the camera" now means **larger** depth, so it flips from subtract to add:
 
 ```wgsl
-    o.pos.z = o.pos.z + 1e-5 * o.pos.w;   // was  - 1e-5  (reverse-Z: nearer = larger z)
+    o.pos.z = o.pos.z + 1e-5 * o.pos.w;   // was  - 1e-4  (reverse-Z: nearer = larger z, finer nudge)
 ```
 
 Leave the sign as `−` and every edge sinks *behind* its face instead — they vanish.
@@ -131,7 +133,7 @@ are a matched pair.)
 ## Recap
 
 ```
-Ch 24/23: we dodged far z-fighting with a tight clip range + an edge depth nudge — band-aids.
+Ch 23:    we dodged far z-fighting with an edge depth nudge — a band-aid.
 Ch 26:    reverse-Z cures it. Perspective's 1/z crush and an f32 float's precision-near-0 are
           opposite curves; mapping far→0 / near→1 cancels them for uniform precision on a
           Depth32Float target. Four flips: swap near/far in both projections; depth test Less→

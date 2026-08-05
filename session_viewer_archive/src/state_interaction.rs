@@ -7,6 +7,7 @@ use crate::pick::screen_to_world_ray;
 use crate::undo_state::UndoAction;
 use session_rust::session::Geometry;
 use session_rust::Xform;
+use std::rc::Rc;
 use winit::event::{MouseButton, MouseScrollDelta};
 use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::KeyCode;
@@ -46,14 +47,14 @@ impl State {
         let xf = Xform::from_matrix(flat);
         if let Some(geom) = self.scene.session.lookup.get_mut(guid) {
             match geom {
-                Geometry::Mesh(m)        => { m.transform(Some(&xf)); }
-                Geometry::Point(p)       => { p.xform = xf.clone(); p.transform(); }
-                Geometry::Line(l)        => { l.xform = xf.clone(); l.transform(); }
-                Geometry::Polyline(pl)   => { pl.xform = xf.clone(); pl.transform(); }
-                Geometry::Plane(pl)      => { pl.xform = xf.clone(); pl.transform(); }
-                Geometry::PointCloud(pc) => { pc.xform = xf.clone(); pc.transform(); }
-                Geometry::OBB(o)         => { o.xform = xf.clone(); o.transform(); }
-                Geometry::BRep(b)        => { b.xform = xf.clone(); }
+                Geometry::Mesh(m)        => { Rc::make_mut(m).transform(Some(&xf)); }
+                Geometry::Point(p)       => { let p = Rc::make_mut(p); p.xform = xf.clone(); p.transform(); }
+                Geometry::Line(l)        => { let l = Rc::make_mut(l); l.xform = xf.clone(); l.transform(); }
+                Geometry::Polyline(pl)   => { let pl = Rc::make_mut(pl); pl.xform = xf.clone(); pl.transform(); }
+                Geometry::Plane(pl)      => { let pl = Rc::make_mut(pl); pl.xform = xf.clone(); pl.transform(); }
+                Geometry::PointCloud(pc) => { let pc = Rc::make_mut(pc); pc.xform = xf.clone(); pc.transform(); }
+                Geometry::OBB(o)         => { let o = Rc::make_mut(o); o.xform = xf.clone(); o.transform(); }
+                Geometry::BRep(b)        => { Rc::make_mut(b).xform = xf.clone(); }
                 _ => {}
             }
         }
@@ -169,7 +170,7 @@ impl State {
                 }
             } else if self.gb.drag_nurbs_snapshots.contains_key(guid) {
                 if let Some(ns) = self.scene.session.objects.nurbssurfaces.iter().find(|n| n.guid() == *guid) {
-                    snapshots_after.insert(guid.clone(), UndoAction::snap_nurbs(ns.clone()));
+                    snapshots_after.insert(guid.clone(), UndoAction::snap_nurbs((**ns).clone()));
                 }
             }
         }

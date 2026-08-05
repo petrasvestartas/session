@@ -39,8 +39,83 @@ resolve is the magic: edge pixels come out fractionally gray (coverage), so the 
 sub-pixel smoothness before any blur exists — the archive's technique, and the real payoff of
 lesson 24's MSAA decision.
 
-The whole shader is `cylinder/mesh vs` minus color logic, `fs` returning `vec4(1.0)`. Half or full
-res — half is fine, the ramp hides it.
+The shader is `triangle.wgsl`'s and `cylinder.wgsl`'s vertex stages minus all color logic — two vs
+entries in one module (a WGSL file may hold several; the two mask pipelines pick their entry), one
+shared `fs` returning white. Half or full res — half is fine, the ramp hides it:
+
+```wgsl
+// outline_mask.wgsl — selected instances only, flat white on black.
+@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
+@group(1) @binding(0) var<uniform> line: LineUniform;
+
+struct Instance {
+    model: mat4x4<f32>,
+    color: vec4<f32>,
+    flags: u32,
+};
+@group(2) @binding(0) var<storage, read> instances: array<Instance>;
+
+struct CylinderSegment {
+    p0: vec3<f32>,
+    radius: f32,
+    p1: vec3<f32>,
+    instance_id: u32,
+    color: vec4<f32>,
+}
+@group(3) @binding(0) var<storage, read> segments: array<CylinderSegment>;
+
+struct LineUniform {
+    thickness: f32,
+    proj_y: f32,
+    ortho_h: f32,
+    vp_h: f32,
+};
+
+const FLAG_SELECTED: u32 = 1u;   // bit 0 (45)
+const COLLAPSED: vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 0.0);   // w=0 → clipped, the 37 trick
+
+// triangle.wgsl's vs minus normals/colors — only position + the row id matter here.
+@vertex
+fn vs_mesh(@location(0) position: vec3<f32>,
+           @location(3) inst_id: u32) -> @builtin(position) vec4<f32> {
+    let inst = instances[inst_id];
+    if ((inst.flags & FLAG_SELECTED) == 0u) { return COLLAPSED; }
+    return mvp * (inst.model * vec4<f32>(position, 1.0));
+}
+
+// cylinder.wgsl's vs verbatim, minus the color output, plus the selection gate.
+@vertex
+fn vs_cyl(@location(0) tmpl: vec3<f32>,
+          @builtin(instance_index) si: u32) -> @builtin(position) vec4<f32> {
+    let seg = segments[si];
+    let inst = instances[seg.instance_id];
+    if ((inst.flags & FLAG_SELECTED) == 0u) { return COLLAPSED; }
+    let w0 = (inst.model * vec4<f32>(seg.p0, 1.0)).xyz;
+    let w1 = (inst.model * vec4<f32>(seg.p1, 1.0)).xyz;
+    let axis = w1 - w0;
+    let len = length(axis);
+    let dir = select(vec3<f32>(0.0, 0.0, 1.0), axis / len, len > 1e-9);
+    let ref0 = select(vec3<f32>(0.0, 0.0, 1.0), vec3<f32>(1.0, 0.0, 0.0), abs(dir.z) > 0.9);
+    let right = normalize(cross(ref0, dir));
+    let up = cross(dir, right);
+    let center = w0 + dir * (len * tmpl.z);
+    let clip_c = mvp * vec4<f32>(center, 1.0);
+    var r = line.thickness * clip_c.w / (line.proj_y * line.vp_h);
+    if (line.ortho_h > 0.0) { r = line.thickness * line.ortho_h / line.vp_h; }
+    if (seg.radius > 0.0) { r = seg.radius; }
+    let world = center + (right * tmpl.x + up * tmpl.y) * r;
+    return mvp * vec4<f32>(world, 1.0);
+}
+
+@fragment
+fn fs_main() -> @location(0) vec4<f32> {
+    return vec4<f32>(1.0);
+}
+```
+
+The two mask pipelines are the triangle/cylinder pipelines' shapes with this module's entries, a
+single `R8Unorm` color target (no depth attachment — the ring shows through occluders, which is what
+you want for "where is my selection"), and `multisample.count = 4`.
 
 ## Step 2 — separable distance: `outline_sep.wgsl`
 
@@ -81,10 +156,22 @@ fn fs_main(@builtin(position) frag: vec4<f32>) -> @location(0) vec4<f32> {
 }
 ```
 
-Reuses the fullscreen-triangle `vs` the composite/GTAO passes already have. Pass 1 binds the mask with
-`seed=1, dir=(1,0)` → dist1; pass 2 binds dist1 with `seed=0, dir=(0,1)` → dist2 (the ping-pong). The
-coverage grays from Step 1 ride along: mask > 0.5 is inside, and the fractional value feeds the ramp for
-the anti-aliased inner edge.
+Add the same 6-line fullscreen-triangle `vs_main` the GTAO/composite shaders carry (65's trick) to
+the top of this file too — a pipeline's vertex stage lives in its own module here:
+
+```wgsl
+@vertex
+fn vs_main(@builtin(vertex_index) vi: u32) -> @builtin(position) vec4<f32> {
+    let xy = vec2<f32>(f32((vi << 1u) & 2u), f32(vi & 2u)) * 2.0 - 1.0;
+    return vec4<f32>(xy, 0.0, 1.0);
+}
+```
+
+Pass 1 binds the mask with `seed=1, dir=(1,0)` → dist1; pass 2 binds dist1 with `seed=0, dir=(0,1)`
+→ dist2 (the ping-pong). Because a `write_buffer` lands before the whole submit, the two passes
+need **two** small `Sep` uniform buffers + bind groups (one per pass), not one rewritten in between.
+The coverage grays from Step 1 ride along: mask > 0.5 is inside, and the fractional value feeds the
+ramp for the anti-aliased inner edge.
 
 ## Step 3 — the ramp in composite: `composite.wgsl`
 
@@ -110,7 +197,71 @@ binding is needed:
     out_rgb = mix(out_rgb, sel_color, ring * (1.0 - inside));  // ring outside the object only
 ```
 
-## Step 4 — the gating, where the tax dies: `engine/gpu/mod.rs`
+## Step 4 — targets, passes, and the gating where the tax dies: `engine/gpu/mod.rs`
+
+The plumbing is 67's post-process pattern, one more time. **Targets** — beside 67's half-res AO pair
+in `targets.rs`: `outline_mask_msaa` (`R8Unorm`, `sample_count: 4`, `RENDER_ATTACHMENT`),
+`outline_mask` (`R8Unorm`, 1×, `RENDER_ATTACHMENT | TEXTURE_BINDING` — the resolve target),
+`outline_dist_a` / `outline_dist_b` (`R16Float`, 1×, `RENDER_ATTACHMENT | TEXTURE_BINDING`), all at
+half resolution, rebuilt in `resize()` with the rest. **Passes** — in `clear()`, between 67's blur
+pass and the composite (the composite samples `outline_dist_b`, so it must be final by then):
+
+```rust
+        // ---- outline (69): mask → separable distance ×2 — only when it can matter ----
+        if self.outline_needed {
+            let mut mp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("outline.mask"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &self.outline_mask_msaa, resolve_target: Some(&self.outline_mask),
+                    depth_slice: None,
+                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                        store: wgpu::StoreOp::Store },
+                })],
+                depth_stencil_attachment: None,      // no depth — the ring shows through occluders
+                occlusion_query_set: None, timestamp_writes: None, multiview_mask: None,
+            });
+            mp.set_pipeline(&self.pipelines.outline_mask_mesh);
+            mp.set_bind_group(0, &self.mvp_bind_group, &[]);
+            mp.set_bind_group(1, &self.line_bind_group, &[]);
+            mp.set_bind_group(2, &self.instance_bind_group, &[]);
+            mp.set_bind_group(3, &self.segment_bind_group, &[]);
+            mp.set_vertex_buffer(0, self.arena_vbo.slice(..));
+            mp.set_vertex_buffer(1, self.arena_vids.slice(..));
+            mp.set_index_buffer(self.arena_ibo.slice(..), wgpu::IndexFormat::Uint32);
+            mp.draw_indexed(0..self.arena_index_count, 0, 0..1);
+            if self.segment_count > 0 {
+                mp.set_pipeline(&self.pipelines.outline_mask_cyl);
+                mp.set_vertex_buffer(0, self.cyl_template_vbo.slice(..));
+                mp.set_index_buffer(self.cyl_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                mp.draw_indexed(0..self.cyl_index_count, 0, 0..self.segment_count);
+            }
+            drop(mp);
+            // two fullscreen sep passes — each its own pre-written Sep uniform + bind group
+            for (target, bind) in [(&self.outline_dist_a, &self.outline_sep_h_bind_group),
+                                   (&self.outline_dist_b, &self.outline_sep_v_bind_group)] {
+                let mut sp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("outline.sep"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: target, resolve_target: None, depth_slice: None,
+                        ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
+                            store: wgpu::StoreOp::Store },
+                    })],
+                    depth_stencil_attachment: None,
+                    occlusion_query_set: None, timestamp_writes: None, multiview_mask: None,
+                });
+                sp.set_pipeline(&self.pipelines.outline_sep);
+                sp.set_bind_group(0, bind, &[]);
+                sp.draw(0..3, 0..1);
+            }
+        }
+```
+
+(The two mask pipelines, the sep pipeline, and the four bind groups are built once in `Gpu::new` —
+the same `build_*_pipeline` + layout/bind-group moves as 67's gtao/blur passes, nothing new in
+shape. The `h` bind group binds `outline_mask` as `src` with `Sep { dir: (1,0), radius: 4.0,
+seed: 1.0 }`; the `v` one binds `outline_dist_a` with `dir: (0,1), seed: 0.0`.)
+
+**The gate** — computed by `State` and passed in (or set as a `Gpu` field before `clear()`):
 
 ```rust
     // the three outline passes run ONLY when:
@@ -118,7 +269,14 @@ binding is needed:
     // …and with 66, a fully static frame doesn't even reach here.
 ```
 
-Nothing selected → zero passes, zero cost — the archive ran the full chain regardless. And FXAA:
+One cold-start subtlety: the composite *always* samples `outline_dist_b`, so when the selection
+empties, run the two sep passes one last time over the now-black mask (distance → INF, ring → 0) —
+gate on `selection_changed || camera_changed` while `selection_nonempty` only skips the *mask*
+geometry draws, or simply keep `outline_needed = selection_changed || camera_changed ||
+selection_nonempty` and let the black mask wash the field clean.
+
+Nothing selected and nothing changing → zero passes, zero cost — the archive ran the full chain
+regardless. And FXAA:
 simply not built. Geometry edges are MSAA-resolved (24), the outline is coverage-antialiased (Step
 1), the UI is egui's own AA — there is nothing left for FXAA to fix, only things for it to soften. If
 a future screen-space effect ever aliases, add it *optional and off*.

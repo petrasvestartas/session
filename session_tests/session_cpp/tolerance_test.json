@@ -99,7 +99,7 @@
     "group": "Tolerance",
     "test_name": "Key",
     "passed": true,
-    "time_ms": 0.003,
+    "time_ms": 0.002,
     "line": 54,
     "code": "        // uncomment #include \"tolerance.h\"\n        std::string result = TOLERANCE.key(1.0, 2.0, 3.0);",
     "checks": [
@@ -218,7 +218,7 @@
     "group": "Tolerance",
     "test_name": "Unique From Two Int",
     "passed": true,
-    "time_ms": 0.0,
+    "time_ms": 0.001,
     "line": 112,
     "code": "        // uncomment #include \"tolerance.h\"\n        uint64_t r0 = unique_from_two_int(3, 7);\n        uint64_t r1 = unique_from_two_int(7, 3);",
     "checks": [

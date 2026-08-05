@@ -62,6 +62,7 @@ pub fn project_to_screen(view_proj: &Xform, origin: &Point, p: &Point,
 ## Step 2 — the result type: `src/app/pick.rs`
 
 ```rust
+#[derive(Debug)]            // Step 4 logs it with {:?}
 pub enum SubKind {
     Vertex(usize),          // vertex key
     Edge(usize, usize),     // the two vertex keys, kernel edge order
@@ -78,7 +79,12 @@ pub struct SubHit {
 
 Given 42's `PickHit` (the guid + the world hit point), walk the hit mesh's vertices then edges in screen
 space, and fall back to the face containing the hit. `R_PX` is the click slop — ~8 px feels right and
-matches 44's thin-geometry radius.
+matches 44's thin-geometry radius. Widen `scene.rs`'s imports first:
+
+```rust
+use crate::app::pick::{PickHit, SubHit, SubKind};
+use crate::engine::pick::project_to_screen;
+```
 
 ```rust
 const R_PX: f64 = 8.0;
@@ -95,7 +101,7 @@ impl Scene {
             Some(m.xform.transform_point(&m.vertex_point(vk)?))
         };
         let px = |vk: usize| world(vk)
-            .and_then(|p| engine::pick::project_to_screen(view_proj, origin, &p, viewport));
+            .and_then(|p| project_to_screen(view_proj, origin, &p, viewport));
         let dist2 = |a: (f64, f64)| {
             let dx = a.0 - cursor.0;
             let dy = a.1 - cursor.1;
@@ -185,12 +191,13 @@ fn point_in_tri(p: &Point, a: &Point, b: &Point, c: &Point) -> bool {
 
 ## Step 4 — wire it + verify
 
-Call `resolve_subobject` right after 42's `pick_ray` succeeds, and log the kind:
+Call `resolve_subobject` right after 42's `pick_ray` succeeds — in `State::on_left_click`,
+replace 42's `match self.scene.pick_ray(&ray) { … }` with:
 
 ```rust
     if let Some(hit) = self.scene.pick_ray(&ray) {
         if let Some(sub) = self.scene.resolve_subobject(&hit, self.cursor, &vp, &origin, viewport) {
-            log::info!("sub-pick {}: {:?}", sub.guid, sub.kind);   // derive Debug on SubKind
+            log::info!("sub-pick {}: {:?}", sub.guid, sub.kind);
         }
     }
 ```

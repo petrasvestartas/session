@@ -94,8 +94,8 @@ pub struct Camera {
 
 // in new():
 // DEFAULT UNIT — session geometry is millimetres, so the viewer starts in mm.
-// To make the viewer default to metres, change `Unit::Millimeters` → `Unit::Meters` here.
-// (Or flip it at runtime any time with the `U` key — see Step 5.)
+// To make the viewer default to metres, change `Unit::Millimeters` → `Unit::Meters` here
+// (or call `set_unit` at runtime).
 Self { yaw: 0.6, pitch: 0.5, distance: 3.0, target: [0.0, 0.0, 0.0], perspective: true,
        unit: Unit::Millimeters }
 ```

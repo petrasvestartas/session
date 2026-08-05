@@ -35,13 +35,14 @@ src/ui/mod.rs  # HUD gains "frames drawn/s" beside fps — the number that prove
 One boolean, one setter, and an audit of *everything that changes what a frame would show*:
 
 ```rust
-    // find `struct State { … }` → add three fields:
+    // find `struct State { … }` → add four fields:
     pub dirty: bool,                       // init true (the first frame must draw)
     pub frames_drawn: u32,                 // ticked once per drawn frame (Step 3)
     pub frames_drawn_last_sec: u32,        // snapshotted for the HUD (Step 3)
+    pub frames_sec_t0: f64,                // the snapshot clock (now_ms at last rollover)
 
     // in `State::new`, seed them in the returned `Ok(Self { … })`:
-    //   dirty: true, frames_drawn: 0, frames_drawn_last_sec: 0,
+    //   dirty: true, frames_drawn: 0, frames_drawn_last_sec: 0, frames_sec_t0: now_ms(),
 
     pub fn mark_dirty(&mut self) { self.dirty = true; }
 ```
@@ -59,10 +60,18 @@ build in Step 2 (`mark_dirty` + a redraw request), at code that already exists:
 | ghost preview updates | `set_preview` / `clear_preview` callers (58) |
 | reconcile applied (watch/reload) | `apply_session` (40) |
 | settings toggles, thickness slider | the apply-intent block (47) |
-| egui needing a repaint (animations, cursor blink) | `full_out.repaint_delay == 0` → dirty |
+| egui needing a repaint (animations, cursor blink) | after `build_ui` returns (code below) |
 
 That last row matters: egui reports whether *it* wants another frame (a blinking CLI cursor does);
-respect it or the text caret freezes.
+respect it or the text caret freezes. In `render()`, right after 47's
+`let full_out = crate::ui::build_ui(…)` line, insert:
+
+```rust
+        // egui wants another frame (caret blink, animations) → poke like any other source
+        if full_out.viewport_output.values().any(|v| v.repaint_delay.is_zero()) {
+            self.poke();
+        }
+```
 
 ## Step 2 — the gate: `src/state.rs` + `src/lib.rs`
 
@@ -83,11 +92,11 @@ then draw) — the unconditional 60 fps treadmill. Delete that first line and in
     }
 ```
 
-and in `lib.rs`, every input handler that calls `state.mark_dirty()` follows with
-`state.window.request_redraw()` — cheapest done together:
+Every source in the table needs `mark_dirty()` *and* a redraw request — cheapest done together, one
+helper on `impl State` that all the call sites use (`lib.rs`'s input arms call it as
+`state.poke()`):
 
 ```rust
-    // helper on State, used by all the call sites in the table:
     pub fn poke(&mut self) { self.mark_dirty(); self.window.request_redraw(); }
 ```
 
@@ -98,14 +107,30 @@ skipping cleanly when nothing is dirty. The heartbeat costs one no-op call, not 
 
 ## Step 3 — prove it on the HUD: `src/ui/mod.rs`
 
-fps says how fast frames *can* draw; the new number says how many *did*:
+fps says how fast frames *can* draw; the new number says how many *did*. Three mechanical edits:
+
+1. `UiState` (47) gains `pub frames_drawn_last_sec: u32,` (seed `0` in `State::new`'s `UiState`
+   literal, beside the other HUD zeros).
+2. In `render()`, the snapshot rolls over once a second — insert right after Step 2's
+   `self.frames_drawn += 1;` line (`now_ms` is already imported from `engine::performance`):
 
 ```rust
-    ui.label(format!("{:>5.1} fps   {:>4} drawn/s", ui_state.fps, ui_state.frames_drawn_last_sec));
+        let now = now_ms();
+        if now - self.frames_sec_t0 >= 1000.0 {
+            self.frames_drawn_last_sec = self.frames_drawn;
+            self.frames_drawn = 0;
+            self.frames_sec_t0 = now;
+        }
+        self.ui.frames_drawn_last_sec = self.frames_drawn_last_sec;   // feed the HUD, 47's step 1
 ```
 
-(`State` accumulates `frames_drawn` (the field from Step 1) and snapshots it into
-`frames_drawn_last_sec` once a second, same rhythm as 28's fps counter.)
+3. In `build_ui` (47), find the perf window's first label —
+   `ui.label(format!("{:>5.1} fps   {:>5.2} ms", ui_state.fps, ui_state.frame_ms));` → replace with:
+
+```rust
+            ui.label(format!("{:>5.1} fps   {:>5.2} ms   {:>4} drawn/s",
+                ui_state.fps, ui_state.frame_ms, ui_state.frames_drawn_last_sec));
+```
 
 ## Step 4 — verify
 

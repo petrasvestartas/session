@@ -114,19 +114,19 @@ PAVE tag=final e=21 k=1 t=1 v=19
 PB tag=final e=21 k=0 orig=21 t0=0 t1=1 v1=19 v2=19 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
 IFF tag=final i1=5 i2=12 tangent=0 ncurves=2 npoints=0
 SEC tag=final f1=5 f2=12 c=0 type=Circle geom=NurbsCurve t0=0 t1=1 len=6.28318531 tol=1e-07 tantol=1e-07 p0=1.81578234,0,1.71841046 p1=1.81578234,0,1.71841046 c2d1=1 c2d2=1 npb=1 box=-0.0252273671,-1,1.71841046;1.81578234,1,2.49987271 closed=1 dev1=0 dev2=0 carrier=17
-SEC2D tag=final f1=5 f2=12 c=0 face=5 umin=0 umax=4 vmin=1.48337443 vmax=1.99287932 s=0:1.48337443|2:1.99287932|4:1.48337443
-SEC2D tag=final f1=5 f2=12 c=0 face=12 umin=0 umax=4 vmin=0.786410981 vmax=0.786410981 s=0:0.786410981|2:0.786410981|4:0.786410981
+SEC2D tag=final f1=5 f2=12 c=0 face=5 umin=0 umax=4 vmin=1.48337443 vmax=1.99287932 s=0:1.48337443|1.35760072:1.98680723|4:1.48337443
+SEC2D tag=final f1=5 f2=12 c=0 face=12 umin=0 umax=4 vmin=0.786410981 vmax=0.786410981 s=0:0.786410981|1.97200521:0.786410981|4:0.786410981
 SECPB tag=final f1=5 f2=12 c=0 k=0 t0=0 t1=1 v1=16 v2=16 edge=18 etol=1e-07 len=6.28318531
 SEC tag=final f1=5 f2=12 c=1 type=Circle geom=NurbsCurve t0=0 t1=1 len=6.28318531 tol=1e-07 tantol=1e-07 p0=0.0252273671,0,-2.49987271 p1=0.0252273671,0,-2.49987271 c2d1=1 c2d2=1 npb=1 box=-1.81578234,-1,-2.49987271;0.0252273671,1,-1.71841046 closed=1 dev1=0 dev2=0 carrier=20
-SEC2D tag=final f1=5 f2=12 c=1 face=5 umin=0 umax=4 vmin=0.00712067669 vmax=0.516625574 s=0:0.00712067669|2:0.516625574|4:0.00712067669
-SEC2D tag=final f1=5 f2=12 c=1 face=12 umin=0 umax=4 vmin=0.213589019 vmax=0.213589019 s=0:0.213589019|2:0.213589019|4:0.213589019
+SEC2D tag=final f1=5 f2=12 c=1 face=5 umin=0 umax=4 vmin=0.00712067669 vmax=0.516625574 s=0:0.00712067669|1.98452729:0.516522112|4:0.00712067669
+SEC2D tag=final f1=5 f2=12 c=1 face=12 umin=0 umax=4 vmin=0.213589019 vmax=0.213589019 s=0:0.213589019|1.97200521:0.213589019|4:0.213589019
 SECPB tag=final f1=5 f2=12 c=1 k=0 t0=0 t1=1 v1=19 v2=19 edge=21 etol=1e-07 len=6.28318531
 SECSTAT pairs=3 ok=1 tangent=0 empty=0 nogeom=2 failed=0 curves=2 blocks=2 kept=2 dropped=0 trim_paves=0 seam_paves=0 bound_paves=4 section_edges=2 fused_groups=0 common_blocks=0 max_dev=0 okpairs=1
 BOP errors=0 warnings=1
-RES type=SOLID nsolid=0 nshell=1 nface=2 nedge=4 nvert=2 naked=0 ndegen=0 vol=50.3880965 area=100.776157 valid=0 closure=2.04263035e-07 nonmanifold=0 seam=2
-RESSOLID i=1 nface=-1 vol=50.3880965 ori=FWD
+RES type=SOLID nsolid=0 nshell=1 nface=2 nedge=4 nvert=2 naked=0 ndegen=0 vol=50.3880557 area=100.776108 valid=0 closure=4.34335183e-08 nonmanifold=0 seam=2
+RESSOLID i=1 nface=-1 vol=50.3880557 ori=FWD
 RESSHELL i=1 nface=2 closed=1 faces=1,2
-RESFACE i=1 surf=Curved u0=0 u1=4 v0=0 v1=2 ori=FWD tol=1e-07 area=71.9829847 nwire=1 nedge=4 nseam=2
+RESFACE i=1 surf=Curved u0=0 u1=4 v0=0 v1=2 ori=FWD tol=1e-07 area=71.9829358 nwire=1 nedge=4 nseam=2
 RESFEDGE f=1 w=0 e=1 ori=FWD seam=1 degen=0 pc=1 uv0=- uv1=-
 RESFEDGE f=1 w=0 e=2 ori=REV seam=0 degen=0 pc=1 uv0=- uv1=-
 RESFEDGE f=1 w=0 e=1 ori=REV seam=1 degen=0 pc=1 uv0=- uv1=-
@@ -142,4 +142,4 @@ RESEDGE i=3 curve=Circle t0=0 t1=1 len=3.14159265 tol=1e-07 degen=0 nface=2
 RESEDGE i=4 curve=Line t0=1.70871215 t1=6.29128785 len=4.58257569 tol=1e-07 degen=0 nface=2
 RESVERT i=1 p=0.0252273671,0,-2.49987271 tol=1e-07
 RESVERT i=2 p=1.81578234,0,1.71841046 tol=1e-07
-SUMMARY name=sph_cyl_roty23_cut op=cut dsshapes=22 dssource=16 newverts=2 sd=0 pb=14 cb=0 faceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 seccurves=2 secpoints=0 fftangent=0 secpb=2 res_solid=0 res_shell=1 res_face=2 res_edge=4 res_vert=2 res_naked=0 res_degen=0 res_vol=50.3880965 res_area=100.776157 res_valid=0 pf_err=0 bop_err=0
+SUMMARY name=sph_cyl_roty23_cut op=cut dsshapes=22 dssource=16 newverts=2 sd=0 pb=14 cb=0 faceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 seccurves=2 secpoints=0 fftangent=0 secpb=2 res_solid=0 res_shell=1 res_face=2 res_edge=4 res_vert=2 res_naked=0 res_degen=0 res_vol=50.3880557 res_area=100.776108 res_valid=0 pf_err=0 bop_err=0

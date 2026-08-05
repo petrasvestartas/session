@@ -17,7 +17,7 @@ max_compute_* = 0                    →   > 0   (future GPU culling, 76)
 runs on WebGL2 fallback browsers     →   needs a real WebGPU browser
 ```
 
-WebGPU ships in Chrome, Edge, and Safari 18+, so "needs WebGPU" is a small ask for a 2026 CAD tool —
+WebGPU ships in Chrome, Edge, Firefox, and Safari 18+, so "needs WebGPU" is a small ask for a 2026 CAD tool —
 and it buys the entire scalable-rendering half of the roadmap. We drop the WebGL fallback rather than
 carry two code paths forever (locked decision, `reference_webgpu_cad_caveats`).
 
@@ -112,8 +112,10 @@ cd session_viewer && trunk serve   # http://localhost:8770
 The scene looks exactly the same — this lesson changes capabilities, not pixels. Confirm the unlock
 two ways:
 
-- In the browser console, the adapter-limits log should now show
-  `max_storage_buffers_per_shader_stage` as **8**, not 0 (it was clamped before).
+- Log the limit once — in `new()`, right after the `on_uncaptured_error` line from Step 2, add
+  `log::info!("storage buffers/stage: {}", device.limits().max_storage_buffers_per_shader_stage);`
+  — the console now prints **8**, not 0 (the downlevel limits clamped it). Delete the line after
+  checking, or keep it as a startup sanity print.
 - Open the page in a browser with WebGPU disabled (or an old one) — the **"WebGPU required"** overlay
   appears instead of a black canvas.
 
@@ -134,6 +136,6 @@ Edited: `Cargo.toml` (drop `webgl`), `engine/gpu.rs` (`BROWSER_WEBGPU`/`PRIMARY`
 
 ## Next
 
-`28-perf.md` — before collapsing draw calls, we need to *see* them. A tiny `engine/perf.rs` counts
+`28-perf.md` — before collapsing draw calls, we need to *see* them. A tiny `engine/performance.rs` counts
 frame time, fps, and draw calls (≈3 today: grid, meshes, edges), logging once a second — so when
 instancing and batching land in 29–30, you watch the draw count fall instead of taking it on faith.

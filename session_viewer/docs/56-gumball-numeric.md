@@ -29,7 +29,8 @@ src/state.rs            # release-under-threshold opens it; Enter applies; THE T
 ## Step 1 — value → transform: `src/engine/gumball.rs`
 
 One function maps (handle, typed value) to a delta; the unit depends on the handle group — that's
-also what the popup's title shows:
+also what the popup's title shows. (`manual_delta` names two more kernel types — grow the import to
+`use session_rust::{Line, Point, Vector, Xform};`.)
 
 ```rust
 impl HandleKind {
@@ -95,12 +96,16 @@ In `build_ui`:
 
 ## Step 3 — open, apply, and the three gotchas: `src/state.rs`
 
-**Open** — in the mouse-release handler, the branch 54 left empty:
+**Open** — in the mouse-release handler. A subtlety: 54's commit block has already `take()`n
+`gb_drag` by this point, so "was this a drag?" must be read *before* it. Insert
+`let dragged = self.gb_drag.is_some();` as the first line of the release handler (above 54's
+`if let Some(ctx) = self.gb_drag.take()`), then find 54's trailing `self.gb_pressed = None;` →
+replace it with:
 
 ```rust
-        if let Some((handle, press_at)) = self.gb_pressed.take() {
-            // never crossed the 4 px threshold
-            if self.gb_drag.is_none() {
+        if let Some((handle, _press_at)) = self.gb_pressed.take() {
+            // never crossed the 4 px threshold → this was a CLICK on a handle
+            if !dragged {
                 self.ui.gb_input = Some((handle, String::new(),
                                          (self.cursor.0 as f32, self.cursor.1 as f32)));
             }
@@ -125,10 +130,41 @@ In `build_ui`:
         }
 ```
 
-`apply_transform_command(&mut self, delta: &Xform)` is 54's release-commit block lifted verbatim into
-a named `&mut self` method — snapshot the current selection, `apply_delta` each object, wrap
-`before`/`after` in `TransformObjects`, `self.history.execute(...)`. Factor it out of 54's release arm
-once; both the drag release and this Enter path call it. That shared method is why an exact typed move
+`apply_transform_command` is 54's release-commit path as a named method: snapshot the current
+selection, `apply_delta` each object, wrap `before`/`after` in `TransformObjects`, execute. It works
+for the drag release too, because 54's live path never mutates kernel objects — a release-time
+"before" snapshot equals the press-time one. Add it to `impl State`:
+
+```rust
+    /// Commit `delta` to the current selection as one undoable TransformObjects (54's path).
+    pub fn apply_transform_command(&mut self, delta: &Xform) {
+        let guids: Vec<String> = self.scene.selected.iter().cloned().collect();
+        let before: Vec<Geometry> = guids.iter()
+            .filter_map(|g| self.scene.session.lookup.get(g).cloned()).collect();
+        for guid in &guids {
+            if let Some(geom) = self.scene.session.lookup.get_mut(guid) {
+                apply_delta(geom, delta);                                 // 54, per-variant
+            }
+        }
+        let after = guids.iter()
+            .filter_map(|g| self.scene.session.lookup.get(g).cloned()).collect();
+        let cmd = Box::new(TransformObjects { before, after });
+        self.history.execute(cmd, &mut self.scene, &mut self.gpu);        // applies `after` — idempotent
+        self.scene.rebuild_bvh();                                         // boxes moved (36)
+        self.refresh_gumball();                                           // widget follows the move
+    }
+```
+
+Then shrink 54's release arm onto it — find the whole `if let Some(ctx) = self.gb_drag.take() { … }`
+block (54's bake + Command code) → replace with:
+
+```rust
+        if let Some(ctx) = self.gb_drag.take() {
+            self.apply_transform_command(&ctx.last_delta);
+        }
+```
+
+Both the drag release and this Enter path now run one commit path — which is why an exact typed move
 is undoable for the same reason a drag is.
 
 **The three gotchas** (each one a real archive bug):

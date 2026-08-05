@@ -20,11 +20,11 @@ fn merge_tree_node(
     if let Some(geom) = src.lookup.get(&name) {
         match geom {
             Geometry::Mesh(m) => {
-                let mut m = m.clone();
+                let mut m = (**m).clone();
                 m.crease_angle_deg = 15.0;
                 dst.add_mesh(m, Some(parent));
             }
-            Geometry::Polyline(p) => { dst.add_polyline(p.clone(), Some(parent)); }
+            Geometry::Polyline(p) => { dst.add_polyline((**p).clone(), Some(parent)); }
             _ => {
                 dst.lookup.insert(name.clone(), geom.clone());
                 dst.tree.add(&TreeNode::new(&name), Some(parent));
@@ -52,7 +52,7 @@ fn add_ns(s: &mut Session, mut ns: NurbsSurface, name: &str, face: Color) {
     ns.set_guid(name.to_string());
     ns.facecolors.push(face);
     ns.linecolors.push(Color::new(0.0, 0.0, 0.0, 1.0));
-    s.objects.nurbssurfaces.push(ns);
+    s.objects.nurbssurfaces.push(std::rc::Rc::new(ns));
     s.add(&TreeNode::new(name), None);
 }
 
@@ -90,7 +90,7 @@ fn add_plane_trim(s: &mut Session, _root: &Rc<RefCell<TreeNode>>, srf: &NurbsSur
     ts.name = name.to_string();
     ts.set_guid(name.to_string());
     ts.surfacecolor = color;
-    s.objects.nurbssurfacetrimmeds.push(ts);
+    s.objects.nurbssurfacetrimmeds.push(std::rc::Rc::new(ts));
     s.add(&TreeNode::new(name), None);
 }
 
@@ -132,7 +132,7 @@ fn add_split(s: &mut Session, _root: &Rc<RefCell<TreeNode>>, srf: &NurbsSurface,
         ts.name = name.clone();
         ts.set_guid(name.clone());
         ts.surfacecolor = palette[idx % palette.len()].clone();
-        s.objects.nurbssurfacetrimmeds.push(ts);
+        s.objects.nurbssurfacetrimmeds.push(std::rc::Rc::new(ts));
         s.add(&TreeNode::new(&name), None);
     }
 }

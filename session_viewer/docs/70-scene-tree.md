@@ -79,12 +79,38 @@ pub fn flatten(scene: &Scene, expanded: &HashSet<String>) -> Vec<Row> {
     rows
 }
 
-/// Display name: the object's own name if it set one, else a short guid. `object_name` /
-/// `untreed_guids` are two thin `Scene` adapters — the name source, and `all_objects()` minus what
-/// the tree already parents (the top-level append the prose above describes).
+/// Display name: the object's own name if it set one, else a short guid.
 fn row_name(scene: &Scene, guid: &str) -> String {
     scene.object_name(guid).unwrap_or_else(|| format!("{}…", &guid[..guid.len().min(8)]))
 }
+```
+
+`object_name` / `untreed_guids` are two thin adapters on `impl Scene` (`app/scene.rs`) — the name
+source, and `all_objects()` (64) minus what the tree already parents:
+
+```rust
+    /// The object's own name, if the kernel type carries one it set.
+    pub fn object_name(&self, guid: &str) -> Option<String> {
+        let name = match self.session.lookup.get(guid)? {
+            Geometry::Mesh(m) => m.name.clone(),
+            Geometry::BRep(b) => b.name.clone(),
+            Geometry::Line(l) => l.name.clone(),
+            Geometry::Polyline(p) => p.name.clone(),
+            Geometry::Point(p) => p.name.clone(),
+            Geometry::NurbsCurve(c) => c.name.clone(),
+            Geometry::NurbsSurface(s) => s.name.clone(),
+            _ => return None,
+        };
+        if name.is_empty() { None } else { Some(name) }
+    }
+
+    /// Renderable guids with no tree node — 64's collection-only citizens become top-level rows.
+    pub fn untreed_guids(&self) -> Vec<String> {
+        self.all_objects()
+            .map(|o| o.guid().to_string())
+            .filter(|g| self.session.tree.find_node_by_guid(g).is_none())
+            .collect()
+    }
 ```
 
 (`session.tree` is the kernel's `Tree`/`TreeNode` (Rc<RefCell<…>>) — the same structure
@@ -156,19 +182,45 @@ of the per-frame UI method, right **after** the egui closure that ran `tree_pane
         if any_toggle { self.scene.apply_visibility(&mut self.gpu); self.poke(); }
 
         for (g, shift) in intent.clicked {
-            if shift { /* toggle in scene.selected */ }
-            else { self.scene.selected.clear(); self.scene.selected.insert(g); }
+            if shift {
+                if !self.scene.selected.remove(&g) { self.scene.selected.insert(g); }
+            } else {
+                self.scene.selected.clear();
+                self.scene.selected.insert(g);
+            }
         }
         // 45
         self.scene.apply_selection(&mut self.gpu);
         // 52
         self.refresh_gumball();
-        for g in intent.expand_toggled { /* toggle in self.ui.tree_expanded */ }
+        for g in intent.expand_toggled {
+            if !self.ui.tree_expanded.remove(&g) { self.ui.tree_expanded.insert(g); }
+        }
 ```
 
-Hiding a *branch* hides its subtree — resolve the node's descendant guids during the drain (a small
-recursive collect on `session.tree`) and toggle them as a set; the eye shows mixed state (—) when
-children disagree.
+(`tree_expanded: HashSet<String>` is the `UiState` field the panel's `flatten` call reads — add it
+with the SidePanel wiring, init empty.)
+
+Hiding a *branch* hides its subtree — in the `intent.toggled` loop above, when the guid names a
+branch node, toggle the whole descendant set (the kernel walks it for you):
+
+```rust
+        // inside the toggled loop, replacing the single-guid toggle for BRANCH nodes:
+        if let Some(node) = self.scene.session.tree.find_node_by_guid(&g) {
+            let kids = node.borrow().descendants();
+            if !kids.is_empty() {
+                let hide = !self.scene.hidden.contains(&g);      // branch state leads
+                for k in kids {
+                    let kg = k.borrow().guid().to_string();
+                    if hide { self.scene.hidden.insert(kg); } else { self.scene.hidden.remove(&kg); }
+                }
+                if hide { self.scene.hidden.insert(g); } else { self.scene.hidden.remove(&g); }
+                continue;
+            }
+        }
+```
+
+The eye can show mixed state (—) when children disagree — cosmetic, left as polish.
 
 ## Step 4 — verify
 

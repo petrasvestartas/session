@@ -86,7 +86,7 @@ impl State {
                         Some(GeomSnapshot::Nurbs(ns)) => {
                             self.scene.gpu_session.remove(guid);
                             if let Some(slot) = self.scene.session.objects.nurbssurfaces.iter_mut().find(|n| n.guid() == guid) {
-                                *slot = ns.clone();
+                                *slot = std::rc::Rc::new(ns.clone());
                             }
                             self.scene.gpu_session.add_nurbssurface(ns, &self.gpu.device, &self.gpu.queue);
                         }
@@ -171,7 +171,7 @@ impl State {
                         Some(GeomSnapshot::Nurbs(ns)) => {
                             self.scene.gpu_session.remove(guid);
                             if let Some(slot) = self.scene.session.objects.nurbssurfaces.iter_mut().find(|n| n.guid() == guid) {
-                                *slot = ns.clone();
+                                *slot = std::rc::Rc::new(ns.clone());
                             }
                             self.scene.gpu_session.add_nurbssurface(ns, &self.gpu.device, &self.gpu.queue);
                         }

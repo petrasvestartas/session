@@ -102,14 +102,16 @@ Now the build arm (61 Step 2) unpacks the tuple, pushes the mesh **faces only**,
 cached iso lines to `segments`. **Find 61's surface build arm and replace its body with:**
 
 ```rust
-    for ns in &self.session.objects.nurbssurfaces {
-        let guid = ns.guid().to_string();
-        let ri = self.guid_to_row[&guid];
-        let (m, linework) = &self.tess_cache[&guid];   // warmed by 61's priming pass (now passes ri — see below)
-        objects_base_entry(ri, ns.xform.duplicate(), ns_surface_color(ns), flags_for(&guid));
-        push_mesh_faces_only(m, ri, &mut verts, &mut vids, &mut idx, &mut glyphs);  // NO edge tubes
-        segments.extend(linework.iter().copied());                                 // iso lines instead
-    }
+            Geometry::NurbsSurface(ns) => {
+                objects_base.push((ns.xform.duplicate(), surface_color(ns), flags));
+                // warmed by 61's priming pass (which now passes ri — see below)
+                if let Some((m, linework)) = self.tess_cache.get(guid) {
+                    // NO edge tubes …
+                    push_mesh_faces_only(m, ri, &mut verts, &mut vids, &mut idx, &mut glyphs);
+                    // …iso lines instead
+                    segments.extend(linework.iter().copied());
+                }
+            }
 ```
 
 > **Keep 61's priming pass — and pass `ri` now.** The build loop above reads the *warmed* cache; it
@@ -117,6 +119,10 @@ cached iso lines to `segments`. **Find 61's surface build arm and replace its bo
 > pass). 61's `for guid in &ns_guids { self.surface_mesh(guid); }` still runs just above it, but
 > `surface_mesh` now takes two args — update it to
 > `for guid in &ns_guids { let ri = self.guid_to_row[guid]; self.surface_mesh(guid, ri); }`.
+
+(Two one-word ripples from the widened cache type: 61's pick arm now casts against
+`self.tess_cache[guid].0`, and 61's world-box/`apply_object` reads — if you pointed any at the
+cache — gain the same `.0`.)
 
 `push_mesh_faces_only` is `push_mesh` (30–32) with one thing removed: drop the `&mut segments`
 parameter and the loop that pushes triangle-edge `CylinderSegment`s — keep the arena vertex/index

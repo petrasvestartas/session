@@ -180,8 +180,9 @@ cd session_viewer && trunk serve   # http://localhost:8770
 ```
 
 Orbit and zoom into any silhouette: box edges, dodecahedron pentagons, grid lines, colored frame axes
-are all smooth now — no staircase. Flip `MSAA_SAMPLES` back to `1` and compare: jaggies return,
-proving the effect rides on that one const.
+are all smooth now — no staircase. To compare with MSAA off, flip `MSAA_SAMPLES` to `1` **and** revert
+Step 3's attachment for the experiment (`view: &view, resolve_target: None`) — wgpu rejects a
+single-sample texture as a resolve source. Jaggies return, proving the effect rides on that one const.
 
 ## Recap
 

@@ -55,43 +55,89 @@ Curves arrive in `lookup` as `Geometry::NurbsCurve` (the kernel fix from gap #4)
 on the lookup walk — order, build, boxes — each gain a **match arm**, not a parallel loop. Only
 picking needs curve-specific code:
 
+**(1) ORDER** — `is_renderable` (35/38b) admits the new variant; `Scene::new` needs nothing else:
+
 ```rust
-    // (1) ORDER — is_renderable (35) admits the new variant; Scene::new needs nothing else:
     fn is_renderable(g: &Geometry) -> bool {
         matches!(g, Geometry::Mesh(_) | Geometry::BRep(_) | Geometry::Line(_)
                   | Geometry::Polyline(_) | Geometry::Point(_) | Geometry::NurbsCurve(_))   // ← ADD
     }
+```
 
-    // (2) BUILD — one arm in Scene::build's existing match (samples → segments, like a polyline):
+**(2) BUILD** — one arm in `Scene::build`'s existing match (samples → segments, like a polyline;
+CVs → glyphs). The samples also land in a cache the pick arm reads — add
+`pub curve_cache: std::collections::HashMap<String, Vec<Point>>` to `struct Scene` (init empty in
+`Scene::new`; reconcile's `changed` bucket removes the entry), and note the cache write means
+`build` takes `&mut self` from here on. Two small helpers first, beside `sample_curve`:
+
+```rust
+/// A curve's draw color: the first linecolor if the user set one, else near-black.
+fn curve_color(nc: &NurbsCurve) -> [f32; 4] {
+    nc.linecolors.first().map(|c| c.to_f32()).unwrap_or([0.10, 0.10, 0.10, 1.0])
+}
+```
+
+```rust
+    // the new arm in Scene::build's match, beside Polyline's:
     Geometry::NurbsCurve(nc) => {
         // world coords, like lines
         objects_base.push((nc.xform.duplicate(), curve_color(nc), flags));
         let pts = sample_curve(nc);
-        for w in pts.windows(2) { segments.push(seg(w[0].to_f32(), w[1].to_f32(), ri)); }
-        // control points as handles
-        for i in 0..nc.cv_count() {
-            if let Some(p) = nc.get_cv(i) { glyphs.push(glyph(p.to_f32(), ri)); }
+        let color = curve_color(nc);
+        for w in pts.windows(2) {
+            segments.push(CylinderSegment { p0: w[0].to_f32(), radius: 0.0, p1: w[1].to_f32(),
+                                            instance_id: ri, color });
         }
-    }
-
-    // (3) WORLD BOX — one arm in world_obb's match (36); the kernel has the exact ctor:
-    Geometry::NurbsCurve(nc) => OBB::from_nurbscurve(nc, PAD, true),
-
-    // (4) PICK — Session::ray_cast's curve arm is a deliberate no-op (exact ray↔NURBS is out of
-    //     scope kernel-side), so pick_thin tests the CACHED samples with 44's screen-radius rule:
-    fn as_nurbscurve(g: &Geometry) -> Option<&NurbsCurve> {
-        if let Geometry::NurbsCurve(nc) = g { Some(nc) } else { None }
-    }
-    for nc in self.session.lookup.values().filter_map(as_nurbscurve) {
-        let pts = /* sample cache entry */;
-        for w in pts.windows(2) { /* ray↔segment distance ≤ tol → candidate (44's formula) */ }
+        // control points as handles (73's future grab targets)
+        for i in 0..nc.cv_count() {
+            if let Some(p) = nc.get_cv(i) {
+                glyphs.push(GlyphPoint { center: p.to_f32(), radius: 0.0,
+                    color: [0.2, 0.2, 0.2, 1.0], instance_id: ri, _pad: [0; 3] });
+            }
+        }
+        curve_samples.push((nc.guid().to_string(), pts));   // drained into curve_cache below
     }
 ```
 
-(Exact field/method names to check against your kernel as you wire: the CV accessor — `cv_point` or
-the 4-d `get_cv` family — and the curve's color field. `sample_curve` results should be **cached** in
-a `HashMap<String, Vec<Point>>` invalidated on reconcile — sampling per pick is wasteful, per frame
-would be a bug.)
+(Declare `let mut curve_samples: Vec<(String, Vec<Point>)> = Vec::new();` beside `build`'s other
+accumulators, and after the walk loop ends, drain it:
+`for (g, pts) in curve_samples { self.curve_cache.insert(g, pts); }` — the indirection keeps the
+loop free of a `&mut self` borrow.)
+
+**(3) WORLD BOX** — one arm in `world_obb`'s match (36); the kernel has the exact ctor:
+
+```rust
+        Geometry::NurbsCurve(nc) => OBB::from_nurbscurve(nc, PAD, true),
+```
+
+**(4) PICK** — `Session::ray_cast`'s curve arm is a deliberate no-op (exact ray↔NURBS is out of
+scope kernel-side), so `pick_thin` (44) tests the **cached samples** with 44's rule. In `pick_thin`,
+find its final `None` (after the kernel-cast loop) → replace with (it runs only when the kernel
+cast matched nothing):
+
+```rust
+        // curves: ray↔segment over the cached samples (44's tolerance, same tol)
+        let mut best: Option<PickHit> = None;
+        for (guid, geom) in &self.session.lookup {
+            let Geometry::NurbsCurve(_) = geom else { continue };
+            let Some(pts) = self.curve_cache.get(guid) else { continue };
+            for w in pts.windows(2) {
+                let line = Line::from_points(&w[0], &w[1]);
+                if let Some(hit) = session_rust::intersection::line_line(
+                    &Line::from_points(&ray.origin, &(ray.origin.clone() + &ray.dir * 1.0e7)),
+                    &line, tol) {
+                    let t = (hit.clone() - ray.origin.clone()).magnitude();
+                    if best.as_ref().map_or(true, |b| t < b.t) {
+                        best = Some(PickHit { guid: guid.clone(), point: hit, t });
+                    }
+                }
+            }
+        }
+        best
+```
+
+`sample_curve` runs once per curve per (re)build — sampling per pick would be wasteful, per frame a
+bug; the cache is the difference.
 
 Hide/selection need nothing: they key off `guid_to_row` and the instance flags, which arms (1)/(2)
 already feed. That's the reward for flag-driven state (45/46) — new geometry types inherit it.
@@ -101,18 +147,43 @@ already feed. That's the reward for flag-driven state (45/46) — new geometry t
 58's polyline tool with a different finish — clicks are **control points** (the curve smooths them,
 it doesn't pass through), Enter builds a degree-3 curve:
 
+Copy `polyline.rs` to `curve.rs` (add `pub mod curve;` to `app/tools/mod.rs`), rename
+`PolylineTool` → `NurbsCurveTool`, reword the prompts (`"curve: pick control point (Enter
+finishes)"`), and make exactly two body changes. The Enter branch of `feed_text` — find
+`if self.points.len() < 2 { return CmdStep::Cancel; }` and the two `Polyline` lines under it →
+replace with:
+
 ```rust
-    // finish (Enter), with self.points: Vec<Point> accumulated exactly like PolylineTool:
-    if self.points.len() < 4 { return CmdStep::Cancel; }              // degree 3 needs ≥ 4 CVs
-    // open, cubic, from control points
-    let nc = NurbsCurve::create(false, 3, &self.points);
-    state.commit(Box::new(AddGeometry::one(Geometry::NurbsCurve(nc)))); // 57's command, directly
-    CmdStep::Done("curve added".into());
+            if self.points.len() < 4 { return CmdStep::Cancel; }      // degree 3 needs ≥ 4 CVs
+            // open, cubic, from control points
+            let nc = NurbsCurve::create(false, 3, &self.points);
+            state.commit(Box::new(
+                crate::app::history::add::AddGeometry::one(Geometry::NurbsCurve(nc))));
+            return CmdStep::Done("curve added".into());
 ```
 
-The ghost: sample a *temporary* `NurbsCurve::create` from the clicked points + cursor on every
-`on_move` — the preview shows the real smoothed curve, not the control polygon. (Cheap: a handful of
-CVs, ~64 samples.)
+(and swap the file's `Polyline` import for `NurbsCurve`). Then the ghost — the preview shows the
+real smoothed curve, not the control polygon (cheap: a handful of CVs, ~64 samples). Replace the
+copied `ghost` helper's body with:
+
+```rust
+    fn ghost(&self, state: &mut crate::state::State, cursor: Option<&Point>) {
+        let mut cvs: Vec<Point> = self.points.iter().cloned().collect();
+        if let Some(c) = cursor { cvs.push(c.clone()); }
+        if cvs.len() < 2 { state.gpu.clear_preview(); return; }
+        let deg = 3.min(cvs.len() - 1);                    // a cubic once there are enough CVs
+        let tmp = NurbsCurve::create(false, deg, &cvs);
+        let (t0, t1) = tmp.domain();
+        let mut segs = Vec::new();
+        let mut prev: Option<Point> = None;
+        for i in 0..=64 {
+            let p = tmp.point_at(t0 + (t1 - t0) * i as f64 / 64.0);
+            if let Some(q) = &prev { segs.push(super::polyline::ghost_segment(q, &p)); }
+            prev = Some(p);
+        }
+        state.gpu.set_preview(&segs);
+    }
+```
 
 Since curves are `Geometry` variants now, no bespoke command is needed at all — 57's `AddGeometry`
 takes them directly, and 51's `restore_geometry` grows one arm:

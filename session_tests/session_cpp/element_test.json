@@ -241,7 +241,7 @@
     "group": "Element",
     "test_name": "Brep Aabb",
     "passed": true,
-    "time_ms": 0.166,
+    "time_ms": 0.165,
     "line": 213,
     "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"brep.h\"\n    // uncomment #include \"obb.h\"\n    // uncomment #include \"point.h\"\n    BRep b = BRep::create_box(2.0, 3.0, 4.0);\n    Element e(b, \"brep_element\");\n    OBB aabb = e.aabb();\n    Point pt = e.point();",
     "checks": [
@@ -282,7 +282,7 @@
     "group": "Element",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.258,
+    "time_ms": 0.257,
     "line": 231,
     "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"mesh.h\"\n    // uncomment #include \"point.h\"\n    // uncomment #include \"xform.h\"\n    Mesh m = Mesh::from_vertices_and_faces(\n        {\n            Point(0, 0, 0),\n            Point(1, 0, 0),\n            Point(1, 1, 0),\n            Point(0, 1, 0),\n        },\n        {{0, 1, 2, 3}}\n    );\n    Element e(m, \"json_test\");\n    e.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string fname = \"serialization/test_element.json\";\n    e.file_json_dump(fname);\n    Element loaded = Element::file_json_load(fname);",
     "checks": [
@@ -308,7 +308,7 @@
     "group": "Element",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 0.48,
+    "time_ms": 0.472,
     "line": 257,
     "code": "    // uncomment #include \"element.h\"\n    // uncomment #include \"brep.h\"\n    // uncomment #include \"xform.h\"\n    BRep b = BRep::create_box(2.0, 3.0, 4.0);\n    Element e(b, \"proto_test\");\n    e.session_transformation = Xform::translation(1.0, 2.0, 3.0);\n\n    std::string path = \"serialization/test_element.bin\";\n    e.pb_dump(path);\n    Element loaded = Element::pb_load(path);",
     "checks": [
@@ -339,7 +339,7 @@
     "group": "Element",
     "test_name": "Polylines",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.009,
     "line": 279,
     "code": "    Mesh m = Mesh::from_vertices_and_faces(\n        {Point(0,0,0), Point(1,0,0), Point(1,1,0), Point(0,1,0)},\n        {{0, 1, 2, 3}});\n    Element e(m, \"test_element\");",
     "checks": [

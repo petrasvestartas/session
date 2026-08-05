@@ -30,9 +30,9 @@ fps), and a **`draws += 1` beside every draw call** so the count can't drift out
 
 ```
 Cargo.toml                    # add "Performance" to web-sys features (for the timer)
-src/engine/perf.rs            # NEW — Perf: frame timer + counters, logs once/sec
+src/engine/performance.rs     # NEW — Performance: frame timer + counters, logs once/sec
 src/engine/mod.rs             # register the module
-src/engine/gpu.rs             # own a Perf, count draws, report at frame end
+src/engine/gpu.rs             # own a Performance, count draws, report at frame end
 ```
 
 ## Step 1 — the timer needs `Performance`: `Cargo.toml`
@@ -47,7 +47,7 @@ web-sys = { version = "0.3", features = [
 ] }
 ```
 
-## Step 2 — the counter: `src/engine/perf.rs`
+## Step 2 — the counter: `src/engine/performance.rs`
 
 A tiny struct that remembers the last frame's timestamp, smooths frame time, and logs once a second.
 The clock is target-gated so the native `selftest` build still compiles — browser uses
@@ -56,13 +56,13 @@ The clock is target-gated so the native `selftest` build still compiles — brow
 ```rust
 //! Frame-time + draw-call counter (ARCHITECTURE.md §9). Console-first; the HUD reads it in ch 47.
 
-pub struct Perf {
+pub struct Performance {
     prev_frame: f64,   // ms timestamp of the previous frame
     last_log: f64,     // ms timestamp of the last console line
     frame_ms: f64,     // smoothed frame time
 }
 
-impl Perf {
+impl Performance {
     pub fn new() -> Self {
         let t = now_ms();
         Self { prev_frame: t, last_log: t, frame_ms: 0.0 }
@@ -102,24 +102,24 @@ fn now_ms() -> f64 {
 ## Step 3 — register it: `src/engine/mod.rs`
 
 ```rust
-pub mod perf;      // next to `pub mod gpu;` / `pub mod pipelines;`
+pub mod performance;      // next to `pub mod gpu;` / `pub mod pipelines;`
 ```
 
 ## Step 4 — count and report: `src/engine/gpu.rs`
 
-Give `Gpu` a `Perf`: add the import and field, and build it in `new()`:
+Give `Gpu` a `Performance`: add the import and field, and build it in `new()`:
 
 ```rust
-use crate::engine::perf::Perf;      // near the other `use crate::engine::…` lines
+use crate::engine::performance::Performance;   // near the other `use crate::engine::…` lines
 ```
 
 ```rust
-    pub perf: Perf,                 // in `pub struct Gpu { … }`
+    pub performance: Performance,   // in `pub struct Gpu { … }`
 ```
 
 ```rust
         // in new()'s returned `Ok(Self { … })`
-        perf: Perf::new(),
+        performance: Performance::new(),
 ```
 
 In `clear()`, tally a **local** `draws` counter beside each draw call (a local dodges any borrow fight
@@ -158,7 +158,7 @@ with the render pass), and report once the pass ends:
         let objects = self.meshes.len() as u32;
         self.queue.submit([encoder.finish()]);
         output.present();
-        self.perf.frame(draws, objects);
+        self.performance.frame(draws, objects);
         Ok(())
 ```
 
@@ -180,14 +180,15 @@ this number fall.
 
 ```
 Ch 27: unlocked storage buffers — the tool the next lessons use to cut draw calls.
-Ch 28: add the gauge first. A Perf struct times each frame (exponential-average ms → fps) and takes
+Ch 28: add the gauge first. A Performance struct times each frame (exponential-average ms → fps) and takes
        a draws count tallied `+= 1` next to every draw call, logging once a second. Today: ~8 draws
        for 3 objects. The point is to watch that 8 drop as instancing (29) and batching (30) land —
        measured, not assumed. Console now; on-screen HUD in lesson 47.
 ```
 
-Edited: `Cargo.toml` (web-sys `"Performance"`), `engine/perf.rs` (new `Perf`), `engine/mod.rs`
-(`pub mod perf`), `engine/gpu.rs` (`Perf` field + `new()` + per-draw tally + `frame()` at end).
+Edited: `Cargo.toml` (web-sys `"Performance"`), `engine/performance.rs` (new `Performance`),
+`engine/mod.rs` (`pub mod performance`), `engine/gpu.rs` (`Performance` field + `new()` +
+per-draw tally + `frame()` at end).
 
 ## Next
 

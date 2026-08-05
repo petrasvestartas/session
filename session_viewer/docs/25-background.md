@@ -163,8 +163,13 @@ pub struct Pipelines {
     pub edges: wgpu::RenderPipeline,
     pub background: wgpu::RenderPipeline,      // ← new
 }
-// …in new():
-        background: build_background_pipeline(device, color_format),
+```
+
+In `Pipelines::new`, find `edges: build_edges_pipeline(device, color_format, aspect_layout),` and
+add after it:
+
+```rust
+            background: build_background_pipeline(device, color_format),
 ```
 
 ## Step 4 — draw it first: `src/engine/gpu.rs`
@@ -213,5 +218,5 @@ Edited: `shaders/background.wgsl` (new), `pipelines/build.rs` (`build_background
 
 `26-reverse-z.md` — the last camera fix. Reversing the depth mapping (near → 1, far → 0) stops f32
 depth precision from collapsing in the distance — the proper cure for z-fighting that the lesson-23
-edge nudge and tightened clip range only worked *around*. Grid, edges, and background keep their
+edge nudge only worked *around*. Grid, edges, and background keep their
 `Always`/off states; only the compare direction and clear value flip.

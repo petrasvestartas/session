@@ -76,8 +76,16 @@ to the returned `Ok(Self { … })`:
 
 ```rust
         let depth_view = Self::create_depth_view(&device, &config);
-        // …
-        Ok(Self { /* …existing fields…, */ depth_view })
+```
+
+then add `depth_view` at the end of the returned struct — the full line now reads:
+
+```rust
+        Ok(Self { surface, device, queue, config, pipelines,
+                  mvp_buffer, mvp_bind_group, vertex_buffer, num_vertices,
+                  time: 0.0, time_buffer, time_bind_group,
+                  perspective: true, yaw: 0.6, pitch: 0.5, distance: 3.0,
+                  target: [0.0, 0.0, 0.0], depth_view })
 ```
 
 **(d)** The depth texture must match the canvas, so recreate it on resize — in `resize`, after
@@ -127,8 +135,7 @@ after `color_attachments: &[ … ]`) and replace `None` with:
 
 **(b)** Give the depth test something to prove: draw **two triangles at different depths**.
 Orange sits in front at `z = +0.3`; blue is behind at `z = -0.3` and drawn **second** —
-without depth testing it would wrongly paint over orange. Replace the `TRIANGLE` constant
-(and rename `TRIANGLE` → `TRIANGLES` in the two lines building `vertex_buffer`/`num_vertices`):
+without depth testing it would wrongly paint over orange. Replace the `TRIANGLE` constant with:
 
 ```rust
         const TRIANGLES: &[Vertex] = &[
@@ -141,6 +148,15 @@ without depth testing it would wrongly paint over orange. Replace the `TRIANGLE`
             Vertex { position: [-0.3, -0.4, -0.3], color: [0.1, 0.5, 1.0] },
             Vertex { position: [ 0.7, -0.4, -0.3], color: [0.1, 0.5, 1.0] },
         ];
+```
+
+and rename `TRIANGLE` → `TRIANGLES` in the two lines that build the buffer and the count:
+
+```rust
+            contents: bytemuck::cast_slice(TRIANGLES),   // &[Vertex] → &[u8]
+```
+```rust
+        let num_vertices = TRIANGLES.len() as u32;
 ```
 
 

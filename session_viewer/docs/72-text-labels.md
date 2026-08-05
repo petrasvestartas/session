@@ -43,18 +43,104 @@ cell grid makes UVs trivial:
 
 ```rust
 pub const CELL_W: u32 = 8;  pub const CELL_H: u32 = 14;  pub const COLS: u32 = 16;
+const ROWS: u32 = 6;                        // ceil(95 / 16) — ASCII 32..=126
+
+/// 95 glyphs × 14 rows × 1 byte (8 px/row, MSB left) — a monospace face pre-rasterized to
+/// 1-bit and hex-packed. Dependency-free, wasm-friendly (the archive's choice; a TTF
+/// rasterizer is a later luxury — label text is small and monospace reads fine).
+const FONT_HEX: &str = concat!(
+    "0000000000000000000000000000000000001818181818080000181800000000343434340000",
+    "00000000000000001a12127f3424ff2c684800000008083c6a68683c0a0b4a3e0000000070d8",
+    "d8730c304e09090f000000003c2020307059cdc7673f00000000181818180000000000000000",
+    "00040808181010101018080800000010101808080c0c0808181000000000086a3c3c6a080000",
+    "0000000000000000080808ff0808080000000000000000000000000018180000000000000000",
+    "00003c0000000000000000000000000000001818000000000206040c08181810302000000000",
+    "3c266263435b6362263c000000001828080808080808083f000000003c460206060c1830607e",
+    "000000003c4602061c060202463c000000000e0e163626467f060606000000007e60607c4602",
+    "0202463c000000001c3260407c666363663c000000007e0206040c0c08181030000000003c66",
+    "62663c664343663c000000003c664243673f0202063c00000000000000181800000018180000",
+    "000000000018180000001818000000000000030e78e0780e030000000000000000ff0000ff00",
+    "000000000000000040781e031e784000000000003c2602060c1818001818000000001e6341cf",
+    "9b91919bcf4000000000181c343426267e4343c1000000007c6662667c626363637e00000000",
+    "1e32606060606060321e000000007c46424343434342467c000000007f6060607e606060607f",
+    "000000007f6060607e6060606060000000001e32604040474363331e00000000434343437f43",
+    "43434343000000007e18181818181818187e000000003e060606060606064c78000000004346",
+    "4c5878684c464243000000006060606060606060607f00000000e3e7e7d7dbdbc3c3c3c30000",
+    "0000636373535b4b4f474747000000003c66624343434362663c000000007e636363637e6060",
+    "6060000000003c66624343434362663c000000007c464242467c46424341000000003c624060",
+    "381e0203463c00000000ff181818181818181818000000006363636363636362663c00000000",
+    "c34362622626341c1c1800000000c1c1c1d95b5f77766666000000004362361c181c342662c3",
+    "00000000c36226341c1818181818000000007f03060c0c181030607f0000001c181818181818",
+    "181818180000000040602030101818080c04000000380808080808080808080800000000183c",
+    "2643000000000000000000000000000000000000000000003010080000000000000000000000",
+    "000000003c66023e6242663a0000006060607c6663636363667c0000000000001e3260606060",
+    "321e0000000202023e6642424242663e0000000000003c62437f4060623e0000000e18187e18",
+    "1818181818180000000000003e6662424262663e0000006060607c6662626262626200000008",
+    "0800380808080808087f0000000808003808080808080808000000606060626468786c666263",
+    "000000701010101010101018180e0000000000007e5b4b4b4b4b4b4b0000000000007c666262",
+    "626262620000000000003c6662434362663c0000000000007c6662636363667c000000000000",
+    "3e6662424262663e0000000000003f383030303030300000000000003c2260380e02663c0000",
+    "000010107e1010101010180e000000000000626262626262663a00000000000043626626343c",
+    "1c1800000000000081c1d95b5f76762600000000000062263c181c3466430000000000004362",
+    "2226341c1c180000000000007e0604081830607e0000000e0808081818701818080800000008",
+    "080808080808080808080000007018181818080e08181818000000000000000000790e000000",
+);
+
+fn font_bits() -> Vec<u8> {
+    (0..FONT_HEX.len() / 2)
+        .map(|i| u8::from_str_radix(&FONT_HEX[i * 2..i * 2 + 2], 16).unwrap())
+        .collect()
+}
 
 /// One texture, glyphs on a fixed grid: glyph g at ((g−32)%COLS, (g−32)/COLS).
 /// UV rect = cell × cell size / texture size. Upload once; sampled forever.
 pub fn create_font_atlas(device: &wgpu::Device,
                          queue: &wgpu::Queue) -> (wgpu::TextureView, wgpu::Sampler) {
-    /* fill a CPU byte grid from an embedded 8×14 bitmap font table,
-       write_texture, linear sampler */
+    let bits = font_bits();
+    let (w, h) = (COLS * CELL_W, ROWS * CELL_H);
+    let mut texels = vec![0u8; (w * h) as usize];
+    for g in 0..95u32 {
+        let (cx, cy) = ((g % COLS) * CELL_W, (g / COLS) * CELL_H);
+        for row in 0..CELL_H {
+            let byte = bits[(g * CELL_H + row) as usize];
+            for col in 0..CELL_W {
+                if byte & (0x80 >> col) != 0 {
+                    texels[((cy + row) * w + cx + col) as usize] = 255;
+                }
+            }
+        }
+    }
+    let tex = device.create_texture(&wgpu::TextureDescriptor {
+        label: Some("font.atlas"),
+        size: wgpu::Extent3d { width: w, height: h, depth_or_array_layers: 1 },
+        mip_level_count: 1,
+        sample_count: 1,
+        dimension: wgpu::TextureDimension::D2,
+        format: wgpu::TextureFormat::R8Unorm,
+        usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+        view_formats: &[],
+    });
+    queue.write_texture(
+        wgpu::TexelCopyTextureInfo { texture: &tex, mip_level: 0,
+            origin: wgpu::Origin3d::ZERO, aspect: wgpu::TextureAspect::All },
+        &texels,
+        wgpu::TexelCopyBufferLayout { offset: 0, bytes_per_row: Some(w), rows_per_image: Some(h) },
+        wgpu::Extent3d { width: w, height: h, depth_or_array_layers: 1 },
+    );
+    let view = tex.create_view(&wgpu::TextureViewDescriptor::default());
+    let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+        label: Some("font.sampler"),
+        mag_filter: wgpu::FilterMode::Linear,
+        min_filter: wgpu::FilterMode::Linear,
+        ..Default::default()
+    });
+    (view, sampler)
 }
 ```
 
-(Embedding a public-domain 8×14 bitmap font table keeps this dependency-free and wasm-friendly — the
-archive's choice. A TTF rasterizer is a later luxury; label text is small and monospace reads fine.)
+(Register the module: `pub mod text;` in `src/engine/mod.rs`. The hex table was generated by
+rendering DejaVu Sans Mono at 8×14 and thresholding — regenerate from any monospace face the same
+way if you want a different look.)
 
 ## Step 2 — quads: `src/engine/text.rs`
 
@@ -73,8 +159,28 @@ pub struct TextVertex {
 // 44 B — a plain vertex buffer (not a storage table; text is rebuilt rarely)
 }
 
-/// Label "name" at world `p`: chars → 6 verts each (two triangles), advancing CELL_W px per column.
-pub fn label_verts(text: &str, p: [f32; 3], color: [f32; 4], out: &mut Vec<TextVertex>) { /* … */ }
+/// Label `text` at world `p`: 6 verts (two triangles) per char, advancing CELL_W px per column,
+/// centered on the anchor, floating one cell above it (shader +y = up on screen).
+pub fn label_verts(text: &str, p: [f32; 3], color: [f32; 4], out: &mut Vec<TextVertex>) {
+    let (cw, ch) = (CELL_W as f32, CELL_H as f32);
+    let (aw, ah) = ((COLS * CELL_W) as f32, (ROWS * CELL_H) as f32);   // atlas px size
+    let x0 = -(text.len() as f32) * cw * 0.5;                          // center on the anchor
+    for (i, c) in text.chars().enumerate() {
+        let g = if (' '..='~').contains(&c) { c as u32 - 32 } else { 0 };
+        let (gx, gy) = (((g % COLS) * CELL_W) as f32, ((g / COLS) * CELL_H) as f32);
+        let (u0, v0) = (gx / aw, gy / ah);                             // v0 = glyph TOP row
+        let (u1, v1) = ((gx + cw) / aw, (gy + ch) / ah);
+        let (px0, px1) = (x0 + i as f32 * cw, x0 + (i as f32 + 1.0) * cw);
+        let (top, bot) = (ch * 2.0, ch);                               // px above the anchor
+        let quad = [
+            ([px0, top], [u0, v0]), ([px1, top], [u1, v0]), ([px1, bot], [u1, v1]),
+            ([px0, top], [u0, v0]), ([px1, bot], [u1, v1]), ([px0, bot], [u0, v1]),
+        ];
+        for (off, uv) in quad {
+            out.push(TextVertex { anchor: p, px_off: off, uv, color });
+        }
+    }
+}
 ```
 
 The 44 bytes map field-for-field onto the WGSL vertex input — each Rust field is one `@location(N)`,
@@ -169,8 +275,9 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 (Build a `text_uniform` buffer `{ vp_w, vp_h, 0, 0 }` + a `text_bind_group` on the existing uniform
 layout, and refresh `vp_w`/`vp_h` in `resize()` — the cloud's `CloudUniform` (32b) does the same; text
 just drops the `size` field. The pipeline: alpha blend on, depth **test on / write off** — labels hide
-behind geometry but never punch holes in it. First texture bind group of the course: one
-`Texture` + `Sampler` layout at group 3.)
+behind geometry but never punch holes in it — and `cull_mode: None` (billboard quads have no
+meaningful winding). First texture bind group of the course: one `Texture` + `Sampler` layout at
+group 3.)
 
 ## Step 4 — verify
 

@@ -85,6 +85,8 @@ Only the normal-picking block changes; lights and the final multiply stay lesson
 has length 1, an unbaked one is exactly zero, so `dot(n, n) > 0.5` cleanly asks "does this mesh carry
 normals?" (`smooth` is WGSL-**reserved** — naga rejects it — so the flag is `has_normal`.)
 
+In `src/shaders/triangle.wgsl`, replace the whole lesson-21 `fs_main` with:
+
 ```wgsl
 @fragment
 fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f32> {
@@ -96,7 +98,16 @@ fn fs_main(in: VsOut, @builtin(front_facing) front: bool) -> @location(0) vec4<f
     var n = select(flat_n, normalize(in.normal), has_normal);
     if !front { n = -n; }
 
-    // …key/fill/hemi lighting and `in.color * lit` unchanged from lesson 21…
+    // key/fill/hemi lighting and `in.color * lit` — unchanged from lesson 21
+    let key_dir  = normalize(vec3<f32>(-0.3, -0.5, 0.8));
+    let fill_dir = normalize(vec3<f32>( 0.6,  0.3, 0.4));
+    let key  = max(dot(n, key_dir),  0.0) * 0.65;
+    let fill = max(dot(n, fill_dir), 0.0) * 0.30;
+    let hemi = mix(0.20, 0.35, 0.5 + 0.5 * n.z);
+
+    let lit = hemi + key + fill;
+    return vec4<f32>(in.color * lit, 1.0);
+}
 ```
 
 (Interpolating unit normals shortens them mid-face, hence the per-pixel re-`normalize`. `select`

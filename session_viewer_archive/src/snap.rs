@@ -94,7 +94,7 @@ pub fn build_static_snaps(session: &Session, hidden: &HashSet<String>) -> Static
     for (guid, geom) in &session.lookup {
         if hidden.contains(guid) { continue; }
         match geom {
-            Geometry::Point(p) => points.push((p.clone(), SnapKind::Vertex, guid.clone())),
+            Geometry::Point(p) => points.push(((**p).clone(), SnapKind::Vertex, guid.clone())),
             Geometry::Line(l) => {
                 points.push((l.start(), SnapKind::Endpoint, guid.clone()));
                 points.push((l.end(), SnapKind::Endpoint, guid.clone()));
@@ -202,7 +202,7 @@ pub fn snap(
         match geom {
             Geometry::Point(p) => {
                 if modes.has(SnapModes::VERTEX) || modes.has(SnapModes::ENDPOINT) {
-                    cands.push((p.clone(), SnapKind::Vertex));
+                    cands.push(((**p).clone(), SnapKind::Vertex));
                 }
             }
             Geometry::Line(l) => {
@@ -218,7 +218,7 @@ pub fn snap(
                     cands.push((cp, SnapKind::Near));
                 }
                 if modes.has(SnapModes::INTERSECTION) && segs.len() < MAX_INT_SEGS {
-                    segs.push(l.clone());
+                    segs.push((**l).clone());
                 }
             }
             Geometry::Polyline(pl) => {

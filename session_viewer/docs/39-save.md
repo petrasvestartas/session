@@ -120,17 +120,20 @@ Add the features to `Cargo.toml`'s `web-sys` list (beside 34's `Request`/`Respon
 ## Step 3 — the hash gate: only real changes count: `src/app/scene.rs`
 
 38 built `content_hash` + `Scene.hashes` (the last-saved fingerprints). Save reuses them: an object is
-only *really* changed if its current hash differs from the stored one. Add a dirty set and the gate:
+only *really* changed if its current hash differs from the stored one. Add a dirty set and the gate
+(the field goes in `struct Scene`, its init in `Scene::new`'s `Self { … }`, the two methods in
+`impl Scene`):
 
 ```rust
-    // add to Scene:
+    // add to struct Scene:
     // guids touched since the last save (editing lessons fill this)
     pub dirty: std::collections::HashSet<String>,
 
-    pub fn mark_dirty(&mut self, guid: &str) { self.dirty.insert(guid.to_string()); }
-
-    // and initialize it in Scene's constructor (`Scene::new`, from 35):
+    // add to Scene::new's Self { … } initializer:
     //   dirty: std::collections::HashSet::new(),
+
+    // add to impl Scene:
+    pub fn mark_dirty(&mut self, guid: &str) { self.dirty.insert(guid.to_string()); }
 
     /// Bytes to write, or None if nothing actually changed. Re-hashes each dirty
     /// object against its stored fingerprint: a nudge that got reverted hashes back

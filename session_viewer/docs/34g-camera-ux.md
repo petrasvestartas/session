@@ -4,22 +4,32 @@
 > must dolly **toward the cursor** (the point under the mouse stays under the mouse — the one
 > trick every CAD app shares), zoom must never hit an artificial wall, and **middle-mouse must
 > pan**. Also buried here: the bug where deep zooming made the whole scene vanish — a demo-era
-> `distance` clamp of 0.2–100 (mm!) left over from lesson 10, while a fitted drawing wall sits at
-> ~20,000mm; one wheel tick snapped the far plane (10×distance) inside the scene and culled
+> `distance` clamp of 0.2–100 left over from lesson 10, while a fitted drawing wall sits far
+> beyond it; one wheel tick snapped the far plane (10×distance) inside the scene and culled
 > everything.
 
 ## Files we touch
 
 ```
-src/camera.rs   # zoom loses its clamp; zoom_at — cursor-centered dolly
-src/lib.rs      # MMB pan state + wheel wired to zoom_at
+src/camera.rs   # Step 1: zoom loses its clamp · Step 2: zoom_at — cursor-centered dolly
+src/lib.rs      # Step 3: MMB pan state + wheel wired to zoom_at
 ```
 
-## Step 1 — zoom without stops: `camera.rs`
+## Step 1 — zoom without stops: `src/camera.rs`
 
 Multiplicative zoom (×0.9 per detent) is naturally asymptotic — it approaches zero but never
 reaches it, and our near/far planes scale WITH distance (`dist*0.01 … dist*10`), so no absolute
-range is ever needed. **Replace `zoom`'s clamp with a not-zero guard:**
+range is ever needed. **Find the whole function (including its doc comment):**
+
+```rust
+    /// Dolly in/out by scaling `distance` (clamped to 0.2–100).
+    pub fn zoom(&mut self, amount: f32) {
+        self.distance = (self.distance * (1.0 - amount as f64 * 0.1)).clamp(0.2, 100.0);
+        self.update_position();
+    }
+```
+
+Replace with:
 
 ```rust
     /// Dolly in/out by scaling `distance`. NO range clamp — zoom is multiplicative (×0.9 per
@@ -31,12 +41,15 @@ range is ever needed. **Replace `zoom`'s clamp with a not-zero guard:**
     }
 ```
 
-## Step 2 — zoom toward the cursor: `camera.rs`
+## Step 2 — zoom toward the cursor: `src/camera.rs`
 
 The math: unproject the cursor to its world point `p` on the target plane (right/up frame ×
 frustum half-extents × NDC), then scale the distance by `k` while pulling the target so `p` stays
 fixed — `target' = target + (p − target)·(1 − k)`. Our ortho height matches perspective at the
-target distance, so ONE `half_h` formula serves both projections. **Add below `zoom`:**
+target distance, so ONE `half_h` formula serves both projections.
+
+**Insert directly BELOW the `zoom` function you just replaced** (between `zoom`'s closing `}` and
+`/// Flip between perspective and orthographic projection.`):
 
 ```rust
     /// CAD zoom: dolly toward the CURSOR — the point under the mouse stays under the mouse.
@@ -60,13 +73,48 @@ target distance, so ONE `half_h` formula serves both projections. **Add below `z
     }
 ```
 
+(`Vector` is already imported at the top of `camera.rs` — nothing to add.)
+
 > Zoom moves the target now — 34c's anchor absorbs it: within 100m of drift it's still just a
 > view-matrix change, no instance rebuild.
 
-## Step 3 — middle-mouse pan + the wiring: `lib.rs`
+## Step 3 — middle-mouse pan + the wiring: `src/lib.rs`
 
-**3a.** `App` gains `panning: bool,` (init `false` in `run()`).
-**3b.** Next to the RMB handler:
+**3a. The field.** In `pub struct App`, find:
+
+```rust
+    orbiting: bool,
+    last_cursor: (f64, f64),
+```
+
+Insert between the two lines:
+
+```rust
+    panning: bool,
+```
+
+**3b. The initializer.** In `App::run()`, find the `let app = App { … }` literal:
+
+```rust
+            orbiting: false,
+            last_cursor: (0.0, 0.0),
+```
+
+Insert between the two lines:
+
+```rust
+            panning: false,
+```
+
+**3c. The MMB handler.** Find the RMB arm in `window_event`:
+
+```rust
+            WindowEvent::MouseInput {state: btn, button: MouseButton::Right, ..} => {
+                self.orbiting = btn == ElementState::Pressed; // hold RMB to orbit
+            }
+```
+
+Insert after its closing `}`:
 
 ```rust
             WindowEvent::MouseInput {state: btn, button: MouseButton::Middle, ..} => {
@@ -74,7 +122,22 @@ target distance, so ONE `half_h` formula serves both projections. **Add below `z
             }
 ```
 
-**3c.** `CursorMoved` decides by mode — MMB pans, RMB orbits, Ctrl+RMB still pans:
+**3d. The move handler decides by mode** — MMB pans, RMB orbits, Ctrl+RMB still pans. In the
+`WindowEvent::CursorMoved` arm, find:
+
+```rust
+                if self.orbiting {
+                    let dx = (position.x - self.last_cursor.0) as f32;
+                    let dy = (position.y - self.last_cursor.1) as f32;
+                    if self.ctrl {
+                        state.camera.pan(dx, dy);
+                    } else {
+                        state.camera.orbit(dx, dy)
+                    };
+                }
+```
+
+Replace the whole if-block with (two condition lines change, the deltas stay):
 
 ```rust
                 if self.orbiting || self.panning {
@@ -88,13 +151,24 @@ target distance, so ONE `half_h` formula serves both projections. **Add below `z
                 }
 ```
 
-**3d.** The wheel handler calls the new zoom with the tracked cursor:
+(the `self.last_cursor = (position.x, position.y);` line below stays.)
+
+**3e. The wheel calls the new zoom** with the tracked cursor. In the `WindowEvent::MouseWheel`
+arm, find:
+
+```rust
+                state.camera.zoom(amount);
+```
+
+Replace with:
 
 ```rust
                 // Zoom TOWARD THE CURSOR — the point under the mouse stays put (CAD standard)
                 let vp = (state.gpu.config.width as f64, state.gpu.config.height as f64);
                 state.camera.zoom_at(amount, self.last_cursor, vp);
 ```
+
+(`zoom` itself stays — keyboard/fallback callers and the no-cursor case still use it.)
 
 ## Verify
 
@@ -108,7 +182,7 @@ into a print.
 
 ```
 Ch 34g: A CAD VIEWPORT, NOT A DEMO. Zoom is unlimited (multiplicative + scaling near/far needs
-        no clamp; the old 0.2–100mm clamp was culling fitted scenes) and cursor-centered
+        no clamp; the old 0.2–100 clamp was culling fitted scenes) and cursor-centered
         (unproject to the target plane, pull the target by 1−k). MMB pans; RMB orbits; Ctrl+RMB
         pans. The anchor (34c) makes all of it rebuild-free.
 ```

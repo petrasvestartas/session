@@ -71,7 +71,7 @@ then transform the hit back to world. The kernel's transform idiom: give a `Poin
 `transformed()` (the same move 36 used for world boxes).
 
 ```rust
-use session_rust::{Line, Mesh};
+// Line/Mesh are already in scene.rs's session_rust import (35); only the ray type is new:
 use crate::engine::pick::Ray;   // 41's Ray { origin: Point, dir: Vector }
 
 const PICK_EPS: f64 = 1e-9;
@@ -142,7 +142,8 @@ impl Scene {
 (`pick_ray` needs `&mut self` only because the kernel's lazy triangle BVH builds through plain
 mutation — kernel-gap #9 in `_KERNEL_GAPS.md`; interior mutability there would make picking `&self`.)
 
-And the tiny result type, `src/app/pick.rs`:
+And the tiny result type, `src/app/pick.rs` (declare it in `src/app/mod.rs` beside the others:
+`pub mod pick;`):
 
 ```rust
 use session_rust::Point;
@@ -161,12 +162,14 @@ pub struct PickHit {
 ## Step 4 — wire the click + a headless test: `src/state.rs`
 
 ```rust
-    // on left-button press — REPLACE 41's z=0 ground-plane block inside this `if let`
-    // with the pick_ray call below. The vp/origin/viewport locals are 41's (Step 3), unchanged:
+    // In State::on_left_click (41 Step 3b) — REPLACE the z=0 ground-plane block inside the
+    // `if let Some(ray)` with the pick_ray match. The vp/origin/viewport locals are 41's,
+    // unchanged; the whole method now reads:
     let vp = self.camera.view_proj(self.aspect());
     let origin = self.camera.origin();
     let viewport = (0.0, 0.0, self.gpu.config.width as f64, self.gpu.config.height as f64);
-    if let Some(ray) = engine::pick::screen_to_world_ray(&vp, &origin, self.cursor, viewport) {
+    if let Some(ray) =
+        crate::engine::pick::screen_to_world_ray(&vp, &origin, self.cursor, viewport) {
         match self.scene.pick_ray(&ray) {
             Some(hit) => log::info!("picked {} at ({:.1},{:.1},{:.1}), t={:.1}",
                 hit.guid, hit.point[0], hit.point[1], hit.point[2], hit.t),

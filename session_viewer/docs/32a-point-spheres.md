@@ -66,7 +66,7 @@ struct GlyphPoint {
 
 **2a. Add a `unit_sphere()` free function** at the bottom, beside `unit_cylinder()` — a UV sphere on
 the origin, radius 1, position-only (the same `cyl_template_layout` slot feeds it; a flat glyph needs
-no normals). `LONS`/`LATS` are the perf knob (12×6 → 74 verts / 432 indices = 144 tris):
+no normals). `SPH_LONS`/`SPH_LATS` are the perf knob (12×6 → 74 verts / 432 indices = 144 tris):
 
 ```rust
 const SPH_LONS: usize = 12;

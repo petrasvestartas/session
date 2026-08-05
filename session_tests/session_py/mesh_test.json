@@ -3,7 +3,7 @@
     "group": "Mesh",
     "test_name": "Constructor",
     "passed": true,
-    "time_ms": 0.195,
+    "time_ms": 0.222,
     "line": 8,
     "code": "    from session_py import Mesh\n    from session_py import Polyline\n    from session_py import Color\n    from session_py.mesh import ColorMode\n\n    vertices = Polyline.from_sides(6, 1.0, False).get_points()\n    mesh = Mesh.from_vertices_and_faces(vertices, [[0, 1, 2, 3, 4, 5]])\n    sstr = str(mesh)\n    srepr = repr(mesh)\n    mcopy = mesh.duplicate()\n    mesh.name = \"hexagon\"\n\n    palette = Color.palette()\n\n    # set_objectcolor does not change color_mode\n    mesh.set_objectcolor(Color.grey())\n\n    # set_pointcolors \u2192 color_mode = PointColors\n    pc = []\n    for i in range(mesh.number_of_vertices()):\n        pc.append(palette[i % len(palette)])\n    mesh.set_pointcolors(pc)\n\n    # set_facecolors \u2192 color_mode = FaceColors\n    fc = []\n    for i in range(mesh.number_of_faces()):\n        fc.append(palette[i % len(palette)])\n    mesh.set_facecolors(fc)\n\n    # set_linecolors does not change color_mode\n    lc = []\n    lw = [0.1] * mesh.number_of_edges()\n    for i in range(mesh.number_of_edges()):\n        lc.append(palette[i % len(palette)])\n    mesh.set_linecolors(lc, lw)\n\n    # clear_facecolors reverts color_mode only if currently FaceColors\n    mesh.color_mode = ColorMode.FACECOLORS\n    mesh.clear_facecolors()\n\n    # clear_pointcolors does not revert if color_mode != PointColors\n    mesh.color_mode = ColorMode.FACECOLORS\n    mesh.clear_pointcolors()\n\n    # clear_linecolors does not change color_mode\n    mesh.color_mode = ColorMode.POINTCOLORS\n    mesh.clear_linecolors()",
     "checks": [
@@ -89,7 +89,7 @@
     "group": "Mesh",
     "test_name": "From Polylines",
     "passed": true,
-    "time_ms": 0.5,
+    "time_ms": 0.531,
     "line": 74,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.from_polylines([\n        [\n            Point(1.28955, 0, 1.127558),\n            Point(0.85791, 0, 0.225512),\n            Point(0.64209, -0.866025, -0.225512),\n            Point(0.85791, -1.732051, 0.225512),\n            Point(1.458565, -1.732051, 1.127558),\n            Point(1.50537, -0.866025, 1.578581),\n        ],\n        [\n            Point(0.64209, 0.866025, -0.225512),\n            Point(0.114274, 0.866025, -0.686294),\n            Point(-0.00537, 0, -1.578581),\n            Point(0.21045, -0.866025, -1.127558),\n            Point(0.64209, -0.866025, -0.225512),\n            Point(0.85791, 0, 0.225512),\n        ],\n        [\n            Point(1.28955, 1.732051, 1.127558),\n            Point(0.85791, 1.732051, 0.225512),\n            Point(0.64209, 0.866025, -0.225512),\n            Point(0.85791, 0, 0.225512),\n            Point(1.28955, -0, 1.127558),\n            Point(1.853404, 0.866025, 1.578581),\n        ],\n    ], 0.001)",
     "checks": [
@@ -105,7 +105,7 @@
     "group": "Mesh",
     "test_name": "From Lines",
     "passed": true,
-    "time_ms": 0.383,
+    "time_ms": 0.388,
     "line": 109,
     "code": "    from session_py import Mesh\n    from session_py import Line\n    from session_py import Point\n\n    lines = [\n        Line.from_points(Point(4.948083, -0.149798, 1.00765),\n                         Point(4.395544, -0.996413, 1.196018)),\n        Line.from_points(Point(3.866593, 0.371225, 1.376346),\n                         Point(4.567265, 0.584361, 1.137476)),\n        Line.from_points(Point(3.915298, -0.157402, 1.359741),\n                         Point(3.282977, -0.051356, 1.575309)),\n        Line.from_points(Point(4.286215, -0.224964, 1.23329),\n                         Point(3.607284, -0.987075, 1.464748)),\n        Line.from_points(Point(3.744351, 0.971574, 1.41802),\n                         Point(3.266367, 0.841359, 1.580972)),\n        Line.from_points(Point(4.567265, 0.584361, 1.137476),\n                         Point(4.948083, -0.149798, 1.00765)),\n        Line.from_points(Point(4.395544, -0.996413, 1.196018),\n                         Point(3.607284, -0.987075, 1.464748)),\n        Line.from_points(Point(3.915298, -0.157402, 1.359741),\n                         Point(4.286215, -0.224964, 1.23329)),\n        Line.from_points(Point(3.282977, -0.051356, 1.575309),\n                         Point(3.266367, 0.841359, 1.580972)),\n        Line.from_points(Point(3.744351, 0.971574, 1.41802),\n                         Point(3.866593, 0.371225, 1.376346)),\n    ]\n    mesh = Mesh.from_lines(lines, True)",
     "checks": [
@@ -121,7 +121,7 @@
     "group": "Mesh",
     "test_name": "From Polygon With Holes",
     "passed": true,
-    "time_ms": 2.506,
+    "time_ms": 2.341,
     "line": 142,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.from_polygon_with_holes([\n        [\n            Point(8.940934, 0.917382, 0.049546),\n            Point(8.930493, 1.36458, 0.251429),\n            Point(8.954508, 1.595448, 0.346958),\n            Point(9.457671, 1.821395, 0.298639),\n            Point(9.717078, 1.014296, -0.136839),\n            Point(9.363048, 0.91534, -0.07616),\n            Point(9.33327, 0.459713, -0.269899),\n            Point(9.065708, 0.635281, -0.112748),\n        ],\n        [\n            Point(7.494779, -0.556523, -0.178103),\n            Point(6.542877, 0.148384, 0.416685),\n            Point(6.967337, 2.119511, 1.167431),\n            Point(11.204553, 2.961749, 0.289102),\n            Point(9.658416, 0.465135, -0.363618),\n            Point(10.247775, -1.032727, -1.203717),\n        ],\n        [\n            Point(7.922105, 0.548716, 0.186877),\n            Point(7.410178, 0.844297, 0.469625),\n            Point(7.408889, 1.185147, 0.621527),\n            Point(7.885956, 1.424645, 0.586947),\n            Point(8.178727, 1.32996, 0.458299),\n            Point(8.307609, 0.88254, 0.2213),\n            Point(7.950364, 0.924872, 0.345738),\n        ],\n    ], True)\n\n\n    mesh_sorted = Mesh.from_polygon_with_holes([\n        [\n            Point(1, 1, 0),\n            Point(3, 1, 0),\n            Point(3, 3, 0),\n            Point(1, 3, 0),\n        ],\n        [\n            Point(0, 0, 0),\n            Point(4, 0, 0),\n            Point(4, 4, 0),\n            Point(0, 4, 0),\n        ],\n    ], True)",
     "checks": [
@@ -142,7 +142,7 @@
     "group": "Mesh",
     "test_name": "Loft",
     "passed": true,
-    "time_ms": 3.349,
+    "time_ms": 3.355,
     "line": 197,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py import Polyline\n\n    bottom = [\n        Polyline([\n            Point(13.20069, -0.556523, -0.178103),\n            Point(12.248787, 0.148384, 0.416685),\n            Point(12.673247, 2.119511, 1.167431),\n            Point(16.910464, 2.961749, 0.289102),\n            Point(15.364327, 0.465135, -0.363618),\n            Point(15.953685, -1.032727, -1.203717),\n            Point(13.20069, -0.556523, -0.178103),\n        ]),\n        Polyline([\n            Point(14.646845, 0.917382, 0.049546),\n            Point(14.636404, 1.36458, 0.251429),\n            Point(14.660418, 1.595448, 0.346958),\n            Point(15.163581, 1.821395, 0.298639),\n            Point(15.422988, 1.014296, -0.136839),\n            Point(15.068958, 0.91534, -0.07616),\n            Point(15.03918, 0.459713, -0.269899),\n            Point(14.771618, 0.635281, -0.112748),\n            Point(14.646845, 0.917382, 0.049546),\n        ]),\n        Polyline([\n            Point(13.628016, 0.548716, 0.186877),\n            Point(13.116088, 0.844297, 0.469625),\n            Point(13.114799, 1.185147, 0.621527),\n            Point(13.591866, 1.424645, 0.586947),\n            Point(13.884637, 1.32996, 0.458299),\n            Point(14.013519, 0.88254, 0.2213),\n            Point(13.656275, 0.924872, 0.345738),\n            Point(13.628016, 0.548716, 0.186877),\n        ]),\n    ]\n    top = [\n        Polyline([\n            Point(13.375135, -0.818817, 0.411936),\n            Point(12.423233, -0.113909, 1.006724),\n            Point(12.847692, 1.857217, 1.75747),\n            Point(17.084909, 2.699455, 0.879141),\n            Point(15.538772, 0.202841, 0.226421),\n            Point(16.12813, -1.295021, -0.613678),\n            Point(13.375135, -0.818817, 0.411936),\n        ]),\n        Polyline([\n            Point(14.82129, 0.655088, 0.639585),\n            Point(14.810849, 1.102286, 0.841468),\n            Point(14.834864, 1.333154, 0.936997),\n            Point(15.338026, 1.559101, 0.888678),\n            Point(15.597433, 0.752002, 0.4532),\n            Point(15.243404, 0.653046, 0.513879),\n            Point(15.213626, 0.197419, 0.32014),\n            Point(14.946063, 0.372987, 0.477291),\n            Point(14.82129, 0.655088, 0.639585),\n        ]),\n        Polyline([\n            Point(13.802461, 0.286422, 0.776916),\n            Point(13.290534, 0.582003, 1.059664),\n            Point(13.289245, 0.922853, 1.211566),\n            Point(13.766312, 1.162351, 1.176986),\n            Point(14.059082, 1.067666, 1.048338),\n            Point(14.187964, 0.620246, 0.811339),\n            Point(13.83072, 0.662578, 0.935777),\n            Point(13.802461, 0.286422, 0.776916),\n        ]),\n    ]\n    mesh = Mesh.loft(bottom, top, True)\n\n\n    mesh_no_cap = Mesh.loft(bottom, top, False)",
     "checks": [
@@ -173,7 +173,7 @@
     "group": "Mesh",
     "test_name": "Loft concave with holes and collinear",
     "passed": true,
-    "time_ms": 3.891,
+    "time_ms": 3.978,
     "line": 278,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py import Polyline\n\n    annen_bot = [\n        Polyline([\n            Point(2142.008, -530.170, 1172.487),\n            Point(2142.008, -530.170, -318.768),\n            Point(2142.008, -318.102, -318.768),\n            Point(2142.008, -347.792, -414.110),\n            Point(2142.008, -106.034, -414.110),\n            Point(2142.008, -135.724, -318.768),\n            Point(2142.008,  106.034, -318.768),\n            Point(2142.008,   76.344, -414.110),\n            Point(2142.008,  318.102, -414.110),\n            Point(2142.008,  288.412, -318.768),\n            Point(2142.008,  530.170, -318.768),\n            Point(2142.008,  530.170, 1172.487),\n            Point(2142.008, -530.170, 1172.487),\n        ]),\n        Polyline([\n            Point(2142.008, 97.448,  841.097),\n            Point(2142.008,  0.000,  841.097),\n            Point(2142.008,  0.000, 1006.792),\n            Point(2142.008, 97.448, 1006.792),\n            Point(2142.008, 97.448,  841.097),\n        ]),\n        Polyline([\n            Point(2142.008, 97.448, 178.317),\n            Point(2142.008,  0.000, 178.317),\n            Point(2142.008,  0.000, 344.012),\n            Point(2142.008, 97.448, 344.012),\n            Point(2142.008, 97.448, 178.317),\n        ]),\n    ]\n    annen_top = [\n        Polyline([\n            Point(2223.416, -530.170, 1172.487),\n            Point(2223.416, -530.170, -269.141),\n            Point(2223.416, -318.102, -269.141),\n            Point(2223.416, -347.792, -364.483),\n            Point(2223.416, -106.034, -364.483),\n            Point(2223.416, -135.724, -269.141),\n            Point(2223.416,  106.034, -269.141),\n            Point(2223.416,   76.344, -364.483),\n            Point(2223.416,  318.102, -364.483),\n            Point(2223.416,  288.412, -269.141),\n            Point(2223.416,  530.170, -269.141),\n            Point(2223.416,  530.170, 1172.487),\n            Point(2223.416, -530.170, 1172.487),\n        ]),\n        Polyline([\n            Point(2223.416, 97.448,  841.097),\n            Point(2223.416,  0.000,  841.097),\n            Point(2223.416,  0.000, 1006.792),\n            Point(2223.416, 97.448, 1006.792),\n            Point(2223.416, 97.448,  841.097),\n        ]),\n        Polyline([\n            Point(2223.416, 97.448, 178.317),\n            Point(2223.416,  0.000, 178.317),\n            Point(2223.416,  0.000, 344.012),\n            Point(2223.416, 97.448, 344.012),\n            Point(2223.416, 97.448, 178.317),\n        ]),\n    ]\n    annen = Mesh.loft(annen_bot, annen_top, True)\n\n    col_bot = [\n        Polyline([\n            Point( 0, 0, 0),\n            Point( 4, 0, 0),\n            Point( 7, 0, 0),\n            Point(12, 0, 0),\n            Point(12, 5, 0),\n            Point( 0, 5, 0),\n            Point( 0, 0, 0),\n        ]),\n    ]\n    col_top = [\n        Polyline([\n            Point( 0, 0, 1.5),\n            Point( 4, 0, 1.5),\n            Point( 7, 0, 1.5),\n            Point(12, 0, 1.5),\n            Point(12, 5, 1.5),\n            Point( 0, 5, 1.5),\n            Point( 0, 0, 1.5),\n        ]),\n    ]\n    colmesh = Mesh.loft(col_bot, col_top, True)",
     "checks": [
@@ -224,7 +224,7 @@
     "group": "Mesh",
     "test_name": "From Polygon With Holes Many",
     "passed": true,
-    "time_ms": 4.201,
+    "time_ms": 4.176,
     "line": 381,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    inputs = []\n    for i in range(4):\n        x = i * 7.0\n        inputs.append([\n            [\n                Point(x, 0, 0),\n                Point(x+5, 0, 0),\n                Point(x+5, 5, 0),\n                Point(x, 5, 0),\n            ],\n            [\n                Point(x+1, 1, 0),\n                Point(x+4, 1, 0),\n                Point(x+4, 4, 0),\n                Point(x+1, 4, 0),\n            ],\n        ])\n    meshes = Mesh.from_polygon_with_holes_many(inputs)\n\n    meshes_seq = Mesh.from_polygon_with_holes_many(inputs, False, False)",
     "checks": [
@@ -260,7 +260,7 @@
     "group": "Mesh",
     "test_name": "Loft Many",
     "passed": true,
-    "time_ms": 6.109,
+    "time_ms": 6.21,
     "line": 414,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py import Polyline\n\n    loft_inputs = []\n    for i in range(6):\n        x = i * 3.0\n        b = Polyline([\n            Point(x, 0, 0),\n            Point(x+1, 0, 0),\n            Point(x+1, 1, 0),\n            Point(x, 1, 0),\n            Point(x, 0, 0),\n        ])\n        t = Polyline([\n            Point(x, 0, 1+i*0.5),\n            Point(x+1, 0, 1+i*0.5),\n            Point(x+1, 1, 1+i*0.5),\n            Point(x, 1, 1+i*0.5),\n            Point(x, 0, 1+i*0.5),\n        ])\n        loft_inputs.append(([b], [t]))\n    meshes = Mesh.loft_many(loft_inputs)\n\n    meshes_seq = Mesh.loft_many(loft_inputs, True, False)",
     "checks": [
@@ -391,7 +391,7 @@
     "group": "Mesh",
     "test_name": "Loft with quads and triangles",
     "passed": true,
-    "time_ms": 5.214,
+    "time_ms": 6.799,
     "line": 468,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py import Color\n\n    top7 = [\n        [\n            Point(250, -250, 500),\n            Point(250, 250, 500),\n            Point(-250, 250, 500),\n            Point(-250, -250, 500),\n            Point(250, -250, 500),\n        ],\n        [\n            Point(-250, 500, 250),\n            Point(-250, 250, 500),\n            Point(250, 250, 500),\n            Point(250, 500, 250),\n            Point(-250, 500, 250),\n        ],\n        [\n            Point(250, -250, 500),\n            Point(500, -250, 250),\n            Point(500, 250, 250),\n            Point(250, 250, 500),\n            Point(250, -250, 500),\n        ],\n        [\n            Point(250, 500, 250),\n            Point(250, 250, 500),\n            Point(500, 250, 250),\n            Point(250, 500, 250),\n        ],\n        [\n            Point(-250, 500, 250),\n            Point(250, 500, 250),\n            Point(250, 500, -250),\n            Point(-250, 500, -250),\n            Point(-250, 500, 250),\n        ],\n        [\n            Point(250, 500, 250),\n            Point(500, 250, 250),\n            Point(500, 250, -250),\n            Point(250, 500, -250),\n            Point(250, 500, 250),\n        ],\n        [\n            Point(500, -250, 250),\n            Point(500, -250, -250),\n            Point(500, 250, -250),\n            Point(500, 250, 250),\n            Point(500, -250, 250),\n        ],\n    ]\n    bot7 = [\n        [\n            Point(270.710678, -250, 550),\n            Point(270.710678, 265.891862, 550),\n            Point(265.891862, 270.710678, 550),\n            Point(-250, 270.710678, 550),\n            Point(-250, -250, 550),\n            Point(270.710678, -250, 550),\n        ],\n        [\n            Point(270.710678, -250, 550),\n            Point(550, -250, 270.710678),\n            Point(550, 265.891862, 270.710678),\n            Point(270.710678, 265.891862, 550),\n            Point(270.710678, -250, 550),\n        ],\n        [\n            Point(-250, 550, 270.710678),\n            Point(-250, 270.710678, 550),\n            Point(265.891862, 270.710678, 550),\n            Point(265.891862, 550, 270.710678),\n            Point(-250, 550, 270.710678),\n        ],\n        [\n            Point(265.891862, 550, 270.710678),\n            Point(265.891862, 270.710678, 550),\n            Point(270.710678, 265.891862, 550),\n            Point(550, 265.891862, 270.710678),\n            Point(550, 270.710678, 265.891862),\n            Point(270.710678, 550, 265.891862),\n            Point(265.891862, 550, 270.710678),\n        ],\n        [\n            Point(-250, 550, 270.710678),\n            Point(265.891862, 550, 270.710678),\n            Point(270.710678, 550, 265.891862),\n            Point(270.710678, 550, -250),\n            Point(-250, 550, -250),\n            Point(-250, 550, 270.710678),\n        ],\n        [\n            Point(270.710678, 550, 265.891862),\n            Point(550, 270.710678, 265.891862),\n            Point(550, 270.710678, -250),\n            Point(270.710678, 550, -250),\n            Point(270.710678, 550, 265.891862),\n        ],\n        [\n            Point(550, -250, 270.710678),\n            Point(550, -250, -250),\n            Point(550, 270.710678, -250),\n            Point(550, 270.710678, 265.891862),\n            Point(550, 265.891862, 270.710678),\n            Point(550, -250, 270.710678),\n        ],\n    ]\n    panels, adj, top_mesh, bot_mesh = Mesh.loft_panels(top7, bot7, 0.001)\n\n    # Color faces: blue=top cap, red=bot cap, gray=quad wall, yellow=tri wall\n    for i, panel in enumerate(panels):\n        face_colors = []\n        for fk, role in panel.face_roles.items():\n            if role == \"TopCap\":\n                face_colors.append(Color.blue())\n            elif role == \"BotCap\":\n                face_colors.append(Color.red())\n            elif role == \"TriWall\":\n                face_colors.append(Color.yellow())\n            else:\n                face_colors.append(Color.grey())\n        panel.mesh.set_facecolors(face_colors)\n\n    # face centroids labelled with panel index\n    for i, panel in enumerate(panels):\n        c = panel.mesh.centroid()\n        c.name = f\"p{i}\"\n\n    # adjacency: for each shared edge \u2014 text dot at midpoint labelled \"p{i}f{idx}<->p{j}f{idx}\"\n    for pair in adj:\n        w = panels[pair.pi].wall_faces[pair.wi]\n        pt = panels[pair.pi].mesh.face_centroid(w.face_key)\n        pt.name = f\"p{pair.pi} f{w.face_index} - p{pair.pj} f{panels[pair.pj].wall_faces[pair.wj].face_index}\"",
     "checks": [
@@ -492,7 +492,7 @@
     "group": "Mesh",
     "test_name": "Boolean Queries",
     "passed": true,
-    "time_ms": 0.519,
+    "time_ms": 0.532,
     "line": 627,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.from_polylines([\n        [\n            Point(1.28955, 0, 1.127558),\n            Point(0.85791, 0, 0.225512),\n            Point(0.64209, -0.866025, -0.225512),\n            Point(0.85791, -1.732051, 0.225512),\n            Point(1.458565, -1.732051, 1.127558),\n            Point(1.50537, -0.866025, 1.578581),\n        ],\n        [\n            Point(0.64209, 0.866025, -0.225512),\n            Point(0.114274, 0.866025, -0.686294),\n            Point(-0.00537, 0, -1.578581),\n            Point(0.21045, -0.866025, -1.127558),\n            Point(0.64209, -0.866025, -0.225512),\n            Point(0.85791, 0, 0.225512),\n        ],\n        [\n            Point(1.28955, 1.732051, 1.127558),\n            Point(0.85791, 1.732051, 0.225512),\n            Point(0.64209, 0.866025, -0.225512),\n            Point(0.85791, 0, 0.225512),\n            Point(1.28955, -0, 1.127558),\n            Point(1.853404, 0.866025, 1.578581),\n        ],\n    ], 0.001)\n    v0 = 1\n    v1 = 2\n    v2 = 3\n    f0 = 0\n\n    empty = mesh.is_empty()\n\n    valid = mesh.is_valid()\n\n    closed = mesh.is_closed()\n\n    vertex_on_boundary = mesh.is_vertex_on_boundary(v0)\n\n    edge_not_on_boundary = mesh.is_edge_on_boundary(v0, v1)\n\n    edge_on_boundary = mesh.is_edge_on_boundary(v1, v2)\n\n    face_on_boundary = mesh.is_face_on_boundary(f0)",
     "checks": [
@@ -538,7 +538,7 @@
     "group": "Mesh",
     "test_name": "Attributes",
     "passed": true,
-    "time_ms": 0.316,
+    "time_ms": 0.318,
     "line": 685,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n\n    n_vertices = mesh.number_of_vertices()\n\n    n_faces = mesh.number_of_faces()\n\n    n_edges = mesh.number_of_edges()\n\n    euler = mesh.euler()\n\n    pts, fidx = mesh.to_vertices_and_faces()\n\n    vertex_to_index = mesh.vertex_index()\n\n    # vertices / faces / edges\n    vertices = mesh.vertices()\n    faces = mesh.faces()\n    edges = mesh.edges()\n\n    # naked (closed box: no naked edges before removal)\n    # remove one face \u2014 box becomes open, check naked\n    mesh.remove_face(mesh.faces()[0])\n    ne = mesh.naked_edges(True)\n    ni = mesh.naked_edges(False)\n    nv = mesh.naked_vertices(True)\n    nvi = mesh.naked_vertices(False)\n    nf = mesh.naked_faces(True)\n    nfi = mesh.naked_faces(False)",
     "checks": [
@@ -884,7 +884,7 @@
     "group": "Mesh",
     "test_name": "Edges",
     "passed": true,
-    "time_ms": 0.068,
+    "time_ms": 0.071,
     "line": 787,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    v0 = mesh.vertices()[0]\n    v1 = mesh.vertices()[1]\n    edges = mesh.edges()",
     "checks": [
@@ -910,7 +910,7 @@
     "group": "Mesh",
     "test_name": "Create Dodecahedron",
     "passed": true,
-    "time_ms": 1.443,
+    "time_ms": 1.446,
     "line": 800,
     "code": "    from session_py import Mesh\n\n    m = Mesh.create_dodecahedron(2.0)",
     "checks": [
@@ -936,7 +936,7 @@
     "group": "Mesh",
     "test_name": "Vertex and Face Operations",
     "passed": true,
-    "time_ms": 1.643,
+    "time_ms": 1.698,
     "line": 810,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    hx, hy, hz = 0.5, 0.5, 0.5\n    verts = [\n        Point(-hx, -hy, -hz),\n        Point( hx, -hy, -hz),\n        Point( hx,  hy, -hz),\n        Point(-hx,  hy, -hz),\n        Point(-hx, -hy,  hz),\n        Point( hx, -hy,  hz),\n        Point( hx,  hy,  hz),\n        Point(-hx,  hy,  hz),\n    ]\n    faces = [\n        [0, 3, 2, 1], [4, 5, 6, 7], [0, 1, 5, 4], [2, 3, 7, 6], [0, 4, 7, 3], [1, 2, 6, 5],\n    ]\n\n    mesh = Mesh()\n\n    for v in verts: mesh.add_vertex(v)\n    for f in faces: mesh.add_face(f)\n\n\n    # remove_vertex(0): removes vertex 0 + 3 adjacent faces (0,2,4)\n    # vertices \u2192 [1,2,3,4,5,6,7], faces \u2192 [1,3,5]\n    mesh.remove_vertex(0)\n\n    # remove_edge(1,2): removes face 5 [1,2,6,5], faces \u2192 [1,3]\n    mesh.remove_edge(1, 2)\n\n    # remove_face(1): removes face 1 [4,5,6,7], faces \u2192 [3]\n    mesh.remove_face(1)\n\n    # clear\n    mesh.clear()\n\n    # rebuild\n    for v in verts: mesh.add_vertex(v)\n    for f in faces: mesh.add_face(f)\n\n    # unweld and weld\n    mesh = mesh.unweld()\n    mesh = mesh.weld(0.001)\n    # face 0: 0 1 2 3, face 1: 4 5 6 7, face 2: 0 3 5 4\n    # face 3: 2 1 7 6, face 4: 0 4 7 1, face 5: 3 2 6 5\n    fv0 = mesh.face_vertices(0); fv1 = mesh.face_vertices(1)\n    fv2 = mesh.face_vertices(2); fv3 = mesh.face_vertices(3)\n    fv4 = mesh.face_vertices(4); fv5 = mesh.face_vertices(5)\n\n    # flip_face(0): face 0 \u2192 [3,2,1,0], faces 1-5 unchanged\n    mesh.flip_face(0)\n    fv0 = mesh.face_vertices(0); fv1 = mesh.face_vertices(1)\n    fv2 = mesh.face_vertices(2); fv3 = mesh.face_vertices(3)\n    fv4 = mesh.face_vertices(4); fv5 = mesh.face_vertices(5)\n\n    # unify_winding: face 0 restored to [0,1,2,3], faces 1-5 unchanged\n    mesh.unify_winding()\n    fv0 = mesh.face_vertices(0); fv1 = mesh.face_vertices(1)\n    fv2 = mesh.face_vertices(2); fv3 = mesh.face_vertices(3)\n    fv4 = mesh.face_vertices(4); fv5 = mesh.face_vertices(5)\n\n    # flip: face 0 \u2192 [3,2,1,0], face 1 \u2192 [7,6,5,4], face 2 \u2192 [4,5,3,0]\n    # face 3 \u2192 [6,7,1,2], face 4 \u2192 [1,7,4,0], face 5 \u2192 [5,6,2,3]\n    mesh.flip()\n    fv0 = mesh.face_vertices(0); fv1 = mesh.face_vertices(1)\n    fv2 = mesh.face_vertices(2); fv3 = mesh.face_vertices(3)\n    fv4 = mesh.face_vertices(4); fv5 = mesh.face_vertices(5)\n\n    # orient_outward: face 0 \u2192 [0,1,2,3], face 1 \u2192 [4,5,6,7], face 2 \u2192 [0,3,5,4]\n    # face 3 \u2192 [2,1,7,6], face 4 \u2192 [0,4,7,1], face 5 \u2192 [3,2,6,5]\n    mesh.orient_outward()\n    fv0 = mesh.face_vertices(0); fv1 = mesh.face_vertices(1)\n    fv2 = mesh.face_vertices(2); fv3 = mesh.face_vertices(3)\n    fv4 = mesh.face_vertices(4); fv5 = mesh.face_vertices(5)",
     "checks": [
@@ -1147,7 +1147,7 @@
     "group": "Mesh",
     "test_name": "Connectivity Queries",
     "passed": true,
-    "time_ms": 0.222,
+    "time_ms": 0.227,
     "line": 929,
     "code": "    from session_py import Mesh\n    from session_py import Point\n\n    pts = [\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n        Point(0.0, 1.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0,1,2,3], [1,4,2]])\n    v = mesh.vertices()\n    f = mesh.faces()\n\n    # edge edges\n    # edge 1 - 2, edges: 1-0, 1-4, 2-3, 2-4\n    ee = mesh.edge_edges(1, 2)\n    if ee is not None:\n\n        u0 = ee[0][0]\n        v0 = ee[0][1]\n        l0 = mesh.edge_line(u0, v0)\n        mid0 = l0.center()\n        mid0.name = \"e\" + str(u0) + \"-\" + str(v0)\n\n        u1 = ee[1][0]\n        v1 = ee[1][1]\n        l1 = mesh.edge_line(u1, v1)\n        mid1 = l1.center()\n        mid1.name = \"e\" + str(u1) + \"-\" + str(v1)\n\n        u2 = ee[2][0]\n        v2 = ee[2][1]\n        l2 = mesh.edge_line(u2, v2)\n        mid2 = l2.center()\n        mid2.name = \"e\" + str(u2) + \"-\" + str(v2)\n\n        u3 = ee[3][0]\n        v3 = ee[3][1]\n        l3 = mesh.edge_line(u3, v3)\n        mid3 = l3.center()\n        mid3.name = \"e\" + str(u3) + \"-\" + str(v3)\n\n        ee_set = set(ee)\n\n    # edge faces\n    # edge 1-2, faces: 0, 1\n    ef = mesh.edge_faces(1, 2)\n    if ef is not None:\n        ef0 = ef[0]\n        ef1 = ef[1]\n        efp0 = mesh.face_centroid(ef0)\n        efp0.name = \"f\" + str(ef0)\n        efp1 = mesh.face_centroid(ef1)\n        efp1.name = \"f\" + str(ef1)\n\n    # face_edges\n    # face 0, edges: 0-1, 1-2, 2-3, 3-0\n    fe = mesh.face_edges(f[0])\n    if fe is not None:\n        l0 = mesh.edge_line(fe[0][0], fe[0][1])\n        l1 = mesh.edge_line(fe[1][0], fe[1][1])\n        l2 = mesh.edge_line(fe[2][0], fe[2][1])\n        l3 = mesh.edge_line(fe[3][0], fe[3][1])\n        lmid0 = l0.center()\n        lmid0.name = \"e\" + str(fe[0][0]) + \"-\" + str(fe[0][1])\n        lmid1 = l1.center()\n        lmid1.name = \"e\" + str(fe[1][0]) + \"-\" + str(fe[1][1])\n        lmid2 = l2.center()\n        lmid2.name = \"e\" + str(fe[2][0]) + \"-\" + str(fe[2][1])\n        lmid3 = l3.center()\n        lmid3.name = \"e\" + str(fe[3][0]) + \"-\" + str(fe[3][1])\n\n    # face_faces\n    # face 0, adjacent faces: 1\n    ff = mesh.face_faces(f[0])\n    if ff is not None:\n        ff0 = ff[0]\n        ffp = mesh.face_centroid(ff0)\n        ffp.name = \"f\" + str(ff0)\n\n    # face points\n    points = mesh.face_points(f[0])\n    if points is not None:\n        pointcount = len(points)\n\n    # face polyline\n    pl = mesh.face_polyline(f[0])\n    if pl is not None:\n        pointcount = len(pl.get_points())\n\n    # face_vertices\n    # face 0 vertices: 0, 1, 2, 3\n    fv = mesh.face_vertices(f[0])\n    if fv is not None:\n        fv0 = fv[0]\n        fv1 = fv[1]\n        fv2 = fv[2]\n        fv3 = fv[3]\n        p0 = mesh.vertex_point(fv0)\n        p0.name = str(fv0)\n        p1 = mesh.vertex_point(fv1)\n        p1.name = str(fv1)\n        p2 = mesh.vertex_point(fv2)\n        p2.name = str(fv2)\n        p3 = mesh.vertex_point(fv3)\n        p3.name = str(fv3)\n\n    # vertex_edges\n    # vertex 1, edges 1-0, 1-2, 1-4\n    ve = mesh.vertex_edges(v[1])\n    if ve is not None:\n        vp = mesh.vertex_point(v[1])\n        vp.name = \"v\" + str(v[1])\n\n        l0 = mesh.edge_line(ve[0][0], ve[0][1])\n        l1 = mesh.edge_line(ve[1][0], ve[1][1])\n        l2 = mesh.edge_line(ve[2][0], ve[2][1])\n        lmid0 = l0.center()\n        lmid0.name = \"e\" + str(ve[0][0]) + \"-\" + str(ve[0][1])\n        lmid1 = l1.center()\n        lmid1.name = \"e\" + str(ve[1][0]) + \"-\" + str(ve[1][1])\n        lmid2 = l2.center()\n        lmid2.name = \"e\" + str(ve[2][0]) + \"-\" + str(ve[2][1])\n\n\n    # vertex_faces\n    vf = mesh.vertex_faces(v[1])\n    # vertex 1, faces 0, 1\n    if vf is not None:\n\n        vp = mesh.vertex_point(v[1])\n        vp.name = \"v\" + str(v[1])\n\n        fp0 = mesh.face_centroid(vf[0])\n        fp0.name = \"f\" + str(vf[0])\n        fp1 = mesh.face_centroid(vf[1])\n        fp1.name = \"f\" + str(vf[1])\n\n    # vertex_vertices\n    # vertex 1, neighbors 0, 2, 4\n    vn = mesh.vertex_vertices(v[1])\n    if vn is not None:\n        p0 = mesh.vertex_point(v[1])\n        p0.name = \"main\" + str(v[1])\n\n        np0 = mesh.vertex_point(vn[0])\n        np0.name = str(vn[0])\n        np1 = mesh.vertex_point(vn[1])\n        np1.name = str(vn[1])\n        np2 = mesh.vertex_point(vn[2])\n        np2.name = str(vn[2])",
     "checks": [
@@ -1318,7 +1318,7 @@
     "group": "Mesh",
     "test_name": "Geometric Properties",
     "passed": true,
-    "time_ms": 8.597,
+    "time_ms": 7.967,
     "line": 1118,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py import Vector\n    from session_py import NormalWeighting\n\n    mesh = Mesh.create_dodecahedron(1.5)\n\n    # area\n    area = mesh.area()\n\n    # centroid\n    centroid = mesh.centroid()\n\n    # dihedral angle\n    angles, arcs, points = mesh.dihedral_angles(0.3)\n\n    for edge, angle in angles.items():\n        angle_in_degrees = angle\n\n    # face area\n    for f in mesh.faces():\n        face_area = mesh.face_area(f)\n\n    # face centroid\n    centroids = []\n    for f in mesh.faces():\n        centroids.append(mesh.face_centroid(f))\n\n\n    # face normal / s\n    face_normals = mesh.face_normals()\n    for f in mesh.faces():\n        normal0 = mesh.face_normal(f)\n        normal1 = face_normals[f]\n\n\n    # vertex angle in face\n    for f in mesh.faces():\n        for v in mesh.face_vertices(f):\n            angle = mesh.vertex_angle_in_face(v, f)\n\n    # vertex normal / s\n    vertex_normals = mesh.vertex_normals()\n    for v in mesh.vertices():\n        normal0 = mesh.vertex_normal(v)\n        normal1 = vertex_normals[v]\n\n\n    # vertex normal weighted / s\n    vertex_normals_weighted = mesh.vertex_normals_weighted(NormalWeighting.ANGLE)\n    for v in mesh.vertices():\n        normal0 = mesh.vertex_normal_weighted(v, NormalWeighting.ANGLE)\n        normal1 = vertex_normals_weighted[v]\n\n\n    # compute vertex normals\n    mesh.compute_vertex_normals()\n    for v in mesh.vertices():\n        stored = mesh.vertex[v].normal()\n\n    # volume\n    volume = mesh.volume()",
     "checks": [
@@ -2534,7 +2534,7 @@
     "group": "Mesh",
     "test_name": "Transformation",
     "passed": true,
-    "time_ms": 0.539,
+    "time_ms": 0.529,
     "line": 1258,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py import Xform\n\n    pts = [\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(0, 1, 0),\n    ]\n    mesh = Mesh.from_vertices_and_faces(pts, [[0,1,2]])\n    v0 = mesh.vertices()[0]\n\n    # transform() \u2014 apply stored xform in-place; xform field unchanged\n    mesh1 = mesh.duplicate()\n    mesh1.xform = Xform.translation(0.0, 0.0, 1.0)\n    mesh1.transform()\n\n\n    # transform(xf) \u2014 apply given xform in-place; stored xform unchanged\n    mesh2 = mesh.duplicate()\n    x = Xform.translation(0.0, 0.0, 1.0)\n    mesh2.transform(x)\n\n    # transformed() \u2014 copy with stored xform applied\n    mesh3 = mesh.duplicate()\n    mesh3.xform = Xform.translation(0.0, 0.0, 10.0)\n    mesh3t = mesh3.transformed()\n\n    # transformed(xf) \u2014 copy with given xform applied\n    mesh4 = mesh.duplicate()\n    x = Xform.translation(0.0, 0.0, 10.0)\n    mesh4t = mesh4.transformed(x)",
     "checks": [
@@ -2585,7 +2585,7 @@
     "group": "Mesh",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 2.248,
+    "time_ms": 2.356,
     "line": 1302,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py import Xform\n    from pathlib import Path\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.name = \"test_mesh\"\n    mesh.xform = Xform.translation(1.0, 2.0, 3.0)\n\n    # JSON object\n    d = mesh.__jsondump__()\n    loaded_json = Mesh.__jsonload__(d)\n\n    # String\n    json_string = mesh.file_json_dumps()\n    loaded_string = Mesh.file_json_loads(json_string)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh.json\"\n    mesh.file_json_dump(filename)\n    loaded_file = Mesh.file_json_load(filename)\n\n\n    # Triangulation roundtrip\n    polys = [[\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]]\n    pmesh = Mesh.from_polylines(polys)\n    loaded_tri = Mesh.__jsonload__(pmesh.__jsondump__())\n    fk = sorted(pmesh.triangulation.keys())[0]\n\n\n    # Face holes roundtrip\n    hmesh = Mesh.from_polygon_with_holes([\n        [\n            Point(0, 0, 0),\n            Point(4, 0, 0),\n            Point(4, 4, 0),\n            Point(0, 4, 0),\n        ],\n        [\n            Point(1, 1, 0),\n            Point(3, 1, 0),\n            Point(3, 3, 0),\n            Point(1, 3, 0),\n        ]], True)\n    loaded_holes = Mesh.__jsonload__(hmesh.__jsondump__())\n    hfk = sorted(hmesh.face_holes.keys())[0]",
     "checks": [
@@ -2631,7 +2631,7 @@
     "group": "Mesh",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 2.167,
+    "time_ms": 2.144,
     "line": 1365,
     "code": "    from session_py import Mesh\n    from session_py import Point\n    from session_py import Xform\n    from pathlib import Path\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.name = \"test_mesh_proto\"\n    mesh.xform = Xform.translation(1.0, 2.0, 3.0)\n\n    # String\n    proto_bytes = mesh.pb_dumps()\n    loaded_string = Mesh.pb_loads(proto_bytes)\n\n    # File\n    filename = Path(__file__).resolve().parents[2] / \"serialization\" / \"test_mesh.bin\"\n    mesh.pb_dump(filename)\n    loaded_file = Mesh.pb_load(filename)\n\n\n    # Triangulation roundtrip\n    polys = [[\n        Point(0, 0, 0),\n        Point(1, 0, 0),\n        Point(1, 1, 0),\n        Point(0, 1, 0),\n    ]]\n    pmesh = Mesh.from_polylines(polys)\n    loaded_tri = Mesh.pb_loads(pmesh.pb_dumps())\n    fk = sorted(pmesh.triangulation.keys())[0]\n\n\n    # Face holes roundtrip\n    hmesh = Mesh.from_polygon_with_holes([\n        [\n            Point(0, 0, 0),\n            Point(4, 0, 0),\n            Point(4, 4, 0),\n            Point(0, 4, 0),\n        ],\n        [\n            Point(1, 1, 0),\n            Point(3, 1, 0),\n            Point(3, 3, 0),\n            Point(1, 3, 0),\n        ]], True)\n    loaded_holes = Mesh.pb_loads(hmesh.pb_dumps())\n    hfk = sorted(hmesh.face_holes.keys())[0]",
     "checks": [
@@ -2672,7 +2672,7 @@
     "group": "Mesh",
     "test_name": "Loft plate_failing 15-vert outer + 3 holes",
     "passed": true,
-    "time_ms": 2.503,
+    "time_ms": 2.621,
     "line": 1423,
     "code": "    from session_py import Mesh, Point, Polyline\n    bot = [\n        Polyline([\n            Point( 734.392021, -1906.59468,  1101.588031),\n            Point( 632.396858, -1838.597905,  948.595287),\n            Point( 624.453132, -1769.270846,  984.70313 ),\n            Point( 113.775484, -1428.81908,   218.686657),\n            Point( 121.719209, -1498.146139,  182.578814),\n            Point(  15.607979, -1427.40532,    23.411969),\n            Point(   0.0,      -1441.0,        -18.0     ),\n            Point(   0.0,      -1893.0,       -357.0     ),\n            Point(  13.416408, -1917.0,       -348.167184),\n            Point( 104.290124, -1917.0,       -166.419752),\n            Point( 118.441096, -1964.169906,  -173.495238),\n            Point( 362.132034, -1799.867966,   179.289322),\n            Point( 348.0,      -1752.698063,   185.364808),\n            Point( 623.259018, -1832.362654,   751.385447),\n            Point( 734.392021, -1906.59468,  1101.588031),\n        ]),\n        Polyline([\n            Point( 200.979108, -1563.492448,  354.900013),\n            Point( 197.007245, -1563.492448,  354.900013),\n            Point( 200.979108, -1598.155978,  336.846091),\n            Point( 197.007245, -1598.155978,  336.846091),\n            Point( 200.979108, -1563.492448,  354.900013),\n        ]),\n        Polyline([\n            Point( 388.0, -1716.0, 208.0),\n            Point( 392.0, -1716.0, 208.0),\n            Point( 392.0, -1750.0, 190.0),\n            Point( 388.0, -1750.0, 190.0),\n            Point( 388.0, -1716.0, 208.0),\n        ]),\n        Polyline([\n            Point( 540.0, -1790.0, 620.0),\n            Point( 544.0, -1790.0, 620.0),\n            Point( 544.0, -1820.0, 604.0),\n            Point( 540.0, -1820.0, 604.0),\n            Point( 540.0, -1790.0, 620.0),\n        ]),\n    ]\n    top = bot\n    m = Mesh.loft(bot, top)",
     "checks": [
@@ -2688,7 +2688,7 @@
     "group": "Mesh",
     "test_name": "Loft plate_v2 15-vert outer + 3 holes",
     "passed": true,
-    "time_ms": 4.099,
+    "time_ms": 4.081,
     "line": 1471,
     "code": "    from session_py import Mesh, Point, Polyline\n    top = [\n        Polyline([\n            Point( 734.392021,  -28.40532,  1101.588031),\n            Point( 630.839301,  -97.440466,  946.258951),\n            Point( 602.668732,  -21.881034,  974.757956),\n            Point(  90.636822, -363.235641,  206.710092),\n            Point( 118.807391, -438.795073,  178.211087),\n            Point(  15.607979, -507.59468,    23.411969),\n            Point(  21.213203, -518.0,        21.213203),\n            Point(1478.786797, -518.0,      1478.786797),\n            Point(1476.953362, -502.635574, 1488.476681),\n            Point(1323.309106, -400.20607,  1411.654553),\n            Point(1323.309106, -350.20607,  1449.154553),\n            Point( 921.429178,  -82.286119, 1248.214589),\n            Point( 921.429178, -132.286119, 1210.714589),\n            Point( 773.046638,  -33.364426, 1136.523319),\n            Point( 734.392021,  -28.40532,  1101.588031),\n        ]),\n        Polyline([\n            Point(1055.389154, -196.592769, 1296.444577),\n            Point(1189.34913,  -285.89942,  1363.424565),\n            Point(1189.34913,  -310.89942,  1344.674565),\n            Point(1055.389154, -221.592769, 1277.694577),\n            Point(1055.389154, -196.592769, 1296.444577),\n        ]),\n        Polyline([\n            Point( 411.941252, -196.202593,  653.289308),\n            Point( 514.347634, -127.931671,  806.898881),\n            Point( 528.432919, -165.711387,  792.649378),\n            Point( 426.026537, -233.982309,  639.039805),\n            Point( 411.941252, -196.202593,  653.289308),\n        ]),\n        Polyline([\n            Point( 207.128489, -332.744435,  346.070162),\n            Point( 309.53487,  -264.473514,  499.679735),\n            Point( 323.620155, -302.25323,   485.430233),\n            Point( 221.213773, -370.524151,  331.82066 ),\n            Point( 207.128489, -332.744435,  346.070162),\n        ]),\n    ]\n    bot = [\n        Polyline([\n            Point( 717.764591,  -24.335988, 1136.036032),\n            Point( 607.106921,  -98.107768,  970.049526),\n            Point( 593.021636,  -60.328052,  984.299029),\n            Point(  80.989727, -401.682659,  216.251164),\n            Point(  95.075011, -439.462375,  202.001662),\n            Point( -28.206905, -521.650319,   17.078787),\n            Point( -22.601681, -532.055639,   14.880022),\n            Point(1489.346823, -532.055639, 1526.828525),\n            Point(1487.513388, -516.691213, 1536.51841 ),\n            Point(1323.309106, -407.221692, 1454.416269),\n            Point(1323.309106, -382.221692, 1473.166269),\n            Point( 921.429178, -114.30174,  1272.226305),\n            Point( 921.429178, -139.30174,  1253.476305),\n            Point( 756.419209,  -29.295094, 1170.97132 ),\n            Point( 717.764591,  -24.335988, 1136.036032),\n        ]),\n        Polyline([\n            Point(1055.389154, -228.608391, 1320.456293),\n            Point(1189.34913,  -317.915041, 1387.436281),\n            Point(1189.34913,  -342.915041, 1368.686281),\n            Point(1055.389154, -253.608391, 1301.706293),\n            Point(1055.389154, -228.608391, 1320.456293),\n        ]),\n        Polyline([\n            Point( 402.294157, -234.649611,  662.830381),\n            Point( 504.700539, -166.37869,   816.439954),\n            Point( 518.785824, -204.158406,  802.190451),\n            Point( 416.379442, -272.429327,  648.580878),\n            Point( 402.294157, -234.649611,  662.830381),\n        ]),\n        Polyline([\n            Point( 197.481393, -371.191453,  355.611235),\n            Point( 299.887775, -302.920532,  509.220808),\n            Point( 313.97306,  -340.700248,  494.971305),\n            Point( 211.566678, -408.971169,  341.361733),\n            Point( 197.481393, -371.191453,  355.611235),\n        ]),\n    ]\n    m = Mesh.loft(top, bot)",
     "checks": [
@@ -2704,7 +2704,7 @@
     "group": "Mesh",
     "test_name": "Vertex Neighbors",
     "passed": true,
-    "time_ms": 0.057,
+    "time_ms": 0.061,
     "line": 1558,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    n0 = mesh.vertex_neighbors(0)\n    n0v = mesh.vertex_vertices(0)",
     "checks": [
@@ -2725,7 +2725,7 @@
     "group": "Mesh",
     "test_name": "Vertices On Boundary",
     "passed": true,
-    "time_ms": 0.083,
+    "time_ms": 0.09,
     "line": 1569,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.remove_face(mesh.faces()[0])\n    vb = mesh.vertices_on_boundary()",
     "checks": [
@@ -2746,7 +2746,7 @@
     "group": "Mesh",
     "test_name": "Edges On Boundary",
     "passed": true,
-    "time_ms": 0.072,
+    "time_ms": 0.076,
     "line": 1580,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.remove_face(mesh.faces()[0])\n    eb = mesh.edges_on_boundary()",
     "checks": [
@@ -2767,7 +2767,7 @@
     "group": "Mesh",
     "test_name": "Faces On Boundary",
     "passed": true,
-    "time_ms": 0.095,
+    "time_ms": 0.103,
     "line": 1591,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.remove_face(mesh.faces()[0])",
     "checks": [
@@ -2788,7 +2788,7 @@
     "group": "Mesh",
     "test_name": "Halfedge Face",
     "passed": true,
-    "time_ms": 0.061,
+    "time_ms": 0.059,
     "line": 1601,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    f = mesh.halfedge_face((0, 3))\n    mesh.remove_face(0)",
     "checks": [
@@ -2830,7 +2830,7 @@
     "group": "Mesh",
     "test_name": "Halfedge Loop",
     "passed": true,
-    "time_ms": 0.055,
+    "time_ms": 0.056,
     "line": 1623,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    loop = mesh.halfedge_loop((0, 3))",
     "checks": [
@@ -2851,7 +2851,7 @@
     "group": "Mesh",
     "test_name": "Halfedge Strip",
     "passed": true,
-    "time_ms": 0.05,
+    "time_ms": 0.052,
     "line": 1633,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    strip = mesh.halfedge_strip((0, 3))",
     "checks": [
@@ -2877,7 +2877,7 @@
     "group": "Mesh",
     "test_name": "Vertex Sample",
     "passed": true,
-    "time_ms": 0.059,
+    "time_ms": 0.063,
     "line": 1644,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    s = mesh.vertex_sample(3, seed=42)\n    s2 = mesh.vertex_sample(3, seed=42)",
     "checks": [
@@ -2903,7 +2903,7 @@
     "group": "Mesh",
     "test_name": "Edge Sample",
     "passed": true,
-    "time_ms": 0.077,
+    "time_ms": 0.076,
     "line": 1656,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    s = mesh.edge_sample(2, seed=7)\n    s2 = mesh.edge_sample(2, seed=7)",
     "checks": [
@@ -2945,7 +2945,7 @@
     "group": "Mesh",
     "test_name": "Face Center",
     "passed": true,
-    "time_ms": 0.07,
+    "time_ms": 0.072,
     "line": 1678,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(2.0, 2.0, 2.0)\n    c = mesh.face_center(0)\n    cc = mesh.face_centroid(0)",
     "checks": [
@@ -2961,7 +2961,7 @@
     "group": "Mesh",
     "test_name": "Face Polygon",
     "passed": true,
-    "time_ms": 0.079,
+    "time_ms": 0.083,
     "line": 1688,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    poly = mesh.face_polygon(0)\n    pts = poly.get_points() if hasattr(poly, \"get_points\") else poly.points",
     "checks": [
@@ -2982,7 +2982,7 @@
     "group": "Mesh",
     "test_name": "Flip Cycles",
     "passed": true,
-    "time_ms": 0.095,
+    "time_ms": 0.078,
     "line": 1699,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    n0 = mesh.face_normal(0)\n    mesh.flip_cycles()\n    n0b = mesh.face_normal(0)",
     "checks": [
@@ -3008,7 +3008,7 @@
     "group": "Mesh",
     "test_name": "Face Normal Unitized",
     "passed": true,
-    "time_ms": 0.067,
+    "time_ms": 0.062,
     "line": 1712,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(2.0, 2.0, 2.0)\n    nu = mesh.face_normal(0, unitized=True)\n    nn = mesh.face_normal(0, unitized=False)",
     "checks": [
@@ -3029,7 +3029,7 @@
     "group": "Mesh",
     "test_name": "Default Attributes",
     "passed": true,
-    "time_ms": 0.073,
+    "time_ms": 0.054,
     "line": 1723,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.update_default_vertex_attributes(is_support=0.0, load_z=0.0)\n    mesh.update_default_face_attributes(stress=0.0)\n    mesh.update_default_edge_attributes(weight=1.0)",
     "checks": [
@@ -3060,7 +3060,7 @@
     "group": "Mesh",
     "test_name": "Vertex Attribute",
     "passed": true,
-    "time_ms": 0.052,
+    "time_ms": 0.051,
     "line": 1737,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.update_default_vertex_attributes(is_support=0.0)\n    mesh.vertex_attribute(0, \"is_support\", 1.0)",
     "checks": [
@@ -3102,7 +3102,7 @@
     "group": "Mesh",
     "test_name": "Edge Attribute",
     "passed": true,
-    "time_ms": 0.053,
+    "time_ms": 0.054,
     "line": 1759,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.update_default_edge_attributes(weight=1.0)\n    mesh.edge_attribute((0, 1), \"weight\", 5.0)",
     "checks": [
@@ -3154,7 +3154,7 @@
     "group": "Mesh",
     "test_name": "Vertices Where",
     "passed": true,
-    "time_ms": 0.068,
+    "time_ms": 0.067,
     "line": 1784,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.update_default_vertex_attributes(is_support=0.0)\n    mesh.vertices_attribute(\"is_support\", 1.0, keys=[0, 2, 4])\n    sup = mesh.vertices_where({\"is_support\": 1.0})",
     "checks": [
@@ -3175,7 +3175,7 @@
     "group": "Mesh",
     "test_name": "Faces Where",
     "passed": true,
-    "time_ms": 0.068,
+    "time_ms": 0.061,
     "line": 1796,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.update_default_face_attributes(tag=0.0)\n    mesh.face_attribute(2, \"tag\", 7.0)\n    mesh.face_attribute(4, \"tag\", 7.0)\n    out = mesh.faces_where({\"tag\": 7.0})",
     "checks": [
@@ -3191,7 +3191,7 @@
     "group": "Mesh",
     "test_name": "Edges Where",
     "passed": true,
-    "time_ms": 0.086,
+    "time_ms": 0.085,
     "line": 1808,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.update_default_edge_attributes(weight=0.0)\n    mesh.edge_attribute((0, 1), \"weight\", 3.0)\n    out = mesh.edges_where({\"weight\": 3.0})",
     "checks": [
@@ -3212,7 +3212,7 @@
     "group": "Mesh",
     "test_name": "Vertices Where Predicate",
     "passed": true,
-    "time_ms": 0.069,
+    "time_ms": 0.058,
     "line": 1820,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.update_default_vertex_attributes(load=0.0)\n    mesh.vertex_attribute(0, \"load\", 5.0)\n    mesh.vertex_attribute(1, \"load\", 10.0)\n    big = mesh.vertices_where_predicate(lambda k, a: a[\"load\"] > 4.0)",
     "checks": [
@@ -3228,7 +3228,7 @@
     "group": "Mesh",
     "test_name": "Faces Where Predicate",
     "passed": true,
-    "time_ms": 0.055,
+    "time_ms": 0.06,
     "line": 1832,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.update_default_face_attributes(area=0.0)\n    mesh.face_attribute(0, \"area\", 2.0)\n    mesh.face_attribute(3, \"area\", 4.0)\n    big = mesh.faces_where_predicate(lambda k, a: a[\"area\"] > 1.0)",
     "checks": [
@@ -3244,7 +3244,7 @@
     "group": "Mesh",
     "test_name": "Edges Where Predicate",
     "passed": true,
-    "time_ms": 0.073,
+    "time_ms": 0.075,
     "line": 1844,
     "code": "    from session_py import Mesh\n\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    mesh.update_default_edge_attributes(weight=0.0)\n    mesh.edge_attribute((0, 1), \"weight\", 5.0)\n    big = mesh.edges_where_predicate(lambda e, a: a[\"weight\"] > 1.0)",
     "checks": [
@@ -3265,7 +3265,7 @@
     "group": "Mesh",
     "test_name": "Refresh Guid",
     "passed": true,
-    "time_ms": 0.272,
+    "time_ms": 0.28,
     "line": 1857,
     "code": "    from session_py import Mesh\n    import copy as copy_module\n    mesh = Mesh.create_box(1.0, 1.0, 1.0)\n    original = mesh.guid\n    copy = copy_module.deepcopy(mesh)\n\n    copy.refresh_guid()",
     "checks": [

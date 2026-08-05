@@ -6,7 +6,7 @@
 > near the origin draw exactly as before, but far ones stop shimmering. Skip it and the first real
 > file at real coordinates would jitter on every orbit.
 
-Move the demo scene ten thousand kilometres from the world origin and every edge starts to crawl —
+Move the demo scene ten kilometres from the world origin and every edge starts to crawl —
 not because the kernel is imprecise (it's f64 throughout), but because the GPU only ever sees f32,
 and f32 runs out of digits exactly where the camera is looking.
 
@@ -72,10 +72,10 @@ translation, cast straight to f32 in `Instance.model`.
 **1b. Inside `view_proj`, replace the eye/target/up block.** Find:
 
 ```rust
-        let eye = Point::new(self.position[0], self.position[1], self.position[2]);
-        let target = Point::new(self.target[0], self.target[1], self.target[2]);
-        let up = Vector::new(self.up[0], self.up[1], self.up[2]);
-        let view = Xform::look_at_right_handed(&eye, &target, &up);
+        let eye    = Point::new(self.position[0], self.position[1], self.position[2]);
+        let target = Point::new(self.target[0],   self.target[1],   self.target[2]);
+        let up     = Vector::new(self.up[0], self.up[1], self.up[2]);
+        let view   = Xform::look_at_right_handed(&eye, &target, &up);
 ```
 
 with:
@@ -130,9 +130,9 @@ it:
         let mut instances: Vec<Instance> = Vec::with_capacity(objects.len());
         let mut objects_base: Vec<(Xform, [f32; 4])> = Vec::with_capacity(objects.len());   // ← ADD
 
-        for (ri, (mesh, model, color)) in objects.into_iter().enumerate(){
+        for (ri, (mesh, model, color)) in objects.into_iter().enumerate() {
             objects_base.push((model.duplicate(), color));                                  // ← ADD
-            instances.push(Instance{model: model.to_f32(), color, flags: 0, _pad: [0; 3]});
+            instances.push(Instance { model: model.to_f32(), color, flags: 0, _pad: [0; 3] });
 ```
 
 (`duplicate()` — Xform's own copy method — over `clone()`; it's what the kernel already uses when a
@@ -173,7 +173,10 @@ poking, no external maths crate.
 
 ## Step 3 — call it from `clear()`: `src/engine/gpu.rs`
 
-**3a.** Find the `clear` signature and its first two `write_buffer` calls:
+**3a.** Find the `clear` signature and its first two `write_buffer` calls. (If you threaded lesson
+31's `proj_y`/`ortho_h` line-width values through `clear`, those extra parameters and the
+`LineUniform` write below them stay exactly as they are — they're omitted here for brevity; only the
+new `origin` parameter and the `rebuild_instances` line are added.)
 
 ```rust
     pub fn clear(&mut self, color: wgpu::Color, view_proj: &Xform) -> anyhow::Result<()> {
@@ -237,7 +240,8 @@ apart instead of jittering. Step 4 is what guarantees the same call supplies bot
 
 ## Step 4 — thread it through: `src/state.rs`
 
-Find `render`:
+Find `render` (lesson 31's `let (proj_y, ortho_h) = …` block and its `clear` arguments, if you added
+them, stay as they are — omitted here for brevity):
 
 ```rust
     pub fn render(&mut self) -> anyhow::Result<()> {

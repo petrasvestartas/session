@@ -130,7 +130,7 @@
     "line": 330,
     "passed": true,
     "test_name": "Json Roundtrip",
-    "time_ms": 0.152
+    "time_ms": 0.158
   },
   {
     "checks": [
@@ -166,7 +166,7 @@
     "line": 363,
     "passed": true,
     "test_name": "Protobuf Roundtrip",
-    "time_ms": 0.1
+    "time_ms": 0.103
   },
   {
     "checks": [
@@ -464,7 +464,7 @@
     "line": 155,
     "passed": true,
     "test_name": "Get Points",
-    "time_ms": 0.005
+    "time_ms": 0.004
   },
   {
     "checks": [

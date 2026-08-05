@@ -98,42 +98,121 @@ commit a *batch*, so add the matching plural to `AddGeometry` — find its `impl
 ## Step 2 — the `copy` command: `src/app/commands.rs`
 
 `CopyCmd` is 57's `LineTool` shape exactly — a struct with `from: Option<Point>`, the first click
-stashes it (`self.from = Some(p); self.ask()`), the second click runs the body below. So `from` is
-that stashed first point and `to` is the fed second point (`p`). Add `use session_rust::Xform;` to
-`commands.rs`'s imports for `Xform::translation`. The delta is a plain translation applied with 54's
-`apply_delta`; the whole batch commits as **one** `AddGeometry`:
+stashes it, the second runs the batch. The delta is a plain translation applied with 54's
+`apply_delta`; the whole batch commits as **one** `AddGeometry`. Add both commands below `dispatch`
+in `commands.rs` — imports it needs:
+`use session_rust::Xform;`, `use crate::app::scene::apply_delta;`,
+`use crate::app::history::add::AddGeometry;`:
 
 ```rust
-    // CopyCmd::feed_point, second click — `from` = stashed first Point, `to` = this fed Point:
-    let to = p;
-    let d = Xform::translation(to[0] - from[0], to[1] - from[1], to[2] - from[2]);
-    let mut clones = state.scene.clone_selection();
-    for c in &mut clones {
-        apply_delta(c, &d);                              // 54's per-variant compose/bake
+pub struct CopyCmd {
+    from: Option<Point>,
+}
+
+impl CopyCmd {
+    pub fn start() -> (Box<dyn ActiveCommand>, GetState) {
+        (Box::new(CopyCmd { from: None }),
+         GetState::WaitingPoint { prompt: "copy: pick FROM point".into() })
     }
-    let n = clones.len();
-    state.commit(Box::new(AddGeometry::of_snapshots(clones)));
-    CmdStep::Done(format!("copied {n} object(s)"))
+    fn ask(&self) -> GetState {
+        let what = if self.from.is_none() { "copy: pick FROM point" }
+                   else { "copy: pick TO point" };
+        GetState::WaitingPoint { prompt: what.into() }
+    }
+}
+
+impl ActiveCommand for CopyCmd {
+    fn feed_point(&mut self, state: &mut crate::state::State, p: Point) -> CmdStep {
+        match self.from.take() {
+            None => { self.from = Some(p); CmdStep::Prompt(self.ask()) }
+            Some(from) => {
+                let to = p;
+                let d = Xform::translation(to[0] - from[0], to[1] - from[1], to[2] - from[2]);
+                let mut clones = state.scene.clone_selection();
+                for c in &mut clones {
+                    apply_delta(c, &d);                       // 54's per-variant compose/bake
+                }
+                let n = clones.len();
+                state.commit(Box::new(AddGeometry::of_snapshots(clones)));
+                CmdStep::Done(format!("copied {n} object(s)"))
+            }
+        }
+    }
+    fn feed_text(&mut self, state: &mut crate::state::State, s: &str) -> CmdStep {
+        let n: Vec<f64> = s.split(',').filter_map(|t| t.trim().parse().ok()).collect();
+        if n.len() == 3 { return self.feed_point(state, Point::new(n[0], n[1], n[2])); }
+        CmdStep::Prompt(self.ask())
+    }
+    fn back(&mut self) -> CmdStep { self.from = None; CmdStep::Prompt(self.ask()) }
+    fn prompt(&self) -> GetState { self.ask() }
+}
 ```
 
 (`AddGeometry::of_snapshots(Vec<Geometry>)` — the plural constructor from Step 0, wrapping
 `RemoveObjects::of_snapshots`. Snap (59) applies to both picks automatically, so
 copy-from-corner-to-corner is *exact*.)
 
-`array` is the same in a loop — count from the Get-loop's number parsing (49), one command total:
+`array` is the same in a loop — `array 5` parses the count at dispatch (`count` is a distinct
+binding from copy's `n`), then the same two points, one command total:
 
 ```rust
-    // array `count`: after `copy`'s two points, step the from→to delta k=1..=count, accumulating.
-    // (`count` is the number parsed from the Get-loop, 49 — a distinct binding from copy's `n`.)
-    let (dx, dy, dz) = (to[0] - from[0], to[1] - from[1], to[2] - from[2]);
-    let mut all = Vec::new();
-    for k in 1..=count {
-        let dk = Xform::translation(dx * k as f64, dy * k as f64, dz * k as f64);
-        let mut batch = state.scene.clone_selection();
-        for c in &mut batch { apply_delta(c, &dk); }
-        all.extend(batch);
+pub struct ArrayCmd {
+    count: usize,
+    from: Option<Point>,
+}
+
+impl ArrayCmd {
+    pub fn start(count: usize) -> (Box<dyn ActiveCommand>, GetState) {
+        (Box::new(ArrayCmd { count, from: None }),
+         GetState::WaitingPoint { prompt: "array: pick FROM point".into() })
     }
-    state.commit(Box::new(AddGeometry::of_snapshots(all)));
+    fn ask(&self) -> GetState {
+        let what = if self.from.is_none() { "array: pick FROM point" }
+                   else { "array: pick TO point (one step)" };
+        GetState::WaitingPoint { prompt: what.into() }
+    }
+}
+
+impl ActiveCommand for ArrayCmd {
+    fn feed_point(&mut self, state: &mut crate::state::State, p: Point) -> CmdStep {
+        match self.from.take() {
+            None => { self.from = Some(p); CmdStep::Prompt(self.ask()) }
+            Some(from) => {
+                let to = p;
+                let (dx, dy, dz) = (to[0] - from[0], to[1] - from[1], to[2] - from[2]);
+                let mut all = Vec::new();
+                // step the from→to delta k = 1..=count, accumulating — ONE Command for all
+                for k in 1..=self.count {
+                    let dk = Xform::translation(dx * k as f64, dy * k as f64, dz * k as f64);
+                    let mut batch = state.scene.clone_selection();
+                    for c in &mut batch { apply_delta(c, &dk); }
+                    all.extend(batch);
+                }
+                let n = all.len();
+                state.commit(Box::new(AddGeometry::of_snapshots(all)));
+                CmdStep::Done(format!("arrayed {n} object(s)"))
+            }
+        }
+    }
+    fn feed_text(&mut self, state: &mut crate::state::State, s: &str) -> CmdStep {
+        let n: Vec<f64> = s.split(',').filter_map(|t| t.trim().parse().ok()).collect();
+        if n.len() == 3 { return self.feed_point(state, Point::new(n[0], n[1], n[2])); }
+        CmdStep::Prompt(self.ask())
+    }
+    fn back(&mut self) -> CmdStep { self.from = None; CmdStep::Prompt(self.ask()) }
+    fn prompt(&self) -> GetState { self.ask() }
+}
+```
+
+Register both in `dispatch`'s match (+ `VERBS`: `"copy"`, `"array"`; alias `("co","copy")`):
+
+```rust
+        "copy" => { let (cmd, get) = CopyCmd::start(); Dispatch::Start(cmd, get) }
+        "array" => match parts.next().and_then(|t| t.parse::<usize>().ok()) {
+            Some(count) if count > 0 => { let (cmd, get) = ArrayCmd::start(count);
+                                          Dispatch::Start(cmd, get) }
+            _ => Dispatch::Instant("array <count>  (then two points)".into()),
+        }
 ```
 
 ## Step 3 — Alt+gumball-drag = drag a copy: `src/state.rs`
@@ -143,7 +222,8 @@ matrix-only, on the originals — cheapest possible preview), and Alt changes on
 
 > **New `State` field.** This branch reads `self.alt_down`, which no earlier lesson added — give `State`
 > an `alt_down: bool` (init `false`) and set it in the existing `WindowEvent::ModifiersChanged` arm:
-> `self.alt_down = mods.state().alt_key();`.
+> `self.alt_down = mods.state().alt_key();`. (`state.rs` also imports
+> `crate::app::history::add::AddGeometry` for the commit below.)
 
 ```rust
         // 54's release handler, first lines:
@@ -162,7 +242,7 @@ matrix-only, on the originals — cheapest possible preview), and Alt changes on
                 self.gb_pressed = None;
                 return;
             }
-            // …54's normal commit continues unchanged…
+            // …the normal commit continues unchanged (56's apply_transform_command call)…
         }
 ```
 

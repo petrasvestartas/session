@@ -368,6 +368,16 @@ impl GpuSession {
                     }
                 }
             }
+            // NurbsCurve/NurbsSurface normally live in session.objects, not lookup;
+            // delegate to their dedicated adders (which allocate their own pick id).
+            Geometry::NurbsCurve(nc) => {
+                self.pick.release(guid);
+                self.add_nurbscurve(nc, device, queue);
+            }
+            Geometry::NurbsSurface(ns) => {
+                self.pick.release(guid);
+                self.add_nurbssurface(ns, device, queue);
+            }
         }
         // Record default tints for reset_color. Only set if guid survived (not early-released).
         if let Some(id) = self.pick.instance_id(guid) {

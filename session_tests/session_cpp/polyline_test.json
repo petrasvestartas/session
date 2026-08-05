@@ -140,7 +140,7 @@
     "group": "Polyline",
     "test_name": "From Sides",
     "passed": true,
-    "time_ms": 0.004,
+    "time_ms": 0.009,
     "line": 124,
     "code": "    Polyline sq = Polyline::from_sides(4, 1.0, false);\n    Polyline sq_closed = Polyline::from_sides(4, 1.0, true);",
     "checks": [
@@ -192,7 +192,7 @@
     "group": "Polyline",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.076,
+    "time_ms": 0.078,
     "line": 153,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    Polyline pl({\n        Point(1.0, 2.0, 3.0),\n        Point(4.0, 5.0, 6.0),\n        Point(7.0, 8.0, 9.0),\n        Point(10.0, 11.0, 12.0),\n    });\n    pl.name = \"test_polyline\";\n\n    //   jsondump()      │ ordered_json │ to JSON object (internal use)\n    //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n    //   file_json_dumps()    │ std::string  │ to JSON string\n    //   file_json_loads(s)   │ std::string  │ from JSON string\n    //   file_json_dump(path) │ file         │ write to file\n    //   file_json_load(path) │ file         │ read from file\n\n    // file_json_dump(fname) / file_json_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_polyline.json\";\n    pl.file_json_dump(fname);\n    Polyline loaded = Polyline::file_json_load(fname);\n\n\n",
     "checks": [
@@ -228,7 +228,7 @@
     "group": "Polyline",
     "test_name": "Protobuf Roundtrip",
     "passed": true,
-    "time_ms": 0.036,
+    "time_ms": 0.042,
     "line": 187,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    Polyline pl({\n        Point(1.0, 2.0, 3.0),\n        Point(4.0, 5.0, 6.0),\n        Point(7.0, 8.0, 9.0),\n        Point(10.0, 11.0, 12.0),\n    });\n    pl.name = \"test_polyline\";\n\n    // pb_dump(fname) / pb_load(fname) - file-based serialization\n    std::string fname = \"serialization/test_polyline.bin\";\n    pl.pb_dump(fname);\n    Polyline loaded = Polyline::pb_load(fname);",
     "checks": [
@@ -285,7 +285,7 @@
     "group": "Polyline",
     "test_name": "Center",
     "passed": true,
-    "time_ms": 0.002,
+    "time_ms": 0.003,
     "line": 231,
     "code": "    // uncomment #include \"polyline.h\"\n    // uncomment #include \"point.h\"\n\n    // Square polyline\n    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0)\n    });\n    Point c = pl.center();\n\n",
     "checks": [
@@ -800,7 +800,7 @@
     "group": "Polyline",
     "test_name": "Shift",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.002,
     "line": 521,
     "code": "    Polyline pl({\n        Point(0.0, 0.0, 0.0),\n        Point(1.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(3.0, 0.0, 0.0),\n    });\n    pl.shift(1);\n    double first_after_shift = pl.get_point(0)[0];\n    pl.shift(-1);\n    double first_after_unshift = pl.get_point(0)[0];",
     "checks": [
@@ -987,7 +987,7 @@
     "group": "Polyline",
     "test_name": "Quick Hull",
     "passed": true,
-    "time_ms": 0.008,
+    "time_ms": 0.007,
     "line": 645,
     "code": "    Polyline poly({\n        Point(0.0, 0.0, 0.0),\n        Point(2.0, 0.0, 0.0),\n        Point(2.0, 2.0, 0.0),\n        Point(0.0, 2.0, 0.0),\n        Point(1.0, 1.0, 0.0),\n    });\n    Polyline hull = Polyline::quick_hull(poly);",
     "checks": [
@@ -1003,7 +1003,7 @@
     "group": "Polyline",
     "test_name": "Bounding Rectangle",
     "passed": true,
-    "time_ms": 0.011,
+    "time_ms": 0.01,
     "line": 658,
     "code": "    Polyline poly({\n        Point(0.0, 0.0, 0.0),\n        Point(4.0, 0.0, 0.0),\n        Point(4.0, 3.0, 0.0),\n        Point(0.0, 3.0, 0.0),\n    });\n    std::optional<Polyline> rect = Polyline::bounding_rectangle(poly);",
     "checks": [
@@ -1353,7 +1353,7 @@
     "group": "Polyline",
     "test_name": "Boolean Op Plane",
     "passed": true,
-    "time_ms": 0.015,
+    "time_ms": 0.016,
     "line": 780,
     "code": "    using P = Point;\n    // Two overlapping squares lifted to z=5 and clipped against the z=5 plane\n    Point origin(0,0,5);\n    Vector normal(0,0,1);\n    Plane plane = Plane::from_point_normal(origin, normal);\n    Polyline sq_a({P(-1,-1,5), P(1,-1,5), P(1,1,5), P(-1,1,5), P(-1,-1,5)});\n    Polyline sq_b({P(0,0,5),  P(2,0,5), P(2,2,5), P(0,2,5), P(0,0,5)});\n    auto isect = Polyline::boolean_op(sq_a, sq_b, plane, 0);\n    auto uni   = Polyline::boolean_op(sq_a, sq_b, plane, 1);\n    auto diff  = Polyline::boolean_op(sq_a, sq_b, plane, 2);\n    // All result points must lie on the plane (z ≈ 5)",
     "checks": [

@@ -77,7 +77,8 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 ## Step 2 — the pipeline: `src/engine/pipelines/build.rs`
 
 Copy `build_grid_pipeline`, changing three things: label(s), shader file, and — since edges DO have
-a vertex buffer, unlike the vertexless grid — the buffers:
+a vertex buffer, unlike the vertexless grid — the buffers. Topology stays `LineList`; depth stays
+write-off + `Less` (the shader nudge does the rest). Add below `build_grid_pipeline`:
 
 ```rust
 pub fn build_edges_pipeline(
@@ -85,25 +86,80 @@ pub fn build_edges_pipeline(
     color_format: wgpu::TextureFormat,
     aspect_layout: &wgpu::BindGroupLayout,
 ) -> wgpu::RenderPipeline {
-    // …identical to build_grid_pipeline except:
-    //   label: "edges.shader" / "edges.layout" / "edges"
-    //   source: include_str!("../../shaders/edges.wgsl")
-    //   buffers: &[RenderVertex::layout()],   // ← real vertices this time
-    // topology stays LineList; depth stays write-off + Less (the shader nudge does the rest)
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("edges.shader"),
+        source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/edges.wgsl").into()),
+    });
+
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("edges.layout"),
+        bind_group_layouts: &[Some(aspect_layout)],   // group 0 = camera mvp only
+        immediate_size: 0,
+    });
+
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("edges"),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState {
+            module: &shader,
+            entry_point: Some("vs_main"),
+            buffers: &[RenderVertex::layout()],   // ← real vertices this time (grid had &[])
+            compilation_options: Default::default(),
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &shader,
+            entry_point: Some("fs_main"),
+            targets: &[Some(wgpu::ColorTargetState {
+                format: color_format,
+                blend: None,
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+            compilation_options: Default::default(),
+        }),
+        primitive: wgpu::PrimitiveState {
+            topology: wgpu::PrimitiveTopology::LineList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: None,
+            polygon_mode: wgpu::PolygonMode::Fill,
+            unclipped_depth: false,
+            conservative: false,
+        },
+        depth_stencil: Some(wgpu::DepthStencilState {
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: Some(false),   // test against depth, never write it
+            depth_compare: Some(wgpu::CompareFunction::Less),
+            stencil: wgpu::StencilState::default(),
+            bias: wgpu::DepthBiasState::default(),
+        }),
+        multisample: wgpu::MultisampleState::default(),
+        multiview_mask: None,
+        cache: None,
+    })
 }
 ```
 
+(`RenderVertex` is already imported at the top of `build.rs` — the triangle pipeline uses
+`RenderVertex::layout()` since lesson 19.)
+
 ## Step 3 — register it: `src/engine/pipelines/mod.rs`
 
-Same move as lesson 20 — an `edges` field on `Pipelines`, built with the camera layout only:
+Same move as lesson 20 — an `edges` field on `Pipelines`, built with the camera layout only. Add
+`build_edges_pipeline` to the existing `use build::{…}` line, then:
 
 ```rust
 pub struct Pipelines {
     pub triangle: wgpu::RenderPipeline,
     pub grid: wgpu::RenderPipeline,
-    pub edges: wgpu::RenderPipeline,
+    pub edges: wgpu::RenderPipeline,      // ← new
 }
-// …in new():  edges: build_edges_pipeline(device, color_format, aspect_layout),
+```
+
+In `Pipelines::new`, find `grid: build_grid_pipeline(device, color_format, aspect_layout),` and add
+after it:
+
+```rust
+            edges: build_edges_pipeline(device, color_format, aspect_layout),
 ```
 
 ## Step 4 — extract + upload the edges: `src/engine/gpu.rs`

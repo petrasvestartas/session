@@ -110,7 +110,14 @@ usage:
         let num_indices = CUBE_IDX.len() as u32;        // 36
 ```
 
-Return `index_buffer` and `num_indices` in the struct instead of `num_vertices`.
+Return `index_buffer` and `num_indices` in the struct instead of `num_vertices` — the full
+line now reads:
+
+```rust
+        Ok(Self { surface, device, queue, config, pipelines,
+                  mvp_buffer, mvp_bind_group, vertex_buffer, index_buffer, num_indices,
+                  time: 0.0, time_buffer, time_bind_group, depth_view })
+```
 
 ## Step 3 — draw it indexed: `src/engine/gpu.rs`
 

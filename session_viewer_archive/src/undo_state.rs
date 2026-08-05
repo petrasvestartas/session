@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::rc::Rc;
 use session_rust::session::Geometry;
 use session_rust::{NurbsCurve, NurbsSurface};
 
@@ -72,17 +73,17 @@ impl UndoAction {
 /// (add_nurbssurface removes first), but the CPU Vec is the tree's source of truth,
 /// so an un-guarded push would show a cone/torus twice in the tree after a stray
 /// double-add. Keeps the Vec invariant: at most one entry per guid.
-pub(crate) fn replace_or_push_nurbs(list: &mut Vec<NurbsSurface>, ns: NurbsSurface) {
+pub(crate) fn replace_or_push_nurbs(list: &mut Vec<Rc<NurbsSurface>>, ns: NurbsSurface) {
     let guid = ns.guid().to_string();
     list.retain(|n| n.guid() != guid);
-    list.push(ns);
+    list.push(Rc::new(ns));
 }
 
 /// Same invariant for the nurbscurves list: at most one entry per guid.
-pub(crate) fn replace_or_push_nurbscurve(list: &mut Vec<NurbsCurve>, nc: NurbsCurve) {
+pub(crate) fn replace_or_push_nurbscurve(list: &mut Vec<Rc<NurbsCurve>>, nc: NurbsCurve) {
     let guid = nc.guid().to_string();
     list.retain(|n| n.guid() != guid);
-    list.push(nc);
+    list.push(Rc::new(nc));
 }
 
 pub struct UndoState {

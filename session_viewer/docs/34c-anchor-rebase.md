@@ -25,17 +25,138 @@
 ## Files we touch
 
 ```
-src/engine/gpu/mod.rs   # REANCHOR_DIST, last_origin, rebase_anchor; rebuild loses the f64 multiply
-src/camera.rs           # view_proj_anchored — camera-relative to a caller-supplied anchor
-src/state.rs            # render(): anchor dance before clear; clear() loses the origin param
+src/engine/gpu/mod.rs   # Steps 1-2: consts to the top, REANCHOR_DIST, last_origin, rebase_anchor,
+                        #            rebuild loses the f64 multiply, clear() stops rebuilding
+src/camera.rs           # Step 3: view_proj_anchored — camera-relative to a caller-supplied anchor
+src/state.rs            # Step 4: render(): anchor dance before clear
 ```
 
-## Step 1 — the rebuild gets 20× cheaper: `gpu/mod.rs`
+## Step 1 — housekeeping first: the template consts move to the top of `gpu/mod.rs`
 
-`T(-origin) × M` only changes the TRANSLATION column of a column-major matrix — the old code paid
-a full 4×4 f64 multiply per object for three subtractions' worth of change. **Replace
-`rebuild_instances`' loop body** (keep the f64-subtract-then-cast order — that's lesson 33's
-precision guarantee):
+Right now `CYL_SIDES` hides at the BOTTOM of the file (above `fn unit_cylinder`) and
+`SPH_LONS`/`SPH_LATS` below that — this lesson adds a third const, so gather them all at the top
+where the next lessons expect them.
+
+**1a.** Near the bottom of the file, find (under the `/// Primitives` banner):
+
+```rust
+const CYL_SIDES: u32 = 12;
+```
+
+**Delete that line** (the `/// Unit-cylinder template mesh…` doc comment below it stays, on top
+of `fn unit_cylinder`).
+
+**1b.** A screen further down, between `fn unit_cylinder`'s closing `}` and the
+`// Unit sphere on the origin…` comment, find:
+
+```rust
+const SPH_LONS: usize = 12;
+const SPH_LATS: usize = 6;
+```
+
+**Delete both lines.**
+
+**1c.** At the TOP of the file, find the import block's last line:
+
+```rust
+use session_rust::{Mesh, Xform, RenderVertex, Point, Geometry};
+```
+
+Insert after it (blank line between) — the three consts return, plus this lesson's new one:
+
+```rust
+/// Re-anchor distance: the instance table is rebased about a snapped anchor.
+/// The camera can drift this far (mm) before a full rebuild.
+/// Within it, pan/zoom only changes the view matrix.
+/// f32 error at 1e5 mm from the anchor = 6e-3 mm - far below a pixel.
+const REANCHOR_DIST: f64 = 1.0e5;
+
+/// const for the unit_cylinder method
+const CYL_SIDES: u32 = 12;
+
+/// const for the unit_sphere method
+const SPH_LONS: usize = 12;
+const SPH_LATS: usize = 6;
+```
+
+## Step 2 — the anchor state + the 20× cheaper rebuild: `gpu/mod.rs`
+
+**2a. The field.** In `pub struct Gpu`, find:
+
+```rust
+    instances: Vec<Instance>,
+    objects_base: Vec<(Xform, [f32; 4])>, // TRUE world model+color; isntance[] is rebased from this
+```
+
+Insert between the two lines:
+
+```rust
+    last_origin: Option<Point>, // rebuild_instances skips when the camera target did not move
+```
+
+**2b. The initializer.** In the `Ok(Self { … })` at the end of `new()`, find:
+
+```rust
+            instances,
+            objects_base,
+```
+
+Insert between the two lines:
+
+```rust
+            last_origin: None,
+```
+
+**2c. The public entry.** Find the seam between `new()`'s end and `rebuild_instances` — the
+lines:
+
+```rust
+         })
+
+    }
+
+    /// Rebase every instance's translation around 'origin' - an f64 subtract agains the TRUE world transfrom in 'objects_base'
+```
+
+Insert the new method between the `}` and the doc comment:
+
+```rust
+    /// The anchor the instance table is rebased about.
+    /// A full rebuild (42 000 x at stress scale) runs only when the camera target strays
+    /// REANCHOR_DIST from the current anchor - orbit never moves the target,
+    /// and pan/zoom within the budget just changes the view matrix.
+    pub fn rebase_anchor(&mut self, origin: &Point) -> Point{
+        let need = match &self.last_origin {
+            None => true,
+            Some(a) => {
+                let (dx, dy, dz) = (a[0] - origin[0], a[1] - origin[1], a[2] - origin[2]);
+                (dx * dx + dy * dy + dz * dz).sqrt() > REANCHOR_DIST
+            }
+        };
+        if need {
+            self.rebuild_instances(origin);
+        }
+        self.last_origin.clone().unwrap()
+    }
+```
+
+**2d. The rebuild gets 20× cheaper.** `T(-origin) × M` only changes the TRANSLATION column of a
+column-major matrix — the old code paid a full 4×4 f64 multiply per object for three
+subtractions' worth of change. Find lesson 33's body:
+
+```rust
+    fn rebuild_instances(&mut self, origin: &Point){
+        let shift = Xform::translation(-origin[0], -origin[1], -origin[2]);
+        for (i, (model, color)) in self.objects_base.iter().enumerate() {
+            self.instances[i].model = (&shift * model).to_f32(); // f64 multiply, f32 cast last
+            self.instances[i].color = *color;
+        }
+        self.queue.write_buffer(&self.instance_buffer, 0, bytemuck::cast_slice(&self.instances));
+    }
+```
+
+Replace with (keep the f64-subtract-then-cast order — that's lesson 33's precision guarantee; it
+also records the anchor now):
 
 ```rust
     fn rebuild_instances(&mut self, origin: &Point){
@@ -52,76 +173,106 @@ precision guarantee):
     }
 ```
 
-## Step 2 — the anchor: `gpu/mod.rs`
-
-**2a. A constant next to the others**, and a field next to `instances`:
+**2e. `clear()` stops rebuilding.** Inside `pub fn clear`, find the line lesson 33 added between
+the time write and the mvp write:
 
 ```rust
-/// Re-anchor distance: the instance table is rebased about a snapped ANCHOR; the camera target can
-/// drift this far (mm) before a full rebuild. Within it, pan/zoom only changes the view matrix.
-/// f32 error at 1e5 mm from the anchor ≈ 6e-3 mm — far below a pixel.
-const REANCHOR_DIST: f64 = 1.0e5;
+        self.rebuild_instances(origin); // Make sure objects are displayed within limits, we rebuild buffers here to avoid camera wiggle!
 ```
 
+**Delete it** — rebasing is `rebase_anchor`'s job now, called from `render()` (Step 4).
+`clear()`'s signature keeps its (now unused) `origin: &Point` parameter — expect an
+`unused variable: origin` warning from here on; `state.rs` keeps passing `&origin`, so no call
+site changes.
+
+## Step 3 — the camera renders about the anchor: `src/camera.rs`
+
+Lesson 33's `view_proj` built eye/target relative to `origin()` (the target). Generalize it.
+**Find the whole function:**
+
 ```rust
-    last_origin: Option<Point>, // rebuild_instances skips when the camera target didn't move
-```
-
-(add `last_origin: None,` to the `Ok(Self { … })` initializer.)
-
-**2b. The public entry — add above `rebuild_instances`:**
-
-```rust
-    /// The anchor the instance table is rebased about. A full rebuild (42k× at stress scale) runs
-    /// ONLY when the camera target strays REANCHOR_DIST from the current anchor — orbit never
-    /// moves the target, and pan/zoom within the budget just changes the view matrix.
-    pub fn rebase_anchor(&mut self, origin: &Point) -> Point {
-        let need = match &self.last_origin {
-            None => true,
-            Some(a) => {
-                let (dx, dy, dz) = (a[0] - origin[0], a[1] - origin[1], a[2] - origin[2]);
-                (dx * dx + dy * dy + dz * dz).sqrt() > REANCHOR_DIST
-            }
+    pub fn view_proj(&self, aspect: f64) -> Xform {
+        let dist = self.distance;
+        let projection = if self.perspective {
+            Xform::perspective(f64::to_radians(60.0), aspect, dist * 10.0, dist * 0.01)
+        } else {
+            let h = dist * f64::to_radians(30.0).tan();
+            let r = dist * 100.0;
+            Xform::orthographic(-aspect * h, aspect * h, -h, h, r, -r)
         };
-        if need { self.rebuild_instances(origin); }
-        self.last_origin.clone().unwrap()
+
+        let origin = self.origin();
+        let eye    = Point::new(self.position[0] - origin[0], self.position[1] - origin[1], self.position[2] - origin[2]);
+        let target = Point::new(self.target[0]   - origin[0], self.target[1]   - origin[1], self.target[2]   - origin[2]);
+        let up     = Vector::new(self.up[0], self.up[1], self.up[2]);
+        let view   = Xform::look_at_right_handed(&eye, &target, &up);
+
+        // units
+        let s = self.unit.to_meters();
+        let scale = Xform::scale_xyz(s, s, s);
+
+        projection * view * scale
     }
 ```
 
-**2c. `clear()` stops rebuilding.** Remove the `self.rebuild_instances(origin);` line and the
-`origin: &Point` parameter — the signature becomes
-`pub fn clear(&mut self, color: wgpu::Color, view_proj: &Xform)`.
-
-## Step 3 — the camera renders about the anchor: `camera.rs`
-
-Lesson 33's `view_proj` built eye/target relative to `origin()` (the target). Generalize it —
-**replace `view_proj` with a wrapper + the anchored variant** (body identical, `origin` → the
-`anchor` parameter):
+Replace with a wrapper + the anchored variant — the body is the same, with `origin` renamed to
+the `anchor` parameter and the `let origin = self.origin();` line gone:
 
 ```rust
     pub fn view_proj(&self, aspect: f64) -> Xform {
         self.view_proj_anchored(aspect, &self.origin())
     }
 
-    /// Like `view_proj`, but camera-relative to a caller-supplied ANCHOR instead of the target.
+    /// Camera-relative to a caller-supplied ANCHOR instead of the target.
     /// Instances rebased about the same anchor stay valid while the target drifts (pan/zoom) —
     /// panning then costs ONE uniform write instead of an instance-table rebuild.
     pub fn view_proj_anchored(&self, aspect: f64, anchor: &Point) -> Xform {
-        // …identical body, with:
+        let dist = self.distance;
+        let projection = if self.perspective {
+            Xform::perspective(f64::to_radians(60.0), aspect, dist * 10.0, dist * 0.01)
+        } else {
+            let h = dist * f64::to_radians(30.0).tan();
+            let r = dist * 100.0;
+            Xform::orthographic(-aspect * h, aspect * h, -h, h, r, -r)
+        };
+
         let eye    = Point::new(self.position[0] - anchor[0], self.position[1] - anchor[1], self.position[2] - anchor[2]);
         let target = Point::new(self.target[0]   - anchor[0], self.target[1]   - anchor[1], self.target[2]   - anchor[2]);
-        // …
+        let up     = Vector::new(self.up[0], self.up[1], self.up[2]);
+        let view   = Xform::look_at_right_handed(&eye, &target, &up);
+
+        // units
+        let s = self.unit.to_meters();
+        let scale = Xform::scale_xyz(s, s, s);
+
+        projection * view * scale
     }
 ```
 
-## Step 4 — the wiring: `state.rs` `render()`
+## Step 4 — the wiring: `src/state.rs` `render()`
+
+Find lesson 33's lines in `render()`:
 
 ```rust
+        let view_proj = self.camera.view_proj(aspect);
+        let origin = self.camera.origin();
+        self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj, &origin)
+```
+
+Insert two lines between `let origin = …;` and the `clear` call, so the tail of `render()` reads:
+
+```rust
+        let view_proj = self.camera.view_proj(aspect);
         let origin = self.camera.origin();
         let anchor = self.gpu.rebase_anchor(&origin);
         let view_proj = self.camera.view_proj_anchored(aspect, &anchor);
-        self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj)
+        self.gpu.clear(wgpu::Color { r: 0.9, g: 0.9, b: 0.9, a: 1.0 }, &view_proj, &origin)
+    }
 ```
+
+The second `let view_proj` shadows the first — the anchored matrix is the one `clear` receives
+(the compiler warns `unused variable: view_proj` on the first; that's expected). The `clear` call
+itself is untouched (it still passes `&origin`, per Step 2e).
 
 The math: when `anchor == origin` this is bit-identical to lesson 33. When the target drifts, the
 instances stay put and the view matrix absorbs the difference — same final transform, since
@@ -129,7 +280,9 @@ instances stay put and the view matrix absorbs the difference — same final tra
 
 ## Verify
 
-Load `30700_querschnitt_gg.pb` (42k objects). Before: 0.1 fps. After: **~120 fps orbit and idle**,
+`cargo check --target wasm32-unknown-unknown` — clean except the two expected warnings (unused
+`origin` in `clear()`, unused first `view_proj` in `render()`). Load
+`30700_querschnitt_gg.pb` (42k objects). Before: 0.1 fps. After: **~120 fps orbit and idle**,
 pan/zoom smooth (the only rebuild left is crossing 100m of target drift — try panning kilometers
 to see one). Measured on the 9-drawing wall (34e): 503k objects, rebuild never fires in normal use.
 
@@ -144,8 +297,9 @@ Ch 34c: FLOATING ANCHOR. rebuild_instances = translation-column subtract (f64, c
         still small numbers near the anchor.
 ```
 
-Edited: `gpu/mod.rs` (`REANCHOR_DIST`, `last_origin`, `rebase_anchor`, cheap rebuild, `clear()`
-signature), `camera.rs` (`view_proj_anchored`), `state.rs` (anchor dance).
+Edited: `engine/gpu/mod.rs` (consts to the top, `REANCHOR_DIST`, `last_origin`, `rebase_anchor`,
+cheap rebuild, `clear()` drops its rebuild call), `camera.rs` (`view_proj_anchored`), `state.rs`
+(anchor dance).
 
 ## Next
 

@@ -146,10 +146,10 @@ impl State {
 
     pub(crate) fn edit_surface_mut(&mut self, guid: &str) -> Option<&mut session_rust::NurbsSurface> {
         if self.scene.session.objects.nurbssurfaces.iter().any(|x| x.guid() == guid) {
-            return self.scene.session.objects.nurbssurfaces.iter_mut().find(|x| x.guid() == guid);
+            return self.scene.session.objects.nurbssurfaces.iter_mut().find(|x| x.guid() == guid).map(|x| std::rc::Rc::make_mut(x));
         }
         self.scene.session.objects.nurbssurfacetrimmeds.iter_mut()
-            .find(|t| t.guid() == guid).map(|t| &mut t.m_surface)
+            .find(|t| t.guid() == guid).map(|t| &mut std::rc::Rc::make_mut(t).m_surface)
     }
 
     /// Re-upload a surface guid to the GPU after an edit — using the trimmed path if it is a
@@ -843,6 +843,7 @@ impl State {
                     let mut deforms: Vec<(usize, [f64; 3], f64, f64, Vec<((usize, usize), [f64; 3])>)> = Vec::new();
                     if !refits.is_empty() {
                         if let Some(Geometry::BRep(b)) = self.scene.session.lookup.get_mut(&guid) {
+                            let b = std::rc::Rc::make_mut(b); // COW split before in-place edit
                             for (c2i, fs) in &refits {
                                 b.m_surfaces[*fs].increase_degree(0, 4);
                                 b.m_surfaces[*fs].increase_degree(1, 4);
@@ -1035,6 +1036,7 @@ impl State {
     fn apply_brep_face_deform(&mut self, delta: &[[f32; 4]; 4]) {
         let guid = match &self.edit.target { Some(g) => g.clone(), None => return };
         if let Some(Geometry::BRep(b)) = self.scene.session.lookup.get_mut(&guid) {
+            let b = std::rc::Rc::make_mut(b); // COW split before in-place edit
             for (fs, center, r_in, r_out, cvs) in &self.edit.editpt_face_deform {
                 let span = (r_out - r_in).max(1e-9);
                 for &((i, j), p) in cvs {
@@ -1063,6 +1065,7 @@ impl State {
         match kind {
             EditKind::Mesh => {
                 if let Some(Geometry::Mesh(m)) = self.scene.session.lookup.get_mut(&guid) {
+                    let m = std::rc::Rc::make_mut(m); // COW split before in-place edit
                     for n in &self.edit.nodes {
                         if let NodeAddr::MeshVertex(k) = n.addr {
                             if let Some(v) = m.vertex.get_mut(&k) {
@@ -1091,6 +1094,7 @@ impl State {
             }
             EditKind::Polyline => {
                 if let Some(Geometry::Polyline(pl)) = self.scene.session.lookup.get_mut(&guid) {
+                    let pl = std::rc::Rc::make_mut(pl); // COW split before in-place edit
                     for n in &self.edit.nodes {
                         if let NodeAddr::PolyPoint(i) = n.addr {
                             pl.set_point(i, &Point::new(n.world[0], n.world[1], n.world[2]));
@@ -1125,7 +1129,7 @@ impl State {
                 };
                 let curve = {
                     let nc = match self.scene.session.objects.nurbscurves.iter_mut().find(|n| n.guid() == guid) {
-                        Some(n) => n, None => return,
+                        Some(n) => std::rc::Rc::make_mut(n), None => return,
                     };
                     if let Some(deltas) = &editpt_deltas {
                         for (a, (addr, base, w)) in self.edit.editpt_cv.iter().enumerate() {
@@ -1276,6 +1280,7 @@ impl State {
                     self.scene.gpu_session.tess_chord_factor as f64,
                 );
                 if let Some(Geometry::BRep(b)) = self.scene.session.lookup.get_mut(&guid) {
+                    let b = std::rc::Rc::make_mut(b); // COW split before in-place edit
                     let inv = b.xform.inverse().map(|x| x.to_cols());
                     for n in &self.edit.nodes {
                         if let NodeAddr::BRepCv(si, i, j) = n.addr {
@@ -1345,6 +1350,7 @@ impl State {
         match kind {
             EditKind::Mesh => {
                 if let Some(Geometry::Mesh(m)) = self.scene.session.lookup.get_mut(&guid) {
+                    let m = std::rc::Rc::make_mut(m); // COW split before in-place edit
                     for n in &self.edit.nodes {
                         if let NodeAddr::MeshVertex(k) = n.addr {
                             if let Some(v) = m.vertex.get_mut(&k) {
@@ -1361,6 +1367,7 @@ impl State {
             }
             EditKind::Polyline => {
                 if let Some(Geometry::Polyline(pl)) = self.scene.session.lookup.get_mut(&guid) {
+                    let pl = std::rc::Rc::make_mut(pl); // COW split before in-place edit
                     for n in &self.edit.nodes {
                         if let NodeAddr::PolyPoint(i) = n.addr {
                             pl.set_point(i, &Point::new(n.world[0], n.world[1], n.world[2]));
@@ -1375,6 +1382,7 @@ impl State {
                 let skip: std::collections::HashSet<usize> =
                     self.edit.editpt_face_deform.iter().map(|(fs, ..)| *fs).collect();
                 if let Some(Geometry::BRep(b)) = self.scene.session.lookup.get_mut(&guid) {
+                    let b = std::rc::Rc::make_mut(b); // COW split before in-place edit
                     let inv = b.xform.inverse().map(|x| x.to_cols());
                     for n in &self.edit.nodes {
                         if let NodeAddr::BRepCv(si, i, j) = n.addr {
@@ -1432,7 +1440,7 @@ impl State {
             }
             EditKind::NurbsCurve => {
                 let clone = {
-                    let nc = self.scene.session.objects.nurbscurves.iter_mut().find(|n| n.guid() == guid);
+                    let nc = self.scene.session.objects.nurbscurves.iter_mut().find(|n| n.guid() == guid).map(|n| std::rc::Rc::make_mut(n));
                     match nc {
                         Some(nc) => {
                             for n in &self.edit.nodes {
@@ -1537,7 +1545,7 @@ impl State {
             return Some(EditSnapshot::Nurbs(s.clone()));
         }
         if let Some(c) = self.scene.session.objects.nurbscurves.iter().find(|n| n.guid() == guid) {
-            return Some(EditSnapshot::Curve(c.clone()));
+            return Some(EditSnapshot::Curve((**c).clone()));
         }
         None
     }
@@ -1558,7 +1566,7 @@ impl State {
             }
             EditSnapshot::Curve(c) => {
                 if let Some(slot) = self.scene.session.objects.nurbscurves.iter_mut().find(|n| n.guid() == guid) {
-                    *slot = c.clone();
+                    *slot = std::rc::Rc::new(c.clone());
                 }
                 self.scene.gpu_session.add_nurbscurve(c, &self.gpu.device, &self.gpu.queue);
             }

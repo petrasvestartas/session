@@ -150,7 +150,7 @@
     "group": "Point",
     "test_name": "Json Roundtrip",
     "passed": true,
-    "time_ms": 0.072,
+    "time_ms": 0.079,
     "line": 100,
     "code": "        // uncomment #include \"point.h\"\n        // uncomment #include \"color.h\"\n\n        Point p(1.5, 2.5, 3.5);\n        p.name = \"test_point\";\n        p.width = 2.0;\n        p.pointcolor = Color(1.0f, 0.5f, 0.25f, 1.0f);\n\n        //   jsondump()      │ ordered_json │ to JSON object (internal use)\n        //   jsonload(j)     │ ordered_json │ from JSON object (internal use)\n        //   file_json_dumps()    │ std::string  │ to JSON string\n        //   file_json_loads(s)   │ std::string  │ from JSON string\n        //   file_json_dump(path) │ file         │ write to file\n        //   file_json_load(path) │ file         │ read from file\n\n        std::string filename = \"serialization/test_point.json\";\n        p.file_json_dump(filename);\n        Point loaded = Point::file_json_load(filename);\n",
     "checks": [
@@ -315,7 +315,7 @@
     "group": "Point",
     "test_name": "Squared Distance",
     "passed": true,
-    "time_ms": 0.001,
+    "time_ms": 0.0,
     "line": 191,
     "code": "        // uncomment #include \"point.h\"\n\n        Point p0(0.0, 2.0, 1.0);\n        Point p1(1.0, 5.0, 3.0);\n        double d = Point::squared_distance(p0, p1);",
     "checks": [

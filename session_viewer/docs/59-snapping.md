@@ -33,6 +33,8 @@ src/app/commands.rs # `snap` on|off verb registration (Step 2)
 
 ## Step 1 — kinds and candidates: `src/app/snap.rs` (NEW)
 
+Create the file and register it: `pub mod snap;` in `src/app/mod.rs`.
+
 The archive's `SnapKind` carries a **priority** — when an endpoint and a grid crossing both fall
 inside the radius, the endpoint must win even if the grid point is a pixel closer. Rank first,
 distance second:
@@ -111,28 +113,46 @@ pub fn snap(scene: &Scene, raw: &Point, cursor: (f64, f64), view_proj: &Xform, o
 }
 ```
 
-(`query_box_around` builds a small world `OBB` around `raw` — a few hundred units, or 44's
-`world_per_pixel × SNAP_PX` scaled to depth — and reuses 36's `objects_in`. The mesh arm transforms
-local vertices by `mesh.xform` — same world-frame discipline as 36/43; skipping it snaps to where the
-mesh *isn't*.)
+`query_box_around` builds a small world `OBB` around `raw` and reuses 36's `objects_in` — add it
+below `snap` in `snap.rs` (grow the file's imports: `use session_rust::{AABB, OBB};`):
+
+```rust
+/// Broad-phase box for snap candidates: a few grid cells around the raw point.
+fn query_box_around(raw: &Point, _scene: &Scene) -> OBB {
+    let r = GRID_STEP * 2.0;
+    OBB::from_aabb(AABB::new(raw[0], raw[1], raw[2], r, r, r))   // center + half-extents
+}
+```
+
+(The mesh arm transforms local vertices by `mesh.xform` — same world-frame discipline as 36/43;
+skipping it snaps to where the mesh *isn't*.)
 
 ## Step 2 — one call site: `src/state.rs`
 
-`cursor_world_point()` — the function 48's clicks and 58's `on_move` both already use — grows two
-lines, and every tool inherits snapping:
+`cursor_world_point()` — the function 48's clicks and 58's `on_move` both already use — grows a
+snap tail, and every tool inherits snapping. In 58's body, the pick-or-z=0 code stays untouched;
+what changes is that its two exits converge on one `raw` point that snap filters. Find 58's
+`if let Some(hit) = self.scene.pick_ray(&ray, tol) { return Some(hit.point); }` and everything
+below it → replace with:
 
 ```rust
-    fn cursor_world_point(&mut self) -> Option<Point> {
-        let raw = /* pick_ray hit point, else ray ∩ z=0 — unchanged (48) */;
+        let raw = if let Some(hit) = self.scene.pick_ray(&ray, tol) {
+            hit.point
+        } else {
+            // empty space: intersect the ground plane z = 0 (58, unchanged)
+            if ray.dir[2].abs() < 1e-12 { return None; }
+            let t = -ray.origin[2] / ray.dir[2];
+            if t < 0.0 { return None; }
+            Point::new(ray.origin[0] + t * ray.dir[0], ray.origin[1] + t * ray.dir[1], 0.0)
+        };
         if !self.snap_enabled { self.snap_marker = None; return Some(raw); }
         let vp = self.camera.view_proj(self.aspect());              // same trio as 41/42
         let origin = self.camera.origin();
         let viewport = (0.0, 0.0, self.gpu.config.width as f64, self.gpu.config.height as f64);
         let (p, kind) = crate::app::snap::snap(&self.scene, &raw, self.cursor,
                                                &vp, &origin, viewport);
-        self.snap_marker = kind.map(|k| (p.clone(), k));           // the live marker (Step 3)
+        self.snap_marker = kind.map(|k| (p.clone(), k));            // the live marker (Step 3)
         Some(p)
-    }
 ```
 
 Both fields are new: add `snap_enabled: bool` and `snap_marker: Option<(Point, SnapKind)>` to
@@ -143,13 +163,60 @@ otherwise the `self.snap_enabled` / `self.snap_marker` above don't exist. `state
 Plus a `snap` verb in the registry — `"snap"` toggles `snap_enabled` and logs the state (`VERBS` too).
 This is the CLI-option pattern from 48; a per-kind toggle UI can wait for the settings panel.
 
-## Step 3 — the marker: `src/state.rs`
+## Step 3 — the marker: `src/engine/gpu/mod.rs` + `src/state.rs`
 
-Users trust snap only when they can *see* it. Reuse the preview machinery (58): when `snap_marker` is
-set during an active command, append one white glyph at the snap point to the preview upload
-(`GlyphPoint { center, radius: SPHERE-ish px, color: white }` on the preview row) — and the CLI
-prompt can suffix the kind: `line: pick TO point  [End]`. Both are two lines where the ghost is
-already built; no new pipeline, no new pass.
+Users trust snap only when they can *see* it. One white glyph at the snap point — 58's preview
+table holds *segments*, so the marker gets its own one-glyph slot, the same fixed-capacity pattern
+a third time. In `Gpu`: fields `pub marker_buffer: wgpu::Buffer, pub marker_bind_group:
+wgpu::BindGroup, pub marker_count: u32` (buffer = `storage_buffer(&device, "snap.marker",
+&vec![GlyphPoint::zeroed(); 1])`, bind group on `glyph_layout`, created beside 58's preview pair;
+all three into `Ok(Self { … })`), plus:
+
+```rust
+    /// The snap marker: one white glyph, or none.
+    pub fn set_snap_marker(&mut self, at: Option<[f32; 3]>) {
+        match at {
+            Some(center) => {
+                let g = GlyphPoint { center, radius: 6.0, color: [1.0, 1.0, 1.0, 1.0],
+                                     instance_id: self.preview_row, _pad: [0; 3] };
+                self.queue.write_buffer(&self.marker_buffer, 0, bytemuck::bytes_of(&g));
+                self.marker_count = 1;
+            }
+            None => self.marker_count = 0,
+        }
+    }
+```
+
+Draw it right after 58's ghost block in `clear()` — same shape, sphere pipeline:
+
+```rust
+            if self.marker_count > 0 {
+                pass.set_pipeline(&self.pipelines.sphere);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.marker_bind_group, &[]);
+                pass.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
+                pass.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..self.sph_index_count, 0, 0..1);
+                draws += 1;
+            }
+```
+
+In `state.rs`, the cursor-move handler (right after 58's `on_move` forwarding block) pushes the
+marker every move a command is listening:
+
+```rust
+        // 59: show (or clear) the live snap marker
+        let m = if self.active.is_some() {
+            self.snap_marker.as_ref().map(|(p, _)| p.to_f32())
+        } else { None };
+        self.gpu.set_snap_marker(m);
+```
+
+And the CLI prompt can suffix the kind — `line: pick TO point  [End]` — by appending
+`self.snap_marker.as_ref().map(|(_, k)| format!("  [{}]", k.label()))` where `set_prompt` (48)
+writes `self.ui.prompt`.
 
 ## Step 4 — verify
 

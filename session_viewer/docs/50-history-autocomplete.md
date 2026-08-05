@@ -31,7 +31,7 @@ pub fn resolve(verb: &str) -> &str {
 }
 ```
 
-and at the top of `dispatch`:
+and at the top of `dispatch`, replace 48's `let verb = parts.next().unwrap_or("");` with:
 
 ```rust
     let verb = resolve(parts.next().unwrap_or(""));   // ← aliases resolved once, here
@@ -66,17 +66,18 @@ egui's `TextEdit` consumes arrow keys for cursor movement, so intercept **before
 widget. The panel gains a cursor into history (`None` = live line) and a stash of what was typed
 before the walk began:
 
-First, two new fields on `UiState` (find the `struct UiState` beside `input` — add these, and
-default both in `UiState::new`/`Default`, `hist_cursor: None` and `stash: String::new()`):
+First, two new fields on `UiState` (find `pub input: String,` in `struct UiState` and add these
+after it; then add `hist_cursor: None, stash: String::new(),` to the `UiState { … }` literal in
+`State::new`, 47):
 
 ```rust
     pub hist_cursor: Option<usize>,   // index into cli_history while walking; None = editing a fresh line
     pub stash: String,                // the fresh line saved when ↑ starts, restored past the end
 ```
 
-Now `cli_panel`. Note the `history: &[String]` param is just a borrow of the caller's
-`cli_history` — the field rename from Step 2 only lives on `State`; inside this function it reads as
-`history`:
+Now replace 48's `cli_panel` wholesale with the version below. Note the `history: &[String]`
+param is just a borrow of the caller's `cli_history` — the field rename from Step 2 only lives on
+`State`; inside this function it reads as `history`:
 
 ```rust
 pub fn cli_panel(ctx: &egui::Context, input: &mut String, hist_cursor: &mut Option<usize>,
@@ -112,14 +113,13 @@ pub fn cli_panel(ctx: &egui::Context, input: &mut String, hist_cursor: &mut Opti
             }
         }
         if tab && !input.is_empty() {
-            // prefix-complete over canonical verbs; unique match wins, ambiguity shows candidates
+            // prefix-complete over canonical verbs — a UNIQUE match wins, nothing else fires
             let hits: Vec<&str> = crate::app::commands::VERBS.iter().copied()
                 .filter(|v| v.starts_with(input.as_str())).collect();
             match hits.len() {
                 1 => { *input = hits[0].to_string(); input.push(' '); }
-                n if n > 1 => {
-                    /* show candidates in the log line via return channel, or ui.label */
-                }
+                // ambiguous ("h" → help/hide) or no match: leave the line as typed —
+                // the user types one more letter (see Verify)
                 _ => {}
             }
         }

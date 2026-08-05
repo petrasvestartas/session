@@ -17,40 +17,154 @@ capsule ribbons       28 ms/frame (5.3×)   user's GPU            ~18 ms
 ## Files we touch
 
 ```
-src/engine/gpu/mod.rs           # CYL_SIDES 6, LINEWORK_SOLID switch, LineUniform + vp_w,
-                                # mode-aware draws, planar paper-width pass
-src/engine/gpu/adapters.rs      # encode_width — kernel width enters the radius encoding
-src/shaders/ribbon.wgsl         # NEW — capsule edge quads (round caps!)
-src/shaders/glyph.wgsl          # NEW — SDF circle dots (1 triangle)
-src/engine/pipelines/build.rs   # build_ribbon_pipeline + build_glyph_pipeline
-src/engine/pipelines/mod.rs     # ribbon + glyph fields; cylinder + sphere STAY
-src/shaders/cylinder.wgsl       # LineUniform struct sync (32 B)
-src/shaders/sphere.wgsl         # LineUniform struct sync
+src/engine/gpu/mod.rs           # Step 1: CYL_SIDES 6 + LINEWORK_SOLID · Step 2: LineUniform+vp_w
+                                # Step 5: mode-aware draws · Step 6b: planar paper-width pass
+src/shaders/cylinder.wgsl       # Step 2: LineUniform struct sync (32 B)
+src/shaders/sphere.wgsl         # Step 2: LineUniform struct sync
+src/shaders/ribbon.wgsl         # Step 3: NEW — capsule edge quads (round caps!)
+src/shaders/glyph.wgsl          # Step 3: NEW — SDF circle dots (1 triangle)
+src/engine/pipelines/build.rs   # Step 4: build_ribbon_pipeline + build_glyph_pipeline
+src/engine/pipelines/mod.rs     # Step 4: ribbon + glyph fields; cylinder + sphere STAY
+src/engine/gpu/adapters.rs      # Step 6a: encode_width — kernel width enters the radius encoding
 ```
 
-## Step 1 — the free 2×: `CYL_SIDES` 12 → 6
+## Step 1 — two consts: `src/engine/gpu/mod.rs`
 
 Screen-constant thickness means the cross-section is never visibly round — 12 sides is waste at
-every zoom. **One constant** (`gpu/mod.rs`): 48→24 tris/segment, pixels identical, measured 2×.
-
-## Step 2 — `LineUniform` grows `vp_w`
-
-Flat shapes offset corners in CLIP space — pixels→NDC needs BOTH viewport axes. Grow the struct
-to two vec4s (uniform sizes are 16-byte multiples) in `gpu/mod.rs`:
+every zoom (48→24 tris/segment, pixels identical, measured 2×). And the whole lesson hangs off
+one switch, so add it in the same visit. **Find at the top of the file:**
 
 ```rust
+/// const for the unit_cylinder method
+const CYL_SIDES: u32 = 12;
+```
+
+**Replace with** (the switch does nothing until Step 5 branches on it):
+
+```rust
+/// const for the unit_cylinder method
+const CYL_SIDES: u32 = 6;
+
+/// Linework style switch. Thickness is screen-constant px in BOTH modes, so at 2-4px the two are
+/// pixel-identical — but not cost-identical:
+/// `false` (default): FLAT — camera-facing ribbon edges (2 tris/segment) + circle-glyph dots
+///                    (1 tri/dot). 598k segments ≈ 1.2M tris.
+/// `true`:            SOLID — 3D cylinder edges + sphere dots. 598k segments ≈ 14M tris —
+///                    measured ~5x slower at stress scale; kept for close-up/handle work.
+const LINEWORK_SOLID: bool = false;
+```
+
+## Step 2 — `LineUniform` grows `vp_w` (five small edits, 1 struct + 2 write sites + 2 shaders)
+
+Flat shapes offset corners in CLIP space — pixels→NDC needs BOTH viewport axes. Uniform sizes are
+16-byte multiples, so the struct grows from one vec4 to two.
+
+**2a. The Rust struct.** Near the bottom of `gpu/mod.rs`, find:
+
+```rust
+struct LineUniform{
+    thickness: f32, // on-screwwn width, px
+    proj_y: f32, // vertical projection scale x unit scale
+    ortho_h: f32, // ortho world half.heigh x unit scale
+    vp_h: f32, // framebuffer height, px
+} // 16 B - one vec4, no padding
+```
+
+Replace the last two lines (`vp_h: …` and the closing `}`) so it reads:
+
+```rust
+struct LineUniform{
+    thickness: f32, // on-screwwn width, px
+    proj_y: f32, // vertical projection scale x unit scale
+    ortho_h: f32, // ortho world half.heigh x unit scale
+    vp_h: f32, // framebuffer height, px
     vp_w: f32, // framebuffer width, px - flat linework needs the aspect
     _pad: [f32; 3],
 } // 32 B - two vec4s
 ```
 
-Fill `vp_w`/`_pad` at BOTH write sites (init in `new()`, per-frame in `clear()`), and add the two
-fields to the `LineUniform` mirror structs in `cylinder.wgsl` and `sphere.wgsl` — a mismatched
-uniform struct is a pipeline-creation error, and both 3D pipelines still build (they're kept).
+**2b. Write site 1 — `new()`.** Find (inside the `line_buffer` init; note `vp_h` has no comma):
 
-## Step 3 — the capsule ribbon: `src/shaders/ribbon.wgsl` (NEW)
+```rust
+            contents: bytemuck::bytes_of(&LineUniform {
+                thickness: 2.0,
+                proj_y: 1.0,
+                ortho_h: 0.0,
+                vp_h: config.height as f32
+            }),
+```
 
-One segment = 6 buffer-less verts (2 triangles) forming a screen-space **capsule**: the quad is
+Replace with:
+
+```rust
+            contents: bytemuck::bytes_of(&LineUniform {
+                thickness: 2.0,
+                proj_y: 1.0,
+                ortho_h: 0.0,
+                vp_h: config.height as f32,
+                vp_w: config.width as f32,
+                _pad: [0.0; 3],
+            }),
+```
+
+**2c. Write site 2 — `clear()`.** Find:
+
+```rust
+            ortho_h: 0.0, // perspective, set the ortho half-height when ortho
+            vp_h: self.config.height as f32,
+        };
+```
+
+Replace with:
+
+```rust
+            ortho_h: 0.0, // perspective, set the ortho half-height when ortho
+            vp_h: self.config.height as f32,
+            vp_w: self.config.width as f32,
+            _pad: [0.0; 3],
+        };
+```
+
+**2d. Mirror in `src/shaders/cylinder.wgsl`.** Find:
+
+```wgsl
+struct LineUniform{
+    thickness: f32, // desired on-screen width, in pixels
+    proj_y: f32, // vertical projection scale + unit scale (perspective: cot(fovy)/2) mm > m)
+    ortho_h: f32, // ortho world-height * unit scale; 0.0 in perspcetive
+    vp_h: f32, // framebuffer height, in pixels
+};
+```
+
+Add four fields before the closing `};`:
+
+```wgsl
+    vp_w: f32,
+    _pad0: f32,
+    _pad1: f32,
+    _pad2: f32,
+```
+
+**2e. Mirror in `src/shaders/sphere.wgsl`.** Find:
+
+```wgsl
+struct LineUniform{
+    thickness: f32,
+    proj_y: f32,
+    ortho_h: f32,
+    vp_h: f32,
+};
+```
+
+Add the same four fields before the closing `};`.
+
+A mismatched uniform struct is a pipeline-creation error at startup — after this step both 3D
+pipelines still build, and `cargo check` passes again.
+
+## Step 3 — two NEW shader files
+
+**Create `src/shaders/ribbon.wgsl`** (next to `cylinder.wgsl`) with exactly this content. One
+segment = 6 buffer-less verts (2 triangles) forming a screen-space **capsule**: the quad is
 extruded perpendicular to the segment's SCREEN direction (always camera-facing), extended
 half-width past both ends, and the fragment shader rounds the caps with an SDF — **round line
 ends**, and polyline corners join smoothly because neighbouring caps overlap. Depth comes from
@@ -147,51 +261,354 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32>{
 }
 ```
 
-**`src/shaders/glyph.wgsl` (NEW)** — the dot sibling: 32b's 3-corner triangle whose incircle is
-the disc, reading the GLYPH table, `px = line.thickness` with the same world-radius override,
-opaque + depth-writing, SDF `discard` past radius 1 in corner space. (It is `point.wgsl` with the
-glyph table, no blending, and depth writes on.)
+**Create `src/shaders/glyph.wgsl`** — the dot sibling: 32b's 3-corner triangle whose incircle is
+the disc, reading the GLYPH table, opaque + depth-writing, SDF `discard` past radius 1 in corner
+space:
 
-## Step 4 — pipelines + the switch
+```wgsl
+@group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
+@group(1) @binding(0) var<uniform> line: LineUniform;
 
-**4a. `build.rs`**: `build_ribbon_pipeline` + `build_glyph_pipeline` — copies of
-`build_point_pipeline` with their own labels/shaders, `blend: None`, `depth_write_enabled:
-Some(true)`, and ribbon binding the SEGMENT layout at group 3.
-**4b. `pipelines/mod.rs`**: two imports, two fields (`ribbon`, `glyph`), two build calls —
-`cylinder` and `sphere` keep theirs.
-**4c. `gpu/mod.rs`** — the switch, next to the other consts:
+struct Instance{
+    model: mat4x4<f32>,
+    color: vec4<f32>,
+    flags: u32,
+};
+@group(2) @binding(0) var<storage, read> instances: array<Instance>;
 
-```rust
-/// Linework style switch. Thickness is screen-constant px in BOTH modes, so at 2-4px the two are
-/// pixel-identical — but not cost-identical:
-/// `false` (default): FLAT — camera-facing ribbon edges (2 tris/segment) + circle-glyph dots
-///                    (1 tri/dot). 598k segments ≈ 1.2M tris.
-/// `true`:            SOLID — 3D cylinder edges + sphere dots. 598k segments ≈ 14M tris —
-///                    measured ~5x slower at stress scale; kept for close-up/handle work.
-const LINEWORK_SOLID: bool = false;
+// Matches the Rust GlyphPoint (48 B) — same table the sphere pipeline reads.
+struct GlyphPoint{
+    center: vec3<f32>,
+    radius: f32,
+    color: vec4<f32>,
+    instance_id: u32,
+};
+@group(3) @binding(0) var<storage, read> glyphs: array<GlyphPoint>;
+
+struct LineUniform{
+    thickness: f32, proj_y: f32, ortho_h: f32, vp_h: f32,
+    vp_w: f32, _pad0: f32, _pad1: f32, _pad2: f32,
+};
+
+// 32b's equilateral triangle: the INCIRCLE (radius 1 in corner space) is the visible dot.
+const CORNERS = array<vec2<f32>, 3>(
+    vec2<f32>( 0.0,        2.0),
+    vec2<f32>(-1.7320508, -1.0),
+    vec2<f32>( 1.7320508, -1.0),
+);
+
+struct VsOut {
+    @builtin(position) pos: vec4<f32>,
+    @location(0) color: vec4<f32>,
+    @location(1) corner: vec2<f32>,
+};
+
+@vertex
+fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
+    let g = glyphs[vid / 3u];   // 3 verts per dot
+    let model = instances[g.instance_id].model;
+    let world = (model * vec4<f32>(g.center, 1.0)).xyz;
+    let clip = mvp * vec4<f32>(world, 1.0);
+
+    // px radius: global thickness, or a world radius projected (>0) — the same inverse of
+    // cylinder.wgsl's screen_radius that ribbon.wgsl uses.
+    var px = line.thickness;
+    if (g.radius > 0.0) {
+        if (line.ortho_h > 0.0) {
+            px = g.radius * line.vp_h / line.ortho_h;
+        } else {
+            px = g.radius * line.proj_y * line.vp_h / max(clip.w, 1e-6);
+        }
+        px = max(px, 0.5);
+    }
+
+    let corner = CORNERS[vid % 3u];
+    let off = corner * px * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * clip.w;
+    var o: VsOut;
+    o.pos = vec4<f32>(clip.xy + off, clip.zw);
+    o.color = g.color;
+    o.corner = corner;
+    return o;
+}
+
+@fragment
+fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
+    if (length(in.corner) > 1.0) { discard; }   // hard SDF edge — opaque, depth-writing
+    return in.color;
+}
 ```
 
-and in `clear()`, both linework blocks branch on it inside their 34b count-guards — SOLID keeps
-the exact template draws, FLAT drops the template buffers:
+## Step 4 — pipelines
+
+**4a. `src/engine/pipelines/build.rs`** — paste both builders at the very END of the file, after
+`build_point_pipeline`'s closing `}`. Both are buffer-less (verts come from `vertex_index`),
+opaque (`blend: None`), and depth-writing — linework occludes like the cylinders did:
 
 ```rust
+/// Pipeline for flat capsule ribbons — buffer-less, 6 verts/segment, opaque, depth-writing.
+pub fn build_ribbon_pipeline(
+    device: &wgpu::Device,
+    color_format: wgpu::TextureFormat,
+    mvp_layout: &wgpu::BindGroupLayout,
+    line_layout: &wgpu::BindGroupLayout,
+    instance_layout: &wgpu::BindGroupLayout,
+    segment_layout: &wgpu::BindGroupLayout,
+) -> wgpu::RenderPipeline {
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("ribbon.shader"),
+        source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/ribbon.wgsl").into()),
+    });
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("ribbon.layout"),
+        bind_group_layouts: &[Some(mvp_layout), Some(line_layout), Some(instance_layout),
+            Some(segment_layout)],
+        immediate_size: 0,
+    });
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("ribbon"),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState {
+            module: &shader,
+            entry_point: Some("vs_main"),
+            buffers: &[],                          // buffer-less — no template
+            compilation_options: Default::default(),
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &shader,
+            entry_point: Some("fs_main"),
+            targets: &[Some(wgpu::ColorTargetState {
+                format: color_format,
+                blend: None,                       // opaque ink
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+            compilation_options: Default::default(),
+        }),
+        primitive: wgpu::PrimitiveState {
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: None,
+            polygon_mode: wgpu::PolygonMode::Fill,
+            unclipped_depth: false,
+            conservative: false,
+        },
+        depth_stencil: Some(wgpu::DepthStencilState {
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: Some(true),       // flat ink still occludes
+            depth_compare: Some(wgpu::CompareFunction::Greater),   // reverse-Z (26)
+            stencil: wgpu::StencilState::default(),
+            bias: wgpu::DepthBiasState::default(),
+        }),
+        multisample: wgpu::MultisampleState { count: MSAA_SAMPLES, mask: !0,
+            alpha_to_coverage_enabled: false },
+        multiview_mask: None,
+        cache: None,
+    })
+}
+
+/// Pipeline for flat SDF dots — the ribbon recipe with the glyph names; GLYPH layout at group 3.
+pub fn build_glyph_pipeline(
+    device: &wgpu::Device,
+    color_format: wgpu::TextureFormat,
+    mvp_layout: &wgpu::BindGroupLayout,
+    line_layout: &wgpu::BindGroupLayout,
+    instance_layout: &wgpu::BindGroupLayout,
+    glyph_layout: &wgpu::BindGroupLayout,
+) -> wgpu::RenderPipeline {
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("glyph.shader"),
+        source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/glyph.wgsl").into()),
+    });
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("glyph.layout"),
+        bind_group_layouts: &[Some(mvp_layout), Some(line_layout), Some(instance_layout),
+            Some(glyph_layout)],
+        immediate_size: 0,
+    });
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("glyph"),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState {
+            module: &shader,
+            entry_point: Some("vs_main"),
+            buffers: &[],
+            compilation_options: Default::default(),
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &shader,
+            entry_point: Some("fs_main"),
+            targets: &[Some(wgpu::ColorTargetState {
+                format: color_format,
+                blend: None,
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+            compilation_options: Default::default(),
+        }),
+        primitive: wgpu::PrimitiveState {
+            topology: wgpu::PrimitiveTopology::TriangleList,
+            strip_index_format: None,
+            front_face: wgpu::FrontFace::Ccw,
+            cull_mode: None,
+            polygon_mode: wgpu::PolygonMode::Fill,
+            unclipped_depth: false,
+            conservative: false,
+        },
+        depth_stencil: Some(wgpu::DepthStencilState {
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: Some(true),
+            depth_compare: Some(wgpu::CompareFunction::Greater),
+            stencil: wgpu::StencilState::default(),
+            bias: wgpu::DepthBiasState::default(),
+        }),
+        multisample: wgpu::MultisampleState { count: MSAA_SAMPLES, mask: !0,
+            alpha_to_coverage_enabled: false },
+        multiview_mask: None,
+        cache: None,
+    })
+}
+```
+
+**4b. `src/engine/pipelines/mod.rs`** — three edits, top to bottom.
+
+Find:
+
+```rust
+use build::build_point_pipeline;
+```
+
+Insert after it:
+
+```rust
+use build::build_ribbon_pipeline;
+use build::build_glyph_pipeline;
+```
+
+Find in `pub struct Pipelines`:
+
+```rust
+    pub point: wgpu::RenderPipeline,
+```
+
+Insert after it:
+
+```rust
+    pub ribbon: wgpu::RenderPipeline,
+    pub glyph: wgpu::RenderPipeline,
+```
+
+Find in `Pipelines::new` (one long line):
+
+```rust
+            point: build_point_pipeline(device, color_format, aspect_layout, line_layout, instance_layout, glyph_layout),
+```
+
+Insert after it (this file calls the mvp layout `aspect_layout` — keep that name):
+
+```rust
+            ribbon: build_ribbon_pipeline(device, color_format, aspect_layout, line_layout, instance_layout, segment_layout),
+            glyph: build_glyph_pipeline(device, color_format, aspect_layout, line_layout, instance_layout, glyph_layout),
+```
+
+`cylinder` and `sphere` keep theirs — SOLID mode still uses them.
+
+## Step 5 — the switch: `gpu/mod.rs` `clear()`
+
+Both linework blocks branch on `LINEWORK_SOLID` inside their count-guards — SOLID keeps the exact
+template draws, FLAT drops the template buffers. **Find the whole Edges block:**
+
+```rust
+            if self.segment_count > 0 {
+                pass.set_pipeline(&self.pipelines.cylinder);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.segment_bind_group, &[]);
+                pass.set_vertex_buffer(0, self.cyl_template_vbo.slice(..));
+                pass.set_index_buffer(self.cyl_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..self.cyl_index_count, 0, 0..self.segment_count); // one template, N edges
+                draws += 1;
+            }
+```
+
+Replace with:
+
+```rust
+            if self.segment_count > 0 {
+                if LINEWORK_SOLID {
+                    pass.set_pipeline(&self.pipelines.cylinder);
+                    pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                    pass.set_bind_group(1, &self.line_bind_group, &[]);
+                    pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                    pass.set_bind_group(3, &self.segment_bind_group, &[]);
+                    pass.set_vertex_buffer(0, self.cyl_template_vbo.slice(..));
+                    pass.set_index_buffer(self.cyl_template_ibo.slice(..),
+                        wgpu::IndexFormat::Uint32);
+                    pass.draw_indexed(0..self.cyl_index_count, 0, 0..self.segment_count);
                 } else {
                     pass.set_pipeline(&self.pipelines.ribbon);
-                    // …same four bind groups…
-                    pass.draw(0..6 * self.segment_count, 0..1); // 6 verts per segment, no template
+                    pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                    pass.set_bind_group(1, &self.line_bind_group, &[]);
+                    pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                    pass.set_bind_group(3, &self.segment_bind_group, &[]);
+                    pass.draw(0..6 * self.segment_count, 0..1); // 6 verts/segment, no template
                 }
-                // dots: pipelines.glyph, pass.draw(0..3 * self.glyph_count, 0..1)
+                draws += 1;
+            }
 ```
 
-## Step 5 — paper-space lineweights (the 2D/3D split)
+**Find the whole Spheres block** (right below):
+
+```rust
+            if self.glyph_count > 0 {
+                pass.set_pipeline(&self.pipelines.sphere);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.glyph_bind_group, &[]);
+                pass.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
+                pass.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..self.sph_index_count, 0, 0..self.glyph_count); // one template, N glyphs
+                draws += 1;
+            }
+```
+
+Replace with:
+
+```rust
+            if self.glyph_count > 0 {
+                if LINEWORK_SOLID {
+                    pass.set_pipeline(&self.pipelines.sphere);
+                    pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                    pass.set_bind_group(1, &self.line_bind_group, &[]);
+                    pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                    pass.set_bind_group(3, &self.glyph_bind_group, &[]);
+                    pass.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
+                    pass.set_index_buffer(self.sph_template_ibo.slice(..),
+                        wgpu::IndexFormat::Uint32);
+                    pass.draw_indexed(0..self.sph_index_count, 0, 0..self.glyph_count);
+                } else {
+                    pass.set_pipeline(&self.pipelines.glyph);
+                    pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                    pass.set_bind_group(1, &self.line_bind_group, &[]);
+                    pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                    pass.set_bind_group(3, &self.glyph_bind_group, &[]);
+                    pass.draw(0..3 * self.glyph_count, 0..1); // 3 verts/dot, no template
+                }
+                draws += 1;
+            }
+```
+
+**Checkpoint:** `cargo check` passes; `trunk serve` already renders the wall flat and fast.
+
+## Step 6 — paper-space lineweights (the 2D/3D split)
 
 CAD convention: **2D drawing sheets have paper-mm lineweights** — zoom out and the ink thins like
 a print; **model geometry (3D lines, mesh/BRep edges) stays screen-constant**. The shader already
 has both lanes (`radius == 0` px-constant, `> 0` world-mm); route drawing widths into the world
-lane:
+lane.
 
-**5a. `adapters.rs`** — the kernel width enters the encoding (`line_to_segment` and
-`polyline_to_segments` set `radius: encode_width(…)`):
+**6a. `src/engine/gpu/adapters.rs`** — three edits. At the very END of the file, after
+`point_to_glyph`'s closing `}`, add:
 
 ```rust
 /// Kernel width (dimensionless, default 1.0) → the radius encoding's NEGATIVE lane (px
@@ -202,8 +619,34 @@ pub(super) fn encode_width(w: f64) -> f32 {
 }
 ```
 
-**5b. `gpu/mod.rs` `walk_session`**, after the extent pass — planarity IS the discriminator
-(every PDF conversion is exactly z ≡ 0; no flag needed in the data):
+In `line_to_segment`, find `radius: 0.0,` and replace with:
+
+```rust
+        radius: encode_width(l.width),
+```
+
+In `polyline_to_segments`, find `radius: 0.0,` and replace with:
+
+```rust
+        radius: encode_width(pl.width),
+```
+
+(`point_to_glyph` KEEPS its `radius: 0.0` — 34h wires point widths.)
+
+**6b. `gpu/mod.rs` `walk_session`** — planarity IS the discriminator (every PDF conversion is
+exactly z ≡ 0; no flag needed in the data). Find the END of `walk_session` — the glyph extent
+fold and the return:
+
+```rust
+        for g in &t.glyphs { for k in 0..3 {
+            t.min[k] = t.min[k].min(g.center[k]);
+            t.max[k] = t.max[k].max(g.center[k]);
+        } }
+        t
+    }
+```
+
+Insert between the fold and the `t` line:
 
 ```rust
         // 2D DRAWING SHEETS (exactly planar, z ≡ 0 — every PDF conversion) get PAPER-SPACE
@@ -234,7 +677,9 @@ sleep 100; kill %1; grep -oE '"perf[^"]*"' /tmp/hl/chrome_debug.log | tail -5
 Same 503k-object wall: `149ms → 28ms` headless (5.3×), `~100ms → ~18ms` on a real GPU. Flip
 `LINEWORK_SOLID = true` and diff by eye: identical at 2–4px. Zoom into a drawing cell: pens
 fatten like paper (0.28/0.51/0.71mm weights now visibly differ); zoom out: hairlines, floored at
-1px. Mesh edges in the floor_model cell stay 2px at every zoom.
+1px. For the 3D lane, temporarily add `"session_data/floor_model.pb"` to `DEMO_SESSION_URLS`
+(its `copy-file` is already in `index.html` from 34a): that cell's mesh edges stay 2px at every
+zoom — non-planar files are untouched.
 
 ## Recap
 

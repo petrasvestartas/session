@@ -30,7 +30,7 @@
 ```
 src/engine/gpu/mod.rs   # set_flag_rows(flag, rows) — the generalization of 45's set_selected_rows
 src/app/scene.rs        # hide_selected / show_all / apply_visibility; pickers + marquee skip hidden
-src/state.rs            # H = hide selection, Ctrl+H = show all (keyboard until the CLI, 48)
+src/lib.rs              # H = hide selection, Ctrl+H = show all (keyboard until the CLI, 48)
 ```
 
 ## Step 1 — generalize the flag upload: `src/engine/gpu/mod.rs`
@@ -112,14 +112,15 @@ Without these, clicking where a hidden object *was* selects it invisibly — and
 gesture acts on a ghost. The bug class this prevents is "the viewport and the state disagree", which
 is exactly what Phase 7 exists to prevent.
 
-## Step 4 — keys until the CLI: `src/state.rs`
+## Step 4 — keys until the CLI: `src/lib.rs`
 
-In the keyboard handler (next to `F`):
+In lib.rs's keyboard match (`match event.logical_key.as_ref()`), add two arms beside the
+`"f" | "F"` one (`self.ctrl` is `App`'s modifier flag, already maintained by `ModifiersChanged`):
 
 ```rust
-                        Key::Character("h" | "H") if !ctrl =>
+                        Key::Character("h" | "H") if !self.ctrl =>
                             { state.scene.hide_selected(&mut state.gpu); }
-                        Key::Character("h" | "H") if ctrl  =>
+                        Key::Character("h" | "H") if self.ctrl  =>
                             { state.scene.show_all(&mut state.gpu); }
 ```
 
@@ -152,7 +153,7 @@ Ch 46: VISIBILITY. Scene.hidden (parked since 35) becomes runtime state with thr
 ```
 
 Edited: `engine/gpu/mod.rs` (`set_flag_rows`, `set_selected_rows` → wrapper), `app/scene.rs`
-(`apply_visibility`, `hide_selected`, `show_all`, 3 picker guards), `state.rs` (H / Ctrl+H).
+(`apply_visibility`, `hide_selected`, `show_all`, 3 picker guards), `lib.rs` (H / Ctrl+H).
 
 ## Next
 

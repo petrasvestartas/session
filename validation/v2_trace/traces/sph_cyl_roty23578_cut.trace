@@ -123,23 +123,23 @@ PAVE tag=final e=23 k=1 t=1 v=21
 PB tag=final e=23 k=0 orig=23 t0=0 t1=1 v1=21 v2=21 edge=-1 etol=- cb=-1 split=1 splittable=0 shrunk=-
 IFF tag=final i1=5 i2=12 tangent=0 ncurves=2 npoints=0
 SEC tag=final f1=5 f2=12 c=0 type=Circle geom=NurbsCurve t0=0 t1=1 len=6.28318531 tol=1e-07 tantol=1e-07 p0=1.83303028,0,1.7 p1=1.83303028,0,1.7 c2d1=1 c2d2=1 npb=2 box=0,-1,1.7;1.83303028,1,2.5 closed=1 dev1=0 dev2=0 carrier=17
-SEC2D tag=final f1=5 f2=12 c=0 face=5 umin=-0.997611275 umax=0.997611275 vmin=1.47728227 vmax=2 s=0:1.47728227|0.979595974:2|0:1.47728227
-SEC2D tag=final f1=5 f2=12 c=0 face=12 umin=0 umax=4 vmin=0.786410981 vmax=0.786410981 s=0:0.786410981|2:0.786410981|4:0.786410981
+SEC2D tag=final f1=5 f2=12 c=0 face=5 umin=-0.997611275 umax=1.15959597 vmin=1.47728227 vmax=2 s=0:1.47728227|0.871350011:1.88813121|0:1.47728227
+SEC2D tag=final f1=5 f2=12 c=0 face=12 umin=0 umax=4 vmin=0.786410981 vmax=0.786410981 s=0:0.786410981|1.72900391:0.786410981|4:0.786410981
 SECPB tag=final f1=5 f2=12 c=0 k=0 t0=0 t1=0.5 v1=16 v2=18 edge=19 etol=1e-07 len=3.14159265
 SECPB tag=final f1=5 f2=12 c=0 k=1 t0=0.5 t1=1 v1=18 v2=16 edge=20 etol=1e-07 len=3.14159265
 SEC tag=final f1=5 f2=12 c=1 type=Circle geom=NurbsCurve t0=0 t1=1 len=6.28318531 tol=1e-07 tantol=1e-07 p0=0,0,-2.5 p1=0,0,-2.5 c2d1=1 c2d2=1 npb=1 box=-1.83303028,-1,-2.5;0,1,-1.7 closed=1 dev1=0 dev2=0 carrier=22
-SEC2D tag=final f1=5 f2=12 c=1 face=5 umin=0.888888889 umax=2.99761127 vmin=0 vmax=0.522717733 s=0.888888889:0|2:0.522717733|2.9001901:0
-SEC2D tag=final f1=5 f2=12 c=1 face=12 umin=0 umax=4 vmin=0.213589019 vmax=0.213589019 s=0:0.213589019|2:0.213589019|4:0.213589019
+SEC2D tag=final f1=5 f2=12 c=1 face=5 umin=0.888888889 umax=2.99992541 vmin=0 vmax=0.522717733 s=0.888888889:0|1.938107:0.520961127|2.9001901:0
+SEC2D tag=final f1=5 f2=12 c=1 face=12 umin=0 umax=4 vmin=0.213589019 vmax=0.213589019 s=0:0.213589019|1.88802083:0.213589019|4:0.213589019
 SECPB tag=final f1=5 f2=12 c=1 k=0 t0=0 t1=1 v1=21 v2=21 edge=23 etol=1e-07 len=6.28318531
 SECSTAT pairs=3 ok=1 tangent=0 empty=0 nogeom=2 failed=0 curves=2 blocks=3 kept=3 dropped=0 trim_paves=0 seam_paves=1 bound_paves=4 section_edges=3 fused_groups=0 common_blocks=0 max_dev=0 okpairs=1
 BOP errors=1 warnings=0
 BOPERR v2-front-refused(delegated-to-kernel)
-RES type=SOLID nsolid=0 nshell=2 nface=2 nedge=4 nvert=3 naked=3 ndegen=0 vol=69.519196 area=100.698939 valid=0 closure=0.00060382779 nonmanifold=0 seam=1
-RESSOLID i=1 nface=-1 vol=59.9214719 ori=FWD
+RES type=SOLID nsolid=0 nshell=2 nface=2 nedge=4 nvert=3 naked=3 ndegen=0 vol=69.585903 area=100.778987 valid=0 closure=9.05255883e-07 nonmanifold=0 seam=1
+RESSOLID i=1 nface=-1 vol=59.9881789 ori=FWD
 RESSOLID i=2 nface=-1 vol=9.59772409 ori=FWD
 RESSHELL i=1 nface=1 closed=0 faces=1
 RESSHELL i=2 nface=1 closed=0 faces=2
-RESFACE i=1 surf=Curved u0=0 u1=4 v0=0 v1=2 ori=FWD tol=1e-07 area=71.9057662 nwire=1 nedge=1 nseam=0
+RESFACE i=1 surf=Curved u0=0 u1=4 v0=0 v1=2 ori=FWD tol=1e-07 area=71.9858146 nwire=1 nedge=1 nseam=0
 RESFEDGE f=1 w=0 e=1 ori=FWD seam=0 degen=0 pc=1 uv0=- uv1=-
 RESFACE i=2 surf=Curved u0=0 u1=4 v0=0 v1=1 ori=REV tol=1e-07 area=28.7931723 nwire=1 nedge=4 nseam=0
 RESFEDGE f=2 w=0 e=2 ori=FWD seam=0 degen=0 pc=1 uv0=- uv1=-
@@ -153,4 +153,4 @@ RESEDGE i=4 curve=Circle t0=0 t1=1 len=3.14159265 tol=1e-07 degen=0 nface=1
 RESVERT i=1 p=0,0,-2.5 tol=1e-07
 RESVERT i=2 p=0,0,-2.5 tol=1e-07
 RESVERT i=3 p=1.83303028,0,1.7 tol=1e-07
-SUMMARY name=sph_cyl_roty23578_cut op=cut dsshapes=24 dssource=16 newverts=3 sd=0 pb=15 cb=0 faceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 seccurves=2 secpoints=0 fftangent=0 secpb=3 res_solid=0 res_shell=2 res_face=2 res_edge=4 res_vert=3 res_naked=3 res_degen=0 res_vol=69.519196 res_area=100.698939 res_valid=0 pf_err=0 bop_err=1
+SUMMARY name=sph_cyl_roty23578_cut op=cut dsshapes=24 dssource=16 newverts=3 sd=0 pb=15 cb=0 faceinfo=0 VV=0 VE=0 VF=0 EE=0 EF=0 FF=0 seccurves=2 secpoints=0 fftangent=0 secpb=3 res_solid=0 res_shell=2 res_face=2 res_edge=4 res_vert=3 res_naked=3 res_degen=0 res_vol=69.585903 res_area=100.778987 res_valid=0 pf_err=0 bop_err=1

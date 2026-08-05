@@ -54,25 +54,28 @@ pub fn angle_on_arc_plane(ray: &crate::engine::pick::Ray, o: &Point, n: &Vector,
 ```
 
 For `RotateX`: `n = X`, `a_dir = Y`, `b_dir = Z` — the same `(i+1)%3 / (i+2)%3` pairing 52's arc
-builder used, so the measured angle and the drawn arc agree. The live delta is a rotation **about the
-axis line through the gumball origin** — the kernel has that in one call:
+builder used, so the measured angle and the drawn arc agree. Put the pairing in a helper the drag
+code and `begin_drag` both call — add it below `angle_on_arc_plane`, still in `gumball.rs`:
 
 ```rust
-    // body of the RotateX | RotateY | RotateZ arm (Step 3). n / a_dir / b_dir follow the
-    // (i+1)%3 / (i+2)%3 pairing 52's arc builder used, so the measured angle matches the arc:
-    let (n, a_dir, b_dir) = match ctx.handle {
-        RotateX => (Vector::x_axis(), Vector::y_axis(), Vector::z_axis()),
-        RotateY => (Vector::y_axis(), Vector::z_axis(), Vector::x_axis()),
-        _       => (Vector::z_axis(), Vector::x_axis(), Vector::y_axis()),
-    };
-    let now = angle_on_arc_plane(ray, &ctx.origin, &n, &a_dir, &b_dir)?;   // press handler stashed ctx.a0
-    let ang = now - ctx.a0;                                    // radians since press
-    let axis_line = Line::from_points(&ctx.origin, &(ctx.origin.clone() + n.clone()));
-    let delta = Xform::rotation_around_line(&axis_line, ang, false);   // false = radians
+/// The arc's (normal, in-plane A, in-plane B) for a handle's axis — the same
+/// (i+1)%3 / (i+2)%3 pairing build()'s arc loop draws, so measured angle matches the arc.
+pub fn arc_basis(k: HandleKind) -> (Vector, Vector, Vector) {
+    use HandleKind::*;
+    match k {
+        RotateX | ScaleX | TranslateX => (Vector::x_axis(), Vector::y_axis(), Vector::z_axis()),
+        RotateY | ScaleY | TranslateY => (Vector::y_axis(), Vector::z_axis(), Vector::x_axis()),
+        _                             => (Vector::z_axis(), Vector::x_axis(), Vector::y_axis()),
+    }
+}
 ```
 
-(Everything else — `set_live_model`, release, `TransformObjects`, undo — is 54's code untouched.
-That's the skeleton paying off.)
+The live delta is a rotation **about the axis line through the gumball origin** — the kernel has
+that in one call (`Xform::rotation_around_line(&line, ang, false)`, `false` = radians); Step 3's
+match arm builds it. Everything else — `set_live_model`, release, `TransformObjects`, undo — is
+54's code untouched. That's the skeleton paying off. (`state.rs` gains `Line` in its
+`session_rust` use for the axis-line constructor; `gumball.rs` needs nothing new — 54 already
+imported `Point`/`Vector`.)
 
 ## Step 2 — the scale delta, with the two archive fixes: `src/engine/gumball.rs`
 
@@ -107,38 +110,110 @@ pub fn uniform_scale_ratio(d_now: f64, d_press: f64) -> f64 {
 }
 ```
 
-Axis scale reuses 54's `closest_param_on_axis` for `t`; uniform scale measures the ray's hit distance
-on the **view-facing plane** through the origin (Step 1's intersection with `n = camera forward`).
-The live delta is scale-about-the-origin:
+Axis scale reuses 54's `closest_param_on_axis` for `t`; uniform scale measures the ray's hit
+distance on the **view-facing plane** through the origin — Step 1's plane intersection with
+`n = camera forward`, packaged as one more `gumball.rs` helper (below `uniform_scale_ratio`):
 
 ```rust
-    let f = /* ratio from above */.max(0.01);                  // floor: no zero/mirror via drag
-    let delta = Xform::scale_non_uniform(&ctx.origin, sx, sy, sz);   // kernel: scale about a point
-    // axis scale: the dragged axis gets f, the others 1.0; uniform: (f, f, f)
+/// Distance from the gumball origin to the ray ∩ plane(o, n) hit — uniform scale's input.
+pub fn view_plane_distance(ray: &Ray, o: &Point, n: &Vector) -> Option<f64> {
+    let denom = ray.dir.dot(n);
+    if denom.abs() < 1e-9 { return None; }
+    let t = (o.clone() - ray.origin.clone()).dot(n) / denom;
+    if t < 0.0 { return None; }
+    let hit = ray.origin.clone() + &ray.dir * t;
+    Some((hit - o.clone()).magnitude())
+}
 ```
 
-(`Xform::scale_non_uniform(origin, sx, sy, sz)` is a verified kernel constructor — scaling about a
-point in one call, no translate-sandwich needed.)
+The live delta is scale-about-the-origin via `Xform::scale_non_uniform(&ctx.origin, sx, sy, sz)` — a
+verified kernel constructor, scaling about a point in one call, no translate-sandwich needed. The
+dragged axis gets the (floored) ratio, the others `1.0`; uniform gets `(f, f, f)` — Step 3's arms
+spell it out.
 
 ## Step 3 — dispatch by handle group: `src/state.rs`
 
 `begin_drag` and the mouse-move arm switch on the handle's group; each group stashes its own press
-reference (`t0` for translate/axis-scale, `a0` for rotate, `d0` for uniform scale) in `DragCtx` — so
-**add `a0: f64` and `d0: f64` to 54's `DragCtx` struct** and set them in `begin_drag` (else E0609 at
-`ctx.a0`/`ctx.d0` in the shown deltas), and
-every group ends at the same two lines — `set_live_model` per object, `TransformObjects` on release:
+reference (`t0` for translate/axis-scale, `a0` for rotate, `d0` for uniform scale) in `DragCtx`, and
+every group ends at the same two lines — `set_live_model` per object, `TransformObjects` on release.
+
+**3a. The stash.** Add `a0: f64,` and `d0: f64,` to 54's `DragCtx` struct. In `begin_drag` (54),
+find the `let t0 = …unwrap_or(0.0);` line → insert after it (the `use HandleKind::*;` above it
+already covers these names):
 
 ```rust
-    use HandleKind::*;
-    let delta = match ctx.handle {
-        TranslateX | TranslateY | TranslateZ => /* 54 */,
-        RotateX | RotateY | RotateZ          => /* Step 1: angle → rotation about origin+axis */,
-        ScaleX | ScaleY | ScaleZ             =>
-            /* Step 2: axis ratio → scale_non_uniform, one axis */,
-        ScaleUniform                          =>
-            /* Step 2: plane ratio → scale_non_uniform, all axes */,
-    };
+        let (mut a0, mut d0) = (0.0, 0.0);
+        match handle {
+            RotateX | RotateY | RotateZ => {
+                let (n, a_dir, b_dir) = crate::engine::gumball::arc_basis(handle);
+                a0 = crate::engine::gumball::angle_on_arc_plane(&ray, &origin, &n, &a_dir, &b_dir)
+                    .unwrap_or(0.0);
+            }
+            ScaleUniform => {
+                let fwd = self.camera.orientation.rotate_vector(Vector::y_axis());
+                d0 = crate::engine::gumball::view_plane_distance(&ray, &origin, &fwd)
+                    .unwrap_or(0.0);
+            }
+            _ => {}
+        }
 ```
+
+and add `a0, d0,` to the `DragCtx { … }` literal at the end of `begin_drag` (E0063 until you do).
+
+**3b. The dispatch.** In 54's mouse-move handler, find the whole
+`if let Some(ctx) = &self.gb_drag { … }` block (the one computing `dt`/`delta`) → replace with:
+
+```rust
+        let mut live_delta = None;
+        if let (Some(ctx), Some(ray)) = (&self.gb_drag, self.cursor_ray()) {
+            use crate::engine::gumball::{angle_on_arc_plane, arc_basis, axis_scale_ratio,
+                                         closest_param_on_axis, uniform_scale_ratio,
+                                         view_plane_distance};
+            use HandleKind::*;
+            let delta = match ctx.handle {
+                TranslateX | TranslateY | TranslateZ =>                       // 54, unchanged math
+                    closest_param_on_axis(&ray, &ctx.origin, &ctx.axis).map(|t| {
+                        let dt = t - ctx.t0;
+                        Xform::translation(ctx.axis[0]*dt, ctx.axis[1]*dt, ctx.axis[2]*dt)
+                    }),
+                RotateX | RotateY | RotateZ => {                              // Step 1
+                    let (n, a_dir, b_dir) = arc_basis(ctx.handle);
+                    angle_on_arc_plane(&ray, &ctx.origin, &n, &a_dir, &b_dir).map(|now| {
+                        let ang = now - ctx.a0;                               // radians since press
+                        let axis_line = Line::from_points(&ctx.origin,
+                                                          &(ctx.origin.clone() + n.clone()));
+                        Xform::rotation_around_line(&axis_line, ang, false)   // false = radians
+                    })
+                }
+                ScaleX | ScaleY | ScaleZ =>                                   // Step 2, one axis
+                    closest_param_on_axis(&ray, &ctx.origin, &ctx.axis).map(|t| {
+                        let f = axis_scale_ratio(t, ctx.t0).max(0.01);        // no zero/mirror
+                        let (sx, sy, sz) = match ctx.handle {
+                            ScaleX => (f, 1.0, 1.0),
+                            ScaleY => (1.0, f, 1.0),
+                            _      => (1.0, 1.0, f),
+                        };
+                        Xform::scale_non_uniform(&ctx.origin, sx, sy, sz)
+                    }),
+                ScaleUniform => {                                             // Step 2, all axes
+                    let fwd = self.camera.orientation.rotate_vector(Vector::y_axis());
+                    view_plane_distance(&ray, &ctx.origin, &fwd).map(|d| {
+                        let f = uniform_scale_ratio(d, ctx.d0).max(0.01);
+                        Xform::scale_non_uniform(&ctx.origin, f, f, f)
+                    })
+                }
+            };
+            if let Some(delta) = delta {
+                for (_, row, base) in &ctx.base_models {
+                    self.gpu.set_live_model(*row, &(&delta * base));          // 54's live path
+                }
+                live_delta = Some(delta);
+            }
+        }
+```
+
+(The `if let Some(delta) = live_delta { … }` stash + `refresh_gumball_at` lines after it are 54's,
+unchanged.)
 
 The commit path does not change **at all** — `apply_delta` (54) composes any affine delta into
 `mesh.xform` and bakes thin geometry the same way, and the Command's absolute snapshots don't care

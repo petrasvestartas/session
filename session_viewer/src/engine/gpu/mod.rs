@@ -7,6 +7,8 @@
 //! plus the `config` describing the surface size/format. It knows nothing app-specific — its whole
 //! job is "hand me a cleared frame". Higher layers sit on top and only talk to this.
 
+use std::any;
+
 use crate::engine::pipelines::Pipelines;
 use crate::engine::pipelines::build::MSAA_SAMPLES;
 use crate::engine::performance::Performance;
@@ -964,4 +966,76 @@ fn storage_buffer<T: bytemuck::Pod>(device: &wgpu::Device, label: &str, data: &[
         contents,
         usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
     })
+}
+
+/// One loaded file, walked into GPU-ready tables.
+/// Built by [`Gpu::walk_session`]
+/// BEFORE `Gpu::new`
+/// so the parsed `Session`
+/// often 10x larger than these tables
+/// can be dropped before the next file is fetched
+/// peak memory holds one session at a time, not all of them
+pub struct SceneTables {
+    verts: Vec<RenderVertex>,
+    vids: Vec<u32>,
+    ids: Vec<u32>,
+    segments: Vec<CylinderSegment>,
+    glyphs: Vec<GlyphPoint>,
+    objects: Vec<(Xform, [f32; 4])>,
+    min: [f32; 3],
+    max: [f32; 3],
+}
+
+impl SceneTables {
+    pub async fn new(
+        window: std::sync::Arc<winit::window::Window>,
+        files: &[SceneTables]
+    ) -> anyhow::Result<Self>{
+
+        let mut verts: Vec<RenderVertex> = Vec::new(); // slot 0 - every mesh's vertices, concatenated
+        let mut vids: Vec<u32> = Vec::new(); // slot 1 - one row id per vertex (@location 3)
+        let mut idx: Vec<u32> = Vec::new(); // the shared index buffer
+        let mut segments: Vec<CylinderSegment> = Vec::new();
+        let mut glyphs: Vec<GlyphPoint> = Vec::new();
+        let mut objects_base: Vec<(Xform, [f32; 4])> = Vec::with_capacity(session.lookup.len());
+
+        // Each object's placement lives in its xform (kernel convention) - `to_render()`/
+        // `start()`/`get_points()` read stored coordinates and ignore it, so the xform IS the
+        // instance model. `ri` is the row in objects_base, not the lookup index - skipped
+        // variants (Plane/OBB/...) leave no hole.
+        for geom in session.lookup.values() {
+            let ri = objects_base.len() as u32;
+            match geom{
+                Geometry::Mesh(m) => {
+                    objects_base.push((m.xform.clone(), m.objectcolor().to_f32()));
+                    push_mesh(m, ri, &mut verts, &mut vids, &mut idx, &mut segments, &mut glyphs);
+                }
+                Geometry::BRep(b) => {
+                    let bm = b.mesh();
+                    objects_base.push((b.xform.clone(), b.surfacecolor.to_f32()));
+                    push_mesh(&bm, ri, &mut verts, &mut vids, &mut idx, &mut segments, &mut glyphs);
+                }
+                Geometry::Line(l) => {
+                    objects_base.push((l.xform.clone(), l.linecolor.to_f32()));
+                    segments.push(line_to_segment(l, ri));
+                }
+                Geometry::Polyline(pl) => {
+                    objects_base.push((pl.xform.clone(), pl.linecolor.to_f32()));
+                    segments.extend(polyline_to_segments(pl, ri));
+                }
+                Geometry::Point(p) => {
+                    objects_base.push((p.xform.clone(), p.pointcolor.to_f32()));
+                    glyphs.push(point_to_glyph(p, ri));
+                }
+                // Later lessons - the match must stay exhaustive over all 11 variants
+                Geometry::Plane(_) |
+                Geometry::OBB(_) |
+                Geometry::PointCloud(_) |
+                Geometry::Element(_) |
+                Geometry::NurbsCurve(_) |
+                Geometry::NurbsSurface(_) => {}
+            }
+        }
+
+    }
 }
