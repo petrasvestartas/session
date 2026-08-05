@@ -8,8 +8,12 @@ cd "${SCRIPT_DIR}/.."
 # (unexported) variable would expand to "" there and `git checkout ""` fails.
 export TARGET_BRANCH="main"
 
+# --ignore-submodules=all: this script deliberately moves submodules to the ${TARGET_BRANCH}
+# tip, so a submodule pointer ahead of the pin (e.g. after a CI version bump) is the expected
+# steady state, not a dirty tree. Real edits inside a submodule are still caught by the
+# per-submodule check below.
 echo "=== Preflight ==="
-if [ -n "$(git status --porcelain)" ]; then
+if [ -n "$(git status --porcelain --ignore-submodules=all)" ]; then
   echo "Working tree is not clean. Commit or stash changes first."
   git status --short
   exit 1
