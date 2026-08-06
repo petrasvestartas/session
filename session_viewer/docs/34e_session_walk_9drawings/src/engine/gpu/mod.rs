@@ -22,13 +22,7 @@ use session_rust::{Mesh, Xform, RenderVertex, Point, Geometry};
 const REANCHOR_DIST: f64 = 1.0e5;
 
 /// const for the unit_cylinder method
-const CYL_SIDES: u32 = 6;
-
-/// Linework style switch. Thickness is screen-constant px in both modes.
-/// So at 2-4 px the two are pixel-identical - but not const-identical:
-/// false - default: FLAT - camera-facing ribbon edges (2 tris/segment) + circle-glyph dots
-/// true - solid - 3D cylinder edges + sphere dots - for closed up work.
-const LINEWORK_SOLID: bool = false;
+const CYL_SIDES: u32 = 12;
 
 /// const for the unit_sphere method
 const SPH_LONS: usize = 12;
@@ -119,20 +113,13 @@ impl Gpu {
 
         // 2. Surface — the drawable canvas. 3. Adapter — a physical GPU compatible with it.
         let surface = instance.create_surface(window.clone())?;
-        // LowPower = the iGPU the compositor runs on. On hybrid laptops the discrete GPU renders
-        // fine but its frames can't be shared to the compositor - the canvas stays black.
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::LowPower,
+                power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
                 force_fallback_adapter: false,
             })
             .await?;
-        let info = adapter.get_info();
-        log::info!("adapter: {} ({:?}, {:?})", info.name, info.device_type, info.backend);
-        if info.device_type == wgpu::DeviceType::Cpu {
-            log::warn!("software adapter - rendering on the CPU will be slow");
-        }
 
         // Limit to 128 mb, then the flat merge becomes the grid
         let mut limits = wgpu::Limits::default();
@@ -482,9 +469,7 @@ impl Gpu {
                 thickness: 2.0,
                 proj_y: 1.0,
                 ortho_h: 0.0,
-                vp_h: config.height as f32,
-                vp_w: config.width as f32,
-                _pad: [0.0; 3],
+                vp_h: config.height as f32
             }),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
@@ -653,35 +638,19 @@ impl Gpu {
                 Geometry::NurbsCurve(_) | Geometry::NurbsSurface(_) => {}
             }
         }
-        // This FILE's extents in WORLD placement (apply each object's xform), so the stress-grid
-        // cell size matches what is actually drawn and files do not overlap each other.
-        for (i, v) in t.verts.iter().enumerate() {
-            if let Some(&ri) = t.vids.get(i) {
-                if let Some((xf, _)) = t.objects.get(ri as usize) {
-                    grow_bounds(&mut t.min, &mut t.max, xform_point(xf, v.position));
-                }
-            }
-        }
-        for s in &t.segments {
-            if let Some((xf, _)) = t.objects.get(s.instance_id as usize) {
-                grow_bounds(&mut t.min, &mut t.max, xform_point(xf, s.p0));
-                grow_bounds(&mut t.min, &mut t.max, xform_point(xf, s.p1));
-            }
-        }
-        for g in &t.glyphs {
-            if let Some((xf, _)) = t.objects.get(g.instance_id as usize) {
-                grow_bounds(&mut t.min, &mut t.max, xform_point(xf, g.center));
-            }
-        }
-        // 2D Drawing sheets (exactly planar, z = 0 - every PDF conversion get paper space)
-        // lineweights: kernel width (mm on the sheet) - the radius world lane, so zooming out
-        // thins the ink like a real print. 3D model files keep screen-constant px linework
-        let planar = t.min[2].is_finite() && (t.max[2] - t.min[2]).abs() < 1e-3;
-        if planar {
-            for s in &mut t.segments {
-                s.radius = if s.radius < 0.0 { -s.radius * 0.5 } else { 0.5 }
-            }
-        }
+        // This FILE's extents (no placement yet) — new() offsets them per grid cell.
+        for v in &t.verts { for k in 0..3 {
+            t.min[k] = t.min[k].min(v.position[k]);
+            t.max[k] = t.max[k].max(v.position[k]);
+        } }
+        for s in &t.segments { for p in [s.p0, s.p1] { for k in 0..3 {
+            t.min[k] = t.min[k].min(p[k]);
+            t.max[k] = t.max[k].max(p[k]);
+        } } }
+        for g in &t.glyphs { for k in 0..3 {
+            t.min[k] = t.min[k].min(g.center[k]);
+            t.max[k] = t.max[k].max(g.center[k]);
+        } }
         t
     }
 
@@ -751,8 +720,6 @@ impl Gpu {
             proj_y: 1.0 / (30.0_f32).to_radians().tan() * 0.001, // cot(fovy/2) mm-m unit scale
             ortho_h: 0.0, // perspective, set the ortho half-height when ortho
             vp_h: self.config.height as f32,
-            vp_w: self.config.width as f32,
-            _pad: [0.0; 3],
         };
         self.queue.write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));
 
@@ -823,47 +790,27 @@ impl Gpu {
             //Edges - ONE draw fro the WHOLE scene linework:
             // segment table + unit-cylinder templates
             if self.segment_count > 0 {
-                if LINEWORK_SOLID {
-                    pass.set_pipeline(&self.pipelines.cylinder);
-                    pass.set_bind_group(0, &self.mvp_bind_group, &[]);
-                    pass.set_bind_group(1, &self.line_bind_group, &[]);
-                    pass.set_bind_group(2, &self.instance_bind_group, &[]);
-                    pass.set_bind_group(3, &self.segment_bind_group, &[]);
-                    pass.set_vertex_buffer(0, self.cyl_template_vbo.slice(..));
-                    pass.set_index_buffer(self.cyl_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
-                    pass.draw_indexed(0..self.cyl_index_count, 0, 0..self.segment_count); // one template, N edges
-                } else {
-                    pass.set_pipeline(&self.pipelines.ribbon);
-                    pass.set_bind_group(0, &self.mvp_bind_group, &[]);
-                    pass.set_bind_group(1, &self.line_bind_group, &[]);
-                    pass.set_bind_group(2, &self.instance_bind_group, &[]);
-                    pass.set_bind_group(3, &self.segment_bind_group, &[]);
-                    pass.draw(0..6 * self.segment_count, 0..1); // 6 vertices / segment, no template
-                }
-
+                pass.set_pipeline(&self.pipelines.cylinder);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.segment_bind_group, &[]);
+                pass.set_vertex_buffer(0, self.cyl_template_vbo.slice(..));
+                pass.set_index_buffer(self.cyl_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..self.cyl_index_count, 0, 0..self.segment_count); // one template, N edges
                 draws += 1;
             }
 
             // Spheres
             if self.glyph_count > 0 {
-                if LINEWORK_SOLID {
-                    pass.set_pipeline(&self.pipelines.sphere);
-                    pass.set_bind_group(0, &self.mvp_bind_group, &[]);
-                    pass.set_bind_group(1, &self.line_bind_group, &[]);
-                    pass.set_bind_group(2, &self.instance_bind_group, &[]);
-                    pass.set_bind_group(3, &self.glyph_bind_group, &[]);
-                    pass.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
-                    pass.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
-                    pass.draw_indexed(0..self.sph_index_count, 0, 0..self.glyph_count); // one template, N glyphs
-                } else {
-                    pass.set_pipeline(&self.pipelines.glyph);
-                    pass.set_bind_group(0, &self.mvp_bind_group, &[]);
-                    pass.set_bind_group(1, &self.line_bind_group, &[]);
-                    pass.set_bind_group(2, &self.instance_bind_group, &[]);
-                    pass.set_bind_group(3, &self.glyph_bind_group, &[]);
-                    pass.draw(0..3 * self.glyph_count, 0..1); // 3 verts/dot, no template
-                }
-
+                pass.set_pipeline(&self.pipelines.sphere);
+                pass.set_bind_group(0, &self.mvp_bind_group, &[]);
+                pass.set_bind_group(1, &self.line_bind_group, &[]);
+                pass.set_bind_group(2, &self.instance_bind_group, &[]);
+                pass.set_bind_group(3, &self.glyph_bind_group, &[]);
+                pass.set_vertex_buffer(0, self.sph_template_vbo.slice(..));
+                pass.set_index_buffer(self.sph_template_ibo.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..self.sph_index_count, 0, 0..self.glyph_count); // one template, N glyphs
                 draws += 1;
             }
 
@@ -957,9 +904,7 @@ struct LineUniform{
     proj_y: f32, // vertical projection scale x unit scale
     ortho_h: f32, // ortho world half.heigh x unit scale
     vp_h: f32, // framebuffer height, px
-    vp_w: f32, // framebuffer width, px - flat linework needs the aspect
-    _pad: [f32; 3],
-} // 32 B - two vec4s
+} // 16 B - one vec4, no padding
 
 
 // One instance of the unit-sphere template.
@@ -1105,24 +1050,6 @@ fn push_mesh(
                 instance_id: ri, 
                 _pad: [0;3] }
         );
-    }
-}
-
-fn xform_point(xf: &Xform, p: [f32; 3]) -> [f32; 3] {
-    let x = p[0] as f64;
-    let y = p[1] as f64;
-    let z = p[2] as f64;
-    [
-        (xf.m[0] * x + xf.m[4] * y + xf.m[8] * z + xf.m[12]) as f32,
-        (xf.m[1] * x + xf.m[5] * y + xf.m[9] * z + xf.m[13]) as f32,
-        (xf.m[2] * x + xf.m[6] * y + xf.m[10] * z + xf.m[14]) as f32,
-    ]
-}
-
-fn grow_bounds(min: &mut [f32; 3], max: &mut [f32; 3], p: [f32; 3]) {
-    for k in 0..3 {
-        min[k] = min[k].min(p[k]);
-        max[k] = max[k].max(p[k]);
     }
 }
 

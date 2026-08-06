@@ -44,7 +44,7 @@
                padding:16px 18px 4px; }
 
     main { flex:1; height:100vh; overflow-y:auto; }
-    article { max-width:820px; margin:0 auto; padding:40px 40px 120px; line-height:1.65; }
+    article { max-width:1100px; margin:0 auto; padding:36px 20px 120px; line-height:1.65; }
     article h1 { font-size:26px; margin:0 0 18px; }
     article h2 { font-size:19px; margin:30px 0 10px; color:#cdd3db; border-bottom:1px solid var(--line);
                  padding-bottom:6px; }
@@ -56,12 +56,20 @@
                          background:#11161c; border-radius:0 6px 6px 0; }
     article code, article pre { font-family:var(--font); }
     article :not(pre) > code { background:#161a20; padding:1px 6px; border-radius:4px; font-size:13px; }
-    article pre { background:#161b22; border:1px solid var(--line); border-radius:8px; padding:14px 16px;
+    article pre { background:#161b22; border:1px solid var(--line); border-radius:8px; padding:12px 14px;
                   overflow-x:auto; margin:12px 0; }
     article pre code { background:transparent; padding:0; font-size:13px; }
     article table { border-collapse:collapse; margin:12px 0; }
     article th, article td { border:1px solid var(--line); padding:6px 12px; font-size:13px; }
     .loading { color:var(--muted); padding:40px; }
+
+    @media (max-width: 900px) {
+      article { max-width:100%; padding:28px 14px 96px; }
+    }
+
+    @media (max-width: 600px) {
+      article { padding:22px 10px 84px; }
+    }
   </style>
 </head>
 <body>

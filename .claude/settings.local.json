@@ -61,16 +61,17 @@
       "Bash(tasklist //FI \"IMAGENAME eq claude.exe\")",
       "Bash(git -C session_cpp branch --show-current)",
       "Bash(git -C session_cpp log --oneline -5)",
-      "Bash(git -C session_cpp status --short)"
+      "Bash(git -C session_cpp status --short)",
+      "Bash(trunk serve *)"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "session-api"
   ],
-  "outputStyle": "default",
-  "prefersReducedMotion": true,
   "enabledPlugins": {
     "frontend-design@claude-plugins-official": false
-  }
+  },
+  "outputStyle": "default",
+  "prefersReducedMotion": true
 }

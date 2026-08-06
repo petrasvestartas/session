@@ -22,6 +22,10 @@ struct LineUniform{
     proj_y: f32,
     ortho_h: f32,
     vp_h: f32,
+    vp_w: f32,
+    _pad0: f32,
+    _pad1: f32,
+    _pad2: f32,
 };
 
 fn screen_radius(clip_w: f32, u: LineUniform) -> f32{

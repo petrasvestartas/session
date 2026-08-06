@@ -6,8 +6,11 @@
 > scales with object count; it does nothing for GPU vertex/fill cost — and no API (wgpu included)
 > changes how many triangles silicon rasterizes. The CAD answer is *pay per pixel*: our thickness
 > is screen-constant 2–4px at EVERY zoom, so the cylinder's roundness is never visible — a flat
-> camera-facing capsule makes the same pixels for 2 triangles. Measured end to end (headless
-> probe, same scene):
+> camera-facing capsule makes the same pixels for 2 triangles. And because the capsule edge is an
+> SDF we get **analytic anti-aliasing** almost free: an alpha ramp at the edge (turned into MSAA
+> sample coverage — no blending) plus the **hairline rule** (sub-pixel widths become 1px lines at
+> proportional opacity) — the two tricks that make every CAD viewer's linework look calm and
+> uniform at any zoom. Measured end to end (headless probe, same scene):
 
 ```
 12-sided cylinders   149 ms/frame          6-sided (still 3D)    ~75 ms      (2.0×)
@@ -170,6 +173,19 @@ half-width past both ends, and the fragment shader rounds the caps with an SDF �
 ends**, and polyline corners join smoothly because neighbouring caps overlap. Depth comes from
 each endpoint's own clip position, so occlusion still works per-pixel.
 
+Two quality rules live here, and they are what separates CAD-grade linework from "jaggy GL
+lines". **(1) Analytic AA:** the SDF edge is a 0.5px *alpha ramp*, not a binary `discard`. A
+`discard` cannot be smoothed by MSAA — the fragment shader runs once per PIXEL, so all 4 samples
+live or die together and the capsule edge would stay pixel-stepped; the ramp anti-aliases it
+exactly. The alpha is consumed by **alpha-to-coverage** (Step 4), NOT by blending: blending is
+an order-dependent read-modify-write per fragment — at 600k-segment overdraw that cost is real,
+while coverage stays a plain opaque write. The ramp runs *inward* from the edge, so the quad
+never grows — fill cost is identical to the hard-edged version. **(2) The hairline rule:** a
+width below 1px is never rasterized thinner — the deficit moves into opacity (a 0.3px pen = a
+1px line at 30% alpha). Without it, ~1px opaque lines snap to the pixel grid: one line lands on
+a pixel row and reads crisp, its neighbour straddles two rows and reads fat or broken —
+identical widths LOOK different at every zoom.
+
 ```wgsl
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
 @group(1) @binding(0) var<uniform> line: LineUniform;
@@ -195,6 +211,7 @@ struct VsOut{
     @location(2) @interpolate(flat) a: vec2<f32>,   // segment endpoints on screen, px
     @location(3) @interpolate(flat) b: vec2<f32>,
     @location(4) @interpolate(linear) hw: f32,      // half-width, px
+    @location(5) @interpolate(linear) fade: f32,    // sub-pixel opacity (hairline rule)
 };
 
 //   corner 0: e0−   1: e1−   2: e1+     (tri 1)
@@ -232,7 +249,15 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
         } else {
             px = seg.radius * line.proj_y * line.vp_h / clip.w;
         }
-        px = max(px, 0.5); // paper-space ink never vanishes: floor at ~1px on screen
+    }
+
+    // Hairline rule: never rasterize thinner than 1px — carry the deficit into OPACITY
+    // instead. A 0.3px pen renders as a 1px line at 30% alpha, so apparent weight stays
+    // continuous across zoom instead of snapping per pixel row.
+    var fade = 1.0;
+    if (px < 0.5) {
+        fade = px / 0.5;
+        px = 0.5;
     }
 
     // Corner in px: sideways ± half-width, and PAST the end by half-width (cap room)
@@ -247,23 +272,29 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
     o.a = s0;
     o.b = s1;
     o.hw = px;
+    o.fade = fade;
     return o;
 }
 
 @fragment
 fn fs_main(in: VsOut) -> @location(0) vec4<f32>{
-    // Capsule SDF in screen px — rounds both caps; MSAA smooths the rim.
+    // Capsule SDF in screen px — rounds both caps. Analytic AA: a 0.5px alpha ramp INWARD
+    // from the edge (a binary discard cannot be smoothed by MSAA — all 4 samples of a
+    // pixel live or die together), times the hairline fade. Alpha becomes MSAA sample
+    // coverage (alpha_to_coverage), so no blending and no extra fill vs the hard edge.
     let pa = in.p - in.a;
     let ba = in.b - in.a;
     let h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
-    if (length(pa - ba * h) > in.hw) { discard; }
-    return in.color;
+    let d = length(pa - ba * h);
+    let alpha = clamp((in.hw - d) * 2.0, 0.0, 1.0) * in.fade;
+    if (alpha <= 0.0) { discard; }
+    return vec4<f32>(in.color.rgb, in.color.a * alpha);
 }
 ```
 
 **Create `src/shaders/glyph.wgsl`** — the dot sibling: 32b's 3-corner triangle whose incircle is
-the disc, reading the GLYPH table, opaque + depth-writing, SDF `discard` past radius 1 in corner
-space:
+the disc, reading the GLYPH table, depth-writing, with the same 1px AA rim ramp and hairline
+fade as the ribbon:
 
 ```wgsl
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
@@ -301,6 +332,8 @@ struct VsOut {
     @builtin(position) pos: vec4<f32>,
     @location(0) color: vec4<f32>,
     @location(1) corner: vec2<f32>,
+    @location(2) @interpolate(linear) px: f32,   // dot radius, px
+    @location(3) @interpolate(linear) fade: f32, // sub-pixel opacity (hairline rule)
 };
 
 @vertex
@@ -319,7 +352,13 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
         } else {
             px = g.radius * line.proj_y * line.vp_h / max(clip.w, 1e-6);
         }
-        px = max(px, 0.5);
+    }
+
+    // Hairline rule: sub-pixel dots render at 1px with proportional opacity (ribbon.wgsl)
+    var fade = 1.0;
+    if (px < 0.5) {
+        fade = px / 0.5;
+        px = 0.5;
     }
 
     let corner = CORNERS[vid % 3u];
@@ -328,13 +367,18 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
     o.pos = vec4<f32>(clip.xy + off, clip.zw);
     o.color = g.color;
     o.corner = corner;
+    o.px = px;
+    o.fade = fade;
     return o;
 }
 
 @fragment
 fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
-    if (length(in.corner) > 1.0) { discard; }   // hard SDF edge — opaque, depth-writing
-    return in.color;
+    // Circle SDF in px (corner length 1 = px on screen), 0.5px AA ramp inward from the rim
+    let d = length(in.corner) * in.px;
+    let alpha = clamp((in.px - d) * 2.0, 0.0, 1.0) * in.fade;
+    if (alpha <= 0.0) { discard; }
+    return vec4<f32>(in.color.rgb, in.color.a * alpha);
 }
 ```
 
@@ -342,7 +386,9 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 
 **4a. `src/engine/pipelines/build.rs`** — paste both builders at the very END of the file, after
 `build_point_pipeline`'s closing `}`. Both are buffer-less (verts come from `vertex_index`),
-opaque (`blend: None`), and depth-writing — linework occludes like the cylinders did:
+opaque (`blend: None`) with **`alpha_to_coverage_enabled: true`** — the shader's alpha ramp and
+hairline fade become the MSAA sample mask, order-independent and with none of blending's
+read-modify-write cost — and depth-writing, so linework occludes like the cylinders did:
 
 ```rust
 /// Pipeline for flat capsule ribbons — buffer-less, 6 verts/segment, opaque, depth-writing.
@@ -378,7 +424,7 @@ pub fn build_ribbon_pipeline(
             entry_point: Some("fs_main"),
             targets: &[Some(wgpu::ColorTargetState {
                 format: color_format,
-                blend: None,                       // opaque ink
+                blend: None, // AA comes from alpha_to_coverage, not blending (order-independent, no RMW)
                 write_mask: wgpu::ColorWrites::ALL,
             })],
             compilation_options: Default::default(),
@@ -400,7 +446,7 @@ pub fn build_ribbon_pipeline(
             bias: wgpu::DepthBiasState::default(),
         }),
         multisample: wgpu::MultisampleState { count: MSAA_SAMPLES, mask: !0,
-            alpha_to_coverage_enabled: false },
+            alpha_to_coverage_enabled: true }, // shader alpha → MSAA sample mask (the AA ramp)
         multiview_mask: None,
         cache: None,
     })
@@ -461,7 +507,7 @@ pub fn build_glyph_pipeline(
             bias: wgpu::DepthBiasState::default(),
         }),
         multisample: wgpu::MultisampleState { count: MSAA_SAMPLES, mask: !0,
-            alpha_to_coverage_enabled: false },
+            alpha_to_coverage_enabled: true }, // shader alpha → MSAA sample mask (the AA ramp)
         multiview_mask: None,
         cache: None,
     })
@@ -661,18 +707,41 @@ Insert between the fold and the `t` line:
         }
 ```
 
-The `max(px, 0.5)` floor in ribbon.wgsl (Step 3) keeps zoomed-out ink at ~1px instead of
-shimmering away — also standard CAD behavior.
+The hairline rule in ribbon.wgsl (Step 3) keeps zoomed-out ink at 1px — fading its opacity
+instead of letting it shimmer away or snap between 1 and 2 pixel rows — also standard CAD
+behavior.
 
 ## Verify — measured, not vibed
 
-The headless probe (no browser interaction needed — Chrome writes console lines to its debug log):
+The headless probe (no browser interaction needed) must target the VIEWER APP URL (usually
+`http://127.0.0.1:8770/` from `trunk serve`), not the docs server (`docs/serve.py` on 8771).
+The docs page is static and will not emit runtime `"perf ..."` lines.
 
 ```bash
-chrome --headless=new --enable-unsafe-webgpu --enable-logging --v=0 \
-  --user-data-dir=/tmp/hl --window-size=1758,1347 http://127.0.0.1:8770/ &
-sleep 100; kill %1; grep -oE '"perf[^"]*"' /tmp/hl/chrome_debug.log | tail -5
+mkdir -p /tmp/hl
+CHROME_LOG_FILE=/tmp/hl/chrome_debug.log timeout 45s \
+google-chrome --headless=new --enable-unsafe-webgpu --enable-logging --v=0 \
+    --disable-background-networking --no-first-run --no-default-browser-check \
+    --user-data-dir=/tmp/hl --window-size=1758,1347 http://127.0.0.1:8770/ \
+    > /tmp/hl/chrome.stderr 2>&1 || true
+
+grep -oE '"perf[^"]*"' /tmp/hl/chrome_debug.log | tail -5
 ```
+
+If that grep is empty, check fallback output (some Chrome builds emit logs on stderr instead of the
+debug log file):
+
+```bash
+grep -oE '"perf[^"]*"' /tmp/hl/chrome.stderr | tail -5
+```
+
+What to look for:
+
+- You should see recent `"perf ..."` lines with non-zero draw/object counts.
+- In flat mode (`LINEWORK_SOLID = false`), frame time should be near the chapter target and clearly
+    better than solid mode.
+- Flip `LINEWORK_SOLID = true`, re-run, and confirm a clear slowdown with near-identical visuals at
+    2-4px thickness.
 
 Same 503k-object wall: `149ms → 28ms` headless (5.3×), `~100ms → ~18ms` on a real GPU. Flip
 `LINEWORK_SOLID = true` and diff by eye: identical at 2–4px. Zoom into a drawing cell: pens
@@ -685,11 +754,14 @@ zoom — non-planar files are untouched.
 
 ```
 Ch 34f: PAY PER PIXEL. CYL_SIDES 6 (roundness is invisible at screen-constant width — free 2×).
-        ribbon.wgsl: screen-space CAPSULE, 2 tris/segment, SDF round caps, per-endpoint depth.
-        glyph.wgsl: 1-tri SDF discs. LINEWORK_SOLID keeps cylinders+spheres one constant away —
+        ribbon.wgsl: screen-space CAPSULE, 2 tris/segment, SDF round caps, per-endpoint depth,
+        0.5px inward analytic-AA edge ramp (discard is per-pixel — MSAA can't smooth it) +
+        hairline rule (sub-pixel width → 1px at proportional opacity). glyph.wgsl: 1-tri SDF
+        discs, same AA. Both pipelines opaque + alpha_to_coverage (order-independent — no
+        blending RMW), depth-writing. LINEWORK_SOLID keeps cylinders+spheres one constant away —
         same tables, same pixels. LineUniform +vp_w (32 B ×3 mirrors). Paper-space lineweights:
-        planar files route kernel width → world-mm lane (zoom-dependent ink, 1px floor); 3D stays
-        screen-constant. 149→28ms measured on the 503k wall.
+        planar files route kernel width → world-mm lane (zoom-dependent ink, 1px hairline); 3D
+        stays screen-constant. 149→28ms measured on the 503k wall.
 ```
 
 ## Next
