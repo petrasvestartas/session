@@ -7,10 +7,10 @@
 > changes how many triangles silicon rasterizes. The CAD answer is *pay per pixel*: our thickness
 > is screen-constant 2–4px at EVERY zoom, so the cylinder's roundness is never visible — a flat
 > camera-facing capsule makes the same pixels for 2 triangles. And because the capsule edge is an
-> SDF we get **analytic anti-aliasing** almost free: an alpha ramp at the edge (turned into MSAA
-> sample coverage — no blending) plus the **hairline rule** (sub-pixel widths become 1px lines at
-> proportional opacity) — the two tricks that make every CAD viewer's linework look calm and
-> uniform at any zoom. Measured end to end (headless probe, same scene):
+> SDF we get **analytic anti-aliasing** almost free: a 1px alpha-blended ramp at the edge plus
+> the **hairline rule** (sub-pixel widths become 1px lines at proportional opacity) — the two
+> tricks that make every CAD viewer's linework look calm and uniform at any zoom. Measured end to
+> end (headless probe, same scene):
 
 ```
 12-sided cylinders   149 ms/frame          6-sided (still 3D)    ~75 ms      (2.0×)
@@ -174,17 +174,16 @@ ends**, and polyline corners join smoothly because neighbouring caps overlap. De
 each endpoint's own clip position, so occlusion still works per-pixel.
 
 Two quality rules live here, and they are what separates CAD-grade linework from "jaggy GL
-lines". **(1) Analytic AA:** the SDF edge is a 0.5px *alpha ramp*, not a binary `discard`. A
+lines". **(1) Analytic AA:** the SDF edge is a 1px *alpha ramp*, not a binary `discard`. A
 `discard` cannot be smoothed by MSAA — the fragment shader runs once per PIXEL, so all 4 samples
-live or die together and the capsule edge would stay pixel-stepped; the ramp anti-aliases it
-exactly. The alpha is consumed by **alpha-to-coverage** (Step 4), NOT by blending: blending is
-an order-dependent read-modify-write per fragment — at 600k-segment overdraw that cost is real,
-while coverage stays a plain opaque write. The ramp runs *inward* from the edge, so the quad
-never grows — fill cost is identical to the hard-edged version. **(2) The hairline rule:** a
-width below 1px is never rasterized thinner — the deficit moves into opacity (a 0.3px pen = a
-1px line at 30% alpha). Without it, ~1px opaque lines snap to the pixel grid: one line lands on
-a pixel row and reads crisp, its neighbour straddles two rows and reads fat or broken —
-identical widths LOOK different at every zoom.
+live or die together and the capsule edge would stay pixel-stepped; the blended ramp
+anti-aliases it exactly. (Alpha-to-coverage is the cheaper cousin, but with 4 samples it
+quantizes alpha to five steps — faint hairlines round down to invisible and mid-tones band; for
+drawing-quality ink, blend.) **(2) The hairline rule:** a width below 1px is never rasterized
+thinner — the deficit moves into opacity (a 0.3px pen = a 1px line at 30% alpha). Without it,
+~1px opaque lines snap to the pixel grid: one line lands on a pixel row and reads crisp, its
+neighbour straddles two rows and reads fat or broken — identical widths LOOK different at every
+zoom.
 
 ```wgsl
 @group(0) @binding(0) var<uniform> mvp: mat4x4<f32>;
@@ -260,9 +259,10 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
         px = 0.5;
     }
 
-    // Corner in px: sideways ± half-width, and PAST the end by half-width (cap room)
+    // Corner in px: sideways ± half-width, PAST the end by half-width (cap room),
+    // +0.5px on both so the AA feather ramp fits inside the quad
     let along = select(-1.0, 1.0, at_end1);
-    let p = select(s0, s1, at_end1) + (n * side + dir * along) * px;
+    let p = select(s0, s1, at_end1) + (n * side + dir * along) * (px + 0.5);
 
     var o: VsOut;
     let ndc = (p / vp - 0.5) * 2.0;
@@ -278,15 +278,14 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
 
 @fragment
 fn fs_main(in: VsOut) -> @location(0) vec4<f32>{
-    // Capsule SDF in screen px — rounds both caps. Analytic AA: a 0.5px alpha ramp INWARD
-    // from the edge (a binary discard cannot be smoothed by MSAA — all 4 samples of a
-    // pixel live or die together), times the hairline fade. Alpha becomes MSAA sample
-    // coverage (alpha_to_coverage), so no blending and no extra fill vs the hard edge.
+    // Capsule SDF in screen px — rounds both caps. Analytic AA: a 1px alpha ramp centered
+    // on the edge, alpha-blended (a binary discard cannot be smoothed by MSAA — all 4
+    // samples of a pixel live or die together), times the hairline fade.
     let pa = in.p - in.a;
     let ba = in.b - in.a;
     let h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
     let d = length(pa - ba * h);
-    let alpha = clamp((in.hw - d) * 2.0, 0.0, 1.0) * in.fade;
+    let alpha = clamp(in.hw + 0.5 - d, 0.0, 1.0) * in.fade;
     if (alpha <= 0.0) { discard; }
     return vec4<f32>(in.color.rgb, in.color.a * alpha);
 }
@@ -361,8 +360,9 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
         px = 0.5;
     }
 
+    // Triangle scaled to px + 0.5 so the AA feather ramp fits inside it
     let corner = CORNERS[vid % 3u];
-    let off = corner * px * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * clip.w;
+    let off = corner * (px + 0.5) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * clip.w;
     var o: VsOut;
     o.pos = vec4<f32>(clip.xy + off, clip.zw);
     o.color = g.color;
@@ -374,9 +374,9 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
 
 @fragment
 fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
-    // Circle SDF in px (corner length 1 = px on screen), 0.5px AA ramp inward from the rim
-    let d = length(in.corner) * in.px;
-    let alpha = clamp((in.px - d) * 2.0, 0.0, 1.0) * in.fade;
+    // Circle SDF in px (corner length 1 = px + 0.5 on screen), 1px AA ramp at the rim
+    let d = length(in.corner) * (in.px + 0.5);
+    let alpha = clamp(in.px + 0.5 - d, 0.0, 1.0) * in.fade;
     if (alpha <= 0.0) { discard; }
     return vec4<f32>(in.color.rgb, in.color.a * alpha);
 }
@@ -385,10 +385,12 @@ fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
 ## Step 4 — pipelines
 
 **4a. `src/engine/pipelines/build.rs`** — paste both builders at the very END of the file, after
-`build_point_pipeline`'s closing `}`. Both are buffer-less (verts come from `vertex_index`),
-opaque (`blend: None`) with **`alpha_to_coverage_enabled: true`** — the shader's alpha ramp and
-hairline fade become the MSAA sample mask, order-independent and with none of blending's
-read-modify-write cost — and depth-writing, so linework occludes like the cylinders did:
+`build_point_pipeline`'s closing `}`. Both are buffer-less (verts come from `vertex_index`) and
+**alpha-blended** (`ALPHA_BLENDING` — the shader's AA ramp and hairline fade need real blending;
+see Step 3). Depth is **tested but not written**: every sheet line sits at the same depth, and a
+blended 5%-alpha feather pixel that wrote depth would BLOCK the full-opacity core of the next
+line crossing it — light holes at every intersection. Test-only keeps meshes occluding linework
+while ink blends freely over ink:
 
 ```rust
 /// Pipeline for flat capsule ribbons — buffer-less, 6 verts/segment, opaque, depth-writing.
@@ -424,7 +426,7 @@ pub fn build_ribbon_pipeline(
             entry_point: Some("fs_main"),
             targets: &[Some(wgpu::ColorTargetState {
                 format: color_format,
-                blend: None, // AA comes from alpha_to_coverage, not blending (order-independent, no RMW)
+                blend: Some(wgpu::BlendState::ALPHA_BLENDING), // smooth AA feather + hairline fade
                 write_mask: wgpu::ColorWrites::ALL,
             })],
             compilation_options: Default::default(),
@@ -440,13 +442,13 @@ pub fn build_ribbon_pipeline(
         },
         depth_stencil: Some(wgpu::DepthStencilState {
             format: wgpu::TextureFormat::Depth32Float,
-            depth_write_enabled: Some(true),       // flat ink still occludes
+            depth_write_enabled: Some(false), // blended ink must not block later ink at the same depth (line crossings)
             depth_compare: Some(wgpu::CompareFunction::Greater),   // reverse-Z (26)
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
         }),
         multisample: wgpu::MultisampleState { count: MSAA_SAMPLES, mask: !0,
-            alpha_to_coverage_enabled: true }, // shader alpha → MSAA sample mask (the AA ramp)
+            alpha_to_coverage_enabled: false },
         multiview_mask: None,
         cache: None,
     })
@@ -485,7 +487,7 @@ pub fn build_glyph_pipeline(
             entry_point: Some("fs_main"),
             targets: &[Some(wgpu::ColorTargetState {
                 format: color_format,
-                blend: None,
+                blend: Some(wgpu::BlendState::ALPHA_BLENDING),
                 write_mask: wgpu::ColorWrites::ALL,
             })],
             compilation_options: Default::default(),
@@ -501,13 +503,13 @@ pub fn build_glyph_pipeline(
         },
         depth_stencil: Some(wgpu::DepthStencilState {
             format: wgpu::TextureFormat::Depth32Float,
-            depth_write_enabled: Some(true),
+            depth_write_enabled: Some(false), // blended ink must not block later ink at the same depth (line crossings)
             depth_compare: Some(wgpu::CompareFunction::Greater),
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
         }),
         multisample: wgpu::MultisampleState { count: MSAA_SAMPLES, mask: !0,
-            alpha_to_coverage_enabled: true }, // shader alpha → MSAA sample mask (the AA ramp)
+            alpha_to_coverage_enabled: false },
         multiview_mask: None,
         cache: None,
     })

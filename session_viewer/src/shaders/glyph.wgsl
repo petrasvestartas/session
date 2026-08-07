@@ -68,8 +68,9 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
         px = 0.5;
     }
 
+    // Triangle scaled to px + 0.5 so the AA feather ramp fits inside it
     let corner = CORNERS[vid % 3u];
-    let off = corner * px * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * clip.w;
+    let off = corner * (px + 0.5) * 2.0 / vec2<f32>(line.vp_w, line.vp_h) * clip.w;
     var o: VsOut;
     o.pos = vec4<f32>(clip.xy + off, clip.zw);
     o.color = g.color;
@@ -81,9 +82,9 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut{
 
 @fragment
 fn fs_main(in: VsOut) -> @location(0) vec4<f32> {
-    // Circle SDF in px (corner length 1 = px on screen), 0.5px AA ramp inward from the rim
-    let d = length(in.corner) * in.px;
-    let alpha = clamp((in.px - d) * 2.0, 0.0, 1.0) * in.fade;
+    // Circle SDF in px (corner length 1 = px + 0.5 on screen), 1px AA ramp at the rim
+    let d = length(in.corner) * (in.px + 0.5);
+    let alpha = clamp(in.px + 0.5 - d, 0.0, 1.0) * in.fade;
     if (alpha <= 0.0) { discard; }
     return vec4<f32>(in.color.rgb, in.color.a * alpha);
 }

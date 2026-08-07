@@ -86,9 +86,10 @@ struct VsOut{
         px = 0.5;
     }
 
-    // Corner in px: sideways +/- half-width, and past the end by half-width (cap room)
+    // Corner in px: sideways +/- half-width, past the end by half-width (cap room),
+    // +0.5px on both so the AA feather ramp fits inside the quad
     let along = select(-1.0, 1.0, at_end1);
-    let p = select(s0, s1, at_end1) + (n*side+dir*along) * px;
+    let p = select(s0, s1, at_end1) + (n*side+dir*along) * (px + 0.5);
 
     var o: VsOut;
     let ndc = (p / vp - 0.5) * 2.0;
@@ -104,15 +105,14 @@ struct VsOut{
 
  @fragment
  fn fs_main(in: VsOut) -> @location(0) vec4<f32>{
-    // Capsule SDF in screen px - rounds both caps. Analytic AA: a 0.5px alpha ramp INWARD
-    // from the edge (a binary discard cannot be smoothed by MSAA - all 4 samples of a
-    // pixel live or die together), times the hairline fade. Alpha becomes MSAA sample
-    // coverage (alpha_to_coverage), so no blending and no extra fill vs the hard edge.
+    // Capsule SDF in screen px - rounds both caps. Analytic AA: a 1px alpha ramp centered
+    // on the edge, alpha-blended (a binary discard cannot be smoothed by MSAA - all 4
+    // samples of a pixel live or die together), times the hairline fade.
     let pa = in.p - in.a;
     let ba = in.b - in.a;
     let h = clamp(dot(pa, ba) / max(dot(ba, ba), 1e-6), 0.0, 1.0);
     let d = length(pa - ba * h);
-    let alpha = clamp((in.hw - d) * 2.0, 0.0, 1.0) * in.fade;
+    let alpha = clamp(in.hw + 0.5 - d, 0.0, 1.0) * in.fade;
     if (alpha <= 0.0){
         discard;
     }

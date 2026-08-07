@@ -534,7 +534,7 @@ pub fn build_ribbon_pipeline(
             entry_point: Some("fs_main"),
             targets: &[Some(wgpu::ColorTargetState{
                 format: color_format,
-                blend: None, // AA comes from alpha_to_coverage, not blending (order-independent, no RMW)
+                blend: Some(wgpu::BlendState::ALPHA_BLENDING), // smooth AA feather + hairline fade
                 write_mask: wgpu::ColorWrites::ALL,
             })],
             compilation_options: Default::default(),
@@ -550,7 +550,7 @@ pub fn build_ribbon_pipeline(
         },
         depth_stencil: Some(wgpu::DepthStencilState {
             format: wgpu::TextureFormat::Depth32Float,
-            depth_write_enabled: Some(true),
+            depth_write_enabled: Some(false), // blended ink must not block later ink at the same depth (line crossings)
             depth_compare: Some(wgpu::CompareFunction::Greater),
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
@@ -558,7 +558,7 @@ pub fn build_ribbon_pipeline(
         multisample: wgpu::MultisampleState {
             count: MSAA_SAMPLES,
             mask: !0,
-            alpha_to_coverage_enabled: true // shader alpha -> MSAA sample mask (the AA ramp)
+            alpha_to_coverage_enabled: false
         },
         multiview_mask: None,
         cache: None,
@@ -605,7 +605,7 @@ pub fn build_glyph_pipeline(
             entry_point: Some("fs_main"),
             targets: &[Some(wgpu::ColorTargetState {
                 format: color_format,
-                blend: None, // AA comes from alpha_to_coverage, not blending (order-independent, no RMW)
+                blend: Some(wgpu::BlendState::ALPHA_BLENDING), // smooth AA feather + hairline fade
                 write_mask: wgpu::ColorWrites::ALL,
             })],
             compilation_options: Default::default(),
@@ -621,7 +621,7 @@ pub fn build_glyph_pipeline(
         },
         depth_stencil: Some(wgpu::DepthStencilState {
             format: wgpu::TextureFormat::Depth32Float,
-            depth_write_enabled: Some(true),
+            depth_write_enabled: Some(false), // blended ink must not block later ink at the same depth (line crossings)
             depth_compare: Some(wgpu::CompareFunction::Greater),
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
@@ -629,7 +629,7 @@ pub fn build_glyph_pipeline(
         multisample: wgpu::MultisampleState {
             count: MSAA_SAMPLES,
             mask: !0,
-            alpha_to_coverage_enabled: true // shader alpha -> MSAA sample mask (the AA ramp)
+            alpha_to_coverage_enabled: false
         },
         multiview_mask: None,
         cache: None,
