@@ -114,3 +114,10 @@ temp
 # Scratch/audit artifacts
 __audit_*.txt
 
+# Lesson narration audio (regenerated with edge-tts)
+*.mp3
+
+# Boolean-campaign trace dumps
+validation/occt_trace/traces/
+validation/v2_trace/traces/
+

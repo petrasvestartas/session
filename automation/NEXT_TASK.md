@@ -16,16 +16,16 @@ C++ is the reference language; do not touch Rust/Python this loop.
 - Phase timing: prefix `SESSION_BOOL_PROFILE=1`. Shared-edge path: prefix `SESSION_BOOL_SHARED_EDGES=1`.
 - A cell is OK iff volume rel<1e-6 AND exact face count AND `is_solid()`.
 
-## Priority order (buildspec `OCCT_BOOLEAN_BUILDSPEC.md` P0–P9; pick the most tractable OPEN one)
+## Priority order (buildspec `.claude/occt/OCCT_BOOLEAN_BUILDSPEC.md` P0–P9; pick the most tractable OPEN one)
 1. **P0** — box×sph watertight + volume-exact via `make_shared_section_edges` (currently a no-op;
    default==shared==9.5677, OCCT 9.5457). Fixes box×sph, then sph×sph, sph×cyl-class watertightness.
-2. **P7** — exact plane-cone conics (hyperbola/parabola, `OCCT_STUDY_conics_tangency.md` GAP 1) and
+2. **P7** — exact plane-cone conics (hyperbola/parabola, `.claude/occt/OCCT_STUDY_conics_tangency.md` GAP 1) and
    plane-torus, replacing the sampled+fitted arcs in `intersection.cpp::ssi_plane_cone`. Fixes
    box×cone (wrong faces 16≠10) and box×tor.
-3. **P8** — cyl×cyl Steinmetz + coaxial quadric pairs (`OCCT_STUDY_pairs.md`).
+3. **P8** — cyl×cyl Steinmetz + coaxial quadric pairs (`.claude/occt/OCCT_STUDY_pairs.md`).
 4. **P9** — torus family + cone-cone; also tor×tor is a PERF disaster (6-7 s/op) — profile it.
 Each phase in the buildspec is flag-gated and lists exact functions/anchors. Read the relevant
-`OCCT_STUDY_*.md` before implementing. Prefer the smallest change that turns a red cell green.
+`.claude/occt/OCCT_STUDY_*.md` before implementing. Prefer the smallest change that turns a red cell green.
 
 ## Hard rules
 - **Never ask the user anything.** If a choice needs judgment, pick the option that best advances the
@@ -44,7 +44,7 @@ Each phase in the buildspec is flag-gated and lists exact functions/anchors. Rea
   (the cell, what you tried, the specific obstacle, the file:line) and STOP this turn.
 
 ## Context to read first
-- `OCCT_BOOLEAN_BUILDSPEC.md` + the relevant `OCCT_STUDY_*.md`.
+- `.claude/occt/OCCT_BOOLEAN_BUILDSPEC.md` + the relevant `.claude/occt/OCCT_STUDY_*.md`.
 - Memory: `.claude/projects/.../memory/project_solid_booleans_occt.md` (scorecard baseline, oracle
   grammar, dev loop, known bugs) and `project_ssi_split_pipeline.md` (SSI substrate).
 - Current scorecard: `automation/scorecard.log` (or run `automation/run_scorecard.sh`).

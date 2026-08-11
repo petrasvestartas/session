@@ -215,35 +215,6 @@ log "=== Consolidating Test Data ==="
 source "${SCRIPT_DIR}/lib/consolidate.sh"
 consolidate_test_data "$REPO_ROOT"
 
-# Regenerate browser API index — skip if no watched source is newer than apiIndex.js
-API_INDEX="${REPO_ROOT}/session_tests/public/apiIndex.js"
-REGEN_API=false
-if [[ ! -f "$API_INDEX" ]]; then
-    REGEN_API=true
-else
-    # find -newer returns any file with mtime newer than the reference; stop at the first hit
-    NEWER=$(find \
-        "${REPO_ROOT}/session_py/src" \
-        "${REPO_ROOT}/session_cpp/src" \
-        "${REPO_ROOT}/session_rust/src" \
-        \( -name "*.py" -o -name "*.cpp" -o -name "*.h" -o -name "*.rs" \) \
-        -newer "$API_INDEX" -print -quit 2>/dev/null)
-    if [[ -n "$NEWER" ]]; then
-        REGEN_API=true
-    fi
-fi
-if [[ "$REGEN_API" == "true" ]]; then
-    log "=== Regenerating Browser API Index ==="
-    cd "$REPO_ROOT"
-    # `python` is absent on stock Ubuntu; only Windows/venv setups have the unsuffixed name.
-    PY_EXE=$(command -v python3 || command -v python)
-    if ! "${PY_EXE:-python3}" -m session_mcp.generate_browser_index; then
-        log "Warning: Failed to generate browser index"
-    fi
-else
-    log "API index up-to-date, skipping"
-fi
-
 # Check for CI environment
 if [[ -n "${CI:-}" || -n "${GITHUB_ACTIONS:-}" ]]; then
     log "CI environment detected - building dist for artifact upload"

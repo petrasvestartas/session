@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "session-api": {
-      "command": "uv",
-      "args": ["run", "--project", "session_mcp", "python", "-m", "session_mcp.server"]
-    }
-  }
-}

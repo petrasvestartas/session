@@ -75,7 +75,7 @@ Tunables (env): `MAX_ITERS`, `SCORECARD_TARGET` (default 45), `BUDGET_USD`, `MAX
 count + `is_solid`, vs real OCCT) is a *strong* correctness check, so committed progress is real, not
 hallucinated. Expect the loop to:
 - **Climb** on the well-specced phases — P0 (box×sph watertightness) and P7 (exact plane-cone/torus
-  conics for box×cone, box×tor) have detailed specs in `OCCT_BOOLEAN_BUILDSPEC.md` + `OCCT_STUDY_*.md`
+  conics for box×cone, box×tor) have detailed specs in `.claude/occt/OCCT_BOOLEAN_BUILDSPEC.md` + `.claude/occt/OCCT_STUDY_*.md`
   and clear red→green targets. Each win is committed only if the count goes up and nothing regresses.
 - **Plateau** on the research-hard cells — general Steinmetz (cyl×cyl), the torus family, and freeform
   are genuinely hard; the agent will likely hit a wall and write `BLOCKED.md` (the correct outcome, not a
