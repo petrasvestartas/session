@@ -98,7 +98,7 @@ emit the **same set of test names**. Currently **33 of 47** classes are at full 
 - [x] `spatial_rtree`
 - [x] `tolerance`
 - [x] `tree`
-- [ ] `vector` — C++ missing 1
+- [ ] `vector` — Python/Rust carry a duplicate `interpolate_points` (see note below)
 - [x] `xform`
 
 Regenerate this status with `./bash/minitest.sh` — it rewrites the per-class JSON under
@@ -107,6 +107,12 @@ Regenerate this status with `./bash/minitest.sh` — it rewrites the per-class J
 Modules with no cross-language test set: `mesh_boolean`, `render_mesh` and `guid_serde` are Rust
 only; `element_schoring` is Python only; the `brep_*` internals (`bds`, `commonblock`,
 `massprops`, `samedomain`, `section`) are C++ only.
+
+`vector`'s divergence is not a C++ gap. `Polyline::interpolate_points` exists and is tested under
+`Polyline` in all three languages. Python and Rust additionally keep a *second* copy of it as a
+free function in the `vector` module (`vector.py:1274`, `vector.rs:1338`) with its own
+`Vector / Interpolate Points` test. That copy is exported from neither `__init__.py` nor `lib.rs`
+and is referenced only by its own test — dead duplicate code that C++ never had.
 
 ## Prerequisites
 
