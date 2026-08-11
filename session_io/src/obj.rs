@@ -1,5 +1,5 @@
 //! Wavefront OBJ -> Mesh / Polylines.
-use session_rust::{Element, Mesh, Point, Polyline, SpatialRTree, Vector, AABB};
+use session_rust::{Mesh, Point, Polyline};
 use std::io;
 
 pub fn write_file_obj_to_string(mesh: &Mesh) -> String {
@@ -120,76 +120,4 @@ pub fn read_file_obj_polylines(filepath: &str) -> io::Result<Vec<Polyline>> {
         }
     }
     Ok(polylines)
-}
-
-pub fn pair_polylines(polylines: &[Polyline], search_radius: f64) -> Vec<(usize, usize)> {
-    let np = polylines.len();
-    let mut centroids: Vec<Point> = vec![Point::new(0.0, 0.0, 0.0); np];
-    let mut normals: Vec<Vector> = vec![Vector::new(0.0, 0.0, 0.0); np];
-    let mut aabbs: Vec<AABB> = vec![AABB::default(); np];
-
-    let open_pts = |pl: &Polyline| -> Vec<Point> {
-        let mut pts = pl.get_points();
-        if pts.len() > 3 {
-            let f = &pts[0];
-            let l = &pts[pts.len() - 1];
-            if (f[0] - l[0]).abs() < 1e-6 && (f[1] - l[1]).abs() < 1e-6 && (f[2] - l[2]).abs() < 1e-6 {
-                pts.pop();
-            }
-        }
-        pts
-    };
-
-    let mut tree = SpatialRTree::new();
-    for i in 0..np {
-        let pts = open_pts(&polylines[i]);
-        let mut cx = 0.0; let mut cy = 0.0; let mut cz = 0.0;
-        for p in &pts { cx += p[0]; cy += p[1]; cz += p[2]; }
-        let n = pts.len() as f64;
-        centroids[i] = Point::new(cx / n, cy / n, cz / n);
-        normals[i] = Element::polygon_normal(&pts);
-        aabbs[i] = AABB::from_polyline(&polylines[i], search_radius);
-        let a = &aabbs[i];
-        tree.insert(
-            [a.cx - a.hx, a.cy - a.hy, a.cz - a.hz],
-            [a.cx + a.hx, a.cy + a.hy, a.cz + a.hz],
-            i as i32,
-        );
-    }
-
-    let mut paired = vec![false; np];
-    let mut pairs: Vec<(usize, usize)> = Vec::new();
-    for i in 0..np {
-        if paired[i] { continue; }
-        let mut best: i32 = -1;
-        let mut best_d = 1e30_f64;
-        let a = &aabbs[i];
-        let ni = normals[i].clone();
-        let ci = centroids[i].clone();
-        tree.search(
-            [a.cx - a.hx, a.cy - a.hy, a.cz - a.hz],
-            [a.cx + a.hx, a.cy + a.hy, a.cz + a.hz],
-            |j| {
-                let ju = j as usize;
-                if j <= i as i32 || paired[ju] { return true; }
-                let nj = &normals[ju];
-                let dot = ni[0] * nj[0] + ni[1] * nj[1] + ni[2] * nj[2];
-                if dot.abs() < 0.7 { return true; }
-                let cj = &centroids[ju];
-                let dx = ci[0] - cj[0];
-                let dy = ci[1] - cj[1];
-                let dz = ci[2] - cj[2];
-                let d = dx * dx + dy * dy + dz * dz;
-                if d < best_d { best_d = d; best = j; }
-                true
-            },
-        );
-        if best >= 0 {
-            let bu = best as usize;
-            pairs.push((i, bu));
-            paired[i] = true;
-            paired[bu] = true;
-        }
-    }
-    pairs
 }
