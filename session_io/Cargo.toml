@@ -3,13 +3,13 @@ name = "session_io"
 version = "0.1.0"
 edition = "2021"
 
-# File-format -> Session (.pb) converters, one [[bin]] per format. EVERY foreign format the project
-# reads lives here and nowhere else: the kernels (session_py / session_rust / session_cpp) speak .pb
-# and their own JSON, nothing more. A format is then written and fixed ONCE rather than three times
-# in three languages. A SEPARATE crate on purpose: converters carry deps the kernel must not take on
-# (mupdf-sys compiles MuPDF's C sources) and session_rust must stay pure Rust so it keeps building
-# for wasm32 (the viewer) - where there is no filesystem to read a file from in the first place.
-# Nothing here is ever linked into the kernel.
+# PDF -> Session (.pb). This crate exists ONLY for formats whose dependencies the kernel must not
+# take on: mupdf-sys compiles MuPDF's C sources, and session_rust must stay pure Rust so it keeps
+# building for wasm32 (the viewer). Nothing here is ever linked into the kernel.
+#
+# Ordinary file formats do NOT belong here. obj/ply/xyz are parsed natively in each kernel
+# (session_py / session_rust / session_cpp) and kept at parity by minitest - measured: routing bulk
+# mesh data through .pb costs 3-4x the parse itself and inflates 12.9 MB of OBJ to 83 MB of pb.
 [dependencies]
 session_rust = { path = "../session_rust" }
 # default-features = false drops system-fonts (font-kit -> fontconfig, a system dev package we do
@@ -20,24 +20,11 @@ rayon = "1.10"
 # glyph contour touches itself. The kernel CDT fits an average plane and inserts Delaunay
 # constraints - correct for trimmed surfaces, but it mis-triangulated 28% of glyph fills here.
 earcutr = "0.5"
-mupdf = { version = "0.8", default-features = false, features = ["base14-fonts"], optional = true }
+mupdf = { version = "0.8", default-features = false, features = ["base14-fonts"] }
 
-# MuPDF compiles its own C sources - minutes of build for a dependency only pdf_import needs. Off by
-# default so the pure-Rust converters (obj/ply/xyz) build in seconds; import_drawings.sh passes
-# `--features pdf`.
-[features]
-default = []
-pdf = ["dep:mupdf"]
-
-[lib]
-name = "session_io"
-path = "src/lib.rs"
-
-# pdf_import keeps src/main.rs; the pure-Rust converters live in src/bin/ and are auto-discovered.
 [[bin]]
 name = "pdf_import"
 path = "src/main.rs"
-required-features = ["pdf"]
 
 [profile.release]
 opt-level = 3
