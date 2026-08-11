@@ -7,7 +7,7 @@
 
 Session is a multi-language geometry kernel implemented three times over — in Python, C++ and
 Rust — with identical APIs, shared protobuf schemas, and a test suite that runs the same
-assertions in every language. It covers 40+ geometry classes: points, curves, surfaces, meshes,
+assertions in every language. It covers 47 tested classes: points, curves, surfaces, meshes,
 BReps with boolean operations, and spatial indices.
 
 C++ is the ground truth; Python and Rust are ported from it with matching APIs, variable names
@@ -48,59 +48,65 @@ only and never committed.
 ## Key API files
 
 One file = one class, or one tightly-coupled group (`tree` contains `Tree` + `TreeNode`; `graph`
-contains `Graph` + `Vertex` + `Edge`). Status reflects manual cross-language parity review
-(Python / Rust / C++).
+contains `Graph` + `Vertex` + `Edge`).
 
-- [ ] `aabb`
-- [ ] `boolean_polyline`
-- [ ] `brep`
-- [ ] `closest`
+Status is computed from the latest test run: a class is ticked when all three languages
+emit the **same set of test names**. Currently **33 of 47** classes are at full parity.
+
+- [x] `aabb`
+- [x] `boolean_polyline`
+- [ ] `brep` — Python missing 4; Rust missing 5; C++ missing 1
+- [x] `closest`
 - [x] `color`
-- [ ] `convex_hull`
-- [ ] `element`
-- [ ] `element_beam`
-- [ ] `element_column`
-- [ ] `element_plate`
-- [ ] `file_encoders`
-- [ ] `file_obj`
-- [ ] `graph`
-- [ ] `instance_ref`
-- [ ] `intersection`
-- [ ] `io`
-- [ ] `line`
-- [ ] `matrix`
-- [x] `mesh`
-- [ ] `mesh_offset`
-- [x] `nurbscurve`
+- [x] `convex_hull`
+- [x] `element`
+- [x] `element_beam`
+- [x] `element_column`
+- [x] `element_plate`
+- [x] `file_encoders`
+- [x] `file_obj`
+- [ ] `file_step` — only C++
+- [x] `graph`
+- [x] `instance_ref`
+- [ ] `intersection` — Python missing 1; C++ missing 1
+- [ ] `io` — only Python, Rust
+- [ ] `io_xyz` — only C++
+- [x] `line`
+- [x] `matrix`
+- [ ] `mesh` — Python missing 5; Rust missing 31; C++ missing 1
+- [x] `mesh_offset`
+- [ ] `nurbscurve` — Python missing 1; Rust missing 3
 - [x] `nurbsknot`
-- [x] `nurbssurface`
-- [ ] `nurbssurface_trimmed`
-- [ ] `obb`
-- [ ] `objects`
-- [ ] `plane`
-- [ ] `point`
-- [ ] `pointcloud`
-- [ ] `polyline`
-- [ ] `primitives`
+- [ ] `nurbssurface` — Python missing 1; Rust missing 1
+- [x] `nurbssurface_trimmed`
+- [x] `obb`
+- [ ] `objects` — Python missing 2; Rust missing 2; C++ missing 2
+- [x] `plane`
+- [x] `point`
+- [x] `pointcloud`
+- [x] `polyline`
+- [ ] `primitives` — Rust missing 5
 - [x] `quaternion`
-- [x] `remesh_cdt`
-- [x] `remesh_nurbssurface_adaptive`
+- [ ] `remesh_cdt` — Python missing 1; Rust missing 1
+- [ ] `remesh_nurbssurface_adaptive` — Rust missing 1
 - [x] `remesh_nurbssurface_grid`
-- [ ] `session`
-- [ ] `session_config`
-- [ ] `spatial_aabbtree`
-- [ ] `spatial_bvh`
-- [ ] `spatial_kdtree`
-- [ ] `spatial_rtree`
-- [ ] `tolerance`
-- [ ] `tree`
-- [ ] `vector`
+- [ ] `session` — Python missing 3; C++ missing 3
+- [x] `session_config`
+- [x] `spatial_aabbtree`
+- [x] `spatial_bvh`
+- [x] `spatial_kdtree`
+- [x] `spatial_rtree`
+- [x] `tolerance`
+- [x] `tree`
+- [ ] `vector` — C++ missing 1
 - [x] `xform`
 
-Language-specific modules outside the parity set: `file_step` and the `brep_*` internals
-(`bds`, `commonblock`, `massprops`, `samedomain`, `section`) are C++ only; `mesh_boolean`,
-`render_mesh` and `guid_serde` are Rust only; `element_schoring` is Python only. C++ names its
-IO module `io_xyz`.
+Regenerate this status with `./bash/minitest.sh` — it rewrites the per-class JSON under
+`session_tests/<language>/` that the table above is derived from.
+
+Modules with no cross-language test set: `mesh_boolean`, `render_mesh` and `guid_serde` are Rust
+only; `element_schoring` is Python only; the `brep_*` internals (`bds`, `commonblock`,
+`massprops`, `samedomain`, `section`) are C++ only.
 
 ## Prerequisites
 
@@ -183,8 +189,9 @@ cd session_py && uv pip install -e . && cd ..
 | `./bash/minitest.sh` | Full test + web viewer at localhost:8769 |
 | `./bash/quicktest.sh <class> --py` | Single class test |
 
-Tests are identical across all three languages — same names, same logic, same line count — so a
-divergence in any language shows up as a failing cell in the viewer.
+Tests are meant to be identical across all three languages — same names, same logic, same line
+count — so any divergence shows up as a mismatched cell in the viewer. The
+[Key API files](#key-api-files) table tracks where that goal currently holds.
 
 ## Working with submodules
 
