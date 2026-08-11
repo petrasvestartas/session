@@ -2,6 +2,7 @@
 build/
 target/
 dist/
+dist_*/
 out/
 node_modules/
 
