@@ -3,30 +3,57 @@
 ![Python](https://img.shields.io/badge/Python-3670A0?logo=python&logoColor=ffdd54)
 ![C++](https://img.shields.io/badge/C++-00599C?logo=cplusplus&logoColor=white)
 ![Rust](https://img.shields.io/badge/Rust-000000?logo=rust&logoColor=white)
+![WebGPU](https://img.shields.io/badge/WebGPU-005A9C?logo=webgpu&logoColor=white)
 
-Session is a multi-language geometry kernel (Python, C++, Rust) with shared protobuf schemas and a Vue test viewer. Implements 35+ geometry classes including points, curves, surfaces, meshes, and spatial data structures.
+Session is a multi-language geometry kernel implemented three times over — in Python, C++ and
+Rust — with identical APIs, shared protobuf schemas, and a test suite that runs the same
+assertions in every language. It covers 40+ geometry classes: points, curves, surfaces, meshes,
+BReps with boolean operations, and spatial indices.
+
+C++ is the ground truth; Python and Rust are ported from it with matching APIs, variable names
+and test logic.
 
 See the [Session documentation](https://petrasvestartas.github.io/session/).
 
-## Code structure
+## Repository layout
+
+The three kernels and the shared schema/data live in Git submodules:
 
 | Submodule | Description |
 |-----------|-------------|
+| [`session_cpp`](https://github.com/petrasvestartas/session_cpp) | C++ kernel — ground truth |
 | [`session_py`](https://github.com/petrasvestartas/session_py) | Python kernel |
 | [`session_rust`](https://github.com/petrasvestartas/session_rust) | Rust kernel |
-| [`session_cpp`](https://github.com/petrasvestartas/session_cpp) | C++ kernel |
+| [`session_proto`](https://github.com/petrasvestartas/session_proto) | Protobuf schemas shared by all three |
+| [`session_data`](https://github.com/petrasvestartas/session_data) | Geometry datasets used by tests and demos |
 | [`session_rhino`](https://github.com/petrasvestartas/session_rhino) | RhinoCommon converters |
-| [`session_data`](https://github.com/petrasvestartas/session_data) | Geometry dataset |
-| [`session_proto`](https://github.com/petrasvestartas/session_proto) | Protobuf schemas |
+
+Everything else lives directly in this repository:
+
+| Directory | Description |
+|-----------|-------------|
+| `session_viewer` | Browser-only WebGPU CAD viewer (Rust → WASM via Trunk). Camera-relative f64, reverse-Z depth, CPU ray + BVH picking. `docs/` holds 100+ numbered lessons that build it from scratch. |
+| `session_tests` | Vue 3 test viewer — renders the per-class JSON results from all three languages side by side |
+| `validation` | Oracle harness that checks kernel output against OCCT and Rhino (boolean truth tables, curve/surface evaluation, Hausdorff comparisons) |
+| `bash` | Build, test and git automation — `minitest.sh` is the main entry point |
+| `serialization` | Round-trip protobuf/JSON fixtures |
+| `automation` | Long-running boolean-campaign task queue and notes |
+| `session_compas` | COMPAS framework interop |
+| `session_viewer_archive` | Previous viewer generation, kept for reference |
+| `.claude/occt` | OCCT boolean buildspec (P0–P9) and the six `OCCT_STUDY_*.md` reverse-engineering studies |
+
+`uvsession/` (Python virtualenv) and build directories (`target/`, `build/`, `dist*/`) are local
+only and never committed.
 
 ## Key API files
 
-One file = one class (or one tightly-coupled group like `graph` which contains `Graph` + `Vertex` + `Edge`). Status reflects manual cross-language parity review (Python / Rust / C++).
+One file = one class, or one tightly-coupled group (`tree` contains `Tree` + `TreeNode`; `graph`
+contains `Graph` + `Vertex` + `Edge`). Status reflects manual cross-language parity review
+(Python / Rust / C++).
 
 - [ ] `aabb`
 - [ ] `boolean_polyline`
 - [ ] `brep`
-- [ ] `bvh`
 - [ ] `closest`
 - [x] `color`
 - [ ] `convex_hull`
@@ -35,17 +62,20 @@ One file = one class (or one tightly-coupled group like `graph` which contains `
 - [ ] `element_column`
 - [ ] `element_plate`
 - [ ] `file_encoders`
+- [ ] `file_obj`
 - [ ] `graph`
+- [ ] `instance_ref`
 - [ ] `intersection`
-- [ ] `kdtree`
-- [x] `nurbsknot`
+- [ ] `io`
 - [ ] `line`
 - [ ] `matrix`
 - [x] `mesh`
+- [ ] `mesh_offset`
 - [x] `nurbscurve`
+- [x] `nurbsknot`
 - [x] `nurbssurface`
+- [ ] `nurbssurface_trimmed`
 - [ ] `obb`
-- [ ] `file_obj`
 - [ ] `objects`
 - [ ] `plane`
 - [ ] `point`
@@ -56,15 +86,21 @@ One file = one class (or one tightly-coupled group like `graph` which contains `
 - [x] `remesh_cdt`
 - [x] `remesh_nurbssurface_adaptive`
 - [x] `remesh_nurbssurface_grid`
-- [ ] `rtree`
 - [ ] `session`
 - [ ] `session_config`
+- [ ] `spatial_aabbtree`
+- [ ] `spatial_bvh`
+- [ ] `spatial_kdtree`
+- [ ] `spatial_rtree`
 - [ ] `tolerance`
 - [ ] `tree`
-- [ ] `treenode`
-- [ ] `nurbssurface_trimmed`
 - [ ] `vector`
 - [x] `xform`
+
+Language-specific modules outside the parity set: `file_step` and the `brep_*` internals
+(`bds`, `commonblock`, `massprops`, `samedomain`, `section`) are C++ only; `mesh_boolean`,
+`render_mesh` and `guid_serde` are Rust only; `element_schoring` is Python only. C++ names its
+IO module `io_xyz`.
 
 ## Prerequisites
 
@@ -73,8 +109,17 @@ One file = one class (or one tightly-coupled group like `graph` which contains `
 | **CMake** | `brew install cmake` | `sudo apt install cmake` | [cmake.org](https://cmake.org/download/) |
 | **Python 3.11+** | `brew install python` | `sudo apt install python3` | [python.org](https://python.org) |
 | **Rust** | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \| sh` | same | [rustup.rs](https://rustup.rs) |
-| **Bun** | `brew install bun` | `curl -fsSL https://bun.sh/install \| bash` | [bun.sh](https://bun.sh) |
+| **Node 20+** | `brew install node` | `sudo apt install nodejs npm` | [nodejs.org](https://nodejs.org) |
 | **C++ compiler** | `xcode-select --install` | `sudo apt install build-essential` | [Visual Studio](https://visualstudio.microsoft.com/) |
+
+For `session_viewer` only:
+
+```bash
+rustup target add wasm32-unknown-unknown
+cargo install trunk
+```
+
+plus a WebGPU-capable browser (Chrome, Edge, Firefox, or Safari 18+).
 
 ## Getting Started
 
@@ -89,40 +134,6 @@ If you already cloned without submodules:
 
 ```bash
 git submodule update --init --recursive
-```
-
-### Working with submodules
-
-The language kernels and shared data/proto definitions are Git submodules:
-
-| Submodule | Remote |
-|-----------|--------|
-| `session_cpp` | https://github.com/petrasvestartas/session_cpp.git |
-| `session_py` | https://github.com/petrasvestartas/session_py.git |
-| `session_rust` | https://github.com/petrasvestartas/session_rust.git |
-| `session_rhino` | https://github.com/petrasvestartas/session_rhino.git |
-| `session_data` | https://github.com/petrasvestartas/session_data.git |
-| `session_proto` | https://github.com/petrasvestartas/session_proto.git |
-
-Pull the main repo and all submodules:
-
-```bash
-./bash/git_pull.sh          # or: git pull && git submodule update --init --recursive
-```
-
-Commit and push changes across all submodules **and** the main repo in one step:
-
-```bash
-./bash/git_push.sh "your commit message"
-```
-
-Add a new submodule:
-
-```bash
-git submodule add <repo-url> <folder-name>
-git submodule update --init --recursive
-git commit -am "Add submodule <folder-name>"
-git push
 ```
 
 ## New PC Setup
@@ -170,11 +181,44 @@ cd session_py && uv pip install -e . && cd ..
 | `./bash/minitest.sh --cpp --no-web` | C++ tests only |
 | `./bash/minitest.sh --fast` | Skip dependency installs |
 | `./bash/minitest.sh` | Full test + web viewer at localhost:8769 |
+| `./bash/quicktest.sh <class> --py` | Single class test |
+
+Tests are identical across all three languages — same names, same logic, same line count — so a
+divergence in any language shows up as a failing cell in the viewer.
+
+## Working with submodules
+
+Pull the main repo and all submodules:
+
+```bash
+./bash/git_pull.sh          # or: git pull && git submodule update --init --recursive
+```
+
+Commit and push changes across all submodules **and** the main repo in one step:
+
+```bash
+./bash/git_push.sh "your commit message"
+```
+
+Add a new submodule:
+
+```bash
+git submodule add <repo-url> <folder-name>
+git submodule update --init --recursive
+git commit -am "Add submodule <folder-name>"
+git push
+```
 
 ## Breaking-Change Detection
 
 Breaking changes in `session-py` or protobuf schemas are caught before they ship:
 
-**Python API diff (`griffe`)** — runs in CI on every push to `main`. Compares the current branch against the last published PyPI version. Reports exactly which class, method, or parameter was removed or renamed with file path and line number.
+**Python API diff (`griffe`)** — runs in CI on every push to `main`. Compares the current branch
+against the last published PyPI version. Reports exactly which class, method, or parameter was
+removed or renamed with file path and line number.
 
-**Protobuf schema diff (`buf`)** — runs in `session_proto` CI on every push/PR. Catches removed fields, renamed messages, and changed field numbers before they break serialization silently. Config: `session_proto/buf.yaml`.
+**Protobuf schema diff (`buf`)** — runs in `session_proto` CI on every push/PR. Catches removed
+fields, renamed messages, and changed field numbers before they break serialization silently.
+Config: `session_proto/buf.yaml`.
+
+CI runs the full minitest matrix on Ubuntu 22.04, macOS 15 (ARM64 and Intel) and Windows.
