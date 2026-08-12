@@ -26,6 +26,9 @@ jobs:
     name: minitest-${{ matrix.language }} (${{ matrix.os }})
     env:
       MINITEST_JOBS: "4"
+      # mupdf-sys invokes `make libs` with no -j; without this the MuPDF C compile is
+      # single-threaded on cold cargo cache. Runners have 4 cores. Ignored by msbuild.
+      MAKEFLAGS: "--jobs=4"
 
     steps:
     - name: Checkout repo with submodules
