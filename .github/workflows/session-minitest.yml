@@ -71,6 +71,18 @@ jobs:
         key: rust-${{ matrix.os }}-${{ hashFiles('session_rust/Cargo.lock') }}
         restore-keys: rust-${{ matrix.os }}-
 
+    # CMake configures into session_cpp/build and FetchContent builds protobuf there; uncached
+    # this is 8-17 min per cpp job (the critical path). test_cpp.sh skips configure and does an
+    # incremental build when build/ exists, so restoring it turns a cold build into a warm one.
+    # Keyed on the sources, never on build/ itself.
+    - name: Cache C++ build dir
+      if: matrix.language == 'cpp' || matrix.language == 'full'
+      uses: actions/cache@v5
+      with:
+        path: session_cpp/build/
+        key: cpp-${{ matrix.os }}-${{ hashFiles('session_cpp/CMakeLists.txt', 'session_cpp/src/**', 'session_cpp/generated/**', 'session_cpp/main*.cpp', 'session_cpp/*.h', 'session_cpp/session_proto/**') }}
+        restore-keys: cpp-${{ matrix.os }}-
+
     # ============ SETUP ============
 
     - name: Set up Rust (Unix)
