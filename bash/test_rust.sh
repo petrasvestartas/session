@@ -35,12 +35,22 @@ fi
 cd "$RUST_DIR"
 JOBS=$(get_jobs)
 
-# The PDF importer is a Rust-only extra behind --features pdf. Enable it locally so the Pdf class
-# shows up in the viewer, but NOT in CI: mupdf-sys compiles MuPDF's C sources through bindgen and
-# CI has no clang install step on its four platforms.
+# The PDF importer is a Rust-only extra behind --features pdf. On by default locally so the Pdf
+# class shows up in the viewer. In CI it is driven by SESSION_PDF, which the workflow sets on Linux
+# only: mupdf-sys compiles MuPDF's C sources through bindgen/libclang, so one platform covers the
+# importer without making macOS and Windows pay for it. Where it is off, the Pdf class is SKIPped.
 PDF_FEATURE=()
-if [[ -z "${CI:-}" && -z "${GITHUB_ACTIONS:-}" ]]; then
+if [[ "${SESSION_PDF:-}" == "1" ]] || [[ -z "${CI:-}" && -z "${GITHUB_ACTIONS:-}" ]]; then
     PDF_FEATURE=(--features pdf)
+
+    # bindgen needs the host C standard headers on some Linux setups where libclang
+    # does not discover the GCC include tree automatically.
+    if [[ -z "${BINDGEN_EXTRA_CLANG_ARGS:-}" ]] && [[ "$(detect_platform)" != "windows" ]]; then
+        GCC_INCLUDE_DIR="$(cc -print-file-name=include 2>/dev/null || true)"
+        if [[ -n "$GCC_INCLUDE_DIR" && -f "${GCC_INCLUDE_DIR}/stddef.h" ]]; then
+            export BINDGEN_EXTRA_CLANG_ARGS="-I${GCC_INCLUDE_DIR}"
+        fi
+    fi
 fi
 
 if [[ "$DEV_MODE" == "true" ]]; then

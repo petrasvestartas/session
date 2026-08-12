@@ -121,3 +121,9 @@ __audit_*.txt
 validation/occt_trace/traces/
 validation/v2_trace/traces/
 
+
+# Conditionally produced: only written when session_rust runs --features pdf (locally or the
+# Linux CI job via SESSION_PDF=1). Must NOT be committed - on pdf-less runs (macOS/Windows CI)
+# the class-summary guard counts any existing JSON as passing, so a committed copy is a phantom
+# pass for a test that never ran. It is deliberately untracked.
+session_tests/session_rust/pdf_test.json
